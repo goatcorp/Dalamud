@@ -364,7 +364,7 @@ public static partial class Util
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudOrange, "-> Properties:"u8);
+        ImGui.TextColored(ImGuiColors.DalamudOrange, "-> Properties:"u8);
 
         ImGui.Indent();
 
@@ -372,16 +372,16 @@ public static partial class Util
         {
             if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
             {
-                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: (ref typed property)");
+                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: (ref typed property)");
             }
             else
             {
                 var value = p.GetValue(obj);
                 var valueType = value?.GetType();
                 if (valueType == typeof(IntPtr))
-                    ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: 0x{value:X}");
+                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: 0x{value:X}");
                 else
-                    ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: {value}");
+                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: {value}");
             }
         }
 
@@ -389,13 +389,13 @@ public static partial class Util
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGuiHelpers.SafeTextColored(ImGuiColors.HealerGreen, "-> Fields:"u8);
+        ImGui.TextColored(ImGuiColors.HealerGreen, "-> Fields:"u8);
 
         ImGui.Indent();
 
         foreach (var fieldInfo in type.GetFields())
         {
-            ImGuiHelpers.SafeTextColored(ImGuiColors.HealerGreen, $"    {fieldInfo.Name}: {fieldInfo.GetValue(obj)}");
+            ImGui.TextColored(ImGuiColors.HealerGreen, $"    {fieldInfo.Name}: {fieldInfo.GetValue(obj)}");
         }
 
         ImGui.Unindent();
@@ -1078,7 +1078,7 @@ public static partial class Util
                     {
                         ImGui.Text("fixed"u8);
                         ImGui.SameLine();
-                        ImGuiHelpers.SafeTextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
+                        ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
                     }
                     else
                     {
@@ -1088,11 +1088,11 @@ public static partial class Util
                             ImGui.SameLine();
                         }
 
-                        ImGuiHelpers.SafeTextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
+                        ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
                     }
 
                     ImGui.SameLine();
-                    ImGuiHelpers.SafeTextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
+                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
                     ImGui.SameLine();
 
                     pathList.Add(f.Name);
@@ -1126,9 +1126,9 @@ public static partial class Util
 
                 foreach (var p in obj.GetType().GetProperties().Where(static p => p.GetGetMethod()?.GetParameters().Length == 0))
                 {
-                    ImGuiHelpers.SafeTextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
+                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
                     ImGui.SameLine();
-                    ImGuiHelpers.SafeTextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
+                    ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
                     ImGui.SameLine();
 
                     pathList.Add(p.Name);

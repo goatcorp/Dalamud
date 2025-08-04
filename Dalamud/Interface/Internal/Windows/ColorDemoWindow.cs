@@ -60,7 +60,7 @@ internal sealed class ColorDemoWindow : Window
         foreach (var property in typeof(ImGuiColors).GetProperties(BindingFlags.Public | BindingFlags.Static))
         {
             var color = (Vector4)property.GetValue(null);
-            ImGuiHelpers.SafeTextColored(color, property.Name);
+            ImGui.TextColored(color, property.Name);
         }
     }
 }

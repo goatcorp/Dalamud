@@ -135,11 +135,11 @@ internal class SelfTestWindow : Window
 
             if (this.testIndexToResult.Any(x => x.Value.Result == SelfTestStepResult.Fail))
             {
-                ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, "One or more checks failed!"u8);
+                ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, "One or more checks failed!"u8);
             }
             else
             {
-                ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.HealerGreen, "All checks passed!"u8);
+                ImGui.TextColoredWrapped(ImGuiColors.HealerGreen, "All checks passed!"u8);
             }
 
             return;
@@ -234,13 +234,13 @@ internal class SelfTestWindow : Window
                 switch (result.Result)
                 {
                     case SelfTestStepResult.Pass:
-                        ImGuiHelpers.SafeTextColored(ImGuiColors.HealerGreen, "PASS"u8);
+                        ImGui.TextColored(ImGuiColors.HealerGreen, "PASS"u8);
                         break;
                     case SelfTestStepResult.Fail:
-                        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "FAIL"u8);
+                        ImGui.TextColored(ImGuiColors.DalamudRed, "FAIL"u8);
                         break;
                     default:
-                        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, "NR"u8);
+                        ImGui.TextColored(ImGuiColors.DalamudGrey, "NR"u8);
                         break;
                 }
 
@@ -257,11 +257,11 @@ internal class SelfTestWindow : Window
                 ImGui.AlignTextToFramePadding();
                 if (this.selfTestRunning && this.currentStep == i)
                 {
-                    ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, "WAIT"u8);
+                    ImGui.TextColored(ImGuiColors.DalamudGrey, "WAIT"u8);
                 }
                 else
                 {
-                    ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, "NR"u8);
+                    ImGui.TextColored(ImGuiColors.DalamudGrey, "NR"u8);
                 }
 
                 ImGui.TableSetColumnIndex(3);

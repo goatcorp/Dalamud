@@ -71,7 +71,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
             }
         }
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
 
         ImGuiHelpers.ScaledDummy(2);
 
@@ -80,24 +80,24 @@ public class ThirdRepoSettingsEntry : SettingsEntry
 
         ImGui.PushFont(InterfaceManager.IconFont);
         ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
-        ImGuiHelpers.SafeTextWrapped(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+        ImGui.TextWrapped(FontAwesomeIcon.ExclamationTriangle.ToIconString());
         ImGui.PopFont();
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(2);
         ImGui.SameLine();
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarningReadThis", "READ THIS FIRST!"));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarningReadThis", "READ THIS FIRST!"));
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(2);
         ImGui.SameLine();
         ImGui.PushFont(InterfaceManager.IconFont);
-        ImGuiHelpers.SafeTextWrapped(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+        ImGui.TextWrapped(FontAwesomeIcon.ExclamationTriangle.ToIconString());
         ImGui.PopFont();
 
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning", "We cannot take any responsibility for custom plugins and repositories."));
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning5", "If someone told you to copy/paste something here, it's very possible that you are being scammed or taken advantage of."));
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning2", "Plugins have full control over your PC, like any other program, and may cause harm or crashes."));
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning4", "They can delete your character, steal your FC or Discord account, and burn down your house."));
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning3", "Please make absolutely sure that you only install plugins from developers you trust."));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning", "We cannot take any responsibility for custom plugins and repositories."));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning5", "If someone told you to copy/paste something here, it's very possible that you are being scammed or taken advantage of."));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning2", "Plugins have full control over your PC, like any other program, and may cause harm or crashes."));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning4", "They can delete your character, steal your FC or Discord account, and burn down your house."));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning3", "Please make absolutely sure that you only install plugins from developers you trust."));
 
         ImGui.PopStyleColor();
 
@@ -262,7 +262,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
 
         if (!string.IsNullOrEmpty(this.thirdRepoAddError))
         {
-            ImGuiHelpers.SafeTextColoredWrapped(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
+            ImGui.TextColoredWrapped(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
         }
     }
 

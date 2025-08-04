@@ -158,7 +158,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         if (this.exceptionLogFilter is not null)
         {
-            ImGuiHelpers.SafeTextColored(
+            ImGui.TextColored(
                 ImGuiColors.DalamudRed,
                 $"Regex Filter Error: {this.exceptionLogFilter.GetType().Name}");
             ImGui.Text(this.exceptionLogFilter.Message);
@@ -166,7 +166,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         if (this.exceptionLogHighlight is not null)
         {
-            ImGuiHelpers.SafeTextColored(
+            ImGui.TextColored(
                 ImGuiColors.DalamudRed,
                 $"Regex Highlight Error: {this.exceptionLogHighlight.GetType().Name}");
             ImGui.Text(this.exceptionLogHighlight.Message);
@@ -734,7 +734,7 @@ internal class ConsoleWindow : Window, IDisposable
 
             if (sourceNames.Count == 0)
             {
-                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "No Results"u8);
+                ImGui.TextColored(ImGuiColors.DalamudRed, "No Results"u8);
             }
 
             foreach (var selectable in sourceNames)

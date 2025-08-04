@@ -123,7 +123,7 @@ public unsafe partial class AddonTree : IDisposable
         ImGui.SameLine();
 
         ImGui.SameLine();
-        ImGuiHelpers.SafeTextColored(isVisible ? new Vector4(0.1f, 1f, 0.1f, 1f) : new(0.6f, 0.6f, 0.6f, 1), isVisible ? "Visible"u8 : "Not Visible"u8);
+        ImGui.TextColored(isVisible ? new Vector4(0.1f, 1f, 0.1f, 1f) : new(0.6f, 0.6f, 0.6f, 1), isVisible ? "Visible"u8 : "Not Visible"u8);
 
         ImGui.SameLine(ImGui.GetWindowWidth() - 100);
 

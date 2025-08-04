@@ -73,7 +73,7 @@ internal class CommandWidget : IDataWindowWidget
                 ImGui.Text(commandManager.GetHandlerAssemblyName(command.Key, command.Value));
 
                 ImGui.TableNextColumn();
-                ImGuiHelpers.SafeTextWrapped(command.Value.HelpMessage);
+                ImGui.TextWrapped(command.Value.HelpMessage);
 
                 ImGui.TableNextColumn();
                 ImGui.Text(command.Value.ShowInHelp ? "Yes" : "No");

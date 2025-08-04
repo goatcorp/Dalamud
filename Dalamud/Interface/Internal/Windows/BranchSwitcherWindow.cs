@@ -61,7 +61,7 @@ public class BranchSwitcherWindow : Window
     {
         if (this.branches == null)
         {
-            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, "Loading branches..."u8);
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "Loading branches..."u8);
             return;
         }
 
@@ -74,7 +74,7 @@ public class BranchSwitcherWindow : Window
 
         if (pickedBranch.Value.SupportedGameVer != si.GameVersion)
         {
-            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "Can't pick this branch. GameVer != SupportedGameVer."u8);
+            ImGui.TextColored(ImGuiColors.DalamudRed, "Can't pick this branch. GameVer != SupportedGameVer."u8);
         }
         else
         {

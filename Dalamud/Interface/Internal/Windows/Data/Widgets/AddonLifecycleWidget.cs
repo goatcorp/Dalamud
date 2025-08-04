@@ -132,7 +132,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
                 {
                     var color = receiveEventListener.Hook.IsEnabled ? ImGuiColors.HealerGreen : ImGuiColors.DalamudRed;
                     var text = receiveEventListener.Hook.IsEnabled ? "Enabled"u8 : "Disabled"u8;
-                    ImGuiHelpers.SafeTextColored(color, text);
+                    ImGui.TextColored(color, text);
                 }
 
                 ImGui.Columns(1);

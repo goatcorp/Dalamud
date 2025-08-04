@@ -357,24 +357,24 @@ internal sealed class ChangelogWindow : Window, IDisposable
                 {
                     case State.WindowFadeIn:
                     case State.ExplainerIntro:
-                        ImGuiHelpers.SafeTextWrapped($"Welcome to Dalamud v{Util.GetScmVersion()}!");
+                        ImGui.TextWrapped($"Welcome to Dalamud v{Util.GetScmVersion()}!");
                         ImGuiHelpers.ScaledDummy(5);
-                        ImGuiHelpers.SafeTextWrapped(ChangeLog);
+                        ImGui.TextWrapped(ChangeLog);
                         ImGuiHelpers.ScaledDummy(5);
-                        ImGuiHelpers.SafeTextWrapped("This changelog is a quick overview of the most important changes in this version."u8);
-                        ImGuiHelpers.SafeTextWrapped("Please click next to see a quick guide to updating your plugins."u8);
+                        ImGui.TextWrapped("This changelog is a quick overview of the most important changes in this version."u8);
+                        ImGui.TextWrapped("Please click next to see a quick guide to updating your plugins."u8);
 
                         DrawNextButton(State.ExplainerApiBump);
                         break;
 
                     case State.ExplainerApiBump:
-                        ImGuiHelpers.SafeTextWrapped("Take care! Due to changes in this patch, all of your plugins need to be updated and were disabled automatically."u8);
-                        ImGuiHelpers.SafeTextWrapped("This is normal and required for major game updates."u8);
+                        ImGui.TextWrapped("Take care! Due to changes in this patch, all of your plugins need to be updated and were disabled automatically."u8);
+                        ImGui.TextWrapped("This is normal and required for major game updates."u8);
                         ImGuiHelpers.ScaledDummy(5);
-                        ImGuiHelpers.SafeTextWrapped("To update your plugins, open the plugin installer and click 'update plugins'. Updated plugins should update and then re-enable themselves."u8);
+                        ImGui.TextWrapped("To update your plugins, open the plugin installer and click 'update plugins'. Updated plugins should update and then re-enable themselves."u8);
                         ImGuiHelpers.ScaledDummy(5);
-                        ImGuiHelpers.SafeTextWrapped("Please keep in mind that not all of your plugins may already be updated for the new version."u8);
-                        ImGuiHelpers.SafeTextWrapped("If some plugins are displayed with a red cross in the 'Installed Plugins' tab, they may not yet be available."u8);
+                        ImGui.TextWrapped("Please keep in mind that not all of your plugins may already be updated for the new version."u8);
+                        ImGui.TextWrapped("If some plugins are displayed with a red cross in the 'Installed Plugins' tab, they may not yet be available."u8);
 
                         ImGuiHelpers.ScaledDummy(15);
 
@@ -398,15 +398,15 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         break;
 
                     case State.AskAutoUpdate:
-                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateHint",
+                        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateHint",
                                                 "Dalamud can update your plugins automatically, making sure that you always " +
                                                 "have the newest features and bug fixes. You can choose when and how auto-updates are run here."));
                         ImGuiHelpers.ScaledDummy(2);
 
-                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer1",
+                        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer1",
                                                                 "You can always update your plugins manually by clicking the update button in the plugin list. " +
                                                                 "You can also opt into updates for specific plugins by right-clicking them and selecting \"Always auto-update\"."));
-                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer2",
+                        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer2",
                                                                 "Dalamud will only notify you about updates while you are idle."));
 
                         ImGuiHelpers.ScaledDummy(15);
@@ -446,8 +446,8 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         break;
 
                     case State.Links:
-                        ImGuiHelpers.SafeTextWrapped("If you note any issues or need help, please check the FAQ, and reach out on our Discord if you need help."u8);
-                        ImGuiHelpers.SafeTextWrapped("Enjoy your time with the game and Dalamud!"u8);
+                        ImGui.TextWrapped("If you note any issues or need help, please check the FAQ, and reach out on our Discord if you need help."u8);
+                        ImGui.TextWrapped("Enjoy your time with the game and Dalamud!"u8);
 
                         ImGuiHelpers.ScaledDummy(45);
 

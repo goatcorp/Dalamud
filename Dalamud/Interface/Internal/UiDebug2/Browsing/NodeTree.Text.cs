@@ -47,7 +47,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
             return;
         }
 
-        ImGuiHelpers.SafeTextColored(new Vector4(1), "Text:"u8);
+        ImGui.TextColored(new Vector4(1), "Text:"u8);
         ImGui.SameLine();
 
         try

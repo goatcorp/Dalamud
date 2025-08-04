@@ -87,7 +87,7 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
         }
         else
         {
-            ImGuiHelpers.SafeTextWrapped(this.Name);
+            ImGui.TextWrapped(this.Name);
 
             var idx = this.valueBacking;
             var values = Enum.GetValues<T>();
@@ -119,11 +119,11 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
             var desc = this.FriendlyEnumDescriptionGetter(this.valueBacking);
             if (!string.IsNullOrWhiteSpace(desc))
             {
-                ImGuiHelpers.SafeTextWrapped(desc);
+                ImGui.TextWrapped(desc);
                 ImGuiHelpers.ScaledDummy(2);
             }
 
-            ImGuiHelpers.SafeTextWrapped(this.Description);
+            ImGui.TextWrapped(this.Description);
         }
 
         if (this.CheckValidity != null)

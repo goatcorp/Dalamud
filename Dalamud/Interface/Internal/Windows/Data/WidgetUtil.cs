@@ -15,7 +15,7 @@ internal class WidgetUtil
     /// <param name="tooltipText">The text in the tooltip.</param>
     internal static void DrawCopyableText(string text, string tooltipText = "Copy")
     {
-        ImGuiHelpers.SafeTextWrapped(text);
+        ImGui.TextWrapped(text);
 
         if (ImGui.IsItemHovered())
         {

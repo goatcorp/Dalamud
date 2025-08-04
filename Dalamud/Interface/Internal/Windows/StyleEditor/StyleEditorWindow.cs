@@ -202,7 +202,7 @@ public class StyleEditorWindow : Window
 
         if (isBuiltinStyle)
         {
-            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, Loc.Localize("StyleEditorNotAllowed", "You cannot edit built-in styles. Please add a new style first."));
+            ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("StyleEditorNotAllowed", "You cannot edit built-in styles. Please add a new style first."));
         }
         else if (appliedThisFrame)
         {

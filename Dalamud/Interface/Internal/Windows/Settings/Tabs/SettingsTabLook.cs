@@ -162,7 +162,7 @@ public class SettingsTabLook : SettingsTab
         {
             CustomDraw = static e =>
             {
-                ImGuiHelpers.SafeTextWrapped(e.Name!);
+                ImGui.TextWrapped(e.Name!);
 
                 var v = e.Value * 100f;
                 if (ImGui.SliderFloat($"###{e}", ref v, 0f, 100f, "%.1f%%"))
@@ -223,11 +223,11 @@ public class SettingsTabLook : SettingsTab
             interfaceManager.RebuildFonts();
         }
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale text in all XIVLauncher UI elements - this is useful for 4K displays."));
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale text in all XIVLauncher UI elements - this is useful for 4K displays."));
 
         if (fontBuildTask.IsFaulted || fontBuildTask.IsCanceled)
         {
-            ImGuiHelpers.SafeTextColored(
+            ImGui.TextColored(
                 ImGuiColors.DalamudRed,
                 Loc.Localize("DalamudSettingsFontBuildFaulted", "Failed to load fonts as requested."));
             if (fontBuildTask.Exception is not null

@@ -183,13 +183,13 @@ internal unsafe partial class ResNodeTree : IDisposable
         if (fieldOffset != null)
         {
             ImGui.SameLine(0, -1);
-            ImGuiHelpers.SafeTextColored(color * 0.85f, $"[0x{fieldOffset:X}]");
+            ImGui.TextColored(color * 0.85f, $"[0x{fieldOffset:X}]");
         }
 
         if (this.AddonTree.FieldNames.TryGetValue(ptr, out var result))
         {
             ImGui.SameLine(0, -1);
-            ImGuiHelpers.SafeTextColored(color, string.Join(".", result));
+            ImGui.TextColored(color, string.Join(".", result));
         }
     }
 

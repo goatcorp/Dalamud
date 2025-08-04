@@ -111,29 +111,29 @@ internal class ProfileManagerWidget
                 using var scrolling = ImRaii.Child("###scrolling"u8, new Vector2(-1, -1));
                 if (scrolling)
                 {
-                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialParagraphOne);
+                    ImGui.TextWrapped(Locs.TutorialParagraphOne);
                     ImGuiHelpers.ScaledDummy(5);
-                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialParagraphTwo);
+                    ImGui.TextWrapped(Locs.TutorialParagraphTwo);
                     ImGuiHelpers.ScaledDummy(5);
-                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialParagraphThree);
+                    ImGui.TextWrapped(Locs.TutorialParagraphThree);
                     ImGuiHelpers.ScaledDummy(5);
-                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialParagraphFour);
+                    ImGui.TextWrapped(Locs.TutorialParagraphFour);
                     ImGuiHelpers.ScaledDummy(5);
-                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommands);
+                    ImGui.TextWrapped(Locs.TutorialCommands);
 
                     ImGui.Bullet();
                     ImGui.SameLine();
-                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsEnable);
+                    ImGui.TextWrapped(Locs.TutorialCommandsEnable);
 
                     ImGui.Bullet();
                     ImGui.SameLine();
-                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsDisable);
+                    ImGui.TextWrapped(Locs.TutorialCommandsDisable);
 
                     ImGui.Bullet();
                     ImGui.SameLine();
-                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsToggle);
+                    ImGui.TextWrapped(Locs.TutorialCommandsToggle);
 
-                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsEnd);
+                    ImGui.TextWrapped(Locs.TutorialCommandsEnd);
                     ImGuiHelpers.ScaledDummy(5);
 
                     var buttonWidth = 120f;
@@ -557,7 +557,7 @@ internal class ProfileManagerWidget
 
             if (!didAny)
             {
-                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, Locs.NoPluginsInProfile);
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.NoPluginsInProfile);
             }
 
             ImGuiHelpers.ScaledDummy(10);

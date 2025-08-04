@@ -435,7 +435,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                 if (task.Exception != null)
                 {
                     ImGuiHelpers.ScaledDummy(15);
-                    ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "EXCEPTION:"u8);
+                    ImGui.TextColored(ImGuiColors.DalamudRed, "EXCEPTION:"u8);
                     ImGui.Text(task.Exception.ToString());
                 }
             }

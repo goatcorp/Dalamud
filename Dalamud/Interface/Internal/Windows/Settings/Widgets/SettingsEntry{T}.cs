@@ -79,7 +79,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         }
         else if (type == typeof(DirectoryInfo))
         {
-            ImGuiHelpers.SafeTextWrapped(this.Name);
+            ImGui.TextWrapped(this.Name);
 
             var value = this.Value as DirectoryInfo;
             var nativeBuffer = value?.FullName ?? string.Empty;
@@ -91,7 +91,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         }
         else if (type == typeof(string))
         {
-            ImGuiHelpers.SafeTextWrapped(this.Name);
+            ImGui.TextWrapped(this.Name);
 
             var nativeBuffer = this.Value as string ?? string.Empty;
 
@@ -113,7 +113,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
         {
-            ImGuiHelpers.SafeTextWrapped(this.Description);
+            ImGui.TextWrapped(this.Description);
         }
 
         if (this.CheckValidity != null)

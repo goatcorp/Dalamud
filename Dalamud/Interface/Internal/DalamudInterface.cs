@@ -656,7 +656,7 @@ internal class DalamudInterface : IInternalDisposableService
                         ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMouseInputs |
                         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
                 {
-                    ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, "Is force MinHook!"u8);
+                    ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, "Is force MinHook!"u8);
                 }
 
                 ImGui.End();

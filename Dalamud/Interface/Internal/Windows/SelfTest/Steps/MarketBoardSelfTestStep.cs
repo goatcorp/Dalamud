@@ -110,7 +110,7 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
                 }
                 else
                 {
-                    ImGuiHelpers.SafeTextWrapped("Does this information match the purchase you made? This is testing the request to the server."u8);
+                    ImGui.TextWrapped("Does this information match the purchase you made? This is testing the request to the server."u8);
                     ImGui.Separator();
                     ImGui.Text($"Quantity: {this.marketBoardPurchaseRequest.ItemQuantity.ToString()}");
                     ImGui.Text($"Item ID: {this.marketBoardPurchaseRequest.CatalogId}");
@@ -136,7 +136,7 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
                 }
                 else
                 {
-                    ImGuiHelpers.SafeTextWrapped("Does this information match the purchase you made? This is testing the response from the server."u8);
+                    ImGui.TextWrapped("Does this information match the purchase you made? This is testing the response from the server."u8);
                     ImGui.Separator();
                     ImGui.Text($"Quantity: {this.marketBoardPurchase.ItemQuantity.ToString()}");
                     ImGui.Text($"Item ID: {this.marketBoardPurchase.CatalogId}");
@@ -157,7 +157,7 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
             case SubStep.Taxes:
                 if (this.marketTaxRate == null)
                 {
-                    ImGuiHelpers.SafeTextWrapped("Goto a Retainer Vocate and talk to then. Click the 'View market tax rates' menu item."u8);
+                    ImGui.TextWrapped("Goto a Retainer Vocate and talk to then. Click the 'View market tax rates' menu item."u8);
                 }
                 else
                 {

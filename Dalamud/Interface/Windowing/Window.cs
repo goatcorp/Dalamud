@@ -536,13 +536,13 @@ public abstract class Window
 
                 if (isAvailable)
                 {
-                    ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey,
+                    ImGui.TextColored(ImGuiColors.DalamudGrey,
                                       Loc.Localize("WindowSystemContextActionClickthroughDisclaimer",
                                                    "Open this menu again by clicking the three dashes to disable clickthrough."));
                 }
                 else
                 {
-                    ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey,
+                    ImGui.TextColored(ImGuiColors.DalamudGrey,
                                       Loc.Localize("WindowSystemContextActionViewportDisclaimer",
                                                    "These features are only available if this window is inside the game window."));
                 }

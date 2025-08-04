@@ -90,7 +90,7 @@ internal class UldWidget : IDataWindowWidget
                 uldNames = t.Result;
                 break;
             case { Exception: { } loadException }:
-                ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, loadException.ToString());
+                ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, loadException.ToString());
                 return;
             case { IsCanceled: true }:
                 ClearTask(ref this.uldNamesTask);
@@ -138,7 +138,7 @@ internal class UldWidget : IDataWindowWidget
                 uld = this.selectedUldFileTask.Result;
                 break;
             case { Exception: { } loadException }:
-                ImGuiHelpers.SafeTextColoredWrapped(
+                ImGui.TextColoredWrapped(
                     ImGuiColors.DalamudRed,
                     $"Failed to load ULD file.\n{loadException}");
                 return;
@@ -154,7 +154,7 @@ internal class UldWidget : IDataWindowWidget
         {
             if (ForceNullable(uld.AssetData) is null)
             {
-                ImGuiHelpers.SafeTextColoredWrapped(
+                ImGui.TextColoredWrapped(
                     ImGuiColors.DalamudRed,
                     $"Error: {nameof(UldFile.AssetData)} is not populated.");
             }
@@ -176,7 +176,7 @@ internal class UldWidget : IDataWindowWidget
         {
             if (ForceNullable(uld.Timelines) is null)
             {
-                ImGuiHelpers.SafeTextColoredWrapped(
+                ImGui.TextColoredWrapped(
                     ImGuiColors.DalamudRed,
                     $"Error: {nameof(UldFile.Timelines)} is not populated.");
             }
@@ -195,7 +195,7 @@ internal class UldWidget : IDataWindowWidget
         {
             if (ForceNullable(uld.Parts) is null)
             {
-                ImGuiHelpers.SafeTextColoredWrapped(
+                ImGui.TextColoredWrapped(
                     ImGuiColors.DalamudRed,
                     $"Error: {nameof(UldFile.Parts)} is not populated.");
             }

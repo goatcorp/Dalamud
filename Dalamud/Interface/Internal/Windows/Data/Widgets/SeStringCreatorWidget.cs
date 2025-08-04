@@ -592,7 +592,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
             if (!sheet.TryGetRow((uint)this.importRowId, out var row))
             {
-                ImGuiHelpers.SafeTextColored(new Vector4(1, 0, 0, 1), "Row not found"u8);
+                ImGui.TextColored(new Vector4(1, 0, 0, 1), "Row not found"u8);
                 return;
             }
 

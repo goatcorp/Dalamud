@@ -74,7 +74,7 @@ public readonly unsafe partial struct TimelineTree
                         ("Frame Time", $"{this.NodeTimeline->FrameTime:F2} ({this.NodeTimeline->FrameTime * 30:F0})"));
 
                     PrintFieldValuePairs(("Active Label Id", $"{this.NodeTimeline->ActiveLabelId}"), ("Duration", $"{this.NodeTimeline->LabelFrameIdxDuration}"), ("End Frame", $"{this.NodeTimeline->LabelEndFrameIdx}"));
-                    ImGuiHelpers.SafeTextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "Animation List"u8);
+                    ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "Animation List"u8);
 
                     for (var a = 0; a < animationCount; a++)
                     {

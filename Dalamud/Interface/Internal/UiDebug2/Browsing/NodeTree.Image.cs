@@ -131,7 +131,7 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
         ImGui.GetWindowDrawList().AddRect(partBegin, partEnd, RgbaVector4ToUint(col));
 
         ImGui.SetCursorPos(cursorLocalPos + uv + new Vector2(0, -20));
-        ImGuiHelpers.SafeTextColored(col, $"[#{partId}]\t{part.U}, {part.V}\t{part.Width}x{part.Height}");
+        ImGui.TextColored(col, $"[#{partId}]\t{part.U}, {part.V}\t{part.Width}x{part.Height}");
         ImGui.SetCursorPos(savePos);
     }
 
@@ -207,7 +207,7 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
                 ImGui.TableNextColumn();
 
                 var col = i == this.TexData.PartId ? new Vector4(0, 0.85F, 1, 1) : new(1);
-                ImGuiHelpers.SafeTextColored(col, $"#{i.ToString().PadLeft(this.TexData.PartCount.ToString().Length, '0')}");
+                ImGui.TextColored(col, $"#{i.ToString().PadLeft(this.TexData.PartCount.ToString().Length, '0')}");
 
                 ImGui.TableNextColumn();
 
@@ -227,13 +227,13 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
 
                 ImGui.TableNextColumn();
 
-                ImGuiHelpers.SafeTextColored(!hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Standard:\t");
+                ImGui.TextColored(!hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Standard:\t");
                 ImGui.SameLine();
                 var cursX = ImGui.GetCursorPosX();
 
                 PrintPartCoords(u / 2f, v / 2f, width / 2f, height / 2f);
 
-                ImGuiHelpers.SafeTextColored(hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Hi-Res:\t");
+                ImGui.TextColored(hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Hi-Res:\t");
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(cursX);
 

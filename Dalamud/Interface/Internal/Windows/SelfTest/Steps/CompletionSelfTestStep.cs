@@ -29,7 +29,7 @@ internal class CompletionSelfTestStep : ISelfTestStep
 
             case 1:
                 ImGui.Text("[Chat Log]"u8);
-                ImGuiHelpers.SafeTextWrapped("Use the category menus to navigate to [Dalamud], then complete a command from the list. Did it work?"u8);
+                ImGui.TextWrapped("Use the category menus to navigate to [Dalamud], then complete a command from the list. Did it work?"u8);
                 if (ImGui.Button("Yes"u8))
                     this.step++;
                 ImGui.SameLine();

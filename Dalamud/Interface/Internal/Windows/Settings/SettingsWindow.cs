@@ -192,7 +192,7 @@ internal class SettingsWindow : Window
 
                         any = true;
 
-                        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, settingsTab.Title);
+                        ImGui.TextColored(ImGuiColors.DalamudGrey, settingsTab.Title);
                         ImGui.Dummy(new Vector2(5));
 
                         foreach (var settingsTabEntry in eligible)
@@ -207,7 +207,7 @@ internal class SettingsWindow : Window
                     }
 
                     if (!any)
-                        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, "No results found..."u8);
+                        ImGui.TextColored(ImGuiColors.DalamudGrey, "No results found..."u8);
 
                     ImGui.EndTabItem();
                 }
