@@ -5,7 +5,6 @@ using System.Numerics;
 using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Unicode;
 
 using Dalamud.Bindings.ImGui;
@@ -239,6 +238,7 @@ public static partial class ImGuiHelpers
     /// Write unformatted text wrapped.
     /// </summary>
     /// <param name="text">The text to write.</param>
+    [Obsolete("Use ImGui.TextWrapped. It's safe now.", true)]
     public static void SafeTextWrapped(ImU8String text) => ImGui.TextWrapped(text);
 
     /// <summary>
@@ -246,6 +246,7 @@ public static partial class ImGuiHelpers
     /// </summary>
     /// <param name="color">The color of the text.</param>
     /// <param name="text">The text to write.</param>
+    [Obsolete("Use ImGui.TextColored. It's safe now.", true)]
     public static void SafeTextColored(Vector4 color, ImU8String text)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, color))
@@ -259,11 +260,12 @@ public static partial class ImGuiHelpers
     /// </summary>
     /// <param name="color">The color of the text.</param>
     /// <param name="text">The text to write.</param>
+    [Obsolete("Use ImGui.TextColoredWrapped. It's safe.", true)]
     public static void SafeTextColoredWrapped(Vector4 color, ImU8String text)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, color))
         {
-            SafeTextWrapped(text);
+            ImGui.TextWrapped(text);
         }
     }
 
