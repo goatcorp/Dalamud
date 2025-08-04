@@ -3424,7 +3424,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         if (!devPlugin.IsLoaded)
         {
-            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, "You have to load this plugin to see validation issues."u8);
+            ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, "You have to load this plugin to see validation issues."u8);
         }
         else
         {
@@ -3435,7 +3435,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 ImGui.TextUnformatted(FontAwesomeIcon.Check.ToIconString());
                 ImGui.PopFont();
                 ImGui.SameLine();
-                ImGuiHelpers.SafeTextColored(ImGuiColors.HealerGreen, "No validation issues found in this plugin!"u8);
+                ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.HealerGreen, "No validation issues found in this plugin!"u8);
             }
             else
             {

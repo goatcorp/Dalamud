@@ -135,11 +135,11 @@ internal class SelfTestWindow : Window
 
             if (this.testIndexToResult.Any(x => x.Value.Result == SelfTestStepResult.Fail))
             {
-                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "One or more checks failed!"u8);
+                ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, "One or more checks failed!"u8);
             }
             else
             {
-                ImGuiHelpers.SafeTextColored(ImGuiColors.HealerGreen, "All checks passed!"u8);
+                ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.HealerGreen, "All checks passed!"u8);
             }
 
             return;
