@@ -12,6 +12,7 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using Serilog;
@@ -56,6 +57,15 @@ public interface IUiBuilder
     /// These may be fired consecutively.
     /// </summary>
     event Action? HideUi;
+
+    /// <inheritdoc cref="InterfaceManager.DefaultGlobalScaleChanged"/>
+    event Action? DefaultGlobalScaleChanged;
+
+    /// <inheritdoc cref="InterfaceManager.DefaultFontChanged"/>
+    event Action? DefaultFontChanged;
+
+    /// <inheritdoc cref="InterfaceManager.DefaultStyleChanged"/>
+    event Action? DefaultStyleChanged;
 
     /// <summary>
     /// Gets the handle to the default Dalamud font - supporting all game languages and icons.
@@ -287,6 +297,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             this.interfaceManager.ResizeBuffers += this.OnResizeBuffers;
             this.scopedFinalizer.Add(() => this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers);
 
+            this.interfaceManager.DefaultStyleChanged += this.OnDefaultStyleChanged;
+            this.scopedFinalizer.Add(() => this.interfaceManager.DefaultStyleChanged -= this.OnDefaultStyleChanged);
+
+            this.interfaceManager.DefaultGlobalScaleChanged += this.OnDefaultGlobalScaleChanged;
+            this.scopedFinalizer.Add(() => this.interfaceManager.DefaultGlobalScaleChanged -= this.OnDefaultGlobalScaleChanged);
+
+            this.interfaceManager.DefaultFontChanged += this.OnDefaultFontChanged;
+            this.scopedFinalizer.Add(() => this.interfaceManager.DefaultFontChanged -= this.OnDefaultFontChanged);
+
             this.FontAtlas =
                 this.scopedFinalizer
                     .Add(
@@ -318,6 +337,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 
     /// <inheritdoc/>
     public event Action? HideUi;
+
+    /// <inheritdoc/>
+    public event Action? DefaultGlobalScaleChanged;
+
+    /// <inheritdoc/>
+    public event Action? DefaultFontChanged;
+
+    /// <inheritdoc/>
+    public event Action? DefaultStyleChanged;
 
     /// <summary>
     /// Gets the default Dalamud font size in points.
@@ -503,6 +531,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// intrusive animations, or disable them entirely.
     /// </summary>
     public bool ShouldUseReducedMotion => Service<DalamudConfiguration>.Get().ReduceMotions ?? false;
+
+    private void OnDefaultStyleChanged()
+        => this.DefaultStyleChanged.InvokeSafely();
+
+    private void OnDefaultGlobalScaleChanged()
+        => this.DefaultGlobalScaleChanged.InvokeSafely();
+
+    private void OnDefaultFontChanged()
+        => this.DefaultFontChanged.InvokeSafely();
 
     /// <summary>
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.

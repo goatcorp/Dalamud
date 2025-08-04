@@ -141,6 +141,23 @@ internal partial class InterfaceManager : IInternalDisposableService
     public event Action? AfterBuildFonts;
 
     /// <summary>
+    /// Invoked when the default global scale used by ImGui has been changed through Dalamud.
+    /// </summary>
+    /// <remarks> Fonts will generally not have finished rebuilding when this is invoked, so if you need to access the font you should subscribe to <seealso cref="DefaultFontHandle"/>.ImFontChanged instead.</remarks>
+    public event Action? DefaultGlobalScaleChanged;
+
+    /// <summary>
+    /// Invoked when the default font used by ImGui has been changed through Dalamud.
+    /// </summary>
+    /// <remarks> Fonts will generally not have finished rebuilding when this is invoked, so if you need to access the font you should subscribe to <seealso cref="DefaultFontHandle"/>.ImFontChanged instead.</remarks>
+    public event Action? DefaultFontChanged;
+
+    /// <summary>
+    /// Invoked when either the currently chosen style in Dalamud or a style or color variable within the currently chosen style has been changed through Dalamud.
+    /// </summary>
+    public event Action? DefaultStyleChanged;
+
+    /// <summary>
     /// Gets the default ImGui font.<br />
     /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
@@ -498,6 +515,18 @@ internal partial class InterfaceManager : IInternalDisposableService
             &value,
             sizeof(uint)).ThrowOnFailure();
     }
+
+    /// <summary> Safely invoke <seealso cref="DefaultGlobalScaleChanged"/>. </summary>
+    internal void InvokeGlobalScaleChanged()
+        => DefaultGlobalScaleChanged.InvokeSafely();
+
+    /// <summary> Safely invoke <seealso cref="DefaultFontChanged"/>. </summary>
+    internal void InvokeFontChanged()
+        => DefaultFontChanged.InvokeSafely();
+
+    /// <summary> Safely invoke <seealso cref="DefaultStyleChanged"/>. </summary>
+    internal void InvokeStyleChanged()
+        => DefaultStyleChanged.InvokeSafely();
 
     private static InterfaceManager WhenFontsReady()
     {
