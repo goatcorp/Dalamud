@@ -5,6 +5,7 @@ using System.Threading;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Addon.Events;
+using Dalamud.Game.Addon.Events.EventDataTypes;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.Text.SeStringHandling;
@@ -596,24 +597,13 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         newTextNode->TextColor = new ByteColor { R = 255, G = 255, B = 255, A = 255 };
         newTextNode->EdgeColor = new ByteColor { R = 142, G = 106, B = 12, A = 255 };
 
-        // ICreatable was restored, this may be necessary if AtkUldManager.CreateAtkTextNode(); is used instead of Create<T>
-        // // Memory is filled with random data after being created, zero out some things to avoid issues.
-        // newTextNode->UnkPtr_1 = null;
-        // newTextNode->SelectStart = 0;
-        // newTextNode->SelectEnd = 0;
-        // newTextNode->FontCacheHandle = 0;
-        // newTextNode->CharSpacing = 0;
-        // newTextNode->BackgroundColor = new ByteColor { R = 0, G = 0, B = 0, A = 0 };
-        // newTextNode->TextId = 0;
-        // newTextNode->SheetType = 0;
-
         return newTextNode;
     }
 
-    private void DtrEventHandler(AddonEventType atkEventType, AddonEventData data)
+    private void DtrEventHandler(AddonEventType atkEventType, AddonEventData eventData)
     {
-        var addon = (AtkUnitBase*)data.AddonPointer;
-        var node = (AtkResNode*)data.NodeTargetPointer;
+        var addon = (AtkUnitBase*)eventData.AddonPointer;
+        var node = (AtkResNode*)eventData.NodeTargetPointer;
 
         DtrBarEntry? dtrBarEntry = null;
         this.entriesLock.EnterReadLock();
@@ -652,7 +642,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                     break;
 
                 case AddonEventType.MouseClick:
-                    dtrBarEntry.OnClick.Invoke();
+                    dtrBarEntry.OnClick?.Invoke(new AddonMouseEventData(eventData));
                     break;
             }
         }

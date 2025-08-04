@@ -1,4 +1,5 @@
-using Dalamud.Game.Addon.Events;
+﻿using Dalamud.Game.Addon.Events;
+using Dalamud.Game.Addon.Events.EventDataTypes;
 
 namespace Dalamud.Plugin.Services;
 
