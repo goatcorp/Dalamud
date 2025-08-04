@@ -3373,7 +3373,7 @@ public unsafe partial class ImGui
 			int ret = ImGuiNative.GetInt(self, key, (int)(0));
 			return ret;
 		}
-		public static int GetInt(this in ImGuiStorage self, uint key, int defaultVal)
+		public static int GetInt(this scoped in ImGuiStorage self, uint key, int defaultVal)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3381,7 +3381,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static int GetInt(this in ImGuiStorage self, uint key)
+		public static int GetInt(this scoped in ImGuiStorage self, uint key)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3410,7 +3410,7 @@ public unsafe partial class ImGui
 			byte ret = ImGuiNative.GetBool(self, key, (byte)(0));
 			return ret != 0;
 		}
-		public static bool GetBool(this in ImGuiStorage self, uint key, bool defaultVal)
+		public static bool GetBool(this scoped in ImGuiStorage self, uint key, bool defaultVal)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3418,7 +3418,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetBool(this in ImGuiStorage self, uint key)
+		public static bool GetBool(this scoped in ImGuiStorage self, uint key)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3447,7 +3447,7 @@ public unsafe partial class ImGui
 			float ret = ImGuiNative.GetFloat(self, key, (float)(0.0f));
 			return ret;
 		}
-		public static float GetFloat(this in ImGuiStorage self, uint key, float defaultVal)
+		public static float GetFloat(this scoped in ImGuiStorage self, uint key, float defaultVal)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3455,7 +3455,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static float GetFloat(this in ImGuiStorage self, uint key)
+		public static float GetFloat(this scoped in ImGuiStorage self, uint key)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3479,7 +3479,7 @@ public unsafe partial class ImGui
 			void* ret = ImGuiNative.GetVoidPtr(self, key);
 			return ret;
 		}
-		public static void* GetVoidPtr(this in ImGuiStorage self, uint key)
+		public static void* GetVoidPtr(this scoped in ImGuiStorage self, uint key)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3650,7 +3650,7 @@ public unsafe partial class ImGui
 			ImTextureID ret = ImGuiNative.GetTexID(self);
 			return ret;
 		}
-		public static ImTextureID GetTexID(this in ImDrawCmd self)
+		public static ImTextureID GetTexID(this scoped in ImDrawCmd self)
 		{
 			fixed (ImDrawCmd* pself = &self)
 			{
@@ -3821,7 +3821,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetClipRectMin((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetClipRectMin(this in ImDrawList self)
+		public static Vector2 GetClipRectMin(this scoped in ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
@@ -3864,7 +3864,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetClipRectMax((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetClipRectMax(this in ImDrawList self)
+		public static Vector2 GetClipRectMax(this scoped in ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
@@ -5026,7 +5026,7 @@ public unsafe partial class ImGui
 			byte ret = ImGuiNative.GetBit(self, n);
 			return ret != 0;
 		}
-		public static bool GetBit(this in ImFontGlyphRangesBuilder self, nuint n)
+		public static bool GetBit(this scoped in ImFontGlyphRangesBuilder self, nuint n)
 		{
 			fixed (ImFontGlyphRangesBuilder* pself = &self)
 			{
@@ -5236,14 +5236,14 @@ public unsafe partial class ImGui
 		{
 			ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, outPixels, outWidth, outHeight, (int*)(default));
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.GetTexDataAsAlpha8((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5264,7 +5264,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5274,7 +5274,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5298,7 +5298,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5308,7 +5308,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5338,7 +5338,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5351,7 +5351,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5378,7 +5378,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5388,7 +5388,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5418,7 +5418,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5431,7 +5431,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5464,7 +5464,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5477,7 +5477,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5516,7 +5516,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5532,7 +5532,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5555,7 +5555,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, outPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5575,7 +5575,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5598,7 +5598,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5624,7 +5624,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5650,7 +5650,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5676,7 +5676,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5705,7 +5705,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5737,7 +5737,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5764,14 +5764,14 @@ public unsafe partial class ImGui
 		{
 			ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, outPixels, outWidth, outHeight, (int*)(default));
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.GetTexDataAsRGBA32((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5792,7 +5792,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5802,7 +5802,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5826,7 +5826,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5836,7 +5836,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5866,7 +5866,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5879,7 +5879,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5906,7 +5906,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5916,7 +5916,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5946,7 +5946,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5959,7 +5959,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5992,7 +5992,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6005,7 +6005,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6044,7 +6044,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6060,7 +6060,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6083,7 +6083,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, outPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6103,7 +6103,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6126,7 +6126,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6152,7 +6152,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6178,7 +6178,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6204,7 +6204,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6233,7 +6233,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6265,7 +6265,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this scoped in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6324,7 +6324,7 @@ public unsafe partial class ImGui
 			ushort* ret = ImGuiNative.GetGlyphRangesDefault(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesDefault(this in ImFontAtlas self)
+		public static ushort* GetGlyphRangesDefault(this scoped in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6337,7 +6337,7 @@ public unsafe partial class ImGui
 			ushort* ret = ImGuiNative.GetGlyphRangesKorean(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesKorean(this in ImFontAtlas self)
+		public static ushort* GetGlyphRangesKorean(this scoped in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6350,7 +6350,7 @@ public unsafe partial class ImGui
 			ushort* ret = ImGuiNative.GetGlyphRangesJapanese(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesJapanese(this in ImFontAtlas self)
+		public static ushort* GetGlyphRangesJapanese(this scoped in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6363,7 +6363,7 @@ public unsafe partial class ImGui
 			ushort* ret = ImGuiNative.GetGlyphRangesChineseFull(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesChineseFull(this in ImFontAtlas self)
+		public static ushort* GetGlyphRangesChineseFull(this scoped in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6376,7 +6376,7 @@ public unsafe partial class ImGui
 			ushort* ret = ImGuiNative.GetGlyphRangesChineseSimplifiedCommon(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesChineseSimplifiedCommon(this in ImFontAtlas self)
+		public static ushort* GetGlyphRangesChineseSimplifiedCommon(this scoped in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6389,7 +6389,7 @@ public unsafe partial class ImGui
 			ushort* ret = ImGuiNative.GetGlyphRangesCyrillic(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesCyrillic(this in ImFontAtlas self)
+		public static ushort* GetGlyphRangesCyrillic(this scoped in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6402,7 +6402,7 @@ public unsafe partial class ImGui
 			ushort* ret = ImGuiNative.GetGlyphRangesThai(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesThai(this in ImFontAtlas self)
+		public static ushort* GetGlyphRangesThai(this scoped in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6415,7 +6415,7 @@ public unsafe partial class ImGui
 			ushort* ret = ImGuiNative.GetGlyphRangesVietnamese(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesVietnamese(this in ImFontAtlas self)
+		public static ushort* GetGlyphRangesVietnamese(this scoped in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6505,7 +6505,7 @@ public unsafe partial class ImGui
 			ImFontAtlasCustomRectPtr ret = ImGuiNative.GetCustomRectByIndex(self, index);
 			return ret;
 		}
-		public static ImFontAtlasCustomRectPtr GetCustomRectByIndex(this in ImFontAtlas self, int index)
+		public static ImFontAtlasCustomRectPtr GetCustomRectByIndex(this scoped in ImFontAtlas self, int index)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6678,7 +6678,7 @@ public unsafe partial class ImGui
 			byte ret = ImGuiNative.GetMouseCursorTexData(self, cursor, outOffset, outSize, outUvBorder, outUvFill, textureIndex);
 			return ret != 0;
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6694,7 +6694,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6713,7 +6713,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6735,7 +6735,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6765,7 +6765,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6776,7 +6776,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6809,7 +6809,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6823,7 +6823,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6859,7 +6859,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6873,7 +6873,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6915,7 +6915,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6932,7 +6932,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6965,7 +6965,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6976,7 +6976,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7009,7 +7009,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7023,7 +7023,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7059,7 +7059,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7073,7 +7073,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7115,7 +7115,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7132,7 +7132,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7171,7 +7171,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7185,7 +7185,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7227,7 +7227,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7244,7 +7244,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7289,7 +7289,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7306,7 +7306,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7357,7 +7357,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7377,7 +7377,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7405,7 +7405,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7427,7 +7427,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7452,7 +7452,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7480,7 +7480,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7519,7 +7519,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7533,7 +7533,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7575,7 +7575,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7592,7 +7592,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7637,7 +7637,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7654,7 +7654,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7705,7 +7705,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7725,7 +7725,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7767,7 +7767,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7781,7 +7781,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7823,7 +7823,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7840,7 +7840,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7885,7 +7885,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7902,7 +7902,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7953,7 +7953,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7973,7 +7973,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8021,7 +8021,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8038,7 +8038,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8089,7 +8089,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8109,7 +8109,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8163,7 +8163,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8183,7 +8183,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8243,7 +8243,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8266,7 +8266,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this scoped in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8325,7 +8325,7 @@ public unsafe partial class ImGui
 			float ret = ImGuiNative.GetDistanceAdjustmentForPair(self, leftC, rightC);
 			return ret;
 		}
-		public static float GetDistanceAdjustmentForPair(this in ImFont self, ushort leftC, ushort rightC)
+		public static float GetDistanceAdjustmentForPair(this scoped in ImFont self, ushort leftC, ushort rightC)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8338,7 +8338,7 @@ public unsafe partial class ImGui
 			float ret = ImGuiNative.GetCharAdvance(self, c);
 			return ret;
 		}
-		public static float GetCharAdvance(this in ImFont self, ushort c)
+		public static float GetCharAdvance(this scoped in ImFont self, ushort c)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8510,7 +8510,7 @@ public unsafe partial class ImGui
 			float ret = ImGuiNative.GetDistanceAdjustmentForPairFromHotData(self, leftC, rightCInfo);
 			return ret;
 		}
-		public static float GetDistanceAdjustmentForPairFromHotData(this in ImFont self, ushort leftC, ImFontGlyphHotDataPtr rightCInfo)
+		public static float GetDistanceAdjustmentForPairFromHotData(this scoped in ImFont self, ushort leftC, ImFontGlyphHotDataPtr rightCInfo)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8526,7 +8526,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static float GetDistanceAdjustmentForPairFromHotData(this in ImFont self, ushort leftC, ref ImFontGlyphHotData rightCInfo)
+		public static float GetDistanceAdjustmentForPairFromHotData(this scoped in ImFont self, ushort leftC, ref ImFontGlyphHotData rightCInfo)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8559,7 +8559,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetCenter((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetCenter(this in ImGuiViewport self)
+		public static Vector2 GetCenter(this scoped in ImGuiViewport self)
 		{
 			fixed (ImGuiViewport* pself = &self)
 			{
@@ -8602,7 +8602,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetWorkCenter((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetWorkCenter(this in ImGuiViewport self)
+		public static Vector2 GetWorkCenter(this scoped in ImGuiViewport self)
 		{
 			fixed (ImGuiViewport* pself = &self)
 			{

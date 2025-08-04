@@ -597,7 +597,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetCenter((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetCenter(this in ImRect self)
+		public static Vector2 GetCenter(this scoped in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -640,7 +640,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetSize((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetSize(this in ImRect self)
+		public static Vector2 GetSize(this scoped in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -671,7 +671,7 @@ public unsafe partial class ImGuiP
 			float ret = ImGuiPNative.GetWidth(self);
 			return ret;
 		}
-		public static float GetWidth(this in ImRect self)
+		public static float GetWidth(this scoped in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -684,7 +684,7 @@ public unsafe partial class ImGuiP
 			float ret = ImGuiPNative.GetHeight(self);
 			return ret;
 		}
-		public static float GetHeight(this in ImRect self)
+		public static float GetHeight(this scoped in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -697,7 +697,7 @@ public unsafe partial class ImGuiP
 			float ret = ImGuiPNative.GetArea(self);
 			return ret;
 		}
-		public static float GetArea(this in ImRect self)
+		public static float GetArea(this scoped in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -722,7 +722,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetTL((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetTL(this in ImRect self)
+		public static Vector2 GetTL(this scoped in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -765,7 +765,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetTR((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetTR(this in ImRect self)
+		public static Vector2 GetTR(this scoped in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -808,7 +808,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetBL((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetBL(this in ImRect self)
+		public static Vector2 GetBL(this scoped in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -851,7 +851,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetBR((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetBR(this in ImRect self)
+		public static Vector2 GetBR(this scoped in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -1221,7 +1221,7 @@ public unsafe partial class ImGuiP
 			int ret = ImGuiPNative.GetDrawListCount(self);
 			return ret;
 		}
-		public static int GetDrawListCount(this in ImDrawDataBuilder self)
+		public static int GetDrawListCount(this scoped in ImDrawDataBuilder self)
 		{
 			fixed (ImDrawDataBuilder* pself = &self)
 			{
@@ -1321,7 +1321,7 @@ public unsafe partial class ImGuiP
 			int ret = ImGuiPNative.GetUndoAvailCount(self);
 			return ret;
 		}
-		public static int GetUndoAvailCount(this in ImGuiInputTextState self)
+		public static int GetUndoAvailCount(this scoped in ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -1334,7 +1334,7 @@ public unsafe partial class ImGuiP
 			int ret = ImGuiPNative.GetRedoAvailCount(self);
 			return ret;
 		}
-		public static int GetRedoAvailCount(this in ImGuiInputTextState self)
+		public static int GetRedoAvailCount(this scoped in ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -1404,7 +1404,7 @@ public unsafe partial class ImGuiP
 			int ret = ImGuiPNative.GetCursorPos(self);
 			return ret;
 		}
-		public static int GetCursorPos(this in ImGuiInputTextState self)
+		public static int GetCursorPos(this scoped in ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -1417,7 +1417,7 @@ public unsafe partial class ImGuiP
 			int ret = ImGuiPNative.GetSelectionStart(self);
 			return ret;
 		}
-		public static int GetSelectionStart(this in ImGuiInputTextState self)
+		public static int GetSelectionStart(this scoped in ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -1430,7 +1430,7 @@ public unsafe partial class ImGuiP
 			int ret = ImGuiPNative.GetSelectionEnd(self);
 			return ret;
 		}
-		public static int GetSelectionEnd(this in ImGuiInputTextState self)
+		public static int GetSelectionEnd(this scoped in ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -2000,7 +2000,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetMainRect((ImRect*)ppOut, self);
 			}
 		}
-		public static ImRect GetMainRect(this in ImGuiViewportP self)
+		public static ImRect GetMainRect(this scoped in ImGuiViewportP self)
 		{
 			fixed (ImGuiViewportP* pself = &self)
 			{
@@ -2043,7 +2043,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetWorkRect((ImRect*)ppOut, self);
 			}
 		}
-		public static ImRect GetWorkRect(this in ImGuiViewportP self)
+		public static ImRect GetWorkRect(this scoped in ImGuiViewportP self)
 		{
 			fixed (ImGuiViewportP* pself = &self)
 			{
@@ -2086,7 +2086,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetBuildWorkRect((ImRect*)ppOut, self);
 			}
 		}
-		public static ImRect GetBuildWorkRect(this in ImGuiViewportP self)
+		public static ImRect GetBuildWorkRect(this scoped in ImGuiViewportP self)
 		{
 			fixed (ImGuiViewportP* pself = &self)
 			{
@@ -2160,7 +2160,7 @@ public unsafe partial class ImGuiP
 			uint ret = ImGuiPNative.GetIDFromRectangle(self, rAbs);
 			return ret;
 		}
-		public static uint GetIDFromRectangle(this in ImGuiWindow self, ImRect rAbs)
+		public static uint GetIDFromRectangle(this scoped in ImGuiWindow self, ImRect rAbs)
 		{
 			fixed (ImGuiWindow* pself = &self)
 			{
@@ -2308,7 +2308,7 @@ public unsafe partial class ImGuiP
 			int ret = ImGuiPNative.GetTabOrder(self, tab);
 			return ret;
 		}
-		public static int GetTabOrder(this in ImGuiTabBar self, ImGuiTabItemPtr tab)
+		public static int GetTabOrder(this scoped in ImGuiTabBar self, ImGuiTabItemPtr tab)
 		{
 			fixed (ImGuiTabBar* pself = &self)
 			{
@@ -2324,7 +2324,7 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static int GetTabOrder(this in ImGuiTabBar self, ref ImGuiTabItem tab)
+		public static int GetTabOrder(this scoped in ImGuiTabBar self, ref ImGuiTabItem tab)
 		{
 			fixed (ImGuiTabBar* pself = &self)
 			{
@@ -2370,7 +2370,7 @@ public unsafe partial class ImGuiP
 			ImGuiTableColumnSettingsPtr ret = ImGuiPNative.GetColumnSettings(self);
 			return ret;
 		}
-		public static ImGuiTableColumnSettingsPtr GetColumnSettings(this in ImGuiTableSettings self)
+		public static ImGuiTableColumnSettingsPtr GetColumnSettings(this scoped in ImGuiTableSettings self)
 		{
 			fixed (ImGuiTableSettings* pself = &self)
 			{
