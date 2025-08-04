@@ -19,11 +19,11 @@ internal class FateTableSelfTestStep : ISelfTestStep
     {
         var fateTable = Service<FateTable>.Get();
 
-        ImGui.TextUnformatted("Checking fate table..."u8);
+        ImGui.Text("Checking fate table..."u8);
 
         if (fateTable.Length == 0)
         {
-            ImGui.TextUnformatted("Go to a zone that has FATEs currently up."u8);
+            ImGui.Text("Go to a zone that has FATEs currently up."u8);
             return SelfTestStepResult.Waiting;
         }
 

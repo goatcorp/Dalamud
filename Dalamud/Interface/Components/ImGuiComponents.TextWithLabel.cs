@@ -16,20 +16,20 @@ public static partial class ImGuiComponents
     /// <param name="hint">The hint to show on hover.</param>
     public static void TextWithLabel(string label, string value, string hint = "")
     {
-        ImGui.TextUnformatted(label + ": ");
+        ImGui.Text(label + ": ");
         ImGui.SameLine();
         if (string.IsNullOrEmpty(hint))
         {
-            ImGui.TextUnformatted(value);
+            ImGui.Text(value);
         }
         else
         {
-            ImGui.TextUnformatted(value + "*");
+            ImGui.Text(value + "*");
             if (ImGui.IsItemHovered())
             {
                 using (ImRaii.Tooltip())
                 {
-                    ImGui.TextUnformatted(hint);
+                    ImGui.Text(hint);
                 }
             }
         }

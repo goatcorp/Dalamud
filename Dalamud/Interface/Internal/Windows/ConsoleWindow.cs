@@ -161,7 +161,7 @@ internal class ConsoleWindow : Window, IDisposable
             ImGuiHelpers.SafeTextColored(
                 ImGuiColors.DalamudRed,
                 $"Regex Filter Error: {this.exceptionLogFilter.GetType().Name}");
-            ImGui.TextUnformatted(this.exceptionLogFilter.Message);
+            ImGui.Text(this.exceptionLogFilter.Message);
         }
 
         if (this.exceptionLogHighlight is not null)
@@ -169,7 +169,7 @@ internal class ConsoleWindow : Window, IDisposable
             ImGuiHelpers.SafeTextColored(
                 ImGuiColors.DalamudRed,
                 $"Regex Highlight Error: {this.exceptionLogHighlight.GetType().Name}");
-            ImGui.TextUnformatted(this.exceptionLogHighlight.Message);
+            ImGui.Text(this.exceptionLogHighlight.Message);
         }
 
         var sendButtonSize = ImGui.CalcTextSize("Send"u8) +
@@ -238,11 +238,11 @@ internal class ConsoleWindow : Window, IDisposable
 
                 if (!line.IsMultiline)
                 {
-                    ImGui.TextUnformatted(line.TimestampString);
+                    ImGui.Text(line.TimestampString);
                     ImGui.SameLine();
 
                     ImGui.SetCursorPosX(cursorLogLevel);
-                    ImGui.TextUnformatted(GetTextForLogEventLevel(line.Level));
+                    ImGui.Text(GetTextForLogEventLevel(line.Level));
                     ImGui.SameLine();
                 }
 
@@ -258,7 +258,7 @@ internal class ConsoleWindow : Window, IDisposable
                 }
                 else
                 {
-                    ImGui.TextUnformatted(line.Line);
+                    ImGui.Text(line.Line);
                 }
 
                 var currentLinePosY = ImGui.GetCursorPosY();
@@ -667,7 +667,7 @@ internal class ConsoleWindow : Window, IDisposable
             this.configuration.QueueSave();
         }
 
-        ImGui.TextUnformatted("Logs buffer"u8);
+        ImGui.Text("Logs buffer"u8);
         ImGui.SliderInt("lines"u8, ref this.logLinesLimit, LogLinesMinimum, LogLinesMaximum);
         if (ImGui.Button("Apply"u8))
         {
@@ -762,7 +762,7 @@ internal class ConsoleWindow : Window, IDisposable
             }
 
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted(entry.Source);
+            ImGui.Text(entry.Source);
 
             ImGui.TableNextColumn();
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);

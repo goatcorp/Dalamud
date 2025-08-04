@@ -118,7 +118,7 @@ internal class SelfTestWindow : Window
 
         ImGui.SameLine();
 
-        ImGui.TextUnformatted($"Step: {this.currentStep} / {this.steps.Count}");
+        ImGui.Text($"Step: {this.currentStep} / {this.steps.Count}");
 
         ImGui.Spacing();
 
@@ -154,7 +154,7 @@ internal class SelfTestWindow : Window
         if (!resultChild) return;
 
         var step = this.steps[this.currentStep];
-        ImGui.TextUnformatted($"Current: {step.Name}");
+        ImGui.Text($"Current: {step.Name}");
 
         ImGuiHelpers.ScaledDummy(10);
 
@@ -214,7 +214,7 @@ internal class SelfTestWindow : Window
 
             ImGui.TableSetColumnIndex(0);
             ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted(i.ToString());
+            ImGui.Text(i.ToString());
 
             if (this.selfTestRunning && this.scrollToStep == i)
             {
@@ -224,7 +224,7 @@ internal class SelfTestWindow : Window
 
             ImGui.TableSetColumnIndex(1);
             ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted(step.Name);
+            ImGui.Text(step.Name);
 
             if (this.testIndexToResult.TryGetValue(i, out var result))
             {
@@ -248,7 +248,7 @@ internal class SelfTestWindow : Window
                 if (result.Duration.HasValue)
                 {
                     ImGui.AlignTextToFramePadding();
-                    ImGui.TextUnformatted(this.FormatTimeSpan(result.Duration.Value));
+                    ImGui.Text(this.FormatTimeSpan(result.Duration.Value));
                 }
             }
             else
@@ -268,7 +268,7 @@ internal class SelfTestWindow : Window
                 ImGui.AlignTextToFramePadding();
                 if (this.selfTestRunning && this.currentStep == i)
                 {
-                    ImGui.TextUnformatted(this.FormatTimeSpan(DateTimeOffset.Now - this.lastTestStart));
+                    ImGui.Text(this.FormatTimeSpan(DateTimeOffset.Now - this.lastTestStart));
                 }
             }
 

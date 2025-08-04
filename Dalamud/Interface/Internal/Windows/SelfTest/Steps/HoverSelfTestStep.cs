@@ -21,7 +21,7 @@ internal class HoverSelfTestStep : ISelfTestStep
 
         if (!this.clearedItem)
         {
-            ImGui.TextUnformatted("Hover WHM soul crystal..."u8);
+            ImGui.Text("Hover WHM soul crystal..."u8);
 
             if (gameGui.HoveredItem == 4547)
             {
@@ -31,7 +31,7 @@ internal class HoverSelfTestStep : ISelfTestStep
 
         if (!this.clearedAction)
         {
-            ImGui.TextUnformatted("Hover \"Open Linkshells\" action...");
+            ImGui.Text("Hover \"Open Linkshells\" action...");
 
             if (gameGui.HoveredAction != null &&
                 gameGui.HoveredAction.ActionKind == HoverActionKind.MainCommand &&

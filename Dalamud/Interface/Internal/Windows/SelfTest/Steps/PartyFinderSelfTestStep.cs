@@ -33,7 +33,7 @@ internal class PartyFinderSelfTestStep : ISelfTestStep
             return SelfTestStepResult.Pass;
         }
 
-        ImGui.TextUnformatted("Open Party Finder"u8);
+        ImGui.Text("Open Party Finder"u8);
 
         return SelfTestStepResult.Waiting;
     }

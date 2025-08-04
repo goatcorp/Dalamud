@@ -40,11 +40,11 @@ internal class NamePlateSelfTestStep : ISelfTestStep
                 break;
 
             case SubStep.Confirm:
-                ImGui.TextUnformatted("Click to redraw all visible nameplates"u8);
+                ImGui.Text("Click to redraw all visible nameplates"u8);
                 if (ImGui.Button("Request redraw"u8))
                     namePlateGui.RequestRedraw();
 
-                ImGui.TextUnformatted("Can you see marker icons above nameplates, and does\n" +
+                ImGui.Text("Can you see marker icons above nameplates, and does\n" +
                                       "the update count increase when using request redraw?");
 
                 if (ImGui.Button("Yes"u8))

@@ -196,10 +196,10 @@ internal class ServicesWidget : IDataWindowWidget
 
                         ImGui.SetCursorPos((new Vector2(rc.X, rc.Y) - pos) + ((cellSize - textSize) / 2));
                         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-                        ImGui.TextUnformatted(node.DisplayedName);
+                        ImGui.Text(node.DisplayedName);
                         ImGui.SameLine();
                         ImGui.PushStyleColor(ImGuiCol.Text, node.TypeSuffixColor);
-                        ImGui.TextUnformatted(node.TypeSuffix);
+                        ImGui.Text(node.TypeSuffix);
                         ImGui.PopStyleVar();
                         ImGui.PopStyleColor();
                     }
@@ -248,21 +248,21 @@ internal class ServicesWidget : IDataWindowWidget
                 if (isPublic)
                 {
                     using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                    ImGui.TextUnformatted("\t => PUBLIC!!!"u8);
+                    ImGui.Text("\t => PUBLIC!!!"u8);
                 }
 
                 switch (instance.Value.Visibility)
                 {
                     case ObjectInstanceVisibility.Internal:
-                        ImGui.TextUnformatted("\t => Internally resolved"u8);
+                        ImGui.Text("\t => Internally resolved"u8);
                         break;
 
                     case ObjectInstanceVisibility.ExposedToPlugins:
                         var hasInterface = container.InterfaceToTypeMap.Values.Any(x => x == instance.Key);
                         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed, !hasInterface))
                         {
-                            ImGui.TextUnformatted("\t => Exposed to plugins!"u8);
-                            ImGui.TextUnformatted(
+                            ImGui.Text("\t => Exposed to plugins!"u8);
+                            ImGui.Text(
                                 hasInterface
                                     ? $"\t => Provided via interface: {container.InterfaceToTypeMap.First(x => x.Value == instance.Key).Key.FullName}"
                                     : "\t => NO INTERFACE!!!");

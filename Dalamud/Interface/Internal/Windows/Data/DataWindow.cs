@@ -212,7 +212,7 @@ internal class DataWindow : Window, IDisposable
                     }
                     else
                     {
-                        ImGui.TextUnformatted("Data not ready."u8);
+                        ImGui.Text("Data not ready."u8);
                     }
 
                     this.isExcept = false;
@@ -226,7 +226,7 @@ internal class DataWindow : Window, IDisposable
 
                     this.isExcept = true;
 
-                    ImGui.TextUnformatted(ex.ToString());
+                    ImGui.Text(ex.ToString());
                 }
             }
 

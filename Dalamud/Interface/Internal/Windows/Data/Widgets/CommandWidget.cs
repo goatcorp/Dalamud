@@ -67,16 +67,16 @@ internal class CommandWidget : IDataWindowWidget
                 ImGui.TableNextRow();
 
                 ImGui.TableSetColumnIndex(0);
-                ImGui.TextUnformatted(command.Key);
+                ImGui.Text(command.Key);
 
                 ImGui.TableNextColumn();
-                ImGui.TextUnformatted(commandManager.GetHandlerAssemblyName(command.Key, command.Value));
+                ImGui.Text(commandManager.GetHandlerAssemblyName(command.Key, command.Value));
 
                 ImGui.TableNextColumn();
                 ImGuiHelpers.SafeTextWrapped(command.Value.HelpMessage);
 
                 ImGui.TableNextColumn();
-                ImGui.TextUnformatted(command.Value.ShowInHelp ? "Yes" : "No");
+                ImGui.Text(command.Value.ShowInHelp ? "Yes" : "No");
             }
         }
     }

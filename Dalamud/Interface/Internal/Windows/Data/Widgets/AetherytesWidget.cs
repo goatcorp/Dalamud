@@ -52,37 +52,37 @@ internal class AetherytesWidget : IDataWindowWidget
                 continue;
 
             ImGui.TableNextColumn(); // Idx
-            ImGui.TextUnformatted($"{i}");
+            ImGui.Text($"{i}");
 
             ImGui.TableNextColumn(); // Name
-            ImGui.TextUnformatted($"{info.AetheryteData.ValueNullable?.PlaceName.ValueNullable?.Name}");
+            ImGui.Text($"{info.AetheryteData.ValueNullable?.PlaceName.ValueNullable?.Name}");
 
             ImGui.TableNextColumn(); // ID
-            ImGui.TextUnformatted($"{info.AetheryteId}");
+            ImGui.Text($"{info.AetheryteId}");
 
             ImGui.TableNextColumn(); // Zone
-            ImGui.TextUnformatted($"{info.TerritoryId}");
+            ImGui.Text($"{info.TerritoryId}");
 
             ImGui.TableNextColumn(); // Ward
-            ImGui.TextUnformatted($"{info.Ward}");
+            ImGui.Text($"{info.Ward}");
 
             ImGui.TableNextColumn(); // Plot
-            ImGui.TextUnformatted($"{info.Plot}");
+            ImGui.Text($"{info.Plot}");
 
             ImGui.TableNextColumn(); // Sub
-            ImGui.TextUnformatted($"{info.SubIndex}");
+            ImGui.Text($"{info.SubIndex}");
 
             ImGui.TableNextColumn(); // Gil
-            ImGui.TextUnformatted($"{info.GilCost}");
+            ImGui.Text($"{info.GilCost}");
 
             ImGui.TableNextColumn(); // Favourite
-            ImGui.TextUnformatted($"{info.IsFavourite}");
+            ImGui.Text($"{info.IsFavourite}");
 
             ImGui.TableNextColumn(); // Shared
-            ImGui.TextUnformatted($"{info.IsSharedHouse}");
+            ImGui.Text($"{info.IsSharedHouse}");
 
             ImGui.TableNextColumn(); // Apartment
-            ImGui.TextUnformatted($"{info.IsApartment}");
+            ImGui.Text($"{info.IsApartment}");
         }
 
         ImGui.EndTable();

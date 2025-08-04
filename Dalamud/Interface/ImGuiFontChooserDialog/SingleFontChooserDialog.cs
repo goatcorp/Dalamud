@@ -539,19 +539,19 @@ public sealed class SingleFontChooserDialog : IDisposable
         if (this.fontHandle is null)
         {
             ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGui.GetStyle().FramePadding);
-            ImGui.TextUnformatted("Select a font."u8);
+            ImGui.Text("Select a font."u8);
         }
         else if (this.fontHandle.LoadException is { } loadException)
         {
             ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGui.GetStyle().FramePadding);
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.TextUnformatted(loadException.Message);
+            ImGui.Text(loadException.Message);
             ImGui.PopStyleColor();
         }
         else if (!this.fontHandle.Available)
         {
             ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGui.GetStyle().FramePadding);
-            ImGui.TextUnformatted("Loading font..."u8);
+            ImGui.Text("Loading font..."u8);
         }
         else
         {
@@ -571,14 +571,14 @@ public sealed class SingleFontChooserDialog : IDisposable
         if (this.fontFamilies?.IsCompleted is not true)
         {
             ImGui.SetScrollY(0);
-            ImGui.TextUnformatted("Loading..."u8);
+            ImGui.Text("Loading..."u8);
             return false;
         }
 
         if (!this.fontFamilies.IsCompletedSuccessfully)
         {
             ImGui.SetScrollY(0);
-            ImGui.TextUnformatted("Error: " + this.fontFamilies.Exception);
+            ImGui.Text("Error: " + this.fontFamilies.Exception);
             return false;
         }
 
@@ -695,7 +695,7 @@ public sealed class SingleFontChooserDialog : IDisposable
                 {
                     if (i < 0)
                     {
-                        ImGui.TextUnformatted(" "u8);
+                        ImGui.Text(" "u8);
                         continue;
                     }
 
@@ -735,13 +735,13 @@ public sealed class SingleFontChooserDialog : IDisposable
     {
         if (this.fontFamilies?.IsCompleted is not true)
         {
-            ImGui.TextUnformatted("Loading..."u8);
+            ImGui.Text("Loading..."u8);
             return changed;
         }
 
         if (!this.fontFamilies.IsCompletedSuccessfully)
         {
-            ImGui.TextUnformatted("Error: " + this.fontFamilies.Exception);
+            ImGui.Text("Error: " + this.fontFamilies.Exception);
             return changed;
         }
 
@@ -862,7 +862,7 @@ public sealed class SingleFontChooserDialog : IDisposable
                 {
                     if (i < 0)
                     {
-                        ImGui.TextUnformatted(" "u8);
+                        ImGui.Text(" "u8);
                         continue;
                     }
 
@@ -966,7 +966,7 @@ public sealed class SingleFontChooserDialog : IDisposable
                 {
                     if (i < 0)
                     {
-                        ImGui.TextUnformatted(" "u8);
+                        ImGui.Text(" "u8);
                         continue;
                     }
 
@@ -1039,7 +1039,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("Offset:"u8);
+        ImGui.Text("Offset:"u8);
 
         ImGui.TableNextColumn();
         if (FloatInputText(
@@ -1070,7 +1070,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("Letter Spacing:"u8);
+        ImGui.Text("Letter Spacing:"u8);
 
         ImGui.TableNextColumn();
         if (FloatInputText(
@@ -1085,7 +1085,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("Line Height:"u8);
+        ImGui.Text("Line Height:"u8);
 
         ImGui.TableNextColumn();
         if (FloatInputText(

@@ -87,12 +87,12 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
         ImGuiHelpers.ScaledDummy(10f);
         for (var i = 0; i < this.icons?.Count; i++)
         {
-            ImGui.TextUnformatted($"0x{(int)this.icons[i].ToIconChar():X}");
+            ImGui.Text($"0x{(int)this.icons[i].ToIconChar():X}");
             ImGuiHelpers.ScaledRelativeSameLine(50f);
-            ImGui.TextUnformatted($"{this.iconNames?[i]}");
+            ImGui.Text($"{this.iconNames?[i]}");
             ImGuiHelpers.ScaledRelativeSameLine(280f);
             ImGui.PushFont(this.useFixedWidth ? InterfaceManager.IconFontFixedWidth : InterfaceManager.IconFont);
-            ImGui.TextUnformatted(this.icons[i].ToIconString());
+            ImGui.Text(this.icons[i].ToIconString());
             ImGui.PopFont();
             ImGuiHelpers.ScaledDummy(2f);
         }

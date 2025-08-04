@@ -43,7 +43,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
 
         SeString? toPrint = null;
 
-        ImGui.TextUnformatted(this.currentSubStep.ToString());
+        ImGui.Text(this.currentSubStep.ToString());
 
         switch (this.currentSubStep)
         {
@@ -52,7 +52,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverNormalItem:
-                ImGui.TextUnformatted("Hover the item."u8);
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != normalItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -62,7 +62,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverHqItem:
-                ImGui.TextUnformatted("Hover the item."u8);
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != 1_000_000 + hqItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -72,7 +72,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverCollectable:
-                ImGui.TextUnformatted("Hover the item."u8);
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != 500_000 + collectableItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -82,7 +82,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverEventItem:
-                ImGui.TextUnformatted("Hover the item."u8);
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != eventItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -92,7 +92,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverNormalWithText:
-                ImGui.TextUnformatted("Hover the item."u8);
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != normalItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;

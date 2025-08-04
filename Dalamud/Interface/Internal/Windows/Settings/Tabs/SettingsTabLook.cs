@@ -170,7 +170,7 @@ public class SettingsTabLook : SettingsTab
                 ImGui.SameLine();
 
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, v / 100);
-                ImGui.TextUnformatted("\uE020\uE021\uE022\uE023\uE024\uE025\uE026\uE027"u8);
+                ImGui.Text("\uE020\uE021\uE022\uE023\uE024\uE025\uE026\uE027"u8);
                 ImGui.PopStyleVar(1);
             },
         }
@@ -184,7 +184,7 @@ public class SettingsTabLook : SettingsTab
         var fontBuildTask = interfaceManager.FontBuildTask;
 
         ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted(Loc.Localize("DalamudSettingsGlobalUiScale", "Global Font Scale"));
+        ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global Font Scale"));
 
         var buttonSize =
             GlobalUiScalePresets
@@ -210,7 +210,7 @@ public class SettingsTabLook : SettingsTab
                 var len = Encoding.UTF8.GetByteCount(buildingFonts);
                 var p = stackalloc byte[len];
                 Encoding.UTF8.GetBytes(buildingFonts, new(p, len));
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     new ReadOnlySpan<byte>(p, len)[..((len + ((Environment.TickCount / 200) % 3)) - 2)]);
             }
         }
@@ -234,7 +234,7 @@ public class SettingsTabLook : SettingsTab
                 && ImGui.CollapsingHeader("##DalamudSetingsFontBuildFaultReason"u8))
             {
                 foreach (var e in fontBuildTask.Exception.InnerExceptions)
-                    ImGui.TextUnformatted(e.ToString());
+                    ImGui.Text(e.ToString());
             }
         }
 

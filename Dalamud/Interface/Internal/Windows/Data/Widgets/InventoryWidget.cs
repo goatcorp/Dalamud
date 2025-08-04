@@ -101,7 +101,7 @@ internal class InventoryWidget : IDataWindowWidget
             }
 
             ImGui.TableNextColumn(); // Size
-            ImGui.TextUnformatted(items.Length.ToString());
+            ImGui.Text(items.Length.ToString());
         }
     }
 
@@ -110,7 +110,7 @@ internal class InventoryWidget : IDataWindowWidget
         var items = GameInventoryItem.GetReadOnlySpanOfInventory(inventoryType);
         if (items.IsEmpty)
         {
-            ImGui.TextUnformatted($"{inventoryType} is empty.");
+            ImGui.Text($"{inventoryType} is empty.");
             return;
         }
 
@@ -131,7 +131,7 @@ internal class InventoryWidget : IDataWindowWidget
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); // Slot
-            ImGui.TextUnformatted(slotIndex.ToString());
+            ImGui.Text(slotIndex.ToString());
 
             ImGui.TableNextColumn(); // ItemId
             ImGuiHelpers.ClickToCopyText(item.ItemId.ToString());
@@ -153,8 +153,8 @@ internal class InventoryWidget : IDataWindowWidget
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                         ImGui.BeginTooltip();
-                        ImGui.TextUnformatted("Click to copy IconId"u8);
-                        ImGui.TextUnformatted($"ID: {iconId} – Size: {texture.Width}x{texture.Height}");
+                        ImGui.Text("Click to copy IconId"u8);
+                        ImGui.Text($"ID: {iconId} – Size: {texture.Width}x{texture.Height}");
                         ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                         ImGui.EndTooltip();
                     }
@@ -193,7 +193,7 @@ internal class InventoryWidget : IDataWindowWidget
                 {
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted(fieldName);
+                    ImGui.Text(fieldName);
                     ImGui.TableNextColumn();
                     ImGuiHelpers.ClickToCopyText(value);
                 }
@@ -261,7 +261,7 @@ internal class InventoryWidget : IDataWindowWidget
                     {
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted("Stains"u8);
+                        ImGui.Text("Stains"u8);
                         ImGui.TableNextColumn();
 
                         using var stainTable = ImRaii.Table($"{inventoryType}_{slotIndex}_StainTable", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings);
@@ -282,7 +282,7 @@ internal class InventoryWidget : IDataWindowWidget
                     {
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted("Materia"u8);
+                        ImGui.Text("Materia"u8);
                         ImGui.TableNextColumn();
 
                         using var materiaTable = ImRaii.Table($"{inventoryType}_{slotIndex}_MateriaTable", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings);

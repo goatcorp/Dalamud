@@ -59,13 +59,13 @@ public class DevPluginsSettingsEntry : SettingsEntry
     public override void Draw()
     {
         using var id = ImRaii.PushId("devPluginLocation"u8);
-        ImGui.TextUnformatted(this.Name);
+        ImGui.Text(this.Name);
         if (this.devPluginLocationsChanged)
         {
             using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
             {
                 ImGui.SameLine();
-                ImGui.TextUnformatted(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
+                ImGui.Text(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
             }
         }
 
@@ -97,13 +97,13 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted("#"u8);
+        ImGui.Text("#"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("Path"u8);
+        ImGui.Text("Path"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("Enabled"u8);
+        ImGui.Text("Enabled"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted(string.Empty);
+        ImGui.Text(string.Empty);
         ImGui.NextColumn();
 
         ImGui.Separator();
@@ -118,7 +118,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
             id.Push(devPluginLocationSetting.Path);
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(locNumber.ToString()).X / 2));
-            ImGui.TextUnformatted(locNumber.ToString());
+            ImGui.Text(locNumber.ToString());
             ImGui.NextColumn();
 
             ImGui.SetNextItemWidth(-1);
@@ -175,7 +175,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
         }
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(locNumber.ToString()).X / 2));
-        ImGui.TextUnformatted(locNumber.ToString());
+        ImGui.Text(locNumber.ToString());
         ImGui.NextColumn();
         ImGui.SetNextItemWidth(-1);
         ImGui.InputText("##devPluginLocationInput"u8, ref this.devPluginTempLocation, 300);

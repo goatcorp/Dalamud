@@ -31,7 +31,7 @@ internal class TargetSelfTestStep : ISelfTestStep
                 break;
 
             case 1:
-                ImGui.TextUnformatted("Target a player..."u8);
+                ImGui.Text("Target a player..."u8);
 
                 var cTarget = targetManager.Target;
                 if (cTarget is PlayerCharacter)
@@ -42,7 +42,7 @@ internal class TargetSelfTestStep : ISelfTestStep
                 break;
 
             case 2:
-                ImGui.TextUnformatted("Focus-Target a Battle NPC..."u8);
+                ImGui.Text("Focus-Target a Battle NPC..."u8);
 
                 var fTarget = targetManager.FocusTarget;
                 if (fTarget is BattleNpc)
@@ -53,7 +53,7 @@ internal class TargetSelfTestStep : ISelfTestStep
                 break;
 
             case 3:
-                ImGui.TextUnformatted("Soft-Target an EventObj..."u8);
+                ImGui.Text("Soft-Target an EventObj..."u8);
 
                 var sTarget = targetManager.SoftTarget;
                 if (sTarget is EventObj)

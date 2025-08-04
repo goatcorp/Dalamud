@@ -30,10 +30,10 @@ internal class ConditionWidget : IDataWindowWidget
         var condition = Service<Condition>.Get();
 
 #if DEBUG
-        ImGui.TextUnformatted($"ptr: {Util.DescribeAddress(condition.Address)}");
+        ImGui.Text($"ptr: {Util.DescribeAddress(condition.Address)}");
 #endif
 
-        ImGui.TextUnformatted("Current Conditions:"u8);
+        ImGui.Text("Current Conditions:"u8);
         ImGui.Separator();
 
         var didAny = false;
@@ -47,10 +47,10 @@ internal class ConditionWidget : IDataWindowWidget
 
             didAny = true;
 
-            ImGui.TextUnformatted($"ID: {i} Enum: {typedCondition}");
+            ImGui.Text($"ID: {i} Enum: {typedCondition}");
         }
 
         if (!didAny)
-            ImGui.TextUnformatted("None. Talk to a shop NPC or visit a market board to find out more!"u8);
+            ImGui.Text("None. Talk to a shop NPC or visit a market board to find out more!"u8);
     }
 }

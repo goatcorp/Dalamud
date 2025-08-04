@@ -28,6 +28,6 @@ internal class StartInfoWidget : IDataWindowWidget
     {
         var startInfo = Service<Dalamud>.Get().StartInfo;
 
-        ImGui.TextUnformatted(JsonConvert.SerializeObject(startInfo, Formatting.Indented));
+        ImGui.Text(JsonConvert.SerializeObject(startInfo, Formatting.Indented));
     }
 }

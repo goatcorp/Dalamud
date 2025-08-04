@@ -149,17 +149,17 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
         this.DrawDtrTestEntry(ref this.dtrTest3, "DTR Test #3");
 
         ImGui.Separator();
-        ImGui.TextUnformatted("IDtrBar.Entries:"u8);
+        ImGui.Text("IDtrBar.Entries:"u8);
         foreach (var e in Service<DtrBar>.Get().Entries)
-            ImGui.TextUnformatted(e.Title);
+            ImGui.Text(e.Title);
 
         var configuration = Service<DalamudConfiguration>.Get();
         if (configuration.DtrOrder != null)
         {
             ImGui.Separator();
-            ImGui.TextUnformatted("DtrOrder:"u8);
+            ImGui.Text("DtrOrder:"u8);
             foreach (var order in configuration.DtrOrder)
-                ImGui.TextUnformatted(order);
+                ImGui.Text(order);
         }
     }
 
@@ -177,7 +177,7 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
 
         if (entry != null)
         {
-            ImGui.TextUnformatted(title);
+            ImGui.Text(title);
 
             var text = entry.Text?.TextValue ?? string.Empty;
             if (ImGui.InputText($"Text###{entry.Title}t", ref text, 255))

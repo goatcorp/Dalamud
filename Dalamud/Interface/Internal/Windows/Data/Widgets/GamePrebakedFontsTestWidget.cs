@@ -150,7 +150,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
         if (this.chooserDialog is not null)
         {
             ImGui.SameLine();
-            ImGui.TextUnformatted($"{this.chooserDialog.PopupPosition}, {this.chooserDialog.PopupSize}");
+            ImGui.Text($"{this.chooserDialog.PopupPosition}, {this.chooserDialog.PopupSize}");
 
             ImGui.SameLine();
             if (ImGui.Button("Random Location"u8))
@@ -246,18 +246,18 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
 
             foreach (var (gfs, handle) in items)
             {
-                ImGui.TextUnformatted($"{gfs.SizePt}pt");
+                ImGui.Text($"{gfs.SizePt}pt");
                 ImGui.SameLine(offsetX);
                 ImGui.PushTextWrapPos(this.useWordWrap ? 0f : -1f);
                 try
                 {
                     if (handle.Value.LoadException is { } exc)
                     {
-                        ImGui.TextUnformatted(exc.ToString());
+                        ImGui.Text(exc.ToString());
                     }
                     else if (!handle.Value.Available)
                     {
-                        ImGui.TextUnformatted("Loading..."u8[..(8 + ((Environment.TickCount / 200) % 3))]);
+                        ImGui.Text("Loading..."u8[..(8 + ((Environment.TickCount / 200) % 3))]);
                     }
                     else
                     {
@@ -266,12 +266,12 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                         if (counter++ % 2 == 0)
                         {
                             using var pushPop = handle.Value.Push();
-                            ImGui.TextUnformatted(this.testStringBuffer.DataSpan);
+                            ImGui.Text(this.testStringBuffer.DataSpan);
                         }
                         else
                         {
                             handle.Value.Push();
-                            ImGui.TextUnformatted(this.testStringBuffer.DataSpan);
+                            ImGui.Text(this.testStringBuffer.DataSpan);
                             handle.Value.Pop();
                         }
                     }

@@ -40,7 +40,7 @@ internal class TargetWidget : IDataWindowWidget
         {
             Util.PrintGameObject(targetMgr.Target, "CurrentTarget", this.resolveGameData);
 
-            ImGui.TextUnformatted("Target"u8);
+            ImGui.Text("Target"u8);
             Util.ShowGameObjectStruct(targetMgr.Target);
 
             var tot = targetMgr.Target.TargetObject;
@@ -49,7 +49,7 @@ internal class TargetWidget : IDataWindowWidget
                 ImGuiHelpers.ScaledDummy(10);
 
                 ImGui.Separator();
-                ImGui.TextUnformatted("ToT"u8);
+                ImGui.Text("ToT"u8);
                 Util.ShowGameObjectStruct(tot);
             }
 
@@ -92,7 +92,7 @@ internal class TargetWidget : IDataWindowWidget
         }
         else
         {
-            ImGui.TextUnformatted("LocalPlayer is null."u8);
+            ImGui.Text("LocalPlayer is null."u8);
         }
     }
 }

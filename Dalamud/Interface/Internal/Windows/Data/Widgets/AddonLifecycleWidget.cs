@@ -43,7 +43,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
     {
         if (!this.Ready)
         {
-            ImGui.TextUnformatted("AddonLifecycle Reference is null, reload module."u8);
+            ImGui.Text("AddonLifecycle Reference is null, reload module."u8);
             return;
         }
 
@@ -75,7 +75,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
 
                 if (listeners.Count == 0)
                 {
-                    ImGui.TextUnformatted("No Listeners Registered for Event"u8);
+                    ImGui.Text("No Listeners Registered for Event"u8);
                 }
 
                 if (ImGui.BeginTable("AddonLifecycleListenersTable"u8, 2))
@@ -86,10 +86,10 @@ public class AddonLifecycleWidget : IDataWindowWidget
                     foreach (var listener in listeners)
                     {
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted(listener.AddonName is "" ? "GLOBAL" : listener.AddonName);
+                        ImGui.Text(listener.AddonName is "" ? "GLOBAL" : listener.AddonName);
 
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted($"{listener.FunctionDelegate.Method.DeclaringType?.FullName ?? "Unknown Declaring Type"}::{listener.FunctionDelegate.Method.Name}");
+                        ImGui.Text($"{listener.FunctionDelegate.Method.DeclaringType?.FullName ?? "Unknown Declaring Type"}::{listener.FunctionDelegate.Method.Name}");
                     }
 
                     ImGui.EndTable();
@@ -108,7 +108,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
 
         if (listeners.Count == 0)
         {
-            ImGui.TextUnformatted("No ReceiveEvent Hooks are Registered"u8);
+            ImGui.Text("No ReceiveEvent Hooks are Registered"u8);
         }
 
         foreach (var receiveEventListener in this.AddonLifecycle.ReceiveEventListeners)
@@ -117,16 +117,16 @@ public class AddonLifecycleWidget : IDataWindowWidget
             {
                 ImGui.Columns(2);
 
-                ImGui.TextUnformatted("Hook Address"u8);
+                ImGui.Text("Hook Address"u8);
                 ImGui.NextColumn();
-                ImGui.TextUnformatted(receiveEventListener.FunctionAddress.ToString("X"));
+                ImGui.Text(receiveEventListener.FunctionAddress.ToString("X"));
 
                 ImGui.NextColumn();
-                ImGui.TextUnformatted("Hook Status"u8);
+                ImGui.Text("Hook Status"u8);
                 ImGui.NextColumn();
                 if (receiveEventListener.Hook is null)
                 {
-                    ImGui.TextUnformatted("Hook is null"u8);
+                    ImGui.Text("Hook is null"u8);
                 }
                 else
                 {

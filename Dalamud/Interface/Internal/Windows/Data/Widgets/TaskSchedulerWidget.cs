@@ -69,7 +69,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             this.taskSchedulerCancelSource = new();
         }
 
-        ImGui.TextUnformatted("Run in any thread: "u8);
+        ImGui.Text("Run in any thread: "u8);
         ImGui.SameLine();
 
         if (ImGui.Button("Short Task.Run"u8))
@@ -104,7 +104,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             });
         }
 
-        ImGui.TextUnformatted("Run in Framework.Update: "u8);
+        ImGui.Text("Run in Framework.Update: "u8);
         ImGui.SameLine();
 
         if (ImGui.Button("ASAP"u8))
@@ -264,12 +264,12 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     });
             }
 
-            ImGui.TextUnformatted($"{this.downloadState.Downloaded:##,###}/{this.downloadState.Total:##,###} ({this.downloadState.Percentage:0.00}%)");
+            ImGui.Text($"{this.downloadState.Downloaded:##,###}/{this.downloadState.Total:##,###} ({this.downloadState.Percentage:0.00}%)");
 
             using var disabled =
                 ImRaii.Disabled(this.downloadTask?.IsCompleted is false || this.localPath[0] == 0);
             ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted("Download"u8);
+            ImGui.Text("Download"u8);
             ImGui.SameLine();
             var downloadUsingGlobalScheduler = ImGui.Button("using default scheduler"u8);
             ImGui.SameLine();
@@ -430,13 +430,13 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
                 ImGuiHelpers.ScaledDummy(10);
 
-                ImGui.TextUnformatted(task.StackTrace?.ToString());
+                ImGui.Text(task.StackTrace?.ToString());
 
                 if (task.Exception != null)
                 {
                     ImGuiHelpers.ScaledDummy(15);
                     ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "EXCEPTION:"u8);
-                    ImGui.TextUnformatted(task.Exception.ToString());
+                    ImGui.Text(task.Exception.ToString());
                 }
             }
             else

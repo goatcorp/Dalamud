@@ -46,15 +46,15 @@ internal class ImGuiWidget : IDataWindowWidget
         var interfaceManager = Service<InterfaceManager>.Get();
         var nm = Service<NotificationManager>.Get();
 
-        ImGui.TextUnformatted("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
-        ImGui.TextUnformatted("OverrideGameCursor: " + interfaceManager.OverrideGameCursor);
+        ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
+        ImGui.Text("OverrideGameCursor: " + interfaceManager.OverrideGameCursor);
 
         ImGui.Button("THIS IS A BUTTON###hoverTestButton"u8);
         interfaceManager.OverrideGameCursor = !ImGui.IsItemHovered();
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted(
+        ImGui.Text(
             $"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
 
         ImGui.Separator();
@@ -266,7 +266,7 @@ internal class ImGuiWidget : IDataWindowWidget
                 n.DrawActions += an =>
                 {
                     ImGui.AlignTextToFramePadding();
-                    ImGui.TextUnformatted($"{nclick}");
+                    ImGui.Text($"{nclick}");
 
                     ImGui.SameLine();
                     if (ImGui.Button("Update"u8))

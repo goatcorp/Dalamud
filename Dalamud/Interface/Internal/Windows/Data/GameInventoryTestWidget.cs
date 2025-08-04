@@ -50,7 +50,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
             return;
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Standard Logging"u8);
+        ImGui.Text("Standard Logging"u8);
 
         ImGui.TableNextColumn();
         using (ImRaii.Disabled(this.standardEnabled))
@@ -81,7 +81,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
         ImGui.TableNextRow();
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Raw Logging"u8);
+        ImGui.Text("Raw Logging"u8);
 
         ImGui.TableNextColumn();
         using (ImRaii.Disabled(this.rawEnabled))
@@ -112,7 +112,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
         ImGui.TableNextRow();
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("All"u8);
+        ImGui.Text("All"u8);
 
         ImGui.TableNextColumn();
         using (ImRaii.Disabled(this.standardEnabled && this.rawEnabled))

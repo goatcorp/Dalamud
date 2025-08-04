@@ -46,17 +46,17 @@ internal class AddressesWidget : IDataWindowWidget
             }
         }
 
-        ImGui.TextUnformatted($"Result: {this.sigResult.ToInt64():X}");
+        ImGui.Text($"Result: {this.sigResult.ToInt64():X}");
         ImGui.SameLine();
         if (ImGui.Button($"C##{this.sigResult.ToInt64():X}"))
             ImGui.SetClipboardText(this.sigResult.ToInt64().ToString("X"));
 
         foreach (var debugScannedValue in BaseAddressResolver.DebugScannedValues)
         {
-            ImGui.TextUnformatted($"{debugScannedValue.Key}");
+            ImGui.Text($"{debugScannedValue.Key}");
             foreach (var valueTuple in debugScannedValue.Value)
             {
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"      {valueTuple.ClassName} - {Util.DescribeAddress(valueTuple.Address)}");
                 ImGui.SameLine();
 

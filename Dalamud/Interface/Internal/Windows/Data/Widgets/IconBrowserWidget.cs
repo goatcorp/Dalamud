@@ -72,11 +72,11 @@ public class IconBrowserWidget : IDataWindowWidget
 
         if (!this.iconIdsTask.IsCompleted)
         {
-            ImGui.TextUnformatted("Loading..."u8);
+            ImGui.Text("Loading..."u8);
         }
         else if (!this.iconIdsTask.IsCompletedSuccessfully)
         {
-            ImGui.TextUnformatted(this.iconIdsTask.Exception?.ToString() ?? "Unknown error");
+            ImGui.Text(this.iconIdsTask.Exception?.ToString() ?? "Unknown error");
         }
         else
         {
@@ -165,7 +165,7 @@ public class IconBrowserWidget : IDataWindowWidget
                 var textSize = ImGui.CalcTextSize(iconId.ToString());
                 ImGui.SetCursorPosX(
                     texture.Size.X * scale / 2.0f - textSize.X / 2.0f + ImGui.GetStyle().FramePadding.X * 2.0f);
-                ImGui.TextUnformatted(iconId.ToString());
+                ImGui.Text(iconId.ToString());
 
                 ImGui.Image(texture.Handle, texture.Size * scale);
                 ImGui.EndTooltip();

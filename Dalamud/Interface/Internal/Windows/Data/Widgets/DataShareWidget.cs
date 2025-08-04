@@ -214,7 +214,7 @@ internal class DataShareWidget : IDataWindowWidget
         var offset = ImGui.GetCursorScreenPos() + new Vector2(0, framepad ? ImGui.GetStyle().FramePadding.Y : 0);
         if (framepad)
             ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted(s);
+        ImGui.Text(s);
         if (ImGui.IsItemHovered())
         {
             ImGui.SetNextWindowPos(offset - ImGui.GetStyle().WindowPadding);

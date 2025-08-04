@@ -52,6 +52,6 @@ public class ColumnString<TItem> : Column<TItem>
 
     public override void DrawColumn(TItem item, int idx)
     {
-        ImGui.TextUnformatted(this.ToName(item));
+        ImGui.Text(this.ToName(item));
     }
 }

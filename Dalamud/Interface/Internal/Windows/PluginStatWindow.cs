@@ -138,18 +138,18 @@ internal class PluginStatWindow : Window
                             ImGui.TableNextRow();
 
                             ImGui.TableNextColumn();
-                            ImGui.TextUnformatted(plugin.Manifest.Name);
+                            ImGui.Text(plugin.Manifest.Name);
 
                             if (plugin.DalamudInterface != null)
                             {
                                 ImGui.TableNextColumn();
-                                ImGui.TextUnformatted($"{plugin.DalamudInterface.LocalUiBuilder.LastDrawTime / 10000f:F4}ms");
+                                ImGui.Text($"{plugin.DalamudInterface.LocalUiBuilder.LastDrawTime / 10000f:F4}ms");
 
                                 ImGui.TableNextColumn();
-                                ImGui.TextUnformatted($"{plugin.DalamudInterface.LocalUiBuilder.MaxDrawTime / 10000f:F4}ms");
+                                ImGui.Text($"{plugin.DalamudInterface.LocalUiBuilder.MaxDrawTime / 10000f:F4}ms");
 
                                 ImGui.TableNextColumn();
-                                ImGui.TextUnformatted(plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Count > 0
+                                ImGui.Text(plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Count > 0
                                                ? $"{plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Average() / 10000f:F4}ms"
                                                : "-");
                             }
@@ -245,16 +245,16 @@ internal class PluginStatWindow : Window
                             ImGui.TableNextRow();
 
                             ImGui.TableNextColumn();
-                            ImGui.TextUnformatted($"{handlerHistory.Key}");
+                            ImGui.Text($"{handlerHistory.Key}");
 
                             ImGui.TableNextColumn();
-                            ImGui.TextUnformatted($"{handlerHistory.Value.Last():F4}ms");
+                            ImGui.Text($"{handlerHistory.Value.Last():F4}ms");
 
                             ImGui.TableNextColumn();
-                            ImGui.TextUnformatted($"{handlerHistory.Value.Max():F4}ms");
+                            ImGui.Text($"{handlerHistory.Value.Max():F4}ms");
 
                             ImGui.TableNextColumn();
-                            ImGui.TextUnformatted($"{handlerHistory.Value.Average():F4}ms");
+                            ImGui.Text($"{handlerHistory.Value.Average():F4}ms");
                         }
                     }
                 }
@@ -309,7 +309,7 @@ internal class PluginStatWindow : Window
 
                             ImGui.TableNextColumn();
 
-                            ImGui.TextUnformatted($"{trackedHook.Delegate.Target} :: {trackedHook.Delegate.Method.Name}");
+                            ImGui.Text($"{trackedHook.Delegate.Target} :: {trackedHook.Delegate.Method.Name}");
                             ImGui.TextDisabled(trackedHook.Assembly.FullName);
                             ImGui.TableNextColumn();
                             if (!trackedHook.Hook.IsDisposed)
@@ -335,16 +335,16 @@ internal class PluginStatWindow : Window
 
                             if (trackedHook.Hook.IsDisposed)
                             {
-                                ImGui.TextUnformatted("Disposed"u8);
+                                ImGui.Text("Disposed"u8);
                             }
                             else
                             {
-                                ImGui.TextUnformatted(trackedHook.Hook.IsEnabled ? "Enabled" : "Disabled");
+                                ImGui.Text(trackedHook.Hook.IsEnabled ? "Enabled" : "Disabled");
                             }
 
                             ImGui.TableNextColumn();
 
-                            ImGui.TextUnformatted(trackedHook.Hook.BackendName);
+                            ImGui.Text(trackedHook.Hook.BackendName);
                         }
                         catch (Exception ex)
                         {

@@ -88,10 +88,10 @@ internal unsafe class UiDebug
         var addonName = atkUnitBase->NameString;
         var agent = Service<GameGui>.Get().FindAgentInterface(atkUnitBase);
 
-        ImGui.TextUnformatted(addonName);
+        ImGui.Text(addonName);
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Text, isVisible ? 0xFF00FF00 : 0xFF0000FF);
-        ImGui.TextUnformatted(isVisible ? "Visible" : "Not Visible");
+        ImGui.Text(isVisible ? "Visible" : "Not Visible");
         ImGui.PopStyleColor();
 
         ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - 25);
@@ -105,9 +105,9 @@ internal unsafe class UiDebug
         ImGuiHelpers.ClickToCopyText($"Agent: {(nint)agent:X}", $"{(nint)agent:X}");
         ImGui.Separator();
 
-        ImGui.TextUnformatted($"Position: [ {atkUnitBase->X} , {atkUnitBase->Y} ]");
-        ImGui.TextUnformatted($"Scale: {atkUnitBase->Scale * 100}%%");
-        ImGui.TextUnformatted($"Widget Count {atkUnitBase->UldManager.ObjectCount}");
+        ImGui.Text($"Position: [ {atkUnitBase->X} , {atkUnitBase->Y} ]");
+        ImGui.Text($"Scale: {atkUnitBase->Scale * 100}%%");
+        ImGui.Text($"Widget Count {atkUnitBase->UldManager.ObjectCount}");
 
         ImGui.Separator();
 
@@ -184,7 +184,7 @@ internal unsafe class UiDebug
                 popped = true;
             }
 
-            ImGui.TextUnformatted("Node: "u8);
+            ImGui.Text("Node: "u8);
             ImGui.SameLine();
             ImGuiHelpers.ClickToCopyText($"{(ulong)node:X}");
             ImGui.SameLine();
@@ -208,7 +208,7 @@ internal unsafe class UiDebug
             {
                 case NodeType.Text:
                     var textNode = (AtkTextNode*)node;
-                    ImGui.TextUnformatted("text: "u8);
+                    ImGui.Text("text: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textNode->NodeText);
 
@@ -226,7 +226,7 @@ internal unsafe class UiDebug
                     if (ImGui.Button($"Decode##{(ulong)textNode:X}"))
                         textNode->NodeText.SetString(textNode->NodeText.StringPtr.AsReadOnlySeStringSpan().ToString());
 
-                    ImGui.TextUnformatted($"AlignmentType: {(AlignmentType)textNode->AlignmentFontType}  FontSize: {textNode->FontSize}");
+                    ImGui.Text($"AlignmentType: {(AlignmentType)textNode->AlignmentFontType}  FontSize: {textNode->FontSize}");
                     int b = textNode->AlignmentFontType;
                     if (ImGui.InputInt($"###setAlignment{(ulong)textNode:X}", ref b, 1))
                     {
@@ -236,20 +236,20 @@ internal unsafe class UiDebug
                         textNode->AtkResNode.DrawFlags |= 0x1;
                     }
 
-                    ImGui.TextUnformatted($"Color: #{textNode->TextColor.R:X2}{textNode->TextColor.G:X2}{textNode->TextColor.B:X2}{textNode->TextColor.A:X2}");
+                    ImGui.Text($"Color: #{textNode->TextColor.R:X2}{textNode->TextColor.G:X2}{textNode->TextColor.B:X2}{textNode->TextColor.A:X2}");
                     ImGui.SameLine();
-                    ImGui.TextUnformatted($"EdgeColor: #{textNode->EdgeColor.R:X2}{textNode->EdgeColor.G:X2}{textNode->EdgeColor.B:X2}{textNode->EdgeColor.A:X2}");
+                    ImGui.Text($"EdgeColor: #{textNode->EdgeColor.R:X2}{textNode->EdgeColor.G:X2}{textNode->EdgeColor.B:X2}{textNode->EdgeColor.A:X2}");
                     ImGui.SameLine();
-                    ImGui.TextUnformatted($"BGColor: #{textNode->BackgroundColor.R:X2}{textNode->BackgroundColor.G:X2}{textNode->BackgroundColor.B:X2}{textNode->BackgroundColor.A:X2}");
+                    ImGui.Text($"BGColor: #{textNode->BackgroundColor.R:X2}{textNode->BackgroundColor.G:X2}{textNode->BackgroundColor.B:X2}{textNode->BackgroundColor.A:X2}");
 
-                    ImGui.TextUnformatted($"TextFlags: {textNode->TextFlags}");
+                    ImGui.Text($"TextFlags: {textNode->TextFlags}");
                     ImGui.SameLine();
-                    ImGui.TextUnformatted($"TextFlags2: {textNode->TextFlags2}");
+                    ImGui.Text($"TextFlags2: {textNode->TextFlags2}");
 
                     break;
                 case NodeType.Counter:
                     var counterNode = (AtkCounterNode*)node;
-                    ImGui.TextUnformatted("text: "u8);
+                    ImGui.Text("text: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(counterNode->NodeText);
                     break;
@@ -283,17 +283,17 @@ internal unsafe class UiDebug
             {
                 if (partId > partsList->PartCount)
                 {
-                    ImGui.TextUnformatted("part id > part count?"u8);
+                    ImGui.Text("part id > part count?"u8);
                 }
                 else
                 {
                     var textureInfo = partsList->Parts[partId].UldAsset;
                     var texType = textureInfo->AtkTexture.TextureType;
-                    ImGui.TextUnformatted(
+                    ImGui.Text(
                         $"texture type: {texType} part_id={partId} part_id_count={partsList->PartCount}");
                     if (texType == TextureType.Resource)
                     {
-                        ImGui.TextUnformatted(
+                        ImGui.Text(
                             $"texture path: {textureInfo->AtkTexture.Resource->TexFileResourceHandle->ResourceHandle.FileName}");
                         var kernelTexture = textureInfo->AtkTexture.Resource->KernelTextureObject;
 
@@ -348,7 +348,7 @@ internal unsafe class UiDebug
             }
             else
             {
-                ImGui.TextUnformatted("no texture loaded"u8);
+                ImGui.Text("no texture loaded"u8);
             }
         }
     }
@@ -384,12 +384,12 @@ internal unsafe class UiDebug
                 popped = true;
             }
 
-            ImGui.TextUnformatted("Node: "u8);
+            ImGui.Text("Node: "u8);
             ImGui.SameLine();
             ImGuiHelpers.ClickToCopyText($"{(ulong)node:X}");
             ImGui.SameLine();
             Util.ShowStruct(*compNode, (ulong)compNode);
-            ImGui.TextUnformatted("Component: "u8);
+            ImGui.Text("Component: "u8);
             ImGui.SameLine();
             ImGuiHelpers.ClickToCopyText($"{(ulong)compNode->Component:X}");
             ImGui.SameLine();
@@ -414,31 +414,31 @@ internal unsafe class UiDebug
             {
                 case ComponentType.TextInput:
                     var textInputComponent = (AtkComponentTextInput*)compNode->Component;
-                    ImGui.TextUnformatted("InputBase Text1: "u8);
+                    ImGui.Text("InputBase Text1: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText1);
 
-                    ImGui.TextUnformatted("InputBase Text2: "u8);
+                    ImGui.Text("InputBase Text2: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText2);
 
-                    ImGui.TextUnformatted("Text1: "u8);
+                    ImGui.Text("Text1: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText01);
 
-                    ImGui.TextUnformatted("Text2: "u8);
+                    ImGui.Text("Text2: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText02);
 
-                    ImGui.TextUnformatted("AvailableLines: "u8);
+                    ImGui.Text("AvailableLines: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->AvailableLines);
 
-                    ImGui.TextUnformatted("HighlightedAutoTranslateOptionColorPrefix: "u8);
+                    ImGui.Text("HighlightedAutoTranslateOptionColorPrefix: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->HighlightedAutoTranslateOptionColorPrefix);
 
-                    ImGui.TextUnformatted("HighlightedAutoTranslateOptionColorSuffix: "u8);
+                    ImGui.Text("HighlightedAutoTranslateOptionColorSuffix: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->HighlightedAutoTranslateOptionColorSuffix);
                     break;
@@ -474,7 +474,7 @@ internal unsafe class UiDebug
 
     private void PrintResNode(AtkResNode* node)
     {
-        ImGui.TextUnformatted($"NodeID: {node->NodeId}");
+        ImGui.Text($"NodeID: {node->NodeId}");
         ImGui.SameLine();
         if (ImGui.SmallButton($"T:Visible##{(ulong)node:X}"))
         {
@@ -487,13 +487,13 @@ internal unsafe class UiDebug
             ImGui.SetClipboardText($"{(ulong)node:X}");
         }
 
-        ImGui.TextUnformatted(
+        ImGui.Text(
             $"X: {node->X} Y: {node->Y} " +
             $"ScaleX: {node->ScaleX} ScaleY: {node->ScaleY} " +
             $"Rotation: {node->Rotation} " +
             $"Width: {node->Width} Height: {node->Height} " +
             $"OriginX: {node->OriginX} OriginY: {node->OriginY}");
-        ImGui.TextUnformatted(
+        ImGui.Text(
             $"RGBA: 0x{node->Color.R:X2}{node->Color.G:X2}{node->Color.B:X2}{node->Color.A:X2} " +
             $"AddRGB: {node->AddRed} {node->AddGreen} {node->AddBlue} " +
             $"MultiplyRGB: {node->MultiplyRed} {node->MultiplyGreen} {node->MultiplyBlue}");

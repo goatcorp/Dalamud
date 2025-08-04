@@ -26,11 +26,11 @@ internal static class DataWindowWidgetExtensions
             var xoff = ImGui.GetColumnWidth() - width;
             offset.X += xoff;
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + xoff);
-            ImGui.TextUnformatted(s);
+            ImGui.Text(s);
         }
         else
         {
-            ImGui.TextUnformatted(s);
+            ImGui.Text(s);
         }
 
         if (ImGui.IsItemHovered())

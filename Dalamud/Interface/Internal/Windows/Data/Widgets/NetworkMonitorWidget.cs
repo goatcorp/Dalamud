@@ -97,24 +97,24 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     private void DrawNetworkPacket(NetworkPacketData data)
     {
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Direction.ToString());
+        ImGui.Text(data.Direction.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.OpCode.ToString());
+        ImGui.Text(data.OpCode.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"0x{data.OpCode:X4}");
+        ImGui.Text($"0x{data.OpCode:X4}");
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.TargetActorId > 0 ? $"0x{data.TargetActorId:X}" : string.Empty);
+        ImGui.Text(data.TargetActorId > 0 ? $"0x{data.TargetActorId:X}" : string.Empty);
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.SourceActorId > 0 ? $"0x{data.SourceActorId:X}" : string.Empty);
+        ImGui.Text(data.SourceActorId > 0 ? $"0x{data.SourceActorId:X}" : string.Empty);
 
         ImGui.TableNextColumn();
         if (data.Data.Count > 0)
         {
-            ImGui.TextUnformatted(string.Join(" ", data.Data.Select(b => b.ToString("X2"))));
+            ImGui.Text(string.Join(" ", data.Data.Select(b => b.ToString("X2"))));
         }
         else
         {

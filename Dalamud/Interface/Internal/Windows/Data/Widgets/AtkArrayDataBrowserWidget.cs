@@ -103,7 +103,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
             ImGui.TableNextColumn(); // Type
             if (arrayType != null && Enum.IsDefined(arrayType, arrayIndex))
             {
-                ImGui.TextUnformatted(Enum.GetName(arrayType, arrayIndex));
+                ImGui.Text(Enum.GetName(arrayType, arrayIndex));
             }
             else if (inUse && arrays[arrayIndex]->SubscribedAddonsCount > 0)
             {
@@ -115,41 +115,41 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
                         continue;
 
                     using (ImRaii.PushColor(ImGuiCol.Text, 0xFF00FFFF))
-                        ImGui.TextUnformatted(raptureAtkUnitManager->GetAddonById(arrays[arrayIndex]->SubscribedAddons[j])->NameString);
+                        ImGui.Text(raptureAtkUnitManager->GetAddonById(arrays[arrayIndex]->SubscribedAddons[j])->NameString);
                     break;
                 }
             }
 
             ImGui.TableNextColumn(); // Size
             if (inUse)
-                ImGui.TextUnformatted((rowsFound > 0 ? rowsFound : arrays[arrayIndex]->Size).ToString());
+                ImGui.Text((rowsFound > 0 ? rowsFound : arrays[arrayIndex]->Size).ToString());
         }
     }
 
     private void DrawArrayHeader(Type? arrayType, string type, int index, AtkArrayData* array)
     {
-        ImGui.TextUnformatted($"{type} Array #{index}");
+        ImGui.Text($"{type} Array #{index}");
 
         if (arrayType != null && Enum.IsDefined(arrayType, index))
         {
             ImGui.SameLine(0, 0);
-            ImGui.TextUnformatted($" ({Enum.GetName(arrayType, index)})");
+            ImGui.Text($" ({Enum.GetName(arrayType, index)})");
         }
 
         ImGui.SameLine();
-        ImGui.TextUnformatted("–"u8);
+        ImGui.Text("–"u8);
         ImGui.SameLine();
-        ImGui.TextUnformatted("Address: "u8);
+        ImGui.Text("Address: "u8);
         ImGui.SameLine(0, 0);
         WidgetUtil.DrawCopyableText($"0x{(nint)array:X}", "Copy address");
 
         if (array->SubscribedAddonsCount > 0)
         {
             ImGui.SameLine();
-            ImGui.TextUnformatted("–"u8);
+            ImGui.Text("–"u8);
             ImGui.SameLine();
             using (ImRaii.PushColor(ImGuiCol.Text, 0xFF00FFFF))
-                ImGui.TextUnformatted($"{array->SubscribedAddonsCount} Subscribed Addon" + (array->SubscribedAddonsCount > 1 ? 's' : string.Empty));
+                ImGui.Text($"{array->SubscribedAddonsCount} Subscribed Addon" + (array->SubscribedAddonsCount > 1 ? 's' : string.Empty));
 
             if (ImGui.IsItemHovered())
             {
@@ -163,7 +163,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
                         if (array->SubscribedAddons[j] == 0)
                             continue;
 
-                        ImGui.TextUnformatted(raptureAtkUnitManager->GetAddonById(array->SubscribedAddons[j])->NameString);
+                        ImGui.Text(raptureAtkUnitManager->GetAddonById(array->SubscribedAddons[j])->NameString);
                     }
                 }
             }
@@ -212,7 +212,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
         {
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); // Index
-            ImGui.TextUnformatted($"#{i}");
+            ImGui.Text($"#{i}");
 
             var ptr = &array->IntArray[i];
 
@@ -306,7 +306,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); // Index
-            ImGui.TextUnformatted($"#{i}");
+            ImGui.Text($"#{i}");
 
             ImGui.TableNextColumn(); // Address
             if (this.showTextAddress)
@@ -322,7 +322,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
             ImGui.TableNextColumn(); // Managed
             if (!isNull)
             {
-                ImGui.TextUnformatted(((nint)array->StringArray[i] != 0 && array->ManagedStringArray[i] == array->StringArray[i]).ToString());
+                ImGui.Text(((nint)array->StringArray[i] != 0 && array->ManagedStringArray[i] == array->StringArray[i]).ToString());
             }
 
             ImGui.TableNextColumn(); // Text
@@ -384,7 +384,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); // Index
-            ImGui.TextUnformatted($"#{i}");
+            ImGui.Text($"#{i}");
 
             ImGui.TableNextColumn(); // Address
             WidgetUtil.DrawCopyableText($"0x{(nint)(&array->DataArray[i]):X}", "Copy entry address");

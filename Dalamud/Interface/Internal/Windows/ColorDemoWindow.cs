@@ -53,7 +53,7 @@ internal sealed class ColorDemoWindow : Window
     /// <inheritdoc/>
     public override void Draw()
     {
-        ImGui.TextUnformatted("This is a collection of UI colors you can use in your plugin."u8);
+        ImGui.Text("This is a collection of UI colors you can use in your plugin."u8);
 
         ImGui.Separator();
 

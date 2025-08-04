@@ -33,28 +33,28 @@ internal class PartyListWidget : IDataWindowWidget
 
         ImGui.Checkbox("Resolve GameData"u8, ref this.resolveGameData);
 
-        ImGui.TextUnformatted($"GroupManager: {partyList.GroupManagerAddress.ToInt64():X}");
-        ImGui.TextUnformatted($"GroupList: {partyList.GroupListAddress.ToInt64():X}");
-        ImGui.TextUnformatted($"AllianceList: {partyList.AllianceListAddress.ToInt64():X}");
+        ImGui.Text($"GroupManager: {partyList.GroupManagerAddress.ToInt64():X}");
+        ImGui.Text($"GroupList: {partyList.GroupListAddress.ToInt64():X}");
+        ImGui.Text($"AllianceList: {partyList.AllianceListAddress.ToInt64():X}");
 
-        ImGui.TextUnformatted($"{partyList.Length} Members");
+        ImGui.Text($"{partyList.Length} Members");
 
         for (var i = 0; i < partyList.Length; i++)
         {
             var member = partyList[i];
             if (member == null)
             {
-                ImGui.TextUnformatted($"[{i}] was null");
+                ImGui.Text($"[{i}] was null");
                 continue;
             }
 
-            ImGui.TextUnformatted($"[{i}] {member.Address.ToInt64():X} - {member.Name} - {member.GameObject?.GameObjectId}");
+            ImGui.Text($"[{i}] {member.Address.ToInt64():X} - {member.Name} - {member.GameObject?.GameObjectId}");
             if (this.resolveGameData)
             {
                 var actor = member.GameObject;
                 if (actor == null)
                 {
-                    ImGui.TextUnformatted("Actor was null"u8);
+                    ImGui.Text("Actor was null"u8);
                 }
                 else
                 {

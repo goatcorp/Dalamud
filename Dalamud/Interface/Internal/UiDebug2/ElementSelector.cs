@@ -144,7 +144,7 @@ internal unsafe class ElementSelector : IDisposable
             return;
         }
 
-        ImGui.TextUnformatted("ELEMENT SELECTOR"u8);
+        ImGui.Text("ELEMENT SELECTOR"u8);
         ImGui.TextDisabled("Use the mouse to hover and identify UI elements, then click to jump to them in the inspector"u8);
         ImGui.TextDisabled("Use the scrollwheel to choose between overlapping elements"u8);
         ImGui.TextDisabled("Press ESCAPE to cancel"u8);
@@ -163,13 +163,13 @@ internal unsafe class ElementSelector : IDisposable
                 {
                     Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
                     ImGui.Spacing();
-                    ImGui.TextUnformatted("RESULTS:\n"u8);
+                    ImGui.Text("RESULTS:\n"u8);
 
                     var i = 0;
                     foreach (var a in addonResults)
                     {
                         var name = a.Addon->NameString;
-                        ImGui.TextUnformatted($"[Addon] {name}");
+                        ImGui.Text($"[Addon] {name}");
                         ImGui.Indent(15);
                         foreach (var n in a.Nodes)
                         {

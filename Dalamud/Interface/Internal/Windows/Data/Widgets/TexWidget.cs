@@ -305,13 +305,13 @@ internal class TexWidget : IDataWindowWidget
                         pres->Release();
                         pres->Release();
 
-                        ImGui.TextUnformatted($"RC: Resource({rcres})/View({rcsrv})");
-                        ImGui.TextUnformatted(source.ToString());
+                        ImGui.Text($"RC: Resource({rcres})/View({rcsrv})");
+                        ImGui.Text(source.ToString());
                     }
                     else
                     {
-                        ImGui.TextUnformatted("RC: -"u8);
-                        ImGui.TextUnformatted(" "u8);
+                        ImGui.Text("RC: -"u8);
+                        ImGui.Text(" "u8);
                     }
                 }
 
@@ -327,12 +327,12 @@ internal class TexWidget : IDataWindowWidget
                     }
                     else
                     {
-                        ImGui.TextUnformatted(t.DescribeError() ?? "Loading");
+                        ImGui.Text(t.DescribeError() ?? "Loading");
                     }
                 }
                 catch (Exception e)
                 {
-                    ImGui.TextUnformatted(e.ToString());
+                    ImGui.Text(e.ToString());
                 }
             }
 
@@ -566,7 +566,7 @@ internal class TexWidget : IDataWindowWidget
                         // Should not happen
                         ImGui.TableNextColumn();
                         ImGui.AlignTextToFramePadding();
-                        ImGui.TextUnformatted("?"u8);
+                        ImGui.Text("?"u8);
                         continue;
                     }
 

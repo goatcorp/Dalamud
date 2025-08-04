@@ -692,7 +692,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var headerText = Locs.Header_Hint;
         var headerTextSize = ImGui.CalcTextSize(headerText);
-        ImGui.TextUnformatted(headerText);
+        ImGui.Text(headerText);
 
         ImGui.SameLine();
 
@@ -925,7 +925,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (ImGui.BeginPopupModal(modalTitle, ref this.errorModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
         {
-            ImGui.TextUnformatted(this.errorModalMessage);
+            ImGui.Text(this.errorModalMessage);
             ImGui.Spacing();
 
             var buttonWidth = 120f;
@@ -961,7 +961,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (ImGui.BeginPopupModal(modalTitle, ref this.updateModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
         {
-            ImGui.TextUnformatted(Locs.UpdateModal_UpdateAvailable(this.updateModalPlugin.Name));
+            ImGui.Text(Locs.UpdateModal_UpdateAvailable(this.updateModalPlugin.Name));
             ImGui.Spacing();
 
             var buttonWidth = 120f;
@@ -1002,7 +1002,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (ImGui.BeginPopupModal(modalTitle, ref this.testingWarningModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
         {
-            ImGui.TextUnformatted(Locs.TestingWarningModal_DowngradeBody);
+            ImGui.Text(Locs.TestingWarningModal_DowngradeBody);
 
             ImGuiHelpers.ScaledDummy(10);
 
@@ -1047,11 +1047,11 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (this.deletePluginConfigWarningModalExplainTesting)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
-                ImGui.TextUnformatted(Locs.DeletePluginConfigWarningModal_ExplainTesting());
+                ImGui.Text(Locs.DeletePluginConfigWarningModal_ExplainTesting());
                 ImGui.PopStyleColor();
             }
 
-            ImGui.TextUnformatted(Locs.DeletePluginConfigWarningModal_Body(this.deletePluginConfigWarningModalPluginName));
+            ImGui.Text(Locs.DeletePluginConfigWarningModal_Body(this.deletePluginConfigWarningModalPluginName));
             ImGui.Spacing();
 
             var buttonWidth = 120f;
@@ -1092,7 +1092,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (ImGui.BeginPopupModal(modalTitle, ref this.feedbackModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
         {
-            ImGui.TextUnformatted(Locs.FeedbackModal_Text(this.feedbackPlugin.Name));
+            ImGui.Text(Locs.FeedbackModal_Text(this.feedbackPlugin.Name));
 
             if (this.feedbackPlugin?.FeedbackMessage != null)
             {
@@ -1123,7 +1123,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 });
             }
 
-            ImGui.TextUnformatted(Locs.FeedbackModal_ContactInformationHelp);
+            ImGui.Text(Locs.FeedbackModal_ContactInformationHelp);
 
             ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, Locs.FeedbackModal_ContactInformationWarning);
 
@@ -1706,7 +1706,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         break;
 
                     default:
-                        ImGui.TextUnformatted("You found a mysterious category. Please keep it to yourself."u8);
+                        ImGui.Text("You found a mysterious category. Please keep it to yourself."u8);
                         break;
                 }
 
@@ -1731,7 +1731,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         break;
 
                     default:
-                        ImGui.TextUnformatted("You found a secret category. Please feel a sense of pride and accomplishment."u8);
+                        ImGui.Text("You found a secret category. Please feel a sense of pride and accomplishment."u8);
                         break;
                 }
 
@@ -1752,7 +1752,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         break;
 
                     default:
-                        ImGui.TextUnformatted("You found a quiet category. Please don't wake it up."u8);
+                        ImGui.Text("You found a quiet category. Please don't wake it up."u8);
                         break;
                 }
 
@@ -1813,7 +1813,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var cursor = ImGui.GetCursorPos();
         // Name
-        ImGui.TextUnformatted("My Cool Plugin"u8);
+        ImGui.Text("My Cool Plugin"u8);
 
         // Download count
         var downloadCountText = Locs.PluginBody_AuthorWithDownloadCount("Plugin Enjoyer", 69420);
@@ -1887,13 +1887,13 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                         if (!imageTask.IsCompleted)
                         {
-                            ImGui.TextUnformatted("Loading..."u8);
+                            ImGui.Text("Loading..."u8);
                             continue;
                         }
 
                         if (imageTask.Exception is not null)
                         {
-                            ImGui.TextUnformatted(imageTask.Exception.ToString());
+                            ImGui.Text(imageTask.Exception.ToString());
                             continue;
                         }
 
@@ -1961,7 +1961,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (!imageTask.IsCompleted)
             {
-                ImGui.TextUnformatted("Loading..."u8);
+                ImGui.Text("Loading..."u8);
                 return;
             }
 
@@ -1969,19 +1969,19 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (imageTask.Exception is { } exc)
             {
-                ImGui.TextUnformatted(exc.ToString());
+                ImGui.Text(exc.ToString());
             }
             else
             {
                 var image = imageTask.Result;
                 if (image.Width > maxWidth || image.Height > maxHeight)
                 {
-                    ImGui.TextUnformatted(
+                    ImGui.Text(
                         $"Image is larger than the maximum allowed resolution ({image.Width}x{image.Height} > {maxWidth}x{maxHeight})");
                 }
 
                 if (requireSquare && image.Width != image.Height)
-                    ImGui.TextUnformatted($"Image must be square! Current size: {image.Width}x{image.Height}");
+                    ImGui.Text($"Image must be square! Current size: {image.Width}x{image.Height}");
             }
 
             ImGui.PopStyleColor();
@@ -2218,12 +2218,12 @@ internal class PluginInstallerWindow : Window, IDisposable
         var cursor = ImGui.GetCursorPos();
 
         // Name
-        ImGui.TextUnformatted(label);
+        ImGui.Text(label);
 
         // Verified Checkmark or dev plugin wrench
         {
             ImGui.SameLine();
-            ImGui.TextUnformatted(" "u8);
+            ImGui.Text(" "u8);
             ImGui.SameLine();
 
             var verifiedOutlineColor = KnownColor.White.Vector() with { W = 0.75f };
@@ -2406,7 +2406,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.SameLine();
         var cursor = ImGui.GetCursorPos();
-        ImGui.TextUnformatted(log.Title);
+        ImGui.Text(log.Title);
 
         ImGui.SameLine();
         ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, $" v{log.Version}");
@@ -2829,7 +2829,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.Indent();
 
             // Name
-            ImGui.TextUnformatted(manifest.Name);
+            ImGui.Text(manifest.Name);
 
             // Download count
             var downloadText = plugin.IsDev
@@ -2982,7 +2982,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (ImGui.BeginChild("##changelog"u8, new Vector2(-1, 100), true, ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.AlwaysAutoResize))
         {
-            ImGui.TextUnformatted("Changelog:"u8);
+            ImGui.Text("Changelog:"u8);
             ImGuiHelpers.ScaledDummy(2);
             ImGuiHelpers.SafeTextWrapped(changelog!);
         }
@@ -3121,7 +3121,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 ImGui.SameLine();
 
-                ImGui.TextUnformatted(profile.Name);
+                ImGui.Text(profile.Name);
 
                 didAny = true;
             }
@@ -3147,7 +3147,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             ImGui.SameLine();
-            ImGui.TextUnformatted(Locs.Profiles_RemoveFromAll);
+            ImGui.Text(Locs.Profiles_RemoveFromAll);
 
             ImGui.EndPopup();
         }
@@ -3432,7 +3432,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (problems.Count == 0)
             {
                 ImGui.PushFont(InterfaceManager.IconFont);
-                ImGui.TextUnformatted(FontAwesomeIcon.Check.ToIconString());
+                ImGui.Text(FontAwesomeIcon.Check.ToIconString());
                 ImGui.PopFont();
                 ImGui.SameLine();
                 ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.HealerGreen, "No validation issues found in this plugin!"u8);
@@ -3489,13 +3489,13 @@ internal class PluginInstallerWindow : Window, IDisposable
                             switch (problem.Severity)
                             {
                                 case PluginValidator.ValidationSeverity.Fatal:
-                                    ImGui.TextUnformatted(FontAwesomeIcon.TimesCircle.ToIconString());
+                                    ImGui.Text(FontAwesomeIcon.TimesCircle.ToIconString());
                                     break;
                                 case PluginValidator.ValidationSeverity.Warning:
-                                    ImGui.TextUnformatted(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+                                    ImGui.Text(FontAwesomeIcon.ExclamationTriangle.ToIconString());
                                     break;
                                 case PluginValidator.ValidationSeverity.Information:
-                                    ImGui.TextUnformatted(FontAwesomeIcon.InfoCircle.ToIconString());
+                                    ImGui.Text(FontAwesomeIcon.InfoCircle.ToIconString());
                                     break;
                                 default:
                                     throw new ArgumentOutOfRangeException();
@@ -3986,7 +3986,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 if (x is 0 && y is 0) continue;
 
                 ImGui.SetCursorPos(cursorStart + new Vector2(x, y));
-                ImGui.TextUnformatted(icon.ToIconString());
+                ImGui.Text(icon.ToIconString());
             }
         }
 
@@ -3994,7 +3994,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.PushStyleColor(ImGuiCol.Text, iconColor);
         ImGui.SetCursorPos(cursorStart);
-        ImGui.TextUnformatted(icon.ToIconString());
+        ImGui.Text(icon.ToIconString());
         ImGui.PopStyleColor();
 
         ImGui.PopFont();

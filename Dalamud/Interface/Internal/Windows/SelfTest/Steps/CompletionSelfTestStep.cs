@@ -28,7 +28,7 @@ internal class CompletionSelfTestStep : ISelfTestStep
                 break;
 
             case 1:
-                ImGui.TextUnformatted("[Chat Log]"u8);
+                ImGui.Text("[Chat Log]"u8);
                 ImGuiHelpers.SafeTextWrapped("Use the category menus to navigate to [Dalamud], then complete a command from the list. Did it work?"u8);
                 if (ImGui.Button("Yes"u8))
                     this.step++;
@@ -38,8 +38,8 @@ internal class CompletionSelfTestStep : ISelfTestStep
                     return SelfTestStepResult.Fail;
                 break;
             case 2:
-                ImGui.TextUnformatted("[Chat Log]"u8);
-                ImGui.TextUnformatted("Type /xl into the chat log and tab-complete a dalamud command. Did it work?"u8);
+                ImGui.Text("[Chat Log]"u8);
+                ImGui.Text("Type /xl into the chat log and tab-complete a dalamud command. Did it work?"u8);
 
                 if (ImGui.Button("Yes"u8))
                     this.step++;
@@ -51,14 +51,14 @@ internal class CompletionSelfTestStep : ISelfTestStep
                 break;
 
             case 3:
-                ImGui.TextUnformatted("[Chat Log]"u8);
+                ImGui.Text("[Chat Log]"u8);
                 if (!this.registered)
                 {
                     cmdManager.AddHandler("/xlselftestcompletion", new CommandInfo((_, _) => this.commandRun = true));
                     this.registered = true;
                 }
 
-                ImGui.TextUnformatted("Tab-complete /xlselftestcompletion in the chat log and send the command"u8);
+                ImGui.Text("Tab-complete /xlselftestcompletion in the chat log and send the command"u8);
 
                 if (this.commandRun)
                     this.step++;
@@ -66,9 +66,9 @@ internal class CompletionSelfTestStep : ISelfTestStep
                 break;
 
             case 4:
-                ImGui.TextUnformatted("[Other text inputs]"u8);
-                ImGui.TextUnformatted("Open the party finder recruitment criteria dialog and try to tab-complete /xldev in the text box."u8);
-                ImGui.TextUnformatted("Did the command appear in the text box? (It should not have)"u8);
+                ImGui.Text("[Other text inputs]"u8);
+                ImGui.Text("Open the party finder recruitment criteria dialog and try to tab-complete /xldev in the text box."u8);
+                ImGui.Text("Did the command appear in the text box? (It should not have)"u8);
                 if (ImGui.Button("Yes"u8))
                     return SelfTestStepResult.Fail;
                 ImGui.SameLine();

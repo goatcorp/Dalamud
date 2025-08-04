@@ -61,13 +61,13 @@ public class ThirdRepoSettingsEntry : SettingsEntry
         var config = Service<DalamudConfiguration>.Get();
 
         using var id = ImRaii.PushId("thirdRepo"u8);
-        ImGui.TextUnformatted(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
+        ImGui.Text(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
         if (this.thirdRepoListChanged)
         {
             using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
             {
                 ImGui.SameLine();
-                ImGui.TextUnformatted(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
+                ImGui.Text(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
             }
         }
 
@@ -136,20 +136,20 @@ public class ThirdRepoSettingsEntry : SettingsEntry
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted("#"u8);
+        ImGui.Text("#"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("URL"u8);
+        ImGui.Text("URL"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("Enabled"u8);
+        ImGui.Text("Enabled"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted(string.Empty);
+        ImGui.Text(string.Empty);
         ImGui.NextColumn();
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted("0"u8);
+        ImGui.Text("0"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("XIVLauncher"u8);
+        ImGui.Text("XIVLauncher"u8);
         ImGui.NextColumn();
         ImGui.NextColumn();
         ImGui.NextColumn();
@@ -165,7 +165,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
             id.Push(thirdRepoSetting.Url);
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
-            ImGui.TextUnformatted(repoNumber.ToString());
+            ImGui.Text(repoNumber.ToString());
             ImGui.NextColumn();
 
             ImGui.SetNextItemWidth(-1);
@@ -226,7 +226,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
         }
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
-        ImGui.TextUnformatted(repoNumber.ToString());
+        ImGui.Text(repoNumber.ToString());
         ImGui.NextColumn();
         ImGui.SetNextItemWidth(-1);
         ImGui.InputText("##thirdRepoUrlInput"u8, ref this.thirdRepoTempUrl, 300);

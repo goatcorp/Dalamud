@@ -276,7 +276,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
         using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.Zero))
         {
             ImGuiHelpers.ScaledDummy(0, windowSize.Y + 20f);
-            ImGui.TextUnformatted(string.Empty);
+            ImGui.Text(string.Empty);
 
             const float imageSize = 190f;
             ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));
@@ -293,7 +293,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
                 ImGui.Dummy(new Vector2((windowX / 2) - (lineLenX / 2), 0f));
                 ImGui.SameLine();
-                ImGui.TextUnformatted(creditsLine);
+                ImGui.Text(creditsLine);
             }
 
             ImGuiHelpers.ScaledDummy(0, 40f);
@@ -305,7 +305,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
                 ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
                 ImGui.SameLine();
-                ImGui.TextUnformatted(ThankYouText);
+                ImGui.Text(ThankYouText);
             }
 
             ImGuiHelpers.ScaledDummy(0, windowSize.Y + 50f);

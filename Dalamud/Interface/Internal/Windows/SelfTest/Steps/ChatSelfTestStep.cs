@@ -31,7 +31,7 @@ internal class ChatSelfTestStep : ISelfTestStep
                 break;
 
             case 1:
-                ImGui.TextUnformatted("Type \"/e DALAMUD\" in chat...");
+                ImGui.Text("Type \"/e DALAMUD\" in chat...");
 
                 if (!this.subscribed)
                 {

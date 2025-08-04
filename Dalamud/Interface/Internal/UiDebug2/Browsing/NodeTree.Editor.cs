@@ -55,7 +55,7 @@ internal unsafe partial class ResNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Position:"u8);
+        ImGui.Text("Position:"u8);
 
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
@@ -70,7 +70,7 @@ internal unsafe partial class ResNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Size:"u8);
+        ImGui.Text("Size:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         if (ImGui.DragFloat2($"##{(nint)this.Node:X}size", ref size, 1, 0, default, "%.0f"))
@@ -84,7 +84,7 @@ internal unsafe partial class ResNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Scale:"u8);
+        ImGui.Text("Scale:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         if (ImGui.DragFloat2($"##{(nint)this.Node:X}scale", ref scale, 0.05f))
@@ -98,7 +98,7 @@ internal unsafe partial class ResNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Origin:"u8);
+        ImGui.Text("Origin:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         if (ImGui.DragFloat2($"##{(nint)this.Node:X}origin", ref origin, 1, default, default, "%.0f"))
@@ -112,7 +112,7 @@ internal unsafe partial class ResNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Rotation:"u8);
+        ImGui.Text("Rotation:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         while (angle > 180)
@@ -143,7 +143,7 @@ internal unsafe partial class ResNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("RGBA:"u8);
+        ImGui.Text("RGBA:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         if (ImGui.ColorEdit4($"##{(nint)this.Node:X}RGBA", ref rgba, DisplayHex))
@@ -153,7 +153,7 @@ internal unsafe partial class ResNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Multiply:"u8);
+        ImGui.Text("Multiply:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         if (ImGui.ColorEdit3($"##{(nint)this.Node:X}multiplyRGB", ref mult, DisplayHex))
@@ -165,7 +165,7 @@ internal unsafe partial class ResNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Add:"u8);
+        ImGui.Text("Add:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(124);
 
@@ -203,7 +203,7 @@ internal unsafe partial class CounterNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Counter:"u8);
+        ImGui.Text("Counter:"u8);
         ImGui.TableNextColumn();
 
         ImGui.SetNextItemWidth(150);
@@ -229,7 +229,7 @@ internal unsafe partial class ImageNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Part Id:"u8);
+        ImGui.Text("Part Id:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         if (ImGui.InputInt($"##partId{(nint)this.Node:X}", ref partId, 1, 1))
@@ -262,7 +262,7 @@ internal unsafe partial class NineGridNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Ninegrid Offsets:"u8);
+        ImGui.Text("Ninegrid Offsets:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         if (ImGui.DragFloat2($"##{(nint)this.Node:X}ngOffsetLR", ref lr, 1f, 0f))
@@ -308,7 +308,7 @@ internal unsafe partial class TextNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Text:"u8);
+        ImGui.Text("Text:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(Math.Max(ImGui.GetWindowContentRegionMax().X - ImGui.GetCursorPosX() - 50f, 150));
         if (ImGui.InputText($"##{(nint)this.Node:X}textEdit", ref text, 512, EnterReturnsTrue))
@@ -318,7 +318,7 @@ internal unsafe partial class TextNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Font:"u8);
+        ImGui.Text("Font:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         if (ImGui.Combo($"##{(nint)this.Node:X}fontType", ref fontIndex, FontNames))
@@ -328,7 +328,7 @@ internal unsafe partial class TextNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Font Size:"u8);
+        ImGui.Text("Font Size:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         if (ImGui.InputInt($"##{(nint)this.Node:X}fontSize", ref fontSize, 1, 10))
@@ -338,7 +338,7 @@ internal unsafe partial class TextNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Alignment:"u8);
+        ImGui.Text("Alignment:"u8);
         ImGui.TableNextColumn();
         if (InputAlignment($"##{(nint)this.Node:X}alignment", ref alignment))
         {
@@ -347,7 +347,7 @@ internal unsafe partial class TextNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Text Color:"u8);
+        ImGui.Text("Text Color:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         if (ImGui.ColorEdit4($"##{(nint)this.Node:X}TextRGB", ref textColor, DisplayHex))
@@ -357,7 +357,7 @@ internal unsafe partial class TextNodeTree
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Edge Color:"u8);
+        ImGui.Text("Edge Color:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
         if (ImGui.ColorEdit4($"##{(nint)this.Node:X}EdgeRGB", ref edgeColor, DisplayHex))

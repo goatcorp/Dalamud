@@ -25,7 +25,7 @@ internal class ToastSelfTestStep : ISelfTestStep
             this.sentToasts = true;
         }
 
-        ImGui.TextUnformatted("Did you see a normal toast, a quest toast and an error toast?"u8);
+        ImGui.Text("Did you see a normal toast, a quest toast and an error toast?"u8);
 
         if (ImGui.Button("Yes"u8))
         {

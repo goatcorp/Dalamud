@@ -66,18 +66,18 @@ public interface IFontHandle : IDisposable
     /// <b>Push a font with `using` clause.</b>
     /// <code>
     /// using (fontHandle.Push())
-    ///     ImGui.TextUnformatted("Test"u8);
+    ///     ImGui.Text("Test"u8);
     /// </code>
     /// <b>Push a font with a matching call to <see cref="Pop"/>.</b>
     /// <code>
     /// fontHandle.Push();
-    /// ImGui.TextUnformatted("Test 2"u8);
+    /// ImGui.Text("Test 2"u8);
     /// fontHandle.Pop();
     /// </code>
     /// <b>Push a font between two choices.</b>
     /// <code>
     /// using ((someCondition ? myFontHandle : dalamudPluginInterface.UiBuilder.MonoFontHandle).Push())
-    ///     ImGui.TextUnformatted("Test 3"u8);
+    ///     ImGui.Text("Test 3"u8);
     /// </code>
     /// </example>
     IDisposable Push();

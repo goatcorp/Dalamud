@@ -119,7 +119,7 @@ public unsafe partial class AddonTree : IDisposable
 
         var isVisible = addon->IsVisible;
 
-        ImGui.TextUnformatted($"{this.AddonName}");
+        ImGui.Text($"{this.AddonName}");
         ImGui.SameLine();
 
         ImGui.SameLine();

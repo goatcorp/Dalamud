@@ -136,7 +136,7 @@ public class SettingsTabAutoUpdates : SettingsTab
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
-                    ImGui.TextUnformatted(text);
+                    ImGui.Text(text);
 
                     ImGui.SetCursorPos(before);
                 }
@@ -150,7 +150,7 @@ public class SettingsTabAutoUpdates : SettingsTab
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
-                    ImGui.TextUnformatted(text);
+                    ImGui.Text(text);
 
                     ImGui.SetCursorPos(before);
                 }

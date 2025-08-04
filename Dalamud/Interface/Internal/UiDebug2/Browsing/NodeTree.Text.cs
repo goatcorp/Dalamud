@@ -64,7 +64,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
         }
         catch
         {
-            ImGui.TextUnformatted(Marshal.PtrToStringAnsi(new(this.NodeText.StringPtr)) ?? string.Empty);
+            ImGui.Text(Marshal.PtrToStringAnsi(new(this.NodeText.StringPtr)) ?? string.Empty);
         }
 
         PrintFieldValuePairs(
@@ -96,7 +96,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
             for (var i = 0; i < seString.Payloads.Count; i++)
             {
                 var payload = seString.Payloads[i];
-                ImGui.TextUnformatted($"[{i}]");
+                ImGui.Text($"[{i}]");
                 ImGui.SameLine();
                 switch (payload.Type)
                 {
@@ -108,7 +108,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
 
                     default:
                     {
-                        ImGui.TextUnformatted(payload.ToString());
+                        ImGui.Text(payload.ToString());
                         break;
                     }
                 }

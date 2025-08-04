@@ -69,7 +69,7 @@ public sealed class LanguageChooserSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        ImGui.TextUnformatted(this.Name);
+        ImGui.Text(this.Name);
         ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages);
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
     }

@@ -36,17 +36,17 @@ internal class BuddyListWidget : IDataWindowWidget
             var member = buddyList.CompanionBuddy;
             if (member == null)
             {
-                ImGui.TextUnformatted("[Companion] null"u8);
+                ImGui.Text("[Companion] null"u8);
             }
             else
             {
-                ImGui.TextUnformatted($"[Companion] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
+                ImGui.Text($"[Companion] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
                 if (this.resolveGameData)
                 {
                     var gameObject = member.GameObject;
                     if (gameObject == null)
                     {
-                        ImGui.TextUnformatted("GameObject was null"u8);
+                        ImGui.Text("GameObject was null"u8);
                     }
                     else
                     {
@@ -60,17 +60,17 @@ internal class BuddyListWidget : IDataWindowWidget
             var member = buddyList.PetBuddy;
             if (member == null)
             {
-                ImGui.TextUnformatted("[Pet] null"u8);
+                ImGui.Text("[Pet] null"u8);
             }
             else
             {
-                ImGui.TextUnformatted($"[Pet] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
+                ImGui.Text($"[Pet] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
                 if (this.resolveGameData)
                 {
                     var gameObject = member.GameObject;
                     if (gameObject == null)
                     {
-                        ImGui.TextUnformatted("GameObject was null"u8);
+                        ImGui.Text("GameObject was null"u8);
                     }
                     else
                     {
@@ -84,20 +84,20 @@ internal class BuddyListWidget : IDataWindowWidget
             var count = buddyList.Length;
             if (count == 0)
             {
-                ImGui.TextUnformatted("[BattleBuddy] None present"u8);
+                ImGui.Text("[BattleBuddy] None present"u8);
             }
             else
             {
                 for (var i = 0; i < count; i++)
                 {
                     var member = buddyList[i];
-                    ImGui.TextUnformatted($"[BattleBuddy] [{i}] {member?.Address.ToInt64():X} - {member?.ObjectId} - {member?.DataID}");
+                    ImGui.Text($"[BattleBuddy] [{i}] {member?.Address.ToInt64():X} - {member?.ObjectId} - {member?.DataID}");
                     if (this.resolveGameData)
                     {
                         var gameObject = member?.GameObject;
                         if (gameObject == null)
                         {
-                            ImGui.TextUnformatted("GameObject was null"u8);
+                            ImGui.Text("GameObject was null"u8);
                         }
                         else
                         {

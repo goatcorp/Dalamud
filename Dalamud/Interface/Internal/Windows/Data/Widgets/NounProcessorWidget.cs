@@ -117,7 +117,7 @@ internal class NounProcessorWidget : IDataWindowWidget
         }
 
         ImGui.SameLine();
-        ImGui.TextUnformatted($"(Range: {minRowId} - {maxRowId})");
+        ImGui.Text($"(Range: {minRowId} - {maxRowId})");
 
         ImGui.SetNextItemWidth(120);
         if (ImGui.InputInt("Amount###Amount", ref this.amount, 1, 10, flags: ImGuiInputTextFlags.AutoSelectAll))
@@ -194,11 +194,11 @@ internal class NounProcessorWidget : IDataWindowWidget
                         ArticleType = (int)articleType,
                         GrammaticalCase = currentCase,
                     };
-                    ImGui.TextUnformatted(nounProcessor.ProcessNoun(nounParams).ExtractText());
+                    ImGui.Text(nounProcessor.ProcessNoun(nounParams).ExtractText());
                 }
                 catch (Exception ex)
                 {
-                    ImGui.TextUnformatted(ex.ToString());
+                    ImGui.Text(ex.ToString());
                 }
             }
         }

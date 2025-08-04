@@ -47,7 +47,7 @@ public unsafe partial class AddonTree
                             }
                             else
                             {
-                                ImGui.TextUnformatted($"#{i}");
+                                ImGui.Text($"#{i}");
                             }
 
                             ImGui.TableNextColumn();
@@ -57,7 +57,7 @@ public unsafe partial class AddonTree
                             }
                             else
                             {
-                                ImGui.TextUnformatted($"{atkValue->Type}");
+                                ImGui.Text($"{atkValue->Type}");
                             }
 
                             ImGui.TableNextColumn();
@@ -69,7 +69,7 @@ public unsafe partial class AddonTree
                                 case ValueType.Int:
                                 case ValueType.UInt:
                                 {
-                                    ImGui.TextUnformatted($"{atkValue->Int}");
+                                    ImGui.Text($"{atkValue->Int}");
                                     break;
                                 }
 
@@ -91,12 +91,12 @@ public unsafe partial class AddonTree
 
                                 case ValueType.Bool:
                                 {
-                                    ImGui.TextUnformatted($"{atkValue->Byte != 0}");
+                                    ImGui.Text($"{atkValue->Byte != 0}");
                                     break;
                                 }
 
                                 case ValueType.Pointer:
-                                    ImGui.TextUnformatted($"{(nint)atkValue->Pointer}");
+                                    ImGui.Text($"{(nint)atkValue->Pointer}");
                                     break;
 
                                 default:

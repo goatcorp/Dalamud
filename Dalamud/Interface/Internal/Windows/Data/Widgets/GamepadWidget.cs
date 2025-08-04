@@ -29,7 +29,7 @@ internal class GamepadWidget : IDataWindowWidget
     {
         var gamepadState = Service<GamepadState>.Get();
 
-        ImGui.TextUnformatted($"GamepadInput {Util.DescribeAddress(gamepadState.GamepadInputAddress)}");
+        ImGui.Text($"GamepadInput {Util.DescribeAddress(gamepadState.GamepadInputAddress)}");
 
 #if DEBUG
         if (ImGui.IsItemHovered())
@@ -55,26 +55,26 @@ internal class GamepadWidget : IDataWindowWidget
             "Buttons Released",
             (uint)gamepadState.ButtonsReleased,
             gamepadState.Released);
-        ImGui.TextUnformatted($"LeftStick {gamepadState.LeftStick}");
-        ImGui.TextUnformatted($"RightStick {gamepadState.RightStick}");
+        ImGui.Text($"LeftStick {gamepadState.LeftStick}");
+        ImGui.Text($"RightStick {gamepadState.RightStick}");
     }
 
     private void DrawHelper(string text, uint mask, Func<GamepadButtons, float> resolve)
     {
-        ImGui.TextUnformatted($"{text} {mask:X4}");
-        ImGui.TextUnformatted($"DPadLeft {resolve(GamepadButtons.DpadLeft)} " +
+        ImGui.Text($"{text} {mask:X4}");
+        ImGui.Text($"DPadLeft {resolve(GamepadButtons.DpadLeft)} " +
                    $"DPadUp {resolve(GamepadButtons.DpadUp)} " +
                    $"DPadRight {resolve(GamepadButtons.DpadRight)} " +
                    $"DPadDown {resolve(GamepadButtons.DpadDown)} ");
-        ImGui.TextUnformatted($"West {resolve(GamepadButtons.West)} " +
+        ImGui.Text($"West {resolve(GamepadButtons.West)} " +
                    $"North {resolve(GamepadButtons.North)} " +
                    $"East {resolve(GamepadButtons.East)} " +
                    $"South {resolve(GamepadButtons.South)} ");
-        ImGui.TextUnformatted($"L1 {resolve(GamepadButtons.L1)} " +
+        ImGui.Text($"L1 {resolve(GamepadButtons.L1)} " +
                    $"L2 {resolve(GamepadButtons.L2)} " +
                    $"R1 {resolve(GamepadButtons.R1)} " +
                    $"R2 {resolve(GamepadButtons.R2)} ");
-        ImGui.TextUnformatted($"Select {resolve(GamepadButtons.Select)} " +
+        ImGui.Text($"Select {resolve(GamepadButtons.Select)} " +
                    $"Start {resolve(GamepadButtons.Start)} " +
                    $"L3 {resolve(GamepadButtons.L3)} " +
                    $"R3 {resolve(GamepadButtons.R3)} ");

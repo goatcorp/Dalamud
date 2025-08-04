@@ -180,7 +180,7 @@ public static partial class ImGuiHelpers
                 col.Push(ImGuiCol.Text, color.Value);
             }
 
-            ImGui.TextUnformatted(text.Span);
+            ImGui.Text(text.Span);
         }
 
         if (ImGui.IsItemHovered())
@@ -191,11 +191,11 @@ public static partial class ImGuiHelpers
             {
                 using (ImRaii.PushFont(UiBuilder.IconFont))
                 {
-                    ImGui.TextUnformatted(FontAwesomeIcon.Copy.ToIconString());
+                    ImGui.Text(FontAwesomeIcon.Copy.ToIconString());
                 }
 
                 ImGui.SameLine();
-                ImGui.TextUnformatted(textCopy.IsNull ? text.Span : textCopy.Span);
+                ImGui.Text(textCopy.IsNull ? text.Span : textCopy.Span);
             }
         }
 
@@ -250,7 +250,7 @@ public static partial class ImGuiHelpers
     {
         using (ImRaii.PushColor(ImGuiCol.Text, color))
         {
-            ImGui.TextUnformatted(text);
+            ImGui.Text(text);
         }
     }
 
@@ -462,7 +462,7 @@ public static partial class ImGuiHelpers
     public static void CenteredText(ImU8String text)
     {
         CenterCursorForText(text.Span);
-        ImGui.TextUnformatted(text);
+        ImGui.Text(text);
     }
 
     /// <summary>

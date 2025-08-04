@@ -81,7 +81,7 @@ internal unsafe partial class NineGridNodeTree : ImageNodeTree
     {
         if (!isEditorOpen)
         {
-            ImGui.TextUnformatted("NineGrid Offsets:\t"u8);
+            ImGui.Text("NineGrid Offsets:\t"u8);
             ImGui.SameLine();
             this.Offsets.Print();
         }

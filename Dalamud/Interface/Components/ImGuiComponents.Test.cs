@@ -12,6 +12,6 @@ public static partial class ImGuiComponents
     /// </summary>
     public static void Test()
     {
-        ImGui.TextUnformatted("You are viewing the test component. The test was a success."u8);
+        ImGui.Text("You are viewing the test component. The test was a success."u8);
     }
 }

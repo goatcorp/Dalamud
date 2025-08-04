@@ -383,7 +383,7 @@ internal sealed partial class ActiveNotification
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, ImGui.GetStyle().Alpha * relativeOpacity);
             ImGui.SetCursorPos(new(NotificationConstants.ScaledWindowPadding));
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.WhenTextColor);
-            ImGui.TextUnformatted(
+            ImGui.Text(
                 ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem)
                     ? this.CreatedAt.LocAbsolute()
                     : ReducedMotions
@@ -404,7 +404,7 @@ internal sealed partial class ActiveNotification
             var agoSize = ImGui.CalcTextSize(agoText);
             ImGui.SetCursorPos(new(width - ((height + agoSize.X) / 2f), NotificationConstants.ScaledWindowPadding));
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.WhenTextColor);
-            ImGui.TextUnformatted(agoText);
+            ImGui.Text(agoText);
             ImGui.PopStyleColor();
 
             this.DrawIcon(
@@ -415,7 +415,7 @@ internal sealed partial class ActiveNotification
                 windowPos + new Vector2(width - height, height),
                 true);
             ImGui.SetCursorPos(new(height, NotificationConstants.ScaledWindowPadding));
-            ImGui.TextUnformatted(this.EffectiveMinimizedText);
+            ImGui.Text(this.EffectiveMinimizedText);
             ImGui.PopClipRect();
 
             ImGui.PopStyleVar();
@@ -502,13 +502,13 @@ internal sealed partial class ActiveNotification
         if ((this.Title ?? this.Type.ToTitle()) is { } title)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.TitleTextColor);
-            ImGui.TextUnformatted(title);
+            ImGui.Text(title);
             ImGui.PopStyleColor();
         }
 
         ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.BlameTextColor);
         ImGui.SetCursorPos(minCoord with { Y = ImGui.GetCursorPosY() });
-        ImGui.TextUnformatted(this.InitiatorString);
+        ImGui.Text(this.InitiatorString);
         ImGui.PopStyleColor();
 
         ImGui.PopTextWrapPos();
@@ -520,7 +520,7 @@ internal sealed partial class ActiveNotification
         ImGui.SetCursorPos(minCoord);
         ImGui.PushTextWrapPos(minCoord.X + width);
         ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.BodyTextColor);
-        ImGui.TextUnformatted(this.Content);
+        ImGui.Text(this.Content);
         ImGui.PopStyleColor();
         ImGui.PopTextWrapPos();
     }

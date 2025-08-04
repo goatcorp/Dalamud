@@ -203,7 +203,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
                         ImGui.TableNextColumn();
                         ImGui.AlignTextToFramePadding();
-                        ImGui.TextUnformatted($"{row.RowId}");
+                        ImGui.Text($"{row.RowId}");
 
                         ImGui.TableNextColumn();
                         ImGui.AlignTextToFramePadding();
@@ -299,7 +299,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                 ImGui.Separator();
                 if (this.alignToFramePadding)
                     ImGui.AlignTextToFramePadding();
-                ImGui.TextUnformatted($"Hovered[{offset}]: {new ReadOnlySeStringSpan(envelope).ToString()}; {payload}");
+                ImGui.Text($"Hovered[{offset}]: {new ReadOnlySeStringSpan(envelope).ToString()}; {payload}");
                 if (clicked && payload is DalamudLinkPayload { Plugin: "test" } dlp)
                     Util.OpenLink(dlp.ExtraString);
             }

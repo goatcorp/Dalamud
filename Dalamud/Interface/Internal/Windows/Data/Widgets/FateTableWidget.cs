@@ -34,7 +34,7 @@ internal class FateTableWidget : IDataWindowWidget
 
         if (fateTable.Length == 0)
         {
-            ImGui.TextUnformatted("No fates or data not ready."u8);
+            ImGui.Text("No fates or data not ready."u8);
             return;
         }
 
@@ -65,7 +65,7 @@ internal class FateTableWidget : IDataWindowWidget
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); // Index
-            ImGui.TextUnformatted($"#{i}");
+            ImGui.Text($"#{i}");
 
             ImGui.TableNextColumn(); // Address
             WidgetUtil.DrawCopyableText($"0x{fate.Address:X}", "Click to copy Address");
@@ -74,17 +74,17 @@ internal class FateTableWidget : IDataWindowWidget
             WidgetUtil.DrawCopyableText(fate.FateId.ToString(), "Click to copy FateId (RowId of Fate sheet)");
 
             ImGui.TableNextColumn(); // State
-            ImGui.TextUnformatted(fate.State.ToString());
+            ImGui.Text(fate.State.ToString());
 
             ImGui.TableNextColumn(); // Level
 
             if (fate.Level == fate.MaxLevel)
             {
-                ImGui.TextUnformatted($"{fate.Level}");
+                ImGui.Text($"{fate.Level}");
             }
             else
             {
-                ImGui.TextUnformatted($"{fate.Level}-{fate.MaxLevel}");
+                ImGui.Text($"{fate.Level}-{fate.MaxLevel}");
             }
 
             ImGui.TableNextColumn(); // Icon
@@ -99,8 +99,8 @@ internal class FateTableWidget : IDataWindowWidget
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                         ImGui.BeginTooltip();
-                        ImGui.TextUnformatted("Click to copy IconId"u8);
-                        ImGui.TextUnformatted($"ID: {fate.IconId} – Size: {texture.Width}x{texture.Height}");
+                        ImGui.Text("Click to copy IconId"u8);
+                        ImGui.Text($"ID: {fate.IconId} – Size: {texture.Width}x{texture.Height}");
                         ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                         ImGui.EndTooltip();
                     }
@@ -124,8 +124,8 @@ internal class FateTableWidget : IDataWindowWidget
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                         ImGui.BeginTooltip();
-                        ImGui.TextUnformatted("Click to copy MapIconId"u8);
-                        ImGui.TextUnformatted($"ID: {fate.MapIconId} – Size: {texture.Width}x{texture.Height}");
+                        ImGui.Text("Click to copy MapIconId"u8);
+                        ImGui.Text($"ID: {fate.MapIconId} – Size: {texture.Width}x{texture.Height}");
                         ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                         ImGui.EndTooltip();
                     }
@@ -142,17 +142,17 @@ internal class FateTableWidget : IDataWindowWidget
             WidgetUtil.DrawCopyableText(fate.Name.ToString(), "Click to copy Name");
 
             ImGui.TableNextColumn(); // Progress
-            ImGui.TextUnformatted($"{fate.Progress}%");
+            ImGui.Text($"{fate.Progress}%");
 
             ImGui.TableNextColumn(); // TimeRemaining
 
             if (fate.State == FateState.Running)
             {
-                ImGui.TextUnformatted($"{TimeSpan.FromSeconds(fate.TimeRemaining):mm\\:ss} / {TimeSpan.FromSeconds(fate.Duration):mm\\:ss}");
+                ImGui.Text($"{TimeSpan.FromSeconds(fate.TimeRemaining):mm\\:ss} / {TimeSpan.FromSeconds(fate.Duration):mm\\:ss}");
             }
 
             ImGui.TableNextColumn(); // HasExpBonus
-            ImGui.TextUnformatted(fate.HasBonus.ToString());
+            ImGui.Text(fate.HasBonus.ToString());
 
             ImGui.TableNextColumn(); // Position
             WidgetUtil.DrawCopyableText(fate.Position.ToString(), "Click to copy Position");

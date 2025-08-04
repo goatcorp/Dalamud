@@ -46,11 +46,11 @@ internal class ObjectTableWidget : IDataWindowWidget
 
         if (clientState.LocalPlayer == null)
         {
-            ImGui.TextUnformatted("LocalPlayer null."u8);
+            ImGui.Text("LocalPlayer null."u8);
         }
         else if (clientState.IsPvPExcludingDen)
         {
-            ImGui.TextUnformatted("Cannot access object table while in PvP."u8);
+            ImGui.Text("Cannot access object table while in PvP."u8);
         }
         else
         {
@@ -62,7 +62,7 @@ internal class ObjectTableWidget : IDataWindowWidget
             stateString += $"LastLinkedItem: {chatGui.LastLinkedItemId}\n";
             stateString += $"TerritoryType: {clientState.TerritoryType}\n\n";
 
-            ImGui.TextUnformatted(stateString);
+            ImGui.Text(stateString);
 
             ImGui.Checkbox("Draw characters on screen"u8, ref this.drawCharacters);
             ImGui.SliderFloat("Draw Distance"u8, ref this.maxCharaDrawDistance, 2f, 40f);
@@ -112,7 +112,7 @@ internal class ObjectTableWidget : IDataWindowWidget
                             ImGuiWindowFlags.NoDocking |
                             ImGuiWindowFlags.NoFocusOnAppearing |
                             ImGuiWindowFlags.NoNav))
-                        ImGui.TextUnformatted(objectText);
+                        ImGui.Text(objectText);
                     ImGui.End();
                 }
             }

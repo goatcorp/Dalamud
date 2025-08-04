@@ -120,6 +120,6 @@ internal class PluginIpcWidget : IDataWindowWidget
         }
 
         if (!this.callGateResponse.IsNullOrEmpty())
-            ImGui.TextUnformatted($"Response: {this.callGateResponse}");
+            ImGui.Text($"Response: {this.callGateResponse}");
     }
 }

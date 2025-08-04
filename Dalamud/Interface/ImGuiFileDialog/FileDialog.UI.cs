@@ -226,7 +226,7 @@ public partial class FileDialog
         if (!this.createDirectoryMode)
         {
             ImGui.SameLine();
-            ImGui.TextUnformatted("Search :"u8);
+            ImGui.Text("Search :"u8);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
             if (ImGui.InputText("##InputImGuiFileDialogSearchField"u8, ref this.searchBuffer, 255))
@@ -257,7 +257,7 @@ public partial class FileDialog
         if (this.createDirectoryMode)
         {
             ImGui.SameLine();
-            ImGui.TextUnformatted("New Directory Name"u8);
+            ImGui.Text("New Directory Name"u8);
 
             ImGui.SameLine();
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - Scaled(100));
@@ -332,7 +332,7 @@ public partial class FileDialog
                 ImGui.PushFont(InterfaceManager.IconFont);
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(0);
-                ImGui.TextUnformatted(qa.Icon.ToIconString());
+                ImGui.Text(qa.Icon.ToIconString());
 
                 ImGui.PopFont();
                 ImGui.PopID();
@@ -414,18 +414,18 @@ public partial class FileDialog
 
                             if (ImGui.TableNextColumn())
                             {
-                                ImGui.TextUnformatted(file.Ext);
+                                ImGui.Text(file.Ext);
                             }
 
                             if (ImGui.TableNextColumn())
                             {
                                 if (file.Type == FileStructType.File)
                                 {
-                                    ImGui.TextUnformatted(file.FormattedFileSize + " ");
+                                    ImGui.Text(file.FormattedFileSize + " ");
                                 }
                                 else
                                 {
-                                    ImGui.TextUnformatted(" "u8);
+                                    ImGui.Text(" "u8);
                                 }
                             }
 
@@ -433,7 +433,7 @@ public partial class FileDialog
                             {
                                 var sz = ImGui.CalcTextSize(file.FileModifiedDate);
                                 ImGui.SetNextItemWidth(sz.X + Scaled(5));
-                                ImGui.TextUnformatted(file.FileModifiedDate + " ");
+                                ImGui.Text(file.FileModifiedDate + " ");
                             }
 
                             ImGui.PopStyleColor();
@@ -478,7 +478,7 @@ public partial class FileDialog
 
         ImGui.PushFont(InterfaceManager.IconFont);
 
-        ImGui.TextUnformatted(icon.ToIconString());
+        ImGui.Text(icon.ToIconString());
         ImGui.PopFont();
 
         ImGui.SameLine(Scaled(25f));
@@ -682,11 +682,11 @@ public partial class FileDialog
 
         if (this.IsDirectoryMode())
         {
-            ImGui.TextUnformatted("Directory Path :"u8);
+            ImGui.Text("Directory Path :"u8);
         }
         else
         {
-            ImGui.TextUnformatted("File Name :"u8);
+            ImGui.Text("File Name :"u8);
         }
 
         ImGui.SameLine();
@@ -805,7 +805,7 @@ public partial class FileDialog
             ImGui.OpenPopup(name);
             if (ImGui.BeginPopupModal(name, ref open, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove))
             {
-                ImGui.TextUnformatted("Would you like to Overwrite it ?"u8);
+                ImGui.Text("Would you like to Overwrite it ?"u8);
                 if (ImGui.Button("Confirm"u8))
                 {
                     this.okResultToConfirm = false;

@@ -168,7 +168,7 @@ internal unsafe partial class ResNodeTree : IDisposable
     /// </summary>
     internal void WriteTreeHeading()
     {
-        ImGui.TextUnformatted(this.GetHeaderText());
+        ImGui.Text(this.GetHeaderText());
         this.PrintFieldLabels();
     }
 

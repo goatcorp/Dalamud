@@ -239,7 +239,7 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
 
                 PrintPartCoords(u, v, width, height);
 
-                ImGui.TextUnformatted("UV:\t"u8);
+                ImGui.Text("UV:\t"u8);
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(cursX);
 

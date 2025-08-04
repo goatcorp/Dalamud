@@ -129,7 +129,7 @@ public interface IFontAtlas : IDisposable
     /// <b>On use</b>:
     /// <code>
     /// using (this.fontHandle.Push())
-    ///     ImGui.TextUnformatted("Example"u8);
+    ///     ImGui.Text("Example"u8);
     /// </code>
     /// </example>
     public IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate buildStepDelegate);

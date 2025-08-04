@@ -87,7 +87,7 @@ internal class UiColorWidget : IDataWindowWidget
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.TextUnformatted($"{id}");
+                ImGui.Text($"{id}");
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();

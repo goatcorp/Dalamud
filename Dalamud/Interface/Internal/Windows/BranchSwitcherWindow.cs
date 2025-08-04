@@ -78,8 +78,8 @@ public class BranchSwitcherWindow : Window
         }
         else
         {
-            ImGui.TextUnformatted($"Version: {pickedBranch.Value.AssemblyVersion} ({pickedBranch.Value.GitSha ?? "unk"})");
-            ImGui.TextUnformatted($"Runtime: {pickedBranch.Value.RuntimeVersion}");
+            ImGui.Text($"Version: {pickedBranch.Value.AssemblyVersion} ({pickedBranch.Value.GitSha ?? "unk"})");
+            ImGui.Text($"Runtime: {pickedBranch.Value.RuntimeVersion}");
 
             ImGuiHelpers.ScaledDummy(5);
 

@@ -227,7 +227,7 @@ internal class ProfileManagerWidget
                 // Center text in frame height
                 var textHeight = ImGui.CalcTextSize(profile.Name);
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetFrameHeight() / 2) - (textHeight.Y / 2));
-                ImGui.TextUnformatted(profile.Name);
+                ImGui.Text(profile.Name);
 
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
@@ -400,7 +400,7 @@ internal class ProfileManagerWidget
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGui.TextUnformatted(Locs.StartupBehavior);
+        ImGui.Text(Locs.StartupBehavior);
         if (ImGui.BeginCombo("##startupBehaviorPicker"u8, Locs.PolicyToLocalisedName(profile.StartupPolicy)))
         {
             foreach (var policy in Enum.GetValues(typeof(ProfileModelV1.ProfileStartupPolicy)).Cast<ProfileModelV1.ProfileStartupPolicy>())
@@ -456,7 +456,7 @@ internal class ProfileManagerWidget
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
-                    ImGui.TextUnformatted(text);
+                    ImGui.Text(text);
 
                     ImGui.SetCursorPos(before);
                 }
@@ -470,7 +470,7 @@ internal class ProfileManagerWidget
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
-                    ImGui.TextUnformatted(text);
+                    ImGui.Text(text);
 
                     var firstAvailableInstalled = pm.InstalledPlugins.FirstOrDefault(x => x.InternalName == profileEntry.InternalName);
                     var installable =
@@ -479,7 +479,7 @@ internal class ProfileManagerWidget
 
                     if (firstAvailableInstalled != null)
                     {
-                        ImGui.TextUnformatted($"Match to plugin '{firstAvailableInstalled.Name}'?");
+                        ImGui.Text($"Match to plugin '{firstAvailableInstalled.Name}'?");
                         ImGui.SameLine();
                         if (ImGuiComponents.IconButtonWithText(
                                 FontAwesomeIcon.Check,
@@ -572,7 +572,7 @@ internal class ProfileManagerWidget
             ImGuiHelpers.ScaledDummy(5);
             ImGui.SameLine();
 
-            ImGui.TextUnformatted(addPluginsText);
+            ImGui.Text(addPluginsText);
 
             ImGuiHelpers.ScaledDummy(10);
         }

@@ -21,7 +21,7 @@ internal class WidgetUtil
         {
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
             ImGui.BeginTooltip();
-            ImGui.TextUnformatted(tooltipText);
+            ImGui.Text(tooltipText);
             ImGui.EndTooltip();
         }
 

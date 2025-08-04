@@ -151,7 +151,7 @@ public readonly unsafe partial struct TimelineTree
             return;
         }
 
-        var rotColumn = new KeyGroupColumn<float>("Rotation", static r => ImGui.TextUnformatted($"{r * (180d / Math.PI):F1}°"));
+        var rotColumn = new KeyGroupColumn<float>("Rotation", static r => ImGui.Text($"{r * (180d / Math.PI):F1}°"));
 
         for (var f = 0; f < keyGroup.KeyFrameCount; f++)
         {
@@ -430,25 +430,25 @@ public readonly unsafe partial struct TimelineTree
                     var keyFrame = keyFrameGroup.KeyFrames[l];
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.FrameIdx}");
+                    ImGui.Text($"{keyFrame.FrameIdx}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.SpeedCoefficient1:F2}");
+                    ImGui.Text($"{keyFrame.SpeedCoefficient1:F2}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.SpeedCoefficient2:F2}");
+                    ImGui.Text($"{keyFrame.SpeedCoefficient2:F2}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.Interpolation}");
+                    ImGui.Text($"{keyFrame.Interpolation}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.Value.Label.LabelId}");
+                    ImGui.Text($"{keyFrame.Value.Label.LabelId}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.Value.Label.JumpBehavior}");
+                    ImGui.Text($"{keyFrame.Value.Label.JumpBehavior}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.Value.Label.JumpLabelId}");
+                    ImGui.Text($"{keyFrame.Value.Label.JumpLabelId}");
                 }
             }
         }

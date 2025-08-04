@@ -48,7 +48,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
         this.materiaSheet = dataMgr.GetExcelSheet<Materia>();
         this.stainSheet = dataMgr.GetExcelSheet<Stain>();
 
-        ImGui.TextUnformatted(this.currentSubStep.ToString());
+        ImGui.Text(this.currentSubStep.ToString());
 
         switch (this.currentSubStep)
         {
@@ -59,7 +59,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
             case SubStep.TestInventoryAndSubmenu:
                 if (this.targetInventorySubmenuOpened == true)
                 {
-                    ImGui.TextUnformatted($"Is the data in the submenu correct?");
+                    ImGui.Text($"Is the data in the submenu correct?");
 
                     if (ImGui.Button("Yes"u8))
                         this.currentSubStep++;
@@ -71,7 +71,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                 }
                 else
                 {
-                    ImGui.TextUnformatted("Right-click an item and select \"Self Test\".");
+                    ImGui.Text("Right-click an item and select \"Self Test\".");
 
                     if (ImGui.Button("Skip"u8))
                         this.currentSubStep++;
@@ -82,7 +82,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
             case SubStep.TestDefault:
                 if (this.targetCharacter is { } character)
                 {
-                    ImGui.TextUnformatted($"Did you click \"{character.Name}\" ({character.ClassJob.Value.Abbreviation.ExtractText()})?");
+                    ImGui.Text($"Did you click \"{character.Name}\" ({character.ClassJob.Value.Abbreviation.ExtractText()})?");
 
                     if (ImGui.Button("Yes"u8))
                         this.currentSubStep++;
@@ -94,7 +94,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                 }
                 else
                 {
-                    ImGui.TextUnformatted("Right-click a character."u8);
+                    ImGui.Text("Right-click a character."u8);
 
                     if (ImGui.Button("Skip"u8))
                         this.currentSubStep++;

@@ -43,7 +43,7 @@ public class ProfilerWindow : Window
         var actualMin = Timings.AllTimings.Keys.Min(x => x.StartTime);
         var actualMax = Timings.AllTimings.Keys.Max(x => x.EndTime);
 
-        ImGui.TextUnformatted("Timings"u8);
+        ImGui.Text("Timings"u8);
 
         var childHeight = Math.Max(300, 20 * (2.5f + this.occupied.Count));
 
@@ -178,12 +178,12 @@ public class ProfilerWindow : Window
                 if (rectInfo.Hover)
                 {
                     ImGui.BeginTooltip();
-                    ImGui.TextUnformatted(rectInfo.Timing.Name);
-                    ImGui.TextUnformatted(rectInfo.Timing.MemberName);
-                    ImGui.TextUnformatted($"{rectInfo.Timing.FileName}:{rectInfo.Timing.LineNumber}");
-                    ImGui.TextUnformatted($"Duration: {rectInfo.Timing.Duration}ms");
+                    ImGui.Text(rectInfo.Timing.Name);
+                    ImGui.Text(rectInfo.Timing.MemberName);
+                    ImGui.Text($"{rectInfo.Timing.FileName}:{rectInfo.Timing.LineNumber}");
+                    ImGui.Text($"Duration: {rectInfo.Timing.Duration}ms");
                     if (rectInfo.Timing.Parent != null)
-                        ImGui.TextUnformatted($"Parent: {rectInfo.Timing.Parent.Name}");
+                        ImGui.Text($"Parent: {rectInfo.Timing.Parent.Name}");
                     ImGui.EndTooltip();
                 }
             }
@@ -254,9 +254,9 @@ public class ProfilerWindow : Window
             this.max = this.min + (sizeShown * 1000f);
         }
 
-        ImGui.TextUnformatted("Min: " + actualMin.ToString("0.000"));
-        ImGui.TextUnformatted("Max: " + actualMax.ToString("0.000"));
-        ImGui.TextUnformatted("Timings: " + Timings.AllTimings.Count);
+        ImGui.Text("Min: " + actualMin.ToString("0.000"));
+        ImGui.Text("Max: " + actualMax.ToString("0.000"));
+        ImGui.Text("Timings: " + Timings.AllTimings.Count);
     }
 
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "Internals")]

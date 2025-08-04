@@ -100,12 +100,12 @@ internal unsafe class HookWidget : IDataWindowWidget
                 _ = global::Windows.Win32.PInvoke.MessageBox(HWND.Null, "Hi", "Hello", MESSAGEBOX_STYLE.MB_OK);
 
             if (this.messageBoxMinHook != null)
-                ImGui.TextUnformatted("Enabled: " + this.messageBoxMinHook?.IsEnabled);
+                ImGui.Text("Enabled: " + this.messageBoxMinHook?.IsEnabled);
 
             ImGui.Separator();
 
             ImGui.BeginDisabled(this.hookStressTestRunning);
-            ImGui.TextUnformatted("Stress Test"u8);
+            ImGui.Text("Stress Test"u8);
 
             if (ImGui.InputInt("Max"u8, ref this.hookStressTestMax))
                 this.hookStressTestCount = 0;
@@ -165,7 +165,7 @@ internal unsafe class HookWidget : IDataWindowWidget
 
             ImGui.EndDisabled();
 
-            ImGui.TextUnformatted("Status: " + (this.hookStressTestRunning ? "Running" : "Idle"));
+            ImGui.Text("Status: " + (this.hookStressTestRunning ? "Running" : "Idle"));
             ImGui.ProgressBar(this.hookStressTestCount / (float)this.hookStressTestMax, new System.Numerics.Vector2(0, 0), $"{this.hookStressTestCount}/{this.hookStressTestMax}");
         }
         catch (Exception ex)
