@@ -397,7 +397,7 @@ internal class LocalPlugin : IAsyncDisposable
                 Log.Information("Finished loading {PluginName}", this.InternalName);
 
                 var manager = Service<PluginManager>.Get();
-                manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Load, [this.manifest.InternalName]);
+                manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Loaded, [this.manifest.InternalName]);
             }
             catch (Exception ex)
             {
@@ -475,7 +475,7 @@ internal class LocalPlugin : IAsyncDisposable
             Log.Information("Finished unloading {PluginName}", this.InternalName);
 
             var manager = Service<PluginManager>.Get();
-            manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Unload, [this.manifest.InternalName]);
+            manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Unloaded, [this.manifest.InternalName]);
         }
         catch (Exception ex)
         {

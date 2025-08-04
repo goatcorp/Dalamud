@@ -8,12 +8,12 @@ public enum PluginListInvalidationKind
     /// <summary>
     /// A plugin was loaded.
     /// </summary>
-    Load,
+    Loaded,
 
     /// <summary>
     /// A plugin was unloaded.
     /// </summary>
-    Unload,
+    Unloaded,
 
     /// <summary>
     /// An installer-initiated update reloaded plugins.
