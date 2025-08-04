@@ -3006,7 +3006,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 if (repoManifest?.IsTestingExclusive == true)
                     ImGui.BeginDisabled();
 
-                if (ImGui.MenuItem(Locs.PluginContext_TestingOptIn, (byte*)null, optIn != null))
+                if (ImGui.MenuItem(Locs.PluginContext_TestingOptIn, optIn != null))
                 {
                     if (optIn != null)
                     {
