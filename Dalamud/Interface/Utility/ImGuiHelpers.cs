@@ -246,16 +246,7 @@ public static partial class ImGuiHelpers
     /// </summary>
     /// <param name="color">The color of the text.</param>
     /// <param name="text">The text to write.</param>
-    public static void SafeTextColored(Vector4 color, string text)
-    {
-        using (ImRaii.PushColor(ImGuiCol.Text, color))
-        {
-            ImGui.TextUnformatted(text);
-        }
-    }
-
-    /// <inheritdoc cref="SafeTextColored(Vector4, string)"/>
-    public static void SafeTextColored(Vector4 color, ReadOnlySpan<byte> text)
+    public static void SafeTextColored(Vector4 color, ImU8String text)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, color))
         {
