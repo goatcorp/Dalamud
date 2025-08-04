@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -77,12 +77,12 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
 
         ImGui.SameLine(170f);
         ImGui.SetNextItemWidth(180f);
-        if (ImGui.InputTextWithHint($"###FontAwesomeInputSearch", "search icons", ref this.iconSearchInput, 50))
+        if (ImGui.InputTextWithHint($"###FontAwesomeInputSearch", "search icons"u8, ref this.iconSearchInput, 50))
         {
             this.iconSearchChanged = true;
         }
 
-        ImGui.Checkbox("Use fixed width font", ref this.useFixedWidth);
+        ImGui.Checkbox("Use fixed width font"u8, ref this.useFixedWidth);
 
         ImGuiHelpers.ScaledDummy(10f);
         for (var i = 0; i < this.icons?.Count; i++)

@@ -5,6 +5,7 @@ using System.Reflection;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 
 namespace Dalamud.Interface.Internal.Windows;
@@ -52,7 +53,7 @@ internal sealed class ColorDemoWindow : Window
     /// <inheritdoc/>
     public override void Draw()
     {
-        ImGui.Text("This is a collection of UI colors you can use in your plugin.");
+        ImGui.Text("This is a collection of UI colors you can use in your plugin."u8);
 
         ImGui.Separator();
 

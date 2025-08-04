@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Data;
 
@@ -25,11 +26,11 @@ internal static class DataWindowWidgetExtensions
             var xoff = ImGui.GetColumnWidth() - width;
             offset.X += xoff;
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + xoff);
-            ImGui.TextUnformatted(s);
+            ImGui.Text(s);
         }
         else
         {
-            ImGui.TextUnformatted(s);
+            ImGui.Text(s);
         }
 
         if (ImGui.IsItemHovered())
@@ -40,7 +41,7 @@ internal static class DataWindowWidgetExtensions
             ImGui.SetNextWindowSizeConstraints(Vector2.One, new(wrx, float.MaxValue));
             ImGui.BeginTooltip();
             ImGui.PushTextWrapPos(wrx);
-            ImGui.TextWrapped(s.Replace("%", "%%"));
+            ImGui.TextWrapped(s);
             ImGui.PopTextWrapPos();
             ImGui.EndTooltip();
         }

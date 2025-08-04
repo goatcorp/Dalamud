@@ -43,7 +43,7 @@ public static partial class ImGuiComponents
             {
                 using (ImRaii.TextWrapPos(ImGui.GetFontSize() * 35.0f))
                 {
-                    ImGui.TextUnformatted(helpText);
+                    ImGui.Text(helpText);
                 }
             }
         }

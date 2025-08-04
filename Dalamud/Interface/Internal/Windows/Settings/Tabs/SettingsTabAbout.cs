@@ -263,7 +263,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
     {
         var windowSize = ImGui.GetWindowSize();
 
-        using var child = ImRaii.Child("scrolling", new Vector2(-1, -10 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.NoScrollbar);
+        using var child = ImRaii.Child("scrolling"u8, new Vector2(-1, -10 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.NoScrollbar);
         if (!child)
             return;
 
@@ -293,7 +293,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
                 ImGui.Dummy(new Vector2((windowX / 2) - (lineLenX / 2), 0f));
                 ImGui.SameLine();
-                ImGui.TextUnformatted(creditsLine);
+                ImGui.Text(creditsLine);
             }
 
             ImGuiHelpers.ScaledDummy(0, 40f);
@@ -305,7 +305,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
                 ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
                 ImGui.SameLine();
-                ImGui.TextUnformatted(ThankYouText);
+                ImGui.Text(ThankYouText);
             }
 
             ImGuiHelpers.ScaledDummy(0, windowSize.Y + 50f);

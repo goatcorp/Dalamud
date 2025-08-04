@@ -31,7 +31,7 @@ internal class PartyListWidget : IDataWindowWidget
     {
         var partyList = Service<PartyList>.Get();
 
-        ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
+        ImGui.Checkbox("Resolve GameData"u8, ref this.resolveGameData);
 
         ImGui.Text($"GroupManager: {partyList.GroupManagerAddress.ToInt64():X}");
         ImGui.Text($"GroupList: {partyList.GroupListAddress.ToInt64():X}");
@@ -54,7 +54,7 @@ internal class PartyListWidget : IDataWindowWidget
                 var actor = member.GameObject;
                 if (actor == null)
                 {
-                    ImGui.Text("Actor was null");
+                    ImGui.Text("Actor was null"u8);
                 }
                 else
                 {

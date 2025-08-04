@@ -33,20 +33,20 @@ public class SettingsTabAutoUpdates : SettingsTab
 
     public override void Draw()
     {
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateHint",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateHint",
                                                 "Dalamud can update your plugins automatically, making sure that you always " +
                                                 "have the newest features and bug fixes. You can choose when and how auto-updates are run here."));
         ImGuiHelpers.ScaledDummy(2);
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer1",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer1",
                                                 "You can always update your plugins manually by clicking the update button in the plugin list. " +
                                                 "You can also opt into updates for specific plugins by right-clicking them and selecting \"Always auto-update\"."));
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer2",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer2",
                                                 "Dalamud will only notify you about updates while you are idle."));
 
         ImGuiHelpers.ScaledDummy(8);
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateBehavior",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateBehavior",
                                                 "When the game starts..."));
         var behaviorInt = (int)this.behavior;
         ImGui.RadioButton(Loc.Localize("DalamudSettingsAutoUpdateNone", "Do not check for updates automatically"), ref behaviorInt, (int)AutoUpdateBehavior.None);
@@ -61,7 +61,7 @@ public class SettingsTabAutoUpdates : SettingsTab
                 "DalamudSettingsAutoUpdateAllWarning",
                 "Warning: This will update all plugins, including those not from the main repository.\n" +
                 "These updates are not reviewed by the Dalamud team and may contain malicious code.");
-            ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudOrange, warning);
+            ImGui.TextColoredWrapped(ImGuiColors.DalamudOrange, warning);
         }
 
         ImGuiHelpers.ScaledDummy(8);
@@ -69,17 +69,17 @@ public class SettingsTabAutoUpdates : SettingsTab
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdateDisabledPlugins", "Auto-Update plugins that are currently disabled"), ref this.updateDisabledPlugins);
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdateChatMessage", "Show notification about updates available in chat"), ref this.chatNotification);
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdatePeriodically", "Periodically check for new updates while playing"), ref this.checkPeriodically);
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdatePeriodicallyHint",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdatePeriodicallyHint",
                                                 "Plugins won't update automatically after startup, you will only receive a notification while you are not actively playing."));
 
         ImGuiHelpers.ScaledDummy(5);
         ImGui.Separator();
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOptedIn",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOptedIn",
                                                 "Per-plugin overrides"));
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOverrideHint",
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateOverrideHint",
                                                 "Here, you can choose to receive or not to receive updates for specific plugins. " +
                                                 "This will override the settings above for the selected plugins."));
 
@@ -136,7 +136,7 @@ public class SettingsTabAutoUpdates : SettingsTab
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
-                    ImGui.TextUnformatted(text);
+                    ImGui.Text(text);
 
                     ImGui.SetCursorPos(before);
                 }
@@ -150,7 +150,7 @@ public class SettingsTabAutoUpdates : SettingsTab
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
-                    ImGui.TextUnformatted(text);
+                    ImGui.Text(text);
 
                     ImGui.SetCursorPos(before);
                 }

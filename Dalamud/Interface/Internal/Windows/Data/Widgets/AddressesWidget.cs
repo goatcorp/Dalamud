@@ -32,8 +32,8 @@ internal class AddressesWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        ImGui.InputText(".text sig", ref this.inputSig, 400);
-        if (ImGui.Button("Resolve"))
+        ImGui.InputText(".text sig"u8, ref this.inputSig, 400);
+        if (ImGui.Button("Resolve"u8))
         {
             try
             {
@@ -53,10 +53,10 @@ internal class AddressesWidget : IDataWindowWidget
 
         foreach (var debugScannedValue in BaseAddressResolver.DebugScannedValues)
         {
-            ImGui.TextUnformatted($"{debugScannedValue.Key}");
+            ImGui.Text($"{debugScannedValue.Key}");
             foreach (var valueTuple in debugScannedValue.Value)
             {
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"      {valueTuple.ClassName} - {Util.DescribeAddress(valueTuple.Address)}");
                 ImGui.SameLine();
 

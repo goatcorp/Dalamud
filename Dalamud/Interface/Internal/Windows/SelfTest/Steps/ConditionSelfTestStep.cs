@@ -23,7 +23,7 @@ internal class ConditionSelfTestStep : ISelfTestStep
             return SelfTestStepResult.Fail;
         }
 
-        ImGui.Text("Please jump...");
+        ImGui.Text("Please jump..."u8);
 
         return condition[ConditionFlag.Jumping] ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
     }

@@ -102,12 +102,12 @@ internal class SheetRedirectResolverSelfTestStep : ISelfTestStep
 
                 if (utf8SheetName->ToString() != sheetName2 || rowId1 != rowId2 || colIndex1 != colIndex2 || flags1 != flags2)
                 {
-                    ImGui.TextUnformatted($"Mismatch detected (Test #{i}):");
-                    ImGui.TextUnformatted($"Input: {redirect.SheetName}#{redirect.RowId}");
-                    ImGui.TextUnformatted($"Game: {utf8SheetName->ToString()}#{rowId1}-{colIndex1} ({flags1})");
-                    ImGui.TextUnformatted($"Evaluated: {sheetName2}#{rowId2}-{colIndex2} ({flags2})");
+                    ImGui.Text($"Mismatch detected (Test #{i}):");
+                    ImGui.Text($"Input: {redirect.SheetName}#{redirect.RowId}");
+                    ImGui.Text($"Game: {utf8SheetName->ToString()}#{rowId1}-{colIndex1} ({flags1})");
+                    ImGui.Text($"Evaluated: {sheetName2}#{rowId2}-{colIndex2} ({flags2})");
 
-                    if (ImGui.Button("Continue"))
+                    if (ImGui.Button("Continue"u8))
                         return SelfTestStepResult.Fail;
 
                     return SelfTestStepResult.Waiting;

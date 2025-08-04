@@ -29,7 +29,7 @@ public static partial class ImGuiComponents
             {
                 using (ImRaii.Tooltip())
                 {
-                    ImGui.TextUnformatted(hint);
+                    ImGui.Text(hint);
                 }
             }
         }

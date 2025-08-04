@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -167,7 +168,7 @@ internal unsafe partial class ResNodeTree : IDisposable
     /// </summary>
     internal void WriteTreeHeading()
     {
-        ImGui.TextUnformatted(this.GetHeaderText());
+        ImGui.Text(this.GetHeaderText());
         this.PrintFieldLabels();
     }
 
@@ -383,7 +384,7 @@ internal unsafe partial class ResNodeTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Visibility");
+            ImGui.SetTooltip("Toggle Visibility"u8);
         }
 
         ImGui.SameLine();
@@ -399,7 +400,7 @@ internal unsafe partial class ResNodeTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Popout Window");
+            ImGui.SetTooltip("Toggle Popout Window"u8);
         }
     }
 

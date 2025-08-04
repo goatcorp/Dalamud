@@ -4,6 +4,8 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using static Dalamud.Interface.FontAwesomeIcon;
@@ -117,11 +119,11 @@ public unsafe partial class AddonTree : IDisposable
 
         var isVisible = addon->IsVisible;
 
-        ImGui.TextUnformatted($"{this.AddonName}");
+        ImGui.Text($"{this.AddonName}");
         ImGui.SameLine();
 
         ImGui.SameLine();
-        ImGui.TextColored(isVisible ? new Vector4(0.1f, 1f, 0.1f, 1f) : new(0.6f, 0.6f, 0.6f, 1), isVisible ? "Visible" : "Not Visible");
+        ImGui.TextColored(isVisible ? new Vector4(0.1f, 1f, 0.1f, 1f) : new(0.6f, 0.6f, 0.6f, 1), isVisible ? "Visible"u8 : "Not Visible"u8);
 
         ImGui.SameLine(ImGui.GetWindowWidth() - 100);
 
@@ -132,7 +134,7 @@ public unsafe partial class AddonTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Visibility");
+            ImGui.SetTooltip("Toggle Visibility"u8);
         }
 
         ImGui.SameLine();
@@ -143,7 +145,7 @@ public unsafe partial class AddonTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Popout Window");
+            ImGui.SetTooltip("Toggle Popout Window"u8);
         }
 
         PaddedSeparator(1);

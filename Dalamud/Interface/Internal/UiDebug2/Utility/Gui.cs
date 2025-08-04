@@ -23,7 +23,7 @@ internal static class Gui
     /// <param name="copy">Whether to enable click-to-copy.</param>
     internal static void PrintFieldValuePair(string fieldName, string value, bool copy = true)
     {
-        ImGui.TextUnformatted($"{fieldName}:");
+        ImGui.Text($"{fieldName}:");
         ImGui.SameLine();
         var grey60 = new Vector4(0.6f, 0.6f, 0.6f, 1);
         if (copy)
@@ -108,7 +108,7 @@ internal static class Gui
 
         if (tt.Success)
         {
-            ImGui.TextUnformatted(tooltips[index]);
+            ImGui.Text(tooltips[index]);
         }
 
         return true;

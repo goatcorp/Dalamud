@@ -19,7 +19,7 @@ internal class LoginEventSelfTestStep : ISelfTestStep
     {
         var clientState = Service<ClientState>.Get();
 
-        ImGui.Text("Log in now...");
+        ImGui.Text("Log in now..."u8);
 
         if (!this.subscribed)
         {

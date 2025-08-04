@@ -1,7 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 using CheapLoc;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.ReShadeHandling;
@@ -151,7 +152,7 @@ public class SettingsTabExperimental : SettingsTab
     {
         base.Draw();
 
-        ImGuiHelpers.SafeTextColoredWrapped(
+        ImGui.TextColoredWrapped(
             ImGuiColors.DalamudGrey,
             "Total memory used by Dalamud & Plugins: " + Util.FormatBytes(GC.GetTotalMemory(false)));
         ImGuiHelpers.ScaledDummy(15);

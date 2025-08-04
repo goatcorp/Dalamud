@@ -44,24 +44,24 @@ internal class UiColorWidget : IDataWindowWidget
             "<edgecolor(0xEEEEFF)><color(0x0000FF)>BB<color(stackcolor)><edgecolor(stackcolor)>.<br>" +
             "· Click on a color to copy the color code.<br>" +
             "· Hover on a color to preview the text with edge, when the next color has been used together.");
-        if (!ImGui.BeginTable("UIColor", 5))
+        if (!ImGui.BeginTable("UIColor"u8, 5))
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        var rowidw = ImGui.CalcTextSize("9999999").X;
-        var colorw = ImGui.CalcTextSize("#999999").X;
-        colorw = Math.Max(colorw, ImGui.CalcTextSize("#AAAAAA").X);
-        colorw = Math.Max(colorw, ImGui.CalcTextSize("#BBBBBB").X);
-        colorw = Math.Max(colorw, ImGui.CalcTextSize("#CCCCCC").X);
-        colorw = Math.Max(colorw, ImGui.CalcTextSize("#DDDDDD").X);
-        colorw = Math.Max(colorw, ImGui.CalcTextSize("#EEEEEE").X);
-        colorw = Math.Max(colorw, ImGui.CalcTextSize("#FFFFFF").X);
+        var rowidw = ImGui.CalcTextSize("9999999"u8).X;
+        var colorw = ImGui.CalcTextSize("#999999"u8).X;
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#AAAAAA"u8).X);
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#BBBBBB"u8).X);
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#CCCCCC"u8).X);
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#DDDDDD"u8).X);
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#EEEEEE"u8).X);
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#FFFFFF"u8).X);
         colorw += ImGui.GetFrameHeight() + ImGui.GetStyle().FramePadding.X;
-        ImGui.TableSetupColumn("Row ID", ImGuiTableColumnFlags.WidthFixed, rowidw);
-        ImGui.TableSetupColumn("Dark", ImGuiTableColumnFlags.WidthFixed, colorw);
-        ImGui.TableSetupColumn("Light", ImGuiTableColumnFlags.WidthFixed, colorw);
-        ImGui.TableSetupColumn("Classic FF", ImGuiTableColumnFlags.WidthFixed, colorw);
-        ImGui.TableSetupColumn("Clear Blue", ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableSetupColumn("Row ID"u8, ImGuiTableColumnFlags.WidthFixed, rowidw);
+        ImGui.TableSetupColumn("Dark"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableSetupColumn("Light"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableSetupColumn("Classic FF"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableSetupColumn("Clear Blue"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
         ImGui.TableHeadersRow();
 
         var clipper = ImGui.ImGuiListClipper();
@@ -87,7 +87,7 @@ internal class UiColorWidget : IDataWindowWidget
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.TextUnformatted($"{id}");
+                ImGui.Text($"{id}");
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
@@ -186,7 +186,7 @@ internal class UiColorWidget : IDataWindowWidget
             ImGui.GetColorU32(ImGuiCol.Text),
             rgbtext);
 
-        if (ImGui.InvisibleButton("##copy", size))
+        if (ImGui.InvisibleButton("##copy"u8, size))
         {
             ImGui.SetClipboardText(rgbtext);
             Service<NotificationManager>.Get().AddNotification(

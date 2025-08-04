@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -72,17 +72,17 @@ public class IconBrowserWidget : IDataWindowWidget
 
         if (!this.iconIdsTask.IsCompleted)
         {
-            ImGui.TextUnformatted("Loading...");
+            ImGui.Text("Loading..."u8);
         }
         else if (!this.iconIdsTask.IsCompletedSuccessfully)
         {
-            ImGui.TextUnformatted(this.iconIdsTask.Exception?.ToString() ?? "Unknown error");
+            ImGui.Text(this.iconIdsTask.Exception?.ToString() ?? "Unknown error");
         }
         else
         {
             this.RecalculateIndexRange();
 
-            if (ImGui.BeginChild("ScrollableSection", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoMove))
+            if (ImGui.BeginChild("ScrollableSection"u8, ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoMove))
             {
                 var itemsPerRow = (int)MathF.Floor(
                     ImGui.GetContentRegionMax().X / (this.iconSize.X + ImGui.GetStyle().ItemSpacing.X));
@@ -119,7 +119,7 @@ public class IconBrowserWidget : IDataWindowWidget
         ImGui.Columns(2);
 
         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-        if (ImGui.InputInt("##StartRange", ref this.startRange, 0, 0))
+        if (ImGui.InputInt("##StartRange"u8, ref this.startRange, 0, 0))
         {
             this.startRange = Math.Clamp(this.startRange, 0, MaxIconId);
             this.valueRange = null;
@@ -127,14 +127,14 @@ public class IconBrowserWidget : IDataWindowWidget
 
         ImGui.NextColumn();
         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-        if (ImGui.InputInt("##StopRange", ref this.stopRange, 0, 0))
+        if (ImGui.InputInt("##StopRange"u8, ref this.stopRange, 0, 0))
         {
             this.stopRange = Math.Clamp(this.stopRange, 0, MaxIconId);
             this.valueRange = null;
         }
 
         ImGui.NextColumn();
-        ImGui.Checkbox("Show Image in Tooltip", ref this.showTooltipImage);
+        ImGui.Checkbox("Show Image in Tooltip"u8, ref this.showTooltipImage);
 
         ImGui.NextColumn();
         ImGui.InputFloat2("Icon Size", ref this.editIconSize);
@@ -204,7 +204,7 @@ public class IconBrowserWidget : IDataWindowWidget
             }
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip($"{iconId}\n{exc}".Replace("%", "%%"));
+                ImGui.SetTooltip($"{iconId}\n{exc}");
 
             ImGui.GetWindowDrawList().AddRect(
                 cursor,

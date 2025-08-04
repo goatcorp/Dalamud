@@ -143,7 +143,7 @@ public class Table<T>
 
     private void DrawTableInternal()
     {
-        using var table = ImRaii.Table("Table", this.Headers.Length, this.Flags,
+        using var table = ImRaii.Table("Table"u8, this.Headers.Length, this.Flags,
             ImGui.GetContentRegionAvail() - this.ExtraHeight * Vector2.UnitY * ImGuiHelpers.GlobalScale);
         if (!table)
             return;

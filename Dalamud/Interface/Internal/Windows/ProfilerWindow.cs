@@ -43,11 +43,11 @@ public class ProfilerWindow : Window
         var actualMin = Timings.AllTimings.Keys.Min(x => x.StartTime);
         var actualMax = Timings.AllTimings.Keys.Max(x => x.EndTime);
 
-        ImGui.Text("Timings");
+        ImGui.Text("Timings"u8);
 
         var childHeight = Math.Max(300, 20 * (2.5f + this.occupied.Count));
 
-        if (ImGui.BeginChild("Timings", new Vector2(0, childHeight), true))
+        if (ImGui.BeginChild("Timings"u8, new Vector2(0, childHeight), true))
         {
             var pos = ImGui.GetCursorScreenPos();
 
@@ -178,12 +178,12 @@ public class ProfilerWindow : Window
                 if (rectInfo.Hover)
                 {
                     ImGui.BeginTooltip();
-                    ImGui.TextUnformatted(rectInfo.Timing.Name);
-                    ImGui.TextUnformatted(rectInfo.Timing.MemberName);
-                    ImGui.TextUnformatted($"{rectInfo.Timing.FileName}:{rectInfo.Timing.LineNumber}");
-                    ImGui.TextUnformatted($"Duration: {rectInfo.Timing.Duration}ms");
+                    ImGui.Text(rectInfo.Timing.Name);
+                    ImGui.Text(rectInfo.Timing.MemberName);
+                    ImGui.Text($"{rectInfo.Timing.FileName}:{rectInfo.Timing.LineNumber}");
+                    ImGui.Text($"Duration: {rectInfo.Timing.Duration}ms");
                     if (rectInfo.Timing.Parent != null)
-                        ImGui.TextUnformatted($"Parent: {rectInfo.Timing.Parent.Name}");
+                        ImGui.Text($"Parent: {rectInfo.Timing.Parent.Name}");
                     ImGui.EndTooltip();
                 }
             }
@@ -236,20 +236,20 @@ public class ProfilerWindow : Window
         ImGui.EndChild();
 
         var sliderMin = (float)this.min / 1000f;
-        if (ImGui.SliderFloat("Start", ref sliderMin, (float)actualMin / 1000f, (float)this.max / 1000f, "%.2fs"))
+        if (ImGui.SliderFloat("Start"u8, ref sliderMin, (float)actualMin / 1000f, (float)this.max / 1000f, "%.2fs"))
         {
             this.min = sliderMin * 1000f;
         }
 
         var sliderMax = (float)this.max / 1000f;
-        if (ImGui.SliderFloat("End", ref sliderMax, (float)this.min / 1000f, (float)actualMax / 1000f, "%.2fs"))
+        if (ImGui.SliderFloat("End"u8, ref sliderMax, (float)this.min / 1000f, (float)actualMax / 1000f, "%.2fs"))
         {
             this.max = sliderMax * 1000f;
         }
 
         var sizeShown = (float)(this.max - this.min) / 1000f;
         var sizeActual = (float)(actualMax - actualMin) / 1000f;
-        if (ImGui.SliderFloat("Size", ref sizeShown, sizeActual / 10f, sizeActual, "%.2fs"))
+        if (ImGui.SliderFloat("Size"u8, ref sizeShown, sizeActual / 10f, sizeActual, "%.2fs"))
         {
             this.max = this.min + (sizeShown * 1000f);
         }

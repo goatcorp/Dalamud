@@ -19,7 +19,7 @@ internal class DutyStateSelfTestStep : ISelfTestStep
     {
         var dutyState = Service<DutyState>.Get();
 
-        ImGui.Text("Enter a duty now...");
+        ImGui.Text("Enter a duty now..."u8);
 
         if (!this.subscribed)
         {

@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.Toast;
@@ -39,18 +39,18 @@ internal class ToastWidget : IDataWindowWidget
     {
         var toastGui = Service<ToastGui>.Get();
 
-        ImGui.InputText("Toast text", ref this.inputTextToast, 200);
+        ImGui.InputText("Toast text"u8, ref this.inputTextToast, 200);
 
-        ImGui.Combo("Toast Position", ref this.toastPosition, ["Bottom", "Top"]);
-        ImGui.Combo("Toast Speed", ref this.toastSpeed, ["Slow", "Fast"]);
-        ImGui.Combo("Quest Toast Position", ref this.questToastPosition, ["Centre", "Right", "Left"]);
-        ImGui.Checkbox("Quest Checkmark", ref this.questToastCheckmark);
-        ImGui.Checkbox("Quest Play Sound", ref this.questToastSound);
-        ImGui.InputInt("Quest Icon ID", ref this.questToastIconId);
+        ImGui.Combo("Toast Position", ref this.toastPosition, ["Bottom", "Top",], 2);
+        ImGui.Combo("Toast Speed", ref this.toastSpeed, ["Slow", "Fast",], 2);
+        ImGui.Combo("Quest Toast Position", ref this.questToastPosition, ["Centre", "Right", "Left"], 3);
+        ImGui.Checkbox("Quest Checkmark"u8, ref this.questToastCheckmark);
+        ImGui.Checkbox("Quest Play Sound"u8, ref this.questToastSound);
+        ImGui.InputInt("Quest Icon ID"u8, ref this.questToastIconId);
 
         ImGuiHelpers.ScaledDummy(new Vector2(10, 10));
 
-        if (ImGui.Button("Show toast"))
+        if (ImGui.Button("Show toast"u8))
         {
             toastGui.ShowNormal(this.inputTextToast, new ToastOptions
             {
@@ -59,7 +59,7 @@ internal class ToastWidget : IDataWindowWidget
             });
         }
 
-        if (ImGui.Button("Show Quest toast"))
+        if (ImGui.Button("Show Quest toast"u8))
         {
             toastGui.ShowQuest(this.inputTextToast, new QuestToastOptions
             {
@@ -70,7 +70,7 @@ internal class ToastWidget : IDataWindowWidget
             });
         }
 
-        if (ImGui.Button("Show Error toast"))
+        if (ImGui.Button("Show Error toast"u8))
         {
             toastGui.ShowError(this.inputTextToast);
         }

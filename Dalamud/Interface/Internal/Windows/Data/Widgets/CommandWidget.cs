@@ -1,7 +1,8 @@
-﻿using System.Linq;
+using System.Linq;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Command;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -33,15 +34,15 @@ internal class CommandWidget : IDataWindowWidget
 
         var tableFlags = ImGuiTableFlags.ScrollY | ImGuiTableFlags.Borders | ImGuiTableFlags.SizingStretchProp |
                          ImGuiTableFlags.Sortable | ImGuiTableFlags.SortTristate;
-        using var table = ImRaii.Table("CommandList", 4, tableFlags);
+        using var table = ImRaii.Table("CommandList"u8, 4, tableFlags);
         if (table)
         {
             ImGui.TableSetupScrollFreeze(0, 1);
 
-            ImGui.TableSetupColumn("Command");
-            ImGui.TableSetupColumn("Plugin");
-            ImGui.TableSetupColumn("HelpMessage", ImGuiTableColumnFlags.NoSort);
-            ImGui.TableSetupColumn("In Help?", ImGuiTableColumnFlags.NoSort);
+            ImGui.TableSetupColumn("Command"u8);
+            ImGui.TableSetupColumn("Plugin"u8);
+            ImGui.TableSetupColumn("HelpMessage"u8, ImGuiTableColumnFlags.NoSort);
+            ImGui.TableSetupColumn("In Help?"u8, ImGuiTableColumnFlags.NoSort);
             ImGui.TableHeadersRow();
 
             var sortSpecs = ImGui.TableGetSortSpecs();

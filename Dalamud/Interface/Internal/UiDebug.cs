@@ -64,17 +64,17 @@ internal unsafe class UiDebug
     public void Draw()
     {
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 2));
-        ImGui.BeginChild("st_uiDebug_unitBaseSelect", new Vector2(250, -1), true);
+        ImGui.BeginChild("st_uiDebug_unitBaseSelect"u8, new Vector2(250, -1), true);
 
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputTextWithHint("###atkUnitBaseSearch", "Search", ref this.searchInput, 0x20);
+        ImGui.InputTextWithHint("###atkUnitBaseSearch"u8, "Search"u8, ref this.searchInput, 0x20);
 
         this.DrawUnitBaseList();
         ImGui.EndChild();
         if (this.selectedUnitBase != null)
         {
             ImGui.SameLine();
-            ImGui.BeginChild("st_uiDebug_selectedUnitBase", new Vector2(-1, -1), true);
+            ImGui.BeginChild("st_uiDebug_selectedUnitBase"u8, new Vector2(-1, -1), true);
             this.DrawUnitBase(this.selectedUnitBase);
             ImGui.EndChild();
         }
@@ -95,7 +95,7 @@ internal unsafe class UiDebug
         ImGui.PopStyleColor();
 
         ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - 25);
-        if (ImGui.SmallButton("V"))
+        if (ImGui.SmallButton("V"u8))
         {
             atkUnitBase->IsVisible = !atkUnitBase->IsVisible;
         }
@@ -106,7 +106,7 @@ internal unsafe class UiDebug
         ImGui.Separator();
 
         ImGui.Text($"Position: [ {atkUnitBase->X} , {atkUnitBase->Y} ]");
-        ImGui.Text($"Scale: {atkUnitBase->Scale * 100}%%");
+        ImGui.Text($"Scale: {atkUnitBase->Scale * 100}%");
         ImGui.Text($"Widget Count {atkUnitBase->UldManager.ObjectCount}");
 
         ImGui.Separator();
@@ -184,7 +184,7 @@ internal unsafe class UiDebug
                 popped = true;
             }
 
-            ImGui.Text("Node: ");
+            ImGui.Text("Node: "u8);
             ImGui.SameLine();
             ImGuiHelpers.ClickToCopyText($"{(ulong)node:X}");
             ImGui.SameLine();
@@ -208,7 +208,7 @@ internal unsafe class UiDebug
             {
                 case NodeType.Text:
                     var textNode = (AtkTextNode*)node;
-                    ImGui.Text("text: ");
+                    ImGui.Text("text: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textNode->NodeText);
 
@@ -249,7 +249,7 @@ internal unsafe class UiDebug
                     break;
                 case NodeType.Counter:
                     var counterNode = (AtkCounterNode*)node;
-                    ImGui.Text("text: ");
+                    ImGui.Text("text: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(counterNode->NodeText);
                     break;
@@ -283,7 +283,7 @@ internal unsafe class UiDebug
             {
                 if (partId > partsList->PartCount)
                 {
-                    ImGui.Text("part id > part count?");
+                    ImGui.Text("part id > part count?"u8);
                 }
                 else
                 {
@@ -348,7 +348,7 @@ internal unsafe class UiDebug
             }
             else
             {
-                ImGui.Text("no texture loaded");
+                ImGui.Text("no texture loaded"u8);
             }
         }
     }
@@ -384,12 +384,12 @@ internal unsafe class UiDebug
                 popped = true;
             }
 
-            ImGui.Text("Node: ");
+            ImGui.Text("Node: "u8);
             ImGui.SameLine();
             ImGuiHelpers.ClickToCopyText($"{(ulong)node:X}");
             ImGui.SameLine();
             Util.ShowStruct(*compNode, (ulong)compNode);
-            ImGui.Text("Component: ");
+            ImGui.Text("Component: "u8);
             ImGui.SameLine();
             ImGuiHelpers.ClickToCopyText($"{(ulong)compNode->Component:X}");
             ImGui.SameLine();
@@ -414,31 +414,31 @@ internal unsafe class UiDebug
             {
                 case ComponentType.TextInput:
                     var textInputComponent = (AtkComponentTextInput*)compNode->Component;
-                    ImGui.Text("InputBase Text1: ");
+                    ImGui.Text("InputBase Text1: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText1);
 
-                    ImGui.Text("InputBase Text2: ");
+                    ImGui.Text("InputBase Text2: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText2);
 
-                    ImGui.Text("Text1: ");
+                    ImGui.Text("Text1: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText01);
 
-                    ImGui.Text("Text2: ");
+                    ImGui.Text("Text2: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText02);
 
-                    ImGui.Text("AvailableLines: ");
+                    ImGui.Text("AvailableLines: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->AvailableLines);
 
-                    ImGui.Text("HighlightedAutoTranslateOptionColorPrefix: ");
+                    ImGui.Text("HighlightedAutoTranslateOptionColorPrefix: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->HighlightedAutoTranslateOptionColorPrefix);
 
-                    ImGui.Text("HighlightedAutoTranslateOptionColorSuffix: ");
+                    ImGui.Text("HighlightedAutoTranslateOptionColorSuffix: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->HighlightedAutoTranslateOptionColorSuffix);
                     break;
@@ -604,7 +604,7 @@ internal unsafe class UiDebug
 
         if (noResults)
         {
-            ImGui.TextDisabled("No Results");
+            ImGui.TextDisabled("No Results"u8);
         }
 
         if (!foundSelected)

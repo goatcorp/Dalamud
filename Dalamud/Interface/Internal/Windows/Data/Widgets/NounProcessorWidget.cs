@@ -117,7 +117,7 @@ internal class NounProcessorWidget : IDataWindowWidget
         }
 
         ImGui.SameLine();
-        ImGui.TextUnformatted($"(Range: {minRowId} - {maxRowId})");
+        ImGui.Text($"(Range: {minRowId} - {maxRowId})");
 
         ImGui.SetNextItemWidth(120);
         if (ImGui.InputInt("Amount###Amount", ref this.amount, 1, 10, flags: ImGuiInputTextFlags.AutoSelectAll))
@@ -137,7 +137,7 @@ internal class NounProcessorWidget : IDataWindowWidget
         var numCases = language == ClientLanguage.German ? 4 : 1;
 
 #if DEBUG
-        if (ImGui.Button("Copy as self-test entry"))
+        if (ImGui.Button("Copy as self-test entry"u8))
         {
             var sb = new StringBuilder();
 
@@ -164,10 +164,10 @@ internal class NounProcessorWidget : IDataWindowWidget
         }
 #endif
 
-        using var table = ImRaii.Table("TextDecoderTable", 1 + numCases, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
+        using var table = ImRaii.Table("TextDecoderTable"u8, 1 + numCases, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
         if (!table) return;
 
-        ImGui.TableSetupColumn("ArticleType", ImGuiTableColumnFlags.WidthFixed, 150);
+        ImGui.TableSetupColumn("ArticleType"u8, ImGuiTableColumnFlags.WidthFixed, 150);
         for (var i = 0; i < numCases; i++)
             ImGui.TableSetupColumn(language == ClientLanguage.German ? GermanCases[i] : "Text");
         ImGui.TableSetupScrollFreeze(6, 1);
@@ -194,11 +194,11 @@ internal class NounProcessorWidget : IDataWindowWidget
                         ArticleType = (int)articleType,
                         GrammaticalCase = currentCase,
                     };
-                    ImGui.TextUnformatted(nounProcessor.ProcessNoun(nounParams).ExtractText());
+                    ImGui.Text(nounProcessor.ProcessNoun(nounParams).ExtractText());
                 }
                 catch (Exception ex)
                 {
-                    ImGui.TextUnformatted(ex.ToString());
+                    ImGui.Text(ex.ToString());
                 }
             }
         }

@@ -52,7 +52,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverNormalItem:
-                ImGui.Text("Hover the item.");
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != normalItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -62,7 +62,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverHqItem:
-                ImGui.Text("Hover the item.");
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != 1_000_000 + hqItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -72,7 +72,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverCollectable:
-                ImGui.Text("Hover the item.");
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != 500_000 + collectableItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -82,7 +82,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverEventItem:
-                ImGui.Text("Hover the item.");
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != eventItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -92,7 +92,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverNormalWithText:
-                ImGui.Text("Hover the item.");
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != normalItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;

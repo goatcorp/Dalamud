@@ -391,16 +391,16 @@ public sealed class SingleFontChooserDialog : IDisposable
         var baseOffset = ImGui.GetCursorPos() - windowPad;
 
         var actionSize = Vector2.Zero;
-        actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("OK"));
-        actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("Cancel"));
-        actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("Refresh"));
-        actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("Reset"));
+        actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("OK"u8));
+        actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("Cancel"u8));
+        actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("Refresh"u8));
+        actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("Reset"u8));
         actionSize += framePad * 2;
 
         var bodySize = ImGui.GetContentRegionAvail();
         ImGui.SetCursorPos(baseOffset + windowPad);
         if (ImGui.BeginChild(
-                "##choicesBlock",
+                "##choicesBlock"u8,
                 bodySize with { X = bodySize.X - windowPad.X - actionSize.X },
                 false,
                 ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
@@ -412,7 +412,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         ImGui.SetCursorPos(baseOffset + windowPad + new Vector2(bodySize.X - actionSize.X, 0));
 
-        if (ImGui.BeginChild("##actionsBlock", bodySize with { X = actionSize.X }))
+        if (ImGui.BeginChild("##actionsBlock"u8, bodySize with { X = actionSize.X }))
         {
             this.DrawActionButtons(actionSize);
         }
@@ -460,25 +460,25 @@ public sealed class SingleFontChooserDialog : IDisposable
         var tableSize = ImGui.GetContentRegionAvail() -
                         new Vector2(0, ImGui.GetStyle().WindowPadding.Y + previewHeight + advancedOptionsHeight);
         if (ImGui.BeginChild(
-                "##tableContainer",
+                "##tableContainer"u8,
                 tableSize,
                 false,
                 ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
-            && ImGui.BeginTable("##table", 3, ImGuiTableFlags.None))
+            && ImGui.BeginTable("##table"u8, 3, ImGuiTableFlags.None))
         {
             ImGui.PushStyleColor(ImGuiCol.TableHeaderBg, Vector4.Zero);
             ImGui.PushStyleColor(ImGuiCol.HeaderHovered, Vector4.Zero);
             ImGui.PushStyleColor(ImGuiCol.HeaderActive, Vector4.Zero);
             ImGui.TableSetupColumn(
-                "Font:##familyColumn",
+                "Font:##familyColumn"u8,
                 ImGuiTableColumnFlags.WidthStretch,
                 0.4f);
             ImGui.TableSetupColumn(
-                "Style:##fontColumn",
+                "Style:##fontColumn"u8,
                 ImGuiTableColumnFlags.WidthStretch,
                 0.4f);
             ImGui.TableSetupColumn(
-                "Size:##sizeColumn",
+                "Size:##sizeColumn"u8,
                 ImGuiTableColumnFlags.WidthStretch,
                 0.2f);
             ImGui.TableHeadersRow();
@@ -510,7 +510,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         ImGui.EndChild();
 
-        ImGui.Checkbox("Show advanced options", ref this.useAdvancedOptions);
+        ImGui.Checkbox("Show advanced options"u8, ref this.useAdvancedOptions);
         if (this.useAdvancedOptions)
         {
             if (this.DrawAdvancedOptions())
@@ -539,19 +539,19 @@ public sealed class SingleFontChooserDialog : IDisposable
         if (this.fontHandle is null)
         {
             ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGui.GetStyle().FramePadding);
-            ImGui.TextUnformatted("Select a font.");
+            ImGui.Text("Select a font."u8);
         }
         else if (this.fontHandle.LoadException is { } loadException)
         {
             ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGui.GetStyle().FramePadding);
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.TextUnformatted(loadException.Message);
+            ImGui.Text(loadException.Message);
             ImGui.PopStyleColor();
         }
         else if (!this.fontHandle.Available)
         {
             ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGui.GetStyle().FramePadding);
-            ImGui.TextUnformatted("Loading font...");
+            ImGui.Text("Loading font..."u8);
         }
         else
         {
@@ -571,14 +571,14 @@ public sealed class SingleFontChooserDialog : IDisposable
         if (this.fontFamilies?.IsCompleted is not true)
         {
             ImGui.SetScrollY(0);
-            ImGui.TextUnformatted("Loading...");
+            ImGui.Text("Loading..."u8);
             return false;
         }
 
         if (!this.fontFamilies.IsCompletedSuccessfully)
         {
             ImGui.SetScrollY(0);
-            ImGui.TextUnformatted("Error: " + this.fontFamilies.Exception);
+            ImGui.Text("Error: " + this.fontFamilies.Exception);
             return false;
         }
 
@@ -593,7 +593,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         var changed = false;
         if (ImGui.InputText(
-                "##familySearch",
+                "##familySearch"u8,
                 ref this.familySearch,
                 255,
                 ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.CallbackHistory,
@@ -676,7 +676,7 @@ public sealed class SingleFontChooserDialog : IDisposable
             }
         }
 
-        if (ImGui.BeginChild("##familyList", ImGui.GetContentRegionAvail()))
+        if (ImGui.BeginChild("##familyList"u8, ImGui.GetContentRegionAvail()))
         {
             var clipper = ImGui.ImGuiListClipper();
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
@@ -695,7 +695,7 @@ public sealed class SingleFontChooserDialog : IDisposable
                 {
                     if (i < 0)
                     {
-                        ImGui.TextUnformatted(" ");
+                        ImGui.Text(" "u8);
                         continue;
                     }
 
@@ -735,13 +735,13 @@ public sealed class SingleFontChooserDialog : IDisposable
     {
         if (this.fontFamilies?.IsCompleted is not true)
         {
-            ImGui.TextUnformatted("Loading...");
+            ImGui.Text("Loading..."u8);
             return changed;
         }
 
         if (!this.fontFamilies.IsCompletedSuccessfully)
         {
-            ImGui.TextUnformatted("Error: " + this.fontFamilies.Exception);
+            ImGui.Text("Error: " + this.fontFamilies.Exception);
             return changed;
         }
 
@@ -761,7 +761,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         }
 
         if (ImGui.InputText(
-                "##fontSearch",
+                "##fontSearch"u8,
                 ref this.fontSearch,
                 255,
                 ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.CallbackHistory,
@@ -843,7 +843,7 @@ public sealed class SingleFontChooserDialog : IDisposable
             }
         }
 
-        if (ImGui.BeginChild("##fontList"))
+        if (ImGui.BeginChild("##fontList"u8))
         {
             var clipper = ImGui.ImGuiListClipper();
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
@@ -862,7 +862,7 @@ public sealed class SingleFontChooserDialog : IDisposable
                 {
                     if (i < 0)
                     {
-                        ImGui.TextUnformatted(" ");
+                        ImGui.Text(" "u8);
                         continue;
                     }
 
@@ -909,7 +909,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         }
 
         if (ImGui.InputText(
-                "##fontSizeSearch",
+                "##fontSizeSearch"u8,
                 ref this.fontSizeSearch,
                 255,
                 ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.CallbackHistory |
@@ -947,7 +947,7 @@ public sealed class SingleFontChooserDialog : IDisposable
             }
         }
 
-        if (ImGui.BeginChild("##fontSizeList"))
+        if (ImGui.BeginChild("##fontSizeList"u8))
         {
             var clipper = ImGui.ImGuiListClipper();
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
@@ -966,7 +966,7 @@ public sealed class SingleFontChooserDialog : IDisposable
                 {
                     if (i < 0)
                     {
-                        ImGui.TextUnformatted(" ");
+                        ImGui.Text(" "u8);
                         continue;
                     }
 
@@ -1010,36 +1010,36 @@ public sealed class SingleFontChooserDialog : IDisposable
     {
         var changed = false;
 
-        if (!ImGui.BeginTable("##advancedOptions", 4))
+        if (!ImGui.BeginTable("##advancedOptions"u8, 4))
             return false;
 
-        var labelWidth = ImGui.CalcTextSize("Letter Spacing:").X;
-        labelWidth = Math.Max(labelWidth, ImGui.CalcTextSize("Offset:").X);
-        labelWidth = Math.Max(labelWidth, ImGui.CalcTextSize("Line Height:").X);
+        var labelWidth = ImGui.CalcTextSize("Letter Spacing:"u8).X;
+        labelWidth = Math.Max(labelWidth, ImGui.CalcTextSize("Offset:"u8).X);
+        labelWidth = Math.Max(labelWidth, ImGui.CalcTextSize("Line Height:"u8).X);
         labelWidth += ImGui.GetStyle().FramePadding.X;
 
-        var inputWidth = ImGui.CalcTextSize("000.000").X + (ImGui.GetStyle().FramePadding.X * 2);
+        var inputWidth = ImGui.CalcTextSize("000.000"u8).X + (ImGui.GetStyle().FramePadding.X * 2);
         ImGui.TableSetupColumn(
-            "##inputLabelColumn",
+            "##inputLabelColumn"u8,
             ImGuiTableColumnFlags.WidthFixed,
             labelWidth);
         ImGui.TableSetupColumn(
-            "##input1Column",
+            "##input1Column"u8,
             ImGuiTableColumnFlags.WidthFixed,
             inputWidth);
         ImGui.TableSetupColumn(
-            "##input2Column",
+            "##input2Column"u8,
             ImGuiTableColumnFlags.WidthFixed,
             inputWidth);
         ImGui.TableSetupColumn(
-            "##fillerColumn",
+            "##fillerColumn"u8,
             ImGuiTableColumnFlags.WidthStretch,
             1f);
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("Offset:");
+        ImGui.Text("Offset:"u8);
 
         ImGui.TableNextColumn();
         if (FloatInputText(
@@ -1070,7 +1070,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("Letter Spacing:");
+        ImGui.Text("Letter Spacing:"u8);
 
         ImGui.TableNextColumn();
         if (FloatInputText(
@@ -1085,7 +1085,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("Line Height:");
+        ImGui.Text("Line Height:"u8);
 
         ImGui.TableNextColumn();
         if (FloatInputText(
@@ -1159,15 +1159,15 @@ public sealed class SingleFontChooserDialog : IDisposable
             || this.FontFamilyExcludeFilter?.Invoke(this.selectedFont.FontId.Family) is true)
         {
             ImGui.BeginDisabled();
-            ImGui.Button("OK", buttonSize);
+            ImGui.Button("OK"u8, buttonSize);
             ImGui.EndDisabled();
         }
-        else if (ImGui.Button("OK", buttonSize))
+        else if (ImGui.Button("OK"u8, buttonSize))
         {
             this.tcs.SetResult(this.selectedFont);
         }
 
-        if (ImGui.Button("Cancel", buttonSize))
+        if (ImGui.Button("Cancel"u8, buttonSize))
         {
             this.Cancel();
         }
@@ -1178,10 +1178,10 @@ public sealed class SingleFontChooserDialog : IDisposable
         {
             isFirst = doRefresh = this.fontFamilies is null;
             ImGui.BeginDisabled();
-            ImGui.Button("Refresh", buttonSize);
+            ImGui.Button("Refresh"u8, buttonSize);
             ImGui.EndDisabled();
         }
-        else if (ImGui.Button("Refresh", buttonSize))
+        else if (ImGui.Button("Refresh"u8, buttonSize))
         {
             doRefresh = true;
         }
@@ -1218,7 +1218,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         if (this.useAdvancedOptions)
         {
-            if (ImGui.Button("Reset", buttonSize))
+            if (ImGui.Button("Reset"u8, buttonSize))
             {
                 this.selectedFont = this.selectedFont with
                 {

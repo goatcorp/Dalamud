@@ -5,7 +5,6 @@ using System.Numerics;
 using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Unicode;
 
 using Dalamud.Bindings.ImGui;
@@ -180,7 +179,7 @@ public static partial class ImGuiHelpers
                 col.Push(ImGuiCol.Text, color.Value);
             }
 
-            ImGui.TextUnformatted(text.Span);
+            ImGui.Text(text.Span);
         }
 
         if (ImGui.IsItemHovered())
@@ -191,11 +190,11 @@ public static partial class ImGuiHelpers
             {
                 using (ImRaii.PushFont(UiBuilder.IconFont))
                 {
-                    ImGui.TextUnformatted(FontAwesomeIcon.Copy.ToIconString());
+                    ImGui.Text(FontAwesomeIcon.Copy.ToIconString());
                 }
 
                 ImGui.SameLine();
-                ImGui.TextUnformatted(textCopy.IsNull ? text.Span : textCopy.Span);
+                ImGui.Text(textCopy.IsNull ? text.Span : textCopy.Span);
             }
         }
 
@@ -239,18 +238,20 @@ public static partial class ImGuiHelpers
     /// Write unformatted text wrapped.
     /// </summary>
     /// <param name="text">The text to write.</param>
+    [Obsolete("Use ImGui.TextWrapped. It's safe now.", true)]
     public static void SafeTextWrapped(ImU8String text) => ImGui.TextWrapped(text);
 
     /// <summary>
-    /// Write unformatted text wrapped.
+    /// Write colored, unformatted text wrapped.
     /// </summary>
     /// <param name="color">The color of the text.</param>
     /// <param name="text">The text to write.</param>
+    [Obsolete("Use ImGui.TextColoredWrapped. It's safe.", true)]
     public static void SafeTextColoredWrapped(Vector4 color, ImU8String text)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, color))
         {
-            SafeTextWrapped(text);
+            ImGui.TextWrapped(text);
         }
     }
 
@@ -449,7 +450,7 @@ public static partial class ImGuiHelpers
     public static void CenteredText(ImU8String text)
     {
         CenterCursorForText(text.Span);
-        ImGui.TextUnformatted(text);
+        ImGui.Text(text);
     }
 
     /// <summary>

@@ -16,7 +16,7 @@ internal class KeyStateSelfTestStep : ISelfTestStep
     {
         var keyState = Service<KeyState>.Get();
 
-        ImGui.Text("Hold down D,A,L,M,U");
+        ImGui.Text("Hold down D,A,L,M,U"u8);
 
         if (keyState[VirtualKey.D]
             && keyState[VirtualKey.A]

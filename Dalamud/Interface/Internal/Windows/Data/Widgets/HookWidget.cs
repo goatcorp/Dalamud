@@ -74,29 +74,29 @@ internal unsafe class HookWidget : IDataWindowWidget
     {
         try
         {
-            ImGui.Checkbox("Use MinHook (only for regular hooks, AsmHook is Reloaded-only)", ref this.hookUseMinHook);
+            ImGui.Checkbox("Use MinHook (only for regular hooks, AsmHook is Reloaded-only)"u8, ref this.hookUseMinHook);
 
             ImGui.Separator();
 
-            if (ImGui.Button("Create"))
+            if (ImGui.Button("Create"u8))
                 this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol("User32", "MessageBoxW", this.MessageBoxWDetour, this.hookUseMinHook);
 
-            if (ImGui.Button("Enable"))
+            if (ImGui.Button("Enable"u8))
                 this.messageBoxMinHook?.Enable();
 
-            if (ImGui.Button("Disable"))
+            if (ImGui.Button("Disable"u8))
                 this.messageBoxMinHook?.Disable();
 
-            if (ImGui.Button("Call Original"))
+            if (ImGui.Button("Call Original"u8))
                 this.messageBoxMinHook?.Original(IntPtr.Zero, "Hello from .Original", "Hook Test", MESSAGEBOX_STYLE.MB_OK);
 
-            if (ImGui.Button("Dispose"))
+            if (ImGui.Button("Dispose"u8))
             {
                 this.messageBoxMinHook?.Dispose();
                 this.messageBoxMinHook = null;
             }
 
-            if (ImGui.Button("Test"))
+            if (ImGui.Button("Test"u8))
                 _ = global::Windows.Win32.PInvoke.MessageBox(HWND.Null, "Hi", "Hello", MESSAGEBOX_STYLE.MB_OK);
 
             if (this.messageBoxMinHook != null)
@@ -105,15 +105,15 @@ internal unsafe class HookWidget : IDataWindowWidget
             ImGui.Separator();
 
             ImGui.BeginDisabled(this.hookStressTestRunning);
-            ImGui.Text("Stress Test");
+            ImGui.Text("Stress Test"u8);
 
-            if (ImGui.InputInt("Max", ref this.hookStressTestMax))
+            if (ImGui.InputInt("Max"u8, ref this.hookStressTestMax))
                 this.hookStressTestCount = 0;
 
-            ImGui.InputInt("Wait (ms)", ref this.hookStressTestWait);
-            ImGui.InputInt("Max Degree of Parallelism", ref this.hookStressTestMaxDegreeOfParallelism);
+            ImGui.InputInt("Wait (ms)"u8, ref this.hookStressTestWait);
+            ImGui.InputInt("Max Degree of Parallelism"u8, ref this.hookStressTestMaxDegreeOfParallelism);
 
-            if (ImGui.BeginCombo("Target", HookTargetToString(this.hookStressTestHookTarget)))
+            if (ImGui.BeginCombo("Target"u8, HookTargetToString(this.hookStressTestHookTarget)))
             {
                 foreach (var target in Enum.GetValues<StressTestHookTarget>())
                 {
@@ -124,7 +124,7 @@ internal unsafe class HookWidget : IDataWindowWidget
                 ImGui.EndCombo();
             }
 
-            if (ImGui.Button("Stress Test"))
+            if (ImGui.Button("Stress Test"u8))
             {
                 Task.Run(() =>
                 {
@@ -165,7 +165,7 @@ internal unsafe class HookWidget : IDataWindowWidget
 
             ImGui.EndDisabled();
 
-            ImGui.TextUnformatted("Status: " + (this.hookStressTestRunning ? "Running" : "Idle"));
+            ImGui.Text("Status: " + (this.hookStressTestRunning ? "Running" : "Idle"));
             ImGui.ProgressBar(this.hookStressTestCount / (float)this.hookStressTestMax, new System.Numerics.Vector2(0, 0), $"{this.hookStressTestCount}/{this.hookStressTestMax}");
         }
         catch (Exception ex)

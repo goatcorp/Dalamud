@@ -716,7 +716,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
                 ImGui.Text($"The plugin {this.namespaceName} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.");
                 ImGui.Spacing();
 
-                if (ImGui.Button("OK"))
+                if (ImGui.Button("OK"u8))
                 {
                     this.hasErrorWindow = false;
                 }

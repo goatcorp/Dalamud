@@ -225,11 +225,11 @@ internal class NounProcessorSelfTestStep : ISelfTestStep
 
             if (e.ExpectedResult != output)
             {
-                ImGui.TextUnformatted($"Mismatch detected (Test #{i}):");
-                ImGui.TextUnformatted($"Got: {output}");
-                ImGui.TextUnformatted($"Expected: {e.ExpectedResult}");
+                ImGui.Text($"Mismatch detected (Test #{i}):");
+                ImGui.Text($"Got: {output}");
+                ImGui.Text($"Expected: {e.ExpectedResult}");
 
-                if (ImGui.Button("Continue"))
+                if (ImGui.Button("Continue"u8))
                     return SelfTestStepResult.Fail;
 
                 return SelfTestStepResult.Waiting;

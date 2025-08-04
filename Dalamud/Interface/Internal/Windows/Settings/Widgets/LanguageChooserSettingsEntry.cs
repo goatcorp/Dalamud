@@ -71,6 +71,6 @@ public sealed class LanguageChooserSettingsEntry : SettingsEntry
     {
         ImGui.Text(this.Name);
         ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages);
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
     }
 }

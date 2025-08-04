@@ -65,7 +65,7 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     public void Draw()
     {
         var network = Service<GameNetwork>.Get();
-        if (ImGui.Checkbox("Track Network Packets", ref this.trackNetwork))
+        if (ImGui.Checkbox("Track Network Packets"u8, ref this.trackNetwork))
         {
             if (this.trackNetwork)
             {
@@ -78,12 +78,12 @@ internal class NetworkMonitorWidget : IDataWindowWidget
         }
 
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X / 2);
-        if (ImGui.DragInt("Stored Number of Packets", ref this.trackedPackets, 0.1f, 1, 512))
+        if (ImGui.DragInt("Stored Number of Packets"u8, ref this.trackedPackets, 0.1f, 1, 512))
         {
             this.trackedPackets = Math.Clamp(this.trackedPackets, 1, 512);
         }
 
-        if (ImGui.Button("Clear Stored Packets"))
+        if (ImGui.Button("Clear Stored Packets"u8))
         {
             this.packets.Clear();
         }
@@ -97,24 +97,24 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     private void DrawNetworkPacket(NetworkPacketData data)
     {
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Direction.ToString());
+        ImGui.Text(data.Direction.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.OpCode.ToString());
+        ImGui.Text(data.OpCode.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"0x{data.OpCode:X4}");
+        ImGui.Text($"0x{data.OpCode:X4}");
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.TargetActorId > 0 ? $"0x{data.TargetActorId:X}" : string.Empty);
+        ImGui.Text(data.TargetActorId > 0 ? $"0x{data.TargetActorId:X}" : string.Empty);
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.SourceActorId > 0 ? $"0x{data.SourceActorId:X}" : string.Empty);
+        ImGui.Text(data.SourceActorId > 0 ? $"0x{data.SourceActorId:X}" : string.Empty);
 
         ImGui.TableNextColumn();
         if (data.Data.Count > 0)
         {
-            ImGui.TextUnformatted(string.Join(" ", data.Data.Select(b => b.ToString("X2"))));
+            ImGui.Text(string.Join(" ", data.Data.Select(b => b.ToString("X2"))));
         }
         else
         {
@@ -128,7 +128,7 @@ internal class NetworkMonitorWidget : IDataWindowWidget
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameBorderSize, 2 * ImGuiHelpers.GlobalScale, invalidRegEx);
         using var color = ImRaii.PushColor(ImGuiCol.Border, 0xFF0000FF, invalidRegEx);
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-        if (!ImGui.InputTextWithHint("##Filter", "Regex Filter OpCodes...", ref this.filterString, 1024))
+        if (!ImGui.InputTextWithHint("##Filter"u8, "Regex Filter OpCodes..."u8, ref this.filterString, 1024))
         {
             return;
         }
@@ -156,7 +156,7 @@ internal class NetworkMonitorWidget : IDataWindowWidget
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameBorderSize, 2 * ImGuiHelpers.GlobalScale, invalidRegEx);
         using var color = ImRaii.PushColor(ImGuiCol.Border, 0xFF0000FF, invalidRegEx);
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-        if (!ImGui.InputTextWithHint("##NegativeFilter", "Regex Filter Against OpCodes...", ref this.negativeFilterString, 1024))
+        if (!ImGui.InputTextWithHint("##NegativeFilter"u8, "Regex Filter Against OpCodes..."u8, ref this.negativeFilterString, 1024))
         {
             return;
         }

@@ -61,7 +61,7 @@ public class BranchSwitcherWindow : Window
     {
         if (this.branches == null)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "Loading branches...");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "Loading branches..."u8);
             return;
         }
 
@@ -74,7 +74,7 @@ public class BranchSwitcherWindow : Window
 
         if (pickedBranch.Value.SupportedGameVer != si.GameVersion)
         {
-            ImGui.TextColored(ImGuiColors.DalamudRed, "Can't pick this branch. GameVer != SupportedGameVer.");
+            ImGui.TextColored(ImGuiColors.DalamudRed, "Can't pick this branch. GameVer != SupportedGameVer."u8);
         }
         else
         {
@@ -91,7 +91,7 @@ public class BranchSwitcherWindow : Window
                 config.QueueSave();
             }
 
-            if (ImGui.Button("Pick"))
+            if (ImGui.Button("Pick"u8))
             {
                 Pick();
                 this.IsOpen = false;
@@ -99,7 +99,7 @@ public class BranchSwitcherWindow : Window
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Pick & Restart"))
+            if (ImGui.Button("Pick & Restart"u8))
             {
                 Pick();
 

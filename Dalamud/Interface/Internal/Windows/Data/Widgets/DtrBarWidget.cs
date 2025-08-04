@@ -44,7 +44,7 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
     {
         if (this.loadTestThread?.IsAlive is not true)
         {
-            if (ImGui.Button("Do multithreaded add/remove operation"))
+            if (ImGui.Button("Do multithreaded add/remove operation"u8))
             {
                 var ct = this.loadTestThreadCt = new();
                 var dbar = Service<DtrBar>.Get();
@@ -135,7 +135,7 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
         }
         else
         {
-            if (ImGui.Button("Stop multithreaded add/remove operation"))
+            if (ImGui.Button("Stop multithreaded add/remove operation"u8))
                 this.ClearState();
         }
 
@@ -149,7 +149,7 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
         this.DrawDtrTestEntry(ref this.dtrTest3, "DTR Test #3");
 
         ImGui.Separator();
-        ImGui.Text("IDtrBar.Entries:");
+        ImGui.Text("IDtrBar.Entries:"u8);
         foreach (var e in Service<DtrBar>.Get().Entries)
             ImGui.Text(e.Title);
 
@@ -157,7 +157,7 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
         if (configuration.DtrOrder != null)
         {
             ImGui.Separator();
-            ImGui.Text("DtrOrder:");
+            ImGui.Text("DtrOrder:"u8);
             foreach (var order in configuration.DtrOrder)
                 ImGui.Text(order);
         }

@@ -36,6 +36,6 @@ internal class SeFontTestWidget : IDataWindowWidget
         for (var i = min; i <= max; i++)
             specialChars += $"0x{(int)i:X} - {(SeIconChar)i} - {i}\n";
 
-        ImGui.TextUnformatted(specialChars);
+        ImGui.Text(specialChars);
     }
 }

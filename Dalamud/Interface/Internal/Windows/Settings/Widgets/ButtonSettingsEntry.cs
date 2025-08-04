@@ -36,6 +36,6 @@ public class ButtonSettingsEntry : SettingsEntry
             this.runs.Invoke();
         }
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, this.description);
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, this.description);
     }
 }

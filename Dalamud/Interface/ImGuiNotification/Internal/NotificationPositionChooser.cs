@@ -54,7 +54,7 @@ internal class NotificationPositionChooser
         ImGui.SetNextWindowBgAlpha(0.6f);
 
         ImGui.Begin(
-            "###NotificationPositionChooser",
+            "###NotificationPositionChooser"u8,
             ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav);
 

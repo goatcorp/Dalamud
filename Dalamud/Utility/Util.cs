@@ -364,7 +364,7 @@ public static partial class Util
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGui.TextColored(ImGuiColors.DalamudOrange, "-> Properties:");
+        ImGui.TextColored(ImGuiColors.DalamudOrange, "-> Properties:"u8);
 
         ImGui.Indent();
 
@@ -389,7 +389,7 @@ public static partial class Util
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGui.TextColored(ImGuiColors.HealerGreen, "-> Fields:");
+        ImGui.TextColored(ImGuiColors.HealerGreen, "-> Fields:"u8);
 
         ImGui.Indent();
 
@@ -745,7 +745,7 @@ public static partial class Util
                 $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.ValueNullable?.Name : pc.HomeWorld.RowId.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.ValueNullable?.Name : pc.CurrentWorld.RowId.ToString())} FC: {pc.CompanyTag}\n";
         }
 
-        ImGui.TextUnformatted(actorString);
+        ImGui.Text(actorString);
         ImGui.SameLine();
         if (ImGui.Button($"C##{actor.Address.ToInt64()}"))
         {
@@ -779,7 +779,7 @@ public static partial class Util
                 $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.ValueNullable?.Name : pc.HomeWorld.RowId.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.ValueNullable?.Name : pc.CurrentWorld.RowId.ToString())} FC: {pc.CompanyTag}\n";
         }
 
-        ImGui.TextUnformatted(actorString);
+        ImGui.Text(actorString);
         ImGui.SameLine();
         if (ImGui.Button($"C##{actor.Address.ToInt64()}"))
         {
@@ -856,7 +856,7 @@ public static partial class Util
         var propType = p.PropertyType;
         if (p.GetGetMethod() is not { } getMethod)
         {
-            ImGui.Text("(No getter available)");
+            ImGui.Text("(No getter available)"u8);
             return;
         }
 
@@ -950,7 +950,7 @@ public static partial class Util
                 var pointerType = typeof(T*);
                 for (var i = 0; i < spanobj.Length; i++)
                 {
-                    ImGui.TextUnformatted($"[{offset + i:n0} (0x{offset + i:X})] ");
+                    ImGui.Text($"[{offset + i:n0} (0x{offset + i:X})] ");
                     ImGui.SameLine();
                     path.Add($"{offset + i}");
                     ShowValue(addr, path, pointerType, Pointer.Box(p + i, pointerType), true);
@@ -991,7 +991,7 @@ public static partial class Util
                     var ptrObj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
                     if (ptrObj == null)
                     {
-                        ImGui.Text("null or invalid");
+                        ImGui.Text("null or invalid"u8);
                     }
                     else
                     {
@@ -1005,7 +1005,7 @@ public static partial class Util
             }
             else
             {
-                ImGui.Text("null");
+                ImGui.Text("null"u8);
             }
         }
         else
@@ -1076,7 +1076,7 @@ public static partial class Util
 
                     if (fixedBuffer != null)
                     {
-                        ImGui.Text("fixed");
+                        ImGui.Text("fixed"u8);
                         ImGui.SameLine();
                         ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
                     }
@@ -1100,7 +1100,7 @@ public static partial class Util
                     {
                         if (f.FieldType.IsGenericType && (f.FieldType.IsByRef || f.FieldType.IsByRefLike))
                         {
-                            ImGui.Text("Cannot preview ref typed fields."); // object never contains ref struct
+                            ImGui.Text("Cannot preview ref typed fields."u8); // object never contains ref struct
                         }
                         else if (f.FieldType == typeof(bool) && offset != null)
                         {
@@ -1115,7 +1115,7 @@ public static partial class Util
                     {
                         using (ImRaii.PushColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f)))
                         {
-                            ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                            ImGui.Text($"Error: {ex.GetType().Name}: {ex.Message}");
                         }
                     }
                     finally
@@ -1140,7 +1140,7 @@ public static partial class Util
                         }
                         else if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
                         {
-                            ImGui.Text("Cannot preview ref typed properties.");
+                            ImGui.Text("Cannot preview ref typed properties."u8);
                         }
                         else
                         {
@@ -1151,7 +1151,7 @@ public static partial class Util
                     {
                         using (ImRaii.PushColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f)))
                         {
-                            ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                            ImGui.Text($"Error: {ex.GetType().Name}: {ex.Message}");
                         }
                     }
                     finally

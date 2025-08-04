@@ -58,18 +58,18 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        using var id = ImRaii.PushId("devPluginLocation");
-        ImGui.TextUnformatted(this.Name);
+        using var id = ImRaii.PushId("devPluginLocation"u8);
+        ImGui.Text(this.Name);
         if (this.devPluginLocationsChanged)
         {
             using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
             {
                 ImGui.SameLine();
-                ImGui.TextUnformatted(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
+                ImGui.Text(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
             }
         }
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add dev plugin load locations.\nThis must be a path to the plugin DLL."));
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add dev plugin load locations.\nThis must be a path to the plugin DLL."));
 
         var locationSelect = Loc.Localize("DalamudDevPluginLocationSelect", "Select Dev Plugin DLL");
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Folder, locationSelect))
@@ -97,13 +97,13 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted("#");
+        ImGui.Text("#"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("Path");
+        ImGui.Text("Path"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("Enabled");
+        ImGui.Text("Enabled"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted(string.Empty);
+        ImGui.Text(string.Empty);
         ImGui.NextColumn();
 
         ImGui.Separator();
@@ -118,7 +118,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
             id.Push(devPluginLocationSetting.Path);
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(locNumber.ToString()).X / 2));
-            ImGui.TextUnformatted(locNumber.ToString());
+            ImGui.Text(locNumber.ToString());
             ImGui.NextColumn();
 
             ImGui.SetNextItemWidth(-1);
@@ -150,7 +150,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
             ImGui.NextColumn();
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - (12 * ImGuiHelpers.GlobalScale));
-            ImGui.Checkbox("##devPluginLocationCheck", ref isEnabled);
+            ImGui.Checkbox("##devPluginLocationCheck"u8, ref isEnabled);
             ImGui.NextColumn();
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
@@ -175,10 +175,10 @@ public class DevPluginsSettingsEntry : SettingsEntry
         }
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(locNumber.ToString()).X / 2));
-        ImGui.TextUnformatted(locNumber.ToString());
+        ImGui.Text(locNumber.ToString());
         ImGui.NextColumn();
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputText("##devPluginLocationInput", ref this.devPluginTempLocation, 300);
+        ImGui.InputText("##devPluginLocationInput"u8, ref this.devPluginTempLocation, 300);
         ImGui.NextColumn();
         // Enabled button
         ImGui.NextColumn();
@@ -191,7 +191,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
         if (!string.IsNullOrEmpty(this.devPluginLocationAddError))
         {
-            ImGuiHelpers.SafeTextColoredWrapped(new Vector4(1, 0, 0, 1), this.devPluginLocationAddError);
+            ImGui.TextColoredWrapped(new Vector4(1, 0, 0, 1), this.devPluginLocationAddError);
         }
     }
 

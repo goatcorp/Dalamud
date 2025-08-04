@@ -74,7 +74,7 @@ public readonly unsafe partial struct TimelineTree
                         ("Frame Time", $"{this.NodeTimeline->FrameTime:F2} ({this.NodeTimeline->FrameTime * 30:F0})"));
 
                     PrintFieldValuePairs(("Active Label Id", $"{this.NodeTimeline->ActiveLabelId}"), ("Duration", $"{this.NodeTimeline->LabelFrameIdxDuration}"), ("End Frame", $"{this.NodeTimeline->LabelEndFrameIdx}"));
-                    ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "Animation List");
+                    ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "Animation List"u8);
 
                     for (var a = 0; a < animationCount; a++)
                     {
@@ -151,7 +151,7 @@ public readonly unsafe partial struct TimelineTree
             return;
         }
 
-        var rotColumn = new KeyGroupColumn<float>("Rotation", static r => ImGui.TextUnformatted($"{r * (180d / Math.PI):F1}°"));
+        var rotColumn = new KeyGroupColumn<float>("Rotation", static r => ImGui.Text($"{r * (180d / Math.PI):F1}°"));
 
         for (var f = 0; f < keyGroup.KeyFrameCount; f++)
         {
@@ -407,7 +407,7 @@ public readonly unsafe partial struct TimelineTree
             ("StartFrameIdx", $"{this.NodeTimeline->Resource->LabelSets->StartFrameIdx}"),
             ("EndFrameIdx", $"{this.NodeTimeline->Resource->LabelSets->EndFrameIdx}"));
 
-        using var labelSetTable = ImRaii.TreeNode("Entries");
+        using var labelSetTable = ImRaii.TreeNode("Entries"u8);
         if (labelSetTable.Success)
         {
             var keyFrameGroup = this.Resource->LabelSets->LabelKeyGroup;
@@ -415,13 +415,13 @@ public readonly unsafe partial struct TimelineTree
             using var table = ImRaii.Table($"##{(nint)this.node}labelSetKeyFrameTable", 7, Borders | SizingFixedFit | RowBg | NoHostExtendX);
             if (table.Success)
             {
-                ImGui.TableSetupColumn("Frame ID", WidthFixed);
-                ImGui.TableSetupColumn("Speed Start", WidthFixed);
-                ImGui.TableSetupColumn("Speed End", WidthFixed);
-                ImGui.TableSetupColumn("Interpolation", WidthFixed);
-                ImGui.TableSetupColumn("Label ID", WidthFixed);
-                ImGui.TableSetupColumn("Jump Behavior", WidthFixed);
-                ImGui.TableSetupColumn("Target Label ID", WidthFixed);
+                ImGui.TableSetupColumn("Frame ID"u8, WidthFixed);
+                ImGui.TableSetupColumn("Speed Start"u8, WidthFixed);
+                ImGui.TableSetupColumn("Speed End"u8, WidthFixed);
+                ImGui.TableSetupColumn("Interpolation"u8, WidthFixed);
+                ImGui.TableSetupColumn("Label ID"u8, WidthFixed);
+                ImGui.TableSetupColumn("Jump Behavior"u8, WidthFixed);
+                ImGui.TableSetupColumn("Target Label ID"u8, WidthFixed);
 
                 ImGui.TableHeadersRow();
 
@@ -430,25 +430,25 @@ public readonly unsafe partial struct TimelineTree
                     var keyFrame = keyFrameGroup.KeyFrames[l];
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.FrameIdx}");
+                    ImGui.Text($"{keyFrame.FrameIdx}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.SpeedCoefficient1:F2}");
+                    ImGui.Text($"{keyFrame.SpeedCoefficient1:F2}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.SpeedCoefficient2:F2}");
+                    ImGui.Text($"{keyFrame.SpeedCoefficient2:F2}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.Interpolation}");
+                    ImGui.Text($"{keyFrame.Interpolation}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.Value.Label.LabelId}");
+                    ImGui.Text($"{keyFrame.Value.Label.LabelId}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.Value.Label.JumpBehavior}");
+                    ImGui.Text($"{keyFrame.Value.Label.JumpBehavior}");
 
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{keyFrame.Value.Label.JumpLabelId}");
+                    ImGui.Text($"{keyFrame.Value.Label.JumpLabelId}");
                 }
             }
         }

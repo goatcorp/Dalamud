@@ -1,4 +1,4 @@
-﻿// ReSharper disable MethodSupportsCancellation // Using alternative method of cancelling tasks by throwing exceptions.
+// ReSharper disable MethodSupportsCancellation // Using alternative method of cancelling tasks by throwing exceptions.
 
 using System.IO;
 using System.Linq;
@@ -54,7 +54,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
     {
         var framework = Service<Framework>.Get();
 
-        if (ImGui.Button("Clear list"))
+        if (ImGui.Button("Clear list"u8))
         {
             TaskTracker.Clear();
         }
@@ -63,23 +63,23 @@ internal class TaskSchedulerWidget : IDataWindowWidget
         ImGuiHelpers.ScaledDummy(10);
         ImGui.SameLine();
 
-        if (ImGui.Button("Cancel using CancellationTokenSource"))
+        if (ImGui.Button("Cancel using CancellationTokenSource"u8))
         {
             this.taskSchedulerCancelSource.Cancel();
             this.taskSchedulerCancelSource = new();
         }
 
-        ImGui.Text("Run in any thread: ");
+        ImGui.Text("Run in any thread: "u8);
         ImGui.SameLine();
 
-        if (ImGui.Button("Short Task.Run"))
+        if (ImGui.Button("Short Task.Run"u8))
         {
             Task.Run(() => { Thread.Sleep(500); });
         }
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Task in task(Delay)"))
+        if (ImGui.Button("Task in task(Delay)"u8))
         {
             var token = this.taskSchedulerCancelSource.Token;
             Task.Run(async () => await this.TestTaskInTaskDelay(token), token);
@@ -87,14 +87,14 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Task in task(Sleep)"))
+        if (ImGui.Button("Task in task(Sleep)"u8))
         {
             Task.Run(async () => await this.TestTaskInTaskSleep());
         }
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Faulting task"))
+        if (ImGui.Button("Faulting task"u8))
         {
             Task.Run(() =>
             {
@@ -104,43 +104,43 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             });
         }
 
-        ImGui.Text("Run in Framework.Update: ");
+        ImGui.Text("Run in Framework.Update: "u8);
         ImGui.SameLine();
 
-        if (ImGui.Button("ASAP"))
+        if (ImGui.Button("ASAP"u8))
         {
             _ = framework.RunOnTick(() => Log.Information("Framework.Update - ASAP"), cancellationToken: this.taskSchedulerCancelSource.Token);
         }
 
         ImGui.SameLine();
 
-        if (ImGui.Button("In 1s"))
+        if (ImGui.Button("In 1s"u8))
         {
             _ = framework.RunOnTick(() => Log.Information("Framework.Update - In 1s"), cancellationToken: this.taskSchedulerCancelSource.Token, delay: TimeSpan.FromSeconds(1));
         }
 
         ImGui.SameLine();
 
-        if (ImGui.Button("In 60f"))
+        if (ImGui.Button("In 60f"u8))
         {
             _ = framework.RunOnTick(() => Log.Information("Framework.Update - In 60f"), cancellationToken: this.taskSchedulerCancelSource.Token, delayTicks: 60);
         }
 
         ImGui.SameLine();
 
-        if (ImGui.Button("In 1s+120f"))
+        if (ImGui.Button("In 1s+120f"u8))
         {
             _ = framework.RunOnTick(() => Log.Information("Framework.Update - In 1s+120f"), cancellationToken: this.taskSchedulerCancelSource.Token, delay: TimeSpan.FromSeconds(1), delayTicks: 120);
         }
 
         ImGui.SameLine();
 
-        if (ImGui.Button("In 2s+60f"))
+        if (ImGui.Button("In 2s+60f"u8))
         {
             _ = framework.RunOnTick(() => Log.Information("Framework.Update - In 2s+60f"), cancellationToken: this.taskSchedulerCancelSource.Token, delay: TimeSpan.FromSeconds(2), delayTicks: 60);
         }
 
-        if (ImGui.Button("Every 60f"))
+        if (ImGui.Button("Every 60f"u8))
         {
             _ = framework.RunOnTick(
                 async () =>
@@ -158,7 +158,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Every 1s"))
+        if (ImGui.Button("Every 1s"u8))
         {
             _ = framework.RunOnTick(
                 async () =>
@@ -176,7 +176,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Every 60f (Await)"))
+        if (ImGui.Button("Every 60f (Await)"u8))
         {
             _ = framework.Run(
                 async () =>
@@ -194,7 +194,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Every 1s (Await)"))
+        if (ImGui.Button("Every 1s (Await)"u8))
         {
             _ = framework.Run(
                 async () =>
@@ -212,7 +212,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("As long as it's in Framework Thread"))
+        if (ImGui.Button("As long as it's in Framework Thread"u8))
         {
             Task.Run(async () => await framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from non-framework.update thread"); }));
             framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from framework.update thread"); }).Wait();
@@ -220,14 +220,14 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Error in 1s"))
+        if (ImGui.Button("Error in 1s"u8))
         {
             _ = framework.RunOnTick(() => throw new Exception("Test Exception"), cancellationToken: this.taskSchedulerCancelSource.Token, delay: TimeSpan.FromSeconds(1));
         }
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Freeze 1s"))
+        if (ImGui.Button("Freeze 1s"u8))
         {
             _ = framework.RunOnFrameworkThread(() => Helper().Wait());
             static async Task Helper() => await Task.Delay(1000);
@@ -235,16 +235,16 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Freeze Completely"))
+        if (ImGui.Button("Freeze Completely"u8))
         {
             _ = framework.Run(() => Helper().Wait());
             static async Task Helper() => await Task.Delay(1000);
         }
 
-        if (ImGui.CollapsingHeader("Download"))
+        if (ImGui.CollapsingHeader("Download"u8))
         {
-            ImGui.InputText("URL", ref this.url);
-            ImGui.InputText("Local Path", ref this.localPath);
+            ImGui.InputText("URL"u8, ref this.url);
+            ImGui.InputText("Local Path"u8, ref this.localPath);
             ImGui.SameLine();
 
             if (ImGuiComponents.IconButton("##localpathpicker", FontAwesomeIcon.File))
@@ -264,16 +264,16 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     });
             }
 
-            ImGui.TextUnformatted($"{this.downloadState.Downloaded:##,###}/{this.downloadState.Total:##,###} ({this.downloadState.Percentage:0.00}%)");
+            ImGui.Text($"{this.downloadState.Downloaded:##,###}/{this.downloadState.Total:##,###} ({this.downloadState.Percentage:0.00}%)");
 
             using var disabled =
                 ImRaii.Disabled(this.downloadTask?.IsCompleted is false || this.localPath[0] == 0);
             ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted("Download");
+            ImGui.Text("Download"u8);
             ImGui.SameLine();
-            var downloadUsingGlobalScheduler = ImGui.Button("using default scheduler");
+            var downloadUsingGlobalScheduler = ImGui.Button("using default scheduler"u8);
             ImGui.SameLine();
-            var downloadUsingFramework = ImGui.Button("using Framework.Update");
+            var downloadUsingFramework = ImGui.Button("using Framework.Update"u8);
             if (downloadUsingGlobalScheduler || downloadUsingFramework)
             {
                 var ct = this.taskSchedulerCancelSource.Token;
@@ -328,7 +328,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             }
         }
 
-        if (ImGui.Button("Drown in tasks"))
+        if (ImGui.Button("Drown in tasks"u8))
         {
             var token = this.taskSchedulerCancelSource.Token;
             Task.Run(
@@ -414,7 +414,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             {
                 task.IsBeingViewed = true;
 
-                if (ImGui.Button("CANCEL (May not work)"))
+                if (ImGui.Button("CANCEL (May not work)"u8))
                 {
                     try
                     {
@@ -430,13 +430,13 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
                 ImGuiHelpers.ScaledDummy(10);
 
-                ImGui.TextUnformatted(task.StackTrace?.ToString());
+                ImGui.Text(task.StackTrace?.ToString());
 
                 if (task.Exception != null)
                 {
                     ImGuiHelpers.ScaledDummy(15);
-                    ImGui.TextColored(ImGuiColors.DalamudRed, "EXCEPTION:");
-                    ImGui.TextUnformatted(task.Exception.ToString());
+                    ImGui.TextColored(ImGuiColors.DalamudRed, "EXCEPTION:"u8);
+                    ImGui.Text(task.Exception.ToString());
                 }
             }
             else

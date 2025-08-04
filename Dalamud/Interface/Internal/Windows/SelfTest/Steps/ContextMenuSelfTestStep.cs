@@ -61,19 +61,19 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                 {
                     ImGui.Text($"Is the data in the submenu correct?");
 
-                    if (ImGui.Button("Yes"))
+                    if (ImGui.Button("Yes"u8))
                         this.currentSubStep++;
 
                     ImGui.SameLine();
 
-                    if (ImGui.Button("No"))
+                    if (ImGui.Button("No"u8))
                         return SelfTestStepResult.Fail;
                 }
                 else
                 {
                     ImGui.Text("Right-click an item and select \"Self Test\".");
 
-                    if (ImGui.Button("Skip"))
+                    if (ImGui.Button("Skip"u8))
                         this.currentSubStep++;
                 }
 
@@ -84,19 +84,19 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                 {
                     ImGui.Text($"Did you click \"{character.Name}\" ({character.ClassJob.Value.Abbreviation.ExtractText()})?");
 
-                    if (ImGui.Button("Yes"))
+                    if (ImGui.Button("Yes"u8))
                         this.currentSubStep++;
 
                     ImGui.SameLine();
 
-                    if (ImGui.Button("No"))
+                    if (ImGui.Button("No"u8))
                         return SelfTestStepResult.Fail;
                 }
                 else
                 {
-                    ImGui.Text("Right-click a character.");
+                    ImGui.Text("Right-click a character."u8);
 
-                    if (ImGui.Button("Skip"))
+                    if (ImGui.Button("Skip"u8))
                         this.currentSubStep++;
                 }
 

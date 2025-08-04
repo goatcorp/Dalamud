@@ -35,13 +35,13 @@ public static class Events
 
             if (tbl.Success)
             {
-                ImGui.TableSetupColumn("#", WidthFixed);
-                ImGui.TableSetupColumn("Type", WidthFixed);
-                ImGui.TableSetupColumn("Param", WidthFixed);
-                ImGui.TableSetupColumn("Flags", WidthFixed);
-                ImGui.TableSetupColumn("StateFlags1", WidthFixed);
-                ImGui.TableSetupColumn("Target", WidthFixed);
-                ImGui.TableSetupColumn("Listener", WidthFixed);
+                ImGui.TableSetupColumn("#"u8, WidthFixed);
+                ImGui.TableSetupColumn("Type"u8, WidthFixed);
+                ImGui.TableSetupColumn("Param"u8, WidthFixed);
+                ImGui.TableSetupColumn("Flags"u8, WidthFixed);
+                ImGui.TableSetupColumn("StateFlags1"u8, WidthFixed);
+                ImGui.TableSetupColumn("Target"u8, WidthFixed);
+                ImGui.TableSetupColumn("Listener"u8, WidthFixed);
 
                 ImGui.TableHeadersRow();
 
@@ -49,15 +49,15 @@ public static class Events
                 while (evt != null)
                 {
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{i++}");
+                    ImGui.Text($"{i++}");
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{evt->State.EventType}");
+                    ImGui.Text($"{evt->State.EventType}");
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{evt->Param}");
+                    ImGui.Text($"{evt->Param}");
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{evt->State.StateFlags}");
+                    ImGui.Text($"{evt->State.StateFlags}");
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{evt->State.ReturnFlags}");
+                    ImGui.Text($"{evt->State.ReturnFlags}");
                     ImGui.TableNextColumn();
                     ImGuiHelpers.ClickToCopyText($"{(nint)evt->Target:X}", default, new Vector4(0.6f, 0.6f, 0.6f, 1));
                     ImGui.TableNextColumn();
