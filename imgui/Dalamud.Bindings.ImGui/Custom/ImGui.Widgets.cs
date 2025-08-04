@@ -412,11 +412,11 @@ public static unsafe partial class ImGui
         }
     }
 
-    public static bool MenuItem(ImU8String label, bool enabled = true)
+    public static bool MenuItem(ImU8String label, bool selected = false, bool enabled = true)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.MenuItem(labelPtr, null, null, enabled ? (byte)1 : (byte)0) != 0;
+            var r = ImGuiNative.MenuItem(labelPtr, null, selected ? (byte)1 : (byte)0, enabled ? (byte)1 : (byte)0) != 0;
             label.Dispose();
             return r;
         }
