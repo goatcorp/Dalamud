@@ -488,15 +488,14 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <summary>
     /// Dispatch the active plugins changed event.
     /// </summary>
-    /// <param name="kind">What action caused this event to be fired.</param>
-    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
-    internal void NotifyActivePluginsChanged(PluginListInvalidationKind kind, bool affectedThisPlugin)
+    /// <param name="args">The event arguments containing information about the change.</param>
+    internal void NotifyActivePluginsChanged(ActivePluginsChangedEventArgs args)
     {
         foreach (var action in Delegate.EnumerateInvocationList(this.ActivePluginsChanged))
         {
             try
             {
-                action(kind, affectedThisPlugin);
+                action(args);
             }
             catch (Exception ex)
             {
