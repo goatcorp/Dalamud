@@ -489,7 +489,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// Dispatch the active plugins changed event.
     /// </summary>
     /// <param name="args">The event arguments containing information about the change.</param>
-    internal void NotifyActivePluginsChanged(ActivePluginsChangedEventArgs args)
+    internal void NotifyActivePluginsChanged(IActivePluginsChangedEventArgs args)
     {
         foreach (var action in Delegate.EnumerateInvocationList(this.ActivePluginsChanged))
         {

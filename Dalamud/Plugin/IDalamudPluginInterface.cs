@@ -33,7 +33,7 @@ public interface IDalamudPluginInterface
     /// Delegate for events that listen to changes to the list of active plugins.
     /// </summary>
     /// <param name="args">The event arguments containing information about the change.</param>
-    public delegate void ActivePluginsChangedDelegate(ActivePluginsChangedEventArgs args);
+    public delegate void ActivePluginsChangedDelegate(IActivePluginsChangedEventArgs args);
 
     /// <summary>
     /// Event that gets fired when loc is changed
