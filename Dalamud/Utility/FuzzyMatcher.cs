@@ -3,27 +3,9 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
+using Dalamud.Configuration.Internal;
+
 namespace Dalamud.Utility;
-#pragma warning disable SA1600
-#pragma warning disable SA1602
-
-/// <summary>
-/// Specify fuzzy match mode.
-/// </summary>
-internal enum MatchMode
-{
-    Simple,
-
-    /// <summary>
-    /// The string is considered for fuzzy matching as a whole.
-    /// </summary>
-    Fuzzy,
-
-    /// <summary>
-    /// Each part of the string, separated by whitespace, is considered for fuzzy matching; each part must match in a fuzzy way.
-    /// </summary>
-    FuzzyParts,
-}
 
 /// <summary>
 /// Matches a string in a fuzzy way.
@@ -31,20 +13,59 @@ internal enum MatchMode
 internal static class FuzzyMatcher
 {
     /// <summary>
-    /// Specify fuzzy match mode.
+    /// Scores how well <paramref name="needle"/> can be found in <paramref name="haystack"/> in a fuzzy way.
     /// </summary>
-    internal enum Mode
+    /// <param name="haystack">The string to search in.</param>
+    /// <param name="needle">The substring to search for.</param>
+    /// <param name="mode">Fuzzy match mode.</param>
+    /// <param name="cultureInfo">Culture info for case-insensitive matching. Defaults to the culture corresponding to Dalamud language.</param>
+    /// <returns>The score. 0 means that the string did not match. The scores are meaningful only across matches using the same <paramref name="needle"/> value.</returns>
+    public static int FuzzyScore(
+        this ReadOnlySpan<char> haystack,
+        ReadOnlySpan<char> needle,
+        FuzzyMatcherMode mode = FuzzyMatcherMode.Simple,
+        CultureInfo? cultureInfo = null)
     {
-        /// <summary>
-        /// The string is considered for fuzzy matching as a whole.
-        /// </summary>
-        Fuzzy,
+        cultureInfo ??=
+            Service<DalamudConfiguration>.GetNullable().EffectiveLanguage is { } effectiveLanguage
+                ? Localization.GetCultureInfoFromLangCode(effectiveLanguage)
+                : CultureInfo.CurrentCulture;
 
-        /// <summary>
-        /// Each part of the string, separated by whitespace, is considered for fuzzy matching; each part must match in a fuzzy way.
-        /// </summary>
-        FuzzyParts,
+        switch (mode)
+        {
+            case var _ when needle.Length == 0:
+                return 0;
+
+            case FuzzyMatcherMode.Simple:
+                return cultureInfo.CompareInfo.IndexOf(haystack, needle, CompareOptions.IgnoreCase) != -1 ? 1 : 0;
+
+            case FuzzyMatcherMode.Fuzzy:
+                return GetRawScore(haystack, needle, cultureInfo);
+
+            case FuzzyMatcherMode.FuzzyParts:
+                var score = 0;
+                foreach (var needleSegment in new WordEnumerator(needle))
+                {
+                    var cur = GetRawScore(haystack, needleSegment, cultureInfo);
+                    if (cur == 0)
+                        return 0;
+
+                    score += cur;
+                }
+
+                return score;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+        }
     }
+
+    /// <inheritdoc cref="FuzzyScore(ReadOnlySpan{char},ReadOnlySpan{char},FuzzyMatcherMode,CultureInfo?)"/>
+    public static int FuzzyScore(
+        this string? haystack,
+        ReadOnlySpan<char> needle,
+        FuzzyMatcherMode mode = FuzzyMatcherMode.Simple,
+        CultureInfo? cultureInfo = null) => haystack.AsSpan().FuzzyScore(needle, mode, cultureInfo);
 
     /// <summary>
     /// Determines if <paramref name="needle"/> can be found in <paramref name="haystack"/> in a fuzzy way.
@@ -52,74 +73,33 @@ internal static class FuzzyMatcher
     /// <param name="haystack">The string to search from.</param>
     /// <param name="needle">The substring to search for.</param>
     /// <param name="mode">Fuzzy match mode.</param>
-    /// <param name="cultureInfo">Culture info for case insensitive matching.</param>
-    /// <param name="score">The score. 0 means that the string did not match. The scores are meaningful only across matches using the same <paramref name="needle"/> value.</param>
+    /// <param name="cultureInfo">Culture info for case-insensitive matching. Defaults to the culture corresponding to Dalamud language.</param>
     /// <returns><c>true</c> if matches.</returns>
     public static bool FuzzyMatches(
         this ReadOnlySpan<char> haystack,
         ReadOnlySpan<char> needle,
-        Mode mode,
-        CultureInfo cultureInfo,
-        out int score)
-    {
-        score = 0;
-        switch (mode)
-        {
-            case var _ when needle.Length == 0:
-                score = 0;
-                break;
-
-            case Mode.Fuzzy:
-                score = GetRawScore(haystack, needle, cultureInfo);
-                break;
-
-            case Mode.FuzzyParts:
-                foreach (var needleSegment in new WordEnumerator(needle))
-                {
-                    var cur = GetRawScore(haystack, needleSegment, cultureInfo);
-                    if (cur == 0)
-                    {
-                        score = 0;
-                        break;
-                    }
-
-                    score += cur;
-                }
-
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
-        }
-
-        return score > 0;
-    }
-
-    /// <inheritdoc cref="FuzzyMatches(ReadOnlySpan{char},ReadOnlySpan{char},Mode,CultureInfo,out int)"/>
-    public static bool FuzzyMatches(
-        this string? haystack,
-        ReadOnlySpan<char> needle,
-        Mode mode,
-        CultureInfo cultureInfo,
-        out int score) => haystack.AsSpan().FuzzyMatches(needle, mode, cultureInfo, out score);
+        FuzzyMatcherMode mode = FuzzyMatcherMode.Simple,
+        CultureInfo? cultureInfo = null) => haystack.FuzzyScore(needle, mode, cultureInfo) > 0;
 
     /// <summary>
-    /// Determines if <paramref name="needle"/> can be found in <paramref name="haystack"/> using the mode
-    /// <see cref="Mode.FuzzyParts"/>.
+    /// Determines if <paramref name="needle"/> can be found in <paramref name="haystack"/> in a fuzzy way.
     /// </summary>
     /// <param name="haystack">The string to search from.</param>
     /// <param name="needle">The substring to search for.</param>
+    /// <param name="mode">Fuzzy match mode.</param>
+    /// <param name="cultureInfo">Culture info for case-insensitive matching. Defaults to the culture corresponding to Dalamud language.</param>
     /// <returns><c>true</c> if matches.</returns>
-    public static bool FuzzyMatchesParts(this string? haystack, ReadOnlySpan<char> needle) =>
-        haystack.FuzzyMatches(needle, Mode.FuzzyParts, CultureInfo.InvariantCulture, out _);
+    public static bool FuzzyMatches(
+        this string? haystack,
+        ReadOnlySpan<char> needle,
+        FuzzyMatcherMode mode = FuzzyMatcherMode.Simple,
+        CultureInfo? cultureInfo = null) => haystack.FuzzyScore(needle, mode, cultureInfo) > 0;
 
     private static int GetRawScore(ReadOnlySpan<char> haystack, ReadOnlySpan<char> needle, CultureInfo cultureInfo)
     {
         var (startPos, gaps, consecutive, borderMatches, endPos) = FindForward(haystack, needle, cultureInfo);
         if (startPos < 0)
-        {
             return 0;
-        }
 
         var score = CalculateRawScore(needle.Length, startPos, gaps, consecutive, borderMatches);
         // PluginLog.Debug(
@@ -136,12 +116,12 @@ internal static class FuzzyMatcher
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int CalculateRawScore(int needleSize, int startPos, int gaps, int consecutive, int borderMatches)
     {
-        var score = 100
-                    + needleSize * 3
-                    + borderMatches * 3
-                    + consecutive * 5
-                    - startPos
-                    - gaps * 2;
+        var score = 100;
+        score += needleSize * 3;
+        score += borderMatches * 3;
+        score += consecutive * 5;
+        score -= startPos;
+        score -= gaps * 2;
         if (startPos == 0)
             score += 5;
         return score < 1 ? 1 : score;
@@ -168,36 +148,26 @@ internal static class FuzzyMatcher
                 if (haystackIndex > 0)
                 {
                     if (!char.IsLetterOrDigit(haystack[haystackIndex - 1]))
-                    {
                         borderMatches++;
-                    }
                 }
 #endif
 
                 needleIndex++;
 
                 if (haystackIndex == lastMatchIndex + 1)
-                {
                     consecutive++;
-                }
 
                 if (needleIndex >= needle.Length)
-                {
                     return (startPos, gaps, consecutive, borderMatches, haystackIndex);
-                }
 
                 lastMatchIndex = haystackIndex;
             }
             else
             {
                 if (needleIndex > 0)
-                {
                     gaps++;
-                }
                 else
-                {
                     startPos++;
-                }
             }
         }
 
@@ -224,23 +194,17 @@ internal static class FuzzyMatcher
                 if (haystackIndex > 0)
                 {
                     if (!char.IsLetterOrDigit(haystack[haystackIndex - 1]))
-                    {
                         borderMatches++;
-                    }
                 }
 #endif
 
                 needleIndex--;
 
                 if (haystackIndex == revLastMatchIndex - 1)
-                {
                     consecutive++;
-                }
 
                 if (needleIndex < 0)
-                {
                     return (haystackIndex, gaps, consecutive, borderMatches);
-                }
 
                 revLastMatchIndex = haystackIndex;
             }
@@ -253,16 +217,11 @@ internal static class FuzzyMatcher
         return (-1, 0, 0, 0);
     }
 
-    private ref struct WordEnumerator
+    private ref struct WordEnumerator(ReadOnlySpan<char> fullNeedle)
     {
-        private readonly ReadOnlySpan<char> fullNeedle;
+        private readonly ReadOnlySpan<char> fullNeedle = fullNeedle;
         private int start = -1;
         private int end = 0;
-
-        public WordEnumerator(ReadOnlySpan<char> fullNeedle)
-        {
-            this.fullNeedle = fullNeedle;
-        }
 
         public ReadOnlySpan<char> Current
         {

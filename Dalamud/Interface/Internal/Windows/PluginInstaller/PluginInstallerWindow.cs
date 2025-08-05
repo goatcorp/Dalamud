@@ -1270,7 +1270,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var sortedChangelogs =
             this.searchText.IsNullOrWhitespace()
                 ? changelogs.ToList()
-                : changelogs.Where(x => x.Title.FuzzyMatchesParts(this.searchText))
+                : changelogs.Where(x => x.Title.FuzzyMatches(this.searchText, FuzzyMatcherMode.FuzzyParts))
                             .OrderByDescending(x => x.Date)
                             .ToList();
 
@@ -3798,22 +3798,18 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private int GetManifestSearchScore(IPluginManifest manifest)
     {
-        var loc = Localization.GetCultureInfoFromLangCode(Service<DalamudConfiguration>.Get().EffectiveLanguage);
         var maxScore = 0;
 
-        if (manifest.Name.FuzzyMatches(this.searchText, FuzzyMatcher.Mode.FuzzyParts, loc, out var score))
-            maxScore = Math.Max(maxScore, score * 110);
-        if (manifest.InternalName.FuzzyMatches(this.searchText, FuzzyMatcher.Mode.FuzzyParts, loc, out score))
-            maxScore = Math.Max(maxScore, score * 105);
-        if (manifest.Author.FuzzyMatches(this.searchText, FuzzyMatcher.Mode.FuzzyParts, loc, out score))
-            maxScore = Math.Max(maxScore, score * 100);
-        if (manifest.Punchline.FuzzyMatches(this.searchText, FuzzyMatcher.Mode.FuzzyParts, loc, out score))
-            maxScore = Math.Max(maxScore, score * 100);
+        maxScore = Math.Max(maxScore, manifest.Name.FuzzyScore(this.searchText, FuzzyMatcherMode.FuzzyParts) * 110);
+        maxScore = Math.Max(
+            maxScore,
+            manifest.InternalName.FuzzyScore(this.searchText, FuzzyMatcherMode.FuzzyParts) * 105);
+        maxScore = Math.Max(maxScore, manifest.Author.FuzzyScore(this.searchText, FuzzyMatcherMode.FuzzyParts) * 100);
+        maxScore = Math.Max(
+            maxScore,
+            manifest.Punchline.FuzzyScore(this.searchText, FuzzyMatcherMode.FuzzyParts) * 100);
         foreach (var tag in manifest.Tags ?? [])
-        {
-            if (tag.FuzzyMatches(this.searchText, FuzzyMatcher.Mode.FuzzyParts, loc, out score))
-                maxScore = Math.Max(maxScore, score * 100);
-        }
+            maxScore = Math.Max(maxScore, tag.FuzzyScore(this.searchText, FuzzyMatcherMode.FuzzyParts) * 100);
 
         return maxScore;
     }
