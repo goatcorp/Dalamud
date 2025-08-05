@@ -2033,6 +2033,13 @@ public enum UiConfigOption
     NamePlateDispJobIconInInstanceOther,
 
     /// <summary>
+    /// UiConfig option with the internal name LogNamePlateDispEnemyCast.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogNamePlateDispEnemyCast", ConfigType.UInt)]
+    LogNamePlateDispEnemyCast,
+
+    /// <summary>
     /// UiConfig option with the internal name ActiveInfo.
     /// This option is a UInt.
     /// </summary>
@@ -2689,6 +2696,594 @@ public enum UiConfigOption
     /// </summary>
     [GameConfigOption("LogColorOtherClass", ConfigType.UInt)]
     LogColorOtherClass,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleEnableChatBubble.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleEnableChatBubble", ConfigType.UInt)]
+    LogChatBubbleEnableChatBubble,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleShowMax.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleShowMax", ConfigType.UInt)]
+    LogChatBubbleShowMax,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleShowOwnMessage.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleShowOwnMessage", ConfigType.UInt)]
+    LogChatBubbleShowOwnMessage,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleShowDuringBattle.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleShowDuringBattle", ConfigType.UInt)]
+    LogChatBubbleShowDuringBattle,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleSizeType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleSizeType", ConfigType.UInt)]
+    LogChatBubbleSizeType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleShowLargePvP.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleShowLargePvP", ConfigType.UInt)]
+    LogChatBubbleShowLargePvP,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleShowQuickChat.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleShowQuickChat", ConfigType.UInt)]
+    LogChatBubbleShowQuickChat,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleDispRowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleDispRowType", ConfigType.UInt)]
+    LogChatBubbleDispRowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleSayShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleSayShowType", ConfigType.UInt)]
+    LogChatBubbleSayShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleSayFontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleSayFontColor", ConfigType.UInt)]
+    LogChatBubbleSayFontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleSayWindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleSayWindowColor", ConfigType.UInt)]
+    LogChatBubbleSayWindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleYellShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleYellShowType", ConfigType.UInt)]
+    LogChatBubbleYellShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleYellFontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleYellFontColor", ConfigType.UInt)]
+    LogChatBubbleYellFontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleYellWindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleYellWindowColor", ConfigType.UInt)]
+    LogChatBubbleYellWindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleShoutShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleShoutShowType", ConfigType.UInt)]
+    LogChatBubbleShoutShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleShoutFontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleShoutFontColor", ConfigType.UInt)]
+    LogChatBubbleShoutFontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleShoutWindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleShoutWindowColor", ConfigType.UInt)]
+    LogChatBubbleShoutWindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleTellShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleTellShowType", ConfigType.UInt)]
+    LogChatBubbleTellShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleTellFontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleTellFontColor", ConfigType.UInt)]
+    LogChatBubbleTellFontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleTellWindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleTellWindowColor", ConfigType.UInt)]
+    LogChatBubbleTellWindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubblePartyShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubblePartyShowType", ConfigType.UInt)]
+    LogChatBubblePartyShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubblePartyFontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubblePartyFontColor", ConfigType.UInt)]
+    LogChatBubblePartyFontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubblePartyWindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubblePartyWindowColor", ConfigType.UInt)]
+    LogChatBubblePartyWindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleAllianceShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleAllianceShowType", ConfigType.UInt)]
+    LogChatBubbleAllianceShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleAllianceFontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleAllianceFontColor", ConfigType.UInt)]
+    LogChatBubbleAllianceFontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleAllianceWindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleAllianceWindowColor", ConfigType.UInt)]
+    LogChatBubbleAllianceWindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleFcShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleFcShowType", ConfigType.UInt)]
+    LogChatBubbleFcShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleFcFontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleFcFontColor", ConfigType.UInt)]
+    LogChatBubbleFcFontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleFcWindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleFcWindowColor", ConfigType.UInt)]
+    LogChatBubbleFcWindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleBeginnerShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleBeginnerShowType", ConfigType.UInt)]
+    LogChatBubbleBeginnerShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleBeginnerFontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleBeginnerFontColor", ConfigType.UInt)]
+    LogChatBubbleBeginnerFontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleBeginnerWindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleBeginnerWindowColor", ConfigType.UInt)]
+    LogChatBubbleBeginnerWindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubblePvpteamShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubblePvpteamShowType", ConfigType.UInt)]
+    LogChatBubblePvpteamShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubblePvpteamFontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubblePvpteamFontColor", ConfigType.UInt)]
+    LogChatBubblePvpteamFontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubblePvpteamWindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubblePvpteamWindowColor", ConfigType.UInt)]
+    LogChatBubblePvpteamWindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs1ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs1ShowType", ConfigType.UInt)]
+    LogChatBubbleLs1ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs1FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs1FontColor", ConfigType.UInt)]
+    LogChatBubbleLs1FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs1WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs1WindowColor", ConfigType.UInt)]
+    LogChatBubbleLs1WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs2ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs2ShowType", ConfigType.UInt)]
+    LogChatBubbleLs2ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs2FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs2FontColor", ConfigType.UInt)]
+    LogChatBubbleLs2FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs2WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs2WindowColor", ConfigType.UInt)]
+    LogChatBubbleLs2WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs3ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs3ShowType", ConfigType.UInt)]
+    LogChatBubbleLs3ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs3FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs3FontColor", ConfigType.UInt)]
+    LogChatBubbleLs3FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs3WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs3WindowColor", ConfigType.UInt)]
+    LogChatBubbleLs3WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs4ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs4ShowType", ConfigType.UInt)]
+    LogChatBubbleLs4ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs4FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs4FontColor", ConfigType.UInt)]
+    LogChatBubbleLs4FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs4WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs4WindowColor", ConfigType.UInt)]
+    LogChatBubbleLs4WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs5ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs5ShowType", ConfigType.UInt)]
+    LogChatBubbleLs5ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs5FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs5FontColor", ConfigType.UInt)]
+    LogChatBubbleLs5FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs5WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs5WindowColor", ConfigType.UInt)]
+    LogChatBubbleLs5WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs6ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs6ShowType", ConfigType.UInt)]
+    LogChatBubbleLs6ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs6FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs6FontColor", ConfigType.UInt)]
+    LogChatBubbleLs6FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs6WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs6WindowColor", ConfigType.UInt)]
+    LogChatBubbleLs6WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs7ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs7ShowType", ConfigType.UInt)]
+    LogChatBubbleLs7ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs7FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs7FontColor", ConfigType.UInt)]
+    LogChatBubbleLs7FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs7WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs7WindowColor", ConfigType.UInt)]
+    LogChatBubbleLs7WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs8ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs8ShowType", ConfigType.UInt)]
+    LogChatBubbleLs8ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs8FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs8FontColor", ConfigType.UInt)]
+    LogChatBubbleLs8FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleLs8WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleLs8WindowColor", ConfigType.UInt)]
+    LogChatBubbleLs8WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls1ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls1ShowType", ConfigType.UInt)]
+    LogChatBubbleCwls1ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls1FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls1FontColor", ConfigType.UInt)]
+    LogChatBubbleCwls1FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls1WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls1WindowColor", ConfigType.UInt)]
+    LogChatBubbleCwls1WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls2ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls2ShowType", ConfigType.UInt)]
+    LogChatBubbleCwls2ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls2FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls2FontColor", ConfigType.UInt)]
+    LogChatBubbleCwls2FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls2WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls2WindowColor", ConfigType.UInt)]
+    LogChatBubbleCwls2WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls3ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls3ShowType", ConfigType.UInt)]
+    LogChatBubbleCwls3ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls3FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls3FontColor", ConfigType.UInt)]
+    LogChatBubbleCwls3FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls3WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls3WindowColor", ConfigType.UInt)]
+    LogChatBubbleCwls3WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls4ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls4ShowType", ConfigType.UInt)]
+    LogChatBubbleCwls4ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls4FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls4FontColor", ConfigType.UInt)]
+    LogChatBubbleCwls4FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls4WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls4WindowColor", ConfigType.UInt)]
+    LogChatBubbleCwls4WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls5ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls5ShowType", ConfigType.UInt)]
+    LogChatBubbleCwls5ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls5FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls5FontColor", ConfigType.UInt)]
+    LogChatBubbleCwls5FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls5WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls5WindowColor", ConfigType.UInt)]
+    LogChatBubbleCwls5WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls6ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls6ShowType", ConfigType.UInt)]
+    LogChatBubbleCwls6ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls6FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls6FontColor", ConfigType.UInt)]
+    LogChatBubbleCwls6FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls6WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls6WindowColor", ConfigType.UInt)]
+    LogChatBubbleCwls6WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls7ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls7ShowType", ConfigType.UInt)]
+    LogChatBubbleCwls7ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls7FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls7FontColor", ConfigType.UInt)]
+    LogChatBubbleCwls7FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls7WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls7WindowColor", ConfigType.UInt)]
+    LogChatBubbleCwls7WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls8ShowType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls8ShowType", ConfigType.UInt)]
+    LogChatBubbleCwls8ShowType,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls8FontColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls8FontColor", ConfigType.UInt)]
+    LogChatBubbleCwls8FontColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogChatBubbleCwls8WindowColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogChatBubbleCwls8WindowColor", ConfigType.UInt)]
+    LogChatBubbleCwls8WindowColor,
+
+    /// <summary>
+    /// UiConfig option with the internal name LogPermeationRateInput.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogPermeationRateInput", ConfigType.UInt)]
+    LogPermeationRateInput,
 
     /// <summary>
     /// UiConfig option with the internal name ChatType.
@@ -3452,6 +4047,27 @@ public enum UiConfigOption
     /// </summary>
     [GameConfigOption("GPoseMotionFilterAction", ConfigType.UInt)]
     GPoseMotionFilterAction,
+
+    /// <summary>
+    /// UiConfig option with the internal name GPoseRollRotationCameraCorrection.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GPoseRollRotationCameraCorrection", ConfigType.UInt)]
+    GPoseRollRotationCameraCorrection,
+
+    /// <summary>
+    /// UiConfig option with the internal name GPoseInitCameraFocus.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GPoseInitCameraFocus", ConfigType.UInt)]
+    GPoseInitCameraFocus,
+
+    /// <summary>
+    /// UiConfig option with the internal name GposePortraitRotateType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GposePortraitRotateType", ConfigType.UInt)]
+    GposePortraitRotateType,
 
     /// <summary>
     /// UiConfig option with the internal name LsListSortPriority.
