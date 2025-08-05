@@ -89,6 +89,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         { MacroCode.FrNoun, ["SheetName", "ArticleType", "RowId", "Amount", "Case", "UnkInt5"] },
         { MacroCode.ChNoun, ["SheetName", "ArticleType", "RowId", "Amount", "Case", "UnkInt5"] },
         { MacroCode.LowerHead, ["String"] },
+        { MacroCode.SheetSub, ["SheetName", "RowId", "SubrowId", "ColumnIndex", "SecondarySheetName", "SecondarySheetColumnIndex"] },
         { MacroCode.ColorType, ["ColorType"] },
         { MacroCode.EdgeColorType, ["ColorType"] },
         { MacroCode.Ruby, ["StandardText", "RubyText"] },
@@ -103,13 +104,16 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         { LinkMacroPayloadType.Character, ["Flags", "WorldId"] },
         { LinkMacroPayloadType.Item, ["ItemId", "Rarity"] },
         { LinkMacroPayloadType.MapPosition, ["TerritoryType/MapId", "RawX", "RawY"] },
-        { LinkMacroPayloadType.Quest, ["QuestId"] },
-        { LinkMacroPayloadType.Achievement, ["AchievementId"] },
-        { LinkMacroPayloadType.HowTo, ["HowToId"] },
+        { LinkMacroPayloadType.Quest, ["RowId"] },
+        { LinkMacroPayloadType.Achievement, ["RowId"] },
+        { LinkMacroPayloadType.HowTo, ["RowId"] },
         // PartyFinderNotification
         { LinkMacroPayloadType.Status, ["StatusId"] },
         { LinkMacroPayloadType.PartyFinder, ["ListingId", string.Empty, "WorldId"] },
-        { LinkMacroPayloadType.AkatsukiNote, ["AkatsukiNoteId"] },
+        { LinkMacroPayloadType.AkatsukiNote, ["RowId"] },
+        { LinkMacroPayloadType.Description, ["RowId"] },
+        { LinkMacroPayloadType.WKSPioneeringTrail, ["RowId", "SubrowId"] },
+        { LinkMacroPayloadType.MKDLore, ["RowId"] },
         { DalamudLinkType, ["CommandId", "Extra1", "Extra2", "ExtraString"] },
     };
 
