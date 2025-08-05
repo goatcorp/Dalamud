@@ -541,15 +541,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     internal static bool DoStats { get; set; } = false;
 #endif
 
-    private void OnDefaultStyleChanged()
-        => this.DefaultStyleChanged.InvokeSafely();
-
-    private void OnDefaultGlobalScaleChanged()
-        => this.DefaultGlobalScaleChanged.InvokeSafely();
-
-    private void OnDefaultFontChanged()
-        => this.DefaultFontChanged.InvokeSafely();
-
     /// <summary>
     /// Gets a value indicating whether this UiBuilder has a configuration UI registered.
     /// </summary>
@@ -795,6 +786,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     {
         this.ResizeBuffers?.InvokeSafely();
     }
+
+    private void OnDefaultStyleChanged()
+        => this.DefaultStyleChanged.InvokeSafely();
+
+    private void OnDefaultGlobalScaleChanged()
+        => this.DefaultGlobalScaleChanged.InvokeSafely();
+
+    private void OnDefaultFontChanged()
+        => this.DefaultFontChanged.InvokeSafely();
 
     private class FontHandleWrapper : IFontHandle
     {
