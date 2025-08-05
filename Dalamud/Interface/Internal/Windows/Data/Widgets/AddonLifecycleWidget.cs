@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
@@ -117,9 +118,11 @@ public class AddonLifecycleWidget : IDataWindowWidget
             {
                 ImGui.Columns(2);
 
+                var functionAddress = receiveEventListener.FunctionAddress;
+
                 ImGui.Text("Hook Address"u8);
                 ImGui.NextColumn();
-                ImGui.Text(receiveEventListener.FunctionAddress.ToString("X"));
+                ImGui.Text($"0x{functionAddress:X} (ffxiv_dx11.exe+{functionAddress - Process.GetCurrentProcess().MainModule!.BaseAddress:X})");
 
                 ImGui.NextColumn();
                 ImGui.Text("Hook Status"u8);

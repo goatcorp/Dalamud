@@ -38,7 +38,7 @@ public abstract unsafe class AddonArgs
     /// </summary>
     /// <param name="name">The name to check.</param>
     /// <returns>Whether it is the case.</returns>
-    internal bool IsAddon(ReadOnlySpan<char> name)
+    internal bool IsAddon(string name)
     {
         if (this.Addon.IsNull)
             return false;
@@ -46,12 +46,10 @@ public abstract unsafe class AddonArgs
         if (name.Length is 0 or > 32)
             return false;
 
-        var addonName = this.Addon.Name;
-
-        if (string.IsNullOrEmpty(addonName))
+        if (string.IsNullOrEmpty(this.Addon.Name))
             return false;
 
-        return name == addonName;
+        return name == this.Addon.Name;
     }
 
     /// <summary>
