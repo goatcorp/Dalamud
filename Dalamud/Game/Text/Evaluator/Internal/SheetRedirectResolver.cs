@@ -221,8 +221,8 @@ internal class SheetRedirectResolver : IServiceType
                 sheetName = nameof(LSheets.AkatsukiNoteString);
                 colIndex = 0;
 
-                if (this.dataManager.Excel.GetSubrowSheet<LSheets.AkatsukiNote>().TryGetRow(rowId, out var row))
-                    rowId = (uint)row[0].Unknown2;
+                if (this.dataManager.Excel.GetSubrowSheet<LSheets.AkatsukiNote>().TryGetSubrow(rowId, 0, out var row))
+                    rowId = row.ListName.RowId;
                 break;
             }
         }
