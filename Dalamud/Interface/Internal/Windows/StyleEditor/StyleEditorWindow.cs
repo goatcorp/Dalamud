@@ -254,7 +254,8 @@ public class StyleEditorWindow : Window
                     ImGui.Text("Alignment"u8);
                     changes |= ImGui.SliderFloat2("WindowTitleAlign", ref style.WindowTitleAlign, 0.0f, 1.0f, "%.2f");
                     var windowMenuButtonPosition = (int)style.WindowMenuButtonPosition + 1;
-                    if (ImGui.Combo("WindowMenuButtonPosition"u8, ref windowMenuButtonPosition, ["None", "Left", "Right"])) {
+                    if (ImGui.Combo("WindowMenuButtonPosition"u8, ref windowMenuButtonPosition, ["None", "Left", "Right"]))
+                    {
                         style.WindowMenuButtonPosition = (ImGuiDir)(windowMenuButtonPosition - 1);
                         changes = true;
                     }

@@ -518,15 +518,15 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     /// <summary> Safely invoke <seealso cref="DefaultGlobalScaleChanged"/>. </summary>
     internal void InvokeGlobalScaleChanged()
-        => DefaultGlobalScaleChanged.InvokeSafely();
+        => this.DefaultGlobalScaleChanged.InvokeSafely();
 
     /// <summary> Safely invoke <seealso cref="DefaultFontChanged"/>. </summary>
     internal void InvokeFontChanged()
-        => DefaultFontChanged.InvokeSafely();
+        => this.DefaultFontChanged.InvokeSafely();
 
     /// <summary> Safely invoke <seealso cref="DefaultStyleChanged"/>. </summary>
     internal void InvokeStyleChanged()
-        => DefaultStyleChanged.InvokeSafely();
+        => this.DefaultStyleChanged.InvokeSafely();
 
     private static InterfaceManager WhenFontsReady()
     {

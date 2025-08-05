@@ -65,7 +65,8 @@ public enum ConditionFlag
     /// </summary>
     RidingPillion = 10,
 
-    [Obsolete("Renamed to RidingPillion", true)] Mounted2 = 10,
+    [Obsolete("Renamed to RidingPillion", true)]
+    Mounted2 = 10,
 
     /// <summary>
     /// Unable to execute command while in that position.
@@ -429,7 +430,8 @@ public enum ConditionFlag
     /// </summary>
     MountImmobile = 88,
 
-    [Obsolete("Renamed to MountImmobile", true)] InThisState88 = 88,
+    [Obsolete("Renamed to MountImmobile", true)]
+    InThisState88 = 88,
 
     /// <summary>
     /// Unable to execute command in this state.

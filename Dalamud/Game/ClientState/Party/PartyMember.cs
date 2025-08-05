@@ -128,7 +128,7 @@ internal unsafe class PartyMember : IPartyMember
     /// <summary>
     /// Gets the position of the party member.
     /// </summary>
-    public Vector3 Position => new(this.Struct->X, this.Struct->Y, this.Struct->Z);
+    public Vector3 Position => this.Struct->Position;
 
     /// <summary>
     /// Gets the content ID of the party member.

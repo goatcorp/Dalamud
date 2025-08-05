@@ -81,11 +81,10 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
                 var stringArrayData = (StringArrayData*)arrays[arrayIndex];
                 for (var rowIndex = 0; rowIndex < arrays[arrayIndex]->Size; rowIndex++)
                 {
-                    var isNull = (nint)stringArrayData->StringArray[rowIndex] == 0;
-                    if (isNull)
+                    if (!stringArrayData->StringArray[rowIndex].HasValue)
                         continue;
 
-                    if (new ReadOnlySeStringSpan(stringArrayData->StringArray[rowIndex]).ExtractText().Contains(this.searchTerm, StringComparison.InvariantCultureIgnoreCase))
+                    if (new ReadOnlySeStringSpan(stringArrayData->StringArray[rowIndex].Value).ExtractText().Contains(this.searchTerm, StringComparison.InvariantCultureIgnoreCase))
                         rowsFound++;
                 }
 
@@ -289,7 +288,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
 
         for (var i = 0; i < array->Size; i++)
         {
-            var isNull = (nint)array->StringArray[i] == 0;
+            var isNull = !array->StringArray[i].HasValue;
             if (isNull && this.hideUnsetStringArrayEntries)
                 continue;
 
@@ -298,7 +297,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
                 if (isNull)
                     continue;
 
-                if (!new ReadOnlySeStringSpan(array->StringArray[i]).ExtractText().Contains(this.searchTerm, StringComparison.InvariantCultureIgnoreCase))
+                if (!new ReadOnlySeStringSpan(array->StringArray[i].Value).ExtractText().Contains(this.searchTerm, StringComparison.InvariantCultureIgnoreCase))
                     continue;
             }
 
@@ -312,7 +311,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
             if (this.showTextAddress)
             {
                 if (!isNull)
-                    WidgetUtil.DrawCopyableText($"0x{(nint)array->StringArray[i]:X}", "Copy text address");
+                    WidgetUtil.DrawCopyableText($"0x{(nint)array->StringArray[i].Value:X}", "Copy text address");
             }
             else
             {
@@ -322,7 +321,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
             ImGui.TableNextColumn(); // Managed
             if (!isNull)
             {
-                ImGui.Text(((nint)array->StringArray[i] != 0 && array->ManagedStringArray[i] == array->StringArray[i]).ToString());
+                ImGui.Text((array->StringArray[i].HasValue && array->ManagedStringArray[i].Value == array->StringArray[i]).ToString());
             }
 
             ImGui.TableNextColumn(); // Text
@@ -330,11 +329,11 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
             {
                 if (this.showMacroString)
                 {
-                    WidgetUtil.DrawCopyableText(new ReadOnlySeStringSpan(array->StringArray[i]).ToString(), "Copy text");
+                    WidgetUtil.DrawCopyableText(new ReadOnlySeStringSpan(array->StringArray[i].Value).ToString(), "Copy text");
                 }
                 else
                 {
-                    ImGuiHelpers.SeStringWrapped(new ReadOnlySeStringSpan(array->StringArray[i]));
+                    ImGuiHelpers.SeStringWrapped(new ReadOnlySeStringSpan(array->StringArray[i].Value));
                 }
             }
         }
