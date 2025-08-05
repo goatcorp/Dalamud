@@ -532,15 +532,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// </summary>
     public bool ShouldUseReducedMotion => Service<DalamudConfiguration>.Get().ReduceMotions ?? false;
 
-    private void OnDefaultStyleChanged()
-        => this.DefaultStyleChanged.InvokeSafely();
-
-    private void OnDefaultGlobalScaleChanged()
-        => this.DefaultGlobalScaleChanged.InvokeSafely();
-
-    private void OnDefaultFontChanged()
-        => this.DefaultFontChanged.InvokeSafely();
-
     /// <summary>
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
     /// </summary>
@@ -549,6 +540,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 #else
     internal static bool DoStats { get; set; } = false;
 #endif
+
+    private void OnDefaultStyleChanged()
+        => this.DefaultStyleChanged.InvokeSafely();
+
+    private void OnDefaultGlobalScaleChanged()
+        => this.DefaultGlobalScaleChanged.InvokeSafely();
+
+    private void OnDefaultFontChanged()
+        => this.DefaultFontChanged.InvokeSafely();
 
     /// <summary>
     /// Gets a value indicating whether this UiBuilder has a configuration UI registered.

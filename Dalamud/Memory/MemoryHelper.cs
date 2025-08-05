@@ -8,12 +8,11 @@ using Dalamud.Memory.Exceptions;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.String;
+using Lumina.Text.Payloads;
+using Lumina.Text.ReadOnly;
 using Microsoft.Extensions.ObjectPool;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Memory;
-
-using LPayloadType = Lumina.Text.Payloads.PayloadType;
-using LSeString = Lumina.Text.SeString;
 
 // Heavily inspired from Reloaded (https://github.com/Reloaded-Project/Reloaded.Memory)
 
@@ -414,7 +413,7 @@ public static unsafe class MemoryHelper
         containsNonRepresentedPayload = false;
         while (*pin != 0 && maxLength > 0)
         {
-            if (*pin != LSeString.StartByte)
+            if (*pin != ReadOnlySeString.Stx)
             {
                 var len = *pin switch
                 {
@@ -439,7 +438,7 @@ public static unsafe class MemoryHelper
             --maxLength;
 
             // Payload type
-            var payloadType = (LPayloadType)(*pin++);
+            var payloadType = (MacroCode)(*pin++);
 
             // Payload length
             if (!ReadIntExpression(ref pin, ref maxLength, out var expressionLength))
@@ -450,19 +449,19 @@ public static unsafe class MemoryHelper
             maxLength -= unchecked((int)expressionLength);
 
             // End byte
-            if (*pin++ != LSeString.EndByte)
+            if (*pin++ != ReadOnlySeString.Etx)
                 break;
             --maxLength;
 
             switch (payloadType)
             {
-                case LPayloadType.NewLine:
+                case MacroCode.NewLine:
                     sb.AppendLine();
                     break;
-                case LPayloadType.Hyphen:
+                case MacroCode.Hyphen:
                     sb.Append('–');
                     break;
-                case LPayloadType.SoftHyphen:
+                case MacroCode.SoftHyphen:
                     sb.Append('\u00AD');
                     break;
                 default:
