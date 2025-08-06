@@ -245,6 +245,9 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     return default(LRESULT);
                 }
 
+                if (ImGui.IsAnyItemActive())
+                    ImGui.ClearWindowFocus();
+
                 break;
             }
 
@@ -531,7 +534,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
 
                 // We still want to return MA_NOACTIVATE
                 // https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mouseactivate
-                return 0x3;
+                return MA.MA_NOACTIVATE;
             case WM.WM_NCHITTEST:
                 // Let mouse pass-through the window. This will allow the backend to set io.MouseHoveredViewport properly (which is OPTIONAL).
                 // The ImGuiViewportFlags_NoInputs flag is set while dragging a viewport, as want to detect the window behind the one we are dragging.
@@ -539,8 +542,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 // your main loop after calling UpdatePlatformWindows(). Iterate all viewports/platform windows and pass the flag to your windowing system.
                 if (viewport.Flags.HasFlag(ImGuiViewportFlags.NoInputs))
                 {
-                    // https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-nchittest
-                    return -1;
+                    return HTTRANSPARENT;
                 }
 
                 break;
