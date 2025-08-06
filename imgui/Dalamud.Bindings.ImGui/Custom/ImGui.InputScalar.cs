@@ -270,8 +270,8 @@ public static unsafe partial class ImGui
                           labelPtr,
                           dataType,
                           dataPtr,
-                          stepPtr,
-                          stepFastPtr,
+                          step.CompareTo(T.Zero) > 0 ? stepPtr : null,
+                          stepFast.CompareTo(T.Zero) > 0 ? stepFastPtr : null,
                           formatPtr,
                           flags) != 0;
             label.Dispose();
@@ -298,8 +298,8 @@ public static unsafe partial class ImGui
                           dataType,
                           dataPtr,
                           data.Length,
-                          stepPtr,
-                          stepFastPtr,
+                          step.CompareTo(T.Zero) > 0 ? stepPtr : null,
+                          stepFast.CompareTo(T.Zero) > 0 ? stepFastPtr : null,
                           formatPtr,
                           flags) != 0;
             label.Dispose();
@@ -325,8 +325,8 @@ public static unsafe partial class ImGui
                           labelPtr,
                           GetImGuiDataType<T>(),
                           dataPtr,
-                          stepPtr,
-                          stepFastPtr,
+                          step.CompareTo(T.Zero) > 0 ? stepPtr : null,
+                          stepFast.CompareTo(T.Zero) > 0 ? stepFastPtr : null,
                           formatPtr,
                           flags) != 0;
             label.Dispose();
@@ -353,8 +353,8 @@ public static unsafe partial class ImGui
                           GetImGuiDataType<T>(),
                           dataPtr,
                           data.Length,
-                          stepPtr,
-                          stepFastPtr,
+                          step.CompareTo(T.Zero) > 0 ? stepPtr : null,
+                          stepFast.CompareTo(T.Zero) > 0 ? stepFastPtr : null,
                           formatPtr,
                           flags) != 0;
             label.Dispose();
