@@ -27,7 +27,8 @@ public static unsafe partial class ImGui
         }
     }
 
-    public static bool BeginChild(ImU8String strId, Vector2 size = default, bool border = false, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
+    public static bool BeginChild(
+        ImU8String strId, Vector2 size = default, bool border = false, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
@@ -37,10 +38,12 @@ public static unsafe partial class ImGui
         }
     }
 
-    public static bool BeginChild(uint id, Vector2 size = default, bool border = false, ImGuiWindowFlags flags = ImGuiWindowFlags.None) =>
+    public static bool BeginChild(
+        uint id, Vector2 size = default, bool border = false, ImGuiWindowFlags flags = ImGuiWindowFlags.None) =>
         ImGuiNative.BeginChild(id, size, border ? (byte)1 : (byte)0, flags) != 0;
 
-    public static bool BeginCombo(ImU8String label, ImU8String previewValue, ImGuiComboFlags flags = ImGuiComboFlags.None)
+    public static bool BeginCombo(
+        ImU8String label, ImU8String previewValue, ImGuiComboFlags flags = ImGuiComboFlags.None)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (byte* previewValuePtr = &previewValue.GetPinnableNullTerminatedReference())
@@ -82,7 +85,8 @@ public static unsafe partial class ImGui
         }
     }
 
-    public static bool BeginPopupContextItem(ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
+    public static bool BeginPopupContextItem(
+        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
@@ -92,7 +96,8 @@ public static unsafe partial class ImGui
         }
     }
 
-    public static bool BeginPopupContextWindow(ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
+    public static bool BeginPopupContextWindow(
+        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
@@ -102,7 +107,8 @@ public static unsafe partial class ImGui
         }
     }
 
-    public static bool BeginPopupContextVoid(ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
+    public static bool BeginPopupContextVoid(
+        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
@@ -280,7 +286,14 @@ public static unsafe partial class ImGui
     {
         fixed (byte* versionPtr = &versionStr.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.DebugCheckVersionAndDataLayout(versionPtr, szIo, szStyle, szVec2, szVec4, szDrawVert, szDrawIdx) != 0;
+            var r = ImGuiNative.DebugCheckVersionAndDataLayout(
+                        versionPtr,
+                        szIo,
+                        szStyle,
+                        szVec2,
+                        szVec4,
+                        szDrawVert,
+                        szDrawIdx) != 0;
             versionStr.Dispose();
             return r;
         }
@@ -363,7 +376,7 @@ public static unsafe partial class ImGui
 
     public static void LoadIniSettingsFromMemory(ImU8String iniData)
     {
-        fixed (byte* iniDataPtr = iniData.Span)
+        fixed (byte* iniDataPtr = iniData)
             ImGuiNative.LoadIniSettingsFromMemory(iniDataPtr, (nuint)iniData.Length);
         iniData.Dispose();
     }
@@ -381,7 +394,11 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (byte* shortcutPtr = &shortcut.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.MenuItem(labelPtr, shortcutPtr, selected ? (byte)1 : (byte)0, enabled ? (byte)1 : (byte)0) != 0;
+            var r = ImGuiNative.MenuItem(
+                        labelPtr,
+                        shortcutPtr,
+                        selected ? (byte)1 : (byte)0,
+                        enabled ? (byte)1 : (byte)0) != 0;
             label.Dispose();
             shortcut.Dispose();
             return r;
@@ -416,7 +433,11 @@ public static unsafe partial class ImGui
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.MenuItem(labelPtr, null, selected ? (byte)1 : (byte)0, enabled ? (byte)1 : (byte)0) != 0;
+            var r = ImGuiNative.MenuItem(
+                        labelPtr,
+                        null,
+                        selected ? (byte)1 : (byte)0,
+                        enabled ? (byte)1 : (byte)0) != 0;
             label.Dispose();
             return r;
         }
@@ -429,7 +450,8 @@ public static unsafe partial class ImGui
         strId.Dispose();
     }
 
-    public static void OpenPopup(uint id, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.None) => ImGuiNative.OpenPopup(id, popupFlags);
+    public static void OpenPopup(uint id, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.None) =>
+        ImGuiNative.OpenPopup(id, popupFlags);
 
     public static void OpenPopupOnItemClick(
         ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
@@ -457,7 +479,7 @@ public static unsafe partial class ImGui
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.RadioButton(labelPtr, active ? (byte)1:(byte)0) != 0;
+            var r = ImGuiNative.RadioButton(labelPtr, active ? (byte)1 : (byte)0) != 0;
             label.Dispose();
             return r;
         }
@@ -468,8 +490,8 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var pressed = ImGuiNative.RadioButton(
-                labelPtr,
-                EqualityComparer<T>.Default.Equals(v, vButton) ? (byte)1 : (byte)0) != 0;
+                              labelPtr,
+                              EqualityComparer<T>.Default.Equals(v, vButton) ? (byte)1 : (byte)0) != 0;
             if (pressed)
                 v = vButton;
             return pressed;
@@ -483,22 +505,25 @@ public static unsafe partial class ImGui
     }
 
     public static bool Selectable(
-        ImU8String label, bool selected = false, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None, Vector2 size = default)
+        ImU8String label, bool selected = false, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None,
+        Vector2 size = default)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.Selectable(labelPtr, selected ?(byte)1:(byte)0, flags, size)!=0;
+            var r = ImGuiNative.Selectable(labelPtr, selected ? (byte)1 : (byte)0, flags, size) != 0;
             label.Dispose();
             return r;
         }
     }
 
-    public static bool Selectable(ImU8String label, ref bool selected, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None, Vector2 size = default)
+    public static bool Selectable(
+        ImU8String label, ref bool selected, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None,
+        Vector2 size = default)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
-            fixed (bool* selectedPtr = &selected)
+        fixed (bool* selectedPtr = &selected)
         {
-            var r = ImGuiNative.Selectable(labelPtr, selectedPtr, flags, size)!=0;
+            var r = ImGuiNative.Selectable(labelPtr, selectedPtr, flags, size) != 0;
             label.Dispose();
             return r;
         }
@@ -516,7 +541,7 @@ public static unsafe partial class ImGui
         fixed (byte* typePtr = &type.GetPinnableNullTerminatedReference())
         fixed (byte* dataPtr = data)
         {
-            var r = ImGuiNative.SetDragDropPayload(typePtr, dataPtr, (nuint)data.Length, cond)!=0;
+            var r = ImGuiNative.SetDragDropPayload(typePtr, dataPtr, (nuint)data.Length, cond) != 0;
             type.Dispose();
             return r;
         }
@@ -529,7 +554,8 @@ public static unsafe partial class ImGui
         tabOrDockedWindowLabel.Dispose();
     }
 
-    public static void SetWindowCollapsed(bool collapsed, ImGuiCond cond = ImGuiCond.None) => ImGuiNative.SetWindowCollapsed(collapsed ? (byte)1 : (byte)0, cond);
+    public static void SetWindowCollapsed(bool collapsed, ImGuiCond cond = ImGuiCond.None) =>
+        ImGuiNative.SetWindowCollapsed(collapsed ? (byte)1 : (byte)0, cond);
 
     public static void SetWindowCollapsed(ImU8String name, bool collapsed, ImGuiCond cond = ImGuiCond.None)
     {
@@ -547,7 +573,8 @@ public static unsafe partial class ImGui
         name.Dispose();
     }
 
-    public static void SetWindowPos(Vector2 pos, ImGuiCond cond = ImGuiCond.None) => ImGuiNative.SetWindowPos(pos, cond);
+    public static void SetWindowPos(Vector2 pos, ImGuiCond cond = ImGuiCond.None) =>
+        ImGuiNative.SetWindowPos(pos, cond);
 
     public static void SetWindowPos(ImU8String name, Vector2 pos, ImGuiCond cond = ImGuiCond.None)
     {
@@ -556,7 +583,8 @@ public static unsafe partial class ImGui
         name.Dispose();
     }
 
-    public static void SetWindowSize(Vector2 size, ImGuiCond cond = ImGuiCond.None) => ImGuiNative.SetWindowSize(size, cond);
+    public static void SetWindowSize(Vector2 size, ImGuiCond cond = ImGuiCond.None) =>
+        ImGuiNative.SetWindowSize(size, cond);
 
     public static void SetWindowSize(ImU8String name, Vector2 size, ImGuiCond cond = ImGuiCond.None)
     {
@@ -632,7 +660,7 @@ public static unsafe partial class ImGui
     {
         prefix.AppendLiteral(": ");
         prefix.AppendFormatted(value);
-        fixed (byte* prefixPtr = prefix.Span)
+        fixed (byte* prefixPtr = prefix)
         {
             ImGuiNative.TextUnformatted(prefixPtr, prefixPtr + prefix.Length);
             prefix.Dispose();

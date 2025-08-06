@@ -8,13 +8,15 @@ public static unsafe partial class ImGui
 {
     public static void AddText(ImFontGlyphRangesBuilderPtr self, ImU8String text)
     {
-        fixed (byte* textPtr = text.Span) ImGuiNative.AddText(self.Handle, textPtr, textPtr + text.Length);
+        fixed (byte* textPtr = text)
+            ImGuiNative.AddText(self.Handle, textPtr, textPtr + text.Length);
         text.Dispose();
     }
 
     public static void AddText(ImDrawListPtr self, Vector2 pos, uint col, ImU8String text)
     {
-        fixed (byte* textPtr = text.Span) ImGuiNative.AddText(self.Handle, pos, col, textPtr, textPtr + text.Length);
+        fixed (byte* textPtr = text)
+            ImGuiNative.AddText(self.Handle, pos, col, textPtr, textPtr + text.Length);
         text.Dispose();
     }
 
@@ -22,7 +24,7 @@ public static unsafe partial class ImGui
         ImDrawListPtr self, ImFontPtr font, float fontSize, Vector2 pos, uint col, ImU8String text, float wrapWidth,
         scoped in Vector4 cpuFineClipRect)
     {
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
         fixed (Vector4* cpuFineClipRectPtr = &cpuFineClipRect)
             ImGuiNative.AddText(
                 self.Handle,
@@ -41,14 +43,15 @@ public static unsafe partial class ImGui
         ImDrawListPtr self, ImFontPtr font, float fontSize, Vector2 pos, uint col, ImU8String text,
         float wrapWidth = 0f)
     {
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
             ImGuiNative.AddText(self.Handle, font, fontSize, pos, col, textPtr, textPtr + text.Length, wrapWidth, null);
         text.Dispose();
     }
 
     public static void append(this ImGuiTextBufferPtr self, ImU8String str)
     {
-        fixed (byte* strPtr = str.Span) ImGuiNative.append(self.Handle, strPtr, strPtr + str.Length);
+        fixed (byte* strPtr = str)
+            ImGuiNative.append(self.Handle, strPtr, strPtr + str.Length);
         str.Dispose();
     }
 
@@ -60,8 +63,8 @@ public static unsafe partial class ImGui
         scoped ref readonly var style = ref g.Style;
         var labelSize = CalcTextSize(text.Span);
         var totalSize = new Vector2(
-                g.FontSize + (labelSize.X > 0.0f ? (labelSize.X + style.FramePadding.X * 2) : 0.0f),
-                labelSize.Y); // Empty text doesn't add padding
+            g.FontSize + (labelSize.X > 0.0f ? (labelSize.X + style.FramePadding.X * 2) : 0.0f),
+            labelSize.Y); // Empty text doesn't add padding
         var pos = window->DC.CursorPos;
         pos.Y += window->DC.CurrLineTextBaseOffset;
         ImGuiP.ItemSize(totalSize, 0.0f);
@@ -82,7 +85,7 @@ public static unsafe partial class ImGui
         ImU8String text, bool hideTextAfterDoubleHash = false, float wrapWidth = -1.0f)
     {
         var @out = Vector2.Zero;
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
             ImGuiNative.CalcTextSize(
                 &@out,
                 textPtr,
@@ -97,7 +100,7 @@ public static unsafe partial class ImGui
         ImFontPtr self, float size, float maxWidth, float wrapWidth, ImU8String text, out int remaining)
     {
         var @out = Vector2.Zero;
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
         {
             byte* remainingPtr = null;
             ImGuiNative.CalcTextSizeA(
@@ -119,7 +122,7 @@ public static unsafe partial class ImGui
     public static int CalcWordWrapPositionA(
         ImFontPtr font, float scale, ImU8String text, float wrapWidth)
     {
-        fixed (byte* ptr = text.Span)
+        fixed (byte* ptr = text)
         {
             var r =
                 (int)(ImGuiNative.CalcWordWrapPositionA(font.Handle, scale, ptr, ptr + text.Length, wrapWidth) - ptr);
@@ -131,7 +134,7 @@ public static unsafe partial class ImGui
     public static void InsertChars(
         ImGuiInputTextCallbackDataPtr self, int pos, ImU8String text)
     {
-        fixed (byte* ptr = text.Span)
+        fixed (byte* ptr = text)
             ImGuiNative.InsertChars(self.Handle, pos, ptr, ptr + text.Length);
         text.Dispose();
     }
@@ -190,7 +193,7 @@ public static unsafe partial class ImGui
         {
             g.LogBuffer.Buf.Resize(0);
             append(&g.Handle->LogBuffer, text.Span);
-            fixed (byte* textPtr = text.Span)
+            fixed (byte* textPtr = text)
                 ImGuiPNative.ImFileWrite(textPtr, 1, (ulong)text.Length, g.LogFile);
         }
         else
@@ -203,7 +206,7 @@ public static unsafe partial class ImGui
 
     public static void PassFilter(ImGuiTextFilterPtr self, ImU8String text)
     {
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
             ImGuiNative.PassFilter(self.Handle, textPtr, textPtr + text.Length);
         text.Dispose();
     }
@@ -212,7 +215,7 @@ public static unsafe partial class ImGui
         ImFontPtr self, ImDrawListPtr drawList, float size, Vector2 pos, uint col, Vector4 clipRect,
         ImU8String text, float wrapWidth = 0.0f, bool cpuFineClip = false)
     {
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
             ImGuiNative.RenderText(
                 self,
                 drawList,
@@ -237,7 +240,7 @@ public static unsafe partial class ImGui
 
     public static void Text(ImU8String text)
     {
-        fixed (byte* ptr = text.Span)
+        fixed (byte* ptr = text)
             ImGuiNative.TextUnformatted(ptr, ptr + text.Length);
         text.Dispose();
     }

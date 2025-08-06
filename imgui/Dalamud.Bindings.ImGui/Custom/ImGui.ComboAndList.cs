@@ -99,7 +99,7 @@ public static unsafe partial class ImGui
 
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (int* currentItemPtr = &currentItem)
-        fixed (byte* itemsSeparatedByZerosPtr = itemsSeparatedByZeros.Span)
+        fixed (byte* itemsSeparatedByZerosPtr = itemsSeparatedByZeros)
         {
             var r = ImGuiNative.Combo(labelPtr, currentItemPtr, itemsSeparatedByZerosPtr, popupMaxHeightInItems) != 0;
             label.Dispose();

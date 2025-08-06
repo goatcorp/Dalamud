@@ -169,6 +169,28 @@ public ref struct ImU8String : IDisposable
     public static unsafe implicit operator ImU8String(byte* text) => new(text);
     public static unsafe implicit operator ImU8String(char* text) => new(text);
 
+    public ref readonly byte GetPinnableReference()
+    {
+        if (this.IsNull)
+            return ref Unsafe.NullRef<byte>();
+
+        if (this.IsEmpty)
+            return ref this.FixedBufferSpan[0];
+
+        return ref this.Span.GetPinnableReference();
+    }
+
+    public ref readonly byte GetPinnableReference(ReadOnlySpan<byte> defaultValue)
+    {
+        if (this.IsNull)
+            return ref defaultValue.GetPinnableReference();
+
+        if (this.IsEmpty)
+            return ref this.FixedBufferSpan[0];
+
+        return ref this.Span.GetPinnableReference();
+    }
+
     public ref readonly byte GetPinnableNullTerminatedReference(ReadOnlySpan<byte> defaultValue = default)
     {
         if (this.IsNull)
