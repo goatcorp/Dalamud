@@ -564,14 +564,21 @@ public static unsafe partial class ImGui
         name.Dispose();
     }
 
+    /// <summary>Sets the current window to be focused / top-most.</summary>
+    /// <remarks>Prefer using <see cref="SetNextWindowFocus"/>.</remarks>
     public static void SetWindowFocus() => ImGuiNative.SetWindowFocus();
 
+    /// <summary>Sets a named window to be focused / top-most.</summary>
+    /// <param name="name">Name of the window to focus. Use <c>default</c> to remove focus.</param>
     public static void SetWindowFocus(ImU8String name)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
             ImGuiNative.SetWindowFocus(namePtr);
         name.Dispose();
     }
+
+    /// <summary>Removes focus from any window.</summary>
+    public static void ClearWindowFocus() => ImGuiNative.SetWindowFocus(null);
 
     public static void SetWindowPos(Vector2 pos, ImGuiCond cond = ImGuiCond.None) =>
         ImGuiNative.SetWindowPos(pos, cond);
