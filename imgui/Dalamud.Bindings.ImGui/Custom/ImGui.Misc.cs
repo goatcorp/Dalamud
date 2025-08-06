@@ -91,6 +91,7 @@ public static unsafe partial class ImGui
 
     public static void AddInputCharacter(ImGuiIOPtr self, char c) => ImGuiNative.AddInputCharacter(self, c);
     public static void AddInputCharacter(ImGuiIOPtr self, Rune c) => ImGuiNative.AddInputCharacter(self, (uint)c.Value);
+
     public static void AddInputCharacters(ImGuiIOPtr self, ImU8String str)
     {
         fixed (byte* strPtr = &str.GetPinnableNullTerminatedReference())
@@ -121,7 +122,7 @@ public static unsafe partial class ImGui
 
     public static uint GetID(ImU8String strId)
     {
-        fixed (byte* strIdPtr = strId.Span)
+        fixed (byte* strIdPtr = strId)
         {
             var r = ImGuiNative.GetID(strIdPtr, strIdPtr + strId.Length);
             strId.Dispose();
@@ -135,7 +136,7 @@ public static unsafe partial class ImGui
 
     public static void PushID(ImU8String strId)
     {
-        fixed (byte* strIdPtr = strId.Span)
+        fixed (byte* strIdPtr = strId)
         {
             ImGuiNative.PushID(strIdPtr, strIdPtr + strId.Length);
             strId.Dispose();

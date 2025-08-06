@@ -362,5 +362,4 @@ public static unsafe partial class ImGui
             return res;
         }
     }
-
 }
