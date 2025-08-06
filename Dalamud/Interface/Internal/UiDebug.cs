@@ -243,8 +243,6 @@ internal unsafe class UiDebug
                     ImGui.Text($"BGColor: #{textNode->BackgroundColor.R:X2}{textNode->BackgroundColor.G:X2}{textNode->BackgroundColor.B:X2}{textNode->BackgroundColor.A:X2}");
 
                     ImGui.Text($"TextFlags: {textNode->TextFlags}");
-                    ImGui.SameLine();
-                    ImGui.Text($"TextFlags2: {textNode->TextFlags2}");
 
                     break;
                 case NodeType.Counter:

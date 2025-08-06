@@ -586,8 +586,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         newTextNode->LineSpacing = 12;
         newTextNode->AlignmentFontType = 5;
         newTextNode->FontSize = 14;
-        newTextNode->TextFlags = (byte)TextFlags.Edge;
-        newTextNode->TextFlags2 = 0;
+        newTextNode->TextFlags = TextFlags.Edge;
 
         if (this.emptyString == null)
             this.emptyString = Utf8String.FromString(" ");

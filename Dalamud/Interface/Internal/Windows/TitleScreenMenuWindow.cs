@@ -477,7 +477,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         var textNode = addon->GetTextNodeById(3);
 
         // look and feel init. should be harmless to set.
-        textNode->TextFlags |= (byte)TextFlags.MultiLine;
+        textNode->TextFlags |= TextFlags.MultiLine;
         textNode->AlignmentType = AlignmentType.TopLeft;
 
         var containsDalamudVersionString = textNode->OriginalTextPointer.Value == textNode->NodeText.StringPtr.Value;
