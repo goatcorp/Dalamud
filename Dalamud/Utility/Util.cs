@@ -27,6 +27,8 @@ using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
 using Windows.Win32.UI.WindowsAndMessaging;
 
+using Dalamud.Interface.Internal;
+
 using FLASHWINFO = Windows.Win32.UI.WindowsAndMessaging.FLASHWINFO;
 using HWND = Windows.Win32.Foundation.HWND;
 using MEMORY_BASIC_INFORMATION = Windows.Win32.System.Memory.MEMORY_BASIC_INFORMATION;
@@ -530,8 +532,15 @@ public static partial class Util
         var process = new ProcessStartInfo(url)
         {
             UseShellExecute = true,
+            ErrorDialogParentHandle = Service<InterfaceManager>.GetNullable() is { } im
+                                          ? im.GameWindowHandle
+                                          : 0,
+            Verb = "open",
         };
-        Process.Start(process);
+        if (Service<Framework>.GetNullable() is { } fw)
+            _ = fw.RunOnFrameworkThread(() => Process.Start(process));
+        else
+            Process.Start(process);
     }
 
     /// <summary>
