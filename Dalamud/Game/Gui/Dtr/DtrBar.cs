@@ -641,7 +641,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                     break;
 
                 case AddonEventType.MouseClick:
-                    dtrBarEntry.OnClick?.Invoke(new AddonMouseEventData(eventData));
+                    dtrBarEntry.OnClick?.Invoke(DtrInteractionEvent.FromMouseEvent(new AddonMouseEventData(eventData)));
                     break;
             }
         }
