@@ -23,6 +23,11 @@ public enum MouseClickType
 public enum ClickModifierKeys
 {
     /// <summary>
+    /// No modifiers were present.
+    /// </summary>
+    None = 0,
+
+    /// <summary>
     /// The CTRL key was held.
     /// </summary>
     Ctrl = 1 << 0,
