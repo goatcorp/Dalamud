@@ -3,23 +3,23 @@ using System.Globalization;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.UiDebug2.Browsing;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
 using static System.Globalization.NumberFormatInfo;
 
+using static Dalamud.Bindings.ImGui.ImGuiCol;
+using static Dalamud.Bindings.ImGui.ImGuiWindowFlags;
 using static Dalamud.Interface.FontAwesomeIcon;
 using static Dalamud.Interface.Internal.UiDebug2.UiDebug2;
 using static Dalamud.Interface.UiBuilder;
 using static Dalamud.Interface.Utility.ImGuiHelpers;
 using static FFXIVClientStructs.FFXIV.Component.GUI.NodeFlags;
-using static ImGuiNET.ImGuiCol;
-using static ImGuiNET.ImGuiWindowFlags;
+
 // ReSharper disable StructLacksIEquatable.Global
 
 #pragma warning disable CS0659
@@ -79,7 +79,7 @@ internal unsafe class ElementSelector : IDisposable
     /// </summary>
     internal void DrawInterface()
     {
-        using var ch = ImRaii.Child("###sidebar_elementSelector", new(250, -1), true);
+        using var ch = ImRaii.Child("###sidebar_elementSelector"u8, new(250, -1), true);
 
         if (ch.Success)
         {
@@ -105,15 +105,15 @@ internal unsafe class ElementSelector : IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip("Element Selector");
+                ImGui.SetTooltip("Element Selector"u8);
             }
 
             ImGui.SameLine();
 
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 32);
             ImGui.InputTextWithHint(
-                "###addressSearchInput",
-                "Address Search",
+                "###addressSearchInput"u8,
+                "Address Search"u8,
                 ref this.addressSearchInput,
                 18,
                 ImGuiInputTextFlags.AutoSelectAll);
@@ -144,10 +144,10 @@ internal unsafe class ElementSelector : IDisposable
             return;
         }
 
-        ImGui.Text("ELEMENT SELECTOR");
-        ImGui.TextDisabled("Use the mouse to hover and identify UI elements, then click to jump to them in the inspector");
-        ImGui.TextDisabled("Use the scrollwheel to choose between overlapping elements");
-        ImGui.TextDisabled("Press ESCAPE to cancel");
+        ImGui.Text("ELEMENT SELECTOR"u8);
+        ImGui.TextDisabled("Use the mouse to hover and identify UI elements, then click to jump to them in the inspector"u8);
+        ImGui.TextDisabled("Use the scrollwheel to choose between overlapping elements"u8);
+        ImGui.TextDisabled("Press ESCAPE to cancel"u8);
         ImGui.Spacing();
 
         var mousePos = ImGui.GetMousePos() - MainViewport.Pos;
@@ -155,7 +155,7 @@ internal unsafe class ElementSelector : IDisposable
 
         using (ImRaii.PushColor(WindowBg, new Vector4(0.5f)))
         {
-            using var ch = ImRaii.Child("noClick", new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse);
+            using var ch = ImRaii.Child("noClick"u8, new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse);
             if (ch.Success)
             {
                 using var gr = ImRaii.Group();
@@ -163,13 +163,13 @@ internal unsafe class ElementSelector : IDisposable
                 {
                     Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
                     ImGui.Spacing();
-                    ImGui.Text("RESULTS:\n");
+                    ImGui.Text("RESULTS:\n"u8);
 
                     var i = 0;
                     foreach (var a in addonResults)
                     {
                         var name = a.Addon->NameString;
-                        ImGui.TextUnformatted($"[Addon] {name}");
+                        ImGui.Text($"[Addon] {name}");
                         ImGui.Indent(15);
                         foreach (var n in a.Nodes)
                         {

@@ -24,6 +24,7 @@ public static class SeStringExtensions
     /// </summary>
     /// <param name="originalString">The original Lumina SeString.</param>
     /// <returns>The re-parsed Dalamud SeString.</returns>
+    [Obsolete("Switch to using ReadOnlySeString instead of Lumina's SeString.", true)]
     public static DSeString ToDalamudString(this LSeString originalString) => DSeString.Parse(originalString.RawData);
 
     /// <summary>

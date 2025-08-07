@@ -21,6 +21,8 @@ namespace Dalamud.Game;
 /// </summary>
 public class SigScanner : IDisposable, ISigScanner
 {
+    private static byte[]? fileBytes;
+
     private readonly FileInfo? cacheFile;
 
     private nint moduleCopyPtr;
@@ -51,11 +53,15 @@ public class SigScanner : IDisposable, ISigScanner
         this.Is32BitProcess = !Environment.Is64BitProcess;
         this.IsCopy = doCopy;
 
+        if (this.IsCopy)
+        {
+            this.SetupCopiedSegments();
+
+            fileBytes ??= File.ReadAllBytes(module.FileName);
+        }
+
         // Limit the search space to .text section.
         this.SetupSearchSpace(module);
-
-        if (this.IsCopy)
-            this.SetupCopiedSegments();
 
         Log.Verbose($"Module base: 0x{this.TextSectionBase.ToInt64():X}");
         Log.Verbose($"Module size: 0x{this.TextSectionSize:X}");
@@ -494,6 +500,18 @@ public class SigScanner : IDisposable, ISigScanner
                 case 0x747865742E: // .text
                     this.TextSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
                     this.TextSectionSize = Marshal.ReadInt32(sectionCursor, 8);
+
+                    if (this.IsCopy)
+                    {
+                        var pointerToRawData = Marshal.ReadInt32(sectionCursor, 20);
+
+                        Marshal.Copy(
+                                     fileBytes.AsSpan(pointerToRawData, this.TextSectionSize).ToArray(),
+                                     0,
+                                     this.moduleCopyPtr + (nint)this.TextSectionOffset,
+                                     this.TextSectionSize);
+                    }
+
                     break;
                 case 0x617461642E: // .data
                     this.DataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);

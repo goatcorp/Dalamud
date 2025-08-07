@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.GamePad;
-using ImGuiNET;
 
 namespace Dalamud.Plugin.Services;
 
@@ -16,12 +16,12 @@ public interface IGamepadState
     /// Gets the pointer to the current instance of the GamepadInput struct.
     /// </summary>
     public nint GamepadInputAddress { get; }
-    
+
     /// <summary>
     /// Gets the left analogue sticks tilt vector.
     /// </summary>
     public Vector2 LeftStick { get; }
-    
+
     /// <summary>
     /// Gets the right analogue sticks tilt vector.
     /// </summary>

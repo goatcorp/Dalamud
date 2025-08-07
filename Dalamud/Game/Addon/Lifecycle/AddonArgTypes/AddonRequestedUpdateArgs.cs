@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
 /// Addon argument data for OnRequestedUpdate events.
@@ -31,4 +31,12 @@ public class AddonRequestedUpdateArgs : AddonArgs, ICloneable
 
     /// <inheritdoc cref="Clone"/>
     object ICloneable.Clone() => this.Clone();
+
+    /// <inheritdoc cref="AddonArgs.Clear"/>
+    internal override void Clear()
+    {
+        base.Clear();
+        this.NumberArrayData = default;
+        this.StringArrayData = default;
+    }
 }

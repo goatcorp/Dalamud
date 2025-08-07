@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 namespace Dalamud.Plugin.Services;
 
@@ -83,6 +84,25 @@ public interface IChatGui
     /// Gets the dictionary of Dalamud Link Handlers.
     /// </summary>
     public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers { get; }
+
+    /// <summary>
+    /// Register a chat link handler.
+    /// </summary>
+    /// <param name="commandId">The ID of the command.</param>
+    /// <param name="commandAction">The action to be executed.</param>
+    /// <returns>Returns an SeString payload for the link.</returns>
+    public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction);
+
+    /// <summary>
+    /// Remove a chat link handler.
+    /// </summary>
+    /// <param name="commandId">The ID of the command.</param>
+    public void RemoveChatLinkHandler(uint commandId);
+
+    /// <summary>
+    /// Removes all chat link handlers registered by the plugin.
+    /// </summary>
+    public void RemoveChatLinkHandler();
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.

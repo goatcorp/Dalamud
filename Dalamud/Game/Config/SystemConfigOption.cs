@@ -1032,6 +1032,13 @@ public enum SystemConfigOption
     TitleScreenType,
 
     /// <summary>
+    /// System option with the internal name DisplayObjectLimitType2.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("DisplayObjectLimitType2", ConfigType.UInt)]
+    DisplayObjectLimitType2,
+
+    /// <summary>
     /// System option with the internal name AccessibilitySoundVisualEnable.
     /// This option is a UInt.
     /// </summary>
@@ -1114,6 +1121,13 @@ public enum SystemConfigOption
     /// </summary>
     [GameConfigOption("CameraZoom", ConfigType.UInt)]
     CameraZoom,
+
+    /// <summary>
+    /// System option with the internal name DynamicAroundRangeMode.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("DynamicAroundRangeMode", ConfigType.UInt)]
+    DynamicAroundRangeMode,
 
     /// <summary>
     /// System option with the internal name DynamicRezoType.

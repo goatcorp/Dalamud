@@ -1,8 +1,7 @@
-﻿using Dalamud.Game.Gui;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
-
-using ImGuiNET;
+using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -53,37 +52,37 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverNormalItem:
-                ImGui.Text("Hover the item.");
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != normalItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
                 break;
             case SubStep.PrintHqItem:
-                toPrint = SeString.CreateItemLink(hqItemId, ItemPayload.ItemKind.Hq);
+                toPrint = SeString.CreateItemLink(hqItemId, ItemKind.Hq);
                 this.currentSubStep++;
                 break;
             case SubStep.HoverHqItem:
-                ImGui.Text("Hover the item.");
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != 1_000_000 + hqItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
                 break;
             case SubStep.PrintCollectable:
-                toPrint = SeString.CreateItemLink(collectableItemId, ItemPayload.ItemKind.Collectible);
+                toPrint = SeString.CreateItemLink(collectableItemId, ItemKind.Collectible);
                 this.currentSubStep++;
                 break;
             case SubStep.HoverCollectable:
-                ImGui.Text("Hover the item.");
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != 500_000 + collectableItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
                 break;
             case SubStep.PrintEventItem:
-                toPrint = SeString.CreateItemLink(eventItemId, ItemPayload.ItemKind.EventItem);
+                toPrint = SeString.CreateItemLink(eventItemId, ItemKind.EventItem);
                 this.currentSubStep++;
                 break;
             case SubStep.HoverEventItem:
-                ImGui.Text("Hover the item.");
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != eventItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -93,7 +92,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverNormalWithText:
-                ImGui.Text("Hover the item.");
+                ImGui.Text("Hover the item."u8);
                 if (gameGui.HoveredItem != normalItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;

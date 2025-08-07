@@ -5,13 +5,12 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Networking.Http;
-
-using ImGuiNET;
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Internal.Windows;
@@ -62,20 +61,20 @@ public class BranchSwitcherWindow : Window
     {
         if (this.branches == null)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "Loading branches...");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "Loading branches..."u8);
             return;
         }
 
         var si = Service<Dalamud>.Get().StartInfo;
 
         var itemsArray = this.branches.Select(x => x.Key).ToArray();
-        ImGui.ListBox("Branch", ref this.selectedBranchIndex, itemsArray, itemsArray.Length);
+        ImGui.ListBox("Branch", ref this.selectedBranchIndex, itemsArray);
 
         var pickedBranch = this.branches.ElementAt(this.selectedBranchIndex);
 
         if (pickedBranch.Value.SupportedGameVer != si.GameVersion)
         {
-            ImGui.TextColored(ImGuiColors.DalamudRed, "Can't pick this branch. GameVer != SupportedGameVer.");
+            ImGui.TextColored(ImGuiColors.DalamudRed, "Can't pick this branch. GameVer != SupportedGameVer."u8);
         }
         else
         {
@@ -92,7 +91,7 @@ public class BranchSwitcherWindow : Window
                 config.QueueSave();
             }
 
-            if (ImGui.Button("Pick"))
+            if (ImGui.Button("Pick"u8))
             {
                 Pick();
                 this.IsOpen = false;
@@ -100,7 +99,7 @@ public class BranchSwitcherWindow : Window
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Pick & Restart"))
+            if (ImGui.Button("Pick & Restart"u8))
             {
                 Pick();
 

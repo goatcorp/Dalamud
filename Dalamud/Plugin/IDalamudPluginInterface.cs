@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
@@ -32,9 +32,8 @@ public interface IDalamudPluginInterface
     /// <summary>
     /// Delegate for events that listen to changes to the list of active plugins.
     /// </summary>
-    /// <param name="kind">What action caused this event to be fired.</param>
-    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
-    public delegate void ActivePluginsChangedDelegate(PluginListInvalidationKind kind, bool affectedThisPlugin);
+    /// <param name="args">The event arguments containing information about the change.</param>
+    public delegate void ActivePluginsChangedDelegate(IActivePluginsChangedEventArgs args);
 
     /// <summary>
     /// Event that gets fired when loc is changed
@@ -280,25 +279,6 @@ public interface IDalamudPluginInterface
     /// </summary>
     /// <returns>directory with path of AppData/XIVLauncher/pluginConfig/PluginInternalName/loc.</returns>
     string GetPluginLocDirectory();
-
-    /// <summary>
-    /// Register a chat link handler.
-    /// </summary>
-    /// <param name="commandId">The ID of the command.</param>
-    /// <param name="commandAction">The action to be executed.</param>
-    /// <returns>Returns an SeString payload for the link.</returns>
-    DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction);
-
-    /// <summary>
-    /// Remove a chat link handler.
-    /// </summary>
-    /// <param name="commandId">The ID of the command.</param>
-    void RemoveChatLinkHandler(uint commandId);
-
-    /// <summary>
-    /// Removes all chat link handlers registered by the plugin.
-    /// </summary>
-    void RemoveChatLinkHandler();
 
     /// <summary>
     /// Create a new object of the provided type using its default constructor, then inject objects and properties.

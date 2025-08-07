@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -10,8 +9,10 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
@@ -20,16 +21,18 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Support;
-using ImGuiNET;
 using Lumina.Excel.Sheets;
 using Serilog;
 using TerraFX.Interop.Windows;
-using Windows.Win32.Storage.FileSystem;
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
+using Windows.Win32.UI.WindowsAndMessaging;
 
-using static TerraFX.Interop.Windows.Windows;
+using Dalamud.Interface.Internal;
 
+using FLASHWINFO = Windows.Win32.UI.WindowsAndMessaging.FLASHWINFO;
+using HWND = Windows.Win32.Foundation.HWND;
+using MEMORY_BASIC_INFORMATION = Windows.Win32.System.Memory.MEMORY_BASIC_INFORMATION;
 using Win32_PInvoke = Windows.Win32.PInvoke;
 
 namespace Dalamud.Utility;
@@ -37,7 +40,7 @@ namespace Dalamud.Utility;
 /// <summary>
 /// Class providing various helper methods for use in Dalamud and plugins.
 /// </summary>
-public static class Util
+public static partial class Util
 {
     private static readonly string[] PageProtectionFlagNames = [
         "PAGE_NOACCESS",
@@ -209,14 +212,14 @@ public static class Util
         }
 
         MEMORY_BASIC_INFORMATION mbi;
-        if (VirtualQuery((void*)p, &mbi, (nuint)sizeof(MEMORY_BASIC_INFORMATION)) == 0)
+        if (Win32_PInvoke.VirtualQuery((void*)p, &mbi, (nuint)sizeof(MEMORY_BASIC_INFORMATION)) == 0)
             return $"0x{p:X}(???)";
 
         var sb = new StringBuilder();
         sb.Append($"0x{p:X}(");
         for (int i = 0, c = 0; i < PageProtectionFlagNames.Length; i++)
         {
-            if ((mbi.Protect & (1 << i)) == 0)
+            if (((uint)mbi.Protect & (1 << i)) == 0)
                 continue;
             if (c++ != 0)
                 sb.Append(" | ");
@@ -364,7 +367,7 @@ public static class Util
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGui.TextColored(ImGuiColors.DalamudOrange, "-> Properties:");
+        ImGui.TextColored(ImGuiColors.DalamudOrange, "-> Properties:"u8);
 
         ImGui.Indent();
 
@@ -389,7 +392,7 @@ public static class Util
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGui.TextColored(ImGuiColors.HealerGreen, "-> Fields:");
+        ImGui.TextColored(ImGuiColors.HealerGreen, "-> Fields:"u8);
 
         ImGui.Indent();
 
@@ -409,9 +412,9 @@ public static class Util
     /// <param name="exit">Specify whether to exit immediately.</param>
     public static void Fatal(string message, string caption, bool exit = true)
     {
-        var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError |
-                    NativeFunctions.MessageBoxType.Topmost;
-        _ = NativeFunctions.MessageBoxW(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
+        var flags = MESSAGEBOX_STYLE.MB_OK | MESSAGEBOX_STYLE.MB_ICONERROR |
+                    MESSAGEBOX_STYLE.MB_TOPMOST;
+        _ = Windows.Win32.PInvoke.MessageBox(new HWND(Process.GetCurrentProcess().MainWindowHandle), message, caption, flags);
 
         if (exit)
         {
@@ -522,17 +525,36 @@ public static class Util
     public static bool IsWindows11() => Environment.OSVersion.Version.Build >= 22000;
 
     /// <summary>
-    /// Open a link in the default browser.
+    /// Open a link in the default browser, and attempts to focus the newly launched application.
     /// </summary>
     /// <param name="url">The link to open.</param>
-    public static void OpenLink(string url)
-    {
-        var process = new ProcessStartInfo(url)
+    public static void OpenLink(string url) => new Thread(
+        static url =>
         {
-            UseShellExecute = true,
-        };
-        Process.Start(process);
-    }
+            try
+            {
+                var psi = new ProcessStartInfo((string)url!)
+                {
+                    UseShellExecute = true,
+                    ErrorDialogParentHandle = Service<InterfaceManager>.GetNullable() is { } im
+                                                  ? im.GameWindowHandle
+                                                  : 0,
+                    Verb = "open",
+                };
+                if (Process.Start(psi) is not { } process)
+                    return;
+
+                if (process.Id != 0)
+                    TerraFX.Interop.Windows.Windows.AllowSetForegroundWindow((uint)process.Id);
+                process.WaitForInputIdle();
+                TerraFX.Interop.Windows.Windows.SetForegroundWindow(
+                    (TerraFX.Interop.Windows.HWND)process.MainWindowHandle);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "{fn}: failed to open {url}", nameof(OpenLink), url);
+            }
+        }).Start(url);
 
     /// <summary>
     /// Perform a "zipper merge" (A, 1, B, 2, C, 3) of multiple enumerables, allowing for lists to end early.
@@ -585,56 +607,44 @@ public static class Util
     }
 
     /// <summary>
-    /// Request that Windows flash the game window to grab the user's attention.
+    /// Returns true if the current application has focus, false otherwise.
     /// </summary>
-    /// <param name="flashIfOpen">Attempt to flash even if the game is currently focused.</param>
-    public static void FlashWindow(bool flashIfOpen = false)
+    /// <returns>
+    /// If the current application is focused.
+    /// </returns>
+    public static unsafe bool ApplicationIsActivated()
     {
-        if (NativeFunctions.ApplicationIsActivated() && !flashIfOpen)
-            return;
+        var activatedHandle = Win32_PInvoke.GetForegroundWindow();
+        if (activatedHandle == IntPtr.Zero)
+            return false; // No window is currently activated
 
-        var flashInfo = new NativeFunctions.FlashWindowInfo
-        {
-            Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
-            Count = uint.MaxValue,
-            Timeout = 0,
-            Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
-            Hwnd = Process.GetCurrentProcess().MainWindowHandle,
-        };
+        uint pid;
+        _ = Win32_PInvoke.GetWindowThreadProcessId(activatedHandle, &pid);
+        if (Marshal.GetLastWin32Error() != 0)
+            return false;
 
-        NativeFunctions.FlashWindowEx(ref flashInfo);
+        return pid == Environment.ProcessId;
     }
 
     /// <summary>
-    /// Overwrite text in a file by first writing it to a temporary file, and then
-    /// moving that file to the path specified.
+    /// Request that Windows flash the game window to grab the user's attention.
     /// </summary>
-    /// <param name="path">The path of the file to write to.</param>
-    /// <param name="text">The text to write.</param>
-    [Api13ToDo("Remove.")]
-    [Obsolete("Replaced with FilesystemUtil.WriteAllTextSafe()")]
-    public static void WriteAllTextSafe(string path, string text) => FilesystemUtil.WriteAllTextSafe(path, text);
+    /// <param name="flashIfOpen">Attempt to flash even if the game is currently focused.</param>
+    public static unsafe void FlashWindow(bool flashIfOpen = false)
+    {
+        if (ApplicationIsActivated() && !flashIfOpen)
+            return;
 
-    /// <summary>
-    /// Overwrite text in a file by first writing it to a temporary file, and then
-    /// moving that file to the path specified.
-    /// </summary>
-    /// <param name="path">The path of the file to write to.</param>
-    /// <param name="text">The text to write.</param>
-    /// <param name="encoding">Encoding to use.</param>
-    [Api13ToDo("Remove.")]
-    [Obsolete("Replaced with FilesystemUtil.WriteAllTextSafe()")]
-    public static void WriteAllTextSafe(string path, string text, Encoding encoding) => FilesystemUtil.WriteAllTextSafe(path, text, encoding);
-
-    /// <summary>
-    /// Overwrite data in a file by first writing it to a temporary file, and then
-    /// moving that file to the path specified.
-    /// </summary>
-    /// <param name="path">The path of the file to write to.</param>
-    /// <param name="bytes">The data to write.</param>
-    [Api13ToDo("Remove.")]
-    [Obsolete("Replaced with FilesystemUtil.WriteAllBytesSafe()")]
-    public static void WriteAllBytesSafe(string path, byte[] bytes) => FilesystemUtil.WriteAllBytesSafe(path, bytes);
+        var flashInfo = new FLASHWINFO
+        {
+            cbSize = (uint)sizeof(FLASHWINFO),
+            uCount = uint.MaxValue,
+            dwTimeout = 0,
+            dwFlags = FLASHWINFO_FLAGS.FLASHW_ALL | FLASHWINFO_FLAGS.FLASHW_TIMERNOFG,
+            hwnd = new HWND(Process.GetCurrentProcess().MainWindowHandle),
+        };
+        Win32_PInvoke.FlashWindowEx(flashInfo);
+    }
 
     /// <summary>Gets a temporary file name, for use as the sourceFileName in
     /// <see cref="File.Replace(string,string,string?)"/>.</summary>
@@ -757,7 +767,7 @@ public static class Util
                 $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.ValueNullable?.Name : pc.HomeWorld.RowId.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.ValueNullable?.Name : pc.CurrentWorld.RowId.ToString())} FC: {pc.CompanyTag}\n";
         }
 
-        ImGui.TextUnformatted(actorString);
+        ImGui.Text(actorString);
         ImGui.SameLine();
         if (ImGui.Button($"C##{actor.Address.ToInt64()}"))
         {
@@ -791,7 +801,7 @@ public static class Util
                 $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.ValueNullable?.Name : pc.HomeWorld.RowId.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.ValueNullable?.Name : pc.CurrentWorld.RowId.ToString())} FC: {pc.CompanyTag}\n";
         }
 
-        ImGui.TextUnformatted(actorString);
+        ImGui.Text(actorString);
         ImGui.SameLine();
         if (ImGui.Button($"C##{actor.Address.ToInt64()}"))
         {
@@ -868,7 +878,7 @@ public static class Util
         var propType = p.PropertyType;
         if (p.GetGetMethod() is not { } getMethod)
         {
-            ImGui.Text("(No getter available)");
+            ImGui.Text("(No getter available)"u8);
             return;
         }
 
@@ -962,7 +972,7 @@ public static class Util
                 var pointerType = typeof(T*);
                 for (var i = 0; i < spanobj.Length; i++)
                 {
-                    ImGui.TextUnformatted($"[{offset + i:n0} (0x{offset + i:X})] ");
+                    ImGui.Text($"[{offset + i:n0} (0x{offset + i:X})] ");
                     ImGui.SameLine();
                     path.Add($"{offset + i}");
                     ShowValue(addr, path, pointerType, Pointer.Box(p + i, pointerType), true);
@@ -1003,7 +1013,7 @@ public static class Util
                     var ptrObj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
                     if (ptrObj == null)
                     {
-                        ImGui.Text("null or invalid");
+                        ImGui.Text("null or invalid"u8);
                     }
                     else
                     {
@@ -1017,7 +1027,7 @@ public static class Util
             }
             else
             {
-                ImGui.Text("null");
+                ImGui.Text("null"u8);
             }
         }
         else
@@ -1088,7 +1098,7 @@ public static class Util
 
                     if (fixedBuffer != null)
                     {
-                        ImGui.Text("fixed");
+                        ImGui.Text("fixed"u8);
                         ImGui.SameLine();
                         ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
                     }
@@ -1112,7 +1122,7 @@ public static class Util
                     {
                         if (f.FieldType.IsGenericType && (f.FieldType.IsByRef || f.FieldType.IsByRefLike))
                         {
-                            ImGui.Text("Cannot preview ref typed fields."); // object never contains ref struct
+                            ImGui.Text("Cannot preview ref typed fields."u8); // object never contains ref struct
                         }
                         else if (f.FieldType == typeof(bool) && offset != null)
                         {
@@ -1127,7 +1137,7 @@ public static class Util
                     {
                         using (ImRaii.PushColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f)))
                         {
-                            ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                            ImGui.Text($"Error: {ex.GetType().Name}: {ex.Message}");
                         }
                     }
                     finally
@@ -1152,7 +1162,7 @@ public static class Util
                         }
                         else if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
                         {
-                            ImGui.Text("Cannot preview ref typed properties.");
+                            ImGui.Text("Cannot preview ref typed properties."u8);
                         }
                         else
                         {
@@ -1163,7 +1173,7 @@ public static class Util
                     {
                         using (ImRaii.PushColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f)))
                         {
-                            ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                            ImGui.Text($"Error: {ex.GetType().Name}: {ex.Message}");
                         }
                     }
                     finally

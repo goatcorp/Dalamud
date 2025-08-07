@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.Evaluator;
@@ -11,7 +9,6 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Defines a service for retrieving localized text for various in-game entities.
 /// </summary>
-[Experimental("SeStringEvaluator")]
 public interface ISeStringEvaluator
 {
     /// <summary>

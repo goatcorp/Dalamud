@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows;
@@ -12,8 +13,6 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiNotification;
 
@@ -56,7 +55,7 @@ public static class NotificationUtilities
         using (fontHandle.Push())
         {
             var font = ImGui.GetFont();
-            var glyphPtr = (ImGuiHelpers.ImFontGlyphReal*)font.FindGlyphNoFallback(c).NativePtr;
+            var glyphPtr = (ImGuiHelpers.ImFontGlyphReal*)font.FindGlyphNoFallback(c);
             if (glyphPtr is null)
                 return false;
 
@@ -103,7 +102,7 @@ public static class NotificationUtilities
             return false;
         try
         {
-            var handle = texture.ImGuiHandle;
+            var handle = texture.Handle;
             var size = texture.Size;
             if (size.X > maxCoord.X - minCoord.X)
                 size *= (maxCoord.X - minCoord.X) / size.X;

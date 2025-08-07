@@ -2,13 +2,15 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
+using static Dalamud.Bindings.ImGui.ImGuiCol;
+using static Dalamud.Bindings.ImGui.ImGuiTreeNodeFlags;
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Interface.FontAwesomeIcon;
 using static Dalamud.Interface.Internal.UiDebug2.Browsing.Events;
@@ -17,9 +19,6 @@ using static Dalamud.Interface.Internal.UiDebug2.UiDebug2;
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
 using static Dalamud.Utility.Util;
 using static FFXIVClientStructs.FFXIV.Component.GUI.NodeFlags;
-
-using static ImGuiNET.ImGuiCol;
-using static ImGuiNET.ImGuiTreeNodeFlags;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
 
@@ -169,7 +168,7 @@ internal unsafe partial class ResNodeTree : IDisposable
     /// </summary>
     internal void WriteTreeHeading()
     {
-        ImGui.TextUnformatted(this.GetHeaderText());
+        ImGui.Text(this.GetHeaderText());
         this.PrintFieldLabels();
     }
 
@@ -385,7 +384,7 @@ internal unsafe partial class ResNodeTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Visibility");
+            ImGui.SetTooltip("Toggle Visibility"u8);
         }
 
         ImGui.SameLine();
@@ -401,7 +400,7 @@ internal unsafe partial class ResNodeTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Popout Window");
+            ImGui.SetTooltip("Toggle Popout Window"u8);
         }
     }
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
@@ -11,14 +12,10 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
 using Serilog;
-
-using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface;
 
@@ -60,6 +57,15 @@ public interface IUiBuilder
     /// These may be fired consecutively.
     /// </summary>
     event Action? HideUi;
+
+    /// <inheritdoc cref="InterfaceManager.DefaultGlobalScaleChanged"/>
+    event Action? DefaultGlobalScaleChanged;
+
+    /// <inheritdoc cref="InterfaceManager.DefaultFontChanged"/>
+    event Action? DefaultFontChanged;
+
+    /// <inheritdoc cref="InterfaceManager.DefaultStyleChanged"/>
+    event Action? DefaultStyleChanged;
 
     /// <summary>
     /// Gets the handle to the default Dalamud font - supporting all game languages and icons.
@@ -117,14 +123,52 @@ public interface IUiBuilder
     IFontSpec DefaultFontSpec { get; }
 
     /// <summary>
-    /// Gets the game's active Direct3D device.
+    /// Gets the default Dalamud font size in points.
     /// </summary>
-    Device Device { get; }
+    public float FontDefaultSizePt { get; }
 
     /// <summary>
-    /// Gets the game's main window handle.
+    /// Gets the default Dalamud font size in pixels.
     /// </summary>
-    IntPtr WindowHandlePtr { get; }
+    public float FontDefaultSizePx { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud font - supporting all game languages and icons.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    public ImFontPtr FontDefault { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    public ImFontPtr FontIcon { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud monospaced font based on Inconsolata Regular.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    public ImFontPtr FontMono { get; }
+
+    /// <summary>
+    /// Gets the game's active Direct3D device.
+    /// </summary>
+    // TODO: Remove it on API11/APIXI, and remove SharpDX/PInvoke/etc. dependency from Dalamud.
+    [Obsolete($"Use {nameof(DeviceHandle)} and wrap it using DirectX wrapper library of your choice.")]
+    SharpDX.Direct3D11.Device Device { get; }
+
+    /// <summary>Gets the game's active Direct3D device.</summary>
+    /// <value>Pointer to the instance of IUnknown that the game is using and should be containing an ID3D11Device,
+    /// or 0 if it is not available yet.</value>
+    /// <remarks>Use
+    /// <a href="https://learn.microsoft.com/en-us/windows/win32/api/unknwn/nf-unknwn-iunknown-queryinterface(q)">
+    /// QueryInterface</a> with IID of <c>IID_ID3D11Device</c> if you want to ensure that the interface type contained
+    /// within is indeed an instance of ID3D11Device.</remarks>
+    nint DeviceHandle { get; }
+
+    /// <summary>Gets the game's main window handle.</summary>
+    /// <value>HWND of the main game window, or 0 if it is not available yet.</value>
+    nint WindowHandlePtr { get; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the game's UI is hidden.
@@ -258,6 +302,8 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     private IFontHandle? monoFontHandle;
     private IFontHandle? iconFontFixedWidthHandle;
 
+    private SharpDX.Direct3D11.Device? sdxDevice;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
     /// You do not have to call this manually.
@@ -278,6 +324,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 
             this.interfaceManager.ResizeBuffers += this.OnResizeBuffers;
             this.scopedFinalizer.Add(() => this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers);
+
+            this.interfaceManager.DefaultStyleChanged += this.OnDefaultStyleChanged;
+            this.scopedFinalizer.Add(() => this.interfaceManager.DefaultStyleChanged -= this.OnDefaultStyleChanged);
+
+            this.interfaceManager.DefaultGlobalScaleChanged += this.OnDefaultGlobalScaleChanged;
+            this.scopedFinalizer.Add(() => this.interfaceManager.DefaultGlobalScaleChanged -= this.OnDefaultGlobalScaleChanged);
+
+            this.interfaceManager.DefaultFontChanged += this.OnDefaultFontChanged;
+            this.scopedFinalizer.Add(() => this.interfaceManager.DefaultFontChanged -= this.OnDefaultFontChanged);
 
             this.FontAtlas =
                 this.scopedFinalizer
@@ -311,6 +366,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// <inheritdoc/>
     public event Action? HideUi;
 
+    /// <inheritdoc/>
+    public event Action? DefaultGlobalScaleChanged;
+
+    /// <inheritdoc/>
+    public event Action? DefaultFontChanged;
+
+    /// <inheritdoc/>
+    public event Action? DefaultStyleChanged;
+
     /// <summary>
     /// Gets the default Dalamud font size in points.
     /// </summary>
@@ -343,6 +407,21 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// Gets the default font specifications.
     /// </summary>
     public IFontSpec DefaultFontSpec => Service<FontAtlasFactory>.Get().DefaultFontSpec;
+
+    /// <inheritdoc/>
+    public float FontDefaultSizePt => Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePt;
+
+    /// <inheritdoc/>
+    public float FontDefaultSizePx => Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx;
+
+    /// <inheritdoc/>
+    public ImFontPtr FontDefault => InterfaceManager.DefaultFont;
+
+    /// <inheritdoc/>
+    public ImFontPtr FontIcon => InterfaceManager.IconFont;
+
+    /// <inheritdoc/>
+    public ImFontPtr FontMono => InterfaceManager.MonoFont;
 
     /// <summary>
     /// Gets the handle to the default Dalamud font - supporting all game languages and icons.
@@ -414,15 +493,17 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
                     this.InterfaceManagerWithScene?.MonoFontHandle
                     ?? throw new InvalidOperationException("Scene is not yet ready.")));
 
-    /// <summary>
-    /// Gets the game's active Direct3D device.
-    /// </summary>
-    public Device Device => this.InterfaceManagerWithScene!.Device!;
+    /// <inheritdoc/>
+    // TODO: Remove it on API11/APIXI, and remove SharpDX/PInvoke/etc. dependency from Dalamud.
+    [Obsolete($"Use {nameof(DeviceHandle)} and wrap it using DirectX wrapper library of your choice.")]
+    public SharpDX.Direct3D11.Device Device =>
+        this.sdxDevice ??= new(this.InterfaceManagerWithScene!.Backend!.DeviceHandle);
 
-    /// <summary>
-    /// Gets the game's main window handle.
-    /// </summary>
-    public IntPtr WindowHandlePtr => this.InterfaceManagerWithScene!.WindowHandlePtr;
+    /// <inheritdoc/>
+    public nint DeviceHandle => this.InterfaceManagerWithScene?.Backend?.DeviceHandle ?? 0;
+
+    /// <inheritdoc/>
+    public nint WindowHandlePtr => this.InterfaceManagerWithScene is { } imws ? imws.GameWindowHandle : 0;
 
     /// <summary>
     /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the game's UI is hidden.
@@ -699,14 +780,17 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             this.stopwatch.Restart();
         }
 
-        if (this.hasErrorWindow && ImGui.Begin($"{this.namespaceName} Error", ref this.hasErrorWindow, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
+        if (this.hasErrorWindow)
         {
-            ImGui.Text($"The plugin {this.namespaceName} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.");
-            ImGui.Spacing();
-
-            if (ImGui.Button("OK"))
+            if (ImGui.Begin($"{this.namespaceName} Error", ref this.hasErrorWindow, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
             {
-                this.hasErrorWindow = false;
+                ImGui.Text($"The plugin {this.namespaceName} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.");
+                ImGui.Spacing();
+
+                if (ImGui.Button("OK"u8))
+                {
+                    this.hasErrorWindow = false;
+                }
             }
 
             ImGui.End();
@@ -745,6 +829,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     {
         this.ResizeBuffers?.InvokeSafely();
     }
+
+    private void OnDefaultStyleChanged()
+        => this.DefaultStyleChanged.InvokeSafely();
+
+    private void OnDefaultGlobalScaleChanged()
+        => this.DefaultGlobalScaleChanged.InvokeSafely();
+
+    private void OnDefaultFontChanged()
+        => this.DefaultFontChanged.InvokeSafely();
 
     private class FontHandleWrapper : IFontHandle
     {

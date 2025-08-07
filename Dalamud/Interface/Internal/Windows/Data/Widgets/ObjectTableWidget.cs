@@ -1,10 +1,10 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Gui;
 using Dalamud.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -19,24 +19,24 @@ internal class ObjectTableWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "ot", "objecttable" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Object Table"; 
+    public string DisplayName { get; init; } = "Object Table";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
-    
+
     /// <inheritdoc/>
     public void Load()
     {
         this.Ready = true;
     }
-    
+
     /// <inheritdoc/>
     public void Draw()
     {
-        ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
-        
+        ImGui.Checkbox("Resolve GameData"u8, ref this.resolveGameData);
+
         var chatGui = Service<ChatGui>.Get();
         var clientState = Service<ClientState>.Get();
         var gameGui = Service<GameGui>.Get();
@@ -46,11 +46,11 @@ internal class ObjectTableWidget : IDataWindowWidget
 
         if (clientState.LocalPlayer == null)
         {
-            ImGui.TextUnformatted("LocalPlayer null.");
+            ImGui.Text("LocalPlayer null."u8);
         }
         else if (clientState.IsPvPExcludingDen)
         {
-            ImGui.TextUnformatted("Cannot access object table while in PvP.");
+            ImGui.Text("Cannot access object table while in PvP."u8);
         }
         else
         {
@@ -62,10 +62,10 @@ internal class ObjectTableWidget : IDataWindowWidget
             stateString += $"LastLinkedItem: {chatGui.LastLinkedItemId}\n";
             stateString += $"TerritoryType: {clientState.TerritoryType}\n\n";
 
-            ImGui.TextUnformatted(stateString);
+            ImGui.Text(stateString);
 
-            ImGui.Checkbox("Draw characters on screen", ref this.drawCharacters);
-            ImGui.SliderFloat("Draw Distance", ref this.maxCharaDrawDistance, 2f, 40f);
+            ImGui.Checkbox("Draw characters on screen"u8, ref this.drawCharacters);
+            ImGui.SliderFloat("Draw Distance"u8, ref this.maxCharaDrawDistance, 2f, 40f);
 
             for (var i = 0; i < objectTable.Length; i++)
             {

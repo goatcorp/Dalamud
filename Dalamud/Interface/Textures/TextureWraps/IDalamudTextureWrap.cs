@@ -1,5 +1,6 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 
 using TerraFX.Interop.Windows;
@@ -15,7 +16,7 @@ namespace Dalamud.Interface.Textures.TextureWraps;
 public interface IDalamudTextureWrap : IDisposable
 {
     /// <summary>Gets a texture handle suitable for direct use with ImGui functions.</summary>
-    IntPtr ImGuiHandle { get; }
+    ImTextureID Handle { get; }
 
     /// <summary>Gets the width of the texture.</summary>
     int Width { get; }
@@ -32,7 +33,7 @@ public interface IDalamudTextureWrap : IDisposable
     /// <returns>The new reference to this texture wrap.</returns>
     /// <remarks>
     /// On calling this function, a new instance of <see cref="IDalamudTextureWrap"/> will be returned, but with
-    /// the same <see cref="ImGuiHandle"/>. The new instance must be <see cref="IDisposable.Dispose"/>d, as the backing
+    /// the same <see cref="Handle"/>. The new instance must be <see cref="IDisposable.Dispose"/>d, as the backing
     /// resource will stay alive until all the references are released. The old instance may be disposed as needed,
     /// once this function returns; the new instance will stay alive regardless of whether the old instance has been
     /// disposed.<br />
@@ -40,12 +41,12 @@ public interface IDalamudTextureWrap : IDisposable
     /// across plugin boundaries for use for an indeterminate duration, the receiver should call this function to
     /// obtain a new reference to the texture received, so that it gets its own "copy" of the texture and the caller
     /// may dispose the texture anytime without any care for the receiver.<br />
-    /// The default implementation will treat <see cref="ImGuiHandle"/> as an <see cref="IUnknown"/>.
+    /// The default implementation will treat <see cref="Handle"/> as an <see cref="IUnknown"/>.
     /// </remarks>
     unsafe IDalamudTextureWrap CreateWrapSharingLowLevelResource()
     {
         // Dalamud specific: IDalamudTextureWrap always points to an ID3D11ShaderResourceView.
-        var handle = (IUnknown*)this.ImGuiHandle;
+        var handle = (IUnknown*)this.Handle.Handle;
         return new UnknownTextureWrap(handle, this.Width, this.Height, true);
     }
 }

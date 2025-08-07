@@ -13,8 +13,9 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
-using PInvoke;
 using Serilog;
+using Windows.Win32.Foundation;
+using Windows.Win32.Security;
 
 #if DEBUG
 [assembly: InternalsVisibleTo("Dalamud.CorePlugin")]
@@ -29,7 +30,7 @@ namespace Dalamud;
 /// The main Dalamud class containing all subsystems.
 /// </summary>
 [ServiceManager.ProvidedService]
-internal sealed class Dalamud : IServiceType
+internal sealed unsafe class Dalamud : IServiceType
 {
     #region Internals
 
@@ -79,7 +80,7 @@ internal sealed class Dalamud : IServiceType
         {
             Log.Verbose("=============== GAME THREAD KICKOFF ===============");
             Timings.Event("Game thread kickoff");
-            NativeFunctions.SetEvent(mainThreadContinueEvent);
+            Windows.Win32.PInvoke.SetEvent(new HANDLE(mainThreadContinueEvent));
         }
 
         void HandleServiceInitFailure(Task t)
@@ -116,9 +117,9 @@ internal sealed class Dalamud : IServiceType
                 HandleServiceInitFailure(t);
             });
 
-        this.DefaultExceptionFilter = NativeFunctions.SetUnhandledExceptionFilter(nint.Zero);
-        NativeFunctions.SetUnhandledExceptionFilter(this.DefaultExceptionFilter);
-        Log.Debug($"SE default exception filter at {this.DefaultExceptionFilter.ToInt64():X}");
+        this.DefaultExceptionFilter = SetExceptionHandler(nint.Zero);
+        SetExceptionHandler(this.DefaultExceptionFilter);
+        Log.Debug($"SE default exception filter at {new IntPtr(this.DefaultExceptionFilter):X}");
 
         var debugSig = "40 55 53 57 48 8D AC 24 70 AD FF FF";
         this.DebugExceptionFilter = Service<TargetSigScanner>.Get().ScanText(debugSig);
@@ -170,8 +171,9 @@ internal sealed class Dalamud : IServiceType
         if (!reportCrashesSetting && !pmHasDevPlugins)
         {
             // Leaking on purpose for now
-            var attribs = Kernel32.SECURITY_ATTRIBUTES.Create();
-            Kernel32.CreateMutex(attribs, false, "DALAMUD_CRASHES_NO_MORE");
+            var attribs = default(SECURITY_ATTRIBUTES);
+            attribs.nLength = (uint)Unsafe.SizeOf<SECURITY_ATTRIBUTES>();
+            Windows.Win32.PInvoke.CreateMutex(attribs, false, "DALAMUD_CRASHES_NO_MORE");
         }
 
         this.unloadSignal.Set();
@@ -189,27 +191,29 @@ internal sealed class Dalamud : IServiceType
     /// Replace the current exception handler with the default one.
     /// </summary>
     internal void UseDefaultExceptionHandler() =>
-        this.SetExceptionHandler(this.DefaultExceptionFilter);
+        SetExceptionHandler(this.DefaultExceptionFilter);
 
     /// <summary>
     /// Replace the current exception handler with a debug one.
     /// </summary>
     internal void UseDebugExceptionHandler() =>
-        this.SetExceptionHandler(this.DebugExceptionFilter);
+        SetExceptionHandler(this.DebugExceptionFilter);
 
     /// <summary>
     /// Disable the current exception handler.
     /// </summary>
     internal void UseNoExceptionHandler() =>
-        this.SetExceptionHandler(nint.Zero);
+        SetExceptionHandler(nint.Zero);
 
     /// <summary>
     /// Helper function to set the exception handler.
     /// </summary>
-    private void SetExceptionHandler(nint newFilter)
+    private static nint SetExceptionHandler(nint newFilter)
     {
-        var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(newFilter);
-        Log.Debug("Set ExceptionFilter to {0}, old: {1}", newFilter, oldFilter);
+        var oldFilter =
+            Windows.Win32.PInvoke.SetUnhandledExceptionFilter((delegate* unmanaged[Stdcall]<global::Windows.Win32.System.Diagnostics.Debug.EXCEPTION_POINTERS*, int>)newFilter);
+        Log.Debug("Set ExceptionFilter to {0}, old: {1}", newFilter, (nint)oldFilter);
+        return (nint)oldFilter;
     }
 
     private void SetupClientStructsResolver(DirectoryInfo cacheDir)

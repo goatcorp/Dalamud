@@ -1,8 +1,7 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Textures.TextureWraps;
 
@@ -41,7 +40,7 @@ public interface IDrawListTextureWrap : IDalamudTextureWrap
     /// <remarks>This function can be called only from the main thread.</remarks>
     void Draw(ImDrawListPtr drawListPtr, Vector2 displayPos, Vector2 scale);
 
-    /// <inheritdoc cref="DrawListTextureWrap.Draw(ImGuiNET.ImDrawDataPtr)"/>
+    /// <inheritdoc cref="DrawListTextureWrap.Draw(ImDrawDataPtr)"/>
     void Draw(scoped in ImDrawData drawData);
 
     /// <summary>Draws from a draw data to this texture.</summary>
@@ -55,7 +54,7 @@ public interface IDrawListTextureWrap : IDalamudTextureWrap
 
     /// <summary>Resizes this texture and draws an ImGui window.</summary>
     /// <param name="windowName">Name and ID of the window to draw. Use the value that goes into
-    /// <see cref="ImGui.Begin(string)"/>.</param>
+    /// <see cref="ImGui.Begin(ImU8String, ImGuiWindowFlags)"/>.</param>
     /// <param name="scale">Scale to apply to all draw commands in the draw list.</param>
     void ResizeAndDrawWindow(ReadOnlySpan<char> windowName, Vector2 scale);
 }

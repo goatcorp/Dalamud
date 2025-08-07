@@ -1,8 +1,7 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -32,7 +31,7 @@ internal class TargetSelfTestStep : ISelfTestStep
                 break;
 
             case 1:
-                ImGui.Text("Target a player...");
+                ImGui.Text("Target a player..."u8);
 
                 var cTarget = targetManager.Target;
                 if (cTarget is PlayerCharacter)
@@ -43,7 +42,7 @@ internal class TargetSelfTestStep : ISelfTestStep
                 break;
 
             case 2:
-                ImGui.Text("Focus-Target a Battle NPC...");
+                ImGui.Text("Focus-Target a Battle NPC..."u8);
 
                 var fTarget = targetManager.FocusTarget;
                 if (fTarget is BattleNpc)
@@ -54,7 +53,7 @@ internal class TargetSelfTestStep : ISelfTestStep
                 break;
 
             case 3:
-                ImGui.Text("Soft-Target an EventObj...");
+                ImGui.Text("Soft-Target an EventObj..."u8);
 
                 var sTarget = targetManager.SoftTarget;
                 if (sTarget is EventObj)

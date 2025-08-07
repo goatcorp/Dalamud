@@ -1,11 +1,10 @@
 ﻿using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
@@ -55,7 +54,7 @@ internal class NotificationPositionChooser
         ImGui.SetNextWindowBgAlpha(0.6f);
 
         ImGui.Begin(
-            "###NotificationPositionChooser",
+            "###NotificationPositionChooser"u8,
             ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav);
 

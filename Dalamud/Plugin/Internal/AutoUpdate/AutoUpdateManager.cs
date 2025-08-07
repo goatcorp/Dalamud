@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using CheapLoc;
-
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
@@ -23,8 +23,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
-
-using ImGuiNET;
 
 namespace Dalamud.Plugin.Internal.AutoUpdate;
 
@@ -102,8 +100,6 @@ internal class AutoUpdateManager : IServiceType
         this.openInstallerWindowLinkTask =
             Service<ChatGui>.GetAsync().ContinueWith(
                 chatGuiTask => chatGuiTask.Result.AddChatLinkHandler(
-                    "Dalamud",
-                    1001,
                     (_, _) =>
                      {
                          Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins);

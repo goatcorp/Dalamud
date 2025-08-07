@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
@@ -13,9 +15,6 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -62,61 +61,29 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
     public unsafe void Draw()
     {
         ImGui.AlignTextToFramePadding();
-        if (ImGui.Combo("Global Scale per Font", ref this.fontScaleMode, FontScaleModes, FontScaleModes.Length))
+        if (ImGui.Combo("Global Scale per Font"u8, ref this.fontScaleMode, FontScaleModes))
             this.ClearAtlas();
-        fixed (byte* labelPtr = "Global Scale for Atlas"u8)
-        {
-            var v = (byte)(this.atlasScaleMode ? 1 : 0);
-            if (ImGuiNative.igCheckbox(labelPtr, &v) != 0)
-            {
-                this.atlasScaleMode = v != 0;
-                this.ClearAtlas();
-            }
-        }
+
+        if (ImGui.Checkbox("Global Scale for Atlas"u8, ref this.atlasScaleMode))
+            this.ClearAtlas();
 
         ImGui.SameLine();
-        fixed (byte* labelPtr = "Word Wrap"u8)
-        {
-            var v = (byte)(this.useWordWrap ? 1 : 0);
-            if (ImGuiNative.igCheckbox(labelPtr, &v) != 0)
-                this.useWordWrap = v != 0;
-        }
-        
-        ImGui.SameLine();
-        fixed (byte* labelPtr = "Italic"u8)
-        {
-            var v = (byte)(this.useItalic ? 1 : 0);
-            if (ImGuiNative.igCheckbox(labelPtr, &v) != 0)
-            {
-                this.useItalic = v != 0;
-                this.ClearAtlas();
-            }
-        }
-        
-        ImGui.SameLine();
-        fixed (byte* labelPtr = "Bold"u8)
-        {
-            var v = (byte)(this.useBold ? 1 : 0);
-            if (ImGuiNative.igCheckbox(labelPtr, &v) != 0)
-            {
-                this.useBold = v != 0;
-                this.ClearAtlas();
-            }
-        }
-        
-        ImGui.SameLine();
-        fixed (byte* labelPtr = "Minimum Range"u8)
-        {
-            var v = (byte)(this.useMinimumBuild ? 1 : 0);
-            if (ImGuiNative.igCheckbox(labelPtr, &v) != 0)
-            {
-                this.useMinimumBuild = v != 0;
-                this.ClearAtlas();
-            }
-        }
+        ImGui.Checkbox("Word Wrap"u8, ref this.useWordWrap);
 
         ImGui.SameLine();
-        if (ImGui.Button("Reset Text") || this.testStringBuffer.IsDisposed)
+        if (ImGui.Checkbox("Italic"u8, ref this.useItalic))
+            this.ClearAtlas();
+
+        ImGui.SameLine();
+        if (ImGui.Checkbox("Bold"u8, ref this.useBold))
+            this.ClearAtlas();
+
+        ImGui.SameLine();
+        if (ImGui.Checkbox("Minimum Range"u8, ref this.useMinimumBuild))
+            this.ClearAtlas();
+
+        ImGui.SameLine();
+        if (ImGui.Button("Reset Text"u8) || this.testStringBuffer.IsDisposed)
         {
             this.testStringBuffer.Dispose();
             this.testStringBuffer = ImVectorWrapper.CreateFromSpan(
@@ -125,10 +92,10 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Test Lock"))
+        if (ImGui.Button("Test Lock"u8))
             Task.Run(this.TestLock);
 
-        if (ImGui.Button("Choose Editor Font"))
+        if (ImGui.Button("Choose Editor Font"u8))
         {
             if (this.chooserDialog is null)
             {
@@ -183,10 +150,10 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
         if (this.chooserDialog is not null)
         {
             ImGui.SameLine();
-            ImGui.TextUnformatted($"{this.chooserDialog.PopupPosition}, {this.chooserDialog.PopupSize}");
+            ImGui.Text($"{this.chooserDialog.PopupPosition}, {this.chooserDialog.PopupSize}");
 
             ImGui.SameLine();
-            if (ImGui.Button("Random Location"))
+            if (ImGui.Button("Random Location"u8))
             {
                 var monitors = ImGui.GetPlatformIO().Monitors;
                 var monitor = monitors[Random.Shared.Next() % monitors.Size];
@@ -211,17 +178,13 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
         fixed (byte* labelPtr = "Test Input"u8)
         {
             if (!this.atlasScaleMode)
-                ImGuiNative.igSetWindowFontScale(1 / ImGuiHelpers.GlobalScale);
+                ImGui.SetWindowFontScale(1 / ImGuiHelpers.GlobalScale);
             using (this.fontDialogHandle.Push())
             {
-                if (ImGuiNative.igInputTextMultiline(
+                if (ImGui.InputTextMultiline(
                         labelPtr,
-                        this.testStringBuffer.Data,
-                        (uint)this.testStringBuffer.Capacity,
-                        new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3),
-                        0,
-                        null,
-                        null) != 0)
+                        this.testStringBuffer.StorageSpan,
+                        new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3)))
                 {
                     var len = this.testStringBuffer.StorageSpan.IndexOf((byte)0);
                     if (len + 4 >= this.testStringBuffer.Capacity)
@@ -238,7 +201,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
             }
 
             if (!this.atlasScaleMode)
-                ImGuiNative.igSetWindowFontScale(1);
+                ImGui.SetWindowFontScale(1);
         }
 
         this.fontHandles ??=
@@ -274,7 +237,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                               })
                           .ToArray());
 
-        var offsetX = ImGui.CalcTextSize("99.9pt").X + (ImGui.GetStyle().FramePadding.X * 2);
+        var offsetX = ImGui.CalcTextSize("99.9pt"u8).X + (ImGui.GetStyle().FramePadding.X * 2);
         var counter = 0;
         foreach (var (family, items) in this.fontHandles)
         {
@@ -283,45 +246,40 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
 
             foreach (var (gfs, handle) in items)
             {
-                ImGui.TextUnformatted($"{gfs.SizePt}pt");
+                ImGui.Text($"{gfs.SizePt}pt");
                 ImGui.SameLine(offsetX);
-                ImGuiNative.igPushTextWrapPos(this.useWordWrap ? 0f : -1f);
+                ImGui.PushTextWrapPos(this.useWordWrap ? 0f : -1f);
                 try
                 {
                     if (handle.Value.LoadException is { } exc)
                     {
-                        ImGui.TextUnformatted(exc.ToString());
+                        ImGui.Text(exc.ToString());
                     }
                     else if (!handle.Value.Available)
                     {
-                        fixed (byte* labelPtr = "Loading..."u8)
-                            ImGuiNative.igTextUnformatted(labelPtr, labelPtr + 8 + ((Environment.TickCount / 200) % 3));
+                        ImGui.Text("Loading..."u8[..(8 + ((Environment.TickCount / 200) % 3))]);
                     }
                     else
                     {
                         if (!this.atlasScaleMode)
-                            ImGuiNative.igSetWindowFontScale(1 / ImGuiHelpers.GlobalScale);
+                            ImGui.SetWindowFontScale(1 / ImGuiHelpers.GlobalScale);
                         if (counter++ % 2 == 0)
                         {
                             using var pushPop = handle.Value.Push();
-                            ImGuiNative.igTextUnformatted(
-                                this.testStringBuffer.Data,
-                                this.testStringBuffer.Data + this.testStringBuffer.Length);
+                            ImGui.Text(this.testStringBuffer.DataSpan);
                         }
                         else
                         {
                             handle.Value.Push();
-                            ImGuiNative.igTextUnformatted(
-                                this.testStringBuffer.Data,
-                                this.testStringBuffer.Data + this.testStringBuffer.Length);
+                            ImGui.Text(this.testStringBuffer.DataSpan);
                             handle.Value.Pop();
                         }
                     }
                 }
                 finally
                 {
-                    ImGuiNative.igSetWindowFontScale(1);
-                    ImGuiNative.igPopTextWrapPos();
+                    ImGui.SetWindowFontScale(1);
+                    ImGui.PopTextWrapPos();
                 }
             }
         }
@@ -380,12 +338,9 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
 
         return;
 
-        unsafe void TestSingle(ImFontPtr fontPtr, IFontHandle handle)
+        void TestSingle(ImFontPtr fontPtr, IFontHandle handle)
         {
-            var dim = default(Vector2);
-            var test = "Test string"u8;
-            fixed (byte* pTest = test)
-                ImGuiNative.ImFont_CalcTextSizeA(&dim, fontPtr, fontPtr.FontSize, float.MaxValue, 0, pTest, null, null);
+            var dim = ImGui.CalcTextSizeA(fontPtr, fontPtr.FontSize, float.MaxValue, 0f, "Test string"u8, out _);
             Log.Information($"{nameof(GamePrebakedFontsTestWidget)}: {handle} => {dim}");
         }
     }

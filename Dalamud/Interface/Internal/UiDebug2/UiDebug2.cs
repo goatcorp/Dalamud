@@ -1,17 +1,15 @@
 using System.Collections.Generic;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Internal.UiDebug2.Browsing;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-using ImGuiNET;
-
-using static ImGuiNET.ImGuiWindowFlags;
+using static Dalamud.Bindings.ImGui.ImGuiWindowFlags;
 
 namespace Dalamud.Interface.Internal.UiDebug2;
 
@@ -83,7 +81,7 @@ internal partial class UiDebug2 : IDisposable
     {
         ImGui.SameLine();
 
-        using var ch = ImRaii.Child("###uiDebugMainPanel", new(-1, -1), true, HorizontalScrollbar);
+        using var ch = ImRaii.Child("###uiDebugMainPanel"u8, new(-1, -1), true, HorizontalScrollbar);
 
         if (ch.Success)
         {

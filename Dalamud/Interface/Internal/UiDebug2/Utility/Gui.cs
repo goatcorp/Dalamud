@@ -1,13 +1,12 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Client.Graphics;
-using ImGuiNET;
 
+using static Dalamud.Bindings.ImGui.ImGuiCol;
 using static Dalamud.Interface.ColorHelpers;
-using static ImGuiNET.ImGuiCol;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Utility;
 
@@ -24,12 +23,12 @@ internal static class Gui
     /// <param name="copy">Whether to enable click-to-copy.</param>
     internal static void PrintFieldValuePair(string fieldName, string value, bool copy = true)
     {
-        ImGui.TextUnformatted($"{fieldName}:");
+        ImGui.Text($"{fieldName}:");
         ImGui.SameLine();
         var grey60 = new Vector4(0.6f, 0.6f, 0.6f, 1);
         if (copy)
         {
-            ImGuiHelpers.ClickToCopyText(value, null, grey60);
+            ImGuiHelpers.ClickToCopyText(value, default, grey60);
         }
         else
         {
@@ -109,7 +108,7 @@ internal static class Gui
 
         if (tt.Success)
         {
-            ImGui.TextUnformatted(tooltips[index]);
+            ImGui.Text(tooltips[index]);
         }
 
         return true;

@@ -1,8 +1,6 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Common.Math;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Components;
 
@@ -45,7 +43,7 @@ public static partial class ImGuiComponents
             {
                 using (ImRaii.TextWrapPos(ImGui.GetFontSize() * 35.0f))
                 {
-                    ImGui.TextUnformatted(helpText);
+                    ImGui.Text(helpText);
                 }
             }
         }

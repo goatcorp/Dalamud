@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Utility;
 
@@ -34,11 +34,7 @@ public static class ImGuiClip
     // Uses ImGuiListClipper and thus handles start- and end-dummies itself.
     public static void ClippedDraw<T>(IReadOnlyList<T> data, Action<T> draw, float lineHeight)
     {
-        ImGuiListClipperPtr clipper;
-        unsafe
-        {
-            clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
-        }
+        var clipper = ImGui.ImGuiListClipper();
 
         clipper.Begin(data.Count, lineHeight);
         while (clipper.Step())
@@ -69,14 +65,10 @@ public static class ImGuiClip
     /// <typeparam name="T">The type of data to draw.</typeparam>
     public static void ClippedDraw<T>(IReadOnlyList<T> data, Action<T> draw, int itemsPerLine, float lineHeight)
     {
-        ImGuiListClipperPtr clipper;
-        unsafe
-        {
-            clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
-        }
-        
+        var clipper = ImGui.ImGuiListClipper();
+
         var maxRows = (int)MathF.Ceiling((float)data.Count / itemsPerLine);
-        
+
         clipper.Begin(maxRows, lineHeight);
         while (clipper.Step())
         {
@@ -91,7 +83,7 @@ public static class ImGuiClip
                 var itemsForRow = data
                                   .Skip(actualRow * itemsPerLine)
                                   .Take(itemsPerLine);
-                
+
                 var currentIndex = 0;
                 foreach (var item in itemsForRow)
                 {
@@ -99,7 +91,7 @@ public static class ImGuiClip
                     {
                         ImGui.SameLine();
                     }
-                    
+
                     draw(item);
                 }
             }
@@ -113,11 +105,7 @@ public static class ImGuiClip
     // Uses ImGuiListClipper and thus handles start- and end-dummies itself, but acts on type and index.
     public static void ClippedDraw<T>(IReadOnlyList<T> data, Action<T, int> draw, float lineHeight)
     {
-        ImGuiListClipperPtr clipper;
-        unsafe
-        {
-            clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
-        }
+        var clipper = ImGui.ImGuiListClipper();
 
         clipper.Begin(data.Count, lineHeight);
         while (clipper.Step())

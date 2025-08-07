@@ -1,19 +1,17 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
 using Lumina.Data.Files;
 
 using Vector4 = System.Numerics.Vector4;
@@ -252,7 +250,7 @@ internal class GamePrebakedFontHandle : FontHandle
             GameFontStyle style,
             ushort[]? glyphRanges = null)
         {
-            if (font.IsNull())
+            if (font.IsNull)
                 font = this.CreateTemplateFont(toolkitPreBuild, style.SizePx);
             this.attachments.Add((font, style, glyphRanges));
             return font;
@@ -381,7 +379,10 @@ internal class GamePrebakedFontHandle : FontHandle
             var pixels8Array = new byte*[toolkitPostBuild.NewImAtlas.Textures.Size];
             var widths = new int[toolkitPostBuild.NewImAtlas.Textures.Size];
             for (var i = 0; i < pixels8Array.Length; i++)
-                toolkitPostBuild.NewImAtlas.GetTexDataAsAlpha8(i, out pixels8Array[i], out widths[i], out _);
+            {
+                var width = 0;
+                toolkitPostBuild.NewImAtlas.GetTexDataAsAlpha8(i, ref pixels8Array[i], ref widths[i], ref width);
+            }
 
             foreach (var (style, plan) in this.fonts)
             {
@@ -429,7 +430,7 @@ internal class GamePrebakedFontHandle : FontHandle
             var fas = style.Scale(atlasScale).FamilyAndSize;
             using var handle = this.handleManager.GameFontTextureProvider.CreateFdtFileView(fas, out var fdt);
             ref var fdtFontHeader = ref fdt.FontHeader;
-            var fontPtr = font.NativePtr;
+            var fontPtr = font.Handle;
 
             var scale = style.SizePt / fdtFontHeader.Size;
             fontPtr->Ascent = fdtFontHeader.Ascent * scale;
@@ -513,7 +514,7 @@ internal class GamePrebakedFontHandle : FontHandle
             var ranges = this.Ranges[this.FullRangeFont];
             foreach (var (font, extraRange) in this.Ranges)
             {
-                if (font.NativePtr != this.FullRangeFont.NativePtr)
+                if (font.Handle != this.FullRangeFont.Handle)
                     ranges.Or(extraRange);
             }
 
@@ -562,7 +563,7 @@ internal class GamePrebakedFontHandle : FontHandle
         public unsafe void PostProcessFullRangeFont(float atlasScale)
         {
             var round = 1 / atlasScale;
-            var pfrf = this.FullRangeFont.NativePtr;
+            var pfrf = this.FullRangeFont.Handle;
             ref var frf = ref *pfrf;
 
             frf.FontSize = MathF.Round(frf.FontSize / round) * round;
@@ -589,19 +590,18 @@ internal class GamePrebakedFontHandle : FontHandle
                     continue;
                 if (!fullRange[leftInt] || !fullRange[rightInt])
                     continue;
-                ImGuiNative.ImFont_AddKerningPair(
-                    pfrf,
+                pfrf->AddKerningPair(
                     (ushort)leftInt,
                     (ushort)rightInt,
                     MathF.Round((k.RightOffset * scale) / round) * round);
             }
 
             pfrf->FallbackGlyph = null;
-            ImGuiNative.ImFont_BuildLookupTable(pfrf);
+            pfrf->BuildLookupTable();
 
             foreach (var fallbackCharCandidate in FontAtlasFactory.FallbackCodepoints)
             {
-                var glyph = ImGuiNative.ImFont_FindGlyphNoFallback(pfrf, fallbackCharCandidate);
+                var glyph = pfrf->FindGlyphNoFallback(fallbackCharCandidate);
                 if ((nint)glyph == IntPtr.Zero)
                     continue;
                 frf.FallbackChar = fallbackCharCandidate;
@@ -619,7 +619,7 @@ internal class GamePrebakedFontHandle : FontHandle
 
             foreach (var (font, rangeBits) in this.Ranges)
             {
-                if (font.NativePtr == this.FullRangeFont.NativePtr)
+                if (font.Handle == this.FullRangeFont.Handle)
                     continue;
 
                 var fontScaleMode = toolkitPostBuild.GetFontScaleMode(font);
@@ -681,16 +681,16 @@ internal class GamePrebakedFontHandle : FontHandle
                     }
                 }
 
-                font.NativePtr->FallbackGlyph = null;
+                font.Handle->FallbackGlyph = null;
                 font.BuildLookupTable();
 
                 foreach (var fallbackCharCandidate in FontAtlasFactory.FallbackCodepoints)
                 {
-                    var glyph = font.FindGlyphNoFallback(fallbackCharCandidate).NativePtr;
-                    if ((nint)glyph == IntPtr.Zero)
+                    var glyph = font.FindGlyphNoFallback(fallbackCharCandidate);
+                    if (glyph == null)
                         continue;
 
-                    ref var frf = ref *font.NativePtr;
+                    ref var frf = ref *font.Handle;
                     frf.FallbackChar = fallbackCharCandidate;
                     frf.FallbackGlyph = glyph;
                     frf.FallbackHotData =
@@ -804,8 +804,7 @@ internal class GamePrebakedFontHandle : FontHandle
                 else
                 {
                     ref var rc = ref *(ImGuiHelpers.ImFontAtlasCustomRectReal*)toolkitPostBuild.NewImAtlas
-                                         .GetCustomRectByIndex(rectId)
-                                         .NativePtr;
+                                         .GetCustomRectByIndex(rectId);
                     var widthAdjustment = this.BaseStyle.CalculateBaseWidthAdjustment(fdtFontHeader, fdtGlyph);
 
                     // Glyph is scaled at this point; undo that.

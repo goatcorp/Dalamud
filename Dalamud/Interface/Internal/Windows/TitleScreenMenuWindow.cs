@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
@@ -21,13 +22,8 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using ImGuiNET;
-
 using Lumina.Text.ReadOnly;
-
 using Serilog;
 
 using LSeStringBuilder = Lumina.Text.SeStringBuilder;
@@ -360,7 +356,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)shadeEasing.ValueClamped))
         {
             var texture = this.shadeTexture.Value;
-            ImGui.Image(texture.ImGuiHandle, new Vector2(texture.Width, texture.Height) * scale);
+            ImGui.Image(texture.Handle, new Vector2(texture.Width, texture.Height) * scale);
         }
 
         var isHover = ImGui.IsItemHovered();
@@ -416,7 +412,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         // Wrap should always be valid at this point due to us checking the validity of the image each frame
         var dalamudTextureWrap = entry.Texture.GetWrapOrEmpty();
-        ImGui.Image(dalamudTextureWrap.ImGuiHandle, new Vector2(TitleScreenMenu.TextureSize * scale));
+        ImGui.Image(dalamudTextureWrap.Handle, new Vector2(TitleScreenMenu.TextureSize * scale));
         if (overrideAlpha || isFirst)
         {
             ImGui.PopStyleVar();
@@ -477,11 +473,11 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     {
         if (args is not AddonDrawArgs drawArgs) return;
 
-        var addon = (AtkUnitBase*)drawArgs.Addon;
+        var addon = drawArgs.Addon.Struct;
         var textNode = addon->GetTextNodeById(3);
 
         // look and feel init. should be harmless to set.
-        textNode->TextFlags |= (byte)TextFlags.MultiLine;
+        textNode->TextFlags |= TextFlags.MultiLine;
         textNode->AlignmentType = AlignmentType.TopLeft;
 
         var containsDalamudVersionString = textNode->OriginalTextPointer.Value == textNode->NodeText.StringPtr.Value;

@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
 using static Dalamud.Utility.Util;
@@ -89,25 +89,25 @@ internal unsafe class ComponentNodeTree : ResNodeTree
         {
             case TextInput:
                 var textInputComponent = (AtkComponentTextInput*)this.Component;
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"InputBase Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.UnkText1.StringPtr))}");
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"InputBase Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.UnkText2.StringPtr))}");
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText01.StringPtr))}");
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText02.StringPtr))}");
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"AvailableLines: {Marshal.PtrToStringAnsi(new(textInputComponent->AvailableLines.StringPtr))}");
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"HighlightedAutoTranslateOptionColorPrefix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorPrefix.StringPtr))}");
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"HighlightedAutoTranslateOptionColorSuffix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorSuffix.StringPtr))}");
                 break;
             case List:
             case TreeList:
                 var l = (AtkComponentList*)this.Component;
-                if (ImGui.SmallButton("Inc.Selected"))
+                if (ImGui.SmallButton("Inc.Selected"u8))
                 {
                     l->SelectedItemIndex++;
                 }

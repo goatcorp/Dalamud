@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="Shaders/GLSL/imgui-vertex.glsl" LogicalName="imgui-vertex.glsl" />
+        <EmbeddedResource Include="Shaders/GLSL/imgui-frag.glsl" LogicalName="imgui-frag.glsl" />
+        <EmbeddedResource Include="Shaders/HLSL/imgui-vertex.hlsl.bytes"
+                          LogicalName="imgui-vertex.hlsl.bytes" />
+        <EmbeddedResource Include="Shaders/HLSL/imgui-frag.hlsl.bytes"
+                          LogicalName="imgui-frag.hlsl.bytes" />
+        <EmbeddedResource Include="Shaders/SPIR-V/imgui-vertex.spv" LogicalName="imgui-vertex.spv" />
+        <EmbeddedResource Include="Shaders/SPIR-V/imgui-frag.spv" LogicalName="imgui-frag.spv" />
+        <EmbeddedResource Include="Shaders/Metal/imgui-vertex.metallib"
+                          LogicalName="imgui-vertex.metallib" />
+        <EmbeddedResource Include="Shaders/Metal/imgui-frag.metallib"
+                          LogicalName="imgui-frag.metallib" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Veldrid" Version="4.9.0" />
+      <PackageReference Include="Veldrid.SDL2" Version="4.9.0" />
+      <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Dalamud.Bindings.ImGui\Dalamud.Bindings.ImGui.csproj" />
+    </ItemGroup>
+
+    <Target Name="CopyImGuiDLLs" AfterTargets="PostBuildEvent">
+        <Copy SourceFiles="$(SolutionDir)bin\$(Configuration)\cimgui.dll" DestinationFolder="$(OutDir)" />
+        <Copy SourceFiles="$(SolutionDir)bin\$(Configuration)\cimgui.pdb" DestinationFolder="$(OutDir)" />
+    </Target>
+
+</Project>

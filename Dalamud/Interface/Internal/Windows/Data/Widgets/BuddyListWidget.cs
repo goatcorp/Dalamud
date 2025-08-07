@@ -1,6 +1,6 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Buddy;
 using Dalamud.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -16,9 +16,9 @@ internal class BuddyListWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "buddy", "buddylist" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Buddy List"; 
+    public string DisplayName { get; init; } = "Buddy List";
 
     /// <inheritdoc/>
     public void Load()
@@ -31,12 +31,12 @@ internal class BuddyListWidget : IDataWindowWidget
     {
         var buddyList = Service<BuddyList>.Get();
 
-        ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
+        ImGui.Checkbox("Resolve GameData"u8, ref this.resolveGameData);
         {
             var member = buddyList.CompanionBuddy;
             if (member == null)
             {
-                ImGui.Text("[Companion] null");
+                ImGui.Text("[Companion] null"u8);
             }
             else
             {
@@ -46,7 +46,7 @@ internal class BuddyListWidget : IDataWindowWidget
                     var gameObject = member.GameObject;
                     if (gameObject == null)
                     {
-                        ImGui.Text("GameObject was null");
+                        ImGui.Text("GameObject was null"u8);
                     }
                     else
                     {
@@ -60,7 +60,7 @@ internal class BuddyListWidget : IDataWindowWidget
             var member = buddyList.PetBuddy;
             if (member == null)
             {
-                ImGui.Text("[Pet] null");
+                ImGui.Text("[Pet] null"u8);
             }
             else
             {
@@ -70,7 +70,7 @@ internal class BuddyListWidget : IDataWindowWidget
                     var gameObject = member.GameObject;
                     if (gameObject == null)
                     {
-                        ImGui.Text("GameObject was null");
+                        ImGui.Text("GameObject was null"u8);
                     }
                     else
                     {
@@ -84,7 +84,7 @@ internal class BuddyListWidget : IDataWindowWidget
             var count = buddyList.Length;
             if (count == 0)
             {
-                ImGui.Text("[BattleBuddy] None present");
+                ImGui.Text("[BattleBuddy] None present"u8);
             }
             else
             {
@@ -97,7 +97,7 @@ internal class BuddyListWidget : IDataWindowWidget
                         var gameObject = member?.GameObject;
                         if (gameObject == null)
                         {
-                            ImGui.Text("GameObject was null");
+                            ImGui.Text("GameObject was null"u8);
                         }
                         else
                         {

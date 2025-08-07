@@ -26,7 +26,6 @@
 
     <ItemGroup>
         <PackageReference Include="Lumina" Version="$(LuminaVersion)" />
-        <PackageReference Include="Lumina.Excel" Version="$(LuminaExcelVersion)" />
         <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
             <PrivateAssets>all</PrivateAssets>
@@ -36,15 +35,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Dalamud\Dalamud.csproj">
-            <Private>false</Private>
-        </ProjectReference>
-        <ProjectReference Include="..\lib\ImGuiScene\deps\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj">
-            <Private>false</Private>
-        </ProjectReference>
-        <ProjectReference Include="..\lib\ImGuiScene\ImGuiScene\ImGuiScene.csproj">
-            <Private>false</Private>
-        </ProjectReference>
-        <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj">
             <Private>false</Private>
         </ProjectReference>
     </ItemGroup>

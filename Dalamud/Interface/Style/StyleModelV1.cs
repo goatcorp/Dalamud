@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
-using ImGuiNET;
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Style;
@@ -400,7 +400,7 @@ public class StyleModelV1 : StyleModel
 
         foreach (var imGuiCol in Enum.GetValues<ImGuiCol>())
         {
-            if (imGuiCol == ImGuiCol.COUNT)
+            if (imGuiCol == ImGuiCol.Count)
             {
                 continue;
             }
@@ -472,7 +472,7 @@ public class StyleModelV1 : StyleModel
 
         foreach (var imGuiCol in Enum.GetValues<ImGuiCol>())
         {
-            if (imGuiCol == ImGuiCol.COUNT)
+            if (imGuiCol == ImGuiCol.Count)
             {
                 continue;
             }
@@ -512,7 +512,7 @@ public class StyleModelV1 : StyleModel
 
         foreach (var imGuiCol in Enum.GetValues<ImGuiCol>())
         {
-            if (imGuiCol == ImGuiCol.COUNT)
+            if (imGuiCol == ImGuiCol.Count)
             {
                 continue;
             }

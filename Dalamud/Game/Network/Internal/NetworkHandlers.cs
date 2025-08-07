@@ -275,7 +275,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         if (uploaderId == 0)
         {
             var playerState = PlayerState.Instance();
-            if (playerState->IsLoaded == 1)
+            if (playerState->IsLoaded)
             {
                 uploaderId = playerState->ContentId;
             }

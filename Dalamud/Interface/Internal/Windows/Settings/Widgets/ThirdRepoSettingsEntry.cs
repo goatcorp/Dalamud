@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
@@ -13,7 +14,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
@@ -30,7 +30,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
     {
         this.timeSinceOpened = DateTime.Now;
     }
-    
+
     public override void OnClose()
     {
         this.thirdRepoList =
@@ -59,48 +59,48 @@ public class ThirdRepoSettingsEntry : SettingsEntry
     public override void Draw()
     {
         var config = Service<DalamudConfiguration>.Get();
-        
-        using var id = ImRaii.PushId("thirdRepo");
-        ImGui.TextUnformatted(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
+
+        using var id = ImRaii.PushId("thirdRepo"u8);
+        ImGui.Text(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
         if (this.thirdRepoListChanged)
         {
             using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
             {
                 ImGui.SameLine();
-                ImGui.TextUnformatted(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
+                ImGui.Text(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
             }
         }
-        
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
-        
+
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
+
         ImGuiHelpers.ScaledDummy(2);
 
         config.ThirdRepoSpeedbumpDismissed ??= config.ThirdRepoList.Any(x => x.IsEnabled);
         var disclaimerDismissed = config.ThirdRepoSpeedbumpDismissed.Value;
-        
+
         ImGui.PushFont(InterfaceManager.IconFont);
         ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
-        ImGuiHelpers.SafeTextWrapped(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+        ImGui.TextWrapped(FontAwesomeIcon.ExclamationTriangle.ToIconString());
         ImGui.PopFont();
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(2);
         ImGui.SameLine();
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarningReadThis", "READ THIS FIRST!"));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarningReadThis", "READ THIS FIRST!"));
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(2);
         ImGui.SameLine();
         ImGui.PushFont(InterfaceManager.IconFont);
-        ImGuiHelpers.SafeTextWrapped(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+        ImGui.TextWrapped(FontAwesomeIcon.ExclamationTriangle.ToIconString());
         ImGui.PopFont();
 
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning", "We cannot take any responsibility for custom plugins and repositories."));
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning5", "If someone told you to copy/paste something here, it's very possible that you are being scammed or taken advantage of."));
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning2", "Plugins have full control over your PC, like any other program, and may cause harm or crashes."));
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning4", "They can delete your character, steal your FC or Discord account, and burn down your house."));
-        ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning3", "Please make absolutely sure that you only install plugins from developers you trust."));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning", "We cannot take any responsibility for custom plugins and repositories."));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning5", "If someone told you to copy/paste something here, it's very possible that you are being scammed or taken advantage of."));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning2", "Plugins have full control over your PC, like any other program, and may cause harm or crashes."));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning4", "They can delete your character, steal your FC or Discord account, and burn down your house."));
+        ImGui.TextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning3", "Please make absolutely sure that you only install plugins from developers you trust."));
 
         ImGui.PopStyleColor();
-        
+
         if (!disclaimerDismissed)
         {
             const int speedbumpTime = 15;
@@ -121,7 +121,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
                 }
             }
         }
-        
+
         ImGuiHelpers.ScaledDummy(2);
 
         using var disabled = ImRaii.Disabled(!disclaimerDismissed);
@@ -136,20 +136,20 @@ public class ThirdRepoSettingsEntry : SettingsEntry
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted("#");
+        ImGui.Text("#"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("URL");
+        ImGui.Text("URL"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("Enabled");
+        ImGui.Text("Enabled"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted(string.Empty);
+        ImGui.Text(string.Empty);
         ImGui.NextColumn();
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted("0");
+        ImGui.Text("0"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("XIVLauncher");
+        ImGui.Text("XIVLauncher"u8);
         ImGui.NextColumn();
         ImGui.NextColumn();
         ImGui.NextColumn();
@@ -165,7 +165,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
             id.Push(thirdRepoSetting.Url);
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
-            ImGui.TextUnformatted(repoNumber.ToString());
+            ImGui.Text(repoNumber.ToString());
             ImGui.NextColumn();
 
             ImGui.SetNextItemWidth(-1);
@@ -197,7 +197,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
             ImGui.NextColumn();
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - (12 * ImGuiHelpers.GlobalScale));
-            if (ImGui.Checkbox("##thirdRepoCheck", ref isEnabled))
+            if (ImGui.Checkbox("##thirdRepoCheck"u8, ref isEnabled))
             {
                 this.thirdRepoListChanged = true;
             }
@@ -226,10 +226,10 @@ public class ThirdRepoSettingsEntry : SettingsEntry
         }
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
-        ImGui.TextUnformatted(repoNumber.ToString());
+        ImGui.Text(repoNumber.ToString());
         ImGui.NextColumn();
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputText("##thirdRepoUrlInput", ref this.thirdRepoTempUrl, 300);
+        ImGui.InputText("##thirdRepoUrlInput"u8, ref this.thirdRepoTempUrl, 300);
         ImGui.NextColumn();
         // Enabled button
         ImGui.NextColumn();
@@ -262,7 +262,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
 
         if (!string.IsNullOrEmpty(this.thirdRepoAddError))
         {
-            ImGuiHelpers.SafeTextColoredWrapped(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
+            ImGui.TextColoredWrapped(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
         }
     }
 

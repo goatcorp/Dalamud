@@ -63,6 +63,12 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command while mounted.
     /// </summary>
+    RidingPillion = 10,
+
+    /// <summary>
+    /// Unable to execute command while mounted.
+    /// </summary>
+    [Obsolete("Renamed to RidingPillion", true)]
     Mounted2 = 10,
 
     /// <summary>
@@ -189,12 +195,6 @@ public enum ConditionFlag
     ExecutingCraftingAction = 40,
 
     /// <summary>
-    /// Unable to execute command while crafting.
-    /// </summary>
-    [Obsolete("Renamed to ExecutingCraftingAction.")]
-    Crafting40 = 40,
-
-    /// <summary>
     /// Unable to execute command while preparing to craft.
     /// </summary>
     PreparingToCraft = 41,
@@ -204,12 +204,6 @@ public enum ConditionFlag
     /// </summary>
     /// <remarks> Includes fishing. </remarks>
     ExecutingGatheringAction = 42,
-
-    /// <summary>
-    /// Unable to execute command while gathering.
-    /// </summary>
-    [Obsolete("Renamed to ExecutingGatheringAction.")]
-    Gathering42 = 42,
 
     /// <summary>
     /// Unable to execute command while fishing.
@@ -234,12 +228,6 @@ public enum ConditionFlag
     /// Unable to execute command while jumping.
     /// </summary>
     Jumping = 48,
-
-    /// <summary>
-    /// Unable to execute command while auto-run is active.
-    /// </summary>
-    [Obsolete("To avoid confusion, renamed to UsingChocoboTaxi.")]
-    AutorunActive = 49,
 
     /// <summary>
     /// Unable to execute command while auto-run is active.
@@ -281,12 +269,6 @@ public enum ConditionFlag
     /// Unable to execute command while bound by duty.
     /// </summary>
     BoundByDuty56 = 56,
-
-    /// <summary>
-    /// Unable to execute command at this time.
-    /// </summary>
-    [Obsolete("Renamed to MountOrOrnamentTransition.")]
-    Unknown57 = 57,
 
     /// <summary>
     /// Unable to execute command at this time.
@@ -449,6 +431,12 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command in this state.
     /// </summary>
+    MountImmobile = 88,
+
+    /// <summary>
+    /// Unable to execute command in this state.
+    /// </summary>
+    [Obsolete("Renamed to MountImmobile", true)]
     InThisState88 = 88,
 
     /// <summary>
@@ -460,12 +448,6 @@ public enum ConditionFlag
     /// Unable to execute command while role-playing.
     /// </summary>
     RolePlaying = 90,
-
-    /// <summary>
-    /// Unable to execute command while bound by duty.
-    /// </summary>
-    [Obsolete("Use InDutyQueue")]
-    BoundToDuty97 = 91,
 
     /// <summary>
     /// Unable to execute command while bound by duty.
@@ -482,12 +464,6 @@ public enum ConditionFlag
     /// Unable to execute command while waiting to visit another World.
     /// </summary>
     WaitingToVisitOtherWorld = 93,
-
-    /// <summary>
-    /// Unable to execute command while using a parasol.
-    /// </summary>
-    [Obsolete("Renamed to UsingFashionAccessory.")]
-    UsingParasol = 94,
 
     /// <summary>
     /// Unable to execute command while using a fashion accessory.

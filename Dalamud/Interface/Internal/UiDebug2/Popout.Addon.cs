@@ -1,9 +1,9 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal.UiDebug2.Browsing;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.UiDebug2;
 

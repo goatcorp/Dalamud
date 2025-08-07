@@ -1,5 +1,6 @@
 using System.Threading;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Utility;
@@ -15,7 +16,7 @@ internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferred
 
     /// <summary>Initializes a new instance of the <see cref="UnknownTextureWrap"/> class.</summary>
     /// <param name="unknown">The pointer to <see cref="IUnknown"/> that is suitable for use with
-    /// <see cref="IDalamudTextureWrap.ImGuiHandle"/>.</param>
+    /// <see cref="IDalamudTextureWrap.Handle"/>.</param>
     /// <param name="width">The width of the texture.</param>
     /// <param name="height">The height of the texture.</param>
     /// <param name="callAddRef">If <c>true</c>, call <see cref="IUnknown.AddRef"/>.</param>
@@ -33,10 +34,10 @@ internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferred
     ~UnknownTextureWrap() => this.Dispose(false);
 
     /// <inheritdoc/>
-    public nint ImGuiHandle =>
+    public ImTextureID Handle =>
         this.imGuiHandle == nint.Zero
             ? throw new ObjectDisposedException(nameof(UnknownTextureWrap))
-            : this.imGuiHandle;
+            : new ImTextureID(this.imGuiHandle);
 
     /// <inheritdoc/>
     public int Width { get; }

@@ -1,6 +1,5 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -22,7 +21,7 @@ internal class HoverSelfTestStep : ISelfTestStep
 
         if (!this.clearedItem)
         {
-            ImGui.Text("Hover WHM soul crystal...");
+            ImGui.Text("Hover WHM soul crystal..."u8);
 
             if (gameGui.HoveredItem == 4547)
             {

@@ -23,6 +23,7 @@ using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Dalamud.Configuration.Internal;
 
@@ -153,21 +154,9 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public float GlobalUiScale { get; set; } = 1.0f;
 
     /// <summary>
-    /// Gets or sets a value indicating whether to use AXIS fonts from the game.
-    /// </summary>
-    [Obsolete($"See {nameof(DefaultFontSpec)}")]
-    public bool UseAxisFontsFromGame { get; set; } = true;
-
-    /// <summary>
     /// Gets or sets the default font spec.
     /// </summary>
     public IFontSpec? DefaultFontSpec { get; set; }
-
-    /// <summary>
-    /// Gets or sets the gamma value to apply for Dalamud fonts. Do not use.
-    /// </summary>
-    [Obsolete("It happens that nobody touched this setting", true)]
-    public float FontGammaLevel { get; set; } = 1.4f;
 
     /// <summary>Gets or sets the opacity of the IME state indicator.</summary>
     /// <value>0 will hide the state indicator. 1 will make the state indicator fully visible. Values outside the
@@ -604,11 +593,15 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         {
             // https://source.chromium.org/chromium/chromium/src/+/main:ui/gfx/animation/animation_win.cc;l=29?q=ReducedMotion&ss=chromium
             var winAnimEnabled = 0;
-            var success = NativeFunctions.SystemParametersInfo(
-                (uint)NativeFunctions.AccessibilityParameter.SPI_GETCLIENTAREAANIMATION,
-                0,
-                ref winAnimEnabled,
-                0);
+            var success = false;
+            unsafe
+            {
+                success = Windows.Win32.PInvoke.SystemParametersInfo(
+                    SYSTEM_PARAMETERS_INFO_ACTION.SPI_GETCLIENTAREAANIMATION,
+                    0,
+                    &winAnimEnabled,
+                    0);
+            }
 
             if (!success)
             {

@@ -1,9 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Text;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Text;
@@ -17,7 +18,6 @@ using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-using ImGuiNET;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
@@ -162,7 +162,7 @@ public class SettingsTabLook : SettingsTab
         {
             CustomDraw = static e =>
             {
-                ImGuiHelpers.SafeTextWrapped(e.Name!);
+                ImGui.TextWrapped(e.Name!);
 
                 var v = e.Value * 100f;
                 if (ImGui.SliderFloat($"###{e}", ref v, 0f, 100f, "%.1f%%"))
@@ -170,7 +170,7 @@ public class SettingsTabLook : SettingsTab
                 ImGui.SameLine();
 
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, v / 100);
-                ImGui.TextUnformatted("\uE020\uE021\uE022\uE023\uE024\uE025\uE026\uE027");
+                ImGui.Text("\uE020\uE021\uE022\uE023\uE024\uE025\uE026\uE027"u8);
                 ImGui.PopStyleVar(1);
             },
         }
@@ -188,7 +188,7 @@ public class SettingsTabLook : SettingsTab
 
         var buttonSize =
             GlobalUiScalePresets
-                .Select(x => ImGui.CalcTextSize(x.Item1, 0, x.Item1.IndexOf('#')))
+                .Select(x => ImGui.CalcTextSize(x.Item1, true))
                 .Aggregate(Vector2.Zero, Vector2.Max)
             + (ImGui.GetStyle().FramePadding * 2);
         foreach (var (buttonLabel, scale) in GlobalUiScalePresets)
@@ -198,6 +198,7 @@ public class SettingsTabLook : SettingsTab
             {
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale = scale;
                 interfaceManager.RebuildFonts();
+                Service<InterfaceManager>.Get().InvokeGlobalScaleChanged();
             }
         }
 
@@ -210,19 +211,21 @@ public class SettingsTabLook : SettingsTab
                 var len = Encoding.UTF8.GetByteCount(buildingFonts);
                 var p = stackalloc byte[len];
                 Encoding.UTF8.GetBytes(buildingFonts, new(p, len));
-                ImGuiNative.igTextUnformatted(p, (p + len + ((Environment.TickCount / 200) % 3)) - 2);
+                ImGui.Text(
+                    new ReadOnlySpan<byte>(p, len)[..((len + ((Environment.TickCount / 200) % 3)) - 2)]);
             }
         }
 
         var globalUiScaleInPct = 100f * this.globalUiScale;
-        if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref globalUiScaleInPct, 1f, 80f, 300f, "%.0f%%", ImGuiSliderFlags.AlwaysClamp))
+        if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag"u8, ref globalUiScaleInPct, 1f, 80f, 300f, "%.0f%%", ImGuiSliderFlags.AlwaysClamp))
         {
             this.globalUiScale = globalUiScaleInPct / 100f;
             ImGui.GetIO().FontGlobalScale = this.globalUiScale;
             interfaceManager.RebuildFonts();
+            Service<InterfaceManager>.Get().InvokeGlobalScaleChanged();
         }
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale text in all XIVLauncher UI elements - this is useful for 4K displays."));
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale text in all XIVLauncher UI elements - this is useful for 4K displays."));
 
         if (fontBuildTask.IsFaulted || fontBuildTask.IsCanceled)
         {
@@ -230,10 +233,10 @@ public class SettingsTabLook : SettingsTab
                 ImGuiColors.DalamudRed,
                 Loc.Localize("DalamudSettingsFontBuildFaulted", "Failed to load fonts as requested."));
             if (fontBuildTask.Exception is not null
-                && ImGui.CollapsingHeader("##DalamudSetingsFontBuildFaultReason"))
+                && ImGui.CollapsingHeader("##DalamudSetingsFontBuildFaultReason"u8))
             {
                 foreach (var e in fontBuildTask.Exception.InnerExceptions)
-                    ImGui.TextUnformatted(e.ToString());
+                    ImGui.Text(e.ToString());
             }
         }
 
@@ -260,6 +263,7 @@ public class SettingsTabLook : SettingsTab
 
                         faf.DefaultFontSpecOverride = this.defaultFontSpec = r.Result;
                         interfaceManager.RebuildFonts();
+                        Service<InterfaceManager>.Get().InvokeFontChanged();
                     }));
         }
 
@@ -274,6 +278,7 @@ public class SettingsTabLook : SettingsTab
                     this.defaultFontSpec =
                         new SingleFontSpec { FontId = new GameFontAndFamilyId(GameFontFamily.Axis) };
                 interfaceManager.RebuildFonts();
+                Service<InterfaceManager>.Get().InvokeFontChanged();
             }
         }
 

@@ -1,7 +1,8 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Utility.Util;
@@ -80,7 +81,7 @@ internal unsafe partial class NineGridNodeTree : ImageNodeTree
     {
         if (!isEditorOpen)
         {
-            ImGui.Text("NineGrid Offsets:\t");
+            ImGui.Text("NineGrid Offsets:\t"u8);
             ImGui.SameLine();
             this.Offsets.Print();
         }

@@ -1,15 +1,15 @@
+using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
@@ -47,7 +47,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
             return;
         }
 
-        ImGui.TextColored(new(1), "Text:");
+        ImGui.TextColored(new Vector4(1), "Text:"u8);
         ImGui.SameLine();
 
         try
@@ -64,7 +64,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
         }
         catch
         {
-            ImGui.TextUnformatted(Marshal.PtrToStringAnsi(new(this.NodeText.StringPtr)) ?? string.Empty);
+            ImGui.Text(Marshal.PtrToStringAnsi(new(this.NodeText.StringPtr)) ?? string.Empty);
         }
 
         PrintFieldValuePairs(
@@ -96,7 +96,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
             for (var i = 0; i < seString.Payloads.Count; i++)
             {
                 var payload = seString.Payloads[i];
-                ImGui.TextUnformatted($"[{i}]");
+                ImGui.Text($"[{i}]");
                 ImGui.SameLine();
                 switch (payload.Type)
                 {
@@ -108,7 +108,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
 
                     default:
                     {
-                        ImGui.TextUnformatted(payload.ToString());
+                        ImGui.Text(payload.ToString());
                         break;
                     }
                 }

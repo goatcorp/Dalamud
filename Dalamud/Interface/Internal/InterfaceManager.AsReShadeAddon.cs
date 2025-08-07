@@ -14,23 +14,23 @@ internal unsafe partial class InterfaceManager
     private void ReShadeAddonInterfaceOnDestroySwapChain(ref ReShadeAddonInterface.ApiObject swapChain)
     {
         var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
-        if (this.scene?.SwapChain.NativePointer != (nint)swapChainNative)
+        if (this.backend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
             return;
 
-        this.scene?.OnPreResize();
+        this.backend?.OnPreResize();
     }
 
     private void ReShadeAddonInterfaceOnInitSwapChain(ref ReShadeAddonInterface.ApiObject swapChain)
     {
         var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
-        if (this.scene?.SwapChain.NativePointer != (nint)swapChainNative)
+        if (this.backend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
             return;
 
         DXGI_SWAP_CHAIN_DESC desc;
         if (swapChainNative->GetDesc(&desc).FAILED)
             return;
 
-        this.scene?.OnPostResize((int)desc.BufferDesc.Width, (int)desc.BufferDesc.Height);
+        this.backend?.OnPostResize((int)desc.BufferDesc.Width, (int)desc.BufferDesc.Height);
     }
 
     private void ReShadeAddonInterfaceOnPresent(
@@ -42,16 +42,16 @@ internal unsafe partial class InterfaceManager
     {
         var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
 
-        if (this.RenderDalamudCheckAndInitialize(swapChainNative, 0) is { } activeScene)
-            this.RenderDalamudDraw(activeScene);
+        if (this.RenderDalamudCheckAndInitialize(swapChainNative, 0) is { } activebackend)
+            this.RenderDalamudDraw(activebackend);
     }
 
     private void ReShadeAddonInterfaceOnReShadeOverlay(ref ReShadeAddonInterface.ApiObject runtime)
     {
         var swapChainNative = runtime.GetNative<IDXGISwapChain>();
 
-        if (this.RenderDalamudCheckAndInitialize(swapChainNative, 0) is { } activeScene)
-            this.RenderDalamudDraw(activeScene);
+        if (this.RenderDalamudCheckAndInitialize(swapChainNative, 0) is { } activebackend)
+            this.RenderDalamudDraw(activebackend);
     }
 
     private int AsReShadeAddonDxgiSwapChainResizeBuffersDetour(

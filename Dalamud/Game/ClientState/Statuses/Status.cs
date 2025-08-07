@@ -55,7 +55,7 @@ public unsafe class Status
     /// <summary>
     /// Gets the source ID of this status.
     /// </summary>
-    public uint SourceId => this.Struct->SourceId;
+    public uint SourceId => this.Struct->SourceObject.ObjectId;
 
     /// <summary>
     /// Gets the source actor associated with this status.

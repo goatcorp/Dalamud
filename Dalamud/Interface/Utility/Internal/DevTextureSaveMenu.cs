@@ -5,17 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
-
-using ImGuiNET;
-
 using Serilog;
-
 using TerraFX.Interop.Windows;
 
 namespace Dalamud.Interface.Utility.Internal;
@@ -67,7 +64,7 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
             var initiatorScreenOffset = ImGui.GetMousePos();
             using var textureWrap = await texture;
             var textureManager = await Service<TextureManager>.GetAsync();
-            var popupName = $"{nameof(this.ShowTextureSaveMenuAsync)}_{textureWrap.ImGuiHandle:X}";
+            var popupName = $"{nameof(this.ShowTextureSaveMenuAsync)}_{textureWrap.Handle.Handle:X}";
 
             BitmapCodecInfo? encoder;
             {
@@ -100,7 +97,7 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
                         return;
                     }
 
-                    if (ImGui.Selectable("Copy"))
+                    if (ImGui.Selectable("Copy"u8))
                         tcs.TrySetResult(null);
                     foreach (var encoder2 in encoders)
                     {
@@ -114,7 +111,7 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
                         size *= previewImageWidth / size.X;
                     if (size.Y > previewImageWidth)
                         size *= previewImageWidth / size.Y;
-                    ImGui.Image(textureWrap.ImGuiHandle, size);
+                    ImGui.Image(textureWrap.Handle, size);
 
                     if (tcs.Task.IsCompleted)
                         ImGui.CloseCurrentPopup();
