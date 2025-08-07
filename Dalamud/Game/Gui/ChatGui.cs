@@ -41,7 +41,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     private static readonly ModuleLog Log = new("ChatGui");
 
     private readonly Queue<XivChatEntry> chatQueue = new();
-    private readonly Dictionary<(string PluginName, Guid CommandId), Action<Guid, SeString>> dalamudLinkHandlers = new();
+    private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = new();
 
     private readonly Hook<PrintMessageDelegate> printMessageHook;
     private readonly Hook<InventoryItem.Delegates.Copy> inventoryItemCopyHook;
@@ -50,7 +50,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
-    private ImmutableDictionary<(string PluginName, Guid CommandId), Action<Guid, SeString>>? dalamudLinkHandlersCopy;
+    private ImmutableDictionary<(string PluginName, uint CommandId), Action<uint, SeString>>? dalamudLinkHandlersCopy;
+    private uint dalamudChatHandlerId = 1000;
 
     [ServiceManager.ServiceConstructor]
     private ChatGui()
@@ -86,7 +87,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     public byte LastLinkedItemFlags { get; private set; }
 
     /// <inheritdoc/>
-    public IReadOnlyDictionary<(string PluginName, Guid CommandId), Action<Guid, SeString>> RegisteredLinkHandlers
+    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers
     {
         get
         {
@@ -164,19 +165,33 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
     #region Chat Links
 
-    /// <inheritdoc/>
-    public DalamudLinkPayload AddChatLinkHandler(Action<Guid, SeString> commandAction)
+    /// <summary>
+    /// Register a chat link handler.
+    /// </summary>
+    /// <remarks>Internal use only.</remarks>
+    /// <param name="commandAction">The action to be executed.</param>
+    /// <returns>Returns an SeString payload for the link.</returns>
+    public DalamudLinkPayload AddChatLinkHandler(Action<uint, SeString> commandAction)
     {
-        return this.AddChatLinkHandler("Dalamud", commandAction);
+        return this.AddChatLinkHandler("Dalamud", this.dalamudChatHandlerId++, commandAction);
     }
 
     /// <inheritdoc/>
-    public void RemoveChatLinkHandler(Guid commandId)
+    /// <remarks>Internal use only.</remarks>
+    public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
+    {
+        return this.AddChatLinkHandler("Dalamud", commandId, commandAction);
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>Internal use only.</remarks>
+    public void RemoveChatLinkHandler(uint commandId)
     {
         this.RemoveChatLinkHandler("Dalamud", commandId);
     }
 
     /// <inheritdoc/>
+    /// <remarks>Internal use only.</remarks>
     public void RemoveChatLinkHandler()
     {
         this.RemoveChatLinkHandler("Dalamud");
@@ -240,11 +255,11 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// Create a link handler.
     /// </summary>
     /// <param name="pluginName">The name of the plugin handling the link.</param>
+    /// <param name="commandId">The ID of the command to run.</param>
     /// <param name="commandAction">The command action itself.</param>
     /// <returns>A payload for handling.</returns>
-    internal DalamudLinkPayload AddChatLinkHandler(string pluginName, Action<Guid, SeString> commandAction)
+    internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction)
     {
-        var commandId = Guid.CreateVersion7();
         var payload = new DalamudLinkPayload { Plugin = pluginName, CommandId = commandId };
         lock (this.dalamudLinkHandlers)
         {
@@ -277,7 +292,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// </summary>
     /// <param name="pluginName">The name of the plugin handling the link.</param>
     /// <param name="commandId">The ID of the command to be removed.</param>
-    internal void RemoveChatLinkHandler(string pluginName, Guid commandId)
+    internal void RemoveChatLinkHandler(string pluginName, uint commandId)
     {
         lock (this.dalamudLinkHandlers)
         {
@@ -534,7 +549,7 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     public byte LastLinkedItemFlags => this.chatGuiService.LastLinkedItemFlags;
 
     /// <inheritdoc/>
-    public IReadOnlyDictionary<(string PluginName, Guid CommandId), Action<Guid, SeString>> RegisteredLinkHandlers => this.chatGuiService.RegisteredLinkHandlers;
+    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers => this.chatGuiService.RegisteredLinkHandlers;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -551,11 +566,11 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     }
 
     /// <inheritdoc/>
-    public DalamudLinkPayload AddChatLinkHandler(Action<Guid, SeString> commandAction)
-        => this.chatGuiService.AddChatLinkHandler(this.plugin.InternalName, commandAction);
+    public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
+        => this.chatGuiService.AddChatLinkHandler(this.plugin.InternalName, commandId, commandAction);
 
     /// <inheritdoc/>
-    public void RemoveChatLinkHandler(Guid commandId)
+    public void RemoveChatLinkHandler(uint commandId)
         => this.chatGuiService.RemoveChatLinkHandler(this.plugin.InternalName, commandId);
 
     /// <inheritdoc/>
