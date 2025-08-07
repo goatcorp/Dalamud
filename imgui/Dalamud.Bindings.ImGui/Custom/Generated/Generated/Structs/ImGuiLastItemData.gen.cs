@@ -19,4 +19,3 @@ public unsafe partial struct ImGuiLastItemData
 			}
 		}
 }
-

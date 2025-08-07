@@ -16,4 +16,3 @@ public unsafe partial struct ImGuiLastItemDataPtr
 			ImGuiNative.Destroy(Handle);
 		}
 }
-

@@ -40,4 +40,3 @@ public unsafe partial struct ImDrawData
 			}
 		}
 }
-

@@ -43,4 +43,3 @@ public unsafe partial struct ImGuiTextBufferPtr
 // DISCARDED: c_strS
 // DISCARDED: end
 // DISCARDED: endS
-

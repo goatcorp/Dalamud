@@ -16,4 +16,3 @@ public unsafe partial struct ImGuiOnceUponAFramePtr
 			ImGuiNative.Destroy(Handle);
 		}
 }
-

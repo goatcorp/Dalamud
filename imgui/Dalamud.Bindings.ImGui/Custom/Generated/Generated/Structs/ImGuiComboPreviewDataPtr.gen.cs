@@ -16,4 +16,3 @@ public unsafe partial struct ImGuiComboPreviewDataPtr
 			ImGuiNative.Destroy(Handle);
 		}
 }
-

@@ -121,4 +121,3 @@ public unsafe partial struct ImGuiStorage
 // DISCARDED: GetFloatRef
 // DISCARDED: GetIntRef
 // DISCARDED: GetVoidPtrRef
-

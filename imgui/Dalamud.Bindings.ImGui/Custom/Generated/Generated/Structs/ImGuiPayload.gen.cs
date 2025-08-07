@@ -43,4 +43,3 @@ public unsafe partial struct ImGuiPayload
 		}
 }
 // DISCARDED: IsDataType
-

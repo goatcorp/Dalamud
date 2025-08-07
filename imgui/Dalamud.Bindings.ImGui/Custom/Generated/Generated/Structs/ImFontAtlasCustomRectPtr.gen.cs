@@ -21,4 +21,3 @@ public unsafe partial struct ImFontAtlasCustomRectPtr
 			return ret != 0;
 		}
 }
-

@@ -2,11 +2,9 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
@@ -209,8 +207,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         }
     }
 
-    private static ImGuiInputTextStatePtr GetInputTextState() =>
-        (ImGuiInputTextState*)((nint)ImGui.GetCurrentContext().Handle + 0x4588);
+    private static ImGuiInputTextStatePtr GetInputTextState() => new(&ImGui.GetCurrentContext().Handle->InputTextState);
 
     private static (string String, bool Supported) ToUcs2(char* data, int nc = -1)
     {

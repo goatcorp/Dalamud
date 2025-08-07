@@ -21,4 +21,3 @@ public unsafe partial struct ImDrawCmdPtr
 			return ret;
 		}
 }
-

@@ -16,4 +16,3 @@ public unsafe partial struct ImGuiMetricsConfigPtr
 			ImGuiNative.Destroy(Handle);
 		}
 }
-
