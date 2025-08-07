@@ -349,7 +349,7 @@ public static unsafe partial class ImGui
         s.Item2 = s.Item1.Invoke(ref s.Item3, index);
         if (s.Item2.IsNull)
             return false;
-        *text = (byte*)Unsafe.AsPointer(ref Unsafe.AsRef(in s.Item2.Span[0]));
+        *text = (byte*)Unsafe.AsPointer(ref Unsafe.AsRef(in s.Item2.GetPinnableNullTerminatedReference()));
         return true;
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
     }
@@ -363,7 +363,7 @@ public static unsafe partial class ImGui
         s.Item2 = s.Item1.Invoke(s.Item3, index);
         if (s.Item2.IsNull)
             return false;
-        *text = (byte*)Unsafe.AsPointer(ref Unsafe.AsRef(in s.Item2.Span[0]));
+        *text = (byte*)Unsafe.AsPointer(ref Unsafe.AsRef(in s.Item2.GetPinnableNullTerminatedReference()));
         return true;
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
     }
@@ -377,7 +377,7 @@ public static unsafe partial class ImGui
         s.Item2 = s.Item1.Invoke(index);
         if (s.Item2.IsNull)
             return false;
-        *text = (byte*)Unsafe.AsPointer(ref Unsafe.AsRef(in s.Item2.Span[0]));
+        *text = (byte*)Unsafe.AsPointer(ref Unsafe.AsRef(in s.Item2.GetPinnableNullTerminatedReference()));
         return true;
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
     }

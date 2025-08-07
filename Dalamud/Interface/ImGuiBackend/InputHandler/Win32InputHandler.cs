@@ -374,6 +374,14 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             case WM.WM_DISPLAYCHANGE:
                 this.viewportHandler.UpdateMonitors();
                 break;
+
+            case WM.WM_KILLFOCUS when hWndCurrent == this.hWnd:
+                if (!ImGui.IsAnyMouseDown() && GetCapture() == hWndCurrent)
+                    ReleaseCapture();
+
+                ImGui.GetIO().WantCaptureMouse = false;
+                ImGui.ClearWindowFocus();
+                break;
         }
 
         return null;

@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImGuizmo;
 using Dalamud.Bindings.ImPlot;
+using Dalamud.Interface.ImGuiBackend.Delegates;
 using Dalamud.Interface.ImGuiBackend.Helpers;
 using Dalamud.Interface.ImGuiBackend.InputHandler;
 using Dalamud.Interface.ImGuiBackend.Renderers;
@@ -93,13 +94,13 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     ~Dx11Win32Backend() => this.ReleaseUnmanagedResources();
 
     /// <inheritdoc/>
-    public event IImGuiBackend.BuildUiDelegate? BuildUi;
+    public event ImGuiBuildUiDelegate? BuildUi;
 
     /// <inheritdoc/>
-    public event IImGuiBackend.NewInputFrameDelegate? NewInputFrame;
+    public event ImGuiNewInputFrameDelegate? NewInputFrame;
 
     /// <inheritdoc/>
-    public event IImGuiBackend.NewRenderFrameDelegate? NewRenderFrame;
+    public event ImGuiNewRenderFrameDelegate? NewRenderFrame;
 
     /// <inheritdoc/>
     public bool UpdateCursor
