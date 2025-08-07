@@ -18,6 +18,7 @@ using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.ImGuiBackend;
+using Dalamud.Interface.ImGuiBackend.Delegates;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Asserts;
@@ -128,7 +129,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// <summary>
     /// This event gets called each frame to facilitate ImGui drawing.
     /// </summary>
-    public event IImGuiBackend.BuildUiDelegate? Draw;
+    public event ImGuiBuildUiDelegate? Draw;
 
     /// <summary>
     /// This event gets called when ResizeBuffers is called.
