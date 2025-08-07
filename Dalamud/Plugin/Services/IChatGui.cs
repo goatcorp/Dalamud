@@ -83,20 +83,21 @@ public interface IChatGui
     /// <summary>
     /// Gets the dictionary of Dalamud Link Handlers.
     /// </summary>
-    public IReadOnlyDictionary<(string PluginName, Guid CommandId), Action<Guid, SeString>> RegisteredLinkHandlers { get; }
+    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers { get; }
 
     /// <summary>
     /// Register a chat link handler.
     /// </summary>
+    /// <param name="commandId">The ID of the command.</param>
     /// <param name="commandAction">The action to be executed.</param>
     /// <returns>Returns an SeString payload for the link.</returns>
-    public DalamudLinkPayload AddChatLinkHandler(Action<Guid, SeString> commandAction);
+    public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction);
 
     /// <summary>
     /// Remove a chat link handler.
     /// </summary>
     /// <param name="commandId">The ID of the command.</param>
-    public void RemoveChatLinkHandler(Guid commandId);
+    public void RemoveChatLinkHandler(uint commandId);
 
     /// <summary>
     /// Removes all chat link handlers registered by the plugin.
