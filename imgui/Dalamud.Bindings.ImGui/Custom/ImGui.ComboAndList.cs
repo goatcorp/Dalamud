@@ -15,82 +15,7 @@ public static unsafe partial class ImGui
     public delegate ImU8String PopulateAutoUtf8BufferRefContextDelegate<T>(scoped ref T context, int index)
         where T : allows ref struct;
 
-    [OverloadResolutionPriority(2)]
-    public static bool Combo(
-        ImU8String label, ref int currentItem, ReadOnlySpan<string> items, int popupMaxHeightInItems = -1) =>
-        Combo(
-            label,
-            ref currentItem,
-            static (scoped in ReadOnlySpan<string> items, int index) => items[index],
-            items,
-            items.Length,
-            popupMaxHeightInItems);
-
-    [OverloadResolutionPriority(3)]
-    public static bool Combo<T>(
-        ImU8String label, ref int currentItem, scoped in T items, int popupMaxHeightInItems = -1)
-        where T : IList<string> =>
-        Combo(
-            label,
-            ref currentItem,
-            static (scoped in T items, int index) => items[index],
-            items,
-            items.Count,
-            popupMaxHeightInItems);
-
-    [OverloadResolutionPriority(4)]
-    public static bool Combo(
-        ImU8String label, ref int currentItem, IReadOnlyList<string> items, int popupMaxHeightInItems = -1) =>
-        Combo(
-            label,
-            ref currentItem,
-            static (scoped in IReadOnlyList<string> items, int index) => items[index],
-            items,
-            items.Count,
-            popupMaxHeightInItems);
-
-    [OverloadResolutionPriority(5)]
-    public static bool Combo<T>(
-        ImU8String label, ref int currentItem, ReadOnlySpan<T> items, Func<T, string> toString,
-        int popupMaxHeightInItems = -1)
-    {
-        var tmp = PointerTuple.CreateFixed(ref items, ref toString);
-        return Combo(
-            label,
-            ref currentItem,
-            static (scoped in PointerTuple<ReadOnlySpan<T>, Func<T, string>> items, int index) =>
-                items.Item2(items.Item1[index]),
-            tmp,
-            items.Length,
-            popupMaxHeightInItems);
-    }
-
-    [OverloadResolutionPriority(6)]
-    public static bool Combo<T, TList>(
-        ImU8String label, ref int currentItem, scoped in TList items, Func<T, string> toString,
-        int popupMaxHeightInItems = -1)
-        where TList : IList<T> =>
-        Combo(
-            label,
-            ref currentItem,
-            static (scoped in (TList, Func<T, string>) items, int index) => items.Item2(items.Item1[index]),
-            (items, toString),
-            items.Count,
-            popupMaxHeightInItems);
-
-    [OverloadResolutionPriority(7)]
-    public static bool Combo<T>(
-        ImU8String label, ref int currentItem, IReadOnlyList<T> items, Func<T, string> toString,
-        int popupMaxHeightInItems = -1) =>
-        Combo(
-            label,
-            ref currentItem,
-            static (scoped in (IReadOnlyList<T>, Func<T, string>) items, int index) => items.Item2(items.Item1[index]),
-            (items, toString),
-            items.Count,
-            popupMaxHeightInItems);
-
-    [OverloadResolutionPriority(1)]
+    [OverloadResolutionPriority(8)]
     public static bool Combo(
         ImU8String label, ref int currentItem, ImU8String itemsSeparatedByZeros, int popupMaxHeightInItems = -1)
     {
@@ -107,6 +32,81 @@ public static unsafe partial class ImGui
             return r;
         }
     }
+
+    [OverloadResolutionPriority(7)]
+    public static bool Combo(
+        ImU8String label, ref int currentItem, ReadOnlySpan<string> items, int popupMaxHeightInItems = -1) =>
+        Combo(
+            label,
+            ref currentItem,
+            static (scoped in ReadOnlySpan<string> items, int index) => items[index],
+            items,
+            items.Length,
+            popupMaxHeightInItems);
+
+    [OverloadResolutionPriority(6)]
+    public static bool Combo<T>(
+        ImU8String label, ref int currentItem, scoped in T items, int popupMaxHeightInItems = -1)
+        where T : IList<string> =>
+        Combo(
+            label,
+            ref currentItem,
+            static (scoped in T items, int index) => items[index],
+            items,
+            items.Count,
+            popupMaxHeightInItems);
+
+    [OverloadResolutionPriority(5)]
+    public static bool Combo(
+        ImU8String label, ref int currentItem, IReadOnlyList<string> items, int popupMaxHeightInItems = -1) =>
+        Combo(
+            label,
+            ref currentItem,
+            static (scoped in IReadOnlyList<string> items, int index) => items[index],
+            items,
+            items.Count,
+            popupMaxHeightInItems);
+
+    [OverloadResolutionPriority(4)]
+    public static bool Combo<T>(
+        ImU8String label, ref int currentItem, ReadOnlySpan<T> items, Func<T, string> toString,
+        int popupMaxHeightInItems = -1)
+    {
+        var tmp = PointerTuple.CreateFixed(ref items, ref toString);
+        return Combo(
+            label,
+            ref currentItem,
+            static (scoped in PointerTuple<ReadOnlySpan<T>, Func<T, string>> items, int index) =>
+                items.Item2(items.Item1[index]),
+            tmp,
+            items.Length,
+            popupMaxHeightInItems);
+    }
+
+    [OverloadResolutionPriority(3)]
+    public static bool Combo<T, TList>(
+        ImU8String label, ref int currentItem, scoped in TList items, Func<T, string> toString,
+        int popupMaxHeightInItems = -1)
+        where TList : IList<T> =>
+        Combo(
+            label,
+            ref currentItem,
+            static (scoped in (TList, Func<T, string>) items, int index) => items.Item2(items.Item1[index]),
+            (items, toString),
+            items.Count,
+            popupMaxHeightInItems);
+
+    [OverloadResolutionPriority(2)]
+    public static bool Combo<T>(
+        ImU8String label, ref int currentItem, IReadOnlyList<T> items, Func<T, string> toString,
+        int popupMaxHeightInItems = -1) =>
+        Combo(
+            label,
+            ref currentItem,
+            static (scoped in (IReadOnlyList<T>, Func<T, string>) items, int index) => items.Item2(items.Item1[index]),
+            (items, toString),
+            items.Count,
+            popupMaxHeightInItems);
 
     public static bool Combo<TContext>(
         ImU8String label, ref int currentItem, PopulateAutoUtf8BufferInContextDelegate<TContext> itemsGetter,
