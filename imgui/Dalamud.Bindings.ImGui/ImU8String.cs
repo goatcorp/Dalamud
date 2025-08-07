@@ -35,7 +35,7 @@ public ref struct ImU8String : IDisposable
     }
 
     public ImU8String(int literalLength, int formattedCount)
-        : this(ReadOnlySpan<byte>.Empty)
+        : this(""u8)
     {
         this.state |= State.Interpolation;
         literalLength += formattedCount * 4;
@@ -51,6 +51,12 @@ public ref struct ImU8String : IDisposable
     public ImU8String(ReadOnlySpan<byte> text, bool ensureNullTermination = false)
         : this()
     {
+        if (Unsafe.IsNullRef(in MemoryMarshal.GetReference(text)))
+        {
+            this.state = State.None;
+            return;
+        }
+
         this.state = State.Initialized;
         if (text.IsEmpty)
         {
@@ -82,6 +88,12 @@ public ref struct ImU8String : IDisposable
     public ImU8String(ReadOnlySpan<char> text)
         : this()
     {
+        if (Unsafe.IsNullRef(in MemoryMarshal.GetReference(text)))
+        {
+            this.state = State.None;
+            return;
+        }
+
         this.state = State.Initialized | State.NullTerminated;
         this.Length = Encoding.UTF8.GetByteCount(text);
         if (this.Length + 1 < AllocFreeBufferSize)
@@ -312,6 +324,12 @@ public ref struct ImU8String : IDisposable
         this.AppendFormatted(value, format);
         FixAlignment(startingPos, alignment);
     }
+
+    public void AppendFormatted(object? value) => this.AppendFormatted<object>(value!);
+    public void AppendFormatted(object? value, string? format) => this.AppendFormatted<object>(value!, format);
+    public void AppendFormatted(object? value, int alignment) => this.AppendFormatted<object>(value!, alignment);
+    public void AppendFormatted(object? value, int alignment, string? format) =>
+        this.AppendFormatted<object>(value!, alignment, format);
 
     public void AppendFormatted<T>(T value) => this.AppendFormatted(value, null);
 
