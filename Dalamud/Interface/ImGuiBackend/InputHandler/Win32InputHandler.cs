@@ -245,7 +245,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     return default(LRESULT);
                 }
 
-                if (ImGui.IsAnyItemActive())
+                if (!ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow))
                     ImGui.ClearWindowFocus();
 
                 break;
