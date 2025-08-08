@@ -204,11 +204,14 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void PassFilter(ImGuiTextFilterPtr self, ImU8String text)
+    public static bool PassFilter(ImGuiTextFilterPtr self, ImU8String text)
     {
         fixed (byte* textPtr = text)
-            ImGuiNative.PassFilter(self.Handle, textPtr, textPtr + text.Length);
-        text.Dispose();
+        {
+            var r = ImGuiNative.PassFilter(self.Handle, textPtr, textPtr + text.Length) != 0;
+            text.Dispose();
+            return r;
+        }
     }
 
     public static void RenderText(
