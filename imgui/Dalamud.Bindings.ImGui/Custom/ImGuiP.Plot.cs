@@ -27,8 +27,8 @@ public static unsafe partial class ImGuiP
                 scaleMin,
                 scaleMax,
                 frameSize);
-            label.Dispose();
-            overlayText.Dispose();
+            label.Recycle();
+            overlayText.Recycle();
             return r;
         }
     }
@@ -59,8 +59,8 @@ public static unsafe partial class ImGuiP
                 scaleMin,
                 scaleMax,
                 frameSize);
-            label.Dispose();
-            overlayText.Dispose();
+            label.Recycle();
+            overlayText.Recycle();
             return r;
         }
     }
@@ -91,8 +91,8 @@ public static unsafe partial class ImGuiP
                 scaleMin,
                 scaleMax,
                 frameSize);
-            label.Dispose();
-            overlayText.Dispose();
+            label.Recycle();
+            overlayText.Recycle();
             return r;
         }
     }

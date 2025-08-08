@@ -26,7 +26,7 @@ public unsafe partial class ImGui
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
         {
             var len = ImGuiNative.DataTypeFormatString(bufPtr, buf.Length, dataType, &data, formatPtr);
-            format.Dispose();
+            format.Recycle();
             return buf[..len];
         }
     }
@@ -39,7 +39,7 @@ public unsafe partial class ImGui
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
         fixed (byte* bufPtr = buf)
             ImGuiNative.ImParseFormatTrimDecorations(formatPtr, bufPtr, (nuint)buf.Length);
-        format.Dispose();
+        format.Recycle();
         var nul = buf.IndexOf((byte)0);
         return nul == -1 ? buf : buf[..nul];
     }
@@ -129,7 +129,7 @@ public unsafe partial class ImGui
         var r = InputText(label, t.Buffer[..(maxLength + 1)], flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -142,7 +142,7 @@ public unsafe partial class ImGui
         var r = InputText(label, t.Buffer[..(maxLength + 1)], flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -155,7 +155,7 @@ public unsafe partial class ImGui
         var r = InputText(label, t.Buffer[..(maxLength + 1)], flags, callback, ref context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -168,7 +168,7 @@ public unsafe partial class ImGui
         var r = InputText(label, t.Buffer[..(maxLength + 1)], flags, callback, in context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -192,8 +192,8 @@ public unsafe partial class ImGui
                         flags,
                         callback == null ? null : &InputTextCallbackStatic,
                         callback == null ? null : &dataBuffer) != 0;
-            label.Dispose();
-            hint.Dispose();
+            label.Recycle();
+            hint.Recycle();
             return r;
         }
     }
@@ -218,8 +218,8 @@ public unsafe partial class ImGui
                         flags,
                         callback == null ? null : &InputTextCallbackPtrStatic,
                         callback == null ? null : &dataBuffer) != 0;
-            label.Dispose();
-            hint.Dispose();
+            label.Recycle();
+            hint.Recycle();
             return r;
         }
     }
@@ -245,8 +245,8 @@ public unsafe partial class ImGui
                         flags,
                         &InputTextCallbackRefContextStatic,
                         &dataBuffer) != 0;
-            label.Dispose();
-            hint.Dispose();
+            label.Recycle();
+            hint.Recycle();
             return r;
         }
     }
@@ -272,8 +272,8 @@ public unsafe partial class ImGui
                         flags,
                         &InputTextCallbackInContextStatic,
                         &dataBuffer) != 0;
-            label.Dispose();
-            hint.Dispose();
+            label.Recycle();
+            hint.Recycle();
             return r;
         }
     }
@@ -289,7 +289,7 @@ public unsafe partial class ImGui
         var r = InputTextEx(label, hint, t.Buffer[..(maxLength + 1)], sizeArg, flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -302,7 +302,7 @@ public unsafe partial class ImGui
         var r = InputTextEx(label, hint, t.Buffer[..(maxLength + 1)], sizeArg, flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -316,7 +316,7 @@ public unsafe partial class ImGui
         var r = InputTextEx(label, hint, t.Buffer[..(maxLength + 1)], sizeArg, flags, callback, ref context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -330,7 +330,7 @@ public unsafe partial class ImGui
         var r = InputTextEx(label, hint, t.Buffer[..(maxLength + 1)], sizeArg, flags, callback, in context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -390,7 +390,7 @@ public unsafe partial class ImGui
         var r = InputTextMultiline(label, t.Buffer[..(maxLength + 1)], size, flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -403,7 +403,7 @@ public unsafe partial class ImGui
         var r = InputTextMultiline(label, t.Buffer[..(maxLength + 1)], size, flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -416,7 +416,7 @@ public unsafe partial class ImGui
         var r = InputTextMultiline(label, t.Buffer[..(maxLength + 1)], size, flags, callback, ref context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -429,7 +429,7 @@ public unsafe partial class ImGui
         var r = InputTextMultiline(label, t.Buffer[..(maxLength + 1)], size, flags, callback, in context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -479,7 +479,7 @@ public unsafe partial class ImGui
         var r = InputTextWithHint(label, hint, t.Buffer[..(maxLength + 1)], flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -492,7 +492,7 @@ public unsafe partial class ImGui
         var r = InputTextWithHint(label, hint, t.Buffer[..(maxLength + 1)], flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -505,7 +505,7 @@ public unsafe partial class ImGui
         var r = InputTextWithHint(label, hint, t.Buffer[..(maxLength + 1)], flags, callback, ref context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -518,7 +518,7 @@ public unsafe partial class ImGui
         var r = InputTextWithHint(label, hint, t.Buffer[..(maxLength + 1)], flags, callback, in context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -529,7 +529,7 @@ public unsafe partial class ImGui
         fixed (byte* bufPtr = buf)
         {
             var r = ImGuiNative.TempInputText(bb, id, labelPtr, bufPtr, buf.Length, flags) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -543,7 +543,7 @@ public unsafe partial class ImGui
         var r = TempInputText(bb, id, label, t.Buffer[..(maxLength + 1)], flags);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 

@@ -10,14 +10,14 @@ public static unsafe partial class ImGui
     {
         fixed (byte* textPtr = text)
             ImGuiNative.AddText(self.Handle, textPtr, textPtr + text.Length);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void AddText(ImDrawListPtr self, Vector2 pos, uint col, ImU8String text)
     {
         fixed (byte* textPtr = text)
             ImGuiNative.AddText(self.Handle, pos, col, textPtr, textPtr + text.Length);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void AddText(
@@ -36,7 +36,7 @@ public static unsafe partial class ImGui
                 textPtr + text.Length,
                 wrapWidth,
                 cpuFineClipRectPtr);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void AddText(
@@ -45,14 +45,14 @@ public static unsafe partial class ImGui
     {
         fixed (byte* textPtr = text)
             ImGuiNative.AddText(self.Handle, font, fontSize, pos, col, textPtr, textPtr + text.Length, wrapWidth, null);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void append(this ImGuiTextBufferPtr self, ImU8String str)
     {
         fixed (byte* strPtr = str)
             ImGuiNative.append(self.Handle, strPtr, strPtr + str.Length);
-        str.Dispose();
+        str.Recycle();
     }
 
     public static void BulletText(ImU8String text)
@@ -92,7 +92,7 @@ public static unsafe partial class ImGui
                 textPtr + text.Length,
                 hideTextAfterDoubleHash ? (byte)1 : (byte)0,
                 wrapWidth);
-        text.Dispose();
+        text.Recycle();
         return @out;
     }
 
@@ -115,7 +115,7 @@ public static unsafe partial class ImGui
             remaining = (int)(remainingPtr - textPtr);
         }
 
-        text.Dispose();
+        text.Recycle();
         return @out;
     }
 
@@ -126,7 +126,7 @@ public static unsafe partial class ImGui
         {
             var r =
                 (int)(ImGuiNative.CalcWordWrapPositionA(font.Handle, scale, ptr, ptr + text.Length, wrapWidth) - ptr);
-            text.Dispose();
+            text.Recycle();
             return r;
         }
     }
@@ -136,7 +136,7 @@ public static unsafe partial class ImGui
     {
         fixed (byte* ptr = text)
             ImGuiNative.InsertChars(self.Handle, pos, ptr, ptr + text.Length);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void LabelText(
@@ -146,8 +146,8 @@ public static unsafe partial class ImGui
         var window = ImGuiP.GetCurrentWindow().Handle;
         if (window->SkipItems != 0)
         {
-            label.Dispose();
-            text.Dispose();
+            label.Recycle();
+            text.Recycle();
             return;
         }
 
@@ -168,8 +168,8 @@ public static unsafe partial class ImGui
         ImGuiP.ItemSize(totalBb, style.FramePadding.Y);
         if (!ImGuiP.ItemAdd(totalBb, 0))
         {
-            label.Dispose();
-            text.Dispose();
+            label.Recycle();
+            text.Recycle();
             return;
         }
 
@@ -182,8 +182,8 @@ public static unsafe partial class ImGui
                 label.Span);
         }
 
-        label.Dispose();
-        text.Dispose();
+        label.Recycle();
+        text.Recycle();
     }
 
     public static void LogText(ImU8String text)
@@ -201,7 +201,7 @@ public static unsafe partial class ImGui
             append(&g.Handle->LogBuffer, text);
         }
 
-        text.Dispose();
+        text.Recycle();
     }
 
     public static bool PassFilter(ImGuiTextFilterPtr self, ImU8String text)
@@ -209,7 +209,7 @@ public static unsafe partial class ImGui
         fixed (byte* textPtr = text)
         {
             var r = ImGuiNative.PassFilter(self.Handle, textPtr, textPtr + text.Length) != 0;
-            text.Dispose();
+            text.Recycle();
             return r;
         }
     }
@@ -230,7 +230,7 @@ public static unsafe partial class ImGui
                 textPtr + text.Length,
                 wrapWidth,
                 cpuFineClip ? (byte)1 : (byte)0);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void SetTooltip(ImU8String text)
@@ -238,14 +238,14 @@ public static unsafe partial class ImGui
         ImGuiP.BeginTooltipEx(ImGuiTooltipFlags.OverridePreviousTooltip, ImGuiWindowFlags.None);
         Text(text.Span);
         EndTooltip();
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void Text(ImU8String text)
     {
         fixed (byte* ptr = text)
             ImGuiNative.TextUnformatted(ptr, ptr + text.Length);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void TextColored(uint col, ImU8String text)
@@ -253,7 +253,7 @@ public static unsafe partial class ImGui
         PushStyleColor(ImGuiCol.Text, col);
         Text(text.Span);
         PopStyleColor();
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void TextColored(scoped in Vector4 col, ImU8String text)
@@ -261,19 +261,19 @@ public static unsafe partial class ImGui
         PushStyleColor(ImGuiCol.Text, col);
         Text(text.Span);
         PopStyleColor();
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void TextDisabled(ImU8String text)
     {
         TextColored(*GetStyleColorVec4(ImGuiCol.TextDisabled), text.Span);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void TextUnformatted(ImU8String text)
     {
         Text(text.Span);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void TextWrapped(ImU8String text)
@@ -285,7 +285,7 @@ public static unsafe partial class ImGui
         Text(text.Span);
         if (needBackup)
             PopTextWrapPos();
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void TextColoredWrapped(uint col, ImU8String text)
@@ -293,7 +293,7 @@ public static unsafe partial class ImGui
         PushStyleColor(ImGuiCol.Text, col);
         TextWrapped(text.Span);
         PopStyleColor();
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void TextColoredWrapped(scoped in Vector4 col, ImU8String text)
@@ -301,7 +301,7 @@ public static unsafe partial class ImGui
         PushStyleColor(ImGuiCol.Text, col);
         TextWrapped(text.Span);
         PopStyleColor();
-        text.Dispose();
+        text.Recycle();
     }
 
     public static bool TreeNode(ImU8String label)
@@ -309,7 +309,7 @@ public static unsafe partial class ImGui
         var window = ImGuiP.GetCurrentWindow();
         if (window.SkipItems)
         {
-            label.Dispose();
+            label.Recycle();
             return false;
         }
 
@@ -317,7 +317,7 @@ public static unsafe partial class ImGui
             window.Handle->GetID(label.Span),
             ImGuiTreeNodeFlags.None,
             label.Span[..ImGuiP.FindRenderedTextEnd(label.Span, out _, out _)]);
-        label.Dispose();
+        label.Recycle();
         return res;
     }
 
@@ -343,8 +343,8 @@ public static unsafe partial class ImGui
             res = ImGuiP.TreeNodeBehavior(window.Handle->GetID(id.Span), flags, label.Span[..label.Length]);
         }
 
-        id.Dispose();
-        label.Dispose();
+        id.Recycle();
+        label.Recycle();
         return res;
     }
 }

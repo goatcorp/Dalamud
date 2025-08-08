@@ -274,8 +274,8 @@ public static unsafe partial class ImGui
                           stepFast > T.Zero ? stepFastPtr : null,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -302,8 +302,8 @@ public static unsafe partial class ImGui
                           stepFast > T.Zero ? stepFastPtr : null,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -329,8 +329,8 @@ public static unsafe partial class ImGui
                           stepFast > T.Zero ? stepFastPtr : null,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -357,8 +357,8 @@ public static unsafe partial class ImGui
                           stepFast > T.Zero ? stepFastPtr : null,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }

@@ -27,7 +27,7 @@ public static unsafe partial class ImGui
         fixed (byte* typePtr = &type.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.AcceptDragDropPayload(typePtr, flags);
-            type.Dispose();
+            type.Recycle();
             return r;
         }
     }
@@ -39,7 +39,7 @@ public static unsafe partial class ImGui
         fixed (byte* filenamePtr = &filename.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.AddFontFromFileTTF(self, filenamePtr, sizePixels, fontCfg, glyphRanges);
-            filename.Dispose();
+            filename.Recycle();
             return r;
         }
     }
@@ -56,7 +56,7 @@ public static unsafe partial class ImGui
                 sizePixels,
                 fontCfg,
                 glyphRanges);
-            compressedFontDatabase85.Dispose();
+            compressedFontDatabase85.Recycle();
             return r;
         }
     }
@@ -96,7 +96,7 @@ public static unsafe partial class ImGui
     {
         fixed (byte* strPtr = &str.GetPinnableNullTerminatedReference())
             ImGuiNative.AddInputCharactersUTF8(self.Handle, strPtr);
-        str.Dispose();
+        str.Recycle();
     }
 
     public static ref bool GetBoolRef(ImGuiStoragePtr self, uint key, bool defaultValue = false) =>
@@ -125,7 +125,7 @@ public static unsafe partial class ImGui
         fixed (byte* strIdPtr = strId)
         {
             var r = ImGuiNative.GetID(strIdPtr, strIdPtr + strId.Length);
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
@@ -139,7 +139,7 @@ public static unsafe partial class ImGui
         fixed (byte* strIdPtr = strId)
         {
             ImGuiNative.PushID(strIdPtr, strIdPtr + strId.Length);
-            strId.Dispose();
+            strId.Recycle();
         }
     }
 
