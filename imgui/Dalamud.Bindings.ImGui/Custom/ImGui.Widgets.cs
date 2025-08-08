@@ -6,6 +6,16 @@ namespace Dalamud.Bindings.ImGui;
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public static unsafe partial class ImGui
 {
+    public static bool ArrowButton(ImU8String strId, ImGuiDir dir)
+    {
+        fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
+        {
+            var r = ImGuiNative.ArrowButton(strIdPtr, dir) != 0;
+            strId.Recycle();
+            return r;
+        }
+    }
+
     public static bool Begin(ImU8String name, ref bool open, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
