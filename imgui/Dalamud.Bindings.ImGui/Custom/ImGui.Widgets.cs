@@ -546,7 +546,7 @@ public static unsafe partial class ImGui
         text.Recycle();
     }
 
-    public static bool SetDragDropPayload(ImU8String type, ReadOnlySpan<byte> data, ImGuiCond cond)
+    public static bool SetDragDropPayload(ImU8String type, ReadOnlySpan<byte> data, ImGuiCond cond = ImGuiCond.None)
     {
         fixed (byte* typePtr = &type.GetPinnableNullTerminatedReference())
         fixed (byte* dataPtr = data)
