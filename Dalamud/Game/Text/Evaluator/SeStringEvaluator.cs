@@ -247,6 +247,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             case MacroCode.Switch:
                 return this.TryResolveSwitch(in context, payload);
 
+            case MacroCode.SwitchPlatform:
+                return this.TryResolveSwitchPlatform(in context, payload);
+
             case MacroCode.PcName:
                 return this.TryResolvePcName(in context, payload);
 
@@ -448,6 +451,29 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
 
         return false;
+    }
+
+    private bool TryResolveSwitchPlatform(in SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var expr1))
+            return false;
+
+        if (!expr1.TryGetInt(out var intVal))
+            return false;
+
+        // Our version of the game uses IsMacClient() here and the
+        // Xbox version seems to always return 7 for the platform.
+        var platform = Util.IsWine() ? 5 : 3;
+
+        // The sheet is seeminly split into first 20 rows for wired controllers
+        // and the last 20 rows for wireless controllers.
+        var rowId = (uint)((20 * ((intVal - 1) / 20)) + (platform - 4 < 2 ? 2 : 1));
+
+        if (!this.dataManager.GetExcelSheet<Platform>().TryGetRow(rowId, out var platformRow))
+            return false;
+
+        context.Builder.Append(platformRow.Name);
+        return true;
     }
 
     private unsafe bool TryResolvePcName(in SeStringContext context, in ReadOnlySePayloadSpan payload)
