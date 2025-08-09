@@ -28,7 +28,7 @@ public static unsafe partial class ImGuiNative
 
     [LibraryImport(LibraryName, EntryPoint = "igInputTextEx")]
     [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-    public static partial int InputTextEx(
+    public static partial byte InputTextEx(
         byte* label,
         byte* hint,
         byte* buf,
