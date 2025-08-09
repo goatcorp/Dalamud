@@ -16,4 +16,3 @@ public unsafe partial struct ImGuiTableColumnSettingsPtr
 			ImGuiNative.Destroy(Handle);
 		}
 }
-

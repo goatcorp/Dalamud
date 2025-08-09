@@ -1,18 +1,17 @@
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Memory;
 
 using Serilog;
 
 using TerraFX.Interop.Windows;
-
-using static Dalamud.Interface.ImGuiBackend.Helpers.ImGuiViewportHelpers;
 
 using static TerraFX.Interop.Windows.Windows;
 
@@ -245,7 +244,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     return default(LRESULT);
                 }
 
-                if (ImGui.IsAnyItemActive())
+                if (!ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow))
                     ImGui.ClearWindowFocus();
 
                 break;
@@ -585,51 +584,50 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
 
     private struct ViewportHandler : IDisposable
     {
-        [SuppressMessage("ReSharper", "CollectionNeverQueried.Local", Justification = "Keeping references alive")]
-        private readonly List<object> delegateReferences = new();
+        private static readonly string WindowClassName = typeof(ViewportHandler).FullName!;
 
         private Win32InputHandler input;
-        private nint classNamePtr;
 
         private bool wantUpdateMonitors = true;
 
         public ViewportHandler(Win32InputHandler input)
         {
             this.input = input;
-            this.classNamePtr = Marshal.StringToHGlobalUni("ImGui Platform");
 
             var pio = ImGui.GetPlatformIO();
-            pio.PlatformCreateWindow = this.RegisterFunctionPointer<CreateWindowDelegate>(this.OnCreateWindow);
-            pio.PlatformDestroyWindow = this.RegisterFunctionPointer<DestroyWindowDelegate>(this.OnDestroyWindow);
-            pio.PlatformShowWindow = this.RegisterFunctionPointer<ShowWindowDelegate>(this.OnShowWindow);
-            pio.PlatformSetWindowPos = this.RegisterFunctionPointer<SetWindowPosDelegate>(this.OnSetWindowPos);
-            pio.PlatformGetWindowPos = this.RegisterFunctionPointer<GetWindowPosDelegate>(this.OnGetWindowPos);
-            pio.PlatformSetWindowSize = this.RegisterFunctionPointer<SetWindowSizeDelegate>(this.OnSetWindowSize);
-            pio.PlatformGetWindowSize = this.RegisterFunctionPointer<GetWindowSizeDelegate>(this.OnGetWindowSize);
-            pio.PlatformSetWindowFocus = this.RegisterFunctionPointer<SetWindowFocusDelegate>(this.OnSetWindowFocus);
-            pio.PlatformGetWindowFocus = this.RegisterFunctionPointer<GetWindowFocusDelegate>(this.OnGetWindowFocus);
-            pio.PlatformGetWindowMinimized =
-                this.RegisterFunctionPointer<GetWindowMinimizedDelegate>(this.OnGetWindowMinimized);
-            pio.PlatformSetWindowTitle = this.RegisterFunctionPointer<SetWindowTitleDelegate>(this.OnSetWindowTitle);
-            pio.PlatformSetWindowAlpha = this.RegisterFunctionPointer<SetWindowAlphaDelegate>(this.OnSetWindowAlpha);
-            pio.PlatformUpdateWindow = this.RegisterFunctionPointer<UpdateWindowDelegate>(this.OnUpdateWindow);
+            pio.PlatformCreateWindow = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, void>)&OnCreateWindow;
+            pio.PlatformDestroyWindow = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, void>)&OnDestroyWindow;
+            pio.PlatformShowWindow = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, void>)&OnShowWindow;
+            pio.PlatformSetWindowPos = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, Vector2, void>)&OnSetWindowPos;
+            pio.PlatformGetWindowPos = (delegate* unmanaged[Cdecl]<Vector2*, ImGuiViewportPtr, Vector2*>)&OnGetWindowPos;
+            pio.PlatformSetWindowSize = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, Vector2, void>)&OnSetWindowSize;
+            pio.PlatformGetWindowSize = (delegate* unmanaged[Cdecl]<Vector2*, ImGuiViewportPtr, Vector2*>)&OnGetWindowSize;
+            pio.PlatformSetWindowFocus = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, void>)&OnSetWindowFocus;
+            pio.PlatformGetWindowFocus = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, byte>)&OnGetWindowFocus;
+            pio.PlatformGetWindowMinimized = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, byte>)&OnGetWindowMinimized;
+            pio.PlatformSetWindowTitle = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, byte*, void>)&OnSetWindowTitle;
+            pio.PlatformSetWindowAlpha = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, float, void>)&OnSetWindowAlpha;
+            pio.PlatformUpdateWindow = (delegate* unmanaged[Cdecl]<ImGuiViewportPtr, void>)&OnUpdateWindow;
             // pio.Platform_SetImeInputPos = this.RegisterFunctionPointer<SetImeInputPosDelegate>(this.OnSetImeInputPos);
             // pio.Platform_GetWindowDpiScale = this.RegisterFunctionPointer<GetWindowDpiScaleDelegate>(this.OnGetWindowDpiScale);
             // pio.Platform_ChangedViewport = this.RegisterFunctionPointer<ChangedViewportDelegate>(this.OnChangedViewport);
 
-            var wcex = new WNDCLASSEXW
+            fixed (char* windowClassNamePtr = WindowClassName)
             {
-                cbSize = (uint)sizeof(WNDCLASSEXW),
-                style = CS.CS_HREDRAW | CS.CS_VREDRAW,
-                hInstance = GetModuleHandleW(null),
-                hbrBackground = (HBRUSH)(1 + COLOR.COLOR_BACKGROUND),
-                lpfnWndProc = (delegate* unmanaged<HWND, uint, WPARAM, LPARAM, LRESULT>)Marshal
-                    .GetFunctionPointerForDelegate(this.input.wndProcDelegate),
-                lpszClassName = (ushort*)this.classNamePtr,
-            };
+                var wcex = new WNDCLASSEXW
+                {
+                    cbSize = (uint)sizeof(WNDCLASSEXW),
+                    style = CS.CS_HREDRAW | CS.CS_VREDRAW,
+                    hInstance = (HINSTANCE)Marshal.GetHINSTANCE(typeof(ViewportHandler).Module),
+                    hbrBackground = (HBRUSH)(1 + COLOR.COLOR_BACKGROUND),
+                    lpfnWndProc = (delegate* unmanaged<HWND, uint, WPARAM, LPARAM, LRESULT>)Marshal
+                        .GetFunctionPointerForDelegate(this.input.wndProcDelegate),
+                    lpszClassName = (ushort*)windowClassNamePtr,
+                };
 
-            if (RegisterClassExW(&wcex) == 0)
-                throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new("RegisterClassEx Fail");
+                if (RegisterClassExW(&wcex) == 0)
+                    throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new("RegisterClassEx Fail");
+            }
 
             // Register main window handle (which is owned by the main application, not by us)
             // This is mostly for simplicity and consistency, so that our code (e.g. mouse handling etc.) can use same logic for main and secondary viewports.
@@ -657,11 +655,11 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 ImGui.GetPlatformIO().Handle->Monitors = default;
             }
 
-            if (this.classNamePtr != 0)
+            fixed (char* windowClassNamePtr = WindowClassName)
             {
-                UnregisterClassW((ushort*)this.classNamePtr, GetModuleHandleW(null));
-                Marshal.FreeHGlobal(this.classNamePtr);
-                this.classNamePtr = 0;
+                UnregisterClassW(
+                    (ushort*)windowClassNamePtr,
+                    (HINSTANCE)Marshal.GetHINSTANCE(typeof(ViewportHandler).Module));
             }
 
             pio.PlatformCreateWindow = null;
@@ -750,13 +748,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             }
         }
 
-        private void* RegisterFunctionPointer<T>(T obj)
-        {
-            this.delegateReferences.Add(obj);
-            return Marshal.GetFunctionPointerForDelegate(obj).ToPointer();
-        }
-
-        private void OnCreateWindow(ImGuiViewportPtr viewport)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static void OnCreateWindow(ImGuiViewportPtr viewport)
         {
             var data = (ImGuiViewportDataWin32*)Marshal.AllocHGlobal(Marshal.SizeOf<ImGuiViewportDataWin32>());
             viewport.PlatformUserData = data;
@@ -784,12 +777,12 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             };
             AdjustWindowRectEx(&rect, (uint)data->DwStyle, false, (uint)data->DwExStyle);
 
-            fixed (char* pwszWindowTitle = "Untitled")
+            fixed (char* windowClassNamePtr = WindowClassName)
             {
                 data->Hwnd = CreateWindowExW(
                     (uint)data->DwExStyle,
-                    (ushort*)this.classNamePtr,
-                    (ushort*)pwszWindowTitle,
+                    (ushort*)windowClassNamePtr,
+                    (ushort*)windowClassNamePtr,
                     (uint)data->DwStyle,
                     rect.left,
                     rect.top,
@@ -797,8 +790,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     rect.bottom - rect.top,
                     parentWindow,
                     default,
-                    GetModuleHandleW(null),
-                    default);
+                    (HINSTANCE)Marshal.GetHINSTANCE(typeof(ViewportHandler).Module),
+                    null);
             }
 
             data->HwndOwned = true;
@@ -806,7 +799,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             viewport.PlatformHandle = viewport.PlatformHandleRaw = data->Hwnd;
         }
 
-        private void OnDestroyWindow(ImGuiViewportPtr viewport)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static void OnDestroyWindow(ImGuiViewportPtr viewport)
         {
             // This is also called on the main viewport for some reason, and we never set that viewport's PlatformUserData
             if (viewport.PlatformUserData == null) return;
@@ -817,7 +811,11 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             {
                 // Transfer capture so if we started dragging from a window that later disappears, we'll still receive the MOUSEUP event.
                 ReleaseCapture();
-                SetCapture(this.input.hWnd);
+                if (viewport.ParentViewportId != 0)
+                {
+                    var parentViewport = ImGui.FindViewportByID(viewport.ParentViewportId);
+                    SetCapture((HWND)parentViewport.PlatformHandle);
+                }
             }
 
             if (data->Hwnd != nint.Zero && data->HwndOwned)
@@ -836,7 +834,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             viewport.PlatformUserData = viewport.PlatformHandle = null;
         }
 
-        private void OnShowWindow(ImGuiViewportPtr viewport)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static void OnShowWindow(ImGuiViewportPtr viewport)
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
 
@@ -846,7 +845,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 ShowWindow(data->Hwnd, SW.SW_SHOW);
         }
 
-        private void OnUpdateWindow(ImGuiViewportPtr viewport)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static void OnUpdateWindow(ImGuiViewportPtr viewport)
         {
             // (Optional) Update Win32 style if it changed _after_ creation.
             // Generally they won't change unless configuration flags are changed, but advanced uses (such as manually rewriting viewport flags) make this useful.
@@ -907,17 +907,18 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             }
         }
 
-        private Vector2* OnGetWindowPos(Vector2* returnStorage, ImGuiViewportPtr viewport)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static Vector2* OnGetWindowPos(Vector2* returnValueStorage, ImGuiViewportPtr viewport)
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
             var pt = new POINT { x = 0, y = 0 };
             ClientToScreen(data->Hwnd, &pt);
-            returnStorage->X = pt.x;
-            returnStorage->Y = pt.y;
-            return returnStorage;
+            *returnValueStorage = new(pt.x, pt.y);
+            return returnValueStorage;
         }
 
-        private void OnSetWindowPos(ImGuiViewportPtr viewport, Vector2 pos)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static void OnSetWindowPos(ImGuiViewportPtr viewport, Vector2 pos)
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
             var rect = new RECT((int)pos.X, (int)pos.Y, (int)pos.X, (int)pos.Y);
@@ -934,17 +935,18 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 SWP.SWP_NOACTIVATE);
         }
 
-        private Vector2* OnGetWindowSize(Vector2* returnStorage, ImGuiViewportPtr viewport)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static Vector2* OnGetWindowSize(Vector2* returnValueStorage, ImGuiViewportPtr viewport)
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
             RECT rect;
             GetClientRect(data->Hwnd, &rect);
-            returnStorage->X = rect.right - rect.left;
-            returnStorage->Y = rect.bottom - rect.top;
-            return returnStorage;
+            *returnValueStorage = new(rect.right - rect.left, rect.bottom - rect.top);
+            return returnValueStorage;
         }
 
-        private void OnSetWindowSize(ImGuiViewportPtr viewport, Vector2 size)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static void OnSetWindowSize(ImGuiViewportPtr viewport, Vector2 size)
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
 
@@ -962,7 +964,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 SWP.SWP_NOACTIVATE);
         }
 
-        private void OnSetWindowFocus(ImGuiViewportPtr viewport)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static void OnSetWindowFocus(ImGuiViewportPtr viewport)
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
 
@@ -971,26 +974,30 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             SetFocus(data->Hwnd);
         }
 
-        private bool OnGetWindowFocus(ImGuiViewportPtr viewport)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static byte OnGetWindowFocus(ImGuiViewportPtr viewport)
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
-            return GetForegroundWindow() == data->Hwnd;
+            return GetForegroundWindow() == data->Hwnd ? (byte)1 : (byte)0;
         }
 
-        private bool OnGetWindowMinimized(ImGuiViewportPtr viewport)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static byte OnGetWindowMinimized(ImGuiViewportPtr viewport)
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
-            return IsIconic(data->Hwnd);
+            return IsIconic(data->Hwnd) ? (byte)1 : (byte)0;
         }
 
-        private void OnSetWindowTitle(ImGuiViewportPtr viewport, string title)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static void OnSetWindowTitle(ImGuiViewportPtr viewport, byte* title)
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
-            fixed (char* pwszTitle = title)
+            fixed (char* pwszTitle = MemoryHelper.ReadStringNullTerminated((nint)title))
                 SetWindowTextW(data->Hwnd, (ushort*)pwszTitle);
         }
 
-        private void OnSetWindowAlpha(ImGuiViewportPtr viewport, float alpha)
+        [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+        private static void OnSetWindowAlpha(ImGuiViewportPtr viewport, float alpha)
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
             var style = GetWindowLongW(data->Hwnd, GWL.GWL_EXSTYLE);

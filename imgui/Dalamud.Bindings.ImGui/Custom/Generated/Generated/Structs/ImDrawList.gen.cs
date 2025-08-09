@@ -756,4 +756,3 @@ public unsafe partial struct ImDrawList
 		}
 }
 // DISCARDED: AddText
-

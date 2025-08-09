@@ -8,7 +8,7 @@ using System.Text.Unicode;
 namespace Dalamud.Bindings.ImGui;
 
 [InterpolatedStringHandler]
-public ref struct ImU8String : IDisposable
+public ref struct ImU8String
 {
     public const int AllocFreeBufferSize = 512;
     private const int MinimumRentSize = AllocFreeBufferSize * 2;
@@ -247,7 +247,7 @@ public ref struct ImU8String : IDisposable
         this.externalFirstByte = ref Unsafe.NullRef<byte>();
     }
 
-    public void Dispose()
+    public void Recycle()
     {
         if (this.rentedBuffer is { } buf)
         {
@@ -260,7 +260,7 @@ public ref struct ImU8String : IDisposable
     {
         if (!this.IsNull)
         {
-            other.Dispose();
+            other.Recycle();
             var res = this;
             this = default;
             return res;

@@ -26,7 +26,7 @@ public unsafe partial class ImGui
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
         {
             var len = ImGuiNative.DataTypeFormatString(bufPtr, buf.Length, dataType, &data, formatPtr);
-            format.Dispose();
+            format.Recycle();
             return buf[..len];
         }
     }
@@ -39,7 +39,7 @@ public unsafe partial class ImGui
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
         fixed (byte* bufPtr = buf)
             ImGuiNative.ImParseFormatTrimDecorations(formatPtr, bufPtr, (nuint)buf.Length);
-        format.Dispose();
+        format.Recycle();
         var nul = buf.IndexOf((byte)0);
         return nul == -1 ? buf : buf[..nul];
     }
@@ -77,6 +77,8 @@ public unsafe partial class ImGui
 
     public delegate int ImGuiInputTextCallbackDelegate(scoped ref ImGuiInputTextCallbackData data);
 
+    public delegate int ImGuiInputTextCallbackPtrDelegate(ImGuiInputTextCallbackDataPtr data);
+
     public delegate int ImGuiInputTextCallbackRefContextDelegate<TContext>(
         scoped ref ImGuiInputTextCallbackData data, scoped ref TContext context);
 
@@ -86,6 +88,14 @@ public unsafe partial class ImGui
     public static bool InputText(
         ImU8String label, Span<byte> buf, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None,
         ImGuiInputTextCallbackDelegate? callback = null)
+    {
+        if ((flags & (ImGuiInputTextFlags)ImGuiInputTextFlagsPrivate.Multiline) != ImGuiInputTextFlags.None)
+            throw new ArgumentOutOfRangeException(nameof(flags), flags, "Multiline must not be set");
+        return InputTextEx(label, default, buf, default, flags, callback);
+    }
+
+    public static bool InputText(
+        ImU8String label, Span<byte> buf, ImGuiInputTextFlags flags, ImGuiInputTextCallbackPtrDelegate? callback)
     {
         if ((flags & (ImGuiInputTextFlags)ImGuiInputTextFlagsPrivate.Multiline) != ImGuiInputTextFlags.None)
             throw new ArgumentOutOfRangeException(nameof(flags), flags, "Multiline must not be set");
@@ -112,15 +122,27 @@ public unsafe partial class ImGui
 
     public static bool InputText(
         ImU8String label, scoped ref string buf, int maxLength = ImU8String.AllocFreeBufferSize,
-        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None,
-        ImGuiInputTextCallbackDelegate? callback = null)
+        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None, ImGuiInputTextCallbackDelegate? callback = null)
     {
         var t = new ImU8String(buf);
         t.Reserve(maxLength + 1);
         var r = InputText(label, t.Buffer[..(maxLength + 1)], flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
+        return r;
+    }
+
+    public static bool InputText(
+        ImU8String label, scoped ref string buf, int maxLength, ImGuiInputTextFlags flags,
+        ImGuiInputTextCallbackPtrDelegate? callback)
+    {
+        var t = new ImU8String(buf);
+        t.Reserve(maxLength + 1);
+        var r = InputText(label, t.Buffer[..(maxLength + 1)], flags, callback);
+        var i = t.Buffer.IndexOf((byte)0);
+        buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
+        t.Recycle();
         return r;
     }
 
@@ -133,7 +155,7 @@ public unsafe partial class ImGui
         var r = InputText(label, t.Buffer[..(maxLength + 1)], flags, callback, ref context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -146,7 +168,7 @@ public unsafe partial class ImGui
         var r = InputText(label, t.Buffer[..(maxLength + 1)], flags, callback, in context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -170,8 +192,34 @@ public unsafe partial class ImGui
                         flags,
                         callback == null ? null : &InputTextCallbackStatic,
                         callback == null ? null : &dataBuffer) != 0;
-            label.Dispose();
-            hint.Dispose();
+            label.Recycle();
+            hint.Recycle();
+            return r;
+        }
+    }
+
+    public static bool InputTextEx(
+        ImU8String label, ImU8String hint, Span<byte> buf, Vector2 sizeArg,
+        ImGuiInputTextFlags flags, ImGuiInputTextCallbackPtrDelegate? callback)
+    {
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* hintPtr = &hint.GetPinnableNullTerminatedReference())
+        fixed (byte* bufPtr = buf)
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+        {
+            var dataBuffer = PointerTuple.Create(&callback);
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+            var r = ImGuiNative.InputTextEx(
+                        labelPtr,
+                        hintPtr,
+                        bufPtr,
+                        buf.Length,
+                        sizeArg,
+                        flags,
+                        callback == null ? null : &InputTextCallbackPtrStatic,
+                        callback == null ? null : &dataBuffer) != 0;
+            label.Recycle();
+            hint.Recycle();
             return r;
         }
     }
@@ -197,8 +245,8 @@ public unsafe partial class ImGui
                         flags,
                         &InputTextCallbackRefContextStatic,
                         &dataBuffer) != 0;
-            label.Dispose();
-            hint.Dispose();
+            label.Recycle();
+            hint.Recycle();
             return r;
         }
     }
@@ -224,8 +272,8 @@ public unsafe partial class ImGui
                         flags,
                         &InputTextCallbackInContextStatic,
                         &dataBuffer) != 0;
-            label.Dispose();
-            hint.Dispose();
+            label.Recycle();
+            hint.Recycle();
             return r;
         }
     }
@@ -241,7 +289,20 @@ public unsafe partial class ImGui
         var r = InputTextEx(label, hint, t.Buffer[..(maxLength + 1)], sizeArg, flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
+        return r;
+    }
+
+    public static bool InputTextEx(
+        ImU8String label, ImU8String hint, scoped ref string buf, int maxLength, Vector2 sizeArg,
+        ImGuiInputTextFlags flags, ImGuiInputTextCallbackPtrDelegate? callback)
+    {
+        var t = new ImU8String(buf);
+        t.Reserve(maxLength + 1);
+        var r = InputTextEx(label, hint, t.Buffer[..(maxLength + 1)], sizeArg, flags, callback);
+        var i = t.Buffer.IndexOf((byte)0);
+        buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
+        t.Recycle();
         return r;
     }
 
@@ -255,7 +316,7 @@ public unsafe partial class ImGui
         var r = InputTextEx(label, hint, t.Buffer[..(maxLength + 1)], sizeArg, flags, callback, ref context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -269,13 +330,24 @@ public unsafe partial class ImGui
         var r = InputTextEx(label, hint, t.Buffer[..(maxLength + 1)], sizeArg, flags, callback, in context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
     public static bool InputTextMultiline(
         ImU8String label, Span<byte> buf, Vector2 size = default, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None,
         ImGuiInputTextCallbackDelegate? callback = null) =>
+        InputTextEx(
+            label,
+            default,
+            buf,
+            size,
+            flags | (ImGuiInputTextFlags)ImGuiInputTextFlagsPrivate.Multiline,
+            callback);
+
+    public static bool InputTextMultiline(
+        ImU8String label, Span<byte> buf, Vector2 size, ImGuiInputTextFlags flags,
+        ImGuiInputTextCallbackPtrDelegate? callback) =>
         InputTextEx(
             label,
             default,
@@ -318,7 +390,20 @@ public unsafe partial class ImGui
         var r = InputTextMultiline(label, t.Buffer[..(maxLength + 1)], size, flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
+        return r;
+    }
+
+    public static bool InputTextMultiline(
+        ImU8String label, scoped ref string buf, int maxLength, Vector2 size, ImGuiInputTextFlags flags,
+        ImGuiInputTextCallbackPtrDelegate? callback)
+    {
+        var t = new ImU8String(buf);
+        t.Reserve(maxLength + 1);
+        var r = InputTextMultiline(label, t.Buffer[..(maxLength + 1)], size, flags, callback);
+        var i = t.Buffer.IndexOf((byte)0);
+        buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
+        t.Recycle();
         return r;
     }
 
@@ -331,7 +416,7 @@ public unsafe partial class ImGui
         var r = InputTextMultiline(label, t.Buffer[..(maxLength + 1)], size, flags, callback, ref context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -344,13 +429,22 @@ public unsafe partial class ImGui
         var r = InputTextMultiline(label, t.Buffer[..(maxLength + 1)], size, flags, callback, in context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
     public static bool InputTextWithHint(
         ImU8String label, ImU8String hint, Span<byte> buf, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None,
         ImGuiInputTextCallbackDelegate? callback = null)
+    {
+        if ((flags & (ImGuiInputTextFlags)ImGuiInputTextFlagsPrivate.Multiline) != ImGuiInputTextFlags.None)
+            throw new ArgumentOutOfRangeException(nameof(flags), flags, "Multiline must not be set");
+        return InputTextEx(label, hint, buf, default, flags, callback);
+    }
+
+    public static bool InputTextWithHint(
+        ImU8String label, ImU8String hint, Span<byte> buf, ImGuiInputTextFlags flags,
+        ImGuiInputTextCallbackPtrDelegate? callback)
     {
         if ((flags & (ImGuiInputTextFlags)ImGuiInputTextFlagsPrivate.Multiline) != ImGuiInputTextFlags.None)
             throw new ArgumentOutOfRangeException(nameof(flags), flags, "Multiline must not be set");
@@ -385,7 +479,20 @@ public unsafe partial class ImGui
         var r = InputTextWithHint(label, hint, t.Buffer[..(maxLength + 1)], flags, callback);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
+        return r;
+    }
+
+    public static bool InputTextWithHint(
+        ImU8String label, ImU8String hint, scoped ref string buf, int maxLength, ImGuiInputTextFlags flags,
+        ImGuiInputTextCallbackPtrDelegate? callback)
+    {
+        var t = new ImU8String(buf);
+        t.Reserve(maxLength + 1);
+        var r = InputTextWithHint(label, hint, t.Buffer[..(maxLength + 1)], flags, callback);
+        var i = t.Buffer.IndexOf((byte)0);
+        buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
+        t.Recycle();
         return r;
     }
 
@@ -398,7 +505,7 @@ public unsafe partial class ImGui
         var r = InputTextWithHint(label, hint, t.Buffer[..(maxLength + 1)], flags, callback, ref context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -411,7 +518,7 @@ public unsafe partial class ImGui
         var r = InputTextWithHint(label, hint, t.Buffer[..(maxLength + 1)], flags, callback, in context);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -422,7 +529,7 @@ public unsafe partial class ImGui
         fixed (byte* bufPtr = buf)
         {
             var r = ImGuiNative.TempInputText(bb, id, labelPtr, bufPtr, buf.Length, flags) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -436,7 +543,7 @@ public unsafe partial class ImGui
         var r = TempInputText(bb, id, label, t.Buffer[..(maxLength + 1)], flags);
         var i = t.Buffer.IndexOf((byte)0);
         buf = Encoding.UTF8.GetString(i == -1 ? t.Buffer : t.Buffer[..i]);
-        t.Dispose();
+        t.Recycle();
         return r;
     }
 
@@ -445,6 +552,13 @@ public unsafe partial class ImGui
     {
         ref var dvps = ref PointerTuple.From<ImGuiInputTextCallbackDelegate>(data->UserData);
         return dvps.Item1.Invoke(ref *data);
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    private static int InputTextCallbackPtrStatic(ImGuiInputTextCallbackData* data)
+    {
+        ref var dvps = ref PointerTuple.From<ImGuiInputTextCallbackPtrDelegate>(data->UserData);
+        return dvps.Item1.Invoke(data);
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]

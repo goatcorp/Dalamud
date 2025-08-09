@@ -34,8 +34,8 @@ public static unsafe partial class ImGui
                 stride);
         }
 
-        label.Dispose();
-        overlayText.Dispose();
+        label.Recycle();
+        overlayText.Recycle();
     }
 
     public static void PlotHistogram<TContext>(
@@ -66,8 +66,8 @@ public static unsafe partial class ImGui
                 graphSize);
         }
 
-        label.Dispose();
-        overlayText.Dispose();
+        label.Recycle();
+        overlayText.Recycle();
     }
 
     public static void PlotHistogram<TContext>(
@@ -97,8 +97,8 @@ public static unsafe partial class ImGui
                 graphSize);
         }
 
-        label.Dispose();
-        overlayText.Dispose();
+        label.Recycle();
+        overlayText.Recycle();
     }
 
     public static void PlotHistogram(
@@ -126,8 +126,8 @@ public static unsafe partial class ImGui
                 graphSize);
         }
 
-        label.Dispose();
-        overlayText.Dispose();
+        label.Recycle();
+        overlayText.Recycle();
     }
 
     public static void PlotLines(
@@ -151,8 +151,8 @@ public static unsafe partial class ImGui
                 stride);
         }
 
-        label.Dispose();
-        overlayText.Dispose();
+        label.Recycle();
+        overlayText.Recycle();
     }
 
     public static void PlotLines<TContext>(
@@ -182,8 +182,8 @@ public static unsafe partial class ImGui
                 graphSize);
         }
 
-        label.Dispose();
-        overlayText.Dispose();
+        label.Recycle();
+        overlayText.Recycle();
     }
 
     public static void PlotLines<TContext>(
@@ -214,8 +214,8 @@ public static unsafe partial class ImGui
                 graphSize);
         }
 
-        label.Dispose();
-        overlayText.Dispose();
+        label.Recycle();
+        overlayText.Recycle();
     }
 
     public static void PlotLines(
@@ -243,8 +243,8 @@ public static unsafe partial class ImGui
                 graphSize);
         }
 
-        label.Dispose();
-        overlayText.Dispose();
+        label.Recycle();
+        overlayText.Recycle();
     }
 
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type

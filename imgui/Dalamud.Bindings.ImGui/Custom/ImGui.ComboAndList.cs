@@ -15,7 +15,25 @@ public static unsafe partial class ImGui
     public delegate ImU8String PopulateAutoUtf8BufferRefContextDelegate<T>(scoped ref T context, int index)
         where T : allows ref struct;
 
-    [OverloadResolutionPriority(2)]
+    [OverloadResolutionPriority(8)]
+    public static bool Combo(
+        ImU8String label, ref int currentItem, ImU8String itemsSeparatedByZeros, int popupMaxHeightInItems = -1)
+    {
+        if (!itemsSeparatedByZeros.Span.EndsWith("\0\0"u8))
+            itemsSeparatedByZeros.AppendFormatted("\0\0"u8);
+
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (int* currentItemPtr = &currentItem)
+        fixed (byte* itemsSeparatedByZerosPtr = itemsSeparatedByZeros)
+        {
+            var r = ImGuiNative.Combo(labelPtr, currentItemPtr, itemsSeparatedByZerosPtr, popupMaxHeightInItems) != 0;
+            label.Recycle();
+            itemsSeparatedByZeros.Recycle();
+            return r;
+        }
+    }
+
+    [OverloadResolutionPriority(7)]
     public static bool Combo(
         ImU8String label, ref int currentItem, ReadOnlySpan<string> items, int popupMaxHeightInItems = -1) =>
         Combo(
@@ -26,7 +44,7 @@ public static unsafe partial class ImGui
             items.Length,
             popupMaxHeightInItems);
 
-    [OverloadResolutionPriority(3)]
+    [OverloadResolutionPriority(6)]
     public static bool Combo<T>(
         ImU8String label, ref int currentItem, scoped in T items, int popupMaxHeightInItems = -1)
         where T : IList<string> =>
@@ -38,7 +56,7 @@ public static unsafe partial class ImGui
             items.Count,
             popupMaxHeightInItems);
 
-    [OverloadResolutionPriority(4)]
+    [OverloadResolutionPriority(5)]
     public static bool Combo(
         ImU8String label, ref int currentItem, IReadOnlyList<string> items, int popupMaxHeightInItems = -1) =>
         Combo(
@@ -49,7 +67,7 @@ public static unsafe partial class ImGui
             items.Count,
             popupMaxHeightInItems);
 
-    [OverloadResolutionPriority(5)]
+    [OverloadResolutionPriority(4)]
     public static bool Combo<T>(
         ImU8String label, ref int currentItem, ReadOnlySpan<T> items, Func<T, string> toString,
         int popupMaxHeightInItems = -1)
@@ -65,7 +83,7 @@ public static unsafe partial class ImGui
             popupMaxHeightInItems);
     }
 
-    [OverloadResolutionPriority(6)]
+    [OverloadResolutionPriority(3)]
     public static bool Combo<T, TList>(
         ImU8String label, ref int currentItem, scoped in TList items, Func<T, string> toString,
         int popupMaxHeightInItems = -1)
@@ -78,7 +96,7 @@ public static unsafe partial class ImGui
             items.Count,
             popupMaxHeightInItems);
 
-    [OverloadResolutionPriority(7)]
+    [OverloadResolutionPriority(2)]
     public static bool Combo<T>(
         ImU8String label, ref int currentItem, IReadOnlyList<T> items, Func<T, string> toString,
         int popupMaxHeightInItems = -1) =>
@@ -89,24 +107,6 @@ public static unsafe partial class ImGui
             (items, toString),
             items.Count,
             popupMaxHeightInItems);
-
-    [OverloadResolutionPriority(1)]
-    public static bool Combo(
-        ImU8String label, ref int currentItem, ImU8String itemsSeparatedByZeros, int popupMaxHeightInItems = -1)
-    {
-        if (!itemsSeparatedByZeros.Span.EndsWith("\0\0"u8))
-            itemsSeparatedByZeros.AppendFormatted("\0\0"u8);
-
-        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
-        fixed (int* currentItemPtr = &currentItem)
-        fixed (byte* itemsSeparatedByZerosPtr = itemsSeparatedByZeros)
-        {
-            var r = ImGuiNative.Combo(labelPtr, currentItemPtr, itemsSeparatedByZerosPtr, popupMaxHeightInItems) != 0;
-            label.Dispose();
-            itemsSeparatedByZeros.Dispose();
-            return r;
-        }
-    }
 
     public static bool Combo<TContext>(
         ImU8String label, ref int currentItem, PopulateAutoUtf8BufferInContextDelegate<TContext> itemsGetter,
@@ -129,8 +129,8 @@ public static unsafe partial class ImGui
                         &dataBuffer,
                         itemsCount,
                         popupMaxHeightInItems) != 0;
-            label.Dispose();
-            textBuffer.Dispose();
+            label.Recycle();
+            textBuffer.Recycle();
             return r;
         }
     }
@@ -156,8 +156,8 @@ public static unsafe partial class ImGui
                         &dataBuffer,
                         itemsCount,
                         popupMaxHeightInItems) != 0;
-            label.Dispose();
-            textBuffer.Dispose();
+            label.Recycle();
+            textBuffer.Recycle();
             return r;
         }
     }
@@ -181,8 +181,8 @@ public static unsafe partial class ImGui
                         &dataBuffer,
                         itemsCount,
                         popupMaxHeightInItems) != 0;
-            label.Dispose();
-            textBuffer.Dispose();
+            label.Recycle();
+            textBuffer.Recycle();
             return r;
         }
     }
@@ -282,8 +282,8 @@ public static unsafe partial class ImGui
                         &dataBuffer,
                         itemsCount,
                         heightInItems) != 0;
-            label.Dispose();
-            textBuffer.Dispose();
+            label.Recycle();
+            textBuffer.Recycle();
             return r;
         }
     }
@@ -309,8 +309,8 @@ public static unsafe partial class ImGui
                         &dataBuffer,
                         itemsCount,
                         heightInItems) != 0;
-            label.Dispose();
-            textBuffer.Dispose();
+            label.Recycle();
+            textBuffer.Recycle();
             return r;
         }
     }
@@ -334,8 +334,8 @@ public static unsafe partial class ImGui
                         &dataBuffer,
                         itemsCount,
                         heightInItems) != 0;
-            label.Dispose();
-            textBuffer.Dispose();
+            label.Recycle();
+            textBuffer.Recycle();
             return r;
         }
     }
@@ -345,7 +345,7 @@ public static unsafe partial class ImGui
     {
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
         ref var s = ref PointerTuple.From<PopulateAutoUtf8BufferRefContextDelegate<object>, ImU8String, object>(data);
-        s.Item2.Dispose();
+        s.Item2.Recycle();
         s.Item2 = s.Item1.Invoke(ref s.Item3, index);
         if (s.Item2.IsNull)
             return false;
@@ -359,7 +359,7 @@ public static unsafe partial class ImGui
     {
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
         ref var s = ref PointerTuple.From<PopulateAutoUtf8BufferInContextDelegate<object>, ImU8String, object>(data);
-        s.Item2.Dispose();
+        s.Item2.Recycle();
         s.Item2 = s.Item1.Invoke(s.Item3, index);
         if (s.Item2.IsNull)
             return false;
@@ -373,7 +373,7 @@ public static unsafe partial class ImGui
     {
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
         ref var s = ref PointerTuple.From<PopulateAutoUtf8BufferDelegate, ImU8String>(data);
-        s.Item2.Dispose();
+        s.Item2.Recycle();
         s.Item2 = s.Item1.Invoke(index);
         if (s.Item2.IsNull)
             return false;

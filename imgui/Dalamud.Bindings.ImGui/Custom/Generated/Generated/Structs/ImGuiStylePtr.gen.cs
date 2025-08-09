@@ -20,4 +20,3 @@ public unsafe partial struct ImGuiStylePtr
 			ImGuiNative.ScaleAllSizes(Handle, scaleFactor);
 		}
 }
-

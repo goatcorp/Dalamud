@@ -12,7 +12,7 @@ public unsafe partial class ImGuiP
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.ArrowButtonEx(strIdPtr, dir, sizeArg, flags) != 0;
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
@@ -22,7 +22,7 @@ public unsafe partial class ImGuiP
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.BeginChildEx(namePtr, id, sizeArg, border ? (byte)1 : (byte)0, flags) != 0;
-            name.Dispose();
+            name.Recycle();
             return r;
         }
     }
@@ -31,7 +31,7 @@ public unsafe partial class ImGuiP
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
             ImGuiPNative.BeginColumns(strIdPtr, count, flags);
-        strId.Dispose();
+        strId.Recycle();
     }
 
     public static bool BeginMenuEx(ImU8String label, ImU8String icon = default, bool enabled = true)
@@ -40,8 +40,8 @@ public unsafe partial class ImGuiP
         fixed (byte* iconPtr = &icon.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.BeginMenuEx(labelPtr, iconPtr, enabled ? (byte)1 : (byte)0) != 0;
-            label.Dispose();
-            icon.Dispose();
+            label.Recycle();
+            icon.Recycle();
             return r;
         }
     }
@@ -53,7 +53,7 @@ public unsafe partial class ImGuiP
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.BeginTableEx(namePtr, id, columnsCount, flags, outerSize, innerWidth) != 0;
-            name.Dispose();
+            name.Recycle();
             return r;
         }
     }
@@ -64,7 +64,7 @@ public unsafe partial class ImGuiP
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.BeginViewportSideBar(namePtr, viewport, dir, size, windowFlags) != 0;
-            name.Dispose();
+            name.Recycle();
             return r;
         }
     }
@@ -75,7 +75,7 @@ public unsafe partial class ImGuiP
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.ButtonEx(labelPtr, sizeArg, flags) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -97,7 +97,7 @@ public unsafe partial class ImGuiP
         fixed (byte* textPtr = &text.GetPinnableNullTerminatedReference())
         fixed (float* colPtr = col)
             ImGuiPNative.ColorTooltip(textPtr, colPtr, flags);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static ImGuiWindowSettingsPtr CreateNewWindowSettings(ImU8String name)
@@ -105,7 +105,7 @@ public unsafe partial class ImGuiP
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.CreateNewWindowSettings(namePtr);
-            name.Dispose();
+            name.Recycle();
             return r;
         }
     }
@@ -123,8 +123,8 @@ public unsafe partial class ImGuiP
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.DataTypeApplyFromText(bufPtr, dataType, &data, formatPtr) != 0;
-            format.Dispose();
-            buf.Dispose();
+            format.Recycle();
+            buf.Recycle();
             return r;
         }
     }
@@ -133,7 +133,7 @@ public unsafe partial class ImGuiP
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiPNative.DebugNodeDockNode(node, labelPtr);
-        label.Dispose();
+        label.Recycle();
     }
 
     public static void DebugNodeDrawList(
@@ -141,28 +141,28 @@ public unsafe partial class ImGuiP
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiPNative.DebugNodeDrawList(window, viewport, drawList, labelPtr);
-        label.Dispose();
+        label.Recycle();
     }
 
     public static void DebugNodeStorage(ImGuiStoragePtr storage, ImU8String label)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiPNative.DebugNodeStorage(storage, labelPtr);
-        label.Dispose();
+        label.Recycle();
     }
 
     public static void DebugNodeTabBar(ImGuiTabBarPtr tabBar, ImU8String label)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiPNative.DebugNodeTabBar(tabBar, labelPtr);
-        label.Dispose();
+        label.Recycle();
     }
 
     public static void DebugNodeWindow(ImGuiWindowPtr window, ImU8String label)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiPNative.DebugNodeWindow(window, labelPtr);
-        label.Dispose();
+        label.Recycle();
     }
 
     public static void DebugNodeWindowsList(scoped in ImVector<ImGuiWindowPtr> windows, ImU8String label)
@@ -170,7 +170,7 @@ public unsafe partial class ImGuiP
         fixed (ImVector<ImGuiWindowPtr>* windowsPtr = &windows)
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiPNative.DebugNodeWindowsList(windowsPtr, labelPtr);
-        label.Dispose();
+        label.Recycle();
     }
 
     public static void DockBuilderCopyWindowSettings(ImU8String srcName, ImU8String dstName)
@@ -178,15 +178,15 @@ public unsafe partial class ImGuiP
         fixed (byte* srcNamePtr = &srcName.GetPinnableNullTerminatedReference())
         fixed (byte* dstNamePtr = &dstName.GetPinnableNullTerminatedReference())
             ImGuiPNative.DockBuilderCopyWindowSettings(srcNamePtr, dstNamePtr);
-        srcName.Dispose();
-        dstName.Dispose();
+        srcName.Recycle();
+        dstName.Recycle();
     }
 
     public static void DockBuilderDockWindow(ImU8String windowName, uint nodeId)
     {
         fixed (byte* windowNamePtr = &windowName.GetPinnableNullTerminatedReference())
             ImGuiPNative.DockBuilderDockWindow(windowNamePtr, nodeId);
-        windowName.Dispose();
+        windowName.Recycle();
     }
 
     public static bool DragBehavior(
@@ -196,7 +196,7 @@ public unsafe partial class ImGuiP
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.DragBehavior(id, dataType, pV, vSpeed, pMin, pMax, formatPtr, flags) != 0;
-            format.Dispose();
+            format.Recycle();
             return r;
         }
     }
@@ -206,7 +206,7 @@ public unsafe partial class ImGuiP
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.FindOrCreateWindowSettings(namePtr);
-            name.Dispose();
+            name.Recycle();
             return r;
         }
     }
@@ -216,7 +216,7 @@ public unsafe partial class ImGuiP
         fixed (byte* typeNamePtr = &typeName.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.FindSettingsHandler(typeNamePtr);
-            typeName.Dispose();
+            typeName.Recycle();
             return r;
         }
     }
@@ -226,7 +226,7 @@ public unsafe partial class ImGuiP
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.FindWindowByName(namePtr);
-            name.Dispose();
+            name.Recycle();
             return r;
         }
     }
@@ -236,7 +236,7 @@ public unsafe partial class ImGuiP
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.GetColumnsID(strIdPtr, count);
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
@@ -246,7 +246,7 @@ public unsafe partial class ImGuiP
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.GetIDWithSeed(strIdPtr, strIdPtr + strId.Length, seed);
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
@@ -259,8 +259,8 @@ public unsafe partial class ImGuiP
         fixed (nuint* outFileSizePtr = &outFileSize)
         {
             var r = ImGuiPNative.ImFileLoadToMemory(filenamePtr, modePtr, outFileSizePtr, paddingBytes);
-            filename.Dispose();
-            mode.Dispose();
+            filename.Recycle();
+            mode.Recycle();
             return r;
         }
     }
@@ -271,8 +271,8 @@ public unsafe partial class ImGuiP
         fixed (byte* modePtr = &mode.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.ImFileLoadToMemory(filenamePtr, modePtr, null, paddingBytes);
-            filename.Dispose();
-            mode.Dispose();
+            filename.Recycle();
+            mode.Recycle();
             return r;
         }
     }
@@ -283,8 +283,8 @@ public unsafe partial class ImGuiP
         fixed (byte* modePtr = &mode.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.ImFileOpen(filenamePtr, modePtr);
-            filename.Dispose();
-            mode.Dispose();
+            filename.Recycle();
+            mode.Recycle();
             return r;
         }
     }
@@ -339,7 +339,7 @@ public unsafe partial class ImGuiP
     {
         fixed (byte* fmtPtr = &fmt.GetPinnableNullTerminatedReference())
             ImGuiPNative.ImFormatStringToTempBuffer(outBuf, outBufEnd, fmtPtr);
-        fmt.Dispose();
+        fmt.Recycle();
     }
 
     public static ImGuiWindowPtr ImGuiWindow(ImGuiContextPtr context, ImU8String name)
@@ -347,7 +347,7 @@ public unsafe partial class ImGuiP
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.ImGuiWindow(context, namePtr);
-            name.Dispose();
+            name.Recycle();
             return r;
         }
     }
@@ -386,9 +386,9 @@ public unsafe partial class ImGuiP
                         shortcutPtr,
                         selected ? (byte)1 : (byte)0,
                         enabled ? (byte)1 : (byte)0) != 0;
-            label.Dispose();
-            icon.Dispose();
-            shortcut.Dispose();
+            label.Recycle();
+            icon.Recycle();
+            shortcut.Recycle();
             return r;
         }
     }
@@ -397,7 +397,7 @@ public unsafe partial class ImGuiP
     {
         fixed (byte* typeNamePtr = &typeName.GetPinnableNullTerminatedReference())
             ImGuiPNative.RemoveSettingsHandler(typeNamePtr);
-        typeName.Dispose();
+        typeName.Recycle();
     }
 
     public static bool SliderBehavior<T>(
@@ -418,7 +418,7 @@ public unsafe partial class ImGuiP
                         formatPtr,
                         flags,
                         outGrabBb) != 0;
-            format.Dispose();
+            format.Recycle();
             return r;
         }
     }
@@ -440,7 +440,7 @@ public unsafe partial class ImGuiP
         fixed (bool* openPtr = &open)
         {
             var r = ImGuiPNative.TabItemEx(tabBar, labelPtr, openPtr, flags, dockedWindow) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -466,7 +466,7 @@ public unsafe partial class ImGuiP
                 textClippedPtr);
         }
 
-        label.Dispose();
+        label.Recycle();
     }
 
     public static bool TempInputScalar<T>(
@@ -479,7 +479,7 @@ public unsafe partial class ImGuiP
         fixed (T* dataPtr = &data)
         {
             var r = ImGuiPNative.TempInputScalar(bb, id, labelPtr, dataType, dataPtr, formatPtr, &min, &max) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -489,7 +489,7 @@ public unsafe partial class ImGuiP
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiPNative.TreeNodeBehavior(id, flags, labelPtr, labelPtr + label.Length) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }

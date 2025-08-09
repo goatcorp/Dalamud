@@ -16,4 +16,3 @@ public unsafe partial struct ImGuiStackLevelInfoPtr
 			ImGuiNative.Destroy(Handle);
 		}
 }
-

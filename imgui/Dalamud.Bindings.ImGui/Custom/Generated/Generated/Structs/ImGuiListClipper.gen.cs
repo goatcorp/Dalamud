@@ -55,4 +55,3 @@ public unsafe partial struct ImGuiListClipper
 			}
 		}
 }
-
