@@ -14,10 +14,12 @@ HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
 void CheckMsvcrtVersion() {
-    if (utils::is_running_on_wine()) {
-        logging::I("Running on Wine, skipping MSVCRT version check.");
-        return;
-    }
+    // Commit introducing inline mutex ctor: tagged vs-2022-17.14 (2024-06-18)
+    // - https://github.com/microsoft/STL/commit/22a88260db4d754bbc067e2002430144d6ec5391
+    // MSVC Redist versions:
+    // - https://github.com/abbodi1406/vcredist/blob/master/source_links/README.md
+    // - 14.40.33810.0 dsig 2024-04-28
+    // - 14.40.33816.0 dsig 2024-09-11
 
     constexpr WORD RequiredMsvcrtVersionComponents[] = {14, 40, 33816, 0};
     constexpr auto RequiredMsvcrtVersion = 0ULL
@@ -48,21 +50,18 @@ void CheckMsvcrtVersion() {
             continue;
         }
 
-        const auto& versionFull = mod.get_file_version();
-        logging::I("Runtime DLL {} has version {}.", runtimeDllName, utils::format_file_version(versionFull));
+        try {
+            const auto& versionFull = mod.get_file_version();
+            logging::I("Runtime DLL {} has version {}.", runtimeDllName, utils::format_file_version(versionFull));
 
-        const auto version = (static_cast<uint64_t>(versionFull.dwFileVersionMS) << 32) |
-            static_cast<uint64_t>(versionFull.dwFileVersionLS);
+            const auto version = (static_cast<uint64_t>(versionFull.dwFileVersionMS) << 32) |
+                static_cast<uint64_t>(versionFull.dwFileVersionLS);
 
-        // Commit introducing inline mutex ctor: tagged vs-2022-17.14 (2024-06-18)
-        // - https://github.com/microsoft/STL/commit/22a88260db4d754bbc067e2002430144d6ec5391
-        // MSVC Redist versions:
-        // - https://github.com/abbodi1406/vcredist/blob/master/source_links/README.md
-        // - 14.40.33810.0 dsig 2024-04-28
-        // - 14.40.33816.0 dsig 2024-09-11
-
-        if (version < RequiredMsvcrtVersion && (lowestVersion == 0 || lowestVersion > version))
-            lowestVersion = version;
+            if (version < RequiredMsvcrtVersion && (lowestVersion == 0 || lowestVersion > version))
+                lowestVersion = version;
+        } catch (const std::exception& e) {
+            logging::E("Failed to detect Runtime DLL version for {}: {}", runtimeDllName, e.what());
+        }
     }
 
     if (lowestVersion) {
@@ -95,8 +94,6 @@ void CheckMsvcrtVersion() {
 
 HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     g_startInfo.from_envvars();
-
-    CheckMsvcrtVersion();
 
     std::string jsonParseError;
     try {
@@ -175,6 +172,8 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
 
     if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize) != DalamudStartInfo::WaitMessageboxFlags::None)
         MessageBoxW(nullptr, L"Press OK to continue (BeforeInitialize)", L"Dalamud Boot", MB_OK);
+
+    CheckMsvcrtVersion();
 
     if (g_startInfo.BootDebugDirectX) {
         logging::I("Enabling DirectX Debugging.");
