@@ -10,7 +10,7 @@
 
     <!-- Dependency versions -->
     <PropertyGroup Label="Dependency Versions">
-        <LuminaVersion>6.3.0</LuminaVersion>
+        <LuminaVersion>6.4.0</LuminaVersion>
         <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     </PropertyGroup>
 
