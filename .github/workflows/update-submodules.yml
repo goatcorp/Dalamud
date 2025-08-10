@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        branches: [master,api13]
+        branches: [master]
 
     defaults: 
       run:
