@@ -14,6 +14,11 @@ HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
 void CheckMsvcrtVersion() {
+    if (utils::is_running_on_wine()) {
+        logging::I("Running on Wine, skipping MSVCRT version check.");
+        return;
+    }
+
     constexpr WORD RequiredMsvcrtVersionComponents[] = {14, 40, 33816, 0};
     constexpr auto RequiredMsvcrtVersion = 0ULL
         | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[0]) << 48)
