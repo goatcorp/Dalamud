@@ -27,7 +27,7 @@ internal class UldWidget : IDataWindowWidget
 {
     // ULD styles can be hardcoded for now as they don't add new ones regularly. Can later try and find where to load these from in the game EXE.
     private static readonly string[] ThemeDisplayNames = ["Dark", "Light", "Classic FF", "Clear Blue"];
-    private static readonly string[] ThemeBasePaths = ["ui/uld/", "ui/uld/light/", "ui/uld/third/", "ui/uld/fourth/"];
+    private static readonly string[] ThemeBasePaths = ["ui/uld/", "ui/uld/img01/", "ui/uld/img02/", "ui/uld/img03/"];
 
     // 48 8D 15 ?? ?? ?? ?? is the part of the signatures that contain the string location offset
     // 48 = 64 bit register prefix
