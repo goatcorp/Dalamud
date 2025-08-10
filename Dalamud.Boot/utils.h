@@ -23,9 +23,8 @@ namespace utils {
         bool is_current_process() const { return m_hModule == GetModuleHandleW(nullptr); }
         bool owns_address(const void* pAddress) const;
 
-        operator HMODULE() const {
-            return m_hModule;
-        }
+        operator HMODULE() const { return m_hModule; }
+        operator bool() const { return m_hModule; }
 
         size_t address_int() const { return reinterpret_cast<size_t>(m_hModule); }
         size_t image_size() const { return is_pe64() ? nt_header64().OptionalHeader.SizeOfImage : nt_header32().OptionalHeader.SizeOfImage; }
@@ -60,7 +59,7 @@ namespace utils {
 
         [[nodiscard]] std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)> get_resource(LPCWSTR lpName, LPCWSTR lpType) const;
         [[nodiscard]] std::wstring get_description() const;
-        [[nodiscard]] VS_FIXEDFILEINFO get_file_version() const;
+        [[nodiscard]] const VS_FIXEDFILEINFO& get_file_version() const;
 
         static loaded_module current_process();
         static std::vector<loaded_module> all_modules();

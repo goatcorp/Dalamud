@@ -13,8 +13,87 @@
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
+void CheckMsvcrtVersion() {
+    constexpr WORD RequiredMsvcrtVersionComponents[] = {14, 40, 33816, 0};
+    constexpr auto RequiredMsvcrtVersion = 0ULL
+        | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[0]) << 48)
+        | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[1]) << 32)
+        | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[2]) << 16)
+        | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[3]) << 0);
+
+#ifdef _DEBUG
+    constexpr const wchar_t* RuntimeDllNames[] = {
+        L"msvcp140d.dll",
+        L"vcruntime140d.dll",
+        L"vcruntime140_1d.dll",
+    };
+#else
+    constexpr const wchar_t* RuntimeDllNames[] = {
+        L"msvcp140.dll",
+        L"vcruntime140.dll",
+        L"vcruntime140_1.dll",
+    };
+#endif
+
+    MessageBoxW(nullptr, L"", L"", MB_OK);
+
+    uint64_t lowestVersion = 0;
+    for (const auto& runtimeDllName : RuntimeDllNames) {
+        const utils::loaded_module mod(GetModuleHandleW(runtimeDllName));
+        if (!mod) {
+            logging::E("Runtime DLL not found: {}", runtimeDllName);
+            continue;
+        }
+
+        const auto& versionFull = mod.get_file_version();
+        logging::I("Runtime DLL {} has version {}.", runtimeDllName, utils::format_file_version(versionFull));
+
+        const auto version = (static_cast<uint64_t>(versionFull.dwFileVersionMS) << 32) |
+            static_cast<uint64_t>(versionFull.dwFileVersionLS);
+
+        // Commit introducing inline mutex ctor: tagged vs-2022-17.14 (2024-06-18)
+        // - https://github.com/microsoft/STL/commit/22a88260db4d754bbc067e2002430144d6ec5391
+        // MSVC Redist versions:
+        // - https://github.com/abbodi1406/vcredist/blob/master/source_links/README.md
+        // - 14.40.33810.0 dsig 2024-04-28
+        // - 14.40.33816.0 dsig 2024-09-11
+
+        if (version < RequiredMsvcrtVersion && (lowestVersion == 0 || lowestVersion > version))
+            lowestVersion = version;
+    }
+
+    if (lowestVersion) {
+        switch (MessageBoxW(
+            nullptr,
+            L"Microsoft Visual C++ Redistributable should be updated, or Dalamud may not work as expected."
+            L" Do you want to download and install the latest version from Microsoft?"
+            L"\n"
+            L"\n* Clicking \"Yes\" will exit the game and open the download page from Microsoft."
+            L"\n* Clicking \"No\" will continue loading the game with Dalamud. This may fail."
+            L"\n"
+            L"\nClick \"X64\" from the table in the download page, regardless of what CPU you have.",
+            L"Dalamud",
+            MB_YESNO | MB_ICONWARNING)) {
+            case IDYES:
+                ShellExecuteW(
+                    nullptr,
+                    L"open",
+                    L"https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version",
+                    nullptr,
+                    nullptr,
+                    SW_SHOW);
+                ExitProcess(0);
+                break;
+            case IDNO:
+                break;
+        }
+    }
+}
+
 HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     g_startInfo.from_envvars();
+
+    CheckMsvcrtVersion();
 
     std::string jsonParseError;
     try {

@@ -148,7 +148,7 @@ std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)> utils::
     const auto hres = FindResourceW(m_hModule, lpName, lpType);
     if (!hres)
         throw std::runtime_error("No such resource");
-    
+
     const auto hRes = LoadResource(m_hModule, hres);
     if (!hRes)
         throw std::runtime_error("LoadResource failure");
@@ -159,7 +159,7 @@ std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)> utils::
 std::wstring utils::loaded_module::get_description() const {
     const auto rsrc = get_resource(MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
     const auto pBlock = LockResource(rsrc.get());
-    
+
     struct LANGANDCODEPAGE {
         WORD wLanguage;
         WORD wCodePage;
@@ -190,11 +190,11 @@ std::wstring utils::loaded_module::get_description() const {
             continue;
         return std::wstring(currName);
     }
-    
+
     throw std::runtime_error("Invalid version information (2)");
 }
 
-VS_FIXEDFILEINFO utils::loaded_module::get_file_version() const {
+const VS_FIXEDFILEINFO& utils::loaded_module::get_file_version() const {
     const auto rsrc = get_resource(MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
     const auto pBlock = LockResource(rsrc.get());
     UINT size = 0;
@@ -353,7 +353,7 @@ const char* utils::signature_finder::result::resolve_jump_target(size_t instruct
     nmd_x86_instruction instruction{};
     if (!nmd_x86_decode(&Match[instructionOffset], NMD_X86_MAXIMUM_INSTRUCTION_LENGTH, &instruction, NMD_X86_MODE_64, NMD_X86_DECODER_FLAGS_ALL))
         throw std::runtime_error("Matched address does not have a valid assembly instruction");
-    
+
     size_t numExplicitOperands = 0;
     for (size_t i = 0; i < instruction.num_operands; i++)
         numExplicitOperands += instruction.operands[i].is_implicit ? 0 : 1;
@@ -625,7 +625,7 @@ void utils::wait_for_game_window() {
 
 std::wstring utils::escape_shell_arg(const std::wstring& arg) {
     // https://docs.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
-    
+
     std::wstring res;
     if (!arg.empty() && arg.find_first_of(L" \t\n\v\"") == std::wstring::npos) {
         res.append(arg);
