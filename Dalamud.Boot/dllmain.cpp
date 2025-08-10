@@ -35,8 +35,6 @@ void CheckMsvcrtVersion() {
     };
 #endif
 
-    MessageBoxW(nullptr, L"", L"", MB_OK);
-
     uint64_t lowestVersion = 0;
     for (const auto& runtimeDllName : RuntimeDllNames) {
         const utils::loaded_module mod(GetModuleHandleW(runtimeDllName));
