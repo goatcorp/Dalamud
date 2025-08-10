@@ -449,11 +449,8 @@ public abstract class Window
             }
 
             // Not supported yet on non-main viewports
-            if ((this.internalIsPinned || this.internalIsClickthrough || this.internalAlpha.HasValue) &&
-                ImGui.GetWindowViewport().ID != ImGui.GetMainViewport().ID)
+            if (this.internalIsClickthrough && ImGui.GetWindowViewport().ID != ImGui.GetMainViewport().ID)
             {
-                this.internalAlpha = null;
-                this.internalIsPinned = false;
                 this.internalIsClickthrough = false;
                 this.presetDirty = true;
             }
@@ -482,11 +479,6 @@ public abstract class Window
 
             if (ImGui.BeginPopup(additionsPopupName, ImGuiWindowFlags.NoMove))
             {
-                var isAvailable = ImGuiHelpers.CheckIsWindowOnMainViewport();
-
-                if (!isAvailable)
-                    ImGui.BeginDisabled();
-
                 if (this.internalIsClickthrough)
                     ImGui.BeginDisabled();
 
@@ -506,6 +498,11 @@ public abstract class Window
                 if (this.internalIsClickthrough)
                     ImGui.EndDisabled();
 
+                var isAvailable = ImGuiHelpers.CheckIsWindowOnMainViewport();
+
+                if (!isAvailable)
+                    ImGui.BeginDisabled();
+
                 if (this.AllowClickthrough)
                 {
                     if (ImGui.Checkbox(
@@ -518,6 +515,9 @@ public abstract class Window
                     ImGuiComponents.HelpMarker(
                         Loc.Localize("WindowSystemContextActionClickthroughHint", "Clickthrough windows will not receive mouse input, move or resize. They are completely inert."));
                 }
+
+                if (!isAvailable)
+                    ImGui.EndDisabled();
 
                 var alpha = (this.internalAlpha ?? ImGui.GetStyle().Alpha) * 100f;
                 if (ImGui.SliderFloat(Loc.Localize("WindowSystemContextActionAlpha", "Opacity"), ref alpha, 20f,
@@ -546,9 +546,6 @@ public abstract class Window
                                       Loc.Localize("WindowSystemContextActionViewportDisclaimer",
                                                    "These features are only available if this window is inside the game window."));
                 }
-
-                if (!isAvailable)
-                    ImGui.EndDisabled();
 
                 if (ImGui.Button(Loc.Localize("WindowSystemContextActionPrintWindow", "Print window")))
                     printWindow = true;
