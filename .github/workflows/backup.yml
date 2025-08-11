@@ -1,4 +1,4 @@
-name: Back up code to GitLab and other sources
+name: Back up code to other forges
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
-  push-to-gitlab:
+  push-to-forges:
     runs-on: ubuntu-latest
     if: github.repository == 'goatcorp/Dalamud'
     
@@ -23,6 +23,8 @@ jobs:
             ${{ secrets.MIRROR_CODEBERG_SYNC_KEY }}
 
       - name: Add remotes & push
+        env:
+          GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=accept-new"
         run: |
           git remote add gitlab git@gitlab.com:goatcorp/Dalamud.git
           git push gitlab --all --force
