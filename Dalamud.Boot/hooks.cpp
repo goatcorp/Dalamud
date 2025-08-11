@@ -82,21 +82,38 @@ void hooks::getprocaddress_singleton_import_hook::initialize() {
         s_dllChanged = 1;
         if (notiReason == LDR_DLL_NOTIFICATION_REASON_LOADED) {
             const auto dllName = unicode::convert<std::string>(pData->Loaded.FullDllName->Buffer);
+            std::wstring version = L"<unknown>";
+            std::wstring description = L"<unknown>";
+            DWORD versionSize = GetFileVersionInfoSizeA(dllName.c_str(), NULL);
 
-            utils::loaded_module mod(pData->Loaded.DllBase);
-            std::wstring version, description;
-            try {
-                version = utils::format_file_version(mod.get_file_version());
-            } catch (...) {
-                version = L"<unknown>";
+            if (versionSize > 0) {
+                std::vector<BYTE> versionData(versionSize);
+                if (GetFileVersionInfoA(dllName.c_str(), 0, versionSize, versionData.data())) {
+                    struct LANGANDCODEPAGE {
+                        WORD wLanguage;
+                        WORD wCodePage;
+                    } *translate = nullptr;
+
+                    UINT uLen = 0;
+                    LPVOID lpBuffer;
+                    if (VerQueryValueW(versionData.data(), L"\\VarFileInfo\\Translation", (LPVOID*)&translate, &uLen) && uLen >= sizeof(LANGANDCODEPAGE)) {
+                        // Use the first language/codepage
+                        wchar_t subBlock[256];
+                        swprintf(subBlock, 256, L"\\StringFileInfo\\%04x%04x\\FileDescription", translate[0].wLanguage, translate[0].wCodePage);
+          
+                        if (VerQueryValueW(versionData.data(), subBlock, &lpBuffer, &uLen)) {
+                            description = std::wstring((wchar_t *)lpBuffer, uLen - 1);
+                        }
+
+                        swprintf(subBlock, 256, L"\\StringFileInfo\\%04x%04x\\FileVersion", translate[0].wLanguage, translate[0].wCodePage);
+
+                        if (VerQueryValueW(versionData.data(), subBlock, &lpBuffer, &uLen)) {
+                            version = std::wstring((wchar_t*)lpBuffer, uLen - 1);
+                        }
+                    }
+                }
             }
-            
-            try {
-                description = mod.get_description();
-            } catch (...) {
-                description = L"<unknown>";
-            }
-            
+
             logging::I(R"({} "{}" ("{}" ver {}) has been loaded at 0x{:X} ~ 0x{:X} (0x{:X}); finding import table items to hook.)",
                 LogTag, dllName, description, version,
                 reinterpret_cast<size_t>(pData->Loaded.DllBase),
