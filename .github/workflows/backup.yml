@@ -16,11 +16,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: webfactory/ssh-agent@v0.9.0
+      - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd #v0.9.1
         with:
-          ssh-private-key: ${{ secrets.GITLAB_SYNC_KEY }}
+          ssh-private-key: |
+            ${{ secrets.MIRROR_GITLAB_SYNC_KEY }}
+            ${{ secrets.MIRROR_CODEBERG_SYNC_KEY }}
 
-      - name: Add remote & push
+      - name: Add remotes & push
         run: |
           git remote add gitlab git@gitlab.com:goatcorp/Dalamud.git
           git push gitlab --all --force
+          git remote add codeberg git@codeberg.org/goatcorp/Dalamud.git
+          git push codeberg --all --force
