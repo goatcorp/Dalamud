@@ -39,6 +39,15 @@ public interface ISeStringEvaluator
     ReadOnlySeString EvaluateMacroString(string macroString, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null);
 
     /// <summary>
+    /// Evaluates macros in a macro string.
+    /// </summary>
+    /// <param name="macroString">The macro string.</param>
+    /// <param name="localParameters">An optional list of local parameters.</param>
+    /// <param name="language">An optional language override.</param>
+    /// <returns>An evaluated <see cref="ReadOnlySeString"/>.</returns>
+    ReadOnlySeString EvaluateMacroString(ReadOnlySpan<byte> macroString, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null);
+
+    /// <summary>
     /// Evaluates macros in text from the Addon sheet.
     /// </summary>
     /// <param name="addonId">The row id of the Addon sheet.</param>
