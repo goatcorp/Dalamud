@@ -50,8 +50,8 @@ void CheckMsvcrtVersion() {
             continue;
         }
 
-        try {
-            const auto& versionFull = mod.get_file_version();
+        if (const auto versionResult = mod.get_file_version()) {
+            const auto& versionFull = versionResult->get();
             logging::I("Runtime DLL {} has version {}.", runtimeDllName, utils::format_file_version(versionFull));
 
             const auto version = (static_cast<uint64_t>(versionFull.dwFileVersionMS) << 32) |
@@ -59,8 +59,8 @@ void CheckMsvcrtVersion() {
 
             if (version < RequiredMsvcrtVersion && (lowestVersion == 0 || lowestVersion > version))
                 lowestVersion = version;
-        } catch (const std::exception& e) {
-            logging::E("Failed to detect Runtime DLL version for {}: {}", runtimeDllName, e.what());
+        } else {
+            logging::E("Failed to detect Runtime DLL version for {}: {}", runtimeDllName, versionResult.error().describe());
         }
     }
 

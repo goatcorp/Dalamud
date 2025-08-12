@@ -1,5 +1,6 @@
 #pragma once
 
+#include <expected>
 #include <filesystem>
 #include <functional>
 #include <span>
@@ -7,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+#include "error_info.h"
 #include "unicode.h"
 
 namespace utils {
@@ -18,7 +20,7 @@ namespace utils {
         loaded_module(void* hModule) : m_hModule(reinterpret_cast<HMODULE>(hModule)) {}
         loaded_module(size_t hModule) : m_hModule(reinterpret_cast<HMODULE>(hModule)) {}
 
-        std::filesystem::path path() const;
+        DalamudExpected<std::filesystem::path> path() const;
 
         bool is_current_process() const { return m_hModule == GetModuleHandleW(nullptr); }
         bool owns_address(const void* pAddress) const;
@@ -57,9 +59,9 @@ namespace utils {
         void* get_imported_function_pointer(const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal) const;
         template<typename TFn> TFn** get_imported_function_pointer(const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal) { return reinterpret_cast<TFn**>(get_imported_function_pointer(pcszDllName, pcszFunctionName, hintOrOrdinal)); }
 
-        [[nodiscard]] std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)> get_resource(LPCWSTR lpName, LPCWSTR lpType) const;
-        [[nodiscard]] std::wstring get_description() const;
-        [[nodiscard]] const VS_FIXEDFILEINFO& get_file_version() const;
+        [[nodiscard]] DalamudExpected<std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)>> get_resource(LPCWSTR lpName, LPCWSTR lpType) const;
+        [[nodiscard]] DalamudExpected<std::wstring> get_description() const;
+        [[nodiscard]] DalamudExpected<const VS_FIXEDFILEINFO&> get_file_version() const;
 
         static loaded_module current_process();
         static std::vector<loaded_module> all_modules();

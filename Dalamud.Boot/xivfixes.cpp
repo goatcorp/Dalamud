@@ -8,12 +8,6 @@
 #include "ntdll.h"
 #include "utils.h"
 
-template<typename T>
-static std::span<T> assume_nonempty_span(std::span<T> t, const char* descr) {
-    if (t.empty())
-        throw std::runtime_error(std::format("Unexpected empty span found: {}", descr));
-    return t;
-}
 void xivfixes::unhook_dll(bool bApply) {
     static const auto LogTag = "[xivfixes:unhook_dll]";
     static const auto LogTagW = L"[xivfixes:unhook_dll]";
@@ -23,77 +17,90 @@ void xivfixes::unhook_dll(bool bApply) {
 
     const auto mods = utils::loaded_module::all_modules();
 
-    const auto test_module = [&](size_t i, const utils::loaded_module & mod) {
-        std::filesystem::path path;
-        try {
-            path = mod.path();
-            std::wstring version, description;
-            try {
-                version = utils::format_file_version(mod.get_file_version());
-            } catch (...) {
-                version = L"<unknown>";
-            }
-            
-            try {
-                description = mod.get_description();
-            } catch (...) {
-                description = L"<unknown>";
-            }
-            
-            logging::I(R"({} [{}/{}] Module 0x{:X} ~ 0x{:X} (0x{:X}): "{}" ("{}" ver {}))", LogTagW, i + 1, mods.size(), mod.address_int(), mod.address_int() + mod.image_size(), mod.image_size(), path.wstring(), description, version);
-        } catch (const std::exception& e) {
-            logging::W("{} [{}/{}] Module 0x{:X}: Failed to resolve path: {}", LogTag, i + 1, mods.size(), mod.address_int(), e.what());
+    for (size_t i = 0; i < mods.size(); i++) {
+        const auto& mod = mods[i];
+        const auto path = mod.path();
+        if (!path) {
+            logging::W(
+                "{} [{}/{}] Module 0x{:X}: Failed to resolve path: {}",
+                LogTag,
+                i + 1,
+                mods.size(),
+                mod.address_int(),
+                path.error().describe());
             return;
         }
 
-        const auto moduleName = unicode::convert<std::string>(path.filename().wstring());
+        const auto version = mod.get_file_version()
+            .transform([](const auto& v) { return utils::format_file_version(v.get()); })
+            .value_or(L"<unknown>");
 
-        std::vector<char> buf;
-        std::string formatBuf;
+        const auto description = mod.get_description()
+            .value_or(L"<unknown>");
+
+        logging::I(
+            R"({} [{}/{}] Module 0x{:X} ~ 0x{:X} (0x{:X}): "{}" ("{}" ver {}))",
+            LogTagW,
+            i + 1,
+            mods.size(),
+            mod.address_int(),
+            mod.address_int() + mod.image_size(),
+            mod.image_size(),
+            path->wstring(),
+            description,
+            version);
+
+        const auto moduleName = unicode::convert<std::string>(path->filename().wstring());
+
+        const auto& sectionHeader = mod.section_header(".text");
+        const auto section = mod.span_as<char>(sectionHeader.VirtualAddress, sectionHeader.Misc.VirtualSize);
+        if (section.empty()) {
+            logging::W("{} Error: .text[VA:VA + VS] is empty", LogTag);
+            return;
+        }
+
+        auto hFsDllRaw = CreateFileW(path->c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+        if (hFsDllRaw == INVALID_HANDLE_VALUE) {
+            logging::W("{} Module loaded in current process but could not open file: Win32 error {}", LogTag, GetLastError());
+            return;
+        }
+
+        auto hFsDll = std::unique_ptr<void, decltype(&CloseHandle)>(hFsDllRaw, &CloseHandle);
+        std::vector<char> buf(section.size());
+        SetFilePointer(hFsDll.get(), sectionHeader.PointerToRawData, nullptr, FILE_CURRENT);
+        if (DWORD read{}; ReadFile(hFsDll.get(), &buf[0], static_cast<DWORD>(buf.size()), &read, nullptr)) {
+            if (read < section.size_bytes()) {
+                logging::W("{} ReadFile: read {} bytes < requested {} bytes", LogTagW, read, section.size_bytes());
+                return;
+            }
+        } else {
+            logging::I("{} ReadFile: Win32 error {}", LogTagW, GetLastError());
+            return;
+        }
+
+        const auto doRestore = g_startInfo.BootUnhookDlls.contains(unicode::convert<std::string>(path->filename().u8string()));
         try {
-            const auto& sectionHeader = mod.section_header(".text");
-            const auto section = assume_nonempty_span(mod.span_as<char>(sectionHeader.VirtualAddress, sectionHeader.Misc.VirtualSize), ".text[VA:VA+VS]");
-            auto hFsDllRaw = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
-            if (hFsDllRaw == INVALID_HANDLE_VALUE) {
-                logging::W("{} Module loaded in current process but could not open file: Win32 error {}", LogTag, GetLastError());
-                return;
-            }
-            auto hFsDll = std::unique_ptr<void, decltype(CloseHandle)*>(hFsDllRaw, &CloseHandle);
-
-            buf.resize(section.size());
-            SetFilePointer(hFsDll.get(), sectionHeader.PointerToRawData, nullptr, FILE_CURRENT);
-            if (DWORD read{}; ReadFile(hFsDll.get(), &buf[0], static_cast<DWORD>(buf.size()), &read, nullptr)) {
-                if (read < section.size_bytes()) {
-                    logging::W("{} ReadFile: read {} bytes < requested {} bytes", LogTagW, read, section.size_bytes());
-                    return;
-                }
-            } else {
-                logging::I("{} ReadFile: Win32 error {}", LogTagW, GetLastError());
-                return;
-            }
-
-            const auto doRestore = g_startInfo.BootUnhookDlls.contains(unicode::convert<std::string>(path.filename().u8string()));
-
             std::optional<utils::memory_tenderizer> tenderizer;
-            for (size_t i = 0, instructionLength = 1, printed = 0; i < buf.size(); i += instructionLength) {
-                if (section[i] == buf[i]) {
+            std::string formatBuf;
+            for (size_t inst = 0, instructionLength = 1, printed = 0; inst < buf.size(); inst += instructionLength) {
+                if (section[inst] == buf[inst]) {
                     instructionLength = 1;
                     continue;
                 }
 
-                const auto rva = sectionHeader.VirtualAddress + i;
+                const auto rva = sectionHeader.VirtualAddress + inst;
                 nmd_x86_instruction instruction{};
-                if (!nmd_x86_decode(&section[i], section.size() - i, &instruction, NMD_X86_MODE_64, NMD_X86_DECODER_FLAGS_ALL)) {
+                if (!nmd_x86_decode(&section[inst], section.size() - inst, &instruction, NMD_X86_MODE_64, NMD_X86_DECODER_FLAGS_ALL)) {
                     instructionLength = 1;
                     if (printed < 64) {
-                        logging::W("{} {}+0x{:0X}: dd {:02X}", LogTag, moduleName, rva, static_cast<uint8_t>(section[i]));
+                        logging::W("{} {}+0x{:0X}: dd {:02X}", LogTag, moduleName, rva, static_cast<uint8_t>(section[inst]));
                         printed++;
                     }
                 } else {
                     instructionLength = instruction.length;
                     if (printed < 64) {
                         formatBuf.resize(128);
-                        nmd_x86_format(&instruction, &formatBuf[0], reinterpret_cast<size_t>(&section[i]), NMD_X86_FORMAT_FLAGS_DEFAULT | NMD_X86_FORMAT_FLAGS_BYTES);
+                        nmd_x86_format(&instruction, &formatBuf[0], reinterpret_cast<size_t>(&section[inst]), NMD_X86_FORMAT_FLAGS_DEFAULT | NMD_X86_FORMAT_FLAGS_BYTES);
                         formatBuf.resize(strnlen(&formatBuf[0], formatBuf.size()));
 
                         const auto& directory = mod.data_directory(IMAGE_DIRECTORY_ENTRY_EXPORT);
@@ -103,25 +110,25 @@ void xivfixes::unhook_dll(bool bApply) {
                         const auto functions = mod.span_as<DWORD>(exportDirectory.AddressOfFunctions, exportDirectory.NumberOfFunctions);
 
                         std::string resolvedExportName;
-                        for (size_t j = 0; j < names.size(); ++j) {
+                        for (size_t nameIndex = 0; nameIndex < names.size(); ++nameIndex) {
                             std::string_view name;
-                            if (const char* pcszName = mod.address_as<char>(names[j]); pcszName < mod.address() || pcszName >= mod.address() + mod.image_size()) {
+                            if (const char* pcszName = mod.address_as<char>(names[nameIndex]); pcszName < mod.address() || pcszName >= mod.address() + mod.image_size()) {
                                 if (IsBadReadPtr(pcszName, 256)) {
-                                    logging::W("{} Name #{} points to an invalid address outside the executable. Skipping.", LogTag, j);
+                                    logging::W("{} Name #{} points to an invalid address outside the executable. Skipping.", LogTag, nameIndex);
                                     continue;
                                 }
 
                                 name = std::string_view(pcszName, strnlen(pcszName, 256));
-                                logging::W("{} Name #{} points to a seemingly valid address outside the executable: {}", LogTag, j, name);
+                                logging::W("{} Name #{} points to a seemingly valid address outside the executable: {}", LogTag, nameIndex, name);
                             }
 
-                            if (ordinals[j] >= functions.size()) {
-                                logging::W("{} Ordinal #{} points to function index #{} >= #{}. Skipping.", LogTag, j, ordinals[j], functions.size());
+                            if (ordinals[nameIndex] >= functions.size()) {
+                                logging::W("{} Ordinal #{} points to function index #{} >= #{}. Skipping.", LogTag, nameIndex, ordinals[nameIndex], functions.size());
                                 continue;
                             }
 
-                            const auto rva = functions[ordinals[j]];
-                            if (rva == &section[i] - mod.address()) {
+                            const auto rva = functions[ordinals[nameIndex]];
+                            if (rva == &section[inst] - mod.address()) {
                                 resolvedExportName = std::format("[export:{}]", name);
                                 break;
                             }
@@ -135,7 +142,7 @@ void xivfixes::unhook_dll(bool bApply) {
                 if (doRestore) {
                     if (!tenderizer)
                         tenderizer.emplace(section, PAGE_EXECUTE_READWRITE);
-                    memcpy(&section[i], &buf[i], instructionLength);
+                    memcpy(&section[inst], &buf[inst], instructionLength);
                 }
             }
 
@@ -147,21 +154,7 @@ void xivfixes::unhook_dll(bool bApply) {
         } catch (const std::exception& e) {
             logging::W("{} Error: {}", LogTag, e.what());
         }
-    };
-
-    // This is needed since try and __try cannot be used in the same function. Lambdas circumvent the limitation.
-    const auto windows_exception_handler = [&]() {
-        for (size_t i = 0; i < mods.size(); i++) {
-            const auto& mod = mods[i];
-            __try {
-                test_module(i, mod);
-            } __except (EXCEPTION_EXECUTE_HANDLER) {
-                logging::W("{} Error: Access Violation", LogTag);
-            }
-        }
-    };
-
-    windows_exception_handler();
+    }
 }
 
 using TFnGetInputDeviceManager = void* ();
@@ -294,13 +287,11 @@ static bool is_xivalex(const std::filesystem::path& dllPath) {
 static bool is_openprocess_already_dealt_with() {
     static const auto s_value = [] {
         for (const auto& mod : utils::loaded_module::all_modules()) {
-            try {
-                if (is_xivalex(mod.path()))
-                    return true;
-                
-            } catch (...) {
-                // pass
-            }
+            const auto path = mod.path().value_or({});
+            if (path.empty())
+                continue;
+            if (is_xivalex(path))
+                return true;
         }
         return false;
     }();
