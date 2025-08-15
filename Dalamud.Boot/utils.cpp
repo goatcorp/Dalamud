@@ -618,17 +618,10 @@ bool utils::is_running_on_wine() {
     return g_startInfo.Platform != "WINDOWS";
 }
 
-std::filesystem::path utils::get_module_path(HMODULE hModule) {
-    std::wstring buf(MAX_PATH, L'\0');
-    while (true) {
-        if (const auto res = GetModuleFileNameW(hModule, &buf[0], static_cast<int>(buf.size())); !res)
-            throw std::runtime_error(std::format("GetModuleFileName failure: 0x{:X}", GetLastError()));
-        else if (res < buf.size()) {
-            buf.resize(res);
-            return buf;
-        } else
-            buf.resize(buf.size() * 2);
-    }
+std::wstring utils::get_string_resource(uint32_t resId) {
+    LPCWSTR pstr;
+    const auto len = LoadStringW(g_hModule, resId, reinterpret_cast<LPWSTR>(&pstr), 0);
+    return std::wstring(pstr, len);
 }
 
 HWND utils::try_find_game_window() {
@@ -705,4 +698,23 @@ std::wstring utils::format_win32_error(DWORD err) {
     }
 
     return std::format(L"Win32 error ({}=0x{:X})", err, err);
+}
+
+utils::scoped_dpi_awareness_context::scoped_dpi_awareness_context()
+    : scoped_dpi_awareness_context(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) {
+}
+
+utils::scoped_dpi_awareness_context::scoped_dpi_awareness_context(DPI_AWARENESS_CONTEXT context) {
+    const auto user32 = GetModuleHandleW(L"user32.dll");
+    m_setThreadDpiAwarenessContext =
+        user32
+        ? reinterpret_cast<decltype(&SetThreadDpiAwarenessContext)>(
+            GetProcAddress(user32, "SetThreadDpiAwarenessContext"))
+        : nullptr;
+    m_old = m_setThreadDpiAwarenessContext ? m_setThreadDpiAwarenessContext(context) : DPI_AWARENESS_CONTEXT_UNAWARE;
+}
+
+utils::scoped_dpi_awareness_context::~scoped_dpi_awareness_context() {
+    if (m_setThreadDpiAwarenessContext)
+        m_setThreadDpiAwarenessContext(m_old);
 }

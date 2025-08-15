@@ -9,11 +9,12 @@
 #include "utils.h"
 #include "veh.h"
 #include "xivfixes.h"
+#include "resource.h"
 
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
-void CheckMsvcrtVersion() {
+static void CheckMsvcrtVersion() {
     // Commit introducing inline mutex ctor: tagged vs-2022-17.14 (2024-06-18)
     // - https://github.com/microsoft/STL/commit/22a88260db4d754bbc067e2002430144d6ec5391
     // MSVC Redist versions:
@@ -28,67 +29,102 @@ void CheckMsvcrtVersion() {
         | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[2]) << 16)
         | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[3]) << 0);
 
-#ifdef _DEBUG
     constexpr const wchar_t* RuntimeDllNames[] = {
+#ifdef _DEBUG
         L"msvcp140d.dll",
         L"vcruntime140d.dll",
         L"vcruntime140_1d.dll",
-    };
 #else
-    constexpr const wchar_t* RuntimeDllNames[] = {
         L"msvcp140.dll",
         L"vcruntime140.dll",
         L"vcruntime140_1.dll",
-    };
 #endif
+    };
 
     uint64_t lowestVersion = 0;
     for (const auto& runtimeDllName : RuntimeDllNames) {
         const utils::loaded_module mod(GetModuleHandleW(runtimeDllName));
         if (!mod) {
-            logging::E("Runtime DLL not found: {}", runtimeDllName);
+            logging::E("MSVCRT DLL not found: {}", runtimeDllName);
             continue;
         }
 
+        const auto path = mod.path()
+            .transform([](const auto& p) { return p.wstring(); })
+            .value_or(runtimeDllName);
+
         if (const auto versionResult = mod.get_file_version()) {
             const auto& versionFull = versionResult->get();
-            logging::I("Runtime DLL {} has version {}.", runtimeDllName, utils::format_file_version(versionFull));
+            logging::I("MSVCRT DLL {} has version {}.", path, utils::format_file_version(versionFull));
 
-            const auto version = (static_cast<uint64_t>(versionFull.dwFileVersionMS) << 32) |
-                static_cast<uint64_t>(versionFull.dwFileVersionLS);
+            const auto version = 0ULL |
+                (static_cast<uint64_t>(versionFull.dwFileVersionMS) << 32) |
+                (static_cast<uint64_t>(versionFull.dwFileVersionLS) << 0);
 
             if (version < RequiredMsvcrtVersion && (lowestVersion == 0 || lowestVersion > version))
                 lowestVersion = version;
         } else {
-            logging::E("Failed to detect Runtime DLL version for {}: {}", runtimeDllName, versionResult.error().describe());
+            logging::E("Failed to detect MSVCRT DLL version for {}: {}", path, versionResult.error().describe());
         }
     }
 
-    if (lowestVersion) {
-        switch (MessageBoxW(
-            nullptr,
-            L"Microsoft Visual C++ Redistributable should be updated, or Dalamud may not work as expected."
-            L" Do you want to download and install the latest version from Microsoft?"
-            L"\n"
-            L"\n* Clicking \"Yes\" will exit the game and open the download page from Microsoft."
-            L"\n* Clicking \"No\" will continue loading the game with Dalamud. This may fail."
-            L"\n"
-            L"\nClick \"X64\" from the table in the download page, regardless of what CPU you have.",
-            L"Dalamud",
-            MB_YESNO | MB_ICONWARNING)) {
-            case IDYES:
-                ShellExecuteW(
-                    nullptr,
-                    L"open",
-                    L"https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version",
-                    nullptr,
-                    nullptr,
-                    SW_SHOW);
-                ExitProcess(0);
-                break;
-            case IDNO:
-                break;
-        }
+    if (!lowestVersion)
+        return;
+
+    enum IdTaskDialogAction {
+        IdTaskDialogActionOpenDownload = 101,
+        IdTaskDialogActionIgnore,
+    };
+
+    const TASKDIALOG_BUTTON buttons[]{
+        {IdTaskDialogActionOpenDownload, MAKEINTRESOURCEW(IDS_MSVCRT_ACTION_OPENDOWNLOAD)},
+        {IdTaskDialogActionIgnore, MAKEINTRESOURCEW(IDS_MSVCRT_ACTION_IGNORE)},
+    };
+
+    const WORD lowestVersionComponents[]{
+        static_cast<WORD>(lowestVersion >> 48),
+        static_cast<WORD>(lowestVersion >> 32),
+        static_cast<WORD>(lowestVersion >> 16),
+        static_cast<WORD>(lowestVersion >> 0),
+    };
+
+    const auto dialogContent = std::vformat(
+        utils::get_string_resource(IDS_MSVCRT_DIALOG_CONTENT),
+        std::make_wformat_args(
+            lowestVersionComponents[0],
+            lowestVersionComponents[1],
+            lowestVersionComponents[2],
+            lowestVersionComponents[3]));
+
+    const TASKDIALOGCONFIG config{
+        .cbSize = sizeof config,
+        .hInstance = g_hModule,
+        .dwFlags = TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS,
+        .pszWindowTitle = MAKEINTRESOURCEW(IDS_APPNAME),
+        .pszMainIcon = MAKEINTRESOURCEW(IDI_ICON1),
+        .pszMainInstruction = MAKEINTRESOURCEW(IDS_MSVCRT_DIALOG_MAININSTRUCTION),
+        .pszContent = dialogContent.c_str(),
+        .cButtons = _countof(buttons),
+        .pButtons = buttons,
+        .nDefaultButton = IdTaskDialogActionOpenDownload,
+    };
+
+    int buttonPressed;
+    if (utils::scoped_dpi_awareness_context ctx;
+        FAILED(TaskDialogIndirect(&config, &buttonPressed, nullptr, nullptr)))
+        buttonPressed = IdTaskDialogActionOpenDownload;
+
+    switch (buttonPressed) {
+        case IdTaskDialogActionOpenDownload:
+            ShellExecuteW(
+                nullptr,
+                L"open",
+                utils::get_string_resource(IDS_MSVCRT_DOWNLOADURL).c_str(),
+                nullptr,
+                nullptr,
+                SW_SHOW);
+            ExitProcess(0);
+            break;
     }
 }
 
@@ -103,7 +139,7 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     }
 
     if (g_startInfo.BootShowConsole)
-        ConsoleSetup(L"Dalamud Boot");
+        ConsoleSetup(utils::get_string_resource(IDS_APPNAME).c_str());
 
     logging::update_dll_load_status(true);
 
@@ -240,7 +276,7 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
 
     if (minHookLoaded) {
         logging::I("Applying fixes...");
-        xivfixes::apply_all(true);
+        std::thread([] { xivfixes::apply_all(true); }).join();
         logging::I("Fixes OK");
     } else {
         logging::W("Skipping fixes, as MinHook has failed to load.");
@@ -251,11 +287,14 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
         while (!IsDebuggerPresent())
             Sleep(100);
         logging::I("Debugger attached.");
+        __debugbreak();
     }
 
-    const auto fs_module_path = utils::get_module_path(g_hModule);
-    const auto runtimeconfig_path = std::filesystem::path(fs_module_path).replace_filename(L"Dalamud.runtimeconfig.json").wstring();
-    const auto module_path = std::filesystem::path(fs_module_path).replace_filename(L"Dalamud.dll").wstring();
+    const auto fs_module_path = utils::loaded_module(g_hModule).path();
+    if (!fs_module_path)
+        return fs_module_path.error();
+    const auto runtimeconfig_path = std::filesystem::path(*fs_module_path).replace_filename(L"Dalamud.runtimeconfig.json").wstring();
+    const auto module_path = std::filesystem::path(*fs_module_path).replace_filename(L"Dalamud.dll").wstring();
 
     // ============================== CLR ========================================= //
 

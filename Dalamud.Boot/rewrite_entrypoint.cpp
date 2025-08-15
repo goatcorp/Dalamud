@@ -2,6 +2,7 @@
 
 #include "logging.h"
 #include "utils.h"
+#include "resource.h"
 
 HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue);
 
@@ -379,12 +380,50 @@ extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointPara
         auto desc = err.Description();
         if (desc.length() == 0)
             desc = err.ErrorMessage();
-        if (MessageBoxW(nullptr, std::format(
-            L"Failed to load Dalamud. Load game without Dalamud(yes) or abort(no)?\n\n{}\n{}",
-            last_operation,
-            desc.GetBSTR()).c_str(),
-            L"Dalamud.Boot", MB_OK | MB_YESNO) == IDNO)
-            ExitProcess(-1);
+
+        enum IdTaskDialogAction {
+            IdTaskDialogActionAbort = 101,
+            IdTaskDialogActionContinue,
+        };
+
+        const TASKDIALOG_BUTTON buttons[]{
+            {IdTaskDialogActionAbort, MAKEINTRESOURCEW(IDS_INITIALIZEFAIL_ACTION_ABORT)},
+            {IdTaskDialogActionContinue, MAKEINTRESOURCEW(IDS_INITIALIZEFAIL_ACTION_CONTINUE)},
+        };
+
+        const auto hru32 = static_cast<uint32_t>(hr);
+        const auto footer = std::vformat(
+            utils::get_string_resource(IDS_INITIALIZEFAIL_DIALOG_FOOTER),
+            std::make_wformat_args(
+                last_operation,
+                hru32,
+                desc.GetBSTR()));
+
+        const TASKDIALOGCONFIG config{
+            .cbSize = sizeof config,
+            .hInstance = g_hModule,
+            .dwFlags = TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS | TDF_EXPAND_FOOTER_AREA,
+            .pszWindowTitle = MAKEINTRESOURCEW(IDS_APPNAME),
+            .pszMainIcon = MAKEINTRESOURCEW(IDI_ICON1),
+            .pszMainInstruction = MAKEINTRESOURCEW(IDS_INITIALIZEFAIL_DIALOG_MAININSTRUCTION),
+            .pszContent = MAKEINTRESOURCEW(IDS_INITIALIZEFAIL_DIALOG_CONTENT),
+            .cButtons = _countof(buttons),
+            .pButtons = buttons,
+            .nDefaultButton = IdTaskDialogActionAbort,
+            .pszFooter = footer.c_str(),
+        };
+
+        int buttonPressed;
+        if (utils::scoped_dpi_awareness_context ctx;
+            FAILED(TaskDialogIndirect(&config, &buttonPressed, nullptr, nullptr)))
+            buttonPressed = IdTaskDialogActionAbort;
+
+        switch (buttonPressed) {
+            case IdTaskDialogActionAbort:
+                ExitProcess(-1);
+                break;
+        }
+
         if (hMainThreadContinue) {
             CloseHandle(hMainThreadContinue);
             hMainThreadContinue = nullptr;

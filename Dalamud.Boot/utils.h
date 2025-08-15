@@ -270,7 +270,7 @@ namespace utils {
 
     bool is_running_on_wine();
 
-    std::filesystem::path get_module_path(HMODULE hModule);
+    std::wstring get_string_resource(uint32_t resId);
 
     /// @brief Find the game main window.
     /// @return Handle to the game main window, or nullptr if it doesn't exist (yet).
@@ -281,4 +281,18 @@ namespace utils {
 	std::wstring escape_shell_arg(const std::wstring& arg);
 
     std::wstring format_win32_error(DWORD err);
+
+    class scoped_dpi_awareness_context {
+        DPI_AWARENESS_CONTEXT m_old;
+        decltype(&SetThreadDpiAwarenessContext) m_setThreadDpiAwarenessContext;
+
+    public:
+        scoped_dpi_awareness_context();
+        scoped_dpi_awareness_context(DPI_AWARENESS_CONTEXT);
+        ~scoped_dpi_awareness_context();
+        scoped_dpi_awareness_context(const scoped_dpi_awareness_context&) = delete;
+        scoped_dpi_awareness_context(scoped_dpi_awareness_context&&) = delete;
+        scoped_dpi_awareness_context& operator=(const scoped_dpi_awareness_context&) = delete;
+        scoped_dpi_awareness_context& operator=(scoped_dpi_awareness_context&&) = delete;
+    };
 }

@@ -4,6 +4,7 @@
 #include <string>
 
 typedef unsigned long       DWORD;
+typedef _Return_type_success_(return >= 0) long HRESULT;
 
 enum class DalamudBootErrorDescription {
     None,
@@ -22,6 +23,10 @@ public:
     DalamudBootError(DalamudBootErrorDescription dalamudErrorDescription) noexcept;
 
     const char* describe() const;
+
+    operator HRESULT() const {
+        return m_hresult;
+    }
 };
 
 template<typename T>
