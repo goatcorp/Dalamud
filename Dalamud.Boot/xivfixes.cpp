@@ -641,43 +641,22 @@ void xivfixes::symbol_load_patches(bool bApply) {
 
 void xivfixes::disable_game_debugging_protection(bool bApply) {
     static const char* LogTag = "[xivfixes:disable_game_debugging_protection]";
-    static const std::vector<uint8_t> patchBytes = { 
-        0x31, 0xC0, // XOR EAX, EAX
-        0x90,       // NOP
-        0x90,       // NOP
-        0x90,       // NOP
-        0x90        // NOP
-    };
+    static std::optional<hooks::import_hook<decltype(IsDebuggerPresent)>> s_hookIsDebuggerPresent;
 
-    if (!bApply)
-        return;
+    if (bApply) {
+        if (!g_startInfo.BootEnabledGameFixes.contains("disable_game_debugging_protection")) {
+            logging::I("{} Turned off via environment variable.", LogTag);
+            return;
+        }
 
-    if (!g_startInfo.BootEnabledGameFixes.contains("disable_game_debugging_protection")) {
-        logging::I("{} Turned off via environment variable.", LogTag);
-        return;
-    }
-
-    // Find IsDebuggerPresent in Framework.Tick()
-    const char* matchPtr = utils::signature_finder()
-        .look_in(utils::loaded_module(g_hGameInstance), ".text")
-        .look_for_hex("FF 15 ?? ?? ?? ?? 85 C0 74 13 41")
-        .find_one()
-        .Match.data();
-
-    if (!matchPtr) {
-        logging::E("{} Failed to find signature.", LogTag);
-        return;
-    }
-
-    void* address = const_cast<void*>(static_cast<const void*>(matchPtr));
-
-    DWORD oldProtect;
-    if (VirtualProtect(address, patchBytes.size(), PAGE_EXECUTE_READWRITE, &oldProtect)) {
-        memcpy(address, patchBytes.data(), patchBytes.size());
-        VirtualProtect(address, patchBytes.size(), oldProtect, &oldProtect);
-        logging::I("{} Patch applied at address 0x{:X}.", LogTag, reinterpret_cast<uintptr_t>(address));
+        s_hookIsDebuggerPresent.emplace("kernel32.dll!IsDebuggerPresent", "kernel32.dll", "IsDebuggerPresent", 0);
+        s_hookIsDebuggerPresent->set_detour([]() { return false; });
+        logging::I("{} Enable", LogTag);
     } else {
-        logging::E("{} Failed to change memory protection.", LogTag);
+        if (s_hookIsDebuggerPresent) {
+            logging::I("{} Disable", LogTag);
+            s_hookIsDebuggerPresent.reset();
+        }
     }
 }
 
