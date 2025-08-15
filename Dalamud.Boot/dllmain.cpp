@@ -46,13 +46,13 @@ void CheckMsvcrtVersion() {
     for (const auto& runtimeDllName : RuntimeDllNames) {
         const utils::loaded_module mod(GetModuleHandleW(runtimeDllName));
         if (!mod) {
-            logging::E("Runtime DLL not found: {}", runtimeDllName);
+            logging::E("MSVCRT DLL not found: {}", runtimeDllName);
             continue;
         }
 
         try {
             const auto& versionFull = mod.get_file_version();
-            logging::I("Runtime DLL {} has version {}.", runtimeDllName, utils::format_file_version(versionFull));
+            logging::I("MSVCRT DLL {} has version {}.", mod.path(), utils::format_file_version(versionFull));
 
             const auto version = (static_cast<uint64_t>(versionFull.dwFileVersionMS) << 32) |
                 static_cast<uint64_t>(versionFull.dwFileVersionLS);
@@ -60,7 +60,7 @@ void CheckMsvcrtVersion() {
             if (version < RequiredMsvcrtVersion && (lowestVersion == 0 || lowestVersion > version))
                 lowestVersion = version;
         } catch (const std::exception& e) {
-            logging::E("Failed to detect Runtime DLL version for {}: {}", runtimeDllName, e.what());
+            logging::E("Failed to detect MSVCRT DLL version for {}: {}", mod.path(), e.what());
         }
     }
 

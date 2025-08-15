@@ -650,7 +650,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                         {
                             var psi = new ProcessStartInfo
                             {
-                                FileName = "https://aka.ms/vs/16/release/vc_redist.x64.exe",
+                                FileName = "https://aka.ms/vs/17/release/vc_redist.x64.exe",
                                 UseShellExecute = true,
                             };
                             Process.Start(psi);
