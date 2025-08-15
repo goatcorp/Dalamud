@@ -2076,9 +2076,14 @@ internal class PluginInstallerWindow : Window, IDisposable
         var isOpen = this.openPluginCollapsibles.Contains(index);
 
         var sectionSize = ImGuiHelpers.GlobalScale * 66;
-        var tapeCursor = ImGui.GetCursorPos();
 
         ImGui.Separator();
+
+        var childId = $"plugin_child_{label}_{plugin?.EffectiveWorkingPluginId}_{manifest.InternalName}";
+        const ImGuiWindowFlags childFlags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+
+        using var pluginChild = ImRaii.Child(childId, new Vector2(ImGui.GetContentRegionAvail().X, sectionSize), false, childFlags);
+        if (!pluginChild) return false;
 
         var startCursor = ImGui.GetCursorPos();
 
@@ -2115,7 +2120,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
             }
 
-            DrawCautionTape(tapeCursor + new Vector2(0, 1), new Vector2(ImGui.GetWindowWidth(), sectionSize + ImGui.GetStyle().ItemSpacing.Y), ImGuiHelpers.GlobalScale * 40, 20);
+            DrawCautionTape(startCursor + new Vector2(0, 1), new Vector2(ImGui.GetWindowWidth(), sectionSize + ImGui.GetStyle().ItemSpacing.Y), ImGuiHelpers.GlobalScale * 40, 20);
         }
 
         ImGui.PushStyleColor(ImGuiCol.Button, isOpen ? new Vector4(0.5f, 0.5f, 0.5f, 0.1f) : Vector4.Zero);
@@ -2124,7 +2129,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.5f, 0.5f, 0.5f, 0.35f));
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
 
-        ImGui.SetCursorPos(tapeCursor);
+        ImGui.SetCursorPos(startCursor);
 
         if (ImGui.Button($"###plugin{index}CollapsibleBtn", new Vector2(ImGui.GetContentRegionAvail().X, sectionSize + ImGui.GetStyle().ItemSpacing.Y)))
         {
