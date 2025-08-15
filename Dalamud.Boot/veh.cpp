@@ -102,9 +102,13 @@ bool is_ffxiv_address(const wchar_t* module_name, const DWORD64 address)
     return false;
 }
 
-static void append_injector_launch_args(std::vector<std::wstring>& args)
+static DalamudExpected<void> append_injector_launch_args(std::vector<std::wstring>& args)
 {
-    args.emplace_back(L"--game=\"" + utils::loaded_module::current_process().path().wstring() + L"\"");
+    if (auto path = utils::loaded_module::current_process().path())
+        args.emplace_back(L"--game=\"" + path->wstring() + L"\"");
+    else
+        return DalamudUnexpected(std::in_place, std::move(path.error()));
+
     switch (g_startInfo.DalamudLoadMethod) {
     case DalamudStartInfo::LoadMethod::Entrypoint:
         args.emplace_back(L"--mode=entrypoint");
@@ -155,6 +159,8 @@ static void append_injector_launch_args(std::vector<std::wstring>& args)
             args.emplace_back(szArgList[i]);
         LocalFree(szArgList);
     }
+
+    return {};
 }
 
 LONG exception_handler(EXCEPTION_POINTERS* ex)
@@ -358,11 +364,20 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
     args.emplace_back(std::format(L"--process-handle={}", reinterpret_cast<size_t>(hInheritableCurrentProcess)));
     args.emplace_back(std::format(L"--exception-info-pipe-read-handle={}", reinterpret_cast<size_t>(hReadPipeInheritable->get())));
     args.emplace_back(std::format(L"--asset-directory={}", unicode::convert<std::wstring>(g_startInfo.AssetDirectory)));
-    args.emplace_back(std::format(L"--log-directory={}", g_startInfo.BootLogPath.empty()
-        ? utils::loaded_module(g_hModule).path().parent_path().wstring()
-        : std::filesystem::path(unicode::convert<std::wstring>(g_startInfo.BootLogPath)).parent_path().wstring()));
+    if (const auto path = utils::loaded_module(g_hModule).path()) {
+        args.emplace_back(std::format(L"--log-directory={}", g_startInfo.BootLogPath.empty()
+            ? path->parent_path().wstring()
+            : std::filesystem::path(unicode::convert<std::wstring>(g_startInfo.BootLogPath)).parent_path().wstring()));
+    } else {
+        logging::W("Failed to read path of the Dalamud Boot module: {}", path.error().describe());
+        return false;
+    }
+
     args.emplace_back(L"--");
-    append_injector_launch_args(args);
+    if (auto r = append_injector_launch_args(args); !r) {
+        logging::W("Failed to generate injector launch args: {}", r.error().describe());
+        return false;
+    }
 
     for (const auto& arg : args)
     {

@@ -635,29 +635,6 @@ internal partial class InterfaceManager : IInternalDisposableService
                 Service<InterfaceManagerWithScene>.ProvideException(ex);
                 Log.Error(ex, "Could not load ImGui dependencies.");
 
-                fixed (void* lpText =
-                           "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?")
-                {
-                    fixed (void* lpCaption = "Dalamud Error")
-                    {
-                        var res = MessageBoxW(
-                            default,
-                            (ushort*)lpText,
-                            (ushort*)lpCaption,
-                            MB.MB_YESNO | MB.MB_TOPMOST | MB.MB_ICONERROR);
-
-                        if (res == IDYES)
-                        {
-                            var psi = new ProcessStartInfo
-                            {
-                                FileName = "https://aka.ms/vs/16/release/vc_redist.x64.exe",
-                                UseShellExecute = true,
-                            };
-                            Process.Start(psi);
-                        }
-                    }
-                }
-
                 Environment.Exit(-1);
 
                 // Doesn't reach here, but to make the compiler not complain

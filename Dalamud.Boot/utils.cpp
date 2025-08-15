@@ -3,22 +3,27 @@
 
 #include "utils.h"
 
-std::filesystem::path utils::loaded_module::path() const {
-    std::wstring buf(MAX_PATH, L'\0');
-    for (;;) {
-        if (const auto len = GetModuleFileNameExW(GetCurrentProcess(), m_hModule, &buf[0], static_cast<DWORD>(buf.size())); len != buf.size()) {
-            if (buf.empty())
-                throw std::runtime_error(std::format("Failed to resolve module path: Win32 error {}", GetLastError()));
+DalamudExpected<std::filesystem::path> utils::loaded_module::path() const {
+    for (std::wstring buf(MAX_PATH, L'\0');; buf.resize(buf.size() * 2)) {
+        if (const auto len = GetModuleFileNameW(m_hModule, &buf[0], static_cast<DWORD>(buf.size()));
+            len != buf.size()) {
+            if (!len) {
+                return DalamudUnexpected(
+                    std::in_place,
+                    DalamudBootErrorDescription::ModulePathResolutionFail,
+                    HRESULT_FROM_WIN32(GetLastError()));
+            }
+
             buf.resize(len);
             return buf;
         }
 
-        if (buf.size() * 2 < PATHCCH_MAX_CCH)
-            buf.resize(buf.size() * 2);
-        else if (auto p = std::filesystem::path(buf); exists(p))
-            return p;
-        else
-            throw std::runtime_error("Failed to resolve module path: no amount of buffer size would fit the data");
+        if (buf.size() > PATHCCH_MAX_CCH) {
+            return DalamudUnexpected(
+                std::in_place,
+                DalamudBootErrorDescription::ModulePathResolutionFail,
+                E_OUTOFMEMORY);
+        }
     }
 }
 
@@ -144,21 +149,24 @@ void* utils::loaded_module::get_imported_function_pointer(const char* pcszDllNam
     throw std::runtime_error(std::format("Failed to find import for {}!{} ({}).", pcszDllName, pcszFunctionName ? pcszFunctionName : "<unnamed>", hintOrOrdinal));
 }
 
-std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)> utils::loaded_module::get_resource(LPCWSTR lpName, LPCWSTR lpType) const {
+DalamudExpected<std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)>> utils::loaded_module::get_resource(LPCWSTR lpName, LPCWSTR lpType) const {
     const auto hres = FindResourceW(m_hModule, lpName, lpType);
     if (!hres)
-        throw std::runtime_error("No such resource");
+        return DalamudUnexpected(std::in_place, DalamudBootErrorDescription::ModuleResourceLoadFail, GetLastError());
 
     const auto hRes = LoadResource(m_hModule, hres);
     if (!hRes)
-        throw std::runtime_error("LoadResource failure");
+        return DalamudUnexpected(std::in_place, DalamudBootErrorDescription::ModuleResourceLoadFail, GetLastError());
 
-    return {hRes, &FreeResource};
+    return std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)>(hRes, &FreeResource);
 }
 
-std::wstring utils::loaded_module::get_description() const {
-    const auto rsrc = get_resource(MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
-    const auto pBlock = LockResource(rsrc.get());
+DalamudExpected<std::wstring> utils::loaded_module::get_description() const {
+    auto rsrc = get_resource(MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
+    if (!rsrc)
+        return DalamudUnexpected(std::move(rsrc.error()));
+
+    const auto pBlock = LockResource(rsrc->get());
 
     struct LANGANDCODEPAGE {
         WORD wLanguage;
@@ -166,44 +174,65 @@ std::wstring utils::loaded_module::get_description() const {
     } * lpTranslate;
     UINT cbTranslate;
     if (!VerQueryValueW(pBlock,
-        TEXT("\\VarFileInfo\\Translation"),
+        L"\\VarFileInfo\\Translation",
         reinterpret_cast<LPVOID*>(&lpTranslate),
         &cbTranslate)) {
-        throw std::runtime_error("Invalid version information (1)");
+        return DalamudUnexpected(
+            std::in_place,
+            DalamudBootErrorDescription::ModuleResourceVersionReadFail,
+            HRESULT_FROM_WIN32(GetLastError()));
     }
 
     for (size_t i = 0; i < (cbTranslate / sizeof(LANGANDCODEPAGE)); i++) {
+        wchar_t subblockNameBuf[64];
+        *std::format_to_n(
+            subblockNameBuf,
+            _countof(subblockNameBuf),
+            L"\\StringFileInfo\\{:04x}{:04x}\\FileDescription",
+            lpTranslate[i].wLanguage,
+            lpTranslate[i].wCodePage).out = 0;;
+
         wchar_t* buf = nullptr;
         UINT size = 0;
-        if (!VerQueryValueW(pBlock,
-            std::format(L"\\StringFileInfo\\{:04x}{:04x}\\FileDescription",
-                lpTranslate[i].wLanguage,
-                lpTranslate[i].wCodePage).c_str(),
-            reinterpret_cast<LPVOID*>(&buf),
-            &size)) {
+        if (!VerQueryValueW(pBlock, subblockNameBuf, reinterpret_cast<LPVOID*>(&buf), &size))
             continue;
-        }
+
         auto currName = std::wstring_view(buf, size);
-        while (!currName.empty() && currName.back() == L'\0')
-            currName = currName.substr(0, currName.size() - 1);
+        if (const auto p = currName.find(L'\0'); p != std::string::npos)
+            currName = currName.substr(0, p);
         if (currName.empty())
             continue;
         return std::wstring(currName);
     }
 
-    throw std::runtime_error("Invalid version information (2)");
+    return DalamudUnexpected(
+        std::in_place,
+        DalamudBootErrorDescription::ModuleResourceVersionReadFail,
+        HRESULT_FROM_WIN32(ERROR_NOT_FOUND));
 }
 
-const VS_FIXEDFILEINFO& utils::loaded_module::get_file_version() const {
-    const auto rsrc = get_resource(MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
-    const auto pBlock = LockResource(rsrc.get());
+std::expected<std::reference_wrapper<const VS_FIXEDFILEINFO>, DalamudBootError> utils::loaded_module::get_file_version() const {
+    auto rsrc = get_resource(MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
+    if (!rsrc)
+        return DalamudUnexpected(std::move(rsrc.error()));
+
+    const auto pBlock = LockResource(rsrc->get());
     UINT size = 0;
     LPVOID lpBuffer = nullptr;
-    if (!VerQueryValueW(pBlock, L"\\", &lpBuffer, &size))
-		throw std::runtime_error("Failed to query version information.");
+    if (!VerQueryValueW(pBlock, L"\\", &lpBuffer, &size)) {
+        return std::unexpected<DalamudBootError>(
+            std::in_place,
+            DalamudBootErrorDescription::ModuleResourceVersionReadFail,
+            HRESULT_FROM_WIN32(GetLastError()));
+    }
+
     const VS_FIXEDFILEINFO& versionInfo = *static_cast<const VS_FIXEDFILEINFO*>(lpBuffer);
-    if (versionInfo.dwSignature != 0xfeef04bd)
-		throw std::runtime_error("Invalid version info found.");
+    if (versionInfo.dwSignature != 0xfeef04bd) {
+        return std::unexpected<DalamudBootError>(
+            std::in_place,
+            DalamudBootErrorDescription::ModuleResourceVersionSignatureFail);
+    }
+
     return versionInfo;
 }
 
@@ -589,17 +618,10 @@ bool utils::is_running_on_wine() {
     return g_startInfo.Platform != "WINDOWS";
 }
 
-std::filesystem::path utils::get_module_path(HMODULE hModule) {
-    std::wstring buf(MAX_PATH, L'\0');
-    while (true) {
-        if (const auto res = GetModuleFileNameW(hModule, &buf[0], static_cast<int>(buf.size())); !res)
-            throw std::runtime_error(std::format("GetModuleFileName failure: 0x{:X}", GetLastError()));
-        else if (res < buf.size()) {
-            buf.resize(res);
-            return buf;
-        } else
-            buf.resize(buf.size() * 2);
-    }
+std::wstring utils::get_string_resource(uint32_t resId) {
+    LPCWSTR pstr;
+    const auto len = LoadStringW(g_hModule, resId, reinterpret_cast<LPWSTR>(&pstr), 0);
+    return std::wstring(pstr, len);
 }
 
 HWND utils::try_find_game_window() {
@@ -676,4 +698,23 @@ std::wstring utils::format_win32_error(DWORD err) {
     }
 
     return std::format(L"Win32 error ({}=0x{:X})", err, err);
+}
+
+utils::scoped_dpi_awareness_context::scoped_dpi_awareness_context()
+    : scoped_dpi_awareness_context(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) {
+}
+
+utils::scoped_dpi_awareness_context::scoped_dpi_awareness_context(DPI_AWARENESS_CONTEXT context) {
+    const auto user32 = GetModuleHandleW(L"user32.dll");
+    m_setThreadDpiAwarenessContext =
+        user32
+        ? reinterpret_cast<decltype(&SetThreadDpiAwarenessContext)>(
+            GetProcAddress(user32, "SetThreadDpiAwarenessContext"))
+        : nullptr;
+    m_old = m_setThreadDpiAwarenessContext ? m_setThreadDpiAwarenessContext(context) : DPI_AWARENESS_CONTEXT_UNAWARE;
+}
+
+utils::scoped_dpi_awareness_context::~scoped_dpi_awareness_context() {
+    if (m_setThreadDpiAwarenessContext)
+        m_setThreadDpiAwarenessContext(m_old);
 }

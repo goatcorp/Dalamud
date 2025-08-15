@@ -55,6 +55,7 @@
 #include <set>
 #include <span>
 #include <string>
+#include <string_view>
 #include <type_traits>
 
 // https://www.akenotsuki.com/misc/srell/en/
