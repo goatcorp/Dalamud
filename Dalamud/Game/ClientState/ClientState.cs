@@ -72,6 +72,8 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.setupTerritoryTypeHook.Enable();
         this.uiModuleHandlePacketHook.Enable();
         this.onLogoutHook.Enable();
+
+        this.framework.RunOnTick(this.Setup);
     }
 
     private unsafe delegate void ProcessPacketPlayerSetupDelegate(nint a1, nint packet);
@@ -180,8 +182,22 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.networkHandlers.CfPop -= this.NetworkHandlersOnCfPop;
     }
 
+    private unsafe void Setup()
+    {
+        this.TerritoryType = (ushort)GameMain.Instance()->CurrentTerritoryTypeId;
+    }
+
     private unsafe void SetupTerritoryTypeDetour(EventFramework* eventFramework, ushort territoryType)
     {
+        this.SetTerritoryType(territoryType);
+        this.setupTerritoryTypeHook.Original(eventFramework, territoryType);
+    }
+
+    private unsafe void SetTerritoryType(ushort territoryType)
+    {
+        if (this.TerritoryType == territoryType)
+            return;
+
         Log.Debug("TerritoryType changed: {0}", territoryType);
 
         this.TerritoryType = territoryType;
@@ -207,8 +223,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
                 }
             }
         }
-
-        this.setupTerritoryTypeHook.Original(eventFramework, territoryType);
     }
 
     private unsafe void UIModuleHandlePacketDetour(
