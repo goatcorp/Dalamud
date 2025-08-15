@@ -184,7 +184,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
     private unsafe void Setup()
     {
-        this.SetTerritoryType((ushort)GameMain.Instance()->CurrentTerritoryTypeId);
+        this.TerritoryType = (ushort)GameMain.Instance()->CurrentTerritoryTypeId;
     }
 
     private unsafe void SetupTerritoryTypeDetour(EventFramework* eventFramework, ushort territoryType)
