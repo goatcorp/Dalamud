@@ -185,12 +185,12 @@ DalamudExpected<std::wstring> utils::loaded_module::get_description() const {
 
     for (size_t i = 0; i < (cbTranslate / sizeof(LANGANDCODEPAGE)); i++) {
         wchar_t subblockNameBuf[64];
-        std::format_to_n(
+        *std::format_to_n(
             subblockNameBuf,
             _countof(subblockNameBuf),
-            L"\\StringFileInfo\\{:04x}{:04x}\\FileDescription\0",
+            L"\\StringFileInfo\\{:04x}{:04x}\\FileDescription",
             lpTranslate[i].wLanguage,
-            lpTranslate[i].wCodePage);
+            lpTranslate[i].wCodePage).out = 0;;
 
         wchar_t* buf = nullptr;
         UINT size = 0;
