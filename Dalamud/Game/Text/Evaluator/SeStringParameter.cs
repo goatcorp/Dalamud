@@ -77,4 +77,6 @@ public readonly struct SeStringParameter
     public static implicit operator SeStringParameter(DSeString value) => new(new ReadOnlySeString(value.Encode()));
 
     public static implicit operator SeStringParameter(string value) => new(value);
+
+    public static implicit operator SeStringParameter(ReadOnlySpan<byte> value) => new(value);
 }
