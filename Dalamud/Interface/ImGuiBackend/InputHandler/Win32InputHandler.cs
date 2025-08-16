@@ -8,6 +8,7 @@ using System.Text;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Memory;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -446,19 +447,19 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     ClientToScreen(this.hWnd, &pos);
                 SetCursorPos(pos.x, pos.y);
             }
+        }
 
-            // (Optional) Fallback to provide mouse position when focused (WM_MOUSEMOVE already provides this when hovered or captured)
-            if (!io.WantSetMousePos && !this.mouseTracked && hasMouseScreenPos)
-            {
-                // Single viewport mode: mouse position in client window coordinates (io.MousePos is (0,0) when the mouse is on the upper-left corner of the app window)
-                // (This is the position you can get with ::GetCursorPos() + ::ScreenToClient() or WM_MOUSEMOVE.)
-                // Multi-viewport mode: mouse position in OS absolute coordinates (io.MousePos is (0,0) when the mouse is on the upper-left of the primary monitor)
-                // (This is the position you can get with ::GetCursorPos() or WM_MOUSEMOVE + ::ClientToScreen(). In theory adding viewport->Pos to a client position would also be the same.)
-                var mousePos = mouseScreenPos;
-                if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) == 0)
-                    ClientToScreen(focusedWindow, &mousePos);
-                io.AddMousePosEvent(mousePos.x, mousePos.y);
-            }
+        // (Optional) Fallback to provide mouse position when focused (WM_MOUSEMOVE already provides this when hovered or captured)
+        if (!io.WantSetMousePos && !this.mouseTracked && hasMouseScreenPos)
+        {
+            // Single viewport mode: mouse position in client window coordinates (io.MousePos is (0,0) when the mouse is on the upper-left corner of the app window)
+            // (This is the position you can get with ::GetCursorPos() + ::ScreenToClient() or WM_MOUSEMOVE.)
+            // Multi-viewport mode: mouse position in OS absolute coordinates (io.MousePos is (0,0) when the mouse is on the upper-left of the primary monitor)
+            // (This is the position you can get with ::GetCursorPos() or WM_MOUSEMOVE + ::ClientToScreen(). In theory adding viewport->Pos to a client position would also be the same.)
+            var mousePos = mouseScreenPos;
+            if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) == 0)
+                ClientToScreen(focusedWindow, &mousePos);
+            io.AddMousePosEvent(mousePos.x, mousePos.y);
         }
 
         // (Optional) When using multiple viewports: call io.AddMouseViewportEvent() with the viewport the OS mouse cursor is hovering.
@@ -826,6 +827,9 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     (HINSTANCE)Marshal.GetHINSTANCE(typeof(ViewportHandler).Module),
                     null);
             }
+
+            if (data->Hwnd == 0)
+                Util.Fatal($"CreateWindowExW failed: {GetLastError()}", "ImGui Viewport error");
 
             data->HwndOwned = true;
             viewport.PlatformRequestResize = false;
