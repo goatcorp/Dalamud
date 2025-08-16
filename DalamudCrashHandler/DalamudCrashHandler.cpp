@@ -470,6 +470,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         "dalamud.injector.log",
         "dalamud.boot.log",
         "aria.log",
+        "wine.log"
     };
     static constexpr auto MaxSizePerLog = 1 * 1024 * 1024;
     static constexpr std::array<COMDLG_FILTERSPEC, 2> OutputFileTypeFilterSpec{{
