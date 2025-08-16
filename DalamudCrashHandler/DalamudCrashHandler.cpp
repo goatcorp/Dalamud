@@ -463,7 +463,8 @@ void open_folder_and_select_items(HWND hwndOpener, const std::wstring& path) {
 
 void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const std::string& crashLog, const std::string& troubleshootingPackData) {
     static const char* SourceLogFiles[] = {
-        "output.log",
+        "output.log", // XIVLauncher for Windows
+        "launcher.log", // XIVLauncher.Core for [mostly] Linux
         "patcher.log",
         "dalamud.log",
         "dalamud.injector.log",
