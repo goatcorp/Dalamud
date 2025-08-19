@@ -96,7 +96,7 @@ internal class AssertHandler : IDisposable
         if (!this.ShowAsserts && !this.everShownAssertThisSession)
             return;
 
-        Lazy<StackTrace> stackTrace = new(() => DiagnosticUtil.GetUsefulTrace(new StackTrace()));
+        Lazy<StackTrace> stackTrace = new(() => DiagnosticUtil.GetUsefulTrace(new StackTrace(true)));
 
         if (!this.EnableVerboseLogging)
         {
