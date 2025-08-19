@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -74,6 +75,42 @@ internal class AssertHandler : IDisposable
         this.Shutdown();
     }
 
+    private static string? ExtractImguiFunction(StackTrace stackTrace)
+    {
+        var frame = stackTrace.GetFrames()
+                              .FirstOrDefault(f => f.GetMethod()?.DeclaringType?.Namespace == "Dalamud.Bindings.ImGui");
+        if (frame == null)
+            return null;
+
+        var method = frame.GetMethod();
+        if (method == null)
+            return null;
+
+        return $"{method.Name}({string.Join(", ", method.GetParameters().Select(p => p.Name))})";
+    }
+
+    private static StackTrace GenerateStackTrace()
+    {
+        var trace = DiagnosticUtil.GetUsefulTrace(new StackTrace(true));
+        var frames = trace.GetFrames().ToList();
+
+        // Remove everything that happens in the assert context.
+        var lastAssertIdx = frames.FindLastIndex(f => f.GetMethod()?.DeclaringType == typeof(AssertHandler));
+        if (lastAssertIdx >= 0)
+        {
+            frames.RemoveRange(0, lastAssertIdx + 1);
+        }
+
+        var firstInterfaceManagerIdx = frames.FindIndex(f => f.GetMethod()?.DeclaringType == typeof(InterfaceManager));
+        if (firstInterfaceManagerIdx >= 0)
+        {
+            frames.RemoveRange(firstInterfaceManagerIdx, frames.Count - firstInterfaceManagerIdx);
+        }
+
+        return new StackTrace(frames);
+    }
+
+
     private unsafe void OnImGuiAssert(void* pExpr, void* pFile, int line)
     {
         var expr = Marshal.PtrToStringAnsi(new IntPtr(pExpr));
@@ -96,7 +133,7 @@ internal class AssertHandler : IDisposable
         if (!this.ShowAsserts && !this.everShownAssertThisSession)
             return;
 
-        Lazy<StackTrace> stackTrace = new(() => DiagnosticUtil.GetUsefulTrace(new StackTrace(true)));
+        Lazy<StackTrace> stackTrace = new(GenerateStackTrace);
 
         if (!this.EnableVerboseLogging)
         {
@@ -151,6 +188,7 @@ internal class AssertHandler : IDisposable
 
         // grab the stack trace now that we've decided to show UI.
         var responsiblePlugin = Service<PluginManager>.GetNullable()?.FindCallingPlugin(stackTrace.Value);
+        var responsibleMethodCall = ExtractImguiFunction(stackTrace.Value);
 
         var gitHubUrl = GetRepoUrl();
         var showOnGitHubButton = new TaskDialogButton
@@ -200,8 +238,16 @@ internal class AssertHandler : IDisposable
             }
 
             text += $"You may attempt to continue running the game, but Dalamud UI elements may not work " +
-                    $"correctly, or the game may crash after resuming.\n\n" +
-                    $"{expr}\nAt: {file}:{line}";
+                    $"correctly, or the game may crash after resuming.\n\n";
+
+            if (responsibleMethodCall != null)
+            {
+                text += $"Assertion failed: {expr} when performing {responsibleMethodCall}\n{file}:{line}";
+            }
+            else
+            {
+                text += $"Assertion failed: {expr}\nAt: {file}:{line}";
+            }
 
             var page = new TaskDialogPage
             {
