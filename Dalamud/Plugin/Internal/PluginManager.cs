@@ -1240,7 +1240,7 @@ internal class PluginManager : IInternalDisposableService
         }
 
         return this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
-                                                                        && ban.AssemblyVersion >= versionToCheck);
+                                                                        && (ban.AssemblyVersion == null || ban.AssemblyVersion >= versionToCheck));
     }
 
     /// <summary>
