@@ -1,4 +1,11 @@
+using System.Reactive.Disposables;
+using System.Threading;
+
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Ipc.Exceptions;
+using Dalamud.Utility;
+
+using Serilog;
 
 namespace Dalamud.Plugin.Ipc.Internal;
 
@@ -7,13 +14,18 @@ namespace Dalamud.Plugin.Ipc.Internal;
 /// </summary>
 internal abstract class CallGatePubSubBase
 {
+    [ThreadStatic]
+    private static IpcContext? ipcExecutionContext;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CallGatePubSubBase"/> class.
     /// </summary>
     /// <param name="name">The name of the IPC registration.</param>
-    protected CallGatePubSubBase(string name)
+    /// <param name="owningPlugin">The plugin that owns this IPC pubsub.</param>
+    protected CallGatePubSubBase(string name, LocalPlugin? owningPlugin)
     {
         this.Channel = Service<CallGate>.Get().GetOrCreateChannel(name);
+        this.OwningPlugin = owningPlugin;
     }
 
     /// <summary>
@@ -21,7 +33,7 @@ internal abstract class CallGatePubSubBase
     /// <see cref="ICallGateSubscriber"/>s.
     /// </summary>
     public bool HasAction => this.Channel.Action != null;
-    
+
     /// <summary>
     /// Gets a value indicating whether this IPC call gate has an associated Function. Only exposed to
     /// <see cref="ICallGateSubscriber"/>s.
@@ -33,12 +45,17 @@ internal abstract class CallGatePubSubBase
     /// <see cref="ICallGateProvider"/>s, and can be used to determine if messages should be sent through the gate.
     /// </summary>
     public int SubscriptionCount => this.Channel.Subscriptions.Count;
-    
+
     /// <summary>
     /// Gets the underlying channel implementation.
     /// </summary>
     protected CallGateChannel Channel { get; init; }
-    
+
+    /// <summary>
+    /// Gets the plugin that owns this pubsub instance.
+    /// </summary>
+    protected LocalPlugin? OwningPlugin { get; init; }
+
     /// <summary>
     /// Removes the associated Action from this call gate, effectively disabling RPC calls.
     /// </summary>
@@ -52,6 +69,16 @@ internal abstract class CallGatePubSubBase
     /// <seealso cref="RegisterFunc"/>
     public void UnregisterFunc()
         => this.Channel.Func = null;
+
+    /// <summary>
+    /// Gets the current context for this IPC call. This will only be present when called from within an IPC action
+    /// or function handler, and will be null otherwise.
+    /// </summary>
+    /// <returns>Returns a potential IPC context.</returns>
+    public IpcContext? GetContext()
+    {
+        return ipcExecutionContext;
+    }
 
     /// <summary>
     /// Registers a <see cref="Delegate"/> for use by other plugins via RPC. This Delegate must satisfy the constraints
@@ -105,7 +132,12 @@ internal abstract class CallGatePubSubBase
     /// <seealso cref="RegisterAction"/>
     /// <seealso cref="UnregisterAction"/>
     private protected void InvokeAction(params object?[]? args)
-        => this.Channel.InvokeAction(args);
+    {
+        using (this.BuildContext())
+        {
+            this.Channel.InvokeAction(args);
+        }
+    }
 
     /// <summary>
     /// Executes the Function registered for this IPC call gate via <see cref="RegisterFunc"/>. This method is intended
@@ -120,7 +152,12 @@ internal abstract class CallGatePubSubBase
     /// <seealso cref="RegisterFunc"/>
     /// <seealso cref="UnregisterFunc"/>
     private protected TRet InvokeFunc<TRet>(params object?[]? args)
-        => this.Channel.InvokeFunc<TRet>(args);
+    {
+        using (this.BuildContext())
+        {
+            return this.Channel.InvokeFunc<TRet>(args);
+        }
+    }
 
     /// <summary>
     /// Send the given arguments to all subscribers (through <see cref="Subscribe"/>) of this IPC call gate. This method
@@ -132,4 +169,14 @@ internal abstract class CallGatePubSubBase
     /// <param name="args">Delegate arguments.</param>
     private protected void SendMessage(params object?[]? args)
         => this.Channel.SendMessage(args);
+
+    private IDisposable BuildContext()
+    {
+        ipcExecutionContext = new IpcContext
+        {
+            SourcePlugin = this.OwningPlugin != null ? new ExposedPlugin(this.OwningPlugin) : null,
+        };
+
+        return Disposable.Create(() => { ipcExecutionContext = null; });
+    }
 }
