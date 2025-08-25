@@ -14,9 +14,6 @@ namespace Dalamud.Plugin.Ipc.Internal;
 /// </summary>
 internal abstract class CallGatePubSubBase
 {
-    [ThreadStatic]
-    private static IpcContext? ipcExecutionContext;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="CallGatePubSubBase"/> class.
     /// </summary>
@@ -77,7 +74,7 @@ internal abstract class CallGatePubSubBase
     /// <returns>Returns a potential IPC context.</returns>
     public IpcContext? GetContext()
     {
-        return ipcExecutionContext;
+        return this.Channel.GetInvocationContext();
     }
 
     /// <summary>
@@ -172,11 +169,11 @@ internal abstract class CallGatePubSubBase
 
     private IDisposable BuildContext()
     {
-        ipcExecutionContext = new IpcContext
+        this.Channel.SetInvocationContext(new IpcContext
         {
             SourcePlugin = this.OwningPlugin != null ? new ExposedPlugin(this.OwningPlugin) : null,
-        };
+        });
 
-        return Disposable.Create(() => { ipcExecutionContext = null; });
+        return Disposable.Create(() => { this.Channel.ClearInvocationContext(); });
     }
 }

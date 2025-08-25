@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Ipc.Exceptions;
@@ -17,6 +18,8 @@ namespace Dalamud.Plugin.Ipc.Internal;
 /// </summary>
 internal class CallGateChannel
 {
+    private readonly ThreadLocal<IpcContext> ipcExecutionContext = new();
+
     /// <summary>
     /// The actual storage.
     /// </summary>
@@ -144,6 +147,21 @@ internal class CallGateChannel
             result = this.ConvertObject(result, typeof(TRet));
 
         return (TRet)result;
+    }
+
+    internal void SetInvocationContext(IpcContext ipcContext)
+    {
+        this.ipcExecutionContext.Value = ipcContext;
+    }
+
+    internal IpcContext? GetInvocationContext()
+    {
+        return this.ipcExecutionContext.IsValueCreated ? this.ipcExecutionContext.Value : null;
+    }
+
+    internal void ClearInvocationContext()
+    {
+        this.ipcExecutionContext.Value = null;
     }
 
     private void CheckAndConvertArgs(object?[]? args, MethodInfo methodInfo)
