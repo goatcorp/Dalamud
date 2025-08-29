@@ -2083,7 +2083,10 @@ internal class PluginInstallerWindow : Window, IDisposable
         const ImGuiWindowFlags childFlags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
 
         using var pluginChild = ImRaii.Child(childId, new Vector2(ImGui.GetContentRegionAvail().X, sectionSize), false, childFlags);
-        if (!pluginChild) return false;
+        if (!pluginChild)
+        {
+            return isOpen;
+        }
 
         var startCursor = ImGui.GetCursorPos();
 
