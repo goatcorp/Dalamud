@@ -415,13 +415,13 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
             if (!terminatedSender.SequenceEqual(possiblyModifiedSenderData))
             {
-                Log.Verbose($"HandlePrintMessageDetour Sender modified: {SeString.Parse(terminatedSender)} -> {parsedSender}");
+                Log.Verbose($"HandlePrintMessageDetour Sender modified: {new ReadOnlySeStringSpan(terminatedSender).ToMacroString()} -> {new ReadOnlySeStringSpan(possiblyModifiedSenderData).ToMacroString()}");
                 sender->SetString(possiblyModifiedSenderData);
             }
 
             if (!terminatedMessage.SequenceEqual(possiblyModifiedMessageData))
             {
-                Log.Verbose($"HandlePrintMessageDetour Message modified: {SeString.Parse(terminatedMessage)} -> {parsedMessage}");
+                Log.Verbose($"HandlePrintMessageDetour Message modified: {new ReadOnlySeStringSpan(terminatedMessage).ToMacroString()} -> {new ReadOnlySeStringSpan(possiblyModifiedMessageData).ToMacroString()}");
                 message->SetString(possiblyModifiedMessageData);
             }
 
