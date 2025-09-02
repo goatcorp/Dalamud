@@ -38,7 +38,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     private readonly ClientStateAddressResolver address;
     private readonly Hook<EventFramework.Delegates.SetTerritoryTypeId> setupTerritoryTypeHook;
     private readonly Hook<UIModule.Delegates.HandlePacket> uiModuleHandlePacketHook;
-    private readonly Hook<LogoutCallbackInterface.Delegates.OnLogout> onLogoutHook;
+    private Hook<LogoutCallbackInterface.Delegates.OnLogout> onLogoutHook;
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
@@ -64,14 +64,12 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
         this.setupTerritoryTypeHook = Hook<EventFramework.Delegates.SetTerritoryTypeId>.FromAddress(setTerritoryTypeAddr, this.SetupTerritoryTypeDetour);
         this.uiModuleHandlePacketHook = Hook<UIModule.Delegates.HandlePacket>.FromAddress((nint)UIModule.StaticVirtualTablePointer->HandlePacket, this.UIModuleHandlePacketDetour);
-        this.onLogoutHook = Hook<LogoutCallbackInterface.Delegates.OnLogout>.FromAddress((nint)LogoutCallbackInterface.StaticVirtualTablePointer->OnLogout, this.OnLogoutDetour);
 
         this.framework.Update += this.FrameworkOnOnUpdateEvent;
         this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
 
         this.setupTerritoryTypeHook.Enable();
         this.uiModuleHandlePacketHook.Enable();
-        this.onLogoutHook.Enable();
 
         this.framework.RunOnTick(this.Setup);
     }
@@ -184,6 +182,9 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
     private unsafe void Setup()
     {
+        this.onLogoutHook = Hook<LogoutCallbackInterface.Delegates.OnLogout>.FromAddress((nint)AgentLobby.Instance()->LogoutCallbackInterface.VirtualTable->OnLogout, this.OnLogoutDetour);
+        this.onLogoutHook.Enable();
+
         this.TerritoryType = (ushort)GameMain.Instance()->CurrentTerritoryTypeId;
     }
 
