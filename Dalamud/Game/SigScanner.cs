@@ -343,11 +343,11 @@ public class SigScanner : IDisposable, ISigScanner
                 break;
 
             var scanRet = mBase + index;
+            mBase = scanRet + 1;
             if (this.IsCopy)
                 scanRet -= this.moduleCopyOffset;
 
             yield return scanRet;
-            mBase = scanRet + 1;
         }
     }
 
