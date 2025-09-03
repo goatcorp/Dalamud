@@ -4828,4 +4828,3 @@ public unsafe partial class ImGuiNative
 
 		}
 }
-

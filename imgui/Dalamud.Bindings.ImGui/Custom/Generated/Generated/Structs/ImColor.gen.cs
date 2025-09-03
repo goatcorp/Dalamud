@@ -47,4 +47,3 @@ public unsafe partial struct ImColor
 			}
 		}
 }
-

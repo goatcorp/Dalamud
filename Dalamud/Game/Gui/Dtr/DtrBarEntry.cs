@@ -43,6 +43,11 @@ public interface IReadOnlyDtrBarEntry
     /// Gets a value indicating whether the user has hidden this entry from view through the Dalamud settings.
     /// </summary>
     public bool UserHidden { get; }
+
+    /// <summary>
+    /// Gets an action to be invoked when the user clicks on the dtr entry.
+    /// </summary>
+    public Action<DtrInteractionEvent>? OnClick { get; }
 }
 
 /// <summary>
@@ -68,7 +73,7 @@ public interface IDtrBarEntry : IReadOnlyDtrBarEntry
     /// <summary>
     /// Gets or sets an action to be invoked when the user clicks on the dtr entry.
     /// </summary>
-    public Action<AddonMouseEventData>? OnClick { get; set; }
+    public new Action<DtrInteractionEvent>? OnClick { get; set; }
 
     /// <summary>
     /// Remove this entry from the bar.
@@ -118,7 +123,7 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     public SeString? Tooltip { get; set; }
 
     /// <inheritdoc/>
-    public Action<AddonMouseEventData>? OnClick { get; set; }
+    public Action<DtrInteractionEvent>? OnClick { get; set; }
 
     /// <inheritdoc/>
     public bool HasClickAction => this.OnClick != null;

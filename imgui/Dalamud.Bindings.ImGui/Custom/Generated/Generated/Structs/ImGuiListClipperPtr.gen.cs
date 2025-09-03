@@ -37,4 +37,3 @@ public unsafe partial struct ImGuiListClipperPtr
 			return ret != 0;
 		}
 }
-

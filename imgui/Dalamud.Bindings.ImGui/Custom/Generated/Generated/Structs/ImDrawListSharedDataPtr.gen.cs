@@ -16,4 +16,3 @@ public unsafe partial struct ImDrawListSharedDataPtr
 			ImGuiNative.Destroy(Handle);
 		}
 }
-

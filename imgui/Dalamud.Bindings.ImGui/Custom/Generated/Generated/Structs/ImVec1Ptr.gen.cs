@@ -16,4 +16,3 @@ public unsafe partial struct ImVec1Ptr
 			ImGuiNative.Destroy(Handle);
 		}
 }
-

@@ -44,4 +44,3 @@ public unsafe partial struct ImGuiTextRange
 			}
 		}
 }
-

@@ -203,8 +203,8 @@ public static partial class ImGuiHelpers
             ImGui.SetClipboardText(textCopy.IsNull ? text.Span : textCopy.Span);
         }
 
-        text.Dispose();
-        textCopy.Dispose();
+        text.Recycle();
+        textCopy.Recycle();
     }
 
     /// <summary>Draws a SeString.</summary>

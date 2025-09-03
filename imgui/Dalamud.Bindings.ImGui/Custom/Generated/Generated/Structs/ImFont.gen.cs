@@ -174,4 +174,3 @@ public unsafe partial struct ImFont
 // DISCARDED: GetDebugName
 // DISCARDED: GetDebugNameS
 // DISCARDED: RenderText
-

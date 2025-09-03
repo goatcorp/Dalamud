@@ -16,4 +16,3 @@ public unsafe partial struct ImGuiListClipperDataPtr
 			ImGuiNative.Destroy(Handle);
 		}
 }
-

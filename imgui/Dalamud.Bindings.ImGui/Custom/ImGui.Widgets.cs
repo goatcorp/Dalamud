@@ -6,13 +6,23 @@ namespace Dalamud.Bindings.ImGui;
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public static unsafe partial class ImGui
 {
+    public static bool ArrowButton(ImU8String strId, ImGuiDir dir)
+    {
+        fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
+        {
+            var r = ImGuiNative.ArrowButton(strIdPtr, dir) != 0;
+            strId.Recycle();
+            return r;
+        }
+    }
+
     public static bool Begin(ImU8String name, ref bool open, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         fixed (bool* openPtr = &open)
         {
             var r = ImGuiNative.Begin(namePtr, openPtr, flags) != 0;
-            name.Dispose();
+            name.Recycle();
             return r;
         }
     }
@@ -22,32 +32,35 @@ public static unsafe partial class ImGui
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.Begin(namePtr, null, flags) != 0;
-            name.Dispose();
+            name.Recycle();
             return r;
         }
     }
 
-    public static bool BeginChild(ImU8String strId, Vector2 size = default, bool border = false, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
+    public static bool BeginChild(
+        ImU8String strId, Vector2 size = default, bool border = false, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginChild(strIdPtr, size, border ? (byte)1 : (byte)0, flags) != 0;
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
 
-    public static bool BeginChild(uint id, Vector2 size = default, bool border = false, ImGuiWindowFlags flags = ImGuiWindowFlags.None) =>
+    public static bool BeginChild(
+        uint id, Vector2 size = default, bool border = false, ImGuiWindowFlags flags = ImGuiWindowFlags.None) =>
         ImGuiNative.BeginChild(id, size, border ? (byte)1 : (byte)0, flags) != 0;
 
-    public static bool BeginCombo(ImU8String label, ImU8String previewValue, ImGuiComboFlags flags = ImGuiComboFlags.None)
+    public static bool BeginCombo(
+        ImU8String label, ImU8String previewValue, ImGuiComboFlags flags = ImGuiComboFlags.None)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (byte* previewValuePtr = &previewValue.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginCombo(labelPtr, previewValuePtr, flags) != 0;
-            label.Dispose();
-            previewValue.Dispose();
+            label.Recycle();
+            previewValue.Recycle();
             return r;
         }
     }
@@ -57,7 +70,7 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginListBox(labelPtr, size) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -67,7 +80,7 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginMenu(labelPtr, enabled ? (byte)1 : (byte)0) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -77,37 +90,40 @@ public static unsafe partial class ImGui
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginPopup(strIdPtr, flags) != 0;
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
 
-    public static bool BeginPopupContextItem(ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
+    public static bool BeginPopupContextItem(
+        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginPopupContextItem(strIdPtr, popupFlags) != 0;
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
 
-    public static bool BeginPopupContextWindow(ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
+    public static bool BeginPopupContextWindow(
+        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginPopupContextWindow(strIdPtr, popupFlags) != 0;
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
 
-    public static bool BeginPopupContextVoid(ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
+    public static bool BeginPopupContextVoid(
+        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginPopupContextVoid(strIdPtr, popupFlags) != 0;
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
@@ -119,7 +135,7 @@ public static unsafe partial class ImGui
         fixed (bool* openPtr = &open)
         {
             var r = ImGuiNative.BeginPopupModal(namePtr, openPtr, flags) != 0;
-            name.Dispose();
+            name.Recycle();
             return r;
         }
     }
@@ -129,7 +145,7 @@ public static unsafe partial class ImGui
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginPopupModal(namePtr, null, flags) != 0;
-            name.Dispose();
+            name.Recycle();
             return r;
         }
     }
@@ -139,7 +155,7 @@ public static unsafe partial class ImGui
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginTabBar(strIdPtr, flags) != 0;
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
@@ -151,7 +167,7 @@ public static unsafe partial class ImGui
         fixed (bool* pOpenPtr = &pOpen)
         {
             var r = ImGuiNative.BeginTabItem(labelPtr, pOpenPtr, flags) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -161,7 +177,7 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginTabItem(labelPtr, null, flags) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -173,7 +189,7 @@ public static unsafe partial class ImGui
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.BeginTable(strIdPtr, column, flags, outerSize, innerWidth) != 0;
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
@@ -183,7 +199,7 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.Button(labelPtr, size) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -194,7 +210,7 @@ public static unsafe partial class ImGui
         fixed (bool* vPtr = &v)
         {
             var r = ImGuiNative.Checkbox(labelPtr, vPtr) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -228,7 +244,7 @@ public static unsafe partial class ImGui
                     flags &= ~flagsValue;
             }
 
-            label.Dispose();
+            label.Recycle();
             return pressed;
         }
     }
@@ -240,7 +256,7 @@ public static unsafe partial class ImGui
         fixed (bool* visiblePtr = &visible)
         {
             var r = ImGuiNative.CollapsingHeader(labelPtr, visiblePtr, flags) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -250,7 +266,7 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.CollapsingHeader(labelPtr, null, flags) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -262,7 +278,7 @@ public static unsafe partial class ImGui
         fixed (byte* descIdPtr = &descId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.ColorButton(descIdPtr, col, flags, size) != 0;
-            descId.Dispose();
+            descId.Recycle();
             return r;
         }
     }
@@ -271,7 +287,7 @@ public static unsafe partial class ImGui
     {
         fixed (byte* idPtr = &id.GetPinnableNullTerminatedReference())
             ImGuiNative.Columns(count, idPtr, border ? (byte)1 : (byte)0);
-        id.Dispose();
+        id.Recycle();
     }
 
     public static bool DebugCheckVersionAndDataLayout(
@@ -280,8 +296,15 @@ public static unsafe partial class ImGui
     {
         fixed (byte* versionPtr = &versionStr.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.DebugCheckVersionAndDataLayout(versionPtr, szIo, szStyle, szVec2, szVec4, szDrawVert, szDrawIdx) != 0;
-            versionStr.Dispose();
+            var r = ImGuiNative.DebugCheckVersionAndDataLayout(
+                        versionPtr,
+                        szIo,
+                        szStyle,
+                        szVec2,
+                        szVec4,
+                        szDrawVert,
+                        szDrawIdx) != 0;
+            versionStr.Recycle();
             return r;
         }
     }
@@ -291,7 +314,7 @@ public static unsafe partial class ImGui
         fixed (byte* textPtr = &text.GetPinnableNullTerminatedReference())
         {
             ImGuiNative.DebugTextEncoding(textPtr);
-            text.Dispose();
+            text.Recycle();
         }
     }
 
@@ -300,7 +323,7 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference("Filter (inc,-exc)"u8))
         {
             var r = ImGuiNative.Draw(self.Handle, labelPtr, width) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -310,7 +333,7 @@ public static unsafe partial class ImGui
         fixed (byte* defaultFilterPtr = &defaultFilter.GetPinnableNullTerminatedReference("\0"u8))
         {
             var r = ImGuiNative.ImGuiTextFilter(defaultFilterPtr);
-            defaultFilter.Dispose();
+            defaultFilter.Recycle();
             return r;
         }
     }
@@ -329,7 +352,7 @@ public static unsafe partial class ImGui
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.InvisibleButton(strIdPtr, size, flags) != 0;
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
@@ -339,7 +362,7 @@ public static unsafe partial class ImGui
         fixed (byte* typePtr = &type.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.IsDataType(self.Handle, typePtr) != 0;
-            type.Dispose();
+            type.Recycle();
             return r;
         }
     }
@@ -349,7 +372,7 @@ public static unsafe partial class ImGui
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.IsPopupOpen(strIdPtr, flags) != 0;
-            strId.Dispose();
+            strId.Recycle();
             return r;
         }
     }
@@ -358,21 +381,21 @@ public static unsafe partial class ImGui
     {
         fixed (byte* iniFilenamePtr = &iniFilename.GetPinnableNullTerminatedReference())
             ImGuiNative.LoadIniSettingsFromDisk(iniFilenamePtr);
-        iniFilename.Dispose();
+        iniFilename.Recycle();
     }
 
     public static void LoadIniSettingsFromMemory(ImU8String iniData)
     {
-        fixed (byte* iniDataPtr = iniData.Span)
+        fixed (byte* iniDataPtr = iniData)
             ImGuiNative.LoadIniSettingsFromMemory(iniDataPtr, (nuint)iniData.Length);
-        iniData.Dispose();
+        iniData.Recycle();
     }
 
     public static void LogToFile(int autoOpenDepth = -1, ImU8String filename = default)
     {
         fixed (byte* filenamePtr = &filename.GetPinnableNullTerminatedReference())
             ImGuiNative.LogToFile(autoOpenDepth, filenamePtr);
-        filename.Dispose();
+        filename.Recycle();
     }
 
     public static bool MenuItem(
@@ -381,9 +404,13 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (byte* shortcutPtr = &shortcut.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.MenuItem(labelPtr, shortcutPtr, selected ? (byte)1 : (byte)0, enabled ? (byte)1 : (byte)0) != 0;
-            label.Dispose();
-            shortcut.Dispose();
+            var r = ImGuiNative.MenuItem(
+                        labelPtr,
+                        shortcutPtr,
+                        selected ? (byte)1 : (byte)0,
+                        enabled ? (byte)1 : (byte)0) != 0;
+            label.Recycle();
+            shortcut.Recycle();
             return r;
         }
     }
@@ -395,8 +422,8 @@ public static unsafe partial class ImGui
         fixed (bool* selectedPtr = &selected)
         {
             var r = ImGuiNative.MenuItem(labelPtr, shortcutPtr, selectedPtr, enabled ? (byte)1 : (byte)0) != 0;
-            label.Dispose();
-            shortcut.Dispose();
+            label.Recycle();
+            shortcut.Recycle();
             return r;
         }
     }
@@ -407,7 +434,7 @@ public static unsafe partial class ImGui
         fixed (bool* selectedPtr = &selected)
         {
             var r = ImGuiNative.MenuItem(labelPtr, null, selectedPtr, enabled ? (byte)1 : (byte)0) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -416,8 +443,12 @@ public static unsafe partial class ImGui
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.MenuItem(labelPtr, null, selected ? (byte)1 : (byte)0, enabled ? (byte)1 : (byte)0) != 0;
-            label.Dispose();
+            var r = ImGuiNative.MenuItem(
+                        labelPtr,
+                        null,
+                        selected ? (byte)1 : (byte)0,
+                        enabled ? (byte)1 : (byte)0) != 0;
+            label.Recycle();
             return r;
         }
     }
@@ -426,39 +457,40 @@ public static unsafe partial class ImGui
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
             ImGuiNative.OpenPopup(strIdPtr, popupFlags);
-        strId.Dispose();
+        strId.Recycle();
     }
 
-    public static void OpenPopup(uint id, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.None) => ImGuiNative.OpenPopup(id, popupFlags);
+    public static void OpenPopup(uint id, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.None) =>
+        ImGuiNative.OpenPopup(id, popupFlags);
 
     public static void OpenPopupOnItemClick(
         ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
             ImGuiNative.OpenPopupOnItemClick(strIdPtr, popupFlags);
-        strId.Dispose();
+        strId.Recycle();
     }
 
     public static void ProgressBar(float fraction, Vector2 sizeArg, ImU8String overlay = default)
     {
         fixed (byte* overlayPtr = &overlay.GetPinnableNullTerminatedReference())
             ImGuiNative.ProgressBar(fraction, sizeArg, overlayPtr);
-        overlay.Dispose();
+        overlay.Recycle();
     }
 
     public static void ProgressBar(float fraction, ImU8String overlay = default)
     {
         fixed (byte* overlayPtr = &overlay.GetPinnableNullTerminatedReference())
             ImGuiNative.ProgressBar(fraction, new(-float.MinValue, 0), overlayPtr);
-        overlay.Dispose();
+        overlay.Recycle();
     }
 
     public static bool RadioButton(ImU8String label, bool active)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.RadioButton(labelPtr, active ? (byte)1:(byte)0) != 0;
-            label.Dispose();
+            var r = ImGuiNative.RadioButton(labelPtr, active ? (byte)1 : (byte)0) != 0;
+            label.Recycle();
             return r;
         }
     }
@@ -468,8 +500,8 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var pressed = ImGuiNative.RadioButton(
-                labelPtr,
-                EqualityComparer<T>.Default.Equals(v, vButton) ? (byte)1 : (byte)0) != 0;
+                              labelPtr,
+                              EqualityComparer<T>.Default.Equals(v, vButton) ? (byte)1 : (byte)0) != 0;
             if (pressed)
                 v = vButton;
             return pressed;
@@ -483,23 +515,26 @@ public static unsafe partial class ImGui
     }
 
     public static bool Selectable(
-        ImU8String label, bool selected = false, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None, Vector2 size = default)
+        ImU8String label, bool selected = false, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None,
+        Vector2 size = default)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.Selectable(labelPtr, selected ?(byte)1:(byte)0, flags, size)!=0;
-            label.Dispose();
+            var r = ImGuiNative.Selectable(labelPtr, selected ? (byte)1 : (byte)0, flags, size) != 0;
+            label.Recycle();
             return r;
         }
     }
 
-    public static bool Selectable(ImU8String label, ref bool selected, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None, Vector2 size = default)
+    public static bool Selectable(
+        ImU8String label, ref bool selected, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None,
+        Vector2 size = default)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
-            fixed (bool* selectedPtr = &selected)
+        fixed (bool* selectedPtr = &selected)
         {
-            var r = ImGuiNative.Selectable(labelPtr, selectedPtr, flags, size)!=0;
-            label.Dispose();
+            var r = ImGuiNative.Selectable(labelPtr, selectedPtr, flags, size) != 0;
+            label.Recycle();
             return r;
         }
     }
@@ -508,16 +543,16 @@ public static unsafe partial class ImGui
     {
         fixed (byte* textPtr = &text.GetPinnableNullTerminatedReference())
             ImGuiNative.SetClipboardText(textPtr);
-        text.Dispose();
+        text.Recycle();
     }
 
-    public static bool SetDragDropPayload(ImU8String type, ReadOnlySpan<byte> data, ImGuiCond cond)
+    public static bool SetDragDropPayload(ImU8String type, ReadOnlySpan<byte> data, ImGuiCond cond = ImGuiCond.None)
     {
         fixed (byte* typePtr = &type.GetPinnableNullTerminatedReference())
         fixed (byte* dataPtr = data)
         {
-            var r = ImGuiNative.SetDragDropPayload(typePtr, dataPtr, (nuint)data.Length, cond)!=0;
-            type.Dispose();
+            var r = ImGuiNative.SetDragDropPayload(typePtr, dataPtr, (nuint)data.Length, cond) != 0;
+            type.Recycle();
             return r;
         }
     }
@@ -526,50 +561,60 @@ public static unsafe partial class ImGui
     {
         fixed (byte* tabItemPtr = &tabOrDockedWindowLabel.GetPinnableNullTerminatedReference())
             ImGuiNative.SetTabItemClosed(tabItemPtr);
-        tabOrDockedWindowLabel.Dispose();
+        tabOrDockedWindowLabel.Recycle();
     }
 
-    public static void SetWindowCollapsed(bool collapsed, ImGuiCond cond = ImGuiCond.None) => ImGuiNative.SetWindowCollapsed(collapsed ? (byte)1 : (byte)0, cond);
+    public static void SetWindowCollapsed(bool collapsed, ImGuiCond cond = ImGuiCond.None) =>
+        ImGuiNative.SetWindowCollapsed(collapsed ? (byte)1 : (byte)0, cond);
 
     public static void SetWindowCollapsed(ImU8String name, bool collapsed, ImGuiCond cond = ImGuiCond.None)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
             ImGuiNative.SetWindowCollapsed(namePtr, collapsed ? (byte)1 : (byte)0, cond);
-        name.Dispose();
+        name.Recycle();
     }
 
+    /// <summary>Sets the current window to be focused / top-most.</summary>
+    /// <remarks>Prefer using <see cref="SetNextWindowFocus"/>.</remarks>
     public static void SetWindowFocus() => ImGuiNative.SetWindowFocus();
 
+    /// <summary>Sets a named window to be focused / top-most.</summary>
+    /// <param name="name">Name of the window to focus. Use <c>default</c> to remove focus.</param>
     public static void SetWindowFocus(ImU8String name)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
             ImGuiNative.SetWindowFocus(namePtr);
-        name.Dispose();
+        name.Recycle();
     }
 
-    public static void SetWindowPos(Vector2 pos, ImGuiCond cond = ImGuiCond.None) => ImGuiNative.SetWindowPos(pos, cond);
+    /// <summary>Removes focus from any window.</summary>
+    public static void ClearWindowFocus() => ImGuiNative.SetWindowFocus(null);
+
+    public static void SetWindowPos(Vector2 pos, ImGuiCond cond = ImGuiCond.None) =>
+        ImGuiNative.SetWindowPos(pos, cond);
 
     public static void SetWindowPos(ImU8String name, Vector2 pos, ImGuiCond cond = ImGuiCond.None)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
             ImGuiNative.SetWindowPos(namePtr, pos, cond);
-        name.Dispose();
+        name.Recycle();
     }
 
-    public static void SetWindowSize(Vector2 size, ImGuiCond cond = ImGuiCond.None) => ImGuiNative.SetWindowSize(size, cond);
+    public static void SetWindowSize(Vector2 size, ImGuiCond cond = ImGuiCond.None) =>
+        ImGuiNative.SetWindowSize(size, cond);
 
     public static void SetWindowSize(ImU8String name, Vector2 size, ImGuiCond cond = ImGuiCond.None)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
             ImGuiNative.SetWindowSize(namePtr, size, cond);
-        name.Dispose();
+        name.Recycle();
     }
 
     public static void ShowFontSelector(ImU8String label)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiNative.ShowFontSelector(labelPtr);
-        label.Dispose();
+        label.Recycle();
     }
 
     public static bool ShowStyleSelector(ImU8String label)
@@ -577,7 +622,7 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.ShowStyleSelector(labelPtr) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -587,7 +632,7 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.SmallButton(labelPtr) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -597,7 +642,7 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.TabItemButton(labelPtr, flags) != 0;
-            label.Dispose();
+            label.Recycle();
             return r;
         }
     }
@@ -606,7 +651,7 @@ public static unsafe partial class ImGui
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiNative.TableHeader(labelPtr);
-        label.Dispose();
+        label.Recycle();
     }
 
     public static void TableSetupColumn(
@@ -615,14 +660,14 @@ public static unsafe partial class ImGui
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiNative.TableSetupColumn(labelPtr, flags, initWidthOrWeight, userId);
-        label.Dispose();
+        label.Recycle();
     }
 
     public static void TreePush(ImU8String strId)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
             ImGuiNative.TreePush(strIdPtr);
-        strId.Dispose();
+        strId.Recycle();
     }
 
     public static void TreePush(nint ptrId) => ImGuiNative.TreePush((void*)ptrId);
@@ -632,10 +677,10 @@ public static unsafe partial class ImGui
     {
         prefix.AppendLiteral(": ");
         prefix.AppendFormatted(value);
-        fixed (byte* prefixPtr = prefix.Span)
+        fixed (byte* prefixPtr = prefix)
         {
             ImGuiNative.TextUnformatted(prefixPtr, prefixPtr + prefix.Length);
-            prefix.Dispose();
+            prefix.Recycle();
         }
     }
 
@@ -647,8 +692,8 @@ public static unsafe partial class ImGui
         fixed (byte* floatPtr = &floatFormat.GetPinnableNullTerminatedReference())
         {
             ImGuiNative.Value(prefixPtr, value, floatPtr);
-            prefix.Dispose();
-            floatFormat.Dispose();
+            prefix.Recycle();
+            floatFormat.Recycle();
         }
     }
 }

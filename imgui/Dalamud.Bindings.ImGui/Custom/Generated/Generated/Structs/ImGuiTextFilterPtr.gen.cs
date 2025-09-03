@@ -31,4 +31,3 @@ public unsafe partial struct ImGuiTextFilterPtr
 }
 // DISCARDED: Draw
 // DISCARDED: PassFilter
-

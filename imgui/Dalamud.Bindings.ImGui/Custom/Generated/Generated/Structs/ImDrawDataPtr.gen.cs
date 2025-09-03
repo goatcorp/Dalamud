@@ -28,4 +28,3 @@ public unsafe partial struct ImDrawDataPtr
 			ImGuiNative.ScaleClipRects(Handle, fbScale);
 		}
 }
-

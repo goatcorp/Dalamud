@@ -27,4 +27,3 @@ public unsafe partial struct ImFontAtlasCustomRect
 			}
 		}
 }
-

@@ -106,4 +106,3 @@ public unsafe partial struct ImGuiIO
 // DISCARDED: AddInputCharacter
 // DISCARDED: AddInputCharactersUTF8
 // DISCARDED: AddInputCharacterUTF16
-

@@ -1409,4 +1409,3 @@ public unsafe partial struct ImFontAtlasPtr
 // DISCARDED: AddFontFromMemoryCompressedBase85TTF
 // DISCARDED: AddFontFromMemoryCompressedTTF
 // DISCARDED: AddFontFromMemoryTTF
-

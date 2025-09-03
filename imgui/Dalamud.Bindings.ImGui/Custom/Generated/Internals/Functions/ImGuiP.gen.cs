@@ -6594,4 +6594,3 @@ public unsafe partial class ImGuiP
 // DISCARDED: internal static byte TempInputScalarNative(ImRect bb, uint id, byte* label, ImGuiDataType dataType, void* pData, byte* format, void* pClampMin, void* pClampMax)
 // DISCARDED: internal static void TextExNative(byte* text, byte* textEnd, ImGuiTextFlags flags)
 // DISCARDED: internal static byte TreeNodeBehaviorNative(uint id, ImGuiTreeNodeFlags flags, byte* label, byte* labelEnd)
-

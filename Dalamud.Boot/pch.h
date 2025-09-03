@@ -11,6 +11,9 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 
+// https://developercommunity.visualstudio.com/t/Access-violation-with-std::mutex::lock-a/10664660
+#define _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
+
 // Windows Header Files (1)
 #include <Windows.h>
 
@@ -21,6 +24,7 @@
 #include <iphlpapi.h>
 #include <PathCch.h>
 #include <Psapi.h>
+#include <shellapi.h>
 #include <ShlObj.h>
 #include <Shlwapi.h>
 #include <SubAuth.h>
@@ -51,6 +55,7 @@
 #include <set>
 #include <span>
 #include <string>
+#include <string_view>
 #include <type_traits>
 
 // https://www.akenotsuki.com/misc/srell/en/

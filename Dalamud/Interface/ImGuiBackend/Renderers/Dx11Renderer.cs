@@ -223,15 +223,15 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         ImDrawDataPtr drawData,
         bool clearRenderTarget)
     {
+        // Do nothing when there's nothing to draw
+        if (drawData.IsNull || !drawData.Valid)
+            return;
+
         // Avoid rendering when minimized
         if (drawData.DisplaySize.X <= 0 || drawData.DisplaySize.Y <= 0)
             return;
 
-        using var oldState = new D3D11DeviceContextStateBackup(this.featureLevel, this.context.Get());
-
-        // Setup desired DX state
-        this.SetupRenderState(drawData);
-
+        // Set up render target
         this.context.Get()->OMSetRenderTargets(1, &renderTargetView, null);
         if (clearRenderTarget)
         {
@@ -239,17 +239,17 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             this.context.Get()->ClearRenderTargetView(renderTargetView, (float*)&color);
         }
 
-        if (!drawData.Valid || drawData.CmdListsCount == 0)
-            return;
-
+        // Stop if there's nothing to draw
         var cmdLists = new Span<ImDrawListPtr>(drawData.Handle->CmdLists, drawData.Handle->CmdListsCount);
+        if (cmdLists.IsEmpty)
+            return;
 
         // Create and grow vertex/index buffers if needed
         if (this.vertexBufferSize < drawData.TotalVtxCount)
             this.vertexBuffer.Dispose();
         if (this.vertexBuffer.Get() is null)
         {
-            this.vertexBufferSize = drawData.TotalVtxCount + 5000;
+            this.vertexBufferSize = drawData.TotalVtxCount + 8192;
             var desc = new D3D11_BUFFER_DESC(
                 (uint)(sizeof(ImDrawVert) * this.vertexBufferSize),
                 (uint)D3D11_BIND_FLAG.D3D11_BIND_VERTEX_BUFFER,
@@ -264,7 +264,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             this.indexBuffer.Dispose();
         if (this.indexBuffer.Get() is null)
         {
-            this.indexBufferSize = drawData.TotalIdxCount + 5000;
+            this.indexBufferSize = drawData.TotalIdxCount + 16384;
             var desc = new D3D11_BUFFER_DESC(
                 (uint)(sizeof(ushort) * this.indexBufferSize),
                 (uint)D3D11_BIND_FLAG.D3D11_BIND_INDEX_BUFFER,
@@ -275,9 +275,14 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             this.indexBuffer.Attach(buffer);
         }
 
-        // Upload vertex/index data into a single contiguous GPU buffer
+        using var oldState = new D3D11DeviceContextStateBackup(this.featureLevel, this.context.Get());
+
+        // Setup desired DX state
+        this.SetupRenderState(drawData);
+
         try
         {
+            // Upload vertex/index data into a single contiguous GPU buffer.
             var vertexData = default(D3D11_MAPPED_SUBRESOURCE);
             var indexData = default(D3D11_MAPPED_SUBRESOURCE);
             this.context.Get()->Map(
@@ -306,26 +311,18 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 targetVertices = targetVertices[vertices.Length..];
                 targetIndices = targetIndices[indices.Length..];
             }
-        }
-        finally
-        {
-            this.context.Get()->Unmap((ID3D11Resource*)this.vertexBuffer.Get(), 0);
-            this.context.Get()->Unmap((ID3D11Resource*)this.indexBuffer.Get(), 0);
-        }
 
-        // Setup orthographic projection matrix into our constant buffer.
-        // Our visible imgui space lies from DisplayPos (LT) to DisplayPos+DisplaySize (RB).
-        // DisplayPos is (0,0) for single viewport apps.
-        try
-        {
-            var data = default(D3D11_MAPPED_SUBRESOURCE);
+            // Setup orthographic projection matrix into our constant buffer.
+            // Our visible imgui space lies from DisplayPos (LT) to DisplayPos+DisplaySize (RB).
+            // DisplayPos is (0,0) for single viewport apps.
+            var constantBufferData = default(D3D11_MAPPED_SUBRESOURCE);
             this.context.Get()->Map(
                 (ID3D11Resource*)this.vertexConstantBuffer.Get(),
                 0,
                 D3D11_MAP.D3D11_MAP_WRITE_DISCARD,
                 0,
-                &data).ThrowOnError();
-            *(Matrix4x4*)data.pData = Matrix4x4.CreateOrthographicOffCenter(
+                &constantBufferData).ThrowOnError();
+            *(Matrix4x4*)constantBufferData.pData = Matrix4x4.CreateOrthographicOffCenter(
                 drawData.DisplayPos.X,
                 drawData.DisplayPos.X + drawData.DisplaySize.X,
                 drawData.DisplayPos.Y + drawData.DisplaySize.Y,
@@ -335,6 +332,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         }
         finally
         {
+            this.context.Get()->Unmap((ID3D11Resource*)this.vertexBuffer.Get(), 0);
+            this.context.Get()->Unmap((ID3D11Resource*)this.indexBuffer.Get(), 0);
             this.context.Get()->Unmap((ID3D11Resource*)this.vertexConstantBuffer.Get(), 0);
         }
 
@@ -343,8 +342,6 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         var vertexOffset = 0;
         var indexOffset = 0;
         var clipOff = new Vector4(drawData.DisplayPos, drawData.DisplayPos.X, drawData.DisplayPos.Y);
-        this.context.Get()->PSSetShader(this.pixelShader, null, 0);
-        this.context.Get()->PSSetSamplers(0, 1, this.sampler.GetAddressOf());
         foreach (ref var cmdList in cmdLists)
         {
             var cmds = new ImVectorWrapper<ImDrawCmd>(cmdList.Handle->CmdBuffer.ToUntyped());
@@ -467,7 +464,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         buffer = this.vertexConstantBuffer.Get();
         ctx->VSSetConstantBuffers(0, 1, &buffer);
 
-        // PS handled later
+        ctx->PSSetShader(this.pixelShader, null, 0);
+        ctx->PSSetSamplers(0, 1, this.sampler.GetAddressOf());
 
         ctx->GSSetShader(null, null, 0);
         ctx->HSSetShader(null, null, 0);

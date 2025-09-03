@@ -76,6 +76,9 @@
     <ClCompile Include="ntdll.cpp">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
+    <ClCompile Include="error_info.cpp">
+      <Filter>Common Boot</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lib\CoreCLR\CoreCLR.h">
@@ -145,6 +148,9 @@
     <ClInclude Include="crashhandler_shared.h" />
     <ClInclude Include="ntdll.h">
       <Filter>Dalamud.Boot DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="error_info.h">
+      <Filter>Common Boot</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

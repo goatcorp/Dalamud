@@ -26,4 +26,3 @@ public unsafe partial struct ImGuiStyle
 			}
 		}
 }
-

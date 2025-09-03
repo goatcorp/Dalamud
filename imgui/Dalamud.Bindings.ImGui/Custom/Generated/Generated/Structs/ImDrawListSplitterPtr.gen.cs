@@ -57,4 +57,3 @@ public unsafe partial struct ImDrawListSplitterPtr
 			}
 		}
 }
-

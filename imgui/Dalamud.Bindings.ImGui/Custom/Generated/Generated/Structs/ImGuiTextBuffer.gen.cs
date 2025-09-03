@@ -58,4 +58,3 @@ public unsafe partial struct ImGuiTextBuffer
 // DISCARDED: c_strS
 // DISCARDED: end
 // DISCARDED: endS
-

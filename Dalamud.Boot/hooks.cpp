@@ -84,19 +84,13 @@ void hooks::getprocaddress_singleton_import_hook::initialize() {
             const auto dllName = unicode::convert<std::string>(pData->Loaded.FullDllName->Buffer);
 
             utils::loaded_module mod(pData->Loaded.DllBase);
-            std::wstring version, description;
-            try {
-                version = utils::format_file_version(mod.get_file_version());
-            } catch (...) {
-                version = L"<unknown>";
-            }
-            
-            try {
-                description = mod.get_description();
-            } catch (...) {
-                description = L"<unknown>";
-            }
-            
+            const auto version = mod.get_file_version()
+                .transform([](const auto& v) { return utils::format_file_version(v.get()); })
+                .value_or(L"<unknown>");
+
+            const auto description = mod.get_description()
+                .value_or(L"<unknown>");
+
             logging::I(R"({} "{}" ("{}" ver {}) has been loaded at 0x{:X} ~ 0x{:X} (0x{:X}); finding import table items to hook.)",
                 LogTag, dllName, description, version,
                 reinterpret_cast<size_t>(pData->Loaded.DllBase),
@@ -125,7 +119,9 @@ void hooks::getprocaddress_singleton_import_hook::hook_module(const utils::loade
     if (mod.is_current_process())
         return;
 
-    const auto path = unicode::convert<std::string>(mod.path().wstring());
+    const auto path = mod.path()
+        .transform([](const auto& p) { return unicode::convert<std::string>(p.wstring()); })
+        .value_or("<unknown>");
 
     for (const auto& [hModule, targetFns] : m_targetFns) {
         for (const auto& [targetFn, pfnThunk] : targetFns) {
@@ -133,7 +129,7 @@ void hooks::getprocaddress_singleton_import_hook::hook_module(const utils::loade
             if (void* pGetProcAddressImport; mod.find_imported_function_pointer(dllName.c_str(), targetFn.c_str(), 0, pGetProcAddressImport)) {
                 auto& hook = m_hooks[hModule][targetFn][mod];
                 if (!hook) {
-                    logging::I("{} Hooking {}!{} imported by {}", LogTag, dllName, targetFn, unicode::convert<std::string>(mod.path().wstring()));
+                    logging::I("{} Hooking {}!{} imported by {}", LogTag, dllName, targetFn, path);
 
                     hook.emplace(std::format("getprocaddress_singleton_import_hook::hook_module({}!{})", dllName, targetFn), static_cast<void**>(pGetProcAddressImport), pfnThunk);
                 }
