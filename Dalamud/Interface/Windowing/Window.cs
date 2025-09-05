@@ -9,7 +9,7 @@ namespace Dalamud.Interface.Windowing;
 public abstract class Window : IWindow
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="WindowHost"/> class.
+    /// Initializes a new instance of the <see cref="Window"/> class.
     /// </summary>
     /// <param name="name">The name/ID of this window.
     /// If you have multiple windows with the same name, you will need to
@@ -25,7 +25,7 @@ public abstract class Window : IWindow
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="WindowHost"/> class.
+    /// Initializes a new instance of the <see cref="Window"/> class.
     /// </summary>
     /// <param name="name">The name/ID of this window.
     /// If you have multiple windows with the same name, you will need to
@@ -35,7 +35,6 @@ public abstract class Window : IWindow
         : this(name, ImGuiWindowFlags.None)
     {
     }
-
 
     /// <inheritdoc/>
     public string? Namespace { get; set; }

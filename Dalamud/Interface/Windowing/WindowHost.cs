@@ -51,6 +51,10 @@ public class WindowHost
     private Vector2 fadeOutSize = Vector2.Zero;
     private Vector2 fadeOutOrigin = Vector2.Zero;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WindowHost"/> class.
+    /// </summary>
+    /// <param name="window">A plugin provided window.</param>
     internal WindowHost(IWindow window)
     {
         this.Window = window;
@@ -88,9 +92,12 @@ public class WindowHost
         IsReducedMotion = 1 << 3,
     }
 
-    private bool CanShowCloseButton => this.Window.ShowCloseButton && !this.internalIsClickthrough;
-
+    /// <summary>
+    /// Gets or sets the backing window provided by the plugin.
+    /// </summary>
     public IWindow Window { get; set; }
+
+    private bool CanShowCloseButton => this.Window.ShowCloseButton && !this.internalIsClickthrough;
 
     /// <summary>
     /// Draw the window via ImGui.
@@ -158,12 +165,13 @@ public class WindowHost
                 UIGlobals.PlaySoundEffect(this.Window.OnOpenSfxId);
         }
 
-        //TODO: We may have to allow for windows to configure if they should fade
+        // TODO: We may have to allow for windows to configure if they should fade
         if (this.internalAlpha.HasValue)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, this.internalAlpha.Value);
             this.didPushInternalAlpha = true;
         }
+
         this.Window.PreDraw();
         this.ApplyConditionals();
 
@@ -404,6 +412,7 @@ public class WindowHost
             ImGui.PopStyleVar();
             this.didPushInternalAlpha = false;
         }
+
         this.Window.PostDraw();
 
         this.PostHandlePreset(persistence);
@@ -439,8 +448,7 @@ public class WindowHost
             var (min, max) = this.GetValidatedConstraints(this.Window.SizeConstraints.Value);
             ImGui.SetNextWindowSizeConstraints(
                 min * ImGuiHelpers.GlobalScale,
-                max * ImGuiHelpers.GlobalScale
-            );
+                max * ImGuiHelpers.GlobalScale);
         }
 
         var maxBgAlpha = this.internalAlpha ?? this.Window.BgAlpha;
@@ -460,7 +468,7 @@ public class WindowHost
         }
     }
 
-    private (Vector2 min, Vector2 max) GetValidatedConstraints(WindowSizeConstraints constraints)
+    private (Vector2 Min, Vector2 Max) GetValidatedConstraints(WindowSizeConstraints constraints)
     {
         var min = constraints.MinimumSize;
         var max = constraints.MaximumSize;
@@ -471,7 +479,6 @@ public class WindowHost
 
         return (min, max);
     }
-
 
     private void PreHandlePreset(WindowSystemPersistence? persistence)
     {

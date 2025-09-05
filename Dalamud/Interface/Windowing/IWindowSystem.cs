@@ -1,11 +1,10 @@
-// <copyright file="IWindowSystem.cs" company="PlaceholderCompany">
-// Copyright (c) PlaceholderCompany. All rights reserved.
-// </copyright>
-
 using System.Collections.Generic;
 
 namespace Dalamud.Interface.Windowing;
 
+/// <summary>
+/// Class running a WindowSystem using <see cref="IWindow"/> implementations to simplify ImGui windowing.
+/// </summary>
 public interface IWindowSystem
 {
     /// <summary>
