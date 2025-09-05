@@ -116,9 +116,10 @@ public class Localization : IServiceType
     /// </summary>
     public void SetupWithFallbacks()
     {
+        this.DalamudLanguageCultureInfo = CultureInfo.InvariantCulture;
+
         Loc.SetupWithFallbacks(this.assembly);
 
-        this.DalamudLanguageCultureInfo = CultureInfo.InvariantCulture;
         foreach (var d in Delegate.EnumerateInvocationList(this.LocalizationChanged))
         {
             try
@@ -144,6 +145,8 @@ public class Localization : IServiceType
             return;
         }
 
+        this.DalamudLanguageCultureInfo = GetCultureInfoFromLangCode(langCode);
+
         try
         {
             Loc.Setup(this.ReadLocData(langCode), this.assembly);
@@ -154,7 +157,6 @@ public class Localization : IServiceType
             this.SetupWithFallbacks();
         }
 
-        this.DalamudLanguageCultureInfo = GetCultureInfoFromLangCode(langCode);
         foreach (var d in Delegate.EnumerateInvocationList(this.LocalizationChanged))
         {
             try
