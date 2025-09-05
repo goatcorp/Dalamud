@@ -9,6 +9,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
@@ -25,8 +26,8 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
     private T valueBacking;
 
     public EnumSettingsEntry(
-        (string Key, string Fallback) name,
-        (string Key, string Fallback) description,
+        LocRef name,
+        LocRef description,
         LoadSettingDelegate load,
         SaveSettingDelegate save,
         Action<T>? change = null,
@@ -63,7 +64,7 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
         }
     }
 
-    public (string Key, string Fallback) Description { get; }
+    public LocRef Description { get; }
 
     public Action<EnumSettingsEntry<T>>? CustomDraw { get; init; }
 
@@ -81,8 +82,8 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
 
     public override void Draw()
     {
-        var name = Loc.Localize(this.Name.Key, this.Name.Fallback);
-        var description = Loc.Localize(this.Description.Key, this.Description.Fallback);
+        var name = this.Name.ToString();
+        var description = this.Description.ToString();
 
         Debug.Assert(!string.IsNullOrWhiteSpace(name), "Name is empty");
 
