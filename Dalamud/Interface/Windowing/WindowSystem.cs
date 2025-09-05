@@ -8,9 +8,7 @@ using Serilog;
 
 namespace Dalamud.Interface.Windowing;
 
-/// <summary>
-/// Class running a WindowSystem using <see cref="IWindow"/> implementations to simplify ImGui windowing.
-/// </summary>
+/// <inheritdoc/>
 public class WindowSystem : IWindowSystem
 {
     private static DateTimeOffset lastAnyFocus;
