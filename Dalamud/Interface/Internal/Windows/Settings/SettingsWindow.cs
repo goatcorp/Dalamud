@@ -150,7 +150,8 @@ internal sealed class SettingsWindow : Window
     public override void Draw()
     {
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputTextWithHint("###searchInput"u8, Loc.Localize("DalamudSettingsSearchPlaceholder", "Search for settings..."), ref this.searchInput, 100);
+        using (ImRaii.Disabled(this.tabs.OfType<SettingsTabAbout>().Single().IsOpen))
+            ImGui.InputTextWithHint("###searchInput"u8, Loc.Localize("DalamudSettingsSearchPlaceholder", "Search for settings..."), ref this.searchInput, 100, ImGuiInputTextFlags.AutoSelectAll);
         ImGui.Spacing();
 
         var windowSize = ImGui.GetWindowSize();
