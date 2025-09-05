@@ -1,7 +1,3 @@
-// <copyright file="IWindow.cs" company="PlaceholderCompany">
-// Copyright (c) PlaceholderCompany. All rights reserved.
-// </copyright>
-
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -27,7 +23,7 @@ public interface IWindow
     string WindowName { get; set; }
 
     /// <summary>
-    /// Gets a value indicating whether the window is focused.
+    /// Gets or sets a value indicating whether the window is focused.
     /// </summary>
     bool IsFocused { get; set; }
 
@@ -137,7 +133,7 @@ public interface IWindow
     bool IsOpen { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether this window will request focus from the window system next frame
+    /// Gets or sets a value indicating whether this window will request focus from the window system next frame.
     /// </summary>
     public bool RequestFocus { get; set; }
 
@@ -199,7 +195,7 @@ public interface IWindow
 
     /// <summary>
     /// Code to be executed when the window is safe to be disposed or removed from the window system.
-    /// Doing so in <see cref="WindowHost.OnClose"/> may result in animations not playing correctly.
+    /// Doing so in <see cref="IWindow.OnClose"/> may result in animations not playing correctly.
     /// </summary>
     void OnSafeToRemove();
 
