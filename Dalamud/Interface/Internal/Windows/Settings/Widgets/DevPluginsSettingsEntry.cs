@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
@@ -15,6 +16,7 @@ using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
@@ -29,7 +31,7 @@ internal sealed class DevPluginsSettingsEntry : SettingsEntry
 
     public DevPluginsSettingsEntry()
     {
-        this.Name = ("DalamudSettingsDevPluginLocation", "Dev Plugin Locations");
+        this.Name = LazyLoc.Localize("DalamudSettingsDevPluginLocation", "Dev Plugin Locations");
     }
 
     public override void OnClose()

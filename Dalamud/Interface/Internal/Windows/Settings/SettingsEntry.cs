@@ -10,7 +10,7 @@ internal abstract class SettingsEntry
     /// <summary>
     /// Gets or sets the public, searchable name of this settings entry.
     /// </summary>
-    public LocRef Name { get; protected set; }
+    public LazyLoc Name { get; protected set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this entry is valid.

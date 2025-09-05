@@ -16,6 +16,8 @@ using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
@@ -45,18 +47,18 @@ internal sealed class SettingsTabLook : SettingsTab
         new GapSettingsEntry(5, true),
 
         new ButtonSettingsEntry(
-            ("DalamudSettingsOpenStyleEditor", "Open Style Editor"),
-            ("DalamudSettingsStyleEditorHint", "Modify the look & feel of Dalamud windows."),
+            LazyLoc.Localize("DalamudSettingsOpenStyleEditor", "Open Style Editor"),
+            LazyLoc.Localize("DalamudSettingsStyleEditorHint", "Modify the look & feel of Dalamud windows."),
             () => Service<DalamudInterface>.Get().OpenStyleEditor()),
 
         new ButtonSettingsEntry(
-            ("DalamudSettingsOpenNotificationEditor", "Modify Notification Position"),
-            ("DalamudSettingsNotificationEditorHint", "Choose where Dalamud notifications appear on the screen."),
+            LazyLoc.Localize("DalamudSettingsOpenNotificationEditor", "Modify Notification Position"),
+            LazyLoc.Localize("DalamudSettingsNotificationEditorHint", "Choose where Dalamud notifications appear on the screen."),
             () => Service<NotificationManager>.Get().StartPositionChooser()),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingsUseDarkMode", "Use Windows immersive/dark mode"),
-            ("DalamudSettingsUseDarkModeHint", "This will cause the FFXIV window title bar to follow your preferred Windows color settings, and switch to dark mode if enabled."),
+            LazyLoc.Localize("DalamudSettingsUseDarkMode", "Use Windows immersive/dark mode"),
+            LazyLoc.Localize("DalamudSettingsUseDarkModeHint", "This will cause the FFXIV window title bar to follow your preferred Windows color settings, and switch to dark mode if enabled."),
             c => c.WindowIsImmersive,
             (v, c) => c.WindowIsImmersive = v,
             b =>
@@ -74,87 +76,87 @@ internal sealed class SettingsTabLook : SettingsTab
 
         new GapSettingsEntry(5, true),
 
-        new HintSettingsEntry(("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below.")),
+        new HintSettingsEntry(LazyLoc.Localize("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below.")),
         new GapSettingsEntry(3),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is toggled off"),
-            ("DalamudSettingToggleUiHideHint", "Hide any open windows by plugins when toggling the game overlay."),
+            LazyLoc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is toggled off"),
+            LazyLoc.Localize("DalamudSettingToggleUiHideHint", "Hide any open windows by plugins when toggling the game overlay."),
             c => c.ToggleUiHide,
             (v, c) => c.ToggleUiHide = v),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingToggleUiHideDuringCutscenes", "Hide plugin UI during cutscenes"),
-            ("DalamudSettingToggleUiHideDuringCutscenesHint", "Hide any open windows by plugins during cutscenes."),
+            LazyLoc.Localize("DalamudSettingToggleUiHideDuringCutscenes", "Hide plugin UI during cutscenes"),
+            LazyLoc.Localize("DalamudSettingToggleUiHideDuringCutscenesHint", "Hide any open windows by plugins during cutscenes."),
             c => c.ToggleUiHideDuringCutscenes,
             (v, c) => c.ToggleUiHideDuringCutscenes = v),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingToggleUiHideDuringGpose", "Hide plugin UI while gpose is active"),
-            ("DalamudSettingToggleUiHideDuringGposeHint", "Hide any open windows by plugins while gpose is active."),
+            LazyLoc.Localize("DalamudSettingToggleUiHideDuringGpose", "Hide plugin UI while gpose is active"),
+            LazyLoc.Localize("DalamudSettingToggleUiHideDuringGposeHint", "Hide any open windows by plugins while gpose is active."),
             c => c.ToggleUiHideDuringGpose,
             (v, c) => c.ToggleUiHideDuringGpose = v),
 
         new GapSettingsEntry(5, true),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingToggleFocusManagement", "Use escape to close Dalamud windows"),
-            ("DalamudSettingToggleFocusManagementHint", "This will cause Dalamud windows to behave like in-game windows when pressing escape.\nThey will close one after another until all are closed. May not work for all plugins."),
+            LazyLoc.Localize("DalamudSettingToggleFocusManagement", "Use escape to close Dalamud windows"),
+            LazyLoc.Localize("DalamudSettingToggleFocusManagementHint", "This will cause Dalamud windows to behave like in-game windows when pressing escape.\nThey will close one after another until all are closed. May not work for all plugins."),
             c => c.IsFocusManagementEnabled,
             (v, c) => c.IsFocusManagementEnabled = v),
 
         // This is applied every frame in InterfaceManager::CheckViewportState()
         new SettingsEntry<bool>(
-            ("DalamudSettingToggleViewports", "Enable multi-monitor windows"),
-            ("DalamudSettingToggleViewportsHint", "This will allow you move plugin windows onto other monitors.\nWill only work in Borderless Window or Windowed mode."),
+            LazyLoc.Localize("DalamudSettingToggleViewports", "Enable multi-monitor windows"),
+            LazyLoc.Localize("DalamudSettingToggleViewportsHint", "This will allow you move plugin windows onto other monitors.\nWill only work in Borderless Window or Windowed mode."),
             c => !c.IsDisableViewport,
             (v, c) => c.IsDisableViewport = !v),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingToggleDocking", "Enable window docking"),
-            ("DalamudSettingToggleDockingHint", "This will allow you to fuse and tab plugin windows."),
+            LazyLoc.Localize("DalamudSettingToggleDocking", "Enable window docking"),
+            LazyLoc.Localize("DalamudSettingToggleDockingHint", "This will allow you to fuse and tab plugin windows."),
             c => c.IsDocking,
             (v, c) => c.IsDocking = v),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingEnablePluginUIAdditionalOptions", "Add a button to the title bar of plugin windows to open additional options"),
-            ("DalamudSettingEnablePluginUIAdditionalOptionsHint", "This will allow you to pin certain plugin windows, make them clickthrough or adjust their opacity.\nThis may not be supported by all of your plugins. Contact the plugin author if you want them to support this feature."),
+            LazyLoc.Localize("DalamudSettingEnablePluginUIAdditionalOptions", "Add a button to the title bar of plugin windows to open additional options"),
+            LazyLoc.Localize("DalamudSettingEnablePluginUIAdditionalOptionsHint", "This will allow you to pin certain plugin windows, make them clickthrough or adjust their opacity.\nThis may not be supported by all of your plugins. Contact the plugin author if you want them to support this feature."),
             c => c.EnablePluginUiAdditionalOptions,
             (v, c) => c.EnablePluginUiAdditionalOptions = v),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingEnablePluginUISoundEffects", "Enable sound effects for plugin windows"),
-            ("DalamudSettingEnablePluginUISoundEffectsHint", "This will allow you to enable or disable sound effects generated by plugin user interfaces.\nThis is affected by your in-game `System Sounds` volume settings."),
+            LazyLoc.Localize("DalamudSettingEnablePluginUISoundEffects", "Enable sound effects for plugin windows"),
+            LazyLoc.Localize("DalamudSettingEnablePluginUISoundEffectsHint", "This will allow you to enable or disable sound effects generated by plugin user interfaces.\nThis is affected by your in-game `System Sounds` volume settings."),
             c => c.EnablePluginUISoundEffects,
             (v, c) => c.EnablePluginUISoundEffects = v),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingToggleGamepadNavigation", "Control plugins via gamepad"),
-            ("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and plugin navigation via L1+L3.\nToggle the PluginInstaller window via R3 if ImGui navigation is enabled."),
+            LazyLoc.Localize("DalamudSettingToggleGamepadNavigation", "Control plugins via gamepad"),
+            LazyLoc.Localize("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and plugin navigation via L1+L3.\nToggle the PluginInstaller window via R3 if ImGui navigation is enabled."),
             c => c.IsGamepadNavigationEnabled,
             (v, c) => c.IsGamepadNavigationEnabled = v),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingToggleTsm", "Show title screen menu"),
-            ("DalamudSettingToggleTsmHint", "This will allow you to access certain Dalamud and Plugin functionality from the title screen.\nDisabling this will also hide the Dalamud version text on the title screen."),
+            LazyLoc.Localize("DalamudSettingToggleTsm", "Show title screen menu"),
+            LazyLoc.Localize("DalamudSettingToggleTsmHint", "This will allow you to access certain Dalamud and Plugin functionality from the title screen.\nDisabling this will also hide the Dalamud version text on the title screen."),
             c => c.ShowTsm,
             (v, c) => c.ShowTsm = v),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingInstallerOpenDefault", "Open the Plugin Installer to the \"Installed Plugins\" tab by default"),
-            ("DalamudSettingInstallerOpenDefaultHint", "This will allow you to open the Plugin Installer to the \"Installed Plugins\" tab by default, instead of the \"Available Plugins\" tab."),
+            LazyLoc.Localize("DalamudSettingInstallerOpenDefault", "Open the Plugin Installer to the \"Installed Plugins\" tab by default"),
+            LazyLoc.Localize("DalamudSettingInstallerOpenDefaultHint", "This will allow you to open the Plugin Installer to the \"Installed Plugins\" tab by default, instead of the \"Available Plugins\" tab."),
             c => c.PluginInstallerOpen == PluginInstallerOpenKind.InstalledPlugins,
             (v, c) => c.PluginInstallerOpen = v ? PluginInstallerOpenKind.InstalledPlugins : PluginInstallerOpenKind.AllPlugins),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingReducedMotion", "Reduce motions"),
-            ("DalamudSettingReducedMotionHint", "This will suppress certain animations from Dalamud, such as the notification popup."),
+            LazyLoc.Localize("DalamudSettingReducedMotion", "Reduce motions"),
+            LazyLoc.Localize("DalamudSettingReducedMotionHint", "This will suppress certain animations from Dalamud, such as the notification popup."),
             c => c.ReduceMotions ?? false,
             (v, c) => c.ReduceMotions = v),
 
         new SettingsEntry<float>(
-            ("DalamudSettingImeStateIndicatorOpacity", "IME State Indicator Opacity (CJK only)"),
-            ("DalamudSettingImeStateIndicatorOpacityHint", "When any of CJK IMEs is in use, the state of IME will be shown with the opacity specified here."),
+            LazyLoc.Localize("DalamudSettingImeStateIndicatorOpacity", "IME State Indicator Opacity (CJK only)"),
+            LazyLoc.Localize("DalamudSettingImeStateIndicatorOpacityHint", "When any of CJK IMEs is in use, the state of IME will be shown with the opacity specified here."),
             c => c.ImeStateIndicatorOpacity,
             (v, c) => c.ImeStateIndicatorOpacity = v)
         {

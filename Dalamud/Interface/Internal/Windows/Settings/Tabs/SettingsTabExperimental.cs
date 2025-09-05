@@ -10,6 +10,7 @@ using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
@@ -26,19 +27,19 @@ internal sealed class SettingsTabExperimental : SettingsTab
     public override SettingsEntry[] Entries { get; } =
     [
         new SettingsEntry<bool>(
-            ("DalamudSettingsPluginTest", "Get plugin testing builds"),
-            ("DalamudSettingsPluginTestHint", "Receive testing prereleases for selected plugins.\nTo opt-in to testing builds for a plugin, you have to right click it in the \"Installed Plugins\" tab of the plugin installer and select \"Receive plugin testing versions\"."),
+            LazyLoc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"),
+            LazyLoc.Localize("DalamudSettingsPluginTestHint", "Receive testing prereleases for selected plugins.\nTo opt-in to testing builds for a plugin, you have to right click it in the \"Installed Plugins\" tab of the plugin installer and select \"Receive plugin testing versions\"."),
             c => c.DoPluginTest,
             (v, c) => c.DoPluginTest = v),
         new HintSettingsEntry(
-            ("DalamudSettingsPluginTestWarning", "Testing plugins may contain bugs or crash your game. Please only enable this if you are aware of the risks."),
+            LazyLoc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may contain bugs or crash your game. Please only enable this if you are aware of the risks."),
             ImGuiColors.DalamudRed),
 
         new GapSettingsEntry(5),
 
         new ButtonSettingsEntry(
-            ("DalamudSettingsClearHidden", "Clear hidden plugins"),
-            ("DalamudSettingsClearHiddenHint", "Restore plugins you have previously hidden from the plugin installer."),
+            LazyLoc.Localize("DalamudSettingsClearHidden", "Clear hidden plugins"),
+            LazyLoc.Localize("DalamudSettingsClearHiddenHint", "Restore plugins you have previously hidden from the plugin installer."),
             () =>
             {
                 Service<DalamudConfiguration>.Get().HiddenPluginInternalName.Clear();
@@ -50,16 +51,16 @@ internal sealed class SettingsTabExperimental : SettingsTab
         new DevPluginsSettingsEntry(),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingEnableImGuiAsserts", "Enable ImGui asserts"),
-            ("DalamudSettingEnableImGuiAssertsHint",
+            LazyLoc.Localize("DalamudSettingEnableImGuiAsserts", "Enable ImGui asserts"),
+            LazyLoc.Localize("DalamudSettingEnableImGuiAssertsHint",
                 "If this setting is enabled, a window containing further details will be shown when an internal assertion in ImGui fails.\nWe recommend enabling this when developing plugins. " +
                 "This setting does not persist and will reset when the game restarts.\nUse the setting below to enable it at startup."),
             c => Service<InterfaceManager>.Get().ShowAsserts,
             (v, _) => Service<InterfaceManager>.Get().ShowAsserts = v),
 
         new SettingsEntry<bool>(
-            ("DalamudSettingEnableImGuiAssertsAtStartup", "Always enable ImGui asserts at startup"),
-            ("DalamudSettingEnableImGuiAssertsAtStartupHint", "This will enable ImGui asserts every time the game starts."),
+            LazyLoc.Localize("DalamudSettingEnableImGuiAssertsAtStartup", "Always enable ImGui asserts at startup"),
+            LazyLoc.Localize("DalamudSettingEnableImGuiAssertsAtStartupHint", "This will enable ImGui asserts every time the game starts."),
             c => c.ImGuiAssertsEnabledAtStartup ?? false,
             (v, c) => c.ImGuiAssertsEnabledAtStartup = v),
 
@@ -70,8 +71,8 @@ internal sealed class SettingsTabExperimental : SettingsTab
         new GapSettingsEntry(5, true),
 
         new EnumSettingsEntry<ReShadeHandlingMode>(
-            ("DalamudSettingsReShadeHandlingMode", "ReShade handling mode"),
-            ("DalamudSettingsReShadeHandlingModeHint", "You may try different options to work around problems you may encounter.\nRestart is required for changes to take effect."),
+            LazyLoc.Localize("DalamudSettingsReShadeHandlingMode", "ReShade handling mode"),
+            LazyLoc.Localize("DalamudSettingsReShadeHandlingModeHint", "You may try different options to work around problems you may encounter.\nRestart is required for changes to take effect."),
             c => c.ReShadeHandlingMode,
             (v, c) => c.ReShadeHandlingMode = v,
             fallbackValue: ReShadeHandlingMode.Default,

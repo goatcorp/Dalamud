@@ -3,9 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
@@ -21,7 +23,7 @@ internal sealed class LanguageChooserSettingsEntry : SettingsEntry
     {
         this.languages = [.. Localization.ApplicableLangCodes.Prepend("en")];
 
-        this.Name = ("DalamudSettingsLanguage", "Language");
+        this.Name = LazyLoc.Localize("DalamudSettingsLanguage", "Language");
         this.IsValid = true;
         this.IsVisible = true;
 

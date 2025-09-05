@@ -26,8 +26,8 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
     private T valueBacking;
 
     public EnumSettingsEntry(
-        LocRef name,
-        LocRef description,
+        LazyLoc name,
+        LazyLoc description,
         LoadSettingDelegate load,
         SaveSettingDelegate save,
         Action<T>? change = null,
@@ -64,7 +64,7 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
         }
     }
 
-    public LocRef Description { get; }
+    public LazyLoc Description { get; }
 
     public Action<EnumSettingsEntry<T>>? CustomDraw { get; init; }
 

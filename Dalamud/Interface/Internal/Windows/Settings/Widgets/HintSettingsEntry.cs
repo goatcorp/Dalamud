@@ -10,10 +10,10 @@ namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
 internal sealed class HintSettingsEntry : SettingsEntry
 {
-    private readonly LocRef text;
+    private readonly LazyLoc text;
     private readonly Vector4 color;
 
-    public HintSettingsEntry(LocRef text, Vector4? color = null)
+    public HintSettingsEntry(LazyLoc text, Vector4? color = null)
     {
         this.text = text;
         this.color = color ?? ImGuiColors.DalamudGrey;

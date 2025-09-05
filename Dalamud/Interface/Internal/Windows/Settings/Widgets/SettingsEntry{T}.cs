@@ -20,8 +20,8 @@ internal sealed class SettingsEntry<T> : SettingsEntry
     private object? valueBacking;
 
     public SettingsEntry(
-        LocRef name,
-        LocRef description,
+        LazyLoc name,
+        LazyLoc description,
         LoadSettingDelegate load,
         SaveSettingDelegate save,
         Action<T?>? change = null,
@@ -55,7 +55,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         }
     }
 
-    public LocRef Description { get; }
+    public LazyLoc Description { get; }
 
     public Action<SettingsEntry<T>>? CustomDraw { get; init; }
 
