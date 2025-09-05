@@ -15,8 +15,6 @@ internal abstract class SettingsTab : IDisposable
 
     public bool IsOpen { get; set; } = false;
 
-    public virtual bool IsVisible { get; } = true;
-
     public virtual void OnOpen()
     {
         foreach (var settingsEntry in this.Entries)

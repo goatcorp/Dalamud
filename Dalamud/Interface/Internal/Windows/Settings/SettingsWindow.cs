@@ -200,7 +200,7 @@ internal sealed class SettingsWindow : Window
 
     private void DrawTabs()
     {
-        foreach (var settingsTab in this.tabs.Where(x => x.IsVisible))
+        foreach (var settingsTab in this.tabs)
         {
             var flags = ImGuiTabItemFlags.NoCloseWithMiddleMouseButton;
 
@@ -253,7 +253,7 @@ internal sealed class SettingsWindow : Window
 
         var any = false;
 
-        foreach (var settingsTab in this.tabs.Where(x => x.IsVisible))
+        foreach (var settingsTab in this.tabs)
         {
             var eligible = settingsTab.Entries.Where(x =>
             {
