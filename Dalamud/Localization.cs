@@ -112,10 +112,12 @@ public class Localization : IServiceType
     }
 
     /// <summary>
-    /// Set up the UI language with "fallbacks"(original English text).
+    /// Set up the UI language with "fallbacks" (original English text).
     /// </summary>
     public void SetupWithFallbacks()
     {
+        Loc.SetupWithFallbacks(this.assembly);
+
         this.DalamudLanguageCultureInfo = CultureInfo.InvariantCulture;
         foreach (var d in Delegate.EnumerateInvocationList(this.LocalizationChanged))
         {
@@ -128,8 +130,6 @@ public class Localization : IServiceType
                 Log.Error(ex, "Exception during raise of {handler}", d.Method);
             }
         }
-
-        Loc.SetupWithFallbacks(this.assembly);
     }
 
     /// <summary>
@@ -144,6 +144,16 @@ public class Localization : IServiceType
             return;
         }
 
+        try
+        {
+            Loc.Setup(this.ReadLocData(langCode), this.assembly);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not load loc {0}. Setting up fallbacks.", langCode);
+            this.SetupWithFallbacks();
+        }
+
         this.DalamudLanguageCultureInfo = GetCultureInfoFromLangCode(langCode);
         foreach (var d in Delegate.EnumerateInvocationList(this.LocalizationChanged))
         {
@@ -155,16 +165,6 @@ public class Localization : IServiceType
             {
                 Log.Error(ex, "Exception during raise of {handler}", d.Method);
             }
-        }
-
-        try
-        {
-            Loc.Setup(this.ReadLocData(langCode), this.assembly);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Could not load loc {0}. Setting up fallbacks.", langCode);
-            this.SetupWithFallbacks();
         }
     }
 
