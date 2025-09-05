@@ -257,11 +257,7 @@ internal sealed class SettingsWindow : Window
 
         foreach (var settingsTab in this.tabs)
         {
-            var eligible = settingsTab.Entries.Where(x =>
-            {
-                var name = x.Name.ToString();
-                return !name.IsNullOrEmpty() && name.Contains(this.searchInput, StringComparison.InvariantCultureIgnoreCase);
-            });
+            var eligible = settingsTab.Entries.Where(x => !x.Name.Key.IsNullOrEmpty() && x.Name.ToString().Contains(this.searchInput, StringComparison.InvariantCultureIgnoreCase));
 
             if (!eligible.Any())
                 continue;
