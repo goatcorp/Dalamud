@@ -23,7 +23,7 @@ internal sealed class SettingsWindow : Window
     private string searchInput = string.Empty;
     private bool isSearchInputPrefilled = false;
 
-    private SettingsTab setActiveTab = null!;
+    private SettingsTab? setActiveTab;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
@@ -52,6 +52,8 @@ internal sealed class SettingsWindow : Window
     }
 
     private static string Title => Loc.Localize("DalamudSettingsHeader", "Dalamud Settings") + "###XlSettings2";
+
+    private SettingsTab? CurrentlyOpenTab => this.tabs.FirstOrDefault(tab => tab.IsOpen);
 
     /// <summary>
     /// Open the settings window to the tab specified by <paramref name="kind"/>.
@@ -150,7 +152,7 @@ internal sealed class SettingsWindow : Window
     public override void Draw()
     {
         ImGui.SetNextItemWidth(-1);
-        using (ImRaii.Disabled(this.tabs.OfType<SettingsTabAbout>().Single().IsOpen))
+        using (ImRaii.Disabled(this.CurrentlyOpenTab is SettingsTabAbout))
             ImGui.InputTextWithHint("###searchInput"u8, Loc.Localize("DalamudSettingsSearchPlaceholder", "Search for settings..."), ref this.searchInput, 100, ImGuiInputTextFlags.AutoSelectAll);
         ImGui.Spacing();
 
@@ -326,5 +328,6 @@ internal sealed class SettingsWindow : Window
     private void OnLocalizationChanged(string langCode)
     {
         this.WindowName = Title;
+        this.setActiveTab = this.CurrentlyOpenTab;
     }
 }
