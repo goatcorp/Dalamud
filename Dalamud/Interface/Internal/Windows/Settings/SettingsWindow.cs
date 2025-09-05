@@ -150,7 +150,7 @@ internal sealed class SettingsWindow : Window
     public override void Draw()
     {
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputTextWithHint("###searchInput"u8, "Search for settings..."u8, ref this.searchInput, 100);
+        ImGui.InputTextWithHint("###searchInput"u8, Loc.Localize("DalamudSettingsSearchPlaceholder", "Search for settings..."), ref this.searchInput, 100);
         ImGui.Spacing();
 
         var windowSize = ImGui.GetWindowSize();
@@ -218,7 +218,7 @@ internal sealed class SettingsWindow : Window
                     settingsTab.OnOpen();
                 }
 
-                // Don't add padding for the about tab(credits)
+                // Don't add padding for the About tab (credits)
                 {
                     using var padding = ImRaii.PushStyle(
                         ImGuiStyleVar.WindowPadding,
@@ -247,7 +247,7 @@ internal sealed class SettingsWindow : Window
 
     private void DrawSearchResults()
     {
-        using var tab = ImRaii.TabItem("Search Results"u8);
+        using var tab = ImRaii.TabItem(Loc.Localize("DalamudSettingsSearchResults", "Search Results"));
         if (!tab) return;
 
         var any = false;
@@ -280,7 +280,7 @@ internal sealed class SettingsWindow : Window
         }
 
         if (!any)
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "No results found..."u8);
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsNoSearchResultsFound", "No results found..."));
     }
 
     private void Save()
