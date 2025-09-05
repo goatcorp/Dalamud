@@ -6,7 +6,6 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.ReShadeHandling;
-using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal;
@@ -18,33 +17,28 @@ namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
     "StyleCop.CSharp.DocumentationRules",
     "SA1600:Elements should be documented",
     Justification = "Internals")]
-public class SettingsTabExperimental : SettingsTab
+internal sealed class SettingsTabExperimental : SettingsTab
 {
+    public override string Title => Loc.Localize("DalamudSettingsExperimental", "Experimental");
+
+    public override SettingsOpenKind Kind => SettingsOpenKind.Experimental;
+
     public override SettingsEntry[] Entries { get; } =
     [
         new SettingsEntry<bool>(
-            Loc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"),
-            string.Format(
-                Loc.Localize(
-                    "DalamudSettingsPluginTestHint",
-                    "Receive testing prereleases for selected plugins.\nTo opt-in to testing builds for a plugin, you have to right click it in the \"{0}\" tab of the plugin installer and select \"{1}\"."),
-                PluginCategoryManager.Locs.Group_Installed,
-                PluginInstallerWindow.Locs.PluginContext_TestingOptIn),
+            ("DalamudSettingsPluginTest", "Get plugin testing builds"),
+            ("DalamudSettingsPluginTestHint", "Receive testing prereleases for selected plugins.\nTo opt-in to testing builds for a plugin, you have to right click it in the \"Installed Plugins\" tab of the plugin installer and select \"Receive plugin testing versions\"."),
             c => c.DoPluginTest,
             (v, c) => c.DoPluginTest = v),
         new HintSettingsEntry(
-            Loc.Localize(
-                "DalamudSettingsPluginTestWarning",
-                "Testing plugins may contain bugs or crash your game. Please only enable this if you are aware of the risks."),
+            ("DalamudSettingsPluginTestWarning", "Testing plugins may contain bugs or crash your game. Please only enable this if you are aware of the risks."),
             ImGuiColors.DalamudRed),
 
         new GapSettingsEntry(5),
 
         new ButtonSettingsEntry(
-            Loc.Localize("DalamudSettingsClearHidden", "Clear hidden plugins"),
-            Loc.Localize(
-                "DalamudSettingsClearHiddenHint",
-                "Restore plugins you have previously hidden from the plugin installer."),
+            ("DalamudSettingsClearHidden", "Clear hidden plugins"),
+            ("DalamudSettingsClearHiddenHint", "Restore plugins you have previously hidden from the plugin installer."),
             () =>
             {
                 Service<DalamudConfiguration>.Get().HiddenPluginInternalName.Clear();
@@ -56,23 +50,16 @@ public class SettingsTabExperimental : SettingsTab
         new DevPluginsSettingsEntry(),
 
         new SettingsEntry<bool>(
-            Loc.Localize(
-                "DalamudSettingEnableImGuiAsserts",
-                "Enable ImGui asserts"),
-            Loc.Localize(
-                "DalamudSettingEnableImGuiAssertsHint",
+            ("DalamudSettingEnableImGuiAsserts", "Enable ImGui asserts"),
+            ("DalamudSettingEnableImGuiAssertsHint",
                 "If this setting is enabled, a window containing further details will be shown when an internal assertion in ImGui fails.\nWe recommend enabling this when developing plugins. " +
                 "This setting does not persist and will reset when the game restarts.\nUse the setting below to enable it at startup."),
             c => Service<InterfaceManager>.Get().ShowAsserts,
             (v, _) => Service<InterfaceManager>.Get().ShowAsserts = v),
 
         new SettingsEntry<bool>(
-            Loc.Localize(
-                "DalamudSettingEnableImGuiAssertsAtStartup",
-                "Always enable ImGui asserts at startup"),
-            Loc.Localize(
-                "DalamudSettingEnableImGuiAssertsAtStartupHint",
-                "This will enable ImGui asserts every time the game starts."),
+            ("DalamudSettingEnableImGuiAssertsAtStartup", "Always enable ImGui asserts at startup"),
+            ("DalamudSettingEnableImGuiAssertsAtStartupHint", "This will enable ImGui asserts every time the game starts."),
             c => c.ImGuiAssertsEnabledAtStartup ?? false,
             (v, c) => c.ImGuiAssertsEnabledAtStartup = v),
 
@@ -83,10 +70,8 @@ public class SettingsTabExperimental : SettingsTab
         new GapSettingsEntry(5, true),
 
         new EnumSettingsEntry<ReShadeHandlingMode>(
-            Loc.Localize("DalamudSettingsReShadeHandlingMode", "ReShade handling mode"),
-            Loc.Localize(
-                "DalamudSettingsReShadeHandlingModeHint",
-                "You may try different options to work around problems you may encounter.\nRestart is required for changes to take effect."),
+            ("DalamudSettingsReShadeHandlingMode", "ReShade handling mode"),
+            ("DalamudSettingsReShadeHandlingModeHint", "You may try different options to work around problems you may encounter.\nRestart is required for changes to take effect."),
             c => c.ReShadeHandlingMode,
             (v, c) => c.ReShadeHandlingMode = v,
             fallbackValue: ReShadeHandlingMode.Default,
@@ -145,8 +130,6 @@ public class SettingsTabExperimental : SettingsTab
             (v, c) => c.ProfilesEnabled = v),
             */
     ];
-
-    public override string Title => Loc.Localize("DalamudSettingsExperimental", "Experimental");
 
     public override void Draw()
     {

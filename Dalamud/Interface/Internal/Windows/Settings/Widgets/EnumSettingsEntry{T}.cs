@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+
+using CheapLoc;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
@@ -23,8 +25,8 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
     private T valueBacking;
 
     public EnumSettingsEntry(
-        string name,
-        string description,
+        (string Key, string Fallback) name,
+        (string Key, string Fallback) description,
         LoadSettingDelegate load,
         SaveSettingDelegate save,
         Action<T>? change = null,
@@ -61,7 +63,7 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
         }
     }
 
-    public string Description { get; }
+    public (string Key, string Fallback) Description { get; }
 
     public Action<EnumSettingsEntry<T>>? CustomDraw { get; init; }
 
@@ -79,7 +81,10 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
 
     public override void Draw()
     {
-        Debug.Assert(this.Name != null, "this.Name != null");
+        var name = Loc.Localize(this.Name.Key, this.Name.Fallback);
+        var description = Loc.Localize(this.Description.Key, this.Description.Fallback);
+
+        Debug.Assert(!string.IsNullOrWhiteSpace(name), "Name is empty");
 
         if (this.CustomDraw is not null)
         {
@@ -87,7 +92,7 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
         }
         else
         {
-            ImGui.TextWrapped(this.Name);
+            ImGui.TextWrapped(name);
 
             var idx = this.valueBacking;
             var values = Enum.GetValues<T>();
@@ -117,13 +122,14 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
         {
             var desc = this.FriendlyEnumDescriptionGetter(this.valueBacking);
+
             if (!string.IsNullOrWhiteSpace(desc))
             {
                 ImGui.TextWrapped(desc);
                 ImGuiHelpers.ScaledDummy(2);
             }
 
-            ImGui.TextWrapped(this.Description);
+            ImGui.TextWrapped(description);
         }
 
         if (this.CheckValidity != null)

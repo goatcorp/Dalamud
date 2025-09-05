@@ -18,9 +18,9 @@ using Dalamud.Utility;
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-public class ThirdRepoSettingsEntry : SettingsEntry
+internal class ThirdRepoSettingsEntry : SettingsEntry
 {
-    private List<ThirdPartyRepoSettings> thirdRepoList = new();
+    private List<ThirdPartyRepoSettings> thirdRepoList = [];
     private bool thirdRepoListChanged;
     private string thirdRepoTempUrl = string.Empty;
     private string thirdRepoAddError = string.Empty;
@@ -34,20 +34,20 @@ public class ThirdRepoSettingsEntry : SettingsEntry
     public override void OnClose()
     {
         this.thirdRepoList =
-            Service<DalamudConfiguration>.Get().ThirdRepoList.Select(x => x.Clone()).ToList();
+            [.. Service<DalamudConfiguration>.Get().ThirdRepoList.Select(x => x.Clone())];
     }
 
     public override void Load()
     {
         this.thirdRepoList =
-            Service<DalamudConfiguration>.Get().ThirdRepoList.Select(x => x.Clone()).ToList();
+            [.. Service<DalamudConfiguration>.Get().ThirdRepoList.Select(x => x.Clone())];
         this.thirdRepoListChanged = false;
     }
 
     public override void Save()
     {
         Service<DalamudConfiguration>.Get().ThirdRepoList =
-            this.thirdRepoList.Select(x => x.Clone()).ToList();
+            [.. this.thirdRepoList.Select(x => x.Clone())];
 
         if (this.thirdRepoListChanged)
         {
