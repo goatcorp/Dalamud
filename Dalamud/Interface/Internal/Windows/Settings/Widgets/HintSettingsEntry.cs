@@ -3,16 +3,17 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-public class HintSettingsEntry : SettingsEntry
+internal sealed class HintSettingsEntry : SettingsEntry
 {
-    private readonly string text;
+    private readonly LazyLoc text;
     private readonly Vector4 color;
 
-    public HintSettingsEntry(string text, Vector4? color = null)
+    public HintSettingsEntry(LazyLoc text, Vector4? color = null)
     {
         this.text = text;
         this.color = color ?? ImGuiColors.DalamudGrey;
