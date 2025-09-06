@@ -56,7 +56,7 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
         get
         {
             var t = (nint)this.srv.Get();
-            return t == nint.Zero ? Service<DalamudAssetManager>.Get().Empty4X4.Handle : ImTextureID.Null;
+            return t == nint.Zero ? Service<DalamudAssetManager>.Get().Empty4X4.Handle : new ImTextureID(this.srv.Get());
         }
     }
 
