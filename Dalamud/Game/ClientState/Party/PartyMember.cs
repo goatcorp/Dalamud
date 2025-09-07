@@ -40,7 +40,13 @@ public interface IPartyMember
     /// <summary>
     /// Gets the actor ID of this party member.
     /// </summary>
+    [Obsolete("Renamed to EntityId")]
     uint ObjectId { get; }
+
+    /// <summary>
+    /// Gets the entity ID of this party member.
+    /// </summary>
+    uint EntityId { get; }
 
     /// <summary>
     /// Gets the actor associated with this buddy.
@@ -140,13 +146,16 @@ internal unsafe class PartyMember : IPartyMember
     /// </summary>
     public uint ObjectId => this.Struct->EntityId;
 
+    /// <inheritdoc/>
+    public uint EntityId => this.Struct->EntityId;
+
     /// <summary>
     /// Gets the actor associated with this buddy.
     /// </summary>
     /// <remarks>
     /// This iterates the actor table, it should be used with care.
     /// </remarks>
-    public IGameObject? GameObject => Service<ObjectTable>.Get().SearchById(this.ObjectId);
+    public IGameObject? GameObject => Service<ObjectTable>.Get().SearchById(this.EntityId);
 
     /// <summary>
     /// Gets the current HP of this party member.
