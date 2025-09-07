@@ -36,7 +36,7 @@ public unsafe interface IGameGui
     /// If > 1.000.000, subtract 1.000.000 and treat it as HQ.
     /// </summary>
     public ulong HoveredItem { get; set; }
-    
+
     /// <summary>
     /// Gets the action ID that is current hovered by the player. 0 when no action is hovered.
     /// </summary>
@@ -88,6 +88,15 @@ public unsafe interface IGameGui
     /// <param name="index">Index of addon to find (1-indexed).</param>
     /// <returns>A pointer wrapper to the addon.</returns>
     public AtkUnitBasePtr GetAddonByName(string name, int index = 1);
+
+    /// <summary>
+    /// Gets the pointer to the Addon with the given name and index.
+    /// </summary>
+    /// <param name="name">Name of addon to find.</param>
+    /// <param name="index">Index of addon to find (1-indexed).</param>
+    /// <returns>A pointer wrapper to the addon.</returns>
+    /// <typeparam name="T">Type of addon pointer AtkUnitBase or any derived struct.</typeparam>
+    public T* GetAddonByName<T>(string name, int index = 1) where T : unmanaged;
 
     /// <summary>
     /// Find the agent associated with an addon, if possible.

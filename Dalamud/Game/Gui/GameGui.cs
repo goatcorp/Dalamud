@@ -183,6 +183,10 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     }
 
     /// <inheritdoc/>
+    public T* GetAddonByName<T>(string name, int index = 1) where T : unmanaged
+        => (T*)this.GetAddonByName(name, index).Address;
+
+    /// <inheritdoc/>
     public AgentInterfacePtr GetAgentById(int id)
     {
         var agentModule = AgentModule.Instance();
@@ -328,7 +332,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         return retVal;
     }
 
-    private unsafe void SetUiVisibilityDetour(RaptureAtkModule* thisPtr, bool uiVisible)
+    private void SetUiVisibilityDetour(RaptureAtkModule* thisPtr, bool uiVisible)
     {
         this.setUiVisibilityHook.Original(thisPtr, uiVisible);
 
@@ -440,6 +444,10 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public AtkUnitBasePtr GetAddonByName(string name, int index = 1)
         => this.gameGuiService.GetAddonByName(name, index);
+
+    /// <inheritdoc/>
+    public unsafe T* GetAddonByName<T>(string name, int index = 1) where T : unmanaged
+        => (T*)this.gameGuiService.GetAddonByName(name, index).Address;
 
     /// <inheritdoc/>
     public AgentInterfacePtr GetAgentById(int id)
