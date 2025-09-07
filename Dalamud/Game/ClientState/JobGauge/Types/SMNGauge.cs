@@ -1,4 +1,6 @@
 using Dalamud.Game.ClientState.JobGauge.Enums;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace Dalamud.Game.ClientState.JobGauge.Types;
@@ -69,6 +71,7 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     /// Gets the current aether flags.
     /// Use the summon accessors instead.
     /// </summary>
+    [Api14ToDo("Declare our own enum for this to avoid CS type.")]
     public AetherFlags AetherFlags => this.Struct->AetherFlags;
 
     /// <summary>

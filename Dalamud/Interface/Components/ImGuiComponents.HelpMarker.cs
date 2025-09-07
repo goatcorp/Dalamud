@@ -1,5 +1,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Common.Math;
 
 namespace Dalamud.Interface.Components;
@@ -21,6 +23,7 @@ public static partial class ImGuiComponents
     /// <param name="helpText">The text to display on hover.</param>
     /// <param name="icon">The icon to use.</param>
     /// <param name="color">The color of the icon.</param>
+    [Api14ToDo("Replace CS Vector4 with System.Numerics.Vector4")]
     public static void HelpMarker(string helpText, FontAwesomeIcon icon, Vector4? color = null)
     {
         using var col = new ImRaii.Color();

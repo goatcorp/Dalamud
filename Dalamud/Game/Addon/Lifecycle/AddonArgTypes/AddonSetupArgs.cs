@@ -1,3 +1,5 @@
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
@@ -31,6 +33,8 @@ public class AddonSetupArgs : AddonArgs, ICloneable
     /// <summary>
     /// Gets the AtkValues in the form of a span.
     /// </summary>
+    [Api14ToDo(Api14ToDoAttribute.Remove)]
+    [Obsolete($"Exposed ClientStructs type; use {nameof(AtkValues)}/{nameof(AtkValueCount)} instead.", false)]
     public unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
 
     /// <inheritdoc cref="ICloneable.Clone"/>
