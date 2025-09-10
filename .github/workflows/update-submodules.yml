@@ -1,16 +1,23 @@
-name: Check for FFXIVCS changes
+name: Check for Submodule Changes
 on: 
   schedule:
-    - cron: "0 0,12,18 */1 * *"
+    - cron: "0 0,12,18 * * *"
   workflow_dispatch:
 
 jobs:
   check:
-    name: FFXIVCS Check
+    name: Check ${{ matrix.submodule.name }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         branches: [master]
+        submodule:
+          - name: ClientStructs
+            path: lib/FFXIVClientStructs
+            branch-prefix: csupdate
+          - name: Excel Schema
+            path: lib/Lumina.Excel
+            branch-prefix: schemaupdate
 
     defaults: 
       run:
@@ -24,7 +31,7 @@ jobs:
         ref: ${{ matrix.branches }}
         token: ${{ secrets.UPDATE_PAT }}
     - name: Create update branch
-      run: git checkout -b csupdate/${{ matrix.branches }}
+      run: git checkout -b ${{ matrix.submodule.branch-prefix }}/${{ matrix.branches }}
     - name: Initialize mandatory git config
       run: |
         git config --global user.name "github-actions[bot]"
@@ -32,22 +39,22 @@ jobs:
         git config --global pull.rebase false
     - name: Update submodule
       run: |
-        git checkout -b csupdate-${{ matrix.branches }}
+        git checkout -b ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }}
         git reset --hard origin/${{ matrix.branches }}
-        cd lib/FFXIVClientStructs
+        cd ${{ matrix.submodule.path }}
         git fetch
         git reset --hard origin/main
         cd ../..
-        git add lib/FFXIVClientStructs
-        git commit --message "Update ClientStructs"
-        git push origin csupdate-${{ matrix.branches }} --force
+        git add ${{ matrix.submodule.path }}
+        git commit --message "Update ${{ matrix.submodule.name }}"
+        git push origin ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --force
     - name: Create PR
       run: |
         echo ${{ secrets.UPDATE_PAT }} | gh auth login --with-token
-        prNumber=$(gh pr list --base ${{ matrix.branches }} --head csupdate-${{ matrix.branches }} --state open --json number --template "{{range .}}{{.number}}{{end}}")
+        prNumber=$(gh pr list --base ${{ matrix.branches }} --head ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --state open --json number --template "{{range .}}{{.number}}{{end}}")
         if [ -z "$prNumber" ]; then
           echo "No PR found, creating one"
-          gh pr create --head csupdate-${{ matrix.branches }} --title "[${{ matrix.branches }}] Update ClientStructs" --body "" --base ${{ matrix.branches }}
+          gh pr create --head ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --title "[${{ matrix.branches }}] Update ${{ matrix.submodule.name }}" --body "" --base ${{ matrix.branches }}
         else
           echo "PR already exists, ignoring"
         fi
