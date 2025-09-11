@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -306,12 +306,12 @@ internal class TexWidget : IDataWindowWidget
                         pres->Release();
 
                         ImGui.Text($"RC: Resource({rcres})/View({rcsrv})");
-                        ImGui.Text(source.ToString());
+                        ImGui.Text($"{source.Width} x {source.Height} | {source}");
                     }
                     else
                     {
-                        ImGui.Text("RC: -"u8);
-                        ImGui.Text(" "u8);
+                        ImGui.Text("RC: -");
+                        ImGui.Text(string.Empty);
                     }
                 }
 
@@ -341,6 +341,10 @@ internal class TexWidget : IDataWindowWidget
 
         runLater?.Invoke();
     }
+
+    /// <summary>Adds a texture wrap for debug display purposes.</summary>
+    /// <param name="textureTask">Task returning a texture.</param>
+    public void AddTexture(Task<IDalamudTextureWrap> textureTask) => this.addedTextures.Add(new(Api10: textureTask));
 
     private unsafe void DrawBlame(List<TextureManager.IBlameableDalamudTextureWrap> allBlames)
     {

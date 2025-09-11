@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Text;
+using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
@@ -9,11 +10,13 @@ using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Internal;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
+using Lumina.Text.Parse;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
@@ -56,11 +59,11 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        var t2 = ImGui.ColorConvertU32ToFloat4(this.style.Color ?? ImGui.GetColorU32(ImGuiCol.Text));
+        var t2 = ImGui.ColorConvertU32ToFloat4(this.style.Color ??= ImGui.GetColorU32(ImGuiCol.Text));
         if (ImGui.ColorEdit4("Color", ref t2))
             this.style.Color = ImGui.ColorConvertFloat4ToU32(t2);
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.EdgeColor ?? 0xFF000000u);
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.EdgeColor ??= 0xFF000000u);
         if (ImGui.ColorEdit4("Edge Color", ref t2))
             this.style.EdgeColor = ImGui.ColorConvertFloat4ToU32(t2);
 
@@ -69,27 +72,27 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         if (ImGui.Checkbox("Forced"u8, ref t))
             this.style.ForceEdgeColor = t;
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.ShadowColor ?? 0xFF000000u);
-        if (ImGui.ColorEdit4("Shadow Color", ref t2))
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.ShadowColor ??= 0xFF000000u);
+        if (ImGui.ColorEdit4("Shadow Color"u8, ref t2))
             this.style.ShadowColor = ImGui.ColorConvertFloat4ToU32(t2);
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkHoverBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonHovered));
-        if (ImGui.ColorEdit4("Link Hover Color", ref t2))
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkHoverBackColor ??= ImGui.GetColorU32(ImGuiCol.ButtonHovered));
+        if (ImGui.ColorEdit4("Link Hover Color"u8, ref t2))
             this.style.LinkHoverBackColor = ImGui.ColorConvertFloat4ToU32(t2);
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkActiveBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonActive));
-        if (ImGui.ColorEdit4("Link Active Color", ref t2))
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkActiveBackColor ??= ImGui.GetColorU32(ImGuiCol.ButtonActive));
+        if (ImGui.ColorEdit4("Link Active Color"u8, ref t2))
             this.style.LinkActiveBackColor = ImGui.ColorConvertFloat4ToU32(t2);
 
-        var t3 = this.style.LineHeight ?? 1f;
+        var t3 = this.style.LineHeight ??= 1f;
         if (ImGui.DragFloat("Line Height"u8, ref t3, 0.01f, 0.4f, 3f, "%.02f"))
             this.style.LineHeight = t3;
 
-        t3 = this.style.Opacity ?? ImGui.GetStyle().Alpha;
+        t3 = this.style.Opacity ??= 1f;
         if (ImGui.DragFloat("Opacity"u8, ref t3, 0.005f, 0f, 1f, "%.02f"))
             this.style.Opacity = t3;
 
-        t3 = this.style.EdgeStrength ?? 0.25f;
+        t3 = this.style.EdgeStrength ??= 0.25f;
         if (ImGui.DragFloat("Edge Strength"u8, ref t3, 0.005f, 0f, 1f, "%.02f"))
             this.style.EdgeStrength = t3;
 
@@ -238,6 +241,27 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
             Service<ChatGui>.Get().Print(
                 Game.Text.SeStringHandling.SeString.Parse(
                     Service<SeStringRenderer>.Get().CompileAndCache(this.testString).Data.Span));
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Copy as Image"))
+        {
+            _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
+                this.DisplayName,
+                $"From {nameof(SeStringRendererTestWidget)}",
+                Task.FromResult(
+                    Service<TextureManager>.Get().CreateTextureFromSeString(
+                        ReadOnlySeString.FromMacroString(
+                            this.testString,
+                            new(ExceptionMode: MacroStringParseExceptionMode.EmbedError)),
+                        this.style with
+                        {
+                            Font = ImGui.GetFont(),
+                            FontSize = ImGui.GetFontSize(),
+                            WrapWidth = ImGui.GetContentRegionAvail().X,
+                            ThemeIndex = AtkStage.Instance()->AtkUIColorHolder->ActiveColorThemeType,
+                        })));
         }
 
         ImGuiHelpers.ScaledDummy(3);
