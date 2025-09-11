@@ -382,6 +382,8 @@ public static unsafe class MemoryHelper
     /// <param name="utf8String">The memory address to read from.</param>
     /// <returns>The read in string.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [Obsolete("CS types in Dalamud are deprecated.")]
+    [Api14ToDo(Api14ToDoAttribute.Remove)]
     public static SeString ReadSeString(Utf8String* utf8String) =>
         utf8String == null ? string.Empty : SeString.Parse(utf8String->AsSpan());
 
@@ -613,6 +615,8 @@ public static unsafe class MemoryHelper
     /// <param name="utf8String">The memory address to read from.</param>
     /// <param name="value">The read in string.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [Obsolete("CS types in Dalamud are deprecated.")]
+    [Api14ToDo(Api14ToDoAttribute.Remove)]
     public static unsafe void ReadSeString(Utf8String* utf8String, out SeString value)
         => value = ReadSeString(utf8String);
 
