@@ -1,7 +1,7 @@
 name: Check for Submodule Changes
 on: 
   schedule:
-    - cron: "0 0,12,18 * * *"
+    - cron: "0 0,6,12,18 * * *"
   workflow_dispatch:
 
 jobs:
@@ -9,14 +9,17 @@ jobs:
     name: Check ${{ matrix.submodule.name }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         branches: [master]
         submodule:
           - name: ClientStructs
             path: lib/FFXIVClientStructs
+            branch: main
             branch-prefix: csupdate
           - name: Excel Schema
             path: lib/Lumina.Excel
+            branch: master
             branch-prefix: schemaupdate
 
     defaults: 
@@ -43,7 +46,7 @@ jobs:
         git reset --hard origin/${{ matrix.branches }}
         cd ${{ matrix.submodule.path }}
         git fetch
-        git reset --hard origin/main
+        git reset --hard origin/${{ matrix.submodule.branch }}
         cd ../..
         git add ${{ matrix.submodule.path }}
         git commit --message "Update ${{ matrix.submodule.name }}"
