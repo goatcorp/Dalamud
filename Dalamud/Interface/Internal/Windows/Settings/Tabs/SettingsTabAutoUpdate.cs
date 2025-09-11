@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
@@ -18,7 +18,7 @@ using Dalamud.Plugin.Internal.Types;
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-public class SettingsTabAutoUpdates : SettingsTab
+internal sealed class SettingsTabAutoUpdates : SettingsTab
 {
     private AutoUpdateBehavior behavior;
     private bool updateDisabledPlugins;
@@ -30,6 +30,8 @@ public class SettingsTabAutoUpdates : SettingsTab
     public override SettingsEntry[] Entries { get; } = [];
 
     public override string Title => Loc.Localize("DalamudSettingsAutoUpdates", "Auto-Updates");
+
+    public override SettingsOpenKind Kind => SettingsOpenKind.AutoUpdates;
 
     public override void Draw()
     {

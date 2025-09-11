@@ -1,18 +1,18 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-public class ButtonSettingsEntry : SettingsEntry
+internal sealed class ButtonSettingsEntry : SettingsEntry
 {
-    private readonly string description;
+    private readonly LazyLoc description;
     private readonly Action runs;
 
-    public ButtonSettingsEntry(string name, string description, Action runs)
+    public ButtonSettingsEntry(LazyLoc name, LazyLoc description, Action runs)
     {
         this.description = description;
         this.runs = runs;
