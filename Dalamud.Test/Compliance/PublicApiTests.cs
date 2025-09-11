@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using Dalamud.Bindings.ImGui;
-using Dalamud.Bindings.ImGuizmo;
-using Dalamud.Bindings.ImPlot;
-
 using Xunit;
 
 
@@ -24,10 +20,11 @@ public class PublicApiTests
         typeof(object).Assembly,
         typeof(Dalamud).Assembly,
 
+        // Imgui and friends
         typeof(SharpDX.Color).Assembly,
-        typeof(ImGui).Assembly,
-        typeof(ImGuizmo).Assembly,
-        typeof(ImPlot).Assembly,
+        typeof(Bindings.ImGui.ImGui).Assembly,
+        typeof(Bindings.ImGuizmo.ImGuizmo).Assembly,
+        typeof(Bindings.ImPlot.ImPlot).Assembly,
 
         // exposed to plugins via API
         typeof(Lumina.GameData).Assembly,
@@ -35,6 +32,7 @@ public class PublicApiTests
     ];
 
     private static List<Type> PermittedTypes { get; } = [
+        // Used for IPluginLog, limited serilog exposure is OK.
         typeof(Serilog.ILogger),
         typeof(Serilog.Core.LoggingLevelSwitch),
         typeof(Serilog.Events.LogEventLevel),
