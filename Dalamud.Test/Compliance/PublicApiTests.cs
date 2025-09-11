@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using Dalamud.Utility;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGuizmo;
+using Dalamud.Bindings.ImPlot;
 
 using Xunit;
 
@@ -11,62 +14,86 @@ namespace Dalamud.Test.Compliance;
 
 public class PublicApiTests
 {
+    private static List<Assembly> PermittedAssemblies { get; } =
+    [
+        typeof(object).Assembly,
+        typeof(Dalamud).Assembly,
+
+        typeof(SharpDX.Color).Assembly,
+        typeof(ImGui).Assembly,
+        typeof(ImGuizmo).Assembly,
+        typeof(ImPlot).Assembly,
+
+        // exposed to plugins via API
+        typeof(Lumina.GameData).Assembly,
+        typeof(Lumina.Excel.Sheets.Action).Assembly,
+    ];
+
+    private static List<Type> PermittedTypes { get; } = [
+        typeof(Serilog.ILogger),
+        typeof(Serilog.Core.LoggingLevelSwitch),
+        typeof(Serilog.Events.LogEventLevel),
+    ];
+
     [Fact]
-    public void NoClientStructsTypes()
+    public void NoRestrictedTypes()
     {
-        var clientStructsAssembly = typeof(FFXIVClientStructs.ThisAssembly).Assembly;
-
-        var publicTypes = typeof(Dalamud).Assembly.GetTypes().Where(t => t.IsPublic);
-
-        foreach (var t in publicTypes)
+        foreach (var type in typeof(Dalamud).Assembly.GetTypes().Where(t => t.IsPublic))
         {
-            if (t.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
+            if (type.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
 
-            foreach (var m in t.GetMethods().Where(m => m.IsPublic && !m.IsSpecialName))
+            foreach (var m in type.GetMethods().Where(m => m.IsPublic && !m.IsSpecialName))
             {
-                if (m.GetCustomAttribute<ObsoleteAttribute>() != null ||
-                    m.GetCustomAttribute<Api14ToDoAttribute>() != null) continue;
+                if (m.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
 
-                if (m.ReturnType.Assembly == clientStructsAssembly)
+                if (!this.IsPermittedType(m.ReturnType))
                 {
-                    Assert.Fail(
-                        $"Method {t.FullName}.{m.Name} returns a type from FFXIVClientStructs: {m.ReturnType.FullName}");
+                    Assert.Fail($"Method {type.FullName}.{m.Name} returns invalid type: {m.ReturnType.FullName}");
                 }
 
                 foreach (var param in m.GetParameters())
                 {
-                    if (param.ParameterType.Assembly == clientStructsAssembly)
+                    if (!this.IsPermittedType(param.ParameterType))
                     {
-                        Assert.Fail(
-                            $"Method {t.FullName}.{m.Name} has a parameter from FFXIVClientStructs: {param.ParameterType.FullName}");
+                        Assert.Fail($"Method {type.FullName}.{m.Name} uses invalid type: {param.ParameterType.FullName}");
                     }
                 }
             }
 
-            foreach (var p in t.GetProperties())
+            foreach (var p in type.GetProperties())
             {
-                if (p.GetCustomAttribute<ObsoleteAttribute>() != null ||
-                    p.GetCustomAttribute<Api14ToDoAttribute>() != null) continue;
+                if (p.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
                 if (p.GetMethod?.IsPrivate == true && p.SetMethod?.IsPrivate == true) continue;
 
-                if (p.PropertyType.Assembly == clientStructsAssembly)
+                if (!this.IsPermittedType(p.PropertyType))
                 {
                     Assert.Fail(
-                        $"Property {t.FullName}.{p.Name} is a type from FFXIVClientStructs: {p.PropertyType.FullName}");
+                        $"Property {type.FullName}.{p.Name} is invalid type: {p.PropertyType.FullName}");
                 }
             }
 
-            foreach (var f in t.GetFields().Where(f => f.IsPublic && !f.IsSpecialName))
+            foreach (var f in type.GetFields().Where(f => f.IsPublic && !f.IsSpecialName))
             {
-                if (f.GetCustomAttribute<ObsoleteAttribute>() != null ||
-                    f.GetCustomAttribute<Api14ToDoAttribute>() != null) continue;
+                if (f.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
 
-                if (f.FieldType.Assembly == clientStructsAssembly)
+                if (!this.IsPermittedType(f.FieldType))
                 {
                     Assert.Fail(
-                        $"Field {t.FullName}.{f.Name} is of a type from FFXIVClientStructs: {f.FieldType.FullName}");
+                        $"Field {type.FullName}.{f.Name} is invalid type: {f.FieldType.FullName}");
                 }
             }
         }
+    }
+
+    private bool IsPermittedType(Type subject)
+    {
+        if (subject.IsGenericType && !subject.GetGenericArguments().All(this.IsPermittedType))
+        {
+            return false;
+        }
+
+        return subject.Namespace?.StartsWith("System") == true ||
+            PermittedTypes.Any(t => t == subject) ||
+            PermittedAssemblies.Any(a => a == subject.Assembly);
     }
 }
