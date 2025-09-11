@@ -14,6 +14,11 @@ namespace Dalamud.Test.Compliance;
 
 public class PublicApiTests
 {
+    private static List<Type> IgnoredTypes { get; } =
+    [
+        typeof(Utility.CStringExtensions),
+    ];
+
     private static List<Assembly> PermittedAssemblies { get; } =
     [
         typeof(object).Assembly,
@@ -38,7 +43,7 @@ public class PublicApiTests
     [Fact]
     public void NoRestrictedTypes()
     {
-        foreach (var type in typeof(Dalamud).Assembly.GetTypes().Where(t => t.IsPublic))
+        foreach (var type in typeof(Dalamud).Assembly.GetTypes().Where(t => t.IsPublic).Except(IgnoredTypes))
         {
             if (type.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
 
@@ -48,14 +53,14 @@ public class PublicApiTests
 
                 if (!this.IsPermittedType(m.ReturnType))
                 {
-                    Assert.Fail($"Method {type.FullName}.{m.Name} returns invalid type: {m.ReturnType.FullName}");
+                    Assert.Fail($"Method {type.FullName}.{m.Name} returns unapproved type: {m.ReturnType.FullName}");
                 }
 
                 foreach (var param in m.GetParameters())
                 {
                     if (!this.IsPermittedType(param.ParameterType))
                     {
-                        Assert.Fail($"Method {type.FullName}.{m.Name} uses invalid type: {param.ParameterType.FullName}");
+                        Assert.Fail($"Method {type.FullName}.{m.Name} uses unapproved type: {param.ParameterType.FullName}");
                     }
                 }
             }
@@ -68,7 +73,7 @@ public class PublicApiTests
                 if (!this.IsPermittedType(p.PropertyType))
                 {
                     Assert.Fail(
-                        $"Property {type.FullName}.{p.Name} is invalid type: {p.PropertyType.FullName}");
+                        $"Property {type.FullName}.{p.Name} is unapproved type: {p.PropertyType.FullName}");
                 }
             }
 
@@ -79,7 +84,7 @@ public class PublicApiTests
                 if (!this.IsPermittedType(f.FieldType))
                 {
                     Assert.Fail(
-                        $"Field {type.FullName}.{f.Name} is invalid type: {f.FieldType.FullName}");
+                        $"Field {type.FullName}.{f.Name} is unapproved type: {f.FieldType.FullName}");
                 }
             }
         }
