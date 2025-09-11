@@ -40,7 +40,7 @@ internal class BuddyListWidget : IDataWindowWidget
             }
             else
             {
-                ImGui.Text($"[Companion] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
+                ImGui.Text($"[Companion] {member.Address.ToInt64():X} - {member.EntityId} - {member.DataID}");
                 if (this.resolveGameData)
                 {
                     var gameObject = member.GameObject;
@@ -64,7 +64,7 @@ internal class BuddyListWidget : IDataWindowWidget
             }
             else
             {
-                ImGui.Text($"[Pet] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
+                ImGui.Text($"[Pet] {member.Address.ToInt64():X} - {member.EntityId} - {member.DataID}");
                 if (this.resolveGameData)
                 {
                     var gameObject = member.GameObject;
@@ -91,7 +91,7 @@ internal class BuddyListWidget : IDataWindowWidget
                 for (var i = 0; i < count; i++)
                 {
                     var member = buddyList[i];
-                    ImGui.Text($"[BattleBuddy] [{i}] {member?.Address.ToInt64():X} - {member?.ObjectId} - {member?.DataID}");
+                    ImGui.Text($"[BattleBuddy] [{i}] {member?.Address.ToInt64():X} - {member?.EntityId} - {member?.DataID}");
                     if (this.resolveGameData)
                     {
                         var gameObject = member?.GameObject;
