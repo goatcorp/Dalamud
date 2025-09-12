@@ -40,6 +40,11 @@ public interface IClientState
     public event Action<uint> MapChanged;
 
     /// <summary>
+    /// Event that gets fired when the current zone Instance changes.
+    /// </summary>
+    public event Action<uint> PublicInstanceChanged;
+
+    /// <summary>
     /// Event that fires when a characters ClassJob changed.
     /// </summary>
     public event ClassJobChangeDelegate? ClassJobChanged;
@@ -89,6 +94,11 @@ public interface IClientState
     /// Gets the current Map the player resides in.
     /// </summary>
     public uint MapId { get; }
+
+    /// <summary>
+    /// Gets the instance number of the current zone, used when multiple copies of an area are active.
+    /// </summary>
+    public uint PublicInstanceId { get; }
 
     /// <summary>
     /// Gets the local player character, if one is present.
