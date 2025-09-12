@@ -35,6 +35,11 @@ public interface IClientState
     public event Action<ushort> TerritoryChanged;
 
     /// <summary>
+    /// Event that gets fired when the current Map changes.
+    /// </summary>
+    public event Action<uint> MapChanged;
+
+    /// <summary>
     /// Event that fires when a characters ClassJob changed.
     /// </summary>
     public event ClassJobChangeDelegate? ClassJobChanged;

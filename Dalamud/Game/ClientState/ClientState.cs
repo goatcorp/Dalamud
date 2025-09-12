@@ -65,7 +65,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.setupTerritoryTypeHook = Hook<EventFramework.Delegates.SetTerritoryTypeId>.FromAddress(setTerritoryTypeAddr, this.SetupTerritoryTypeDetour);
         this.uiModuleHandlePacketHook = Hook<UIModule.Delegates.HandlePacket>.FromAddress((nint)UIModule.StaticVirtualTablePointer->HandlePacket, this.UIModuleHandlePacketDetour);
 
-        this.framework.Update += this.FrameworkOnOnUpdateEvent;
+        this.framework.Update += this.OnFrameworkUpdate;
         this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
 
         this.setupTerritoryTypeHook.Enable();
@@ -78,6 +78,9 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
     /// <inheritdoc/>
     public event Action<ushort>? TerritoryChanged;
+
+    /// <inheritdoc/>
+    public event Action<uint>? MapChanged;
 
     /// <inheritdoc/>
     public event IClientState.ClassJobChangeDelegate? ClassJobChanged;
@@ -107,14 +110,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public ushort TerritoryType { get; private set; }
 
     /// <inheritdoc/>
-    public unsafe uint MapId
-    {
-        get
-        {
-            var agentMap = AgentMap.Instance();
-            return agentMap != null ? agentMap->CurrentMapId : 0;
-        }
-    }
+    public uint MapId { get; private set; }
 
     /// <inheritdoc/>
     public IPlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as IPlayerCharacter;
@@ -176,7 +172,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.uiModuleHandlePacketHook.Dispose();
         this.onLogoutHook.Dispose();
 
-        this.framework.Update -= this.FrameworkOnOnUpdateEvent;
+        this.framework.Update -= this.OnFrameworkUpdate;
         this.networkHandlers.CfPop -= this.NetworkHandlersOnCfPop;
     }
 
@@ -274,7 +270,13 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         }
     }
 
-    private void FrameworkOnOnUpdateEvent(IFramework framework1)
+    private void OnFrameworkUpdate(IFramework framework)
+    {
+        this.UpdateLogin();
+        this.UpdateMapId();
+    }
+
+    private void UpdateLogin()
     {
         var condition = Service<Conditions.Condition>.GetNullable();
         var gameGui = Service<GameGui>.GetNullable();
@@ -292,6 +294,26 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
             this.lifecycle.ResetLogout();
         }
+    }
+
+    private unsafe void UpdateMapId()
+    {
+        var agentMap = AgentMap.Instance();
+
+        if (agentMap == null)
+        {
+            if (this.MapId != 0)
+                this.MapId = 0;
+            return;
+        }
+
+        var mapId = agentMap->CurrentMapId;
+        if (this.MapId == mapId)
+            return;
+
+        Log.Debug("Map changed: {0}", mapId);
+        this.MapId = mapId;
+        this.MapChanged?.InvokeSafely(mapId);
     }
 
     private unsafe void OnLogoutDetour(LogoutCallbackInterface* thisPtr, LogoutCallbackInterface.LogoutParams* logoutParams)
@@ -358,6 +380,7 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     internal ClientStatePluginScoped()
     {
         this.clientStateService.TerritoryChanged += this.TerritoryChangedForward;
+        this.clientStateService.MapChanged += this.MapChangedForward;
         this.clientStateService.ClassJobChanged += this.ClassJobChangedForward;
         this.clientStateService.LevelChanged += this.LevelChangedForward;
         this.clientStateService.Login += this.LoginForward;
@@ -369,6 +392,9 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
 
     /// <inheritdoc/>
     public event Action<ushort>? TerritoryChanged;
+
+    /// <inheritdoc/>
+    public event Action<uint>? MapChanged;
 
     /// <inheritdoc/>
     public event IClientState.ClassJobChangeDelegate? ClassJobChanged;
@@ -428,6 +454,7 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     void IInternalDisposableService.DisposeService()
     {
         this.clientStateService.TerritoryChanged -= this.TerritoryChangedForward;
+        this.clientStateService.MapChanged -= this.MapChangedForward;
         this.clientStateService.ClassJobChanged -= this.ClassJobChangedForward;
         this.clientStateService.LevelChanged -= this.LevelChangedForward;
         this.clientStateService.Login -= this.LoginForward;
@@ -445,6 +472,8 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     }
 
     private void TerritoryChangedForward(ushort territoryId) => this.TerritoryChanged?.Invoke(territoryId);
+
+    private void MapChangedForward(uint mapId) => this.MapChanged?.Invoke(mapId);
 
     private void ClassJobChangedForward(uint classJobId) => this.ClassJobChanged?.Invoke(classJobId);
 
