@@ -497,6 +497,10 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
         this.clientStateService.CfPop -= this.ContentFinderPopForward;
 
         this.TerritoryChanged = null;
+        this.MapChanged = null;
+        this.PublicInstanceChanged = null;
+        this.ClassJobChanged = null;
+        this.LevelChanged = null;
         this.Login = null;
         this.Logout = null;
         this.EnterPvP = null;
