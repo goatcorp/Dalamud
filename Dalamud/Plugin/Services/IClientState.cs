@@ -1,4 +1,5 @@
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 
@@ -30,9 +31,24 @@ public interface IClientState
     public delegate void LogoutDelegate(int type, int code);
 
     /// <summary>
+    /// Event that gets fired when the game initializes a zone.
+    /// </summary>
+    public event Action<ZoneInitEventArgs> ZoneInit;
+
+    /// <summary>
     /// Event that gets fired when the current Territory changes.
     /// </summary>
     public event Action<ushort> TerritoryChanged;
+
+    /// <summary>
+    /// Event that gets fired when the current Map changes.
+    /// </summary>
+    public event Action<uint> MapIdChanged;
+
+    /// <summary>
+    /// Event that gets fired when the current zone Instance changes.
+    /// </summary>
+    public event Action<uint> InstanceChanged;
 
     /// <summary>
     /// Event that fires when a characters ClassJob changed.
@@ -84,6 +100,11 @@ public interface IClientState
     /// Gets the current Map the player resides in.
     /// </summary>
     public uint MapId { get; }
+
+    /// <summary>
+    /// Gets the instance number of the current zone, used when multiple copies of an area are active.
+    /// </summary>
+    public uint Instance { get; }
 
     /// <summary>
     /// Gets the local player character, if one is present.
