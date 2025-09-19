@@ -208,7 +208,7 @@ public abstract partial class Payload
         }
 
         payload ??= new RawPayload((byte)chunkType);
-        payload.DecodeImpl(reader, reader.BaseStream.Position + chunkLen - 1);
+        payload.DecodeImpl(reader, reader.BaseStream.Position + chunkLen);
 
         // read through the rest of the packet
         var readBytes = (uint)(reader.BaseStream.Position - packetStart);
