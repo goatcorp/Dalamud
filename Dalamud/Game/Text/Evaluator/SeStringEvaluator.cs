@@ -1629,7 +1629,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             return true;
 
         var isNoun = false;
-        var col = 0;
+
+        Span<int> cols = stackalloc int[2];
+        cols.Clear();
 
         if (ranges.StartsWith("noun"))
         {
@@ -1637,11 +1639,24 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
         else if (ranges.StartsWith("col"))
         {
-            var colRangeEnd = ranges.IndexOf(',');
-            if (colRangeEnd == -1)
-                colRangeEnd = ranges.Length;
+            var i = 0;
+            while (i < cols.Length && ranges.StartsWith("col-", StringComparison.Ordinal))
+            {
+                // find the end of the current "col-#" token
+                var colRangeEnd = ranges.IndexOf(',');
+                if (colRangeEnd == -1)
+                    colRangeEnd = ranges.Length;
 
-            col = int.Parse(ranges[4..colRangeEnd]);
+                // parse the column index
+                cols[i++] = int.Parse(ranges.AsSpan(4, colRangeEnd - 4));
+
+                // if it's the end of the string, we're done
+                if (colRangeEnd == ranges.Length)
+                    break;
+
+                // move to the next entry
+                ranges = ranges[(colRangeEnd + 1)..].TrimStart();
+            }
         }
         else if (ranges.StartsWith("tail"))
         {
@@ -1663,7 +1678,17 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
         else if (this.dataManager.GetExcelSheet<RawRow>(context.Language, sheetName).TryGetRow(rowId, out var row))
         {
-            context.Builder.Append(row.ReadStringColumn(col));
+            // the game uses a priority system for columns here.
+            // if the first column is empty (for example MainCommand.Alias), then the next one is used (MainCommand.Command)
+            for (var i = 0; i < cols.Length; i++)
+            {
+                var text = row.ReadStringColumn(cols[i]);
+                if (!text.IsEmpty)
+                {
+                    context.Builder.Append(text);
+                    break;
+                }
+            }
         }
 
         return true;
