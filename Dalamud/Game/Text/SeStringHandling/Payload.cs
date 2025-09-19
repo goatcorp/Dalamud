@@ -2,11 +2,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
-using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Plugin.Services;
 
-using Newtonsoft.Json;
 using Serilog;
 
 // TODOs:
@@ -117,7 +114,7 @@ public abstract partial class Payload
         var chunkType = (SeStringChunkType)reader.ReadByte();
         var chunkLen = GetInteger(reader);
 
-        var packetStart = reader.BaseStream.Position;
+        var expressionsStart = reader.BaseStream.Position;
 
         // any unhandled payload types will be turned into a RawPayload with the exact same binary data
         switch (chunkType)
@@ -210,9 +207,8 @@ public abstract partial class Payload
         payload ??= new RawPayload((byte)chunkType);
         payload.DecodeImpl(reader, reader.BaseStream.Position + chunkLen);
 
-        // read through the rest of the packet
-        var readBytes = (uint)(reader.BaseStream.Position - packetStart);
-        reader.ReadBytes((int)(chunkLen - readBytes + 1)); // +1 for the END_BYTE marker
+        // skip to the end of the payload, in case the specific payload handler didn't read everything
+        reader.BaseStream.Seek(expressionsStart + chunkLen + 1, SeekOrigin.Begin); // +1 for the END_BYTE marker
 
         return payload;
     }
