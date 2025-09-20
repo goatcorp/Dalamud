@@ -1633,6 +1633,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         var colIndex = 0;
         Span<int> cols = stackalloc int[8];
         cols.Clear();
+        var hasRanges = false;
         var isInRange = false;
 
         while (!string.IsNullOrWhiteSpace(ranges))
@@ -1659,6 +1660,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             else
             {
                 var dash = ranges.IndexOf('-');
+
+                hasRanges |= true;
+
                 if (dash == -1)
                 {
                     isInRange |= int.Parse(ranges.AsSpan(0, entryEnd)) == rowId;
@@ -1678,7 +1682,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             ranges = ranges[(entryEnd + 1)..].TrimStart();
         }
 
-        if (!isInRange)
+        if (hasRanges && !isInRange)
         {
             context.Builder.Append(payload);
             return false;
