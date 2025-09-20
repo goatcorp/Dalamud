@@ -1630,37 +1630,56 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         var isNoun = false;
 
-        Span<int> cols = stackalloc int[2];
+        var colIndex = 0;
+        Span<int> cols = stackalloc int[8];
         cols.Clear();
+        var isInRange = false;
 
-        if (ranges.StartsWith("noun"))
+        while (!string.IsNullOrWhiteSpace(ranges))
         {
-            isNoun = true;
-        }
-        else if (ranges.StartsWith("col"))
-        {
-            var i = 0;
-            while (i < cols.Length && ranges.StartsWith("col-", StringComparison.Ordinal))
+            // find the end of the current entry
+            var entryEnd = ranges.IndexOf(',');
+            if (entryEnd == -1)
+                entryEnd = ranges.Length;
+
+            if (ranges.StartsWith("noun", StringComparison.Ordinal))
             {
-                // find the end of the current "col-#" token
-                var colRangeEnd = ranges.IndexOf(',');
-                if (colRangeEnd == -1)
-                    colRangeEnd = ranges.Length;
-
-                // parse the column index
-                cols[i++] = int.Parse(ranges.AsSpan(4, colRangeEnd - 4));
-
-                // if it's the end of the string, we're done
-                if (colRangeEnd == ranges.Length)
-                    break;
-
-                // move to the next entry
-                ranges = ranges[(colRangeEnd + 1)..].TrimStart();
+                isNoun = true;
             }
+            else if (ranges.StartsWith("col", StringComparison.Ordinal) && colIndex < cols.Length)
+            {
+                cols[colIndex++] = int.Parse(ranges.AsSpan(4, entryEnd - 4));
+            }
+            else if (ranges.StartsWith("tail", StringComparison.Ordinal))
+            {
+                // currently not supported, since there are no known uses
+                context.Builder.Append(payload);
+                return false;
+            }
+            else
+            {
+                var dash = ranges.IndexOf('-');
+                if (dash == -1)
+                {
+                    isInRange |= int.Parse(ranges.AsSpan(0, entryEnd)) == rowId;
+                }
+                else
+                {
+                    isInRange |= rowId >= int.Parse(ranges.AsSpan(0, dash))
+                        && rowId <= int.Parse(ranges.AsSpan(dash + 1, entryEnd - dash - 1));
+                }
+            }
+
+            // if it's the end of the string, we're done
+            if (entryEnd == ranges.Length)
+                break;
+
+            // else, move to the next entry
+            ranges = ranges[(entryEnd + 1)..].TrimStart();
         }
-        else if (ranges.StartsWith("tail"))
+
+        if (!isInRange)
         {
-            // couldn't find any, so we don't handle them :p
             context.Builder.Append(payload);
             return false;
         }
@@ -1678,15 +1697,21 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
         else if (this.dataManager.GetExcelSheet<RawRow>(context.Language, sheetName).TryGetRow(rowId, out var row))
         {
-            // the game uses a priority system for columns here.
-            // if the first column is empty (for example MainCommand.Alias), then the next one is used (MainCommand.Command)
-            for (var i = 0; i < cols.Length; i++)
+            if (colIndex == 0)
             {
-                var text = row.ReadStringColumn(cols[i]);
-                if (!text.IsEmpty)
+                context.Builder.Append(row.ReadStringColumn(0));
+                return true;
+            }
+            else
+            {
+                for (var i = 0; i < colIndex; i++)
                 {
-                    context.Builder.Append(text);
-                    break;
+                    var text = row.ReadStringColumn(cols[i]);
+                    if (!text.IsEmpty)
+                    {
+                        context.Builder.Append(text);
+                        break;
+                    }
                 }
             }
         }
