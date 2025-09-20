@@ -1,14 +1,11 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
-using Dalamud.Data;
+using Dalamud.Game.Text.Evaluator;
 
-using Lumina.Excel.Sheets;
+using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 using Newtonsoft.Json;
-using Serilog;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 
@@ -18,6 +15,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 public class AutoTranslatePayload : Payload, ITextProvider
 {
     private string? text;
+    private ReadOnlySeString payload;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AutoTranslatePayload"/> class.
@@ -34,6 +32,14 @@ public class AutoTranslatePayload : Payload, ITextProvider
         // TODO: friendlier ctor? not sure how to handle that given how weird the tables are
         this.Group = group;
         this.Key = key;
+
+        var ssb = Lumina.Text.SeStringBuilder.SharedPool.Get();
+        this.payload = ssb.BeginMacro(MacroCode.Fixed)
+                     .AppendUIntExpression(group - 1)
+                     .AppendUIntExpression(key)
+                     .EndMacro()
+                     .ToReadOnlySeString();
+        Lumina.Text.SeStringBuilder.SharedPool.Return(ssb);
     }
 
     /// <summary>
@@ -41,6 +47,7 @@ public class AutoTranslatePayload : Payload, ITextProvider
     /// </summary>
     internal AutoTranslatePayload()
     {
+        this.payload = default; // parsed by DecodeImpl
     }
     
     /// <summary>
@@ -68,8 +75,13 @@ public class AutoTranslatePayload : Payload, ITextProvider
     {
         get
         {
+            if (this.Group is 100 or 200)
+            {
+                return this.text ??= Service<SeStringEvaluator>.Get().Evaluate(this.payload).ToString();
+            }
+
             // wrap the text in the colored brackets that is uses in-game, since those are not actually part of any of the payloads
-            return this.text ??= $"{(char)SeIconChar.AutoTranslateOpen} {this.Resolve()} {(char)SeIconChar.AutoTranslateClose}";
+            return this.text ??= $"{(char)SeIconChar.AutoTranslateOpen} {Service<SeStringEvaluator>.Get().Evaluate(this.payload)} {(char)SeIconChar.AutoTranslateClose}";
         }
     }
 
@@ -85,95 +97,25 @@ public class AutoTranslatePayload : Payload, ITextProvider
     /// <inheritdoc/>
     protected override byte[] EncodeImpl()
     {
-        var keyBytes = MakeInteger(this.Key);
-
-        var chunkLen = keyBytes.Length + 2;
-        var bytes = new List<byte>()
-        {
-            START_BYTE,
-            (byte)SeStringChunkType.AutoTranslateKey, (byte)chunkLen,
-            (byte)this.Group,
-        };
-        bytes.AddRange(keyBytes);
-        bytes.Add(END_BYTE);
-
-        return bytes.ToArray();
+        return this.payload.Data.ToArray();
     }
 
     /// <inheritdoc/>
     protected override void DecodeImpl(BinaryReader reader, long endOfStream)
     {
-        // this seems to always be a bare byte, and not following normal integer encoding
-        // the values in the table are all <70 so this is presumably ok
-        this.Group = reader.ReadByte();
+        var body = reader.ReadBytes((int)(endOfStream - reader.BaseStream.Position));
+        var rosps = new ReadOnlySePayloadSpan(ReadOnlySePayloadType.Macro, MacroCode.Fixed, body.AsSpan());
 
-        this.Key = GetInteger(reader);
-    }
+        var span = rosps.EnvelopeByteLength <= 512 ? stackalloc byte[rosps.EnvelopeByteLength] : new byte[rosps.EnvelopeByteLength];
+        rosps.WriteEnvelopeTo(span);
+        this.payload = new ReadOnlySeString(span);
 
-    private static ReadOnlySeString ResolveTextCommand(TextCommand command)
-    {
-        // TextCommands prioritize the `Alias` field, if it not empty
-        // Example for this is /rangerpose2l which becomes /blackrangerposeb in chat
-        return !command.Alias.IsEmpty ? command.Alias : command.Command;
-    }
-
-    private string Resolve()
-    {
-        string value = null;
-
-        var excelModule = Service<DataManager>.Get().Excel;
-        var completionSheet = excelModule.GetSheet<Completion>();
-
-        // try to get the row in the Completion table itself, because this is 'easiest'
-        // The row may not exist at all (if the Key is for another table), or it could be the wrong row
-        // (again, if it's meant for another table)
-
-        if (completionSheet.GetRowOrDefault(this.Key) is { } completion && completion.Group == this.Group)
+        if (rosps.TryGetExpression(out var expr1, out var expr2)
+            && expr1.TryGetUInt(out var group)
+            && expr2.TryGetUInt(out var key))
         {
-            // if the row exists in this table and the group matches, this is actually the correct data
-            value = completion.Text.ExtractText();
+            this.Group = group;
+            this.Key = key;
         }
-        else
-        {
-            try
-            {
-                // we need to get the linked table and do the lookup there instead
-                // in this case, there will only be one entry for this group id
-                var row = completionSheet.First(r => r.Group == this.Group);
-                // many of the names contain valid id ranges after the table name, but we don't need those
-                var actualTableName = row.LookupTable.ExtractText().Split('[')[0];
-
-                var name = actualTableName switch
-                {
-                    "Action" => excelModule.GetSheet<Lumina.Excel.Sheets.Action>().GetRow(this.Key).Name,
-                    "ActionComboRoute" => excelModule.GetSheet<ActionComboRoute>().GetRow(this.Key).Name,
-                    "BuddyAction" => excelModule.GetSheet<BuddyAction>().GetRow(this.Key).Name,
-                    "ClassJob" => excelModule.GetSheet<ClassJob>().GetRow(this.Key).Name,
-                    "Companion" => excelModule.GetSheet<Companion>().GetRow(this.Key).Singular,
-                    "CraftAction" => excelModule.GetSheet<CraftAction>().GetRow(this.Key).Name,
-                    "GeneralAction" => excelModule.GetSheet<GeneralAction>().GetRow(this.Key).Name,
-                    "GuardianDeity" => excelModule.GetSheet<GuardianDeity>().GetRow(this.Key).Name,
-                    "MainCommand" => excelModule.GetSheet<MainCommand>().GetRow(this.Key).Name,
-                    "Mount" => excelModule.GetSheet<Mount>().GetRow(this.Key).Singular,
-                    "Pet" => excelModule.GetSheet<Pet>().GetRow(this.Key).Name,
-                    "PetAction" => excelModule.GetSheet<PetAction>().GetRow(this.Key).Name,
-                    "PetMirage" => excelModule.GetSheet<PetMirage>().GetRow(this.Key).Name,
-                    "PlaceName" => excelModule.GetSheet<PlaceName>().GetRow(this.Key).Name,
-                    "Race" => excelModule.GetSheet<Race>().GetRow(this.Key).Masculine,
-                    "TextCommand" => AutoTranslatePayload.ResolveTextCommand(excelModule.GetSheet<TextCommand>().GetRow(this.Key)),
-                    "Tribe" => excelModule.GetSheet<Tribe>().GetRow(this.Key).Masculine,
-                    "Weather" => excelModule.GetSheet<Weather>().GetRow(this.Key).Name,
-                    _ => throw new Exception(actualTableName),
-                };
-
-                value = name.ExtractText();
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, $"AutoTranslatePayload - failed to resolve: {this.Type} - Group: {this.Group}, Key: {this.Key}");
-            }
-        }
-
-        return value;
     }
 }

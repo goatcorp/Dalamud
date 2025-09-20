@@ -1629,23 +1629,61 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             return true;
 
         var isNoun = false;
-        var col = 0;
 
-        if (ranges.StartsWith("noun"))
-        {
-            isNoun = true;
-        }
-        else if (ranges.StartsWith("col"))
-        {
-            var colRangeEnd = ranges.IndexOf(',');
-            if (colRangeEnd == -1)
-                colRangeEnd = ranges.Length;
+        var colIndex = 0;
+        Span<int> cols = stackalloc int[8];
+        cols.Clear();
+        var hasRanges = false;
+        var isInRange = false;
 
-            col = int.Parse(ranges[4..colRangeEnd]);
-        }
-        else if (ranges.StartsWith("tail"))
+        while (!string.IsNullOrWhiteSpace(ranges))
         {
-            // couldn't find any, so we don't handle them :p
+            // find the end of the current entry
+            var entryEnd = ranges.IndexOf(',');
+            if (entryEnd == -1)
+                entryEnd = ranges.Length;
+
+            if (ranges.StartsWith("noun", StringComparison.Ordinal))
+            {
+                isNoun = true;
+            }
+            else if (ranges.StartsWith("col", StringComparison.Ordinal) && colIndex < cols.Length)
+            {
+                cols[colIndex++] = int.Parse(ranges.AsSpan(4, entryEnd - 4));
+            }
+            else if (ranges.StartsWith("tail", StringComparison.Ordinal))
+            {
+                // currently not supported, since there are no known uses
+                context.Builder.Append(payload);
+                return false;
+            }
+            else
+            {
+                var dash = ranges.IndexOf('-');
+
+                hasRanges |= true;
+
+                if (dash == -1)
+                {
+                    isInRange |= int.Parse(ranges.AsSpan(0, entryEnd)) == rowId;
+                }
+                else
+                {
+                    isInRange |= rowId >= int.Parse(ranges.AsSpan(0, dash))
+                        && rowId <= int.Parse(ranges.AsSpan(dash + 1, entryEnd - dash - 1));
+                }
+            }
+
+            // if it's the end of the string, we're done
+            if (entryEnd == ranges.Length)
+                break;
+
+            // else, move to the next entry
+            ranges = ranges[(entryEnd + 1)..].TrimStart();
+        }
+
+        if (hasRanges && !isInRange)
+        {
             context.Builder.Append(payload);
             return false;
         }
@@ -1663,7 +1701,23 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
         else if (this.dataManager.GetExcelSheet<RawRow>(context.Language, sheetName).TryGetRow(rowId, out var row))
         {
-            context.Builder.Append(row.ReadStringColumn(col));
+            if (colIndex == 0)
+            {
+                context.Builder.Append(row.ReadStringColumn(0));
+                return true;
+            }
+            else
+            {
+                for (var i = 0; i < colIndex; i++)
+                {
+                    var text = row.ReadStringColumn(cols[i]);
+                    if (!text.IsEmpty)
+                    {
+                        context.Builder.Append(text);
+                        break;
+                    }
+                }
+            }
         }
 
         return true;
