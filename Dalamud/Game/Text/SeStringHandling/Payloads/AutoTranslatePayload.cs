@@ -14,7 +14,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class AutoTranslatePayload : Payload, ITextProvider
 {
-    private string? text;
     private ReadOnlySeString payload;
 
     /// <summary>
@@ -77,11 +76,11 @@ public class AutoTranslatePayload : Payload, ITextProvider
         {
             if (this.Group is 100 or 200)
             {
-                return this.text ??= Service<SeStringEvaluator>.Get().Evaluate(this.payload).ToString();
+                return Service<SeStringEvaluator>.Get().Evaluate(this.payload).ToString();
             }
 
-            // wrap the text in the colored brackets that is uses in-game, since those are not actually part of any of the payloads
-            return this.text ??= $"{(char)SeIconChar.AutoTranslateOpen} {Service<SeStringEvaluator>.Get().Evaluate(this.payload)} {(char)SeIconChar.AutoTranslateClose}";
+            // wrap the text in the colored brackets that are used in-game, since those are not actually part of any of the fixed macro payload
+            return $"{(char)SeIconChar.AutoTranslateOpen} {Service<SeStringEvaluator>.Get().Evaluate(this.payload)} {(char)SeIconChar.AutoTranslateClose}";
         }
     }
 
