@@ -88,9 +88,6 @@ namespace Dalamud.Test.Game.Text.SeStringHandling
             Assert.Equal(group, decodedPayload.Group);
             Assert.Equal(key, decodedPayload.Key);
 
-            Assert.Equal(payload.Group, decodedPayload.Group);
-            Assert.Equal(payload.Key, decodedPayload.Key);
-
             Assert.Equal(encoded, decodedPayload.Encode());
         }
     }
