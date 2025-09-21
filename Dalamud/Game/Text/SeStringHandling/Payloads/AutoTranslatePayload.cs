@@ -114,7 +114,7 @@ public class AutoTranslatePayload : Payload, ITextProvider
             && expr1.TryGetUInt(out var group)
             && expr2.TryGetUInt(out var key))
         {
-            this.Group = group;
+            this.Group = group + 1;
             this.Key = key;
         }
     }
