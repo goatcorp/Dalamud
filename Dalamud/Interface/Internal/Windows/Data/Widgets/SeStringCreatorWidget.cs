@@ -4,7 +4,6 @@ using System.Numerics;
 using System.Text;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
@@ -13,12 +12,13 @@ using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Memory;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
+
 using Lumina.Data;
 using Lumina.Data.Files.Excel;
 using Lumina.Data.Structs.Excel;
@@ -313,13 +313,13 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             ImGui.Text(i switch
             {
                 0 => "Player Name",
-                1 => "Temp Player 1 Name",
-                2 => "Temp Player 2 Name",
+                1 => "Temp Entity 1: Name",
+                2 => "Temp Entity 2: Name",
                 3 => "Player Sex",
-                4 => "Temp Player 1 Sex",
-                5 => "Temp Player 2 Sex",
-                6 => "Temp Player 1 Unk 1",
-                7 => "Temp Player 2 Unk 1",
+                4 => "Temp Entity 1: Sex",
+                5 => "Temp Entity 2: Sex",
+                6 => "Temp Entity 1: ObjStrId",
+                7 => "Temp Entity 2: ObjStrId",
                 10 => "Eorzea Time Hours",
                 11 => "Eorzea Time Minutes",
                 12 => "ColorSay",
@@ -368,14 +368,19 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 62 => "ColorLoot",
                 63 => "ColorCraft",
                 64 => "ColorGathering",
-                65 => "Temp Player 1 Unk 2",
-                66 => "Temp Player 2 Unk 2",
+                65 => "Temp Entity 1: Name starts with Vowel",
+                66 => "Temp Entity 2: Name starts with Vowel",
                 67 => "Player ClassJobId",
                 68 => "Player Level",
+                69 => "Player StartTown",
                 70 => "Player Race",
                 71 => "Player Synced Level",
-                77 => "Client/Plattform?",
+                73 => "Quest#66047: Has met Alphinaud and Alisaie",
+                74 => "PlayStation Generation",
+                75 => "Is Legacy Player",
+                77 => "Client/Platform?",
                 78 => "Player BirthMonth",
+                79 => "PadMode",
                 82 => "Datacenter Region",
                 83 => "ColorCWLS2",
                 84 => "ColorCWLS3",
@@ -396,6 +401,11 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 100 => "LogSetRoleColor 1: LogColorOtherClass",
                 101 => "LogSetRoleColor 2: LogColorOtherClass",
                 102 => "Has Login Security Token",
+                103 => "Is subscribed to PlayStation Plus",
+                104 => "PadMouseMode",
+                106 => "Preferred World Bonus Max Level",
+                107 => "Occult Crescent Support Job Level",
+                108 => "Deep Dungeon Id",
                 _ => string.Empty,
             });
         }
