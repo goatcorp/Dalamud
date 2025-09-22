@@ -635,7 +635,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 ImGui.Text(i.ToString());
 
                 ImGui.TableNextColumn();
-                if (ImGui.Selectable($"{value.ToString().Truncate(100)}###Column{i}"))
+                if (ImGui.Selectable($"{value.ToMacroString().Truncate(100)}###Column{i}"))
                 {
                     foreach (var payload in value)
                     {
