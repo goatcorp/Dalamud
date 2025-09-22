@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
@@ -146,6 +147,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
     private SeStringParameter[]? localParameters = [Util.GetScmVersion()];
     private ReadOnlySeString input;
     private ClientLanguage? language;
+    private Task? validImportSheetNamesTask;
     private int importSelectedSheetName;
     private int importRowId;
     private string[]? validImportSheetNames;
@@ -565,22 +567,31 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         var dataManager = Service<DataManager>.Get();
 
-        this.validImportSheetNames ??= dataManager.Excel.SheetNames.Where(sheetName =>
+        this.validImportSheetNamesTask ??= Task.Run(() =>
         {
-            try
+            this.validImportSheetNames = dataManager.Excel.SheetNames.Where(sheetName =>
             {
-                var headerFile = dataManager.GameData.GetFile<ExcelHeaderFile>($"exd/{sheetName}.exh");
-                if (headerFile.Header.Variant != ExcelVariant.Default)
-                    return false;
+                try
+                {
+                    var headerFile = dataManager.GameData.GetFile<ExcelHeaderFile>($"exd/{sheetName}.exh");
+                    if (headerFile.Header.Variant != ExcelVariant.Default)
+                        return false;
 
-                var sheet = dataManager.Excel.GetSheet<RawRow>(Language.English, sheetName);
-                return sheet.Columns.Any(col => col.Type == ExcelColumnDataType.String);
-            }
-            catch
-            {
-                return false;
-            }
-        }).OrderBy(sheetName => sheetName, StringComparer.InvariantCulture).ToArray();
+                    var sheet = dataManager.Excel.GetSheet<RawRow>(Language.English, sheetName);
+                    return sheet.Columns.Any(col => col.Type == ExcelColumnDataType.String);
+                }
+                catch
+                {
+                    return false;
+                }
+            }).OrderBy(sheetName => sheetName, StringComparer.InvariantCulture).ToArray();
+        });
+
+        if (this.validImportSheetNames == null)
+        {
+            ImGui.Text("Loading sheets..."u8);
+            return;
+        }
 
         var sheetChanged = ImGui.Combo("Sheet Name", ref this.importSelectedSheetName, this.validImportSheetNames);
 
