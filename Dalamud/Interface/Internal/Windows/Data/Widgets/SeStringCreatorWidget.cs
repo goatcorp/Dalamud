@@ -510,7 +510,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                     }
                 }
 
-                ImGui.SetClipboardText(sb.ToReadOnlySeString().ToString());
+                ImGui.SetClipboardText(sb.ToReadOnlySeString().ToMacroString());
             }
 
             ImGui.SameLine();
