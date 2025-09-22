@@ -523,7 +523,7 @@ public abstract class Window
                 if (ImGui.SliderFloat(Loc.Localize("WindowSystemContextActionAlpha", "Opacity"), ref alpha, 20f,
                                       100f))
                 {
-                    this.internalAlpha = alpha / 100f;
+                    this.internalAlpha = Math.Clamp(alpha / 100f, 0.2f, 1f);
                     this.presetDirty = true;
                 }
 
