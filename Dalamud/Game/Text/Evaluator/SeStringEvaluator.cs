@@ -2061,7 +2061,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                     value = (uint)MacroDecoder.GetMacroTime()->tm_mday;
                     return true;
                 case ExpressionType.Weekday:
-                    value = (uint)MacroDecoder.GetMacroTime()->tm_wday;
+                    value = (uint)MacroDecoder.GetMacroTime()->tm_wday + 1;
                     return true;
                 case ExpressionType.Month:
                     value = (uint)MacroDecoder.GetMacroTime()->tm_mon + 1;
