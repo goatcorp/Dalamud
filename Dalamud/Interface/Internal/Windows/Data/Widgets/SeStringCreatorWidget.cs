@@ -696,7 +696,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             ImGui.TableNextColumn(); // Text
             var message = entry.Message;
             ImGui.SetNextItemWidth(-1);
-            if (ImGui.InputText($"##{i}_Message", ref message, 255))
+            if (ImGui.InputText($"##{i}_Message", ref message, 2048))
             {
                 entry.Message = message;
                 updateString |= true;
