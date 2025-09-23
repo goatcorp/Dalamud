@@ -1643,13 +1643,15 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             if (entryEnd == -1)
                 entryEnd = ranges.Length;
 
+            var entry = ranges.AsSpan(0, entryEnd);
+
             if (ranges.StartsWith("noun", StringComparison.Ordinal))
             {
                 isNoun = true;
             }
             else if (ranges.StartsWith("col", StringComparison.Ordinal) && colIndex < cols.Length)
             {
-                cols[colIndex++] = int.Parse(ranges.AsSpan(4, entryEnd - 4));
+                cols[colIndex++] = int.Parse(entry[4..]);
             }
             else if (ranges.StartsWith("tail", StringComparison.Ordinal))
             {
@@ -1659,18 +1661,18 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             }
             else
             {
-                var dash = ranges.IndexOf('-');
+                var dash = entry.IndexOf('-');
 
                 hasRanges |= true;
 
                 if (dash == -1)
                 {
-                    isInRange |= int.Parse(ranges.AsSpan(0, entryEnd)) == rowId;
+                    isInRange |= int.Parse(entry) == rowId;
                 }
                 else
                 {
-                    isInRange |= rowId >= int.Parse(ranges.AsSpan(0, dash))
-                        && rowId <= int.Parse(ranges.AsSpan(dash + 1, entryEnd - dash - 1));
+                    isInRange |= rowId >= int.Parse(entry[..dash])
+                        && rowId <= int.Parse(entry[(dash + 1)..]);
                 }
             }
 
@@ -2061,7 +2063,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                     value = (uint)MacroDecoder.GetMacroTime()->tm_mday;
                     return true;
                 case ExpressionType.Weekday:
-                    value = (uint)MacroDecoder.GetMacroTime()->tm_wday;
+                    value = (uint)MacroDecoder.GetMacroTime()->tm_wday + 1;
                     return true;
                 case ExpressionType.Month:
                     value = (uint)MacroDecoder.GetMacroTime()->tm_mon + 1;
