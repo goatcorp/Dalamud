@@ -301,7 +301,7 @@ public ref struct ImU8String
     {
         var startingPos = this.Length;
         this.AppendFormatted(value, format);
-        FixAlignment(startingPos, alignment);
+        this.FixAlignment(startingPos, alignment);
     }
 
     public void AppendFormatted(ReadOnlySpan<char> value) => this.AppendFormatted(value, null);
@@ -322,7 +322,7 @@ public ref struct ImU8String
     {
         var startingPos = this.Length;
         this.AppendFormatted(value, format);
-        FixAlignment(startingPos, alignment);
+        this.FixAlignment(startingPos, alignment);
     }
 
     public void AppendFormatted(object? value) => this.AppendFormatted<object>(value!);
@@ -358,13 +358,13 @@ public ref struct ImU8String
     {
         var startingPos = this.Length;
         this.AppendFormatted(value, format);
-        FixAlignment(startingPos, alignment);
+        this.FixAlignment(startingPos, alignment);
     }
 
     public void Reserve(int length)
     {
         if (length >= AllocFreeBufferSize)
-            IncreaseBuffer(out _, length);
+            this.IncreaseBuffer(out _, length);
     }
 
     private void FixAlignment(int startingPos, int alignment)
