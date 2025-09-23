@@ -19,7 +19,13 @@ public interface IBuddyMember
     /// <summary>
     /// Gets the object ID of this buddy.
     /// </summary>
+    [Obsolete("Renamed to EntityId")]
     uint ObjectId { get; }
+
+    /// <summary>
+    /// Gets the entity ID of this buddy.
+    /// </summary>
+    uint EntityId { get; }
 
     /// <summary>
     /// Gets the actor associated with this buddy.
@@ -82,6 +88,9 @@ internal unsafe class BuddyMember : IBuddyMember
 
     /// <inheritdoc />
     public uint ObjectId => this.Struct->EntityId;
+
+    /// <inheritdoc />
+    public uint EntityId => this.Struct->EntityId;
 
     /// <inheritdoc />
     public IGameObject? GameObject => this.objectTable.SearchById(this.ObjectId);
