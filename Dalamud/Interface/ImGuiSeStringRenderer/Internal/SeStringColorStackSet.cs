@@ -15,10 +15,6 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 /// <summary>Color stacks to use while evaluating a SeString.</summary>
 internal sealed class SeStringColorStackSet
 {
-    /// <summary>Parsed <see cref="UIColor"/>, containing colors to use with <see cref="MacroCode.ColorType"/> and
-    /// <see cref="MacroCode.EdgeColorType"/>.</summary>
-    private readonly uint[,] colorTypes;
-
     /// <summary>Foreground color stack while evaluating a SeString for rendering.</summary>
     /// <remarks>Touched only from the main thread.</remarks>
     private readonly List<uint> colorStack = [];
@@ -39,29 +35,37 @@ internal sealed class SeStringColorStackSet
         foreach (var row in uiColor)
             maxId = (int)Math.Max(row.RowId, maxId);
 
-        this.colorTypes = new uint[maxId + 1, 4];
+        this.ColorTypes = new uint[maxId + 1, 4];
         foreach (var row in uiColor)
         {
             // Contains ABGR.
-            this.colorTypes[row.RowId, 0] = row.Dark;
-            this.colorTypes[row.RowId, 1] = row.Light;
-            this.colorTypes[row.RowId, 2] = row.ClassicFF;
-            this.colorTypes[row.RowId, 3] = row.ClearBlue;
+            this.ColorTypes[row.RowId, 0] = row.Dark;
+            this.ColorTypes[row.RowId, 1] = row.Light;
+            this.ColorTypes[row.RowId, 2] = row.ClassicFF;
+            this.ColorTypes[row.RowId, 3] = row.ClearBlue;
         }
 
         if (BitConverter.IsLittleEndian)
         {
             // ImGui wants RGBA in LE.
-            fixed (uint* p = this.colorTypes)
+            fixed (uint* p = this.ColorTypes)
             {
-                foreach (ref var r in new Span<uint>(p, this.colorTypes.GetLength(0) * this.colorTypes.GetLength(1)))
+                foreach (ref var r in new Span<uint>(p, this.ColorTypes.GetLength(0) * this.ColorTypes.GetLength(1)))
                     r = BinaryPrimitives.ReverseEndianness(r);
             }
         }
     }
 
+    /// <summary>Initializes a new instance of the <see cref="SeStringColorStackSet"/> class.</summary>
+    /// <param name="colorTypes">Color types.</param>
+    public SeStringColorStackSet(uint[,] colorTypes) => this.ColorTypes = colorTypes;
+
     /// <summary>Gets a value indicating whether at least one color has been pushed to the edge color stack.</summary>
     public bool HasAdditionalEdgeColor { get; private set; }
+
+    /// <summary>Gets the parsed <see cref="UIColor"/> containing colors to use with <see cref="MacroCode.ColorType"/>
+    /// and <see cref="MacroCode.EdgeColorType"/>.</summary>
+    public uint[,] ColorTypes { get; }
 
     /// <summary>Resets the colors in the stack.</summary>
     /// <param name="drawState">Draw state.</param>
@@ -191,9 +195,9 @@ internal sealed class SeStringColorStackSet
         }
 
         // Opacity component is ignored.
-        var color = themeIndex >= 0 && themeIndex < this.colorTypes.GetLength(1) &&
-                    colorTypeIndex < this.colorTypes.GetLength(0)
-                        ? this.colorTypes[colorTypeIndex, themeIndex]
+        var color = themeIndex >= 0 && themeIndex < this.ColorTypes.GetLength(1) &&
+                    colorTypeIndex < this.ColorTypes.GetLength(0)
+                        ? this.ColorTypes[colorTypeIndex, themeIndex]
                         : 0u;
 
         rgbaStack.Add(color | 0xFF000000u);
