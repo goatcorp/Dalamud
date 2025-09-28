@@ -162,6 +162,7 @@ internal record PluginManifest : IPluginManifest
     public string? Dip17Channel { get; init; }
 
     /// <inheritdoc/>
+    [JsonIgnore]
     public bool IsAvailableForTesting
         => this.TestingAssemblyVersion != null &&
            this.TestingAssemblyVersion > this.AssemblyVersion &&
