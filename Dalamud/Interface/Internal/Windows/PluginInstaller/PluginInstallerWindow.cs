@@ -3782,16 +3782,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private bool IsManifestFiltered(IPluginManifest manifest)
     {
-        var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
-        var oldApi = (manifest.TestingDalamudApiLevel == null
-                            || manifest.TestingDalamudApiLevel < PluginManager.DalamudApiLevel)
-                          && manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
-        var installed = this.IsManifestInstalled(manifest).IsInstalled;
-
-        if (oldApi && !hasSearchString && !installed)
-            return true;
-
-        if (!hasSearchString)
+        if (string.IsNullOrWhiteSpace(this.searchText))
             return false;
 
         return this.GetManifestSearchScore(manifest) < 1;
