@@ -2454,10 +2454,11 @@ internal class PluginInstallerWindow : Window, IDisposable
         var configuration = Service<DalamudConfiguration>.Get();
         var pluginManager = Service<PluginManager>.Get();
 
+        var canUseTesting = pluginManager.CanUseTesting(manifest);
         var useTesting = pluginManager.UseTesting(manifest);
         var wasSeen = this.WasPluginSeen(manifest.InternalName);
 
-        var effectiveApiLevel = useTesting && manifest.TestingDalamudApiLevel != null ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
+        var effectiveApiLevel = useTesting ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
         var isOutdated = effectiveApiLevel < PluginManager.DalamudApiLevel;
 
         var isIncompatible = manifest.MinimumDalamudVersion != null &&
@@ -2487,7 +2488,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             label += Locs.PluginTitleMod_TestingExclusive;
         }
-        else if (configuration.DoPluginTest && PluginManager.HasTestingVersion(manifest))
+        else if (canUseTesting)
         {
             label += Locs.PluginTitleMod_TestingAvailable;
         }
