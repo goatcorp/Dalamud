@@ -1193,9 +1193,18 @@ internal class PluginManager : IInternalDisposableService
             return false;
 
         // API level - we keep the API before this in the installer to show as "outdated"
-        var effectiveApiLevel = this.UseTesting(manifest) && manifest.TestingDalamudApiLevel != null ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
-        if (effectiveApiLevel < DalamudApiLevel - 1 && !this.LoadAllApiLevels)
-            return false;
+        if (!this.LoadAllApiLevels)
+        {
+            var effectiveDalamudApiLevel =
+                this.CanUseTesting(manifest) &&
+                manifest.TestingDalamudApiLevel.HasValue &&
+                manifest.TestingDalamudApiLevel.Value > manifest.DalamudApiLevel
+                    ? manifest.TestingDalamudApiLevel.Value
+                    : manifest.DalamudApiLevel;
+
+            if (effectiveDalamudApiLevel < PluginManager.DalamudApiLevel - 1)
+                return false;
+        }
 
         // Banned
         if (this.IsManifestBanned(manifest))
