@@ -2593,8 +2593,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var configuration = Service<DalamudConfiguration>.Get();
         var pluginManager = Service<PluginManager>.Get();
 
-        var hasTestingVersionAvailable = configuration.DoPluginTest &&
-                                         PluginManager.HasTestingVersion(manifest);
+        var hasTestingVersionAvailable = configuration.DoPluginTest && manifest.IsAvailableForTesting;
 
         if (ImGui.BeginPopupContextItem("ItemContextMenu"u8))
         {
@@ -2689,8 +2688,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             label += Locs.PluginTitleMod_TestingVersion;
         }
 
-        var hasTestingAvailable = this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName &&
-                                                                               x.IsAvailableForTesting);
+        var hasTestingAvailable = this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName && x.IsAvailableForTesting);
         if (hasTestingAvailable && configuration.DoPluginTest && testingOptIn == null)
         {
             label += Locs.PluginTitleMod_TestingAvailable;

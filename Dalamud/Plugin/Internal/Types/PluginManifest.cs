@@ -160,4 +160,10 @@ internal record PluginManifest : IPluginManifest
     /// <inheritdoc/>
     [JsonProperty("_Dip17Channel")]
     public string? Dip17Channel { get; init; }
+
+    /// <inheritdoc/>
+    public bool IsAvailableForTesting
+        => this.TestingAssemblyVersion != null &&
+           this.TestingAssemblyVersion > this.AssemblyVersion &&
+           this.TestingDalamudApiLevel == PluginManager.DalamudApiLevel;
 }
