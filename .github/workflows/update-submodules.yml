@@ -58,7 +58,7 @@ jobs:
           echo "SUBMIT_PR=false" >> "$GITHUB_OUTPUT"
         fi
     - name: Create PR
-      if: steps.update-submodule.outputs.SUBMIT_PR == "true"
+      if: ${{ steps.update-submodule.outputs.SUBMIT_PR == 'true' }}
       run: |
         echo ${{ secrets.UPDATE_PAT }} | gh auth login --with-token
         prNumber=$(gh pr list --base ${{ matrix.branches }} --head ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --state open --json number --template "{{range .}}{{.number}}{{end}}")
