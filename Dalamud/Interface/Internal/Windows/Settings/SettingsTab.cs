@@ -1,19 +1,19 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Settings;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-public abstract class SettingsTab : IDisposable
+internal abstract class SettingsTab : IDisposable
 {
     public abstract SettingsEntry[] Entries { get; }
 
     public abstract string Title { get; }
 
-    public bool IsOpen { get; set; } = false;
+    public abstract SettingsOpenKind Kind { get; }
 
-    public virtual bool IsVisible { get; } = true;
+    public bool IsOpen { get; set; } = false;
 
     public virtual void OnOpen()
     {
