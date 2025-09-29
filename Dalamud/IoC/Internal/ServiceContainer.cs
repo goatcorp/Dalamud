@@ -112,27 +112,15 @@ internal class ServiceContainer : IServiceProvider, IServiceType
             errorStep = "property injection";
             await this.InjectProperties(instance, scopedObjects, scope);
 
+            // Invoke ctor from a separate thread (LongRunning will spawn a new one)
+            // so that it does not count towards thread pool active threads cap.
+            // Plugin ctor can block to wait for Tasks, as we currently do not support asynchronous plugin init.
             errorStep = "ctor invocation";
-            var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            var thr = new Thread(
-                () =>
-                {
-                    try
-                    {
-                        ctor.Invoke(instance, resolvedParams);
-                    }
-                    catch (Exception e)
-                    {
-                        tcs.SetException(e);
-                        return;
-                    }
-
-                    tcs.SetResult();
-                });
-
-            thr.Start();
-            await tcs.Task.ConfigureAwait(false);
-            thr.Join();
+            await Task.Factory.StartNew(
+                () => ctor.Invoke(instance, resolvedParams),
+                CancellationToken.None,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default).ConfigureAwait(false);
 
             return instance;
         }
