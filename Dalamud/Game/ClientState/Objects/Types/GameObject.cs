@@ -35,7 +35,13 @@ public interface IGameObject : IEquatable<IGameObject>
     /// <summary>
     /// Gets the data ID for linking to other respective game data.
     /// </summary>
+    [Obsolete("Renamed to BaseId")]
     public uint DataId { get; }
+
+    /// <summary>
+    /// Gets the base ID for linking to other respective game data.
+    /// </summary>
+    public uint BaseId { get; }
 
     /// <summary>
     /// Gets the ID of this GameObject's owner.
@@ -207,6 +213,9 @@ internal unsafe partial class GameObject : IGameObject
 
     /// <inheritdoc/>
     public uint DataId => this.Struct->BaseId;
+
+    /// <inheritdoc/>
+    public uint BaseId => this.Struct->BaseId;
 
     /// <inheritdoc/>
     public uint OwnerId => this.Struct->OwnerId;
