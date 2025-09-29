@@ -50,13 +50,17 @@ jobs:
         git reset --hard origin/${{ matrix.submodule.branch }}
         cd ../..
         git add ${{ matrix.submodule.path }}
-        git commit --message "Update ${{ matrix.submodule.name }}"
-        if [ $? -eq 0 ]; then
-          git push origin ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --force
-          echo "SUBMIT_PR=true" >> "$GITHUB_OUTPUT"
-        else
+
+        if [[ -z "$(git status --porcelain --untracked-files=no)" ]]; then   
+          echo "No changes detected!"
           echo "SUBMIT_PR=false" >> "$GITHUB_OUTPUT"
+          exit 0
         fi
+        
+        git commit --message "Update ${{ matrix.submodule.name }}"
+        git push origin ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --force
+        echo "SUBMIT_PR=true" >> "$GITHUB_OUTPUT"
+        
     - name: Create PR
       if: ${{ steps.update-submodule.outputs.SUBMIT_PR == 'true' }}
       run: |
