@@ -48,7 +48,7 @@ public abstract class Easing
     /// Gets the current value of the animation, following unclamped logic.
     /// </summary>
     [Obsolete($"This field has been deprecated. Use either {nameof(ValueClamped)} or {nameof(ValueUnclamped)} instead.", true)]
-    [Api13ToDo("Map this field to ValueClamped, probably.")]
+    [Api14ToDo("Map this field to ValueClamped, probably.")]
     public double Value => this.ValueUnclamped;
 
     /// <summary>
