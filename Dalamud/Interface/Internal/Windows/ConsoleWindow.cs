@@ -722,10 +722,10 @@ internal class ConsoleWindow : Window, IDisposable
                                                     .OrderBy(s => s)
                                                     .Prepend("DalamudInternal")
                                                     .Where(
-                                                        name => this.pluginFilter is "" || new FuzzyMatcher(
-                                                                    this.pluginFilter.ToLowerInvariant(),
-                                                                    MatchMode.Fuzzy).Matches(name.ToLowerInvariant()) !=
-                                                                0)
+                                                        name => string.IsNullOrWhiteSpace(this.pluginFilter) ||
+                                                                this.pluginFilter.FuzzyMatches(
+                                                                    name,
+                                                                    FuzzyMatcherMode.Fuzzy))
                                                     .ToList();
 
             ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
