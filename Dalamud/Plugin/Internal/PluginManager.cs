@@ -279,26 +279,6 @@ internal class PluginManager : IInternalDisposableService
     }
 
     /// <summary>
-    /// Check if a manifest even has an available testing version.
-    /// </summary>
-    /// <param name="manifest">The manifest to test.</param>
-    /// <returns>Whether a testing version is available.</returns>
-    public static bool HasTestingVersion(IPluginManifest manifest)
-    {
-        var av = manifest.AssemblyVersion;
-        var tv = manifest.TestingAssemblyVersion;
-        var hasTv = tv != null;
-
-        if (hasTv)
-        {
-            return tv > av &&
-                   manifest.TestingDalamudApiLevel == DalamudApiLevel;
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Get a disposable that will lock plugin lists while it is not disposed.
     /// You must NEVER use this in async code.
     /// </summary>
@@ -372,6 +352,20 @@ internal class PluginManager : IInternalDisposableService
     }
 
     /// <summary>
+    /// For a given manifest, determine if the testing version can be used over the normal version.
+    /// The higher of the two versions is calculated after checking other settings.
+    /// </summary>
+    /// <param name="manifest">Manifest to check.</param>
+    /// <returns>A value indicating whether testing can be used.</returns>
+    public bool CanUseTesting(IPluginManifest manifest)
+    {
+        if (!this.configuration.DoPluginTest)
+            return false;
+
+        return manifest.IsTestingExclusive || manifest.IsAvailableForTesting;
+    }
+
+    /// <summary>
     /// For a given manifest, determine if the testing version should be used over the normal version.
     /// The higher of the two versions is calculated after checking other settings.
     /// </summary>
@@ -379,16 +373,7 @@ internal class PluginManager : IInternalDisposableService
     /// <returns>A value indicating whether testing should be used.</returns>
     public bool UseTesting(IPluginManifest manifest)
     {
-        if (!this.configuration.DoPluginTest)
-            return false;
-
-        if (!this.HasTestingOptIn(manifest))
-            return false;
-
-        if (manifest.IsTestingExclusive)
-            return true;
-
-        return HasTestingVersion(manifest);
+        return this.CanUseTesting(manifest) && this.HasTestingOptIn(manifest);
     }
 
     /// <inheritdoc/>
@@ -1208,9 +1193,18 @@ internal class PluginManager : IInternalDisposableService
             return false;
 
         // API level - we keep the API before this in the installer to show as "outdated"
-        var effectiveApiLevel = this.UseTesting(manifest) && manifest.TestingDalamudApiLevel != null ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
-        if (effectiveApiLevel < DalamudApiLevel - 1 && !this.LoadAllApiLevels)
-            return false;
+        if (!this.LoadAllApiLevels)
+        {
+            var effectiveDalamudApiLevel =
+                this.CanUseTesting(manifest) &&
+                manifest.TestingDalamudApiLevel.HasValue &&
+                manifest.TestingDalamudApiLevel.Value > manifest.DalamudApiLevel
+                    ? manifest.TestingDalamudApiLevel.Value
+                    : manifest.DalamudApiLevel;
+
+            if (effectiveDalamudApiLevel < PluginManager.DalamudApiLevel - 1)
+                return false;
+        }
 
         // Banned
         if (this.IsManifestBanned(manifest))
