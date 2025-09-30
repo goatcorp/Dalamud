@@ -86,7 +86,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         : base(
             "TitleScreenMenuOverlay",
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar |
-            ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus)
+            ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus |
+            ImGuiWindowFlags.NoDocking)
     {
         this.showTsm = consoleManager.AddVariable("dalamud.show_tsm", "Show the Title Screen Menu", true);
 
