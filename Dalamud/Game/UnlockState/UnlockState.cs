@@ -39,6 +39,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     [ServiceManager.ServiceDependency]
     private readonly GameGui gameGui = Service<GameGui>.Get();
 
+    [ServiceManager.ServiceDependency]
+    private readonly RecipeData recipeData = Service<RecipeData>.Get();
+
     [ServiceManager.ServiceConstructor]
     private UnlockState()
     {
@@ -347,6 +350,12 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
+    public bool IsRecipeUnlocked(Recipe row)
+    {
+        return this.recipeData.IsRecipeUnlocked(row);
+    }
+
+    /// <inheritdoc/>
     public bool IsSecretRecipeBookUnlocked(SecretRecipeBook row)
     {
         if (!this.IsLoaded)
@@ -495,6 +504,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<PublicContentSheet>(out var publicContentRow))
             return this.IsPublicContentUnlocked(publicContentRow);
 
+        if (rowRef.TryGetValue<Recipe>(out var recipeRow))
+            return this.IsRecipeUnlocked(recipeRow);
+
         if (rowRef.TryGetValue<SecretRecipeBook>(out var secretRecipeBookRow))
             return this.IsSecretRecipeBookUnlocked(secretRecipeBookRow);
 
@@ -584,6 +596,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.UpdateUnlocksForSheet<Ornament>(fireEvent);
         this.UpdateUnlocksForSheet<Perform>(fireEvent);
         this.UpdateUnlocksForSheet<PublicContentSheet>(fireEvent);
+        this.UpdateUnlocksForSheet<Recipe>(fireEvent);
         this.UpdateUnlocksForSheet<SecretRecipeBook>(fireEvent);
         this.UpdateUnlocksForSheet<Trait>(fireEvent);
         this.UpdateUnlocksForSheet<TripleTriadCard>(fireEvent);
@@ -596,7 +609,6 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         // - FishingSpot
         // - Spearfishing
         // - Adventure (Sightseeing)
-        // - Recipes
         // - MinerFolkloreTome
         // - BotanistFolkloreTome
         // - FishingFolkloreTome
@@ -766,6 +778,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsPublicContentUnlocked(PublicContentSheet row) => this.unlockStateService.IsPublicContentUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsRecipeUnlocked(Recipe row) => this.unlockStateService.IsRecipeUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsRowRefUnlocked(RowRef rowRef) => this.unlockStateService.IsRowRefUnlocked(rowRef);
