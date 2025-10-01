@@ -246,6 +246,13 @@ public interface IUnlockState
     bool IsPublicContentUnlocked(PublicContent row);
 
     /// <summary>
+    /// Determines whether the specified Recipe is unlocked.
+    /// </summary>
+    /// <param name="row">The Recipe row to check.</param>
+    /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
+    bool IsRecipeUnlocked(Recipe row);
+
+    /// <summary>
     /// Determines whether the underlying RowRef type is unlocked.
     /// </summary>
     /// <param name="rowRef">The RowRef to check.</param>
