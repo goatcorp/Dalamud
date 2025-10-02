@@ -125,7 +125,7 @@ internal unsafe class RecipeData : IInternalDisposableService
     {
         // based on Client::Game::UI::RecipeNote.InitializeStructs
 
-        if (!this.NeedsUpdate())
+        if (!this.clientState.IsLoggedIn || !this.NeedsUpdate())
             return;
 
         Array.Clear(this.unlockedNoteBookDivisionsCount, 0, this.unlockedNoteBookDivisionsCount.Length);
