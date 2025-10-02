@@ -113,11 +113,11 @@ public interface IUnlockState
     bool IsCharaMakeCustomizeUnlocked(CharaMakeCustomize row);
 
     /// <summary>
-    /// Determines whether the specified ChocoboTaxi (Chocobokeeps of the Chocobo Porter service) is unlocked.
+    /// Determines whether the specified ChocoboTaxiStand (Chocobokeeps of the Chocobo Porter service) is unlocked.
     /// </summary>
-    /// <param name="row">The ChocoboTaxi row to check.</param>
+    /// <param name="row">The ChocoboTaxiStand row to check.</param>
     /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
-    bool IsChocoboTaxiUnlocked(ChocoboTaxi row);
+    bool IsChocoboTaxiStandUnlocked(ChocoboTaxiStand row);
 
     /// <summary>
     /// Determines whether the specified Companion (Minions) is unlocked.

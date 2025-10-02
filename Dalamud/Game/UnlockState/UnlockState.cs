@@ -167,12 +167,12 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
-    public bool IsChocoboTaxiUnlocked(ChocoboTaxi row)
+    public bool IsChocoboTaxiStandUnlocked(ChocoboTaxiStand row)
     {
         if (!this.IsLoaded)
             return false;
 
-        return UIState.Instance()->IsChocoboTaxiStandUnlocked(row.RowId);
+        return UIState.Instance()->IsChocoboTaxiStandUnlocked(row.RowId - 0x120000);
     }
 
     /// <inheritdoc/>
@@ -453,8 +453,8 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<CharaMakeCustomize>(out var charaMakeCustomizeRow))
             return this.IsCharaMakeCustomizeUnlocked(charaMakeCustomizeRow);
 
-        if (rowRef.TryGetValue<ChocoboTaxi>(out var chocoboTaxiRow))
-            return this.IsChocoboTaxiUnlocked(chocoboTaxiRow);
+        if (rowRef.TryGetValue<ChocoboTaxiStand>(out var chocoboTaxiStandRow))
+            return this.IsChocoboTaxiStandUnlocked(chocoboTaxiStandRow);
 
         if (rowRef.TryGetValue<Companion>(out var companionRow))
             return this.IsCompanionUnlocked(companionRow);
@@ -723,7 +723,7 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
     public bool IsCharaMakeCustomizeUnlocked(CharaMakeCustomize row) => this.unlockStateService.IsCharaMakeCustomizeUnlocked(row);
 
     /// <inheritdoc/>
-    public bool IsChocoboTaxiUnlocked(ChocoboTaxi row) => this.unlockStateService.IsChocoboTaxiUnlocked(row);
+    public bool IsChocoboTaxiStandUnlocked(ChocoboTaxiStand row) => this.unlockStateService.IsChocoboTaxiStandUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsCompanionUnlocked(Companion row) => this.unlockStateService.IsCompanionUnlocked(row);
