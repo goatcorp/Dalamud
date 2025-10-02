@@ -53,6 +53,7 @@ internal unsafe class RecipeData : IInternalDisposableService
 
         this.clientState.Login += this.Update;
         this.clientState.Logout += this.OnLogout;
+        this.clientState.LevelChanged += this.OnlevelChanged;
         this.gameGui.UnlocksUpdate += this.Update;
     }
 
@@ -61,6 +62,7 @@ internal unsafe class RecipeData : IInternalDisposableService
     {
         this.clientState.Login -= this.Update;
         this.clientState.Logout -= this.OnLogout;
+        this.clientState.LevelChanged -= this.OnlevelChanged;
         this.gameGui.UnlocksUpdate -= this.Update;
     }
 
@@ -110,9 +112,18 @@ internal unsafe class RecipeData : IInternalDisposableService
         this.cachedCompletedQuests = null;
     }
 
+    private void OnlevelChanged(uint classJobId, uint level)
+    {
+        if (this.dataManager.GetExcelSheet<ClassJob>().TryGetRow(classJobId, out var classJobRow) &&
+            classJobRow.ClassJobCategory.RowId == 33) // Crafter
+        {
+            this.Update();
+        }
+    }
+
     private void Update()
     {
-        // Client::Game::UI::RecipeNote.InitializeStructs
+        // based on Client::Game::UI::RecipeNote.InitializeStructs
 
         if (!this.NeedsUpdate())
             return;
