@@ -5,6 +5,7 @@ using CommunityToolkit.HighPerformance;
 using Dalamud.Data;
 using Dalamud.Game.Gui;
 
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.Interop;
 
@@ -33,6 +34,7 @@ internal unsafe class RecipeData : IInternalDisposableService
     private readonly ushort[,] noteBookDivisionIds;
     private byte[]? cachedUnlockedSecretRecipeBooks;
     private byte[]? cachedUnlockLinks;
+    private byte[]? cachedCompletedQuests;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RecipeData"/> class.
@@ -105,6 +107,7 @@ internal unsafe class RecipeData : IInternalDisposableService
     {
         this.cachedUnlockedSecretRecipeBooks = null;
         this.cachedUnlockLinks = null;
+        this.cachedCompletedQuests = null;
     }
 
     private void Update()
@@ -249,6 +252,12 @@ internal unsafe class RecipeData : IInternalDisposableService
         if (this.cachedUnlockLinks == null || !UIState.Instance()->UnlockLinkBitmask.SequenceEqual(this.cachedUnlockLinks))
         {
             this.cachedUnlockLinks = UIState.Instance()->UnlockLinkBitmask.ToArray();
+            changed |= true;
+        }
+
+        if (this.cachedCompletedQuests == null || !QuestManager.Instance()->CompletedQuestsBitmask.SequenceEqual(this.cachedCompletedQuests))
+        {
+            this.cachedCompletedQuests = QuestManager.Instance()->CompletedQuestsBitmask.ToArray();
             changed |= true;
         }
 
