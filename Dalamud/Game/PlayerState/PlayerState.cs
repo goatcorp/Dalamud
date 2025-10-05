@@ -152,6 +152,21 @@ internal unsafe class PlayerState : IServiceType, IPlayerState
     public MentorVersion MentorVersion => this.IsLoaded ? (MentorVersion)CSPlayerState.Instance()->MentorVersion : default;
 
     /// <inheritdoc/>
+    public bool IsMentor => this.IsLoaded && CSPlayerState.Instance()->IsMentor();
+
+    /// <inheritdoc/>
+    public bool IsBattleMentor => this.IsLoaded && CSPlayerState.Instance()->IsBattleMentor();
+
+    /// <inheritdoc/>
+    public bool IsTradeMentor => this.IsLoaded && CSPlayerState.Instance()->IsTradeMentor();
+
+    /// <inheritdoc/>
+    public bool IsNovice => this.IsLoaded && CSPlayerState.Instance()->IsNovice();
+
+    /// <inheritdoc/>
+    public bool IsReturner => this.IsLoaded && CSPlayerState.Instance()->IsReturner();
+
+    /// <inheritdoc/>
     public int GetAttribute(PlayerAttribute attribute) => this.IsLoaded ? CSPlayerState.Instance()->Attributes[(int)attribute] : default;
 
     /// <inheritdoc/>

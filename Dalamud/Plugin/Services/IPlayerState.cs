@@ -177,6 +177,34 @@ public interface IPlayerState
     MentorVersion MentorVersion { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the local player is any kind of Mentor (Battle or Trade Mentor).
+    /// </summary>
+    bool IsMentor { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the local player is a Battle Mentor.
+    /// </summary>
+    bool IsBattleMentor { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the local player is a Trade Mentor.
+    /// </summary>
+    bool IsTradeMentor { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the local player is a novice (aka. Sprout or New Adventurer).
+    /// </summary>
+    /// <remarks>
+    /// Can be <see langword="false"/> if <c>/nastatus</c> was used to deactivate it.
+    /// </remarks>
+    bool IsNovice { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the local player is a returner.
+    /// </summary>
+    bool IsReturner { get; }
+
+    /// <summary>
     /// Gets the value of an attribute of the local character.
     /// </summary>
     /// <param name="attribute">The attribute to check.</param>
