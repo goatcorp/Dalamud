@@ -1,4 +1,5 @@
 using Dalamud.Data;
+using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 
@@ -15,9 +16,10 @@ namespace Dalamud.Game.PlayerState;
 /// <summary>
 /// This class contains the PlayerState wrappers.
 /// </summary>
+[PluginInterface]
 [ServiceManager.EarlyLoadedService]
 [ResolveVia<IPlayerState>]
-internal unsafe class PlayerState : IPlayerState, IServiceType
+internal unsafe class PlayerState : IServiceType, IPlayerState
 {
     /// <inheritdoc/>
     public bool IsLoaded => CSPlayerState.Instance()->IsLoaded;
