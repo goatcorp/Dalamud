@@ -8,15 +8,16 @@ namespace Dalamud.Plugin.Services;
 #pragma warning disable SA1400 // Access modifier should be declared: Interface members are public by default
 
 /// <summary>
-/// Interface for determining unlock state of various content in the game.
+/// Interface for determining the players state.
 /// </summary>
 public interface IPlayerState
 {
     /// <summary>
-    /// Gets a value indicating whether the local character is loaded.
+    /// Gets a value indicating whether the local players data is loaded.
     /// </summary>
     /// <remarks>
-    /// The actual GameObject will not immediately exist when this changes to true.
+    /// PlayerState is separate from <see cref="IObjectTable.LocalPlayer"/>,
+    /// and as such the game object might not exist when it's loaded.
     /// </remarks>
     bool IsLoaded { get; }
 
@@ -141,37 +142,37 @@ public interface IPlayerState
     RowRef<GrandCompany> GrandCompany { get; }
 
     /// <summary>
-    /// Gets the Aetheryte row for the local character's home aetheryte.
+    /// Gets the Aetheryte row for the local player's home aetheryte.
     /// </summary>
     RowRef<Aetheryte> HomeAetheryte { get; }
 
     /// <summary>
-    /// Gets a span of Aetheryte rows for the local character's favourite aetherytes.
+    /// Gets a span of Aetheryte rows for the local player's favourite aetherytes.
     /// </summary>
     ReadOnlySpan<RowRef<Aetheryte>> FavouriteAetherytes { get; }
 
     /// <summary>
-    /// Gets the Aetheryte row for the local character's free aetheryte.
+    /// Gets the Aetheryte row for the local player's free aetheryte.
     /// </summary>
     RowRef<Aetheryte> FreeAetheryte { get; }
 
     /// <summary>
-    /// Gets the amount of received player commendations of the local character.
+    /// Gets the amount of received player commendations of the local player.
     /// </summary>
     uint BaseRestedExperience { get; }
 
     /// <summary>
-    /// Gets the amount of received player commendations of the local character.
+    /// Gets the amount of received player commendations of the local player.
     /// </summary>
     short PlayerCommendations { get; }
 
     /// <summary>
-    /// Gets the Carrier Level of Delivery Moogle Quests of the local character.
+    /// Gets the Carrier Level of Delivery Moogle Quests of the local player.
     /// </summary>
     byte DeliveryLevel { get; }
 
     /// <summary>
-    /// Gets the mentor version of the local character.
+    /// Gets the mentor version of the local player.
     /// </summary>
     MentorVersion MentorVersion { get; }
 

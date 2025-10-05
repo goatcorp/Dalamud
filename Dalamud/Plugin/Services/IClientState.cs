@@ -109,7 +109,7 @@ public interface IClientState
     /// <summary>
     /// Gets the local player character, if one is present.
     /// </summary>
-    [Obsolete($"Use {nameof(IPlayerState)} or {nameof(IObjectTable)}.{nameof(IObjectTable.LocalPlayer)} if you need to.")]
+    [Obsolete($"Use {nameof(IPlayerState)} or {nameof(IObjectTable)}.{nameof(IObjectTable.LocalPlayer)} if necessary.")]
     public IPlayerCharacter? LocalPlayer { get; }
 
     /// <summary>
