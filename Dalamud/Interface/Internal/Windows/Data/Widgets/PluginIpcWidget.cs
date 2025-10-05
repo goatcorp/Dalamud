@@ -1,10 +1,10 @@
-﻿using Dalamud.Bindings.ImGui;
-using Dalamud.Game.ClientState;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -111,12 +111,12 @@ internal class PluginIpcWidget : IDataWindowWidget
 
         if (ImGui.Button("Action GO"u8))
         {
-            this.ipcSubGo.InvokeAction(Service<ClientState>.Get().LocalPlayer);
+            this.ipcSubGo.InvokeAction(Service<ObjectTable>.Get().LocalPlayer);
         }
 
         if (ImGui.Button("Func GO"u8))
         {
-            this.callGateResponse = this.ipcSubGo.InvokeFunc(Service<ClientState>.Get().LocalPlayer);
+            this.callGateResponse = this.ipcSubGo.InvokeFunc(Service<ObjectTable>.Get().LocalPlayer);
         }
 
         if (!this.callGateResponse.IsNullOrEmpty())

@@ -150,15 +150,11 @@ internal unsafe partial class Fate
     /// <returns>True or false.</returns>
     public static bool IsValid(Fate fate)
     {
-        var clientState = Service<ClientState>.GetNullable();
-
-        if (fate == null || clientState == null)
+        if (fate == null)
             return false;
 
-        if (clientState.LocalContentId == 0)
-            return false;
-
-        return true;
+        var playerState = Service<PlayerState.PlayerState>.Get();
+        return playerState.IsLoaded == true;
     }
 
     /// <summary>

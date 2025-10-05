@@ -1,9 +1,7 @@
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Memory;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
 
@@ -170,15 +168,11 @@ internal partial class GameObject
     /// <returns>True or false.</returns>
     public static bool IsValid(IGameObject? actor)
     {
-        var clientState = Service<ClientState>.GetNullable();
-
-        if (actor is null || clientState == null)
+        if (actor == null)
             return false;
 
-        if (clientState.LocalContentId == 0)
-            return false;
-
-        return true;
+        var playerState = Service<PlayerState.PlayerState>.Get();
+        return playerState.IsLoaded == true;
     }
 
     /// <summary>

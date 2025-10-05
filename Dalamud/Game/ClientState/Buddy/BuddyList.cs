@@ -24,7 +24,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
     private const uint InvalidObjectID = 0xE0000000;
 
     [ServiceManager.ServiceDependency]
-    private readonly ClientState clientState = Service<ClientState>.Get();
+    private readonly PlayerState.PlayerState playerState = Service<PlayerState.PlayerState>.Get();
 
     [ServiceManager.ServiceConstructor]
     private BuddyList()
@@ -105,10 +105,10 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
     /// <inheritdoc/>
     public IBuddyMember? CreateBuddyMemberReference(IntPtr address)
     {
-        if (this.clientState.LocalContentId == 0)
+        if (address == IntPtr.Zero)
             return null;
 
-        if (address == IntPtr.Zero)
+        if (!this.playerState.IsLoaded)
             return null;
 
         var buddy = new BuddyMember(address);

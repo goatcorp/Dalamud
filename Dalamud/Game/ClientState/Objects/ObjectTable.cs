@@ -31,16 +31,16 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
 {
     private static int objectTableLength;
 
-    private readonly ClientState clientState;
+    [ServiceManager.ServiceDependency]
+    private readonly PlayerState.PlayerState playerState = Service<PlayerState.PlayerState>.Get();
+
     private readonly CachedEntry[] cachedObjectTable;
 
     private readonly Enumerator?[] frameworkThreadEnumerators = new Enumerator?[4];
 
     [ServiceManager.ServiceConstructor]
-    private unsafe ObjectTable(ClientState clientState)
+    private unsafe ObjectTable()
     {
-        this.clientState = clientState;
-
         var nativeObjectTable = CSGameObjectManager.Instance()->Objects.IndexSorted;
         objectTableLength = nativeObjectTable.Length;
 
@@ -65,6 +65,9 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
 
     /// <inheritdoc/>
     public int Length => objectTableLength;
+
+    /// <inheritdoc/>
+    public IPlayerCharacter? LocalPlayer => this[0] as IPlayerCharacter;
 
     /// <inheritdoc/>
     public IEnumerable<IBattleChara> PlayerObjects => this.GetPlayerObjects();
@@ -142,10 +145,10 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     {
         ThreadSafety.AssertMainThread();
 
-        if (this.clientState.LocalContentId == 0)
+        if (address == nint.Zero)
             return null;
 
-        if (address == nint.Zero)
+        if (!this.playerState.IsLoaded)
             return null;
 
         var obj = (CSGameObject*)address;

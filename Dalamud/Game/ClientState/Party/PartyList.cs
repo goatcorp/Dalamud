@@ -25,7 +25,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     private const int AllianceLength = 20;
 
     [ServiceManager.ServiceDependency]
-    private readonly ClientState clientState = Service<ClientState>.Get();
+    private readonly PlayerState.PlayerState playerState = Service<PlayerState.PlayerState>.Get();
 
     [ServiceManager.ServiceConstructor]
     private PartyList()
@@ -91,10 +91,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     /// <inheritdoc/>
     public IPartyMember? CreatePartyMemberReference(IntPtr address)
     {
-        if (this.clientState.LocalContentId == 0)
-            return null;
-
-        if (address == IntPtr.Zero)
+        if (address == IntPtr.Zero || !this.playerState.IsLoaded)
             return null;
 
         return new PartyMember(address);
@@ -112,10 +109,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     /// <inheritdoc/>
     public IPartyMember? CreateAllianceMemberReference(IntPtr address)
     {
-        if (this.clientState.LocalContentId == 0)
-            return null;
-
-        if (address == IntPtr.Zero)
+        if (address == IntPtr.Zero || !this.playerState.IsLoaded)
             return null;
 
         return new PartyMember(address);

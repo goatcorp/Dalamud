@@ -35,7 +35,6 @@ using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 using AddonSheet = Lumina.Excel.Sheets.Addon;
-using PlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
 using StatusSheet = Lumina.Excel.Sheets.Status;
 
 namespace Dalamud.Game.Text.Evaluator;
@@ -67,6 +66,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     [ServiceManager.ServiceDependency]
     private readonly SheetRedirectResolver sheetRedirectResolver = Service<SheetRedirectResolver>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly PlayerState.PlayerState playerState = Service<PlayerState.PlayerState>.Get();
 
     private readonly ConcurrentDictionary<StringCacheKey<ActionKind>, string> actStrCache = [];
     private readonly ConcurrentDictionary<StringCacheKey<ObjectKind>, string> objStrCache = [];
@@ -564,7 +566,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             return false;
 
         // the game uses LocalPlayer here, but using PlayerState seems more safe.
-        return this.ResolveStringExpression(in context, PlayerState.Instance()->EntityId == entityId ? eTrue : eFalse);
+        return this.ResolveStringExpression(in context, playerState.EntityId == entityId ? eTrue : eFalse);
     }
 
     private bool TryResolveColor(in SeStringContext context, in ReadOnlySePayloadSpan payload)

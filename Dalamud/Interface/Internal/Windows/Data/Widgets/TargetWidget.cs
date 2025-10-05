@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface.Utility;
@@ -33,7 +33,7 @@ internal class TargetWidget : IDataWindowWidget
     {
         ImGui.Checkbox("Resolve GameData"u8, ref this.resolveGameData);
 
-        var clientState = Service<ClientState>.Get();
+        var objectTable = Service<ObjectTable>.Get();
         var targetMgr = Service<TargetManager>.Get();
 
         if (targetMgr.Target != null)
@@ -80,7 +80,7 @@ internal class TargetWidget : IDataWindowWidget
         if (ImGui.Button("Clear FT"u8))
             targetMgr.FocusTarget = null;
 
-        var localPlayer = clientState.LocalPlayer;
+        var localPlayer = objectTable.LocalPlayer;
 
         if (localPlayer != null)
         {
