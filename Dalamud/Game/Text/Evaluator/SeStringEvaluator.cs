@@ -566,7 +566,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             return false;
 
         // the game uses LocalPlayer here, but using PlayerState seems more safe.
-        return this.ResolveStringExpression(in context, playerState.EntityId == entityId ? eTrue : eFalse);
+        return this.ResolveStringExpression(in context, this.playerState.EntityId == entityId ? eTrue : eFalse);
     }
 
     private bool TryResolveColor(in SeStringContext context, in ReadOnlySePayloadSpan payload)
