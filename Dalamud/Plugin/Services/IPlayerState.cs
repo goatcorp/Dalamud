@@ -149,7 +149,7 @@ public interface IPlayerState
     /// <summary>
     /// Gets a span of Aetheryte rows for the local player's favourite aetherytes.
     /// </summary>
-    ReadOnlySpan<RowRef<Aetheryte>> FavouriteAetherytes { get; }
+    ReadOnlySpan<RowRef<Aetheryte>> FavoriteAetherytes { get; }
 
     /// <summary>
     /// Gets the Aetheryte row for the local player's free aetheryte.

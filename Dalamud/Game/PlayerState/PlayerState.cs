@@ -118,15 +118,18 @@ internal unsafe class PlayerState : IServiceType, IPlayerState
     public RowRef<Aetheryte> HomeAetheryte => this.IsLoaded ? LuminaUtils.CreateRef<Aetheryte>(CSPlayerState.Instance()->HomeAetheryteId) : default;
 
     /// <inheritdoc/>
-    public ReadOnlySpan<RowRef<Aetheryte>> FavouriteAetherytes
+    public ReadOnlySpan<RowRef<Aetheryte>> FavoriteAetherytes
     {
         get
         {
             var playerState = CSPlayerState.Instance();
-            if (playerState->IsLoaded || playerState->FavouriteAetheryteCount == 0)
-                return [];
+            if (!playerState->IsLoaded)
+                return default;
 
             var count = playerState->FavouriteAetheryteCount;
+            if (count == 0)
+                return default;
+
             var array = new RowRef<Aetheryte>[count];
 
             for (var i = 0; i < count; i++)
