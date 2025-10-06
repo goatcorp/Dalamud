@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using Dalamud.Game.PlayerState;
 
 using Lumina.Excel;
@@ -147,9 +149,9 @@ public interface IPlayerState
     RowRef<Aetheryte> HomeAetheryte { get; }
 
     /// <summary>
-    /// Gets a span of Aetheryte rows for the local player's favourite aetherytes.
+    /// Gets an array of Aetheryte rows for the local player's favourite aetherytes.
     /// </summary>
-    ReadOnlySpan<RowRef<Aetheryte>> FavoriteAetherytes { get; }
+    IReadOnlyList<RowRef<Aetheryte>> FavoriteAetherytes { get; }
 
     /// <summary>
     /// Gets the Aetheryte row for the local player's free aetheryte.

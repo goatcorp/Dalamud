@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using Dalamud.Data;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -118,7 +120,7 @@ internal unsafe class PlayerState : IServiceType, IPlayerState
     public RowRef<Aetheryte> HomeAetheryte => this.IsLoaded ? LuminaUtils.CreateRef<Aetheryte>(CSPlayerState.Instance()->HomeAetheryteId) : default;
 
     /// <inheritdoc/>
-    public ReadOnlySpan<RowRef<Aetheryte>> FavoriteAetherytes
+    public IReadOnlyList<RowRef<Aetheryte>> FavoriteAetherytes
     {
         get
         {
