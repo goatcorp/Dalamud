@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
@@ -8,6 +10,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Interface for determining unlock state of various content in the game.
 /// </summary>
+[Experimental("UnlockState")]
 public interface IUnlockState
 {
     /// <summary>
