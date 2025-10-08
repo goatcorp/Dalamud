@@ -1,4 +1,6 @@
 using Dalamud.Game.ClientState.JobGauge.Enums;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace Dalamud.Game.ClientState.JobGauge.Types;
@@ -69,37 +71,39 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     /// Gets the current aether flags.
     /// Use the summon accessors instead.
     /// </summary>
+    [Api14ToDo("Declare our own enum for this to avoid CS type.")]
+    [Obsolete("Use specific accessors instead until API14.")]
     public AetherFlags AetherFlags => this.Struct->AetherFlags;
 
     /// <summary>
     /// Gets a value indicating whether Bahamut is ready to be summoned.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool IsBahamutReady => !this.AetherFlags.HasFlag(AetherFlags.PhoenixReady);
+    public bool IsBahamutReady => !this.Struct->AetherFlags.HasFlag(AetherFlags.PhoenixReady);
 
     /// <summary>
     /// Gets a value indicating whether if Phoenix is ready to be summoned.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool IsPhoenixReady => this.AetherFlags.HasFlag(AetherFlags.PhoenixReady);
+    public bool IsPhoenixReady => this.Struct->AetherFlags.HasFlag(AetherFlags.PhoenixReady);
 
     /// <summary>
     /// Gets a value indicating whether if Ifrit is ready to be summoned.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool IsIfritReady => this.AetherFlags.HasFlag(AetherFlags.IfritReady);
+    public bool IsIfritReady => this.Struct->AetherFlags.HasFlag(AetherFlags.IfritReady);
 
     /// <summary>
     /// Gets a value indicating whether if Titan is ready to be summoned.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool IsTitanReady => this.AetherFlags.HasFlag(AetherFlags.TitanReady);
+    public bool IsTitanReady => this.Struct->AetherFlags.HasFlag(AetherFlags.TitanReady);
 
     /// <summary>
     /// Gets a value indicating whether if Garuda is ready to be summoned.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool IsGarudaReady => this.AetherFlags.HasFlag(AetherFlags.GarudaReady);
+    public bool IsGarudaReady => this.Struct->AetherFlags.HasFlag(AetherFlags.GarudaReady);
 
     /// <summary>
     /// Gets a value indicating whether if Ifrit is currently attuned.
@@ -128,5 +132,5 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     /// <summary>
     /// Gets the amount of Aetherflow available.
     /// </summary>
-    public byte AetherflowStacks => (byte)(this.AetherFlags & AetherFlags.Aetherflow);
+    public byte AetherflowStacks => (byte)(this.Struct->AetherFlags & AetherFlags.Aetherflow);
 }
