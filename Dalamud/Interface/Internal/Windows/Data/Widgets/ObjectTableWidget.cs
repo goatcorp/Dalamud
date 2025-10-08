@@ -4,6 +4,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Gui;
+using Dalamud.Game.PlayerState;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -39,12 +40,13 @@ internal class ObjectTableWidget : IDataWindowWidget
 
         var chatGui = Service<ChatGui>.Get();
         var clientState = Service<ClientState>.Get();
+        var playerState = Service<PlayerState>.Get();
         var gameGui = Service<GameGui>.Get();
         var objectTable = Service<ObjectTable>.Get();
 
         var stateString = string.Empty;
 
-        if (clientState.LocalPlayer == null)
+        if (objectTable.LocalPlayer == null)
         {
             ImGui.Text("LocalPlayer null."u8);
         }
@@ -55,10 +57,10 @@ internal class ObjectTableWidget : IDataWindowWidget
         else
         {
             stateString += $"ObjectTableLen: {objectTable.Length}\n";
-            stateString += $"LocalPlayerName: {clientState.LocalPlayer.Name}\n";
-            stateString += $"CurrentWorldName: {(this.resolveGameData ? clientState.LocalPlayer.CurrentWorld.ValueNullable?.Name : clientState.LocalPlayer.CurrentWorld.RowId.ToString())}\n";
-            stateString += $"HomeWorldName: {(this.resolveGameData ? clientState.LocalPlayer.HomeWorld.ValueNullable?.Name : clientState.LocalPlayer.HomeWorld.RowId.ToString())}\n";
-            stateString += $"LocalCID: {clientState.LocalContentId:X}\n";
+            stateString += $"LocalPlayerName: {playerState.CharacterName}\n";
+            stateString += $"CurrentWorldName: {(this.resolveGameData ? playerState.CurrentWorld.ValueNullable?.Name : playerState.CurrentWorld.RowId.ToString())}\n";
+            stateString += $"HomeWorldName: {(this.resolveGameData ? playerState.HomeWorld.ValueNullable?.Name : playerState.HomeWorld.RowId.ToString())}\n";
+            stateString += $"LocalCID: {playerState.ContentId:X}\n";
             stateString += $"LastLinkedItem: {chatGui.LastLinkedItemId}\n";
             stateString += $"TerritoryType: {clientState.TerritoryType}\n\n";
 

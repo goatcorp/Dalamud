@@ -46,6 +46,12 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     [ServiceManager.ServiceDependency]
     private readonly NetworkHandlers networkHandlers = Service<NetworkHandlers>.Get();
 
+    [ServiceManager.ServiceDependency]
+    private readonly PlayerState.PlayerState playerState = Service<PlayerState.PlayerState>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
+
     private Hook<LogoutCallbackInterface.Delegates.OnLogout> onLogoutHook;
     private bool initialized;
     private ushort territoryTypeId;
@@ -184,10 +190,10 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     }
 
     /// <inheritdoc/>
-    public IPlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as IPlayerCharacter;
+    public IPlayerCharacter? LocalPlayer => this.objectTable.LocalPlayer;
 
     /// <inheritdoc/>
-    public unsafe ulong LocalContentId => PlayerState.Instance()->ContentId;
+    public unsafe ulong LocalContentId => this.playerState.ContentId;
 
     /// <inheritdoc/>
     public unsafe bool IsLoggedIn
@@ -241,7 +247,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public bool IsClientIdle(out ConditionFlag blockingFlag)
     {
         blockingFlag = 0;
-        if (this.LocalPlayer is null) return true;
+        if (this.objectTable.LocalPlayer is null) return true;
 
         var condition = Service<Conditions.Condition>.GetNullable();
 
@@ -368,7 +374,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         if (condition == null || gameGui == null || data == null)
             return;
 
-        if (condition.Any() && this.lastConditionNone && this.LocalPlayer != null)
+        if (condition.Any() && this.lastConditionNone && this.objectTable.LocalPlayer != null)
         {
             Log.Debug("Is login");
             this.lastConditionNone = false;

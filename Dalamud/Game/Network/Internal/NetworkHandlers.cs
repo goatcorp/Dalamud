@@ -16,13 +16,12 @@ using Dalamud.Hooking;
 using Dalamud.Networking.Http;
 using Dalamud.Utility;
 
-using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.Network;
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
+
 using Lumina.Excel.Sheets;
+
 using Serilog;
 
 namespace Dalamud.Game.Network.Internal;
@@ -269,29 +268,8 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private static (ulong UploaderId, uint WorldId) GetUploaderInfo()
     {
-        var agentLobby = AgentLobby.Instance();
-
-        var uploaderId = agentLobby->LobbyData.ContentId;
-        if (uploaderId == 0)
-        {
-            var playerState = PlayerState.Instance();
-            if (playerState->IsLoaded)
-            {
-                uploaderId = playerState->ContentId;
-            }
-        }
-
-        var worldId = agentLobby->LobbyData.CurrentWorldId;
-        if (worldId == 0)
-        {
-            var localPlayer = Control.GetLocalPlayer();
-            if (localPlayer != null)
-            {
-                worldId = localPlayer->CurrentWorld;
-            }
-        }
-
-        return (uploaderId, worldId);
+        var playerState = Service<PlayerState.PlayerState>.Get();
+        return (playerState.ContentId, playerState.CurrentWorld.RowId);
     }
 
     private unsafe nint CfPopDetour(PublicContentDirector.EnterContentInfoPacket* packetData)
