@@ -188,11 +188,11 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         var strPlugins = new SeString().Append(new UIForegroundPayload(color))
                                        .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
                                        .Append(new UIForegroundPayload(0))
-                                       .Append(this.locDalamudPlugins).Encode();
+                                       .Append(this.locDalamudPlugins).EncodeWithNullTerminator();
         var strSettings = new SeString().Append(new UIForegroundPayload(color))
                                         .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
                                         .Append(new UIForegroundPayload(0))
-                                        .Append(this.locDalamudSettings).Encode();
+                                        .Append(this.locDalamudSettings).EncodeWithNullTerminator();
 
         firstStringEntry->SetManagedString(strPlugins);
         secondStringEntry->SetManagedString(strSettings);
