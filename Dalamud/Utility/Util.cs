@@ -18,6 +18,7 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Support;
@@ -27,8 +28,6 @@ using TerraFX.Interop.Windows;
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
 using Windows.Win32.UI.WindowsAndMessaging;
-
-using Dalamud.Interface.Internal;
 
 using FLASHWINFO = Windows.Win32.UI.WindowsAndMessaging.FLASHWINFO;
 using HWND = Windows.Win32.Foundation.HWND;

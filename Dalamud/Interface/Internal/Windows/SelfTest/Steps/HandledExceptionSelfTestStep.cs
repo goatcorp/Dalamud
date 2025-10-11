@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 
+using Dalamud.Plugin.SelfTest;
+
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
