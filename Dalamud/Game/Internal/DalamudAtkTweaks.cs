@@ -1,12 +1,12 @@
 using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -185,17 +185,23 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         secondStringEntry->ChangeType(ValueType.String);
 
         const int color = 539;
-        var strPlugins = new SeString().Append(new UIForegroundPayload(color))
-                                       .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
-                                       .Append(new UIForegroundPayload(0))
-                                       .Append(this.locDalamudPlugins).Encode();
-        var strSettings = new SeString().Append(new UIForegroundPayload(color))
-                                        .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
-                                        .Append(new UIForegroundPayload(0))
-                                        .Append(this.locDalamudSettings).Encode();
 
-        firstStringEntry->SetManagedString(strPlugins);
-        secondStringEntry->SetManagedString(strSettings);
+        using var rssb = new RentedSeStringBuilder();
+
+        firstStringEntry->SetManagedString(rssb.Builder
+            .PushColorType(color)
+            .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
+            .PopColorType()
+            .Append(this.locDalamudPlugins)
+            .GetViewAsSpan());
+
+        rssb.Builder.Clear();
+        secondStringEntry->SetManagedString(rssb.Builder
+            .PushColorType(color)
+            .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
+            .PopColorType()
+            .Append(this.locDalamudSettings)
+            .GetViewAsSpan());
 
         // open menu with new size
         var sizeEntry = &atkValueArgs[4];
