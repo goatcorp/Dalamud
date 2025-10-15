@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     </PropertyGroup>
 
     <ItemGroup>
@@ -36,5 +36,4 @@
         <Copy SourceFiles="$(SolutionDir)bin\$(Configuration)\cimgui.dll" DestinationFolder="$(OutDir)" />
         <Copy SourceFiles="$(SolutionDir)bin\$(Configuration)\cimgui.pdb" DestinationFolder="$(OutDir)" />
     </Target>
-
 </Project>
