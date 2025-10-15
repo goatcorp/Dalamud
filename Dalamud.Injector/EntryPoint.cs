@@ -12,14 +12,13 @@ using System.Text.RegularExpressions;
 using Dalamud.Common;
 using Dalamud.Common.Game;
 using Dalamud.Common.Util;
-
 using Newtonsoft.Json;
 using Reloaded.Memory.Buffers;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-
-using static Dalamud.Injector.NativeFunctions;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Dalamud.Injector
 {
@@ -268,9 +267,9 @@ namespace Dalamud.Injector
 
         private static OSPlatform DetectPlatformHeuristic()
         {
-            var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
-            var wineServerCallPtr = NativeFunctions.GetProcAddress(ntdll, "wine_server_call");
-            var wineGetHostVersionPtr = NativeFunctions.GetProcAddress(ntdll, "wine_get_host_version");
+            var ntdll = Windows.Win32.PInvoke.GetModuleHandle("ntdll.dll");
+            var wineServerCallPtr = Windows.Win32.PInvoke.GetProcAddress(ntdll, "wine_server_call");
+            var wineGetHostVersionPtr = Windows.Win32.PInvoke.GetProcAddress(ntdll, "wine_get_host_version");
             var winePlatform = GetWinePlatform(wineGetHostVersionPtr);
             var isWine = wineServerCallPtr != nint.Zero;
 
@@ -621,10 +620,13 @@ namespace Dalamud.Injector
 
             if (warnManualInjection)
             {
-                var result = MessageBoxW(IntPtr.Zero, $"Take care: you are manually injecting Dalamud into FFXIV({string.Join(", ", processes.Select(x => $"{x.Id}"))}).\n\nIf you are doing this to use plugins before they are officially whitelisted on patch days, things may go wrong and you may get into trouble.\nWe discourage you from doing this and you won't be warned again in-game.", "Dalamud", MessageBoxType.IconWarning | MessageBoxType.OkCancel);
+                var result = Windows.Win32.PInvoke.MessageBox(
+                    HWND.Null,
+                    $"Take care: you are manually injecting Dalamud into FFXIV({string.Join(", ", processes.Select(x => $"{x.Id}"))}).\n\nIf you are doing this to use plugins before they are officially whitelisted on patch days, things may go wrong and you may get into trouble.\nWe discourage you from doing this and you won't be warned again in-game.",
+                    "Dalamud",
+                    MESSAGEBOX_STYLE.MB_ICONWARNING | MESSAGEBOX_STYLE.MB_OKCANCEL);
 
-                // IDCANCEL
-                if (result == 2)
+                if (result == MESSAGEBOX_RESULT.IDCANCEL)
                 {
                     Log.Information("User cancelled injection");
                     return -2;
@@ -934,30 +936,48 @@ namespace Dalamud.Injector
                 Inject(process, startInfo, false);
             }
 
-            var processHandleForOwner = IntPtr.Zero;
+            var processHandleForOwner = HANDLE.Null;
             if (handleOwner != IntPtr.Zero)
             {
-                if (!DuplicateHandle(Process.GetCurrentProcess().Handle, process.Handle, handleOwner, out processHandleForOwner, 0, false, DuplicateOptions.SameAccess))
+                unsafe
                 {
-                    Log.Warning("Failed to call DuplicateHandle: Win32 error code {0}", Marshal.GetLastWin32Error());
+                    if (!Windows.Win32.PInvoke.DuplicateHandle(
+                            new HANDLE(Process.GetCurrentProcess().Handle.ToPointer()),
+                            new HANDLE(process.Handle.ToPointer()),
+                            new HANDLE(handleOwner),
+                            &processHandleForOwner,
+                            0,
+                            false,
+                            DUPLICATE_HANDLE_OPTIONS.DUPLICATE_SAME_ACCESS))
+                    {
+                        Log.Warning("Failed to call DuplicateHandle: Win32 error code {0}", Marshal.GetLastWin32Error());
+                    }
                 }
             }
 
-            Console.WriteLine($"{{\"pid\": {process.Id}, \"handle\": {processHandleForOwner}}}");
+            Console.WriteLine($"{{\"pid\": {process.Id}, \"handle\": {(IntPtr)processHandleForOwner}}}");
 
             Log.CloseAndFlush();
             return 0;
         }
 
-        private static Process GetInheritableCurrentProcessHandle()
+        private static unsafe Process GetInheritableCurrentProcessHandle()
         {
-            if (!DuplicateHandle(Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, Process.GetCurrentProcess().Handle, out var inheritableCurrentProcessHandle, 0, true, DuplicateOptions.SameAccess))
+            var currentProcessHandle = new HANDLE(Process.GetCurrentProcess().Handle.ToPointer());
+            var inheritableHandle = HANDLE.Null;
+            if (!Windows.Win32.PInvoke.DuplicateHandle(
+                    currentProcessHandle,
+                    currentProcessHandle,
+                    currentProcessHandle,
+                    &inheritableHandle,
+                    0,
+                    true,
+                    DUPLICATE_HANDLE_OPTIONS.DUPLICATE_SAME_ACCESS))
             {
-                Log.Error("Failed to call DuplicateHandle: Win32 error code {0}", Marshal.GetLastWin32Error());
-                return null;
+                throw new Win32Exception("Failed to call DuplicateHandle");
             }
 
-            return new ExistingProcess(inheritableCurrentProcessHandle);
+            return new ExistingProcess(inheritableHandle);
         }
 
         private static int ProcessLaunchTestCommand(List<string> args)
@@ -1048,13 +1068,13 @@ namespace Dalamud.Injector
             }
 
             injector.GetFunctionAddress(bootModule, "Initialize", out var initAddress);
-            injector.CallRemoteFunction(initAddress, startInfoAddress, out var exitCode);
+            var exitCode = injector.CallRemoteFunction(initAddress, startInfoAddress);
 
             // ======================================================
 
             if (exitCode > 0)
             {
-                Log.Error($"Dalamud.Boot::Initialize returned {exitCode}");
+                Log.Error("Dalamud.Boot::Initialize returned {ExitCode}", exitCode);
                 return;
             }
 
