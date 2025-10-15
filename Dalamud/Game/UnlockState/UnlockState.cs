@@ -174,7 +174,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return false;
 
-        return UIState.Instance()->IsChocoboTaxiStandUnlocked(row.RowId - 0x120000);
+        return UIState.Instance()->IsChocoboTaxiStandUnlocked(row.RowId);
     }
 
     /// <inheritdoc/>
