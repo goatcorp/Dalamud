@@ -124,11 +124,11 @@ internal partial class ChatHandlers : IServiceType
             var updateMessage = new SeStringBuilder()
                 .AddText(Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully!"))
                 .AddUiForeground(500)
-                .AddText("  [")
+                .AddText("  [ ")
                 .Add(linkPayload)
-                .AddText(Loc.Localize("DalamudClickToViewChangelogs", " Click here to view the changelog."))
+                .AddText(Loc.Localize("DalamudClickToViewChangelogs", "Click here to view the changelog."))
                 .Add(RawPayload.LinkTerminator)
-                .AddText("]")
+                .AddText(" ]")
                 .AddUiForegroundOff();
 
             chatGui.Print(new XivChatEntry
