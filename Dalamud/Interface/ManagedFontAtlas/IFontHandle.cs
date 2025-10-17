@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 
@@ -33,9 +34,21 @@ public interface IFontHandle : IDisposable
     /// </summary>
     /// <remarks>
     /// Use <see cref="Push"/> directly if you want to keep the current ImGui font if the font is not ready.<br />
-    /// Alternatively, use <see cref="WaitAsync"/> to wait for this property to become <c>true</c>.
+    /// Alternatively, use <see cref="WaitAsync()"/> to wait for this property to become <c>true</c>.
     /// </remarks>
     bool Available { get; }
+
+    /// <summary>
+    /// Attempts to lock the fully constructed instance of <see cref="ImFontPtr"/> corresponding to the this
+    /// <see cref="IFontHandle"/>, for use in any thread.<br />
+    /// Modification of the font will exhibit undefined behavior if some other thread also uses the font.
+    /// </summary>
+    /// <param name="errorMessage">The error message, if any.</param>
+    /// <returns>
+    /// An instance of <see cref="ILockedImFont"/> that <b>must</b> be disposed after use on success;
+    /// <c>null</c> with <paramref name="errorMessage"/> populated on failure.
+    /// </returns>
+    ILockedImFont? TryLock(out string? errorMessage);
 
     /// <summary>
     /// Locks the fully constructed instance of <see cref="ImFontPtr"/> corresponding to the this
@@ -92,4 +105,11 @@ public interface IFontHandle : IDisposable
     /// </summary>
     /// <returns>A task containing this <see cref="IFontHandle"/>.</returns>
     Task<IFontHandle> WaitAsync();
+
+    /// <summary>
+    /// Waits for <see cref="Available"/> to become <c>true</c>.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task containing this <see cref="IFontHandle"/>.</returns>
+    Task<IFontHandle> WaitAsync(CancellationToken cancellationToken);
 }
