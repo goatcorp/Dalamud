@@ -4,6 +4,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.NamePlate;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Plugin.SelfTest;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
