@@ -212,7 +212,7 @@ internal unsafe class RecipeData : IInternalDisposableService
                                 _ => default,
                             };
 
-                            if (PlayerState.Instance()->UnlockedSecretRecipeBooksBitmask.TryCheckBitInSpan(bitIndex, out var result) && result)
+                            if (PlayerState.Instance()->UnlockedSecretRecipeBooksBitArray.Get(bitIndex))
                             {
                                 secretRecipeBookUnlocked = true;
                                 break;
@@ -254,15 +254,15 @@ internal unsafe class RecipeData : IInternalDisposableService
             }
         }
 
-        if (this.cachedUnlockedSecretRecipeBooks == null || !PlayerState.Instance()->UnlockedSecretRecipeBooksBitmask.SequenceEqual(this.cachedUnlockedSecretRecipeBooks))
+        if (this.cachedUnlockedSecretRecipeBooks == null || !PlayerState.Instance()->UnlockedSecretRecipeBooks.SequenceEqual(this.cachedUnlockedSecretRecipeBooks))
         {
-            this.cachedUnlockedSecretRecipeBooks = PlayerState.Instance()->UnlockedSecretRecipeBooksBitmask.ToArray();
+            this.cachedUnlockedSecretRecipeBooks = PlayerState.Instance()->UnlockedSecretRecipeBooks.ToArray();
             changed |= true;
         }
 
-        if (this.cachedUnlockLinks == null || !UIState.Instance()->UnlockLinkBitmask.SequenceEqual(this.cachedUnlockLinks))
+        if (this.cachedUnlockLinks == null || !UIState.Instance()->UnlockLinks.SequenceEqual(this.cachedUnlockLinks))
         {
-            this.cachedUnlockLinks = UIState.Instance()->UnlockLinkBitmask.ToArray();
+            this.cachedUnlockLinks = UIState.Instance()->UnlockLinks.ToArray();
             changed |= true;
         }
 
