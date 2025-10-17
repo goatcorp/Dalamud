@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -11,7 +10,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="CheapLoc" Version="1.1.8" />
+      <PackageReference Include="CheapLoc" />
     </ItemGroup>
-
 </Project>
