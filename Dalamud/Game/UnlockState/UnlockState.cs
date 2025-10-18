@@ -8,6 +8,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 
+using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 
@@ -284,6 +285,10 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             case ItemActionType.Glasses:
                 return PlayerState.Instance()->IsGlassesUnlocked((ushort)row.AdditionalData.RowId);
 
+            case ItemActionType.SoulShards when PublicContentOccultCrescent.GetState() is var occultCrescentState && occultCrescentState != null:
+                var supportJobId = (byte)row.ItemAction.Value.Data[0];
+                return supportJobId < occultCrescentState->SupportJobLevels.Length && occultCrescentState->SupportJobLevels[supportJobId] != 0;
+
             case ItemActionType.CompanySealVouchers:
                 return false;
         }
@@ -400,7 +405,8 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             or ItemActionType.FramersKit
             or ItemActionType.Ornament
             or ItemActionType.Glasses
-            or ItemActionType.OccultRecords;
+            or ItemActionType.OccultRecords
+            or ItemActionType.SoulShards;
     }
 
     /// <inheritdoc/>
@@ -625,6 +631,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         // - Achievements
         // - Titles
         // - Bozjan Field Notes
+        // - Support/Phantom Jobs, which require to be in Occult Crescent, because it checks the jobs level for != 0
     }
 
     private void UpdateUnlocksForSheet<T>(bool fireEvent = true) where T : struct, IExcelRow<T>
