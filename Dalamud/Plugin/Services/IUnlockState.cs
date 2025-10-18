@@ -207,6 +207,13 @@ public interface IUnlockState
     bool IsMJILandmarkUnlocked(MJILandmark row);
 
     /// <summary>
+    /// Determines whether the specified MKDLore (Occult Record) is unlocked.
+    /// </summary>
+    /// <param name="row">The MKDLore row to check.</param>
+    /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
+    bool IsMKDLoreUnlocked(MKDLore row);
+
+    /// <summary>
     /// Determines whether the specified Mount is unlocked.
     /// </summary>
     /// <param name="row">The Mount row to check.</param>
