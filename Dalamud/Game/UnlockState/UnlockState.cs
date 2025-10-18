@@ -263,6 +263,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
                 return PlayerState.Instance()->IsSecretRecipeBookUnlocked(row.ItemAction.Value.Data[0]);
 
             case ItemActionType.UnlockLink:
+            case ItemActionType.OccultRecords:
                 return UIState.Instance()->IsUnlockLinkUnlocked(row.ItemAction.Value.Data[0]);
 
             case ItemActionType.TripleTriadCard when row.AdditionalData.Is<TripleTriadCard>():
@@ -387,18 +388,19 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (row.ItemAction.RowId == 0)
             return false;
 
-        return (ItemActionType)row.ItemAction.Value.Type is
-            ItemActionType.Companion or
-            ItemActionType.BuddyEquip or
-            ItemActionType.Mount or
-            ItemActionType.SecretRecipeBook or
-            ItemActionType.UnlockLink or
-            ItemActionType.TripleTriadCard or
-            ItemActionType.FolkloreTome or
-            ItemActionType.OrchestrionRoll or
-            ItemActionType.FramersKit or
-            ItemActionType.Ornament or
-            ItemActionType.Glasses;
+        return (ItemActionType)row.ItemAction.Value.Type
+            is ItemActionType.Companion
+            or ItemActionType.BuddyEquip
+            or ItemActionType.Mount
+            or ItemActionType.SecretRecipeBook
+            or ItemActionType.UnlockLink
+            or ItemActionType.TripleTriadCard
+            or ItemActionType.FolkloreTome
+            or ItemActionType.OrchestrionRoll
+            or ItemActionType.FramersKit
+            or ItemActionType.Ornament
+            or ItemActionType.Glasses
+            or ItemActionType.OccultRecords;
     }
 
     /// <inheritdoc/>
