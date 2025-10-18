@@ -206,6 +206,12 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
+    public bool IsEmjVoiceNpcUnlocked(EmjVoiceNpc row)
+    {
+        return this.IsUnlockLinkUnlocked(row.Unknown26);
+    }
+
+    /// <inheritdoc/>
     public bool IsGeneralActionUnlocked(GeneralAction row)
     {
         return this.IsUnlockLinkUnlocked(row.UnlockLink);
@@ -601,6 +607,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.UpdateUnlocksForSheet<ChocoboTaxi>(fireEvent);
         this.UpdateUnlocksForSheet<Companion>(fireEvent);
         this.UpdateUnlocksForSheet<CraftAction>(fireEvent);
+        this.UpdateUnlocksForSheet<EmjVoiceNpc>(fireEvent);
         this.UpdateUnlocksForSheet<Emote>(fireEvent);
         this.UpdateUnlocksForSheet<GeneralAction>(fireEvent);
         this.UpdateUnlocksForSheet<Glasses>(fireEvent);
@@ -757,6 +764,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsEmoteUnlocked(Emote row) => this.unlockStateService.IsEmoteUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsEmjVoiceNpcUnlocked(EmjVoiceNpc row) => this.unlockStateService.IsEmjVoiceNpcUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsGeneralActionUnlocked(GeneralAction row) => this.unlockStateService.IsGeneralActionUnlocked(row);
