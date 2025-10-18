@@ -310,6 +310,12 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
+    public bool IsMKDLoreUnlocked(MKDLore row)
+    {
+        return this.IsUnlockLinkUnlocked(row.Unknown2);
+    }
+
+    /// <inheritdoc/>
     public bool IsMountUnlocked(Mount row)
     {
         if (!this.IsLoaded)
@@ -493,6 +499,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<MJILandmark>(out var mjiLandmarkRow))
             return this.IsMJILandmarkUnlocked(mjiLandmarkRow);
 
+        if (rowRef.TryGetValue<MKDLore>(out var mkdLoreRow))
+            return this.IsMKDLoreUnlocked(mkdLoreRow);
+
         if (rowRef.TryGetValue<McGuffin>(out var mcGuffinRow))
             return this.IsMcGuffinUnlocked(mcGuffinRow);
 
@@ -599,6 +608,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.UpdateUnlocksForSheet<InstanceContentSheet>(fireEvent);
         this.UpdateUnlocksForSheet<Item>(fireEvent);
         this.UpdateUnlocksForSheet<MJILandmark>(fireEvent);
+        this.UpdateUnlocksForSheet<MKDLore>(fireEvent);
         this.UpdateUnlocksForSheet<McGuffin>(fireEvent);
         this.UpdateUnlocksForSheet<Mount>(fireEvent);
         this.UpdateUnlocksForSheet<NotebookDivision>(fireEvent);
@@ -771,6 +781,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsMJILandmarkUnlocked(MJILandmark row) => this.unlockStateService.IsMJILandmarkUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsMKDLoreUnlocked(MKDLore row) => this.unlockStateService.IsMKDLoreUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsMountUnlocked(Mount row) => this.unlockStateService.IsMountUnlocked(row);
