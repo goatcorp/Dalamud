@@ -8,6 +8,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Component.Exd;
@@ -209,6 +210,14 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     public bool IsEmjVoiceNpcUnlocked(EmjVoiceNpc row)
     {
         return this.IsUnlockLinkUnlocked(row.Unknown26);
+    }
+
+    /// <inheritdoc/>
+    public bool IsEmjCostumeUnlocked(EmjCostume row)
+    {
+        return this.dataManager.GetExcelSheet<EmjVoiceNpc>().TryGetRow(row.RowId, out var emjVoiceNpcRow)
+            && this.IsEmjVoiceNpcUnlocked(emjVoiceNpcRow)
+            && QuestManager.IsQuestComplete(row.Unknown1);
     }
 
     /// <inheritdoc/>
@@ -644,6 +653,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         // - FramersKit (is that just an Item?)
         // - ... more?
 
+        // Subrow sheets, which are incompatible with the current Unlock event, since RowRef doesn't carry the SubrowId:
+        // - EmjCostume
+
         // Probably not happening, because it requires fetching data from server:
         // - Achievements
         // - Titles
@@ -767,6 +779,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsEmjVoiceNpcUnlocked(EmjVoiceNpc row) => this.unlockStateService.IsEmjVoiceNpcUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsEmjCostumeUnlocked(EmjCostume row) => this.unlockStateService.IsEmjCostumeUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsGeneralActionUnlocked(GeneralAction row) => this.unlockStateService.IsGeneralActionUnlocked(row);

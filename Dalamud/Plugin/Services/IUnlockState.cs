@@ -158,6 +158,13 @@ public interface IUnlockState
     bool IsEmjVoiceNpcUnlocked(EmjVoiceNpc row);
 
     /// <summary>
+    /// Determines whether the specified EmjCostume (Doman Mahjong Character Costume) is unlocked.
+    /// </summary>
+    /// <param name="row">The EmjCostume row to check.</param>
+    /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
+    bool IsEmjCostumeUnlocked(EmjCostume row);
+
+    /// <summary>
     /// Determines whether the specified GeneralAction is unlocked.
     /// </summary>
     /// <param name="row">The GeneralAction row to check.</param>
