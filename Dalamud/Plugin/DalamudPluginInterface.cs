@@ -455,6 +455,12 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     #region Dependency Injection
 
     /// <inheritdoc/>
+    public object? GetService(Type serviceType)
+    {
+        return this.plugin.ServiceScope.GetService(serviceType);
+    }
+
+    /// <inheritdoc/>
     public T? Create<T>(params object[] scopedObjects) where T : class
     {
         var t = this.CreateAsync<T>(scopedObjects);
