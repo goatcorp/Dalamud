@@ -577,65 +577,53 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         return UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(unlockLink);
     }
 
-    private void UpdateUnlocks()
-    {
-        try
-        {
-            this.UpdateUnlocks(false);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error during initial unlock check");
-        }
-    }
-
     private void OnLogout(int type, int code)
     {
         this.cachedUnlockedRowIds.Clear();
     }
 
-    private void UpdateUnlocks(bool fireEvent)
+    private void UpdateUnlocks()
     {
         if (!this.IsLoaded)
             return;
 
-        this.UpdateUnlocksForSheet<ActionSheet>(fireEvent);
-        this.UpdateUnlocksForSheet<AetherCurrent>(fireEvent);
-        this.UpdateUnlocksForSheet<AetherCurrentCompFlgSet>(fireEvent);
-        this.UpdateUnlocksForSheet<AozAction>(fireEvent);
-        this.UpdateUnlocksForSheet<BannerBg>(fireEvent);
-        this.UpdateUnlocksForSheet<BannerCondition>(fireEvent);
-        this.UpdateUnlocksForSheet<BannerDecoration>(fireEvent);
-        this.UpdateUnlocksForSheet<BannerFacial>(fireEvent);
-        this.UpdateUnlocksForSheet<BannerFrame>(fireEvent);
-        this.UpdateUnlocksForSheet<BannerTimeline>(fireEvent);
-        this.UpdateUnlocksForSheet<BuddyAction>(fireEvent);
-        this.UpdateUnlocksForSheet<BuddyEquip>(fireEvent);
-        this.UpdateUnlocksForSheet<CSBonusContentType>(fireEvent);
-        this.UpdateUnlocksForSheet<CharaMakeCustomize>(fireEvent);
-        this.UpdateUnlocksForSheet<ChocoboTaxi>(fireEvent);
-        this.UpdateUnlocksForSheet<Companion>(fireEvent);
-        this.UpdateUnlocksForSheet<CraftAction>(fireEvent);
-        this.UpdateUnlocksForSheet<EmjVoiceNpc>(fireEvent);
-        this.UpdateUnlocksForSheet<Emote>(fireEvent);
-        this.UpdateUnlocksForSheet<GeneralAction>(fireEvent);
-        this.UpdateUnlocksForSheet<Glasses>(fireEvent);
-        this.UpdateUnlocksForSheet<HowTo>(fireEvent);
-        this.UpdateUnlocksForSheet<InstanceContentSheet>(fireEvent);
-        this.UpdateUnlocksForSheet<Item>(fireEvent);
-        this.UpdateUnlocksForSheet<MJILandmark>(fireEvent);
-        this.UpdateUnlocksForSheet<MKDLore>(fireEvent);
-        this.UpdateUnlocksForSheet<McGuffin>(fireEvent);
-        this.UpdateUnlocksForSheet<Mount>(fireEvent);
-        this.UpdateUnlocksForSheet<NotebookDivision>(fireEvent);
-        this.UpdateUnlocksForSheet<Orchestrion>(fireEvent);
-        this.UpdateUnlocksForSheet<Ornament>(fireEvent);
-        this.UpdateUnlocksForSheet<Perform>(fireEvent);
-        this.UpdateUnlocksForSheet<PublicContentSheet>(fireEvent);
-        this.UpdateUnlocksForSheet<Recipe>(fireEvent);
-        this.UpdateUnlocksForSheet<SecretRecipeBook>(fireEvent);
-        this.UpdateUnlocksForSheet<Trait>(fireEvent);
-        this.UpdateUnlocksForSheet<TripleTriadCard>(fireEvent);
+        this.UpdateUnlocksForSheet<ActionSheet>();
+        this.UpdateUnlocksForSheet<AetherCurrent>();
+        this.UpdateUnlocksForSheet<AetherCurrentCompFlgSet>();
+        this.UpdateUnlocksForSheet<AozAction>();
+        this.UpdateUnlocksForSheet<BannerBg>();
+        this.UpdateUnlocksForSheet<BannerCondition>();
+        this.UpdateUnlocksForSheet<BannerDecoration>();
+        this.UpdateUnlocksForSheet<BannerFacial>();
+        this.UpdateUnlocksForSheet<BannerFrame>();
+        this.UpdateUnlocksForSheet<BannerTimeline>();
+        this.UpdateUnlocksForSheet<BuddyAction>();
+        this.UpdateUnlocksForSheet<BuddyEquip>();
+        this.UpdateUnlocksForSheet<CSBonusContentType>();
+        this.UpdateUnlocksForSheet<CharaMakeCustomize>();
+        this.UpdateUnlocksForSheet<ChocoboTaxi>();
+        this.UpdateUnlocksForSheet<Companion>();
+        this.UpdateUnlocksForSheet<CraftAction>();
+        this.UpdateUnlocksForSheet<EmjVoiceNpc>();
+        this.UpdateUnlocksForSheet<Emote>();
+        this.UpdateUnlocksForSheet<GeneralAction>();
+        this.UpdateUnlocksForSheet<Glasses>();
+        this.UpdateUnlocksForSheet<HowTo>();
+        this.UpdateUnlocksForSheet<InstanceContentSheet>();
+        this.UpdateUnlocksForSheet<Item>();
+        this.UpdateUnlocksForSheet<MJILandmark>();
+        this.UpdateUnlocksForSheet<MKDLore>();
+        this.UpdateUnlocksForSheet<McGuffin>();
+        this.UpdateUnlocksForSheet<Mount>();
+        this.UpdateUnlocksForSheet<NotebookDivision>();
+        this.UpdateUnlocksForSheet<Orchestrion>();
+        this.UpdateUnlocksForSheet<Ornament>();
+        this.UpdateUnlocksForSheet<Perform>();
+        this.UpdateUnlocksForSheet<PublicContentSheet>();
+        this.UpdateUnlocksForSheet<Recipe>();
+        this.UpdateUnlocksForSheet<SecretRecipeBook>();
+        this.UpdateUnlocksForSheet<Trait>();
+        this.UpdateUnlocksForSheet<TripleTriadCard>();
 
         // Not implemented:
         // - DescriptionPage: quite complex
@@ -663,7 +651,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         // - Support/Phantom Jobs, which require to be in Occult Crescent, because it checks the jobs level for != 0
     }
 
-    private void UpdateUnlocksForSheet<T>(bool fireEvent = true) where T : struct, IExcelRow<T>
+    private void UpdateUnlocksForSheet<T>() where T : struct, IExcelRow<T>
     {
         var unlockedRowIds = this.cachedUnlockedRowIds.GetOrAdd(typeof(T), _ => []);
 
@@ -679,20 +667,17 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
             unlockedRowIds.Add(row.RowId);
 
-            if (fireEvent)
-            {
-                Log.Verbose("Unlock detected: {row}", $"{typeof(T).Name}#{row.RowId}");
+            Log.Verbose($"Unlock detected: {typeof(T).Name}#{row.RowId}");
 
-                foreach (var action in Delegate.EnumerateInvocationList(this.Unlock))
+            foreach (var action in Delegate.EnumerateInvocationList(this.Unlock))
+            {
+                try
                 {
-                    try
-                    {
-                        action((RowRef)rowRef);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                    }
+                    action((RowRef)rowRef);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
                 }
             }
         }
