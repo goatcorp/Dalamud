@@ -161,7 +161,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     public IServiceScope GetScope() => new ServiceScopeImpl(this);
 
     /// <inheritdoc/>
-    object? IServiceProvider.GetService(Type serviceType) => this.GetSingletonService(serviceType);
+    object? IServiceProvider.GetService(Type serviceType) => this.GetSingletonService(serviceType).Result;
 
     private async Task<object> GetService(Type serviceType, ServiceScopeImpl? scope, object[] scopedObjects)
     {
