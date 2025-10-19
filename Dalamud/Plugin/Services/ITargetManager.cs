@@ -1,11 +1,12 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Game.ClientState.Objects;
 
 /// <summary>
 /// Get and set various kinds of targets for the player.
 /// </summary>
-public interface ITargetManager
+public interface ITargetManager : IDalamudService
 {
     /// <summary>
     /// Gets or sets the current target.

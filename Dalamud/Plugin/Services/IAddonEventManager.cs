@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.Addon.Events;
+using Dalamud.Game.Addon.Events;
 using Dalamud.Game.Addon.Events.EventDataTypes;
 
 namespace Dalamud.Plugin.Services;
@@ -6,7 +6,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Service provider for addon event management.
 /// </summary>
-public interface IAddonEventManager
+public interface IAddonEventManager : IDalamudService
 {
     /// <summary>
     /// Delegate to be called when an event is received.

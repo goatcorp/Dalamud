@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text.SeStringHandling;
@@ -8,7 +8,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Class used to interface with the server info bar.
 /// </summary>
-public interface IDtrBar
+public interface IDtrBar : IDalamudService
 {
     /// <summary>
     /// Gets a read-only copy of the list of all DTR bar entries.

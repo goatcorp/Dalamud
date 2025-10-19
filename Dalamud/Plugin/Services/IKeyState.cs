@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Game.ClientState.Keys;
 
@@ -16,7 +16,7 @@ namespace Dalamud.Plugin.Services;
 /// index &amp; 2 = key up (ephemeral).
 /// index &amp; 3 = short key press (ephemeral).
 /// </remarks>
-public interface IKeyState
+public interface IKeyState : IDalamudService
 {
     /// <summary>
     /// Get or set the key-pressed state for a given vkCode.

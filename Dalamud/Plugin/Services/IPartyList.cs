@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Game.ClientState.Party;
 
@@ -7,7 +7,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This collection represents the actors present in your party or alliance.
 /// </summary>
-public interface IPartyList : IReadOnlyCollection<IPartyMember>
+public interface IPartyList : IDalamudService, IReadOnlyCollection<IPartyMember>
 {
     /// <summary>
     /// Gets the amount of party members the local player has.

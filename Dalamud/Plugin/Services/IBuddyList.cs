@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Game.ClientState.Buddy;
 
@@ -8,7 +8,7 @@ namespace Dalamud.Plugin.Services;
 /// This collection represents the buddies present in your squadron or trust party.
 /// It does not include the local player.
 /// </summary>
-public interface IBuddyList : IReadOnlyCollection<IBuddyMember>
+public interface IBuddyList : IDalamudService, IReadOnlyCollection<IBuddyMember>
 {
     /// <summary>
     /// Gets the amount of battle buddies the local player has.
