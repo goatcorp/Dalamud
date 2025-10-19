@@ -250,7 +250,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// This setting is effected by the in-game "System Sounds" option and volume.
     /// </summary>
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "ABI")]
-    public bool EnablePluginUISoundEffects { get; set; }
+    public bool EnablePluginUISoundEffects { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether an additional button allowing pinning and clickthrough options should be shown
