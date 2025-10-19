@@ -58,9 +58,9 @@ internal class ServiceScopeImpl : IServiceScope
     public ServiceScopeImpl(ServiceContainer container) => this.container = container;
 
     /// <inheritdoc/>
-    object? IServiceProvider.GetService(Type serviceType)
+    public object? GetService(Type serviceType)
     {
-        return ((IServiceProvider)this.container).GetService(serviceType);
+        return this.container.GetService(serviceType);
     }
 
     /// <inheritdoc/>
