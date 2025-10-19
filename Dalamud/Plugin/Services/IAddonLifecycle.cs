@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Addon.Lifecycle;
@@ -9,7 +9,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This class provides events for in-game addon lifecycles.
 /// </summary>
-public interface IAddonLifecycle
+public interface IAddonLifecycle : IDalamudService
 {
     /// <summary>
     /// Delegate for receiving addon lifecycle event messages.

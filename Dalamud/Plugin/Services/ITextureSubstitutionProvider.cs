@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// Service that grants you the ability to replace texture data that is to be loaded by Dalamud.
 /// </summary>
-public interface ITextureSubstitutionProvider
+public interface ITextureSubstitutionProvider : IDalamudService
 {
     /// <summary>
     /// Delegate describing a function that may be used to intercept and replace texture data.

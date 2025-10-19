@@ -1,11 +1,11 @@
-﻿using Dalamud.Game.Gui.PartyFinder.Types;
+using Dalamud.Game.Gui.PartyFinder.Types;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// This class handles interacting with the native PartyFinder window.
 /// </summary>
-public interface IPartyFinderGui
+public interface IPartyFinderGui : IDalamudService
 {
     /// <summary>
     /// Event type fired each time the game receives an individual Party Finder listing.
