@@ -9,11 +9,14 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Services;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using JetBrains.Annotations;
 
 // API10 TODO: Move to Dalamud.Service namespace. Some plugins reflect this... including my own, oops. There's a todo
@@ -541,9 +544,11 @@ internal static class ServiceManager
         if (attr == null)
             return ServiceKind.None;
 
-        Debug.Assert(
-            type.IsAssignableTo(typeof(IServiceType)),
-            "Service did not inherit from IServiceType");
+        if (!type.IsAssignableTo(typeof(IServiceType)))
+        {
+            Log.Error($"Service {type.Name} did not inherit from IServiceType");
+            Debug.Fail("Service did not inherit from IServiceType");
+        }
 
         if (attr.IsAssignableTo(typeof(BlockingEarlyLoadedServiceAttribute)))
             return ServiceKind.BlockingEarlyLoadedService;
@@ -552,7 +557,16 @@ internal static class ServiceManager
             return ServiceKind.EarlyLoadedService;
 
         if (attr.IsAssignableTo(typeof(ScopedServiceAttribute)))
+        {
+            if (type.GetCustomAttribute<PluginInterfaceAttribute>() != null
+                && !type.IsAssignableTo(typeof(IDalamudService)))
+            {
+                Log.Error($"Plugin-scoped service {type.Name} must inherit from IDalamudService");
+                Debug.Fail("Plugin-scoped service must inherit from IDalamudService");
+            }
+
             return ServiceKind.ScopedService;
+        }
 
         return ServiceKind.ProvidedService;
     }
