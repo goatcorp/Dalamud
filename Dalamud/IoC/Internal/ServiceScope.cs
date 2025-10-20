@@ -60,7 +60,7 @@ internal class ServiceScopeImpl : IServiceScope
     /// <inheritdoc/>
     public object? GetService(Type serviceType)
     {
-        return this.container.GetService(serviceType);
+        return this.container.GetService(serviceType, this, []).ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
     /// <inheritdoc/>
