@@ -242,7 +242,7 @@ public static partial class ImRaii
 
     // Use end-function regardless of success.
     // Used by Child, Group and Tooltip.
-    private struct EndUnconditionally : IEndObject
+    public struct EndUnconditionally : IEndObject
     {
         private Action EndAction { get; }
 
@@ -268,7 +268,7 @@ public static partial class ImRaii
     }
 
     // Use end-function only on success.
-    private struct EndConditionally : IEndObject
+    public struct EndConditionally : IEndObject
     {
         public EndConditionally(Action endAction, bool success)
         {
