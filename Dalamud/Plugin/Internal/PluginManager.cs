@@ -1299,13 +1299,16 @@ internal class PluginManager : IInternalDisposableService
     /// <param name="affectedInternalNames">The affected plugins.</param>
     public void NotifyPluginsForStateChange(PluginListInvalidationKind kind, IEnumerable<string> affectedInternalNames)
     {
-        foreach (var installedPlugin in this.installedPluginsList)
+        lock (this.pluginListLock)
         {
-            if (!installedPlugin.IsLoaded || installedPlugin.DalamudInterface == null)
-                continue;
+            foreach (var installedPlugin in this.installedPluginsList)
+            {
+                if (!installedPlugin.IsLoaded || installedPlugin.DalamudInterface == null)
+                    continue;
 
-            installedPlugin.DalamudInterface.NotifyActivePluginsChanged(
-                new ActivePluginsChangedEventArgs(kind, affectedInternalNames));
+                installedPlugin.DalamudInterface.NotifyActivePluginsChanged(
+                    new ActivePluginsChangedEventArgs(kind, affectedInternalNames));
+            }
         }
     }
 
