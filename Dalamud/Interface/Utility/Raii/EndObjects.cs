@@ -40,6 +40,9 @@ public static partial class ImRaii
     public static IEndObject PopupModal(ImU8String id)
         => new EndConditionally(ImGui.EndPopup, ImGui.BeginPopupModal(id));
 
+    public static IEndObject PopupModal(ImU8String id, ImGuiWindowFlags flags)
+        => new EndConditionally(ImGui.EndPopup, ImGui.BeginPopupModal(id, flags));
+
     public static IEndObject PopupModal(ImU8String id, ref bool open)
         => new EndConditionally(ImGui.EndPopup, ImGui.BeginPopupModal(id, ref open));
 
