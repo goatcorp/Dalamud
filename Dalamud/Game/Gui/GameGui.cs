@@ -43,6 +43,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     private readonly Hook<HandleImmDelegate> handleImmHook;
     private readonly Hook<RaptureAtkModule.Delegates.SetUiVisibility> setUiVisibilityHook;
     private readonly Hook<Utf8String.Delegates.Ctor_FromSequence> utf8StringFromSequenceHook;
+    private readonly Hook<RaptureAtkModule.Delegates.Update> raptureAtkModuleUpdateHook;
 
     [ServiceManager.ServiceConstructor]
     private GameGui(TargetSigScanner sigScanner)
@@ -65,6 +66,10 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.utf8StringFromSequenceHook = Hook<Utf8String.Delegates.Ctor_FromSequence>.FromAddress(Utf8String.Addresses.Ctor_FromSequence.Value, this.Utf8StringFromSequenceDetour);
 
+        this.raptureAtkModuleUpdateHook = Hook<RaptureAtkModule.Delegates.Update>.FromFunctionPointerVariable(
+            new(&RaptureAtkModule.StaticVirtualTablePointer->Update),
+            this.RaptureAtkModuleUpdateDetour);
+
         this.handleItemHoverHook.Enable();
         this.handleItemOutHook.Enable();
         this.handleImmHook.Enable();
@@ -72,6 +77,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.handleActionHoverHook.Enable();
         this.handleActionOutHook.Enable();
         this.utf8StringFromSequenceHook.Enable();
+        this.raptureAtkModuleUpdateHook.Enable();
     }
 
     // Hooked delegates
@@ -87,6 +93,18 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
     /// <inheritdoc/>
     public event EventHandler<HoveredAction>? HoveredActionChanged;
+
+    /// <inheritdoc/>
+    public event Action InventoryUpdate;
+
+    /// <inheritdoc/>
+    public event Action ActionBarUpdate;
+
+    /// <inheritdoc/>
+    public event Action UnlocksUpdate;
+
+    /// <inheritdoc/>
+    public event Action MainCommandEnabledStateUpdate;
 
     /// <inheritdoc/>
     public bool GameUiHidden { get; private set; }
@@ -238,6 +256,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.handleActionHoverHook.Dispose();
         this.handleActionOutHook.Dispose();
         this.utf8StringFromSequenceHook.Dispose();
+        this.raptureAtkModuleUpdateHook.Dispose();
     }
 
     /// <summary>
@@ -362,6 +381,34 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         return thisPtr; // this function shouldn't need to return but the original asm moves this into rax before returning so be safe?
     }
+
+    private void RaptureAtkModuleUpdateDetour(RaptureAtkModule* thisPtr, float delta)
+    {
+        // The game clears the AgentUpdateFlag in the original function, but it also updates agents in it too.
+        // We'll make a copy of the flags, so that we can fire events after the agents have been updated.
+
+        var agentUpdateFlag = thisPtr->AgentUpdateFlag;
+
+        this.raptureAtkModuleUpdateHook.Original(thisPtr, delta);
+
+        if (agentUpdateFlag != RaptureAtkModule.AgentUpdateFlags.None)
+        {
+            if (agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.InventoryUpdate) ||
+                agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.RetainerMarketInventoryUpdate) ||
+                agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.HousingInventoryUpdate) ||
+                agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.ContentInventoryUpdate))
+                this.InventoryUpdate.InvokeSafely();
+
+            if (agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.ActionBarUpdate))
+                this.ActionBarUpdate.InvokeSafely();
+
+            if (agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.UnlocksUpdate))
+                this.UnlocksUpdate.InvokeSafely();
+
+            if (agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.MainCommandEnabledStateUpdate))
+                this.MainCommandEnabledStateUpdate.InvokeSafely();
+        }
+    }
 }
 
 /// <summary>
@@ -385,6 +432,10 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         this.gameGuiService.UiHideToggled += this.UiHideToggledForward;
         this.gameGuiService.HoveredItemChanged += this.HoveredItemForward;
         this.gameGuiService.HoveredActionChanged += this.HoveredActionForward;
+        this.gameGuiService.InventoryUpdate += this.InventoryUpdateForward;
+        this.gameGuiService.ActionBarUpdate += this.ActionBarUpdateForward;
+        this.gameGuiService.UnlocksUpdate += this.UnlocksUpdateForward;
+        this.gameGuiService.MainCommandEnabledStateUpdate += this.MainCommandEnabledStateUpdateForward;
     }
 
     /// <inheritdoc/>
@@ -395,6 +446,18 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
 
     /// <inheritdoc/>
     public event EventHandler<HoveredAction>? HoveredActionChanged;
+
+    /// <inheritdoc/>
+    public event Action InventoryUpdate;
+
+    /// <inheritdoc/>
+    public event Action ActionBarUpdate;
+
+    /// <inheritdoc/>
+    public event Action UnlocksUpdate;
+
+    /// <inheritdoc/>
+    public event Action MainCommandEnabledStateUpdate;
 
     /// <inheritdoc/>
     public bool GameUiHidden => this.gameGuiService.GameUiHidden;
@@ -415,6 +478,10 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         this.gameGuiService.UiHideToggled -= this.UiHideToggledForward;
         this.gameGuiService.HoveredItemChanged -= this.HoveredItemForward;
         this.gameGuiService.HoveredActionChanged -= this.HoveredActionForward;
+        this.gameGuiService.InventoryUpdate -= this.InventoryUpdateForward;
+        this.gameGuiService.ActionBarUpdate -= this.ActionBarUpdateForward;
+        this.gameGuiService.UnlocksUpdate -= this.UnlocksUpdateForward;
+        this.gameGuiService.MainCommandEnabledStateUpdate -= this.MainCommandEnabledStateUpdateForward;
 
         this.UiHideToggled = null;
         this.HoveredItemChanged = null;
@@ -466,4 +533,12 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     private void HoveredItemForward(object sender, ulong itemId) => this.HoveredItemChanged?.Invoke(sender, itemId);
 
     private void HoveredActionForward(object sender, HoveredAction hoverAction) => this.HoveredActionChanged?.Invoke(sender, hoverAction);
+
+    private void InventoryUpdateForward() => this.InventoryUpdate.InvokeSafely();
+
+    private void ActionBarUpdateForward() => this.ActionBarUpdate.InvokeSafely();
+
+    private void UnlocksUpdateForward() => this.UnlocksUpdate.InvokeSafely();
+
+    private void MainCommandEnabledStateUpdateForward() => this.MainCommandEnabledStateUpdate.InvokeSafely();
 }

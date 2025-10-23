@@ -2,15 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.Game.Gui;
 using Dalamud.Game.Inventory.InventoryEventArgTypes;
-using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
-
-using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace Dalamud.Game.Inventory;
 
@@ -33,7 +31,8 @@ internal class GameInventory : IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
-    private readonly Hook<RaptureAtkModuleUpdateDelegate> raptureAtkModuleUpdateHook;
+    [ServiceManager.ServiceDependency]
+    private readonly GameGui gameGui = Service<GameGui>.Get();
 
     private readonly GameInventoryType[] inventoryTypes;
     private readonly GameInventoryItem[]?[] inventoryItems;
@@ -47,17 +46,8 @@ internal class GameInventory : IInternalDisposableService
         this.inventoryTypes = Enum.GetValues<GameInventoryType>();
         this.inventoryItems = new GameInventoryItem[this.inventoryTypes.Length][];
 
-        unsafe
-        {
-            this.raptureAtkModuleUpdateHook = Hook<RaptureAtkModuleUpdateDelegate>.FromFunctionPointerVariable(
-                new(&RaptureAtkModule.StaticVirtualTablePointer->Update),
-                this.RaptureAtkModuleUpdateDetour);
-        }
-
-        this.raptureAtkModuleUpdateHook.Enable();
+        this.gameGui.InventoryUpdate += this.OnInventoryUpdate;
     }
-
-    private unsafe delegate void RaptureAtkModuleUpdateDelegate(RaptureAtkModule* ram, float f1);
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -68,7 +58,7 @@ internal class GameInventory : IInternalDisposableService
             this.subscribersPendingChange.Clear();
             this.subscribersChanged = false;
             this.framework.Update -= this.OnFrameworkUpdate;
-            this.raptureAtkModuleUpdateHook.Dispose();
+            this.gameGui.InventoryUpdate -= this.OnInventoryUpdate;
         }
     }
 
@@ -319,10 +309,9 @@ internal class GameInventory : IInternalDisposableService
         return items;
     }
 
-    private unsafe void RaptureAtkModuleUpdateDetour(RaptureAtkModule* ram, float f1)
+    private void OnInventoryUpdate()
     {
-        this.inventoriesMightBeChanged |= ram->AgentUpdateFlag != 0;
-        this.raptureAtkModuleUpdateHook.Original(ram, f1);
+        this.inventoriesMightBeChanged |= true;
     }
 
     /// <summary>
