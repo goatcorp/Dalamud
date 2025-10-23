@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.Gui.FlyText;
+using Dalamud.Game.Gui.FlyText;
 using Dalamud.Game.Text.SeStringHandling;
 
 namespace Dalamud.Plugin.Services;
@@ -6,7 +6,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This class facilitates interacting with and creating native in-game "fly text".
 /// </summary>
-public interface IFlyTextGui
+public interface IFlyTextGui : IDalamudService
 {
     /// <summary>
     /// The delegate defining the type for the FlyText event.

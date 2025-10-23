@@ -1,9 +1,9 @@
-﻿namespace Dalamud.Plugin.Services;
+namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// This class represents the state of the currently occupied duty.
 /// </summary>
-public interface IDutyState
+public interface IDutyState : IDalamudService
 {
     /// <summary>
     /// Event that gets fired when the duty starts.

@@ -1,11 +1,11 @@
-﻿using Dalamud.Game.Network.Structures;
+using Dalamud.Game.Network.Structures;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// Provides access to market board related events as the client receives/sends them.
 /// </summary>
-public interface IMarketBoard
+public interface IMarketBoard : IDalamudService
 {
     /// <summary>
     /// A delegate type used with the <see cref="HistoryReceived"/> event.

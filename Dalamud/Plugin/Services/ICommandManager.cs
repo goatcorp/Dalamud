@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 
 using Dalamud.Game.Command;
 
@@ -7,7 +7,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This class manages registered in-game slash commands.
 /// </summary>
-public interface ICommandManager
+public interface ICommandManager : IDalamudService
 {
     /// <summary>
     /// Gets a read-only list of all registered commands.

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Game.ClientState.Objects.Types;
 
@@ -7,7 +7,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This collection represents the currently spawned FFXIV game objects.
 /// </summary>
-public interface IObjectTable : IEnumerable<IGameObject>
+public interface IObjectTable : IDalamudService, IEnumerable<IGameObject>
 {
     /// <summary>
     /// Gets the address of the object table.

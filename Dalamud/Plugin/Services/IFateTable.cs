@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Game.ClientState.Fates;
 
@@ -7,7 +7,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This collection represents the currently available Fate events.
 /// </summary>
-public interface IFateTable : IReadOnlyCollection<IFate>
+public interface IFateTable : IDalamudService, IReadOnlyCollection<IFate>
 {
     /// <summary>
     /// Gets the address of the Fate table.

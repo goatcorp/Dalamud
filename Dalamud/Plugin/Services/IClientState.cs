@@ -8,7 +8,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This class represents the state of the game client at the time of access.
 /// </summary>
-public interface IClientState
+public interface IClientState : IDalamudService
 {
     /// <summary>
     /// A delegate type used for the <see cref="ClassJobChanged"/> event.
