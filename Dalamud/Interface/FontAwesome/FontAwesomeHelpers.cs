@@ -16,14 +16,7 @@ public static class FontAwesomeHelpers
     /// <returns>list of font awesome icons.</returns>
     public static List<FontAwesomeIcon> GetIcons()
     {
-        var icons = new List<FontAwesomeIcon>();
-        foreach (var icon in Enum.GetValues(typeof(FontAwesomeIcon)).Cast<FontAwesomeIcon>().ToList())
-        {
-            if (icon.IsObsolete()) continue;
-            icons.Add(icon);
-        }
-
-        return icons;
+        return [.. Enum.GetValues<FontAwesomeIcon>().Where(icon => !icon.IsObsolete())];
     }
 
     /// <summary>

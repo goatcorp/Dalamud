@@ -403,7 +403,7 @@ internal class ProfileManagerWidget
         ImGui.Text(Locs.StartupBehavior);
         if (ImGui.BeginCombo("##startupBehaviorPicker"u8, Locs.PolicyToLocalisedName(profile.StartupPolicy)))
         {
-            foreach (var policy in Enum.GetValues(typeof(ProfileModelV1.ProfileStartupPolicy)).Cast<ProfileModelV1.ProfileStartupPolicy>())
+            foreach (var policy in Enum.GetValues<ProfileModelV1.ProfileStartupPolicy>())
             {
                 var name = Locs.PolicyToLocalisedName(policy);
                 if (ImGui.Selectable(name, profile.StartupPolicy == policy))

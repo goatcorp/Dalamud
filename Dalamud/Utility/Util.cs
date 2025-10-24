@@ -1029,8 +1029,8 @@ public static partial class Util
                 foreach (var f in obj.GetType()
                                      .GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
                 {
-                    var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
-                    var offset = (FieldOffsetAttribute)f.GetCustomAttribute(typeof(FieldOffsetAttribute));
+                    var fixedBuffer = f.GetCustomAttribute<FixedBufferAttribute>();
+                    var offset = f.GetCustomAttribute<FieldOffsetAttribute>();
 
                     if (fixedBuffer != null)
                     {

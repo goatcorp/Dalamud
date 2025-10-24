@@ -779,7 +779,7 @@ internal class DalamudInterface : IInternalDisposableService
 
                     if (ImGui.BeginMenu("Set log level..."u8))
                     {
-                        foreach (var logLevel in Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>())
+                        foreach (var logLevel in Enum.GetValues<LogEventLevel>())
                         {
                             if (ImGui.MenuItem(logLevel + "##logLevelSwitch", (byte*)null, EntryPoint.LogLevelSwitch.MinimumLevel == logLevel))
                             {

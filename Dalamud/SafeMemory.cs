@@ -303,7 +303,7 @@ public static class SafeMemory
             return bytes;
         }
 
-        public T Read<T>(int offset = 0) => (T)Marshal.PtrToStructure(this.hGlobal + offset, typeof(T));
+        public T Read<T>(int offset = 0) => Marshal.PtrToStructure<T>(this.hGlobal + offset);
 
         public object? Read(Type type, int offset = 0) => Marshal.PtrToStructure(this.hGlobal + offset, type);
 
