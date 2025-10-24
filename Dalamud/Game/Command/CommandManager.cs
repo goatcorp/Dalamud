@@ -267,7 +267,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     [ServiceManager.ServiceDependency]
     private readonly CommandManager commandManagerService = Service<CommandManager>.Get();
 
-    private readonly List<string> pluginRegisteredCommands = new();
+    private readonly List<string> pluginRegisteredCommands = [];
     private readonly LocalPlugin pluginInfo;
 
     /// <summary>

@@ -300,7 +300,7 @@ public class GameFontLayoutPlan
                 elements.Add(new() { Codepoint = c, Glyph = this.fdt.GetGlyph(c), });
 
             var lastBreakIndex = 0;
-            List<int> lineBreakIndices = new() { 0 };
+            List<int> lineBreakIndices = [0];
             for (var i = 1; i < elements.Count; i++)
             {
                 var prev = elements[i - 1];

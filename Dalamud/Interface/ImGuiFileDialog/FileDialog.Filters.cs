@@ -10,7 +10,7 @@ public partial class FileDialog
 {
     private static Regex filterRegex = new(@"[^,{}]+(\{([^{}]*?)\})?", RegexOptions.Compiled);
 
-    private List<FilterStruct> filters = new();
+    private List<FilterStruct> filters = [];
     private FilterStruct selectedFilter;
 
     private void ParseFilters(string filters)
@@ -42,7 +42,7 @@ public partial class FileDialog
                 filter = new FilterStruct
                 {
                     Filter = match,
-                    CollectionFilters = new(),
+                    CollectionFilters = [],
                 };
             }
 

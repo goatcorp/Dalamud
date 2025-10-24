@@ -56,9 +56,9 @@ internal class PluginManager : IInternalDisposableService
     private readonly DirectoryInfo pluginDirectory;
     private readonly BannedPlugin[]? bannedPlugins;
 
-    private readonly List<LocalPlugin> installedPluginsList = new();
-    private readonly List<RemotePluginManifest> availablePluginsList = new();
-    private readonly List<AvailablePluginUpdate> updatablePluginsList = new();
+    private readonly List<LocalPlugin> installedPluginsList = [];
+    private readonly List<RemotePluginManifest> availablePluginsList = [];
+    private readonly List<AvailablePluginUpdate> updatablePluginsList = [];
 
     private readonly Task<DalamudLinkPayload> openInstallerWindowPluginChangelogsLink;
 
@@ -131,7 +131,7 @@ internal class PluginManager : IInternalDisposableService
                             PluginInstallerOpenKind.Changelogs);
                     }));
 
-        this.configuration.PluginTestingOptIns ??= new();
+        this.configuration.PluginTestingOptIns ??= [];
         this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
 
         registerStartupBlocker(
@@ -230,7 +230,7 @@ internal class PluginManager : IInternalDisposableService
     /// <summary>
     /// Gets a list of all plugin repositories. The main repo should always be first.
     /// </summary>
-    public List<PluginRepository> Repos { get; private set; } = new();
+    public List<PluginRepository> Repos { get; private set; } = [];
 
     /// <summary>
     /// Gets a value indicating whether plugins are not still loading from boot.
@@ -1897,9 +1897,9 @@ internal class PluginManager : IInternalDisposableService
     /// </summary>
     public class StartupLoadTracker
     {
-        private readonly Dictionary<string, string> internalToPublic = new();
-        private readonly ConcurrentBag<string> allInternalNames = new();
-        private readonly ConcurrentBag<string> finishedInternalNames = new();
+        private readonly Dictionary<string, string> internalToPublic = [];
+        private readonly ConcurrentBag<string> allInternalNames = [];
+        private readonly ConcurrentBag<string> finishedInternalNames = [];
 
         /// <summary>
         /// Gets a value indicating the total load progress.

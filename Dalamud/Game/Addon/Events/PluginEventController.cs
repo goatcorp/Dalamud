@@ -28,7 +28,7 @@ internal unsafe class PluginEventController : IDisposable
 
     private AddonEventListener EventListener { get; init; }
 
-    private List<AddonEventEntry> Events { get; } = new();
+    private List<AddonEventEntry> Events { get; } = [];
 
     /// <summary>
     /// Adds a tracked event.

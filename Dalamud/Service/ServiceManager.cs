@@ -44,7 +44,7 @@ internal static class ServiceManager
     internal static readonly ThreadLocal<Type?> CurrentConstructorServiceType = new();
 
     [SuppressMessage("ReSharper", "CollectionNeverQueried.Local", Justification = "Debugging purposes")]
-    private static readonly List<Type> LoadedServices = new();
+    private static readonly List<Type> LoadedServices = [];
 #endif
 
     private static readonly TaskCompletionSource BlockingServicesLoadedTaskCompletionSource =

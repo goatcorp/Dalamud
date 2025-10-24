@@ -40,7 +40,7 @@ internal class ConsoleWindow : Window, IDisposable
     private readonly RollingList<LogEntry> logText;
     private readonly RollingList<LogEntry> filteredLogEntries;
 
-    private readonly List<PluginFilterEntry> pluginFilters = new();
+    private readonly List<PluginFilterEntry> pluginFilters = [];
 
     private readonly DalamudConfiguration configuration;
 

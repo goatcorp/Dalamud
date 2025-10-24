@@ -127,7 +127,7 @@ public static class Troubleshooting
 
         public bool ForcedMinHook { get; set; }
 
-        public List<ThirdPartyRepoSettings> ThirdRepo => new();
+        public List<ThirdPartyRepoSettings> ThirdRepo => [];
 
         public bool HasThirdRepo { get; set; }
     }

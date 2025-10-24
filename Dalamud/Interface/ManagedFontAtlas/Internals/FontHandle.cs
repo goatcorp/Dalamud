@@ -20,7 +20,7 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 internal abstract class FontHandle : IFontHandle
 {
     private const int NonMainThreadFontAccessWarningCheckInterval = 10000;
-    private static readonly ConditionalWeakTable<LocalPlugin, object> NonMainThreadFontAccessWarning = new();
+    private static readonly ConditionalWeakTable<LocalPlugin, object> NonMainThreadFontAccessWarning = [];
     private static long nextNonMainThreadFontAccessWarningCheck;
 
     private readonly List<IDisposable> pushedFonts = new(8);

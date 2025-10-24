@@ -42,14 +42,14 @@ internal sealed class ComponentDemoWindow : Window
 
         this.RespectCloseHotkey = false;
 
-        this.componentDemos = new()
-        {
+        this.componentDemos =
+        [
             ("Test", ImGuiComponents.Test),
             ("HelpMarker", HelpMarkerDemo),
             ("IconButton", IconButtonDemo),
             ("TextWithLabel", TextWithLabelDemo),
             ("ColorPickerWithPalette", this.ColorPickerWithPaletteDemo),
-        };
+        ];
     }
 
     /// <inheritdoc/>

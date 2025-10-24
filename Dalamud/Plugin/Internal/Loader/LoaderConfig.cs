@@ -39,13 +39,13 @@ internal class LoaderConfig
     /// <summary>
     /// Gets a list of assemblies which should be treated as private.
     /// </summary>
-    public ICollection<AssemblyName> PrivateAssemblies { get; } = new List<AssemblyName>();
+    public ICollection<AssemblyName> PrivateAssemblies { get; } = [];
 
     /// <summary>
     /// Gets a list of assemblies which should be unified between the host and the plugin.
     /// </summary>
     /// <seealso href="https://github.com/natemcmaster/DotNetCorePlugins/blob/main/docs/what-are-shared-types.md">what-are-shared-types</seealso>
-    public ICollection<(AssemblyName Name, bool Recursive)> SharedAssemblies { get; } = new List<(AssemblyName Name, bool Recursive)>();
+    public ICollection<(AssemblyName Name, bool Recursive)> SharedAssemblies { get; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether attempt to unify all types from a plugin with the host.

@@ -24,7 +24,7 @@ internal abstract class SharedImmediateTexture
     private static long instanceCounter;
 
     private readonly Lock reviveLock = new();
-    private readonly List<LocalPlugin> ownerPlugins = new();
+    private readonly List<LocalPlugin> ownerPlugins = [];
 
     private bool resourceReleased;
     private int refCount;

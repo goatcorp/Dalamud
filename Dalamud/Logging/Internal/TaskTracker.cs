@@ -16,7 +16,7 @@ namespace Dalamud.Logging.Internal;
 internal class TaskTracker : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new("TT");
-    private static readonly List<TaskInfo> TrackedTasksInternal = new();
+    private static readonly List<TaskInfo> TrackedTasksInternal = [];
     private static readonly ConcurrentQueue<TaskInfo> NewlyCreatedTasks = new();
     private static bool clearRequested = false;
 

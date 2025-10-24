@@ -103,8 +103,8 @@ internal class GamePrebakedFontHandle : FontHandle
     /// </summary>
     internal sealed class HandleManager : IFontHandleManager
     {
-        private readonly Dictionary<GameFontStyle, int> gameFontsRc = new();
-        private readonly HashSet<GamePrebakedFontHandle> handles = new();
+        private readonly Dictionary<GameFontStyle, int> gameFontsRc = [];
+        private readonly HashSet<GamePrebakedFontHandle> handles = [];
         private readonly Lock syncRoot = new();
 
         /// <summary>
@@ -190,11 +190,11 @@ internal class GamePrebakedFontHandle : FontHandle
         private readonly HashSet<GameFontStyle> gameFontStyles;
 
         // Owned by this class, but ImFontPtr values still do not belong to this.
-        private readonly Dictionary<GameFontStyle, FontDrawPlan> fonts = new();
-        private readonly Dictionary<GameFontStyle, Exception?> buildExceptions = new();
-        private readonly List<(ImFontPtr Font, GameFontStyle Style, ushort[]? Ranges)> attachments = new();
+        private readonly Dictionary<GameFontStyle, FontDrawPlan> fonts = [];
+        private readonly Dictionary<GameFontStyle, Exception?> buildExceptions = [];
+        private readonly List<(ImFontPtr Font, GameFontStyle Style, ushort[]? Ranges)> attachments = [];
 
-        private readonly HashSet<ImFontPtr> templatedFonts = new();
+        private readonly HashSet<ImFontPtr> templatedFonts = [];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HandleSubstance"/> class.
@@ -451,8 +451,8 @@ internal class GamePrebakedFontHandle : FontHandle
         public readonly GameFontStyle BaseStyle;
         public readonly GameFontFamilyAndSizeAttribute BaseAttr;
         public readonly int TexCount;
-        public readonly Dictionary<ImFontPtr, BitArray> Ranges = new();
-        public readonly List<(int RectId, int FdtGlyphIndex)> Rects = new();
+        public readonly Dictionary<ImFontPtr, BitArray> Ranges = [];
+        public readonly List<(int RectId, int FdtGlyphIndex)> Rects = [];
         public readonly ushort[] RectLookup = new ushort[0x10000];
         public readonly FdtFileView Fdt;
         public readonly ImFontPtr FullRangeFont;

@@ -19,7 +19,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class ImGuiWidget : IDataWindowWidget
 {
-    private readonly HashSet<IActiveNotification> notifications = new();
+    private readonly HashSet<IActiveNotification> notifications = [];
     private NotificationTemplate notificationTemplate;
 
     /// <inheritdoc/>

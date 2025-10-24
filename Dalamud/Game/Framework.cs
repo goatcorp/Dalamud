@@ -86,7 +86,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <summary>
     /// Gets the stats history mapping.
     /// </summary>
-    public static Dictionary<string, List<double>> StatsHistory { get; } = new();
+    public static Dictionary<string, List<double>> StatsHistory { get; } = [];
 
     /// <inheritdoc/>
     public DateTime LastUpdate { get; private set; } = DateTime.MinValue;
@@ -106,7 +106,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <summary>
     /// Gets the list of update sub-delegates that didn't get updated this frame.
     /// </summary>
-    internal List<string> NonUpdatedSubDelegates { get; private set; } = new();
+    internal List<string> NonUpdatedSubDelegates { get; private set; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether to dispatch update events.
@@ -333,7 +333,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     internal static void AddToStats(string key, double ms)
     {
         if (!StatsHistory.ContainsKey(key))
-            StatsHistory.Add(key, new List<double>());
+            StatsHistory.Add(key, []);
 
         StatsHistory[key].Add(ms);
 

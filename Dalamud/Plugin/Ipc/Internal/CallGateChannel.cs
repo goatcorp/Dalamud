@@ -23,7 +23,7 @@ internal class CallGateChannel
     /// <summary>
     /// The actual storage.
     /// </summary>
-    private readonly HashSet<Delegate> subscriptions = new();
+    private readonly HashSet<Delegate> subscriptions = [];
 
     /// <summary>
     /// A copy of the actual storage, that will be cleared and populated depending on changes made to

@@ -261,7 +261,7 @@ public abstract class Window
     /// disabled globally by the user, an internal title bar button to manage these is added when drawing, but it will
     /// not appear in this collection. If you wish to remove this button, set both of these values to false.
     /// </summary>
-    public List<TitleBarButton> TitleBarButtons { get; set; } = new();
+    public List<TitleBarButton> TitleBarButtons { get; set; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether this window will stay open.

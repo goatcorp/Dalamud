@@ -49,7 +49,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private readonly PluginImageCache imageCache;
     private readonly PluginCategoryManager categoryManager = new();
 
-    private readonly List<int> openPluginCollapsibles = new();
+    private readonly List<int> openPluginCollapsibles = [];
 
     private readonly DateTime timeLoaded;
 
@@ -113,9 +113,9 @@ internal class PluginInstallerWindow : Window, IDisposable
     private List<PluginUpdateStatus>? updatedPlugins;
 
     [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Makes sense like this")]
-    private List<RemotePluginManifest> pluginListAvailable = new();
-    private List<LocalPlugin> pluginListInstalled = new();
-    private List<AvailablePluginUpdate> pluginListUpdatable = new();
+    private List<RemotePluginManifest> pluginListAvailable = [];
+    private List<LocalPlugin> pluginListInstalled = [];
+    private List<AvailablePluginUpdate> pluginListUpdatable = [];
     private bool hasDevPlugins = false;
     private bool hasHiddenPlugins = false;
 

@@ -24,8 +24,7 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 /// </summary>
 internal sealed partial class FontAtlasFactory
 {
-    private static readonly Dictionary<ulong, List<(char Left, char Right, float Distance)>> PairAdjustmentsCache =
-        new();
+    private static readonly Dictionary<ulong, List<(char Left, char Right, float Distance)>> PairAdjustmentsCache = [];
 
     /// <summary>
     /// Implementations for <see cref="IFontAtlasBuildToolkitPreBuild"/> and
@@ -43,7 +42,7 @@ internal sealed partial class FontAtlasFactory
         private readonly GamePrebakedFontHandle.HandleSubstance gameFontHandleSubstance;
         private readonly FontAtlasFactory factory;
         private readonly FontAtlasBuiltData data;
-        private readonly List<Action> registeredPostBuildActions = new();
+        private readonly List<Action> registeredPostBuildActions = [];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuildToolkit"/> class.
@@ -85,7 +84,7 @@ internal sealed partial class FontAtlasFactory
         /// <summary>
         /// Gets the font scale modes.
         /// </summary>
-        private Dictionary<ImFontPtr, FontScaleMode> FontScaleModes { get; } = new();
+        private Dictionary<ImFontPtr, FontScaleMode> FontScaleModes { get; } = [];
 
         /// <inheritdoc/>
         public void Dispose() => this.disposeAfterBuild.Dispose();
@@ -188,7 +187,7 @@ internal sealed partial class FontAtlasFactory
                 {
                     if (!PairAdjustmentsCache.TryGetValue(hashIdent, out pairAdjustments))
                     {
-                        PairAdjustmentsCache.Add(hashIdent, pairAdjustments = new());
+                        PairAdjustmentsCache.Add(hashIdent, pairAdjustments = []);
                         try
                         {
                             pairAdjustments.AddRange(TrueTypeUtils.ExtractHorizontalPairAdjustments(raw).ToArray());

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -19,7 +19,7 @@ internal partial class ConsoleManager : IServiceType
 {
     private static readonly ModuleLog Log = new("CON");
 
-    private Dictionary<string, IConsoleEntry> entries = new();
+    private Dictionary<string, IConsoleEntry> entries = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConsoleManager"/> class.

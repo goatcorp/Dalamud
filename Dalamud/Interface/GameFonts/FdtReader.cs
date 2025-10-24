@@ -43,12 +43,12 @@ public class FdtReader
     /// <summary>
     /// Gets all the glyphs defined in this file.
     /// </summary>
-    public List<FontTableEntry> Glyphs { get; init; } = new();
+    public List<FontTableEntry> Glyphs { get; init; } = [];
 
     /// <summary>
     /// Gets all the kerning entries defined in this file.
     /// </summary>
-    public List<KerningTableEntry> Distances { get; init; } = new();
+    public List<KerningTableEntry> Distances { get; init; } = [];
 
     /// <summary>
     /// Finds the glyph index for the corresponding codepoint.

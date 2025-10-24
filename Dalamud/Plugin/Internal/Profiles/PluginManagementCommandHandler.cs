@@ -39,7 +39,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
     private readonly ChatGui chat;
     private readonly Framework framework;
 
-    private List<(Target Target, PluginCommandOperation Operation)> commandQueue = new();
+    private List<(Target Target, PluginCommandOperation Operation)> commandQueue = [];
     
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginManagementCommandHandler"/> class.

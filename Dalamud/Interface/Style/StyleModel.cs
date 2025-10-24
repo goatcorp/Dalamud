@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -86,8 +86,7 @@ public abstract class StyleModel
         if (configuration.SavedStylesOld == null)
             return;
 
-        configuration.SavedStyles = new List<StyleModel>();
-        configuration.SavedStyles.AddRange(configuration.SavedStylesOld);
+        configuration.SavedStyles = [.. configuration.SavedStylesOld];
 
         Log.Information("Transferred {NumStyles} styles", configuration.SavedStyles.Count);
 

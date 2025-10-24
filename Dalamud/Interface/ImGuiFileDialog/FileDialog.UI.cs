@@ -122,7 +122,7 @@ public partial class FileDialog
     {
         if (iconMap == null)
         {
-            iconMap = new();
+            iconMap = [];
             AddToIconMap(new[] { "mp4", "gif", "mov", "avi" }, FontAwesomeIcon.FileVideo, miscTextColor);
             AddToIconMap(new[] { "pdf" }, FontAwesomeIcon.FilePdf, miscTextColor);
             AddToIconMap(new[] { "png", "jpg", "jpeg", "tiff" }, FontAwesomeIcon.FileImage, imageTextColor);

@@ -28,7 +28,7 @@ internal class DataShareWidget : IDataWindowWidget
 {
     private const ImGuiTabItemFlags NoCloseButton = (ImGuiTabItemFlags)(1 << 20);
 
-    private readonly List<(string Name, byte[]? Data)> dataView = new();
+    private readonly List<(string Name, byte[]? Data)> dataView = [];
     private int nextTab = -1;
     private IReadOnlyDictionary<string, CallGateChannel>? gates;
     private List<CallGateChannel>? gatesSorted;

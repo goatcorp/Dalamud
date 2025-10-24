@@ -30,7 +30,7 @@ namespace Dalamud.Interface.ImGuiBackend.Renderers;
     Justification = "Multiple fixed/using scopes")]
 internal unsafe partial class Dx11Renderer : IImGuiRenderer
 {
-    private readonly List<IDalamudTextureWrap> fontTextures = new();
+    private readonly List<IDalamudTextureWrap> fontTextures = [];
     private readonly D3D_FEATURE_LEVEL featureLevel;
     private readonly ViewportHandler viewportHandler;
     private readonly nint renderNamePtr;
