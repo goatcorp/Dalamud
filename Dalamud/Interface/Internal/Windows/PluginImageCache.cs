@@ -144,7 +144,7 @@ internal class PluginImageCache : IInternalDisposableService
         this.downloadQueue.CompleteAdding();
         this.loadQueue.CompleteAdding();
 
-        if (!Task.WaitAll(new[] { this.loadTask, this.downloadTask }, 4000))
+        if (!Task.WaitAll([this.loadTask, this.downloadTask], 4000))
         {
             Log.Error("Plugin Image download/load thread has not cancelled in time");
         }

@@ -24,7 +24,7 @@ internal class ServicesWidget : IDataWindowWidget
     private List<List<ServiceDependencyNode>>? dependencyNodes;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "services" };
+    public string[]? CommandShortcuts { get; init; } = ["services"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Service Container";

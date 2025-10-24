@@ -23,7 +23,7 @@ internal class ImGuiWidget : IDataWindowWidget
     private NotificationTemplate notificationTemplate;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "imgui" };
+    public string[]? CommandShortcuts { get; init; } = ["imgui"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "ImGui";
@@ -334,7 +334,7 @@ internal class ImGuiWidget : IDataWindowWidget
     private struct NotificationTemplate
     {
         public static readonly string[] IconTitles =
-        {
+        [
             "None (use Type)",
             "SeIconChar",
             "FontAwesomeIcon",
@@ -344,7 +344,7 @@ internal class ImGuiWidget : IDataWindowWidget
             "TextureWrap from DalamudAssets(Async)",
             "TextureWrap from GamePath",
             "TextureWrap from FilePath",
-        };
+        ];
 
         public static readonly string[] AssetSources =
             Enum.GetValues<DalamudAsset>()
@@ -353,46 +353,46 @@ internal class ImGuiWidget : IDataWindowWidget
                 .ToArray();
 
         public static readonly string[] ProgressModeTitles =
-        {
+        [
             "Default",
             "Random",
             "Increasing",
             "Increasing & Auto Dismiss",
             "Indeterminate",
-        };
+        ];
 
         public static readonly string[] TypeTitles =
-        {
+        [
             nameof(NotificationType.None),
             nameof(NotificationType.Success),
             nameof(NotificationType.Warning),
             nameof(NotificationType.Error),
             nameof(NotificationType.Info),
-        };
+        ];
 
         public static readonly string[] InitialDurationTitles =
-        {
+        [
             "Infinite",
             "1 seconds",
             "3 seconds (default)",
             "10 seconds",
-        };
+        ];
 
         public static readonly string[] HoverExtendDurationTitles =
-        {
+        [
             "Disable",
             "1 seconds",
             "3 seconds (default)",
             "10 seconds",
-        };
+        ];
 
         public static readonly TimeSpan[] Durations =
-        {
+        [
             TimeSpan.Zero,
             TimeSpan.FromSeconds(1),
             NotificationConstants.DefaultDuration,
             TimeSpan.FromSeconds(10),
-        };
+        ];
 
         public bool ManualContent;
         public string Content;

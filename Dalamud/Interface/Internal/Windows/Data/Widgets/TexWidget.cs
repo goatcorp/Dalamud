@@ -83,7 +83,7 @@ internal class TexWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "tex", "texture" };
+    public string[]? CommandShortcuts { get; init; } = ["tex", "texture"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Tex";
@@ -609,7 +609,7 @@ internal class TexWidget : IDataWindowWidget
 
                     ImGui.SameLine();
                     if (ImGuiComponents.IconButton(FontAwesomeIcon.Sync))
-                        this.textureManager.InvalidatePaths(new[] { texture.SourcePathForDebug });
+                        this.textureManager.InvalidatePaths([texture.SourcePathForDebug]);
                     if (ImGui.IsItemHovered())
                         ImGui.SetTooltip($"Call {nameof(ITextureSubstitutionProvider.InvalidatePaths)}.");
 

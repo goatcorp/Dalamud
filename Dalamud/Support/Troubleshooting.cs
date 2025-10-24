@@ -32,7 +32,7 @@ public static class Troubleshooting
     {
         LastException = exception;
 
-        var fixedContext = context?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        var fixedContext = context?.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
 
         try
         {

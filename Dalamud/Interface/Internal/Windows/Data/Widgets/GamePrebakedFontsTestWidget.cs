@@ -25,11 +25,11 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
 {
     private static readonly string[] FontScaleModes =
-    {
+    [
         nameof(FontScaleMode.Default),
         nameof(FontScaleMode.SkipHandling),
         nameof(FontScaleMode.UndoGlobalScale),
-    };
+    ];
 
     private ImVectorWrapper<byte> testStringBuffer;
     private IFontAtlas? privateAtlas;

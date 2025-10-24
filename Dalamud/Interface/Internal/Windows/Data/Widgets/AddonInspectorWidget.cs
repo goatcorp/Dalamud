@@ -8,7 +8,7 @@ internal class AddonInspectorWidget : IDataWindowWidget
     private UiDebug? addonInspector;
     
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "ai", "addoninspector" };
+    public string[]? CommandShortcuts { get; init; } = ["ai", "addoninspector"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Addon Inspector";

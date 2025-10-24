@@ -12,7 +12,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class FateTableWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "fate", "fatetable" };
+    public string[]? CommandShortcuts { get; init; } = ["fate", "fatetable"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Fate Table";

@@ -17,7 +17,7 @@ internal class VfsWidget : IDataWindowWidget
     private int reps = 1;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "vfs" };
+    public string[]? CommandShortcuts { get; init; } = ["vfs"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "VFS Performance";

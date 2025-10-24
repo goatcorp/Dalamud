@@ -212,11 +212,10 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         if (cancellationToken == default)
             cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
         return this.FrameworkThreadTaskFactory.ContinueWhenAll(
-            new[]
-            {
+            [
                 Task.Delay(delay, cancellationToken),
                 this.DelayTicks(delayTicks, cancellationToken),
-            },
+            ],
             _ => func(),
             cancellationToken,
             TaskContinuationOptions.HideScheduler,
@@ -239,11 +238,10 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         if (cancellationToken == default)
             cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
         return this.FrameworkThreadTaskFactory.ContinueWhenAll(
-            new[]
-            {
+            [
                 Task.Delay(delay, cancellationToken),
                 this.DelayTicks(delayTicks, cancellationToken),
-            },
+            ],
             _ => action(),
             cancellationToken,
             TaskContinuationOptions.HideScheduler,
@@ -266,11 +264,10 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         if (cancellationToken == default)
             cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
         return this.FrameworkThreadTaskFactory.ContinueWhenAll(
-            new[]
-            {
+            [
                 Task.Delay(delay, cancellationToken),
                 this.DelayTicks(delayTicks, cancellationToken),
-            },
+            ],
             _ => func(),
             cancellationToken,
             TaskContinuationOptions.HideScheduler,
@@ -293,11 +290,10 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         if (cancellationToken == default)
             cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
         return this.FrameworkThreadTaskFactory.ContinueWhenAll(
-            new[]
-            {
+            [
                 Task.Delay(delay, cancellationToken),
                 this.DelayTicks(delayTicks, cancellationToken),
-            },
+            ],
             _ => func(),
             cancellationToken,
             TaskContinuationOptions.HideScheduler,

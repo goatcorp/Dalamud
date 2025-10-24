@@ -92,7 +92,7 @@ public static class DisposeSafety
                         new AggregateException(
                             new[] { e }.Concat(
                                 (IEnumerable<Exception>)r.Exception?.InnerExceptions
-                                ?? new[] { new OperationCanceledException() })));
+                                ?? [new OperationCanceledException()])));
                 }
             }
 

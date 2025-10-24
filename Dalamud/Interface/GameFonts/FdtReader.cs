@@ -269,7 +269,7 @@ public class FdtReader
         /// <summary>
         /// Mapping of texture channel index to byte index.
         /// </summary>
-        public static readonly int[] TextureChannelOrder = { 2, 1, 0, 3 };
+        public static readonly int[] TextureChannelOrder = [2, 1, 0, 3];
 
         /// <summary>
         /// Integer representation of a Unicode character in UTF-8 in reverse order, read in little endian.

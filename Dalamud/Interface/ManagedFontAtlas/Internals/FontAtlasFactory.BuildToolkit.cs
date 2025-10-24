@@ -169,7 +169,7 @@ internal sealed partial class FontAtlasFactory
                 };
 
                 if (fontConfig.GlyphRanges is not { Length: > 0 } ranges)
-                    ranges = new ushort[] { 1, 0xFFFE, 0 };
+                    ranges = [1, 0xFFFE, 0];
 
                 raw.GlyphRanges = (ushort*)this.DisposeAfterBuild(
                     GCHandle.Alloc(ranges, GCHandleType.Pinned)).AddrOfPinnedObject();
@@ -381,7 +381,7 @@ internal sealed partial class FontAtlasFactory
             DalamudAsset.FontAwesomeFreeSolid,
             fontConfig with
             {
-                GlyphRanges = new ushort[] { FontAwesomeIconMin, FontAwesomeIconMax, 0 },
+                GlyphRanges = [FontAwesomeIconMin, FontAwesomeIconMax, 0],
             });
 
         /// <inheritdoc/>
@@ -390,12 +390,12 @@ internal sealed partial class FontAtlasFactory
                 DalamudAsset.LodestoneGameSymbol,
                 fontConfig with
                 {
-                    GlyphRanges = new ushort[]
-                    {
+                    GlyphRanges =
+                    [
                         GamePrebakedFontHandle.SeIconCharMin,
                         GamePrebakedFontHandle.SeIconCharMax,
                         0,
-                    },
+                    ],
                 });
 
         /// <inheritdoc/>
@@ -628,7 +628,7 @@ internal sealed partial class FontAtlasFactory
             {
                 this.AddDalamudAssetFont(
                     DalamudAsset.NotoSansJpMedium,
-                    new() { GlyphRanges = new ushort[] { ' ', ' ', '\0' }, SizePx = 1 });
+                    new() { GlyphRanges = [' ', ' ', '\0'], SizePx = 1 });
             }
 
             if (!this.NewImAtlas.Build())

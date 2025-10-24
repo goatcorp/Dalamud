@@ -417,7 +417,7 @@ internal class GamePrebakedFontHandle : FontHandle
                 DalamudAsset.NotoSansJpMedium,
                 new()
                 {
-                    GlyphRanges = new ushort[] { ' ', ' ', '\0' },
+                    GlyphRanges = [' ', ' ', '\0'],
                     SizePx = sizePx,
                 });
             this.templatedFonts.Add(font);

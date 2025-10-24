@@ -121,7 +121,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             // if the link type is notification, just use premade payload data since it's always the same.
             // i have no idea why it is formatted like this, but it is how it is.
             // note it is identical to the link terminator payload except the embedded info type is 0x08
-            if (this.LinkType == PartyFinderLinkType.PartyFinderNotification) return new byte[] { 0x02, 0x27, 0x07, 0x08, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03, };
+            if (this.LinkType == PartyFinderLinkType.PartyFinderNotification) return [0x02, 0x27, 0x07, 0x08, 0x01, 0x01, 0x01, 0xFF, 0x01, 0x03,];
 
             // back to our regularly scheduled programming...
             var listingIDBytes = MakeInteger(this.ListingId);

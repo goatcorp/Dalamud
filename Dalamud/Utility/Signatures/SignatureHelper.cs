@@ -159,7 +159,7 @@ internal static class SignatureHelper
                         continue;
                     }
 
-                    var hook = creator.Invoke(null, new object?[] { ptr, detour, false }) as IDalamudHook;
+                    var hook = creator.Invoke(null, [ptr, detour, false]) as IDalamudHook;
                     info.SetValue(self, hook);
                     createdHooks.Add(hook);
 
