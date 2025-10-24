@@ -343,7 +343,7 @@ internal partial class ConsoleManager : IServiceType
 
     private static class Traits
     {
-        public static void ThrowIfTIsNullableAndNull<T>(T? argument, [CallerArgumentExpression("argument")] string? paramName = null)
+        public static void ThrowIfTIsNullableAndNull<T>(T? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
         {
             if (argument == null && !typeof(T).IsValueType)
                 throw new ArgumentNullException(paramName);
