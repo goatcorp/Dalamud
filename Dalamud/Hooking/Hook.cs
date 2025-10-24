@@ -160,7 +160,7 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
                 (int)Math.Min(pDataDirectory->Size + pDataDirectory->VirtualAddress - importDescriptor.Name, moduleNameLowerWithNullTerminator.Length));
 
             // Is this entry about the DLL that we're looking for? (Case insensitive)
-            if (currentDllNameWithNullTerminator.ToLowerInvariant() != moduleNameLowerWithNullTerminator)
+            if (!currentDllNameWithNullTerminator.Equals(moduleNameLowerWithNullTerminator, StringComparison.InvariantCultureIgnoreCase))
                 continue;
 
             if (isPe64)
