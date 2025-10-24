@@ -28,7 +28,7 @@ public partial class FileDialog
             var match = m.Value;
             var filter = default(FilterStruct);
 
-            if (match.Contains("{"))
+            if (match.Contains('{'))
             {
                 var exts = m.Groups[2].Value;
                 filter = new FilterStruct
