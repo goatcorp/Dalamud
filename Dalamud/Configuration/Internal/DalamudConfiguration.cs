@@ -599,7 +599,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         {
             // https://source.chromium.org/chromium/chromium/src/+/main:ui/gfx/animation/animation_win.cc;l=29?q=ReducedMotion&ss=chromium
             var winAnimEnabled = 0;
-            var success = false;
+            bool success;
             unsafe
             {
                 success = Windows.Win32.PInvoke.SystemParametersInfo(
