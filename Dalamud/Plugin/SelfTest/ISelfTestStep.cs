@@ -1,9 +1,9 @@
-namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
+namespace Dalamud.Plugin.SelfTest;
 
 /// <summary>
 /// Interface for test implementations.
 /// </summary>
-internal interface ISelfTestStep
+public interface ISelfTestStep
 {
     /// <summary>
     /// Gets the name of the test.
