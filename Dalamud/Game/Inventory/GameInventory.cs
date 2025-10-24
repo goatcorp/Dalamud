@@ -151,7 +151,7 @@ internal class GameInventory : IInternalDisposableService
             bool isNew;
             lock (this.subscribersPendingChange)
             {
-                isNew = this.subscribersPendingChange.Any() && !this.subscribers.Any();
+                isNew = this.subscribersPendingChange.Count != 0 && this.subscribers.Count == 0;
                 this.subscribers.Clear();
                 this.subscribers.AddRange(this.subscribersPendingChange);
                 this.subscribersChanged = false;
