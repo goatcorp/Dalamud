@@ -48,7 +48,7 @@ namespace Dalamud.Game.Text.Evaluator;
 [ResolveVia<ISeStringEvaluator>]
 internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 {
-    private static readonly ModuleLog Log = new("SeStringEvaluator");
+    private static readonly ModuleLog Log = ModuleLog.Create<SeStringEvaluator>();
 
     [ServiceManager.ServiceDependency]
     private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();

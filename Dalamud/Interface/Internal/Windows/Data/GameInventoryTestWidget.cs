@@ -17,7 +17,7 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 /// </summary>
 internal class GameInventoryTestWidget : IDataWindowWidget
 {
-    private static readonly ModuleLog Log = new(nameof(GameInventoryTestWidget));
+    private static readonly ModuleLog Log = ModuleLog.Create<GameInventoryTestWidget>();
 
     private GameInventoryPluginScoped? scoped;
     private bool standardEnabled;

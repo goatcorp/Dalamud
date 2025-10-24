@@ -34,7 +34,7 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ImGuiClipboardFunctionProvider : IInternalDisposableService
 {
-    private static readonly ModuleLog Log = new(nameof(ImGuiClipboardFunctionProvider));
+    private static readonly ModuleLog Log = ModuleLog.Create<ImGuiClipboardFunctionProvider>();
     private readonly void* clipboardUserDataOriginal;
     private readonly void* setTextOriginal;
     private readonly void* getTextOriginal;

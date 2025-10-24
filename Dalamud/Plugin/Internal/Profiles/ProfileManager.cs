@@ -17,7 +17,7 @@ namespace Dalamud.Plugin.Internal.Profiles;
 [ServiceManager.BlockingEarlyLoadedService($"Data provider for {nameof(PluginManager)}.")]
 internal partial class ProfileManager : IServiceType
 {
-    private static readonly ModuleLog Log = new("PROFMAN");
+    private static readonly ModuleLog Log = ModuleLog.Create<ProfileManager>();
     private readonly DalamudConfiguration config;
 
     private readonly List<Profile> profiles = [];

@@ -24,7 +24,7 @@ internal unsafe class AddonEventManager : IInternalDisposableService
     /// </summary>
     public static readonly Guid DalamudInternalKey = Guid.NewGuid();
 
-    private static readonly ModuleLog Log = new("AddonEventManager");
+    private static readonly ModuleLog Log = ModuleLog.Create<AddonEventManager>();
 
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();

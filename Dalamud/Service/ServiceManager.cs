@@ -35,7 +35,7 @@ internal static class ServiceManager
     /// <summary>
     /// Static log facility for Service{T}, to avoid duplicate instances for different types.
     /// </summary>
-    public static readonly ModuleLog Log = new("SVC");
+    public static readonly ModuleLog Log = new(nameof(ServiceManager));
 
 #if DEBUG
     /// <summary>

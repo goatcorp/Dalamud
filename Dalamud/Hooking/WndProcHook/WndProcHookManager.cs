@@ -17,7 +17,7 @@ namespace Dalamud.Hooking.WndProcHook;
 [ServiceManager.EarlyLoadedService]
 internal sealed class WndProcHookManager : IInternalDisposableService
 {
-    private static readonly ModuleLog Log = new(nameof(WndProcHookManager));
+    private static readonly ModuleLog Log = ModuleLog.Create<WndProcHookManager>();
 
     private readonly Hook<DispatchMessageWDelegate> dispatchMessageWHook;
     private readonly Dictionary<HWND, WndProcEventArgs> wndProcOverrides = [];

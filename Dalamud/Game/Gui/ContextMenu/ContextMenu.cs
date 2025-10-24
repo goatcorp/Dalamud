@@ -29,7 +29,7 @@ namespace Dalamud.Game.Gui.ContextMenu;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextMenu
 {
-    private static readonly ModuleLog Log = new("ContextMenu");
+    private static readonly ModuleLog Log = ModuleLog.Create<ContextMenu>();
 
     private readonly Hook<AtkModuleVf22OpenAddonByAgentDelegate> atkModuleVf22OpenAddonByAgentHook;
     private readonly Hook<AddonContextMenu.Delegates.OnMenuSelected> addonContextMenuOnMenuSelectedHook;

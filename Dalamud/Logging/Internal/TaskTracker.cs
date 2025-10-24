@@ -15,7 +15,7 @@ namespace Dalamud.Logging.Internal;
 [ServiceManager.EarlyLoadedService]
 internal class TaskTracker : IInternalDisposableService
 {
-    private static readonly ModuleLog Log = new("TT");
+    private static readonly ModuleLog Log = ModuleLog.Create<TaskTracker>();
     private static readonly List<TaskInfo> TrackedTasksInternal = [];
     private static readonly ConcurrentQueue<TaskInfo> NewlyCreatedTasks = new();
     private static bool clearRequested = false;

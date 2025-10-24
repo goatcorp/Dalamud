@@ -37,7 +37,7 @@ namespace Dalamud.Game.Gui;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 {
-    private static readonly ModuleLog Log = new("ChatGui");
+    private static readonly ModuleLog Log = ModuleLog.Create<ChatGui>();
 
     private readonly Queue<XivChatEntry> chatQueue = new();
     private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = [];

@@ -76,7 +76,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// </summary>
     public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
-    private static readonly ModuleLog Log = new("INTERFACE");
+    private static readonly ModuleLog Log = ModuleLog.Create<InterfaceManager>();
 
     private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = [];
     private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = [];

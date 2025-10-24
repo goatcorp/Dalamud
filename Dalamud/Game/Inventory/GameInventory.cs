@@ -348,7 +348,7 @@ internal class GameInventory : IInternalDisposableService
 #pragma warning restore SA1015
 internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInventory
 {
-    private static readonly ModuleLog Log = new(nameof(GameInventoryPluginScoped));
+    private static readonly ModuleLog Log = ModuleLog.Create<GameInventoryPluginScoped>();
 
     [ServiceManager.ServiceDependency]
     private readonly GameInventory gameInventoryService = Service<GameInventory>.Get();

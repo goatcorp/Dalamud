@@ -41,7 +41,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 /// </summary>
 internal class PluginInstallerWindow : Window, IDisposable
 {
-    private static readonly ModuleLog Log = new("PLUGINW");
+    private static readonly ModuleLog Log = ModuleLog.Create<PluginInstallerWindow>();
 
     private readonly Vector4 changelogBgColor = new(0.114f, 0.584f, 0.192f, 0.678f);
     private readonly Vector4 changelogTextColor = new(0.812f, 1.000f, 0.816f, 1.000f);

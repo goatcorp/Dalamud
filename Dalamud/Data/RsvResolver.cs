@@ -13,7 +13,7 @@ namespace Dalamud.Data;
 /// </summary>
 internal sealed unsafe class RsvResolver : IDisposable
 {
-    private static readonly ModuleLog Log = new("RsvProvider");
+    private static readonly ModuleLog Log = ModuleLog.Create<RsvResolver>();
 
     private readonly Hook<LayoutWorld.Delegates.AddRsvString> addRsvStringHook;
 
