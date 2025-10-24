@@ -28,5 +28,5 @@ public static class Hash
         return ByteArrayToString(hash);
     }
 
-    private static string ByteArrayToString(byte[] ba) => BitConverter.ToString(ba).Replace("-", string.Empty);
+    private static string ByteArrayToString(byte[] ba) => Convert.ToHexString(ba);
 }
