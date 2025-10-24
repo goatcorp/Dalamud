@@ -53,7 +53,7 @@ public static class Timings
         var outerTimingHandle = TaskTimingHandles;
         return () =>
         {
-            T res = default(T);
+            var res = default(T);
             var prev = TaskTimingHandles;
             TaskTimingHandles = outerTimingHandle;
             try
