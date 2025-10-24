@@ -234,6 +234,15 @@ public static partial class ImGuiHelpers
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
         Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, imGuiId, buttonFlags);
 
+    /// <summary>Creates a draw data that will draw the given SeString onto it.</summary>
+    /// <param name="sss">SeString to render.</param>
+    /// <param name="style">Initial rendering style.</param>
+    /// <returns>A new self-contained draw data.</returns>
+    public static BufferBackedImDrawData CreateDrawData(
+        ReadOnlySpan<byte> sss,
+        scoped in SeStringDrawParams style = default) =>
+        Service<SeStringRenderer>.Get().CreateDrawData(sss, style);
+
     /// <summary>
     /// Write unformatted text wrapped.
     /// </summary>
