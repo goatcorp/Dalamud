@@ -26,7 +26,7 @@ namespace Dalamud.Game;
 [ServiceManager.EarlyLoadedService]
 internal sealed class Framework : IInternalDisposableService, IFramework
 {
-    private static readonly ModuleLog Log = new("Framework");
+    private static readonly ModuleLog Log = ModuleLog.Create<Framework>();
 
     private static readonly Stopwatch StatsStopwatch = new();
 

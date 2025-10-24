@@ -21,7 +21,7 @@ internal class HookManager : IInternalDisposableService
     /// <summary>
     /// Logger shared with <see cref="Unhooker"/>.
     /// </summary>
-    internal static readonly ModuleLog Log = new("HM");
+    internal static readonly ModuleLog Log = ModuleLog.Create<HookManager>();
 
     [ServiceManager.ServiceConstructor]
     private HookManager()

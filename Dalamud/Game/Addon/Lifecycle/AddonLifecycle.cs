@@ -21,7 +21,7 @@ namespace Dalamud.Game.Addon.Lifecycle;
 [ServiceManager.EarlyLoadedService]
 internal unsafe class AddonLifecycle : IInternalDisposableService
 {
-    private static readonly ModuleLog Log = new("AddonLifecycle");
+    private static readonly ModuleLog Log = ModuleLog.Create<AddonLifecycle>();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();

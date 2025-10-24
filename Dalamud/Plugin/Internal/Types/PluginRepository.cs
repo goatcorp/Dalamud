@@ -29,7 +29,7 @@ internal class PluginRepository
 
     private const int HttpRequestTimeoutSeconds = 20;
 
-    private static readonly ModuleLog Log = new("PLUGINR");
+    private static readonly ModuleLog Log = ModuleLog.Create<PluginRepository>();
     private readonly HttpClient httpClient;
 
     /// <summary>

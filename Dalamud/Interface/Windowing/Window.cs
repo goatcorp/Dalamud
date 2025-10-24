@@ -32,7 +32,7 @@ public abstract class Window
 {
     private const float FadeInOutTime = 0.072f;
 
-    private static readonly ModuleLog Log = new("WindowSystem");
+    private static readonly ModuleLog Log = ModuleLog.Create<WindowSystem>();
 
     private static bool wasEscPressedLastFrame = false;
 

@@ -20,7 +20,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest;
 /// </summary>
 internal class SelfTestWindow : Window
 {
-    private static readonly ModuleLog Log = new("AGING");
+    private static readonly ModuleLog Log = ModuleLog.Create<SelfTestWindow>();
 
     private readonly List<ISelfTestStep> steps =
     [
