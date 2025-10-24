@@ -115,16 +115,14 @@ internal sealed partial class FontAtlasFactory
 
         public void AddExistingTexture(IDalamudTextureWrap wrap)
         {
-            if (this.wraps is null)
-                throw new ObjectDisposedException(nameof(FontAtlasBuiltData));
+            ObjectDisposedException.ThrowIf(this.wraps == null, this);
 
             this.wraps.Add(this.Garbage.Add(wrap));
         }
 
         public int AddNewTexture(IDalamudTextureWrap wrap, bool disposeOnError)
         {
-            if (this.wraps is null)
-                throw new ObjectDisposedException(nameof(FontAtlasBuiltData));
+            ObjectDisposedException.ThrowIf(this.wraps == null, this);
 
             var handle = wrap.Handle;
             var index = this.ImTextures.IndexOf(x => x.TexID == handle);
