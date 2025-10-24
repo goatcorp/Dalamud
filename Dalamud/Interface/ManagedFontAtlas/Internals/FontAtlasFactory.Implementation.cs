@@ -43,7 +43,7 @@ internal sealed partial class FontAtlasFactory
     /// </summary>
     private static readonly Lock? NoConcurrentBuildOperationLock = null; // new();
 
-    private static readonly ModuleLog Log = new(nameof(FontAtlasFactory));
+    private static readonly ModuleLog Log = ModuleLog.Create<FontAtlasFactory>();
 
     private static readonly Task<FontAtlasBuiltData> EmptyTask = Task.FromResult(default(FontAtlasBuiltData));
 

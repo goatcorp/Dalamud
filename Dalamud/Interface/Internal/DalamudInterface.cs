@@ -51,7 +51,7 @@ internal class DalamudInterface : IInternalDisposableService
 {
     private const float CreditsDarkeningMaxAlpha = 0.8f;
 
-    private static readonly ModuleLog Log = new("DUI");
+    private static readonly ModuleLog Log = ModuleLog.Create<DalamudInterface>();
 
     private readonly Dalamud dalamud;
     private readonly DalamudConfiguration configuration;

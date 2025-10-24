@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 
 using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Network.Structures;
@@ -95,7 +95,7 @@ internal class MarketBoard : IInternalDisposableService, IMarketBoard
 #pragma warning restore SA1015
 internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoard
 {
-    private static readonly ModuleLog Log = new(nameof(MarketBoardPluginScoped));
+    private static readonly ModuleLog Log = ModuleLog.Create<MarketBoardPluginScoped>();
 
     [ServiceManager.ServiceDependency]
     private readonly MarketBoard marketBoardService = Service<MarketBoard>.Get();

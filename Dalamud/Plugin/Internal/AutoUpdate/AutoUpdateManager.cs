@@ -32,7 +32,7 @@ namespace Dalamud.Plugin.Internal.AutoUpdate;
 [ServiceManager.EarlyLoadedService]
 internal class AutoUpdateManager : IServiceType
 {
-    private static readonly ModuleLog Log = new("AUTOUPDATE");
+    private static readonly ModuleLog Log = ModuleLog.Create<AutoUpdateManager>();
 
     /// <summary>
     /// Time we should wait after login to update.

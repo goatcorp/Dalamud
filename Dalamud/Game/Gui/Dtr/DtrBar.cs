@@ -30,7 +30,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 {
     private const uint BaseNodeId = 1000;
 
-    private static readonly ModuleLog Log = new("DtrBar");
+    private static readonly ModuleLog Log = ModuleLog.Create<DtrBar>();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();

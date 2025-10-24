@@ -17,7 +17,7 @@ namespace Dalamud.Console;
 [ServiceManager.BlockingEarlyLoadedService("Console is needed by other blocking early loaded services.")]
 internal partial class ConsoleManager : IServiceType
 {
-    private static readonly ModuleLog Log = new("CON");
+    private static readonly ModuleLog Log = ModuleLog.Create<ConsoleManager>();
 
     private Dictionary<string, IConsoleEntry> entries = [];
 

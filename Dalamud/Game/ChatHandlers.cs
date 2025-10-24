@@ -23,7 +23,7 @@ namespace Dalamud.Game;
 [ServiceManager.EarlyLoadedService]
 internal partial class ChatHandlers : IServiceType
 {
-    private static readonly ModuleLog Log = new("ChatHandlers");
+    private static readonly ModuleLog Log = ModuleLog.Create<ChatHandlers>();
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();

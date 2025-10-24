@@ -16,7 +16,7 @@ namespace Dalamud.Game.Addon.Events;
 /// </summary>
 internal unsafe class PluginEventController : IDisposable
 {
-    private static readonly ModuleLog Log = new("AddonEventManager");
+    private static readonly ModuleLog Log = ModuleLog.Create<AddonEventManager>();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginEventController"/> class.
