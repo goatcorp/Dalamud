@@ -151,11 +151,7 @@ internal class ProfileManager : IServiceType
     /// <returns>The newly cloned profile.</returns>
     public Profile CloneProfile(Profile toClone)
     {
-        var newProfile = this.ImportProfile(toClone.Model.SerializeForShare());
-        if (newProfile == null)
-            throw new Exception("New profile was null while cloning");
-
-        return newProfile;
+        return this.ImportProfile(toClone.Model.SerializeForShare()) ?? throw new Exception("New profile was null while cloning");
     }
 
     /// <summary>

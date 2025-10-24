@@ -141,10 +141,7 @@ internal class PluginErrorHandler : IServiceType
     private static Action<TDelegate, object[]> CreateInvoker<TDelegate>() where TDelegate : Delegate
     {
         var delegateType = typeof(TDelegate);
-        var method = delegateType.GetMethod("Invoke");
-        if (method == null)
-            throw new InvalidOperationException($"Delegate {delegateType} does not have an Invoke method.");
-
+        var method = delegateType.GetMethod("Invoke") ?? throw new InvalidOperationException($"Delegate {delegateType} does not have an Invoke method.");
         var parameters = method.GetParameters();
 
         // Create parameters for the lambda
