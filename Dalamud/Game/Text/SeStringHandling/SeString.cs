@@ -258,13 +258,13 @@ public class SeString
         var mapPayload = new MapLinkPayload(territoryId, mapId, rawX, rawY);
         var nameString = GetMapLinkNameString(mapPayload.PlaceName, instance, mapPayload.CoordinateString);
 
-        var payloads = new List<Payload>(new Payload[]
-        {
+        var payloads = new List<Payload>(
+        [
             mapPayload,
             // arrow goes here
             new TextPayload(nameString),
             RawPayload.LinkTerminator,
-        });
+        ]);
         payloads.InsertRange(1, TextArrowPayloads);
 
         return new SeString(payloads);
@@ -298,13 +298,13 @@ public class SeString
         var mapPayload = new MapLinkPayload(territoryId, mapId, xCoord, yCoord, fudgeFactor);
         var nameString = GetMapLinkNameString(mapPayload.PlaceName, instance, mapPayload.CoordinateString);
 
-        var payloads = new List<Payload>(new Payload[]
-        {
+        var payloads = new List<Payload>(
+        [
             mapPayload,
             // arrow goes here
             new TextPayload(nameString),
             RawPayload.LinkTerminator,
-        });
+        ]);
         payloads.InsertRange(1, TextArrowPayloads);
 
         return new SeString(payloads);

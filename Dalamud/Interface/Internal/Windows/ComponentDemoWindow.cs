@@ -19,14 +19,14 @@ internal sealed class ComponentDemoWindow : Window
     private static readonly TimeSpan DefaultEasingTime = new(0, 0, 0, 1700);
 
     private readonly List<(string Name, Action Demo)> componentDemos;
-    private readonly IReadOnlyList<Easing> easings = new Easing[]
-    {
+    private readonly IReadOnlyList<Easing> easings =
+    [
         new InSine(DefaultEasingTime), new OutSine(DefaultEasingTime), new InOutSine(DefaultEasingTime),
         new InCubic(DefaultEasingTime), new OutCubic(DefaultEasingTime), new InOutCubic(DefaultEasingTime),
         new InQuint(DefaultEasingTime), new OutQuint(DefaultEasingTime), new InOutQuint(DefaultEasingTime),
         new InCirc(DefaultEasingTime), new OutCirc(DefaultEasingTime), new InOutCirc(DefaultEasingTime),
         new InElastic(DefaultEasingTime), new OutElastic(DefaultEasingTime), new InOutElastic(DefaultEasingTime),
-    };
+    ];
 
     private int animationTimeMs = (int)DefaultEasingTime.TotalMilliseconds;
     private Vector4 defaultColor = ImGuiColors.DalamudOrange;

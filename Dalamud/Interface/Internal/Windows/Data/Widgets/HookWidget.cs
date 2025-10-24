@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,7 +55,7 @@ internal unsafe class HookWidget : IDataWindowWidget
     public string DisplayName { get; init; } = "Hook";
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "hook" };
+    public string[]? CommandShortcuts { get; init; } = ["hook"];
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

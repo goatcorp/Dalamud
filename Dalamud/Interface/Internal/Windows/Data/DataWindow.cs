@@ -18,7 +18,7 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class DataWindow : Window, IDisposable
 {
     private readonly IDataWindowWidget[] modules =
-    {
+    [
         new AddonInspectorWidget(),
         new AddonInspectorWidget2(),
         new AddonLifecycleWidget(),
@@ -62,7 +62,7 @@ internal class DataWindow : Window, IDisposable
         new UiColorWidget(),
         new UldWidget(),
         new VfsWidget(),
-    };
+    ];
 
     private readonly IOrderedEnumerable<IDataWindowWidget> orderedModules;
 

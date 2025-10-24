@@ -364,7 +364,7 @@ internal static class ServiceManager
                                         BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.NonPublic,
                                         null,
                                         null,
-                                        new object[] { startLoaderArgs }));
+                                        [startLoaderArgs]));
                     servicesToLoad.Remove(serviceType);
 
 #if DEBUG

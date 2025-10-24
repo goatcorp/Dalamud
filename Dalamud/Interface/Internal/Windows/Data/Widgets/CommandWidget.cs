@@ -13,7 +13,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class CommandWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "command" };
+    public string[]? CommandShortcuts { get; init; } = ["command"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Command";

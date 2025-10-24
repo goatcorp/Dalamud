@@ -34,7 +34,7 @@ internal class DataShareWidget : IDataWindowWidget
     private List<CallGateChannel>? gatesSorted;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "datashare" };
+    public string[]? CommandShortcuts { get; init; } = ["datashare"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Data Share & Call Gate";

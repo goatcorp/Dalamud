@@ -290,13 +290,13 @@ internal sealed partial class FontAtlasFactory
                 this.factory.InterfaceManager.AfterBuildFonts += this.OnRebuildRecommend;
                 this.disposables.Add(() => this.factory.InterfaceManager.AfterBuildFonts -= this.OnRebuildRecommend);
 
-                this.fontHandleManagers = new IFontHandleManager[]
-                {
+                this.fontHandleManagers =
+                [
                     this.delegateFontHandleManager = this.disposables.Add(
                         new DelegateFontHandle.HandleManager(atlasName)),
                     this.gameFontHandleManager = this.disposables.Add(
                         new GamePrebakedFontHandle.HandleManager(atlasName, factory)),
-                };
+                ];
                 foreach (var fhm in this.fontHandleManagers)
                     fhm.RebuildRecommend += this.OnRebuildRecommend;
             }

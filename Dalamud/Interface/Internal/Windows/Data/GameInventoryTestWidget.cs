@@ -24,7 +24,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
     private bool rawEnabled;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "gameinventorytest" };
+    public string[]? CommandShortcuts { get; init; } = ["gameinventorytest"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "GameInventory Test";

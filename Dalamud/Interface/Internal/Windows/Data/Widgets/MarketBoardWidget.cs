@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Globalization;
 
 using Dalamud.Bindings.ImGui;
@@ -44,7 +44,7 @@ internal class MarketBoardWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "marketboard" };
+    public string[]? CommandShortcuts { get; init; } = ["marketboard"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Market Board";
