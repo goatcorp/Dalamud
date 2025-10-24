@@ -33,7 +33,7 @@ namespace Dalamud.Game.Network.Internal;
 [ServiceManager.EarlyLoadedService]
 internal unsafe class NetworkHandlers : IInternalDisposableService
 {
-    private readonly IMarketBoardUploader uploader;
+    private readonly UniversalisMarketBoardUploader uploader;
 
     private readonly IDisposable handleMarketBoardItemRequest;
     private readonly IDisposable handleMarketTaxRates;
@@ -448,7 +448,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private void UploadMarketBoardData(
         MarketBoardItemRequest request,
         (uint CatalogId, ICollection<MarketBoardHistory.MarketBoardHistoryListing> Sales) sales,
-        ICollection<MarketBoardCurrentOfferings.MarketBoardItemListing> listings,
+        List<MarketBoardCurrentOfferings.MarketBoardItemListing> listings,
         ulong uploaderId,
         uint worldId)
     {

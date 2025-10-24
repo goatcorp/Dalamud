@@ -1235,7 +1235,7 @@ public sealed class SingleFontChooserDialog : IDisposable
     }
 
     private void UpdateSelectedFamilyAndFontIndices(
-        IReadOnlyList<IFontFamilyId> fonts,
+        List<IFontFamilyId> fonts,
         string familyName,
         string fontName)
     {

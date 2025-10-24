@@ -213,11 +213,10 @@ public abstract partial class Payload
         return payload;
     }
 
-    private static Payload DecodeText(BinaryReader reader)
+    private static TextPayload DecodeText(BinaryReader reader)
     {
         var payload = new TextPayload();
         payload.DecodeImpl(reader, reader.BaseStream.Length);
-
         return payload;
     }
 }
