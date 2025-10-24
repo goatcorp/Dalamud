@@ -419,7 +419,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private IDisposable HandleMarketBoardItemRequest()
     {
-        void LogStartObserved(MarketBoardItemRequest request)
+        static void LogStartObserved(MarketBoardItemRequest request)
         {
             Log.Verbose("Observed start of request for item with {NumListings} expected listings", request.AmountToArrive);
         }

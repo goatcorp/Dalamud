@@ -912,7 +912,7 @@ internal class DalamudInterface : IInternalDisposableService
 
                         if (ImGui.MenuItem("Cause CLR fastfail"u8))
                         {
-                            unsafe void CauseFastFail()
+                            static unsafe void CauseFastFail()
                             {
                                 // ReSharper disable once NotAccessedVariable
                                 var texture = Unsafe.AsRef<AtkTexture>((void*)0x12345678);
