@@ -72,9 +72,8 @@ internal static class SignatureHelper
                 }
             }
 
-            IntPtr ptr;
             var success = sig.ScanType == ScanType.Text
-                              ? scanner.TryScanText(sig.Signature, out ptr)
+                              ? scanner.TryScanText(sig.Signature, out var ptr)
                               : scanner.TryGetStaticAddressFromSig(sig.Signature, out ptr);
             if (!success)
             {
