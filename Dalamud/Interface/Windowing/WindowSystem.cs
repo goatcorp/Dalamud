@@ -4,6 +4,7 @@ using System.Linq;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Windowing.Persistence;
+
 using Serilog;
 
 namespace Dalamud.Interface.Windowing;
@@ -15,7 +16,7 @@ public class WindowSystem
 {
     private static DateTimeOffset lastAnyFocus;
 
-    private readonly List<Window> windows = new();
+    private readonly List<Window> windows = [];
 
     private string lastFocusedWindowName = string.Empty;
 

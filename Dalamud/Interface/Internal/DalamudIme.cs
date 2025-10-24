@@ -74,7 +74,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
     private readonly ImGuiSetPlatformImeDataDelegate setPlatformImeDataDelegate;
 
     /// <summary>The candidates.</summary>
-    private readonly List<(string String, bool Supported)> candidateStrings = new();
+    private readonly List<(string String, bool Supported)> candidateStrings = [];
 
     /// <summary>The selected imm component.</summary>
     private string compositionString = string.Empty;

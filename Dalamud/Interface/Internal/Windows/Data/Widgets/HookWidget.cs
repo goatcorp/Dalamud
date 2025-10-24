@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,8 +7,11 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Hooking;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using Serilog;
+
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
@@ -55,7 +58,7 @@ internal unsafe class HookWidget : IDataWindowWidget
     public string DisplayName { get; init; } = "Hook";
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "hook" };
+    public string[]? CommandShortcuts { get; init; } = ["hook"];
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

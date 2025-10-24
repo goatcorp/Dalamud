@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 
 using BitFaster.Caching.Lru;
 
@@ -65,7 +64,7 @@ internal sealed partial class TextureManager
         private readonly ConcurrentDictionary<string, SharedImmediateTexture> gameDict = new();
         private readonly ConcurrentDictionary<string, SharedImmediateTexture> fileDict = new();
         private readonly ConcurrentDictionary<(Assembly, string), SharedImmediateTexture> manifestResourceDict = new();
-        private readonly HashSet<SharedImmediateTexture> invalidatedTextures = new();
+        private readonly HashSet<SharedImmediateTexture> invalidatedTextures = [];
 
         private readonly Thread sharedTextureReleaseThread;
 

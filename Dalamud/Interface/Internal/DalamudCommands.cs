@@ -1,9 +1,9 @@
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
 using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Command;
@@ -11,7 +11,6 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
-using Serilog;
 
 namespace Dalamud.Interface.Internal;
 
@@ -208,7 +207,7 @@ internal class DalamudCommands : IServiceType
         var chatGui = Service<ChatGui>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
-        configuration.BadWords ??= new List<string>();
+        configuration.BadWords ??= [];
 
         if (configuration.BadWords.Count == 0)
         {
@@ -227,7 +226,7 @@ internal class DalamudCommands : IServiceType
         var chatGui = Service<ChatGui>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
-        configuration.BadWords ??= new List<string>();
+        configuration.BadWords ??= [];
 
         configuration.BadWords.RemoveAll(x => x == arguments);
 
@@ -326,7 +325,7 @@ internal class DalamudCommands : IServiceType
         var configuration = Service<DalamudConfiguration>.Get();
         var localization = Service<Localization>.Get();
 
-        if (Localization.ApplicableLangCodes.Contains(arguments.ToLowerInvariant()) || arguments.ToLowerInvariant() == "en")
+        if (Localization.ApplicableLangCodes.Contains(arguments.ToLowerInvariant()) || arguments.Equals("en", StringComparison.InvariantCultureIgnoreCase))
         {
             localization.SetupWithLangCode(arguments.ToLowerInvariant());
             configuration.LanguageOverride = arguments.ToLowerInvariant();

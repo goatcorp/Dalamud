@@ -206,7 +206,7 @@ internal static class Service<T> where T : IServiceType
                                              is not ServiceManager.ServiceKind.BlockingEarlyLoadedService
                                              and not ServiceManager.ServiceKind.ProvidedService)
                                 .ToArray();
-            if (offenders.Any())
+            if (offenders.Length != 0)
             {
                 const string bels = nameof(ServiceManager.BlockingEarlyLoadedServiceAttribute);
                 const string ps = nameof(ServiceManager.ProvidedServiceAttribute);
@@ -286,13 +286,13 @@ internal static class Service<T> where T : IServiceType
                     {
                         if (method.Invoke(instance, args) is Task task)
                         {
-                            tasks ??= new();
+                            tasks ??= [];
                             tasks.Add(task);
                         }
                     }
                     catch (Exception e)
                     {
-                        tasks ??= new();
+                        tasks ??= [];
                         tasks.Add(Task.FromException(e));
                     }
                 }
@@ -351,15 +351,12 @@ internal static class Service<T> where T : IServiceType
             BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
         return typeof(T)
                .GetConstructors(ctorBindingFlags)
-               .SingleOrDefault(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Any());
+               .SingleOrDefault(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Length != 0);
     }
 
     private static async Task<T> ConstructObject(IReadOnlyCollection<object> additionalProvidedTypedObjects)
     {
-        var ctor = GetServiceConstructor();
-        if (ctor == null)
-            throw new Exception($"Service \"{typeof(T).FullName}\" had no applicable constructor");
-
+        var ctor = GetServiceConstructor() ?? throw new Exception($"Service \"{typeof(T).FullName}\" had no applicable constructor");
         var args = await ResolveInjectedParameters(ctor.GetParameters(), additionalProvidedTypedObjects)
                        .ConfigureAwait(false);
         using (Timings.Start($"{typeof(T).Name} Construct"))
@@ -460,7 +457,7 @@ internal static class ServiceHelpers
                    BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
                    null,
                    null,
-                   new object?[] { includeUnloadDependencies }) ?? new List<Type>();
+                   [includeUnloadDependencies]) ?? new List<Type>();
     }
 
     /// <summary>

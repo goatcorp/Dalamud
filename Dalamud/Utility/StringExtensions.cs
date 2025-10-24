@@ -57,7 +57,7 @@ public static class StringExtensions
     /// <param name="input">The input string.</param>
     /// <param name="culture"><inheritdoc cref="string.ToLower(CultureInfo)" path="/param[@name='cultureInfo']"/></param>
     /// <returns>A new string with the first character converted to uppercase.</returns>
-    [return: NotNullIfNotNull("input")]
+    [return: NotNullIfNotNull(nameof(input))]
     public static string? FirstCharToUpper(this string? input, CultureInfo? culture = null) =>
         string.IsNullOrWhiteSpace(input)
             ? input
@@ -69,7 +69,7 @@ public static class StringExtensions
     /// <param name="input">The input string.</param>
     /// <param name="culture"><inheritdoc cref="string.ToLower(CultureInfo)" path="/param[@name='cultureInfo']"/></param>
     /// <returns>A new string with the first character converted to lowercase.</returns>
-    [return: NotNullIfNotNull("input")]
+    [return: NotNullIfNotNull(nameof(input))]
     public static string? FirstCharToLower(this string? input, CultureInfo? culture = null) =>
         string.IsNullOrWhiteSpace(input)
             ? input

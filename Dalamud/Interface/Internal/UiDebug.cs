@@ -11,7 +11,6 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Lumina.Text.ReadOnly;
 
 // Customised version of https://github.com/aers/FFXIVUIDebug
 
@@ -25,8 +24,8 @@ internal unsafe class UiDebug
     private const int UnitListCount = 18;
 
     private readonly bool[] selectedInList = new bool[UnitListCount];
-    private readonly string[] listNames = new string[UnitListCount]
-    {
+    private readonly string[] listNames =
+    [
         "Depth Layer 1",
         "Depth Layer 2",
         "Depth Layer 3",
@@ -45,7 +44,7 @@ internal unsafe class UiDebug
         "Units 16",
         "Units 17",
         "Units 18",
-    };
+    ];
 
     private bool doingSearch;
     private string searchInput = string.Empty;
@@ -557,7 +556,7 @@ internal unsafe class UiDebug
                 var name = unitBase->NameString;
                 if (searching)
                 {
-                    if (name == null || !name.ToLowerInvariant().Contains(searchStr.ToLowerInvariant())) continue;
+                    if (name == null || !name.Contains(searchStr, StringComparison.InvariantCultureIgnoreCase)) continue;
                 }
 
                 noResults = false;

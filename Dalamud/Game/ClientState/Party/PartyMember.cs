@@ -1,12 +1,10 @@
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Memory;
 
 using Lumina.Excel;
 

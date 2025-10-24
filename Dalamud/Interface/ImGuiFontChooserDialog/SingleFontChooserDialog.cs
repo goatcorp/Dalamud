@@ -13,6 +13,7 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
+
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
@@ -31,10 +32,10 @@ public sealed class SingleFontChooserDialog : IDisposable
 
     private const float MaxFontSizePt = 127;
 
-    private static readonly List<IFontId> EmptyIFontList = new();
+    private static readonly List<IFontId> EmptyIFontList = [];
 
     private static readonly (string Name, float Value)[] FontSizeList =
-    {
+    [
         ("9.6", 9.6f),
         ("10", 10f),
         ("12", 12f),
@@ -51,7 +52,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         ("46", 46),
         ("68", 68),
         ("90", 90),
-    };
+    ];
 
     private static int counterStatic;
 
@@ -1235,7 +1236,7 @@ public sealed class SingleFontChooserDialog : IDisposable
     }
 
     private void UpdateSelectedFamilyAndFontIndices(
-        IReadOnlyList<IFontFamilyId> fonts,
+        List<IFontFamilyId> fonts,
         string familyName,
         string fontName)
     {

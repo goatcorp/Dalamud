@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 using Dalamud.Utility;
 
@@ -11,7 +12,7 @@ namespace Dalamud.Interface.ImGuiFileDialog;
 /// </summary>
 public partial class FileDialog
 {
-    private readonly object filesLock = new();
+    private readonly Lock filesLock = new();
 
     private readonly DriveListLoader driveListLoader = new();
 
