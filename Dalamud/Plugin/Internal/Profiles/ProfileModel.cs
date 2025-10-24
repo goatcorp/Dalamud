@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Reflection;
 
 using Dalamud.Utility;
@@ -47,15 +47,11 @@ public abstract class ProfileModel
     /// <exception cref="ArgumentOutOfRangeException">Thrown when an unsupported model is serialized.</exception>
     public string SerializeForShare()
     {
-        string prefix;
-        switch (this)
+        var prefix = this switch
         {
-            case ProfileModelV1:
-                prefix = ProfileModelV1.SerializedPrefix;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+            ProfileModelV1 => ProfileModelV1.SerializedPrefix,
+            _ => throw new ArgumentOutOfRangeException(),
+        };
 
         // HACK: Just filter the ID for now, we should split the sharing + saving model
         var serialized = JsonConvert.SerializeObject(this, new JsonSerializerSettings()
