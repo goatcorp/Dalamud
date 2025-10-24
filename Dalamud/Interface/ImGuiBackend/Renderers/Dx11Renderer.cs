@@ -400,7 +400,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     {
         ObjectDisposedException.ThrowIf(this.device.IsEmpty(), this);
 
-        if (this.fontTextures.Any())
+        if (this.fontTextures.Count != 0)
             return;
 
         var io = ImGui.GetIO();

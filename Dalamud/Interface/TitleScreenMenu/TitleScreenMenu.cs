@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -42,7 +42,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         {
             lock (this.entries)
             {
-                if (!this.entries.Any())
+                if (this.entries.Count == 0)
                     return Array.Empty<TitleScreenMenuEntry>();
 
                 return this.entriesView ??= this.entries.OrderByDescending(x => x.IsInternal).ToArray();
@@ -59,7 +59,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         {
             lock (this.entries)
             {
-                if (!this.entries.Any())
+                if (this.entries.Count == 0)
                     return Array.Empty<TitleScreenMenuEntry>();
 
                 return this.entriesView ??= this.entries.OrderByDescending(x => x.IsInternal).ToArray();
@@ -81,7 +81,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         lock (this.entries)
         {
             var entriesOfAssembly = this.entries.Where(x => x.CallingAssembly == Assembly.GetCallingAssembly()).ToList();
-            var priority = entriesOfAssembly.Any()
+            var priority = entriesOfAssembly.Count != 0
                                ? unchecked(entriesOfAssembly.Select(x => x.Priority).Max() + 1)
                                : 0;
             entry = new(Assembly.GetCallingAssembly(), priority, text, texture, onTriggered);
@@ -191,7 +191,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         lock (this.entries)
         {
             var entriesOfAssembly = this.entries.Where(x => x.CallingAssembly == null).ToList();
-            var priority = entriesOfAssembly.Any()
+            var priority = entriesOfAssembly.Count != 0
                                ? unchecked(entriesOfAssembly.Select(x => x.Priority).Max() + 1)
                                : 0;
             entry = new(null, priority, text, texture, onTriggered, showConditionKeys)

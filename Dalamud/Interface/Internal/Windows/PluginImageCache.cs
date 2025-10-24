@@ -357,7 +357,7 @@ internal class PluginImageCache : IInternalDisposableService
             try
             {
                 token.ThrowIfCancellationRequested();
-                if (!pendingFuncs.Any())
+                if (pendingFuncs.Count == 0)
                 {
                     if (!this.downloadQueue.TryTake(out var taskTuple, -1, token))
                         return;
@@ -373,7 +373,7 @@ internal class PluginImageCache : IInternalDisposableService
                 pendingFuncs = pendingFuncs.OrderBy(x => x.Item1).ToList();
 
                 var item1 = pendingFuncs.Last().Item1;
-                while (pendingFuncs.Any() && pendingFuncs.Last().Item1 == item1)
+                while (pendingFuncs.Count != 0 && pendingFuncs.Last().Item1 == item1)
                 {
                     token.ThrowIfCancellationRequested();
                     while (runningTasks.Count >= concurrency)
