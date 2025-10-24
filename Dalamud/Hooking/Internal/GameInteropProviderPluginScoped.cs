@@ -8,6 +8,7 @@ using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Signatures;
+
 using Serilog;
 
 namespace Dalamud.Hooking.Internal;

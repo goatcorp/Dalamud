@@ -1,7 +1,9 @@
 using System.IO;
 
 using Dalamud.Utility;
+
 using Newtonsoft.Json;
+
 using Serilog;
 
 namespace Dalamud.Plugin.Internal.Types.Manifest;

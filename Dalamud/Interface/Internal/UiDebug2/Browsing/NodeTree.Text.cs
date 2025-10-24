@@ -8,6 +8,7 @@ using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 

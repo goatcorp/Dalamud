@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Storage.Assets;
+
 using Newtonsoft.Json;
+
 using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.FontIdentifier;

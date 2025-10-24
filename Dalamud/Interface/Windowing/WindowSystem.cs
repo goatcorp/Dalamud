@@ -4,6 +4,7 @@ using System.Linq;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Windowing.Persistence;
+
 using Serilog;
 
 namespace Dalamud.Interface.Windowing;

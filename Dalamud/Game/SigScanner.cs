@@ -9,7 +9,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 using Iced.Intel;
+
 using Newtonsoft.Json;
+
 using Serilog;
 
 namespace Dalamud.Game;

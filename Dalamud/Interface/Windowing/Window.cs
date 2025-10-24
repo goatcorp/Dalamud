@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
@@ -19,7 +18,6 @@ using Dalamud.Interface.Utility.Internal;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.Logging.Internal;
-using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 

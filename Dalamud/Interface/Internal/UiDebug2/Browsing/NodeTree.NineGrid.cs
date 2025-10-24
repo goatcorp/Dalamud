@@ -1,6 +1,5 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
-using Dalamud.Interface.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 

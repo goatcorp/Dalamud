@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;

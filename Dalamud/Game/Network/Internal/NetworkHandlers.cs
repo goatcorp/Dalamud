@@ -22,7 +22,9 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
+
 using Lumina.Excel.Sheets;
+
 using Serilog;
 
 namespace Dalamud.Game.Network.Internal;

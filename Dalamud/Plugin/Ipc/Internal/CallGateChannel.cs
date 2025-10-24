@@ -7,6 +7,7 @@ using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal.Converters;
 
 using Newtonsoft.Json;
+
 using Serilog;
 
 namespace Dalamud.Plugin.Ipc.Internal;

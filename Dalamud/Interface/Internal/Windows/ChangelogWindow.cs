@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
@@ -22,6 +23,7 @@ using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace Dalamud.Interface.Internal.Windows;

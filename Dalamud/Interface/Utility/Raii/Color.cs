@@ -3,7 +3,6 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Utility;
 
 namespace Dalamud.Interface.Utility.Raii;
 

@@ -1,9 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Storage.Assets;

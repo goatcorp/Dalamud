@@ -1,5 +1,3 @@
-using System.Linq;
-
 using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Network.Structures;
 using Dalamud.IoC;

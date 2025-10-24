@@ -1,7 +1,5 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
-using Reloaded.Memory;
-
 using DreadCombo = Dalamud.Game.ClientState.JobGauge.Enums.DreadCombo;
 using SerpentCombo = Dalamud.Game.ClientState.JobGauge.Enums.SerpentCombo;
 
