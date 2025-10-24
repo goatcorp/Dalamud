@@ -66,15 +66,14 @@ public sealed unsafe partial class StatusList
     /// <returns>The status object containing the requested data.</returns>
     public static StatusList? CreateStatusListReference(IntPtr address)
     {
+        if (address == IntPtr.Zero)
+            return null;
+
         // The use case for CreateStatusListReference and CreateStatusReference to be static is so
         // fake status lists can be generated. Since they aren't exposed as services, it's either
         // here or somewhere else.
-        var clientState = Service<ClientState>.Get();
-
-        if (clientState.LocalContentId == 0)
-            return null;
-
-        if (address == IntPtr.Zero)
+        var playerState = Service<PlayerState.PlayerState>.Get();
+        if (!playerState.IsLoaded)
             return null;
 
         return new StatusList(address);
@@ -87,12 +86,11 @@ public sealed unsafe partial class StatusList
     /// <returns>The status object containing the requested data.</returns>
     public static Status? CreateStatusReference(IntPtr address)
     {
-        var clientState = Service<ClientState>.Get();
-
-        if (clientState.LocalContentId == 0)
+        if (address == IntPtr.Zero)
             return null;
 
-        if (address == IntPtr.Zero)
+        var playerState = Service<PlayerState.PlayerState>.Get();
+        if (!playerState.IsLoaded)
             return null;
 
         return new Status(address);
