@@ -376,7 +376,7 @@ internal class AutoUpdateManager : IServiceType
         }
     }
 
-    private void NotifyUpdatesAreAvailable(ICollection<AvailablePluginUpdate> updatablePlugins)
+    private void NotifyUpdatesAreAvailable(List<AvailablePluginUpdate> updatablePlugins)
     {
         if (updatablePlugins.Count == 0)
             return;

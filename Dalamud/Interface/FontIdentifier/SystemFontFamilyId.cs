@@ -83,7 +83,7 @@ public sealed class SystemFontFamilyId : IFontFamilyId
         else if (candidates.Any(x => x.Style == (int)DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL))
             candidates.RemoveAll(x => x.Style != (int)DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL);
 
-        if (!candidates.Any())
+        if (candidates.Count == 0)
             return 0;
 
         for (var i = 0; i < this.Fonts.Count; i++)

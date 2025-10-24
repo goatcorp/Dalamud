@@ -24,7 +24,7 @@ internal class ManagedLoadContext : AssemblyLoadContext
     private readonly IReadOnlyDictionary<string, ManagedLibrary> managedAssemblies;
     private readonly IReadOnlyDictionary<string, NativeLibrary> nativeLibraries;
     private readonly IReadOnlyCollection<string> privateAssemblies;
-    private readonly ICollection<string> defaultAssemblies;
+    private readonly List<string> defaultAssemblies;
     private readonly IReadOnlyCollection<string> additionalProbingPaths;
     private readonly bool preferDefaultLoadContext;
     private readonly string[] resourceRoots;

@@ -206,7 +206,7 @@ internal static class Service<T> where T : IServiceType
                                              is not ServiceManager.ServiceKind.BlockingEarlyLoadedService
                                              and not ServiceManager.ServiceKind.ProvidedService)
                                 .ToArray();
-            if (offenders.Any())
+            if (offenders.Length != 0)
             {
                 const string bels = nameof(ServiceManager.BlockingEarlyLoadedServiceAttribute);
                 const string ps = nameof(ServiceManager.ProvidedServiceAttribute);
@@ -351,7 +351,7 @@ internal static class Service<T> where T : IServiceType
             BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
         return typeof(T)
                .GetConstructors(ctorBindingFlags)
-               .SingleOrDefault(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Any());
+               .SingleOrDefault(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Length != 0);
     }
 
     private static async Task<T> ConstructObject(IReadOnlyCollection<object> additionalProvidedTypedObjects)

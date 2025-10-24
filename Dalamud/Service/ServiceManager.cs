@@ -317,7 +317,7 @@ internal static class ServiceManager
             servicesToLoad.UnionWith(earlyLoadingServices);
             servicesToLoad.UnionWith(blockingEarlyLoadingServices);
 
-            while (servicesToLoad.Any())
+            while (servicesToLoad.Count != 0)
             {
                 foreach (var serviceType in servicesToLoad)
                 {
@@ -383,23 +383,23 @@ internal static class ServiceManager
 #endif
                 }
 
-                if (!tasks.Any())
+                if (tasks.Count == 0)
                 {
                     // No more services we can start loading for now.
                     // Either we're waiting for provided services, or there's a dependency cycle.
                     providedServices.RemoveWhere(x => getAsyncTaskMap[x].IsCompleted);
-                    if (providedServices.Any())
+                    if (providedServices.Count != 0)
                         await Task.WhenAny(providedServices.Select(x => getAsyncTaskMap[x]));
                     else
                         throw new InvalidOperationException("Unresolvable dependency cycle detected");
                     continue;
                 }
 
-                if (servicesToLoad.Any())
+                if (servicesToLoad.Count != 0)
                 {
                     await Task.WhenAny(tasks);
                     var faultedTasks = tasks.Where(x => x.IsFaulted).Select(x => (Exception)x.Exception!).ToArray();
-                    if (faultedTasks.Any())
+                    if (faultedTasks.Length != 0)
                         throw new AggregateException(faultedTasks);
                 }
                 else
@@ -426,7 +426,7 @@ internal static class ServiceManager
 
             await loadingDialog.HideAndJoin();
 
-            while (tasks.Any())
+            while (tasks.Count != 0)
             {
                 await Task.WhenAny(tasks);
                 tasks.RemoveAll(x => x.IsCompleted);
