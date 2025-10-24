@@ -101,16 +101,11 @@ public abstract class StyleModel
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the version of the style model is unknown.</exception>
     public string Serialize()
     {
-        string prefix;
-        switch (this)
+        var prefix = this switch
         {
-            case StyleModelV1:
-                prefix = StyleModelV1.SerializedPrefix;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-
+            StyleModelV1 => StyleModelV1.SerializedPrefix,
+            _ => throw new ArgumentOutOfRangeException(),
+        };
         return prefix + Convert.ToBase64String(Util.CompressString(JsonConvert.SerializeObject(this)));
     }
 
