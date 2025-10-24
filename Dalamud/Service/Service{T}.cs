@@ -286,13 +286,13 @@ internal static class Service<T> where T : IServiceType
                     {
                         if (method.Invoke(instance, args) is Task task)
                         {
-                            tasks ??= new();
+                            tasks ??= [];
                             tasks.Add(task);
                         }
                     }
                     catch (Exception e)
                     {
-                        tasks ??= new();
+                        tasks ??= [];
                         tasks.Add(Task.FromException(e));
                     }
                 }

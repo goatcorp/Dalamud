@@ -19,7 +19,7 @@ internal class DataShare : IServiceType
     /// Dictionary of cached values. Note that <see cref="Lazy{T}"/> is being used, as it does its own locking,
     /// effectively preventing calling the data generator multiple times concurrently.
     /// </summary>
-    private readonly Dictionary<string, Lazy<DataCache>> caches = new();
+    private readonly Dictionary<string, Lazy<DataCache>> caches = [];
 
     [ServiceManager.ServiceConstructor]
     private DataShare()

@@ -269,7 +269,7 @@ public class IconBrowserWidget : IDataWindowWidget
         if (this.valueRange is not null)
             return;
 
-        this.valueRange = new();
+        this.valueRange = [];
         foreach (var (id, _) in this.iconIdsTask!.Result)
         {
             if (this.startRange <= id && id < this.stopRange)

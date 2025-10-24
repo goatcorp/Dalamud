@@ -44,7 +44,7 @@ internal sealed partial class TextureManager
 
     /// <summary>Gets the list containing all the loaded textures from plugins.</summary>
     /// <remarks>Returned value must be used inside a lock.</remarks>
-    public List<IBlameableDalamudTextureWrap> BlameTracker { get; } = new();
+    public List<IBlameableDalamudTextureWrap> BlameTracker { get; } = [];
 
     /// <summary>Gets the blame for a texture wrap.</summary>
     /// <param name="textureWrap">The texture wrap.</param>
@@ -234,7 +234,7 @@ internal sealed partial class TextureManager
         public static Guid* NativeGuid => (Guid*)Unsafe.AsPointer(ref Unsafe.AsRef(in MyGuid));
 
         /// <inheritdoc/>
-        public List<LocalPlugin> OwnerPlugins { get; } = new();
+        public List<LocalPlugin> OwnerPlugins { get; } = [];
 
         /// <inheritdoc/>
         public nint ResourceAddress => (nint)this.tex2D;

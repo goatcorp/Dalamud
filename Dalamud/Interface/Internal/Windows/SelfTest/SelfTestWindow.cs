@@ -59,7 +59,7 @@ internal class SelfTestWindow : Window
         new LogoutEventSelfTestStep()
     ];
 
-    private readonly Dictionary<int, (SelfTestStepResult Result, TimeSpan? Duration)> testIndexToResult = new();
+    private readonly Dictionary<int, (SelfTestStepResult Result, TimeSpan? Duration)> testIndexToResult = [];
 
     private bool selfTestRunning = false;
     private int currentStep = 0;

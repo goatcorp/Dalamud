@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -20,7 +20,7 @@ internal class ProfileManager : IServiceType
     private static readonly ModuleLog Log = new("PROFMAN");
     private readonly DalamudConfiguration config;
 
-    private readonly List<Profile> profiles = new();
+    private readonly List<Profile> profiles = [];
 
     private volatile bool isBusy = false;
 
@@ -359,7 +359,7 @@ internal class ProfileManager : IServiceType
         this.config.DefaultProfile ??= new ProfileModelV1();
         this.profiles.Add(new Profile(this, this.config.DefaultProfile, true, true));
 
-        this.config.SavedProfiles ??= new List<ProfileModel>();
+        this.config.SavedProfiles ??= [];
         foreach (var profileModel in this.config.SavedProfiles)
         {
             this.profiles.Add(new Profile(this, profileModel, false, true));

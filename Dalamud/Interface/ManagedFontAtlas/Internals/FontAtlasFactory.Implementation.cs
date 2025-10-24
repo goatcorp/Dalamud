@@ -66,10 +66,10 @@ internal sealed partial class FontAtlasFactory
 
             try
             {
-                var substancesList = this.substances = new();
+                var substancesList = this.substances = [];
                 this.Garbage.Add(() => substancesList.Clear());
 
-                var wrapsCopy = this.wraps = new();
+                var wrapsCopy = this.wraps = [];
                 this.Garbage.Add(() => wrapsCopy.Clear());
 
                 var atlasPtr = ImGui.ImFontAtlas();

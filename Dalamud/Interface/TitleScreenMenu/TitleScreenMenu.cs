@@ -22,7 +22,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     /// </summary>
     internal const uint TextureSize = 64;
 
-    private readonly List<TitleScreenMenuEntry> entries = new();
+    private readonly List<TitleScreenMenuEntry> entries = [];
     private TitleScreenMenuEntry[]? entriesView;
 
     [ServiceManager.ServiceConstructor]
@@ -220,7 +220,7 @@ internal class TitleScreenMenuPluginScoped : IInternalDisposableService, ITitleS
     [ServiceManager.ServiceDependency]
     private readonly TitleScreenMenu titleScreenMenuService = Service<TitleScreenMenu>.Get();
 
-    private readonly List<IReadOnlyTitleScreenMenuEntry> pluginEntries = new();
+    private readonly List<IReadOnlyTitleScreenMenuEntry> pluginEntries = [];
 
     /// <inheritdoc/>
     public IReadOnlyList<IReadOnlyTitleScreenMenuEntry>? Entries => this.titleScreenMenuService.Entries;

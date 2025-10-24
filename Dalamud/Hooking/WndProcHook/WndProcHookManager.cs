@@ -20,7 +20,7 @@ internal sealed class WndProcHookManager : IInternalDisposableService
     private static readonly ModuleLog Log = new(nameof(WndProcHookManager));
 
     private readonly Hook<DispatchMessageWDelegate> dispatchMessageWHook;
-    private readonly Dictionary<HWND, WndProcEventArgs> wndProcOverrides = new();
+    private readonly Dictionary<HWND, WndProcEventArgs> wndProcOverrides = [];
 
     private HWND mainWindowHwnd;
 

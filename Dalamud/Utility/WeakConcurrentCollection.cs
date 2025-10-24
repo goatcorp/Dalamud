@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -11,7 +11,7 @@ namespace Dalamud.Utility;
 /// <typeparam name="T">The type of object that we're tracking.</typeparam>
 public class WeakConcurrentCollection<T> : ICollection<T> where T : class
 {
-    private readonly ConditionalWeakTable<T, object> cwt = new();
+    private readonly ConditionalWeakTable<T, object> cwt = [];
     
     /// <inheritdoc/>
     public int Count => this.cwt.Count();

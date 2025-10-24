@@ -51,8 +51,8 @@ internal class PluginImageCache : IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
 
-    private readonly BlockingCollection<Tuple<ulong, Func<Task>>> downloadQueue = new();
-    private readonly BlockingCollection<Func<Task>> loadQueue = new();
+    private readonly BlockingCollection<Tuple<ulong, Func<Task>>> downloadQueue = [];
+    private readonly BlockingCollection<Func<Task>> loadQueue = [];
     private readonly CancellationTokenSource cancelToken = new();
     private readonly Task downloadTask;
     private readonly Task loadTask;

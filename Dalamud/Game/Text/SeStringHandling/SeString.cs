@@ -28,7 +28,7 @@ public class SeString
     /// </summary>
     public SeString()
     {
-        this.Payloads = new List<Payload>();
+        this.Payloads = [];
     }
 
     /// <summary>

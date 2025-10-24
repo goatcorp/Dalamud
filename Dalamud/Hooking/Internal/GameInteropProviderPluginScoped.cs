@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Linq;
 
 using Dalamud.Game;
@@ -25,7 +25,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     private readonly LocalPlugin plugin;
     private readonly SigScanner scanner;
 
-    private readonly WeakConcurrentCollection<IDalamudHook> trackedHooks = new();
+    private readonly WeakConcurrentCollection<IDalamudHook> trackedHooks = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameInteropProviderPluginScoped"/> class.

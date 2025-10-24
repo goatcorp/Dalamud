@@ -22,7 +22,7 @@ internal class PluginErrorHandler : IServiceType
     private readonly NotificationManager notificationManager;
     private readonly DalamudInterface di;
 
-    private readonly Dictionary<Type, Delegate> invokerCache = new();
+    private readonly Dictionary<Type, Delegate> invokerCache = [];
 
     private DateTime lastErrorTime = DateTime.MinValue;
     private IActiveNotification? activeNotification;
