@@ -137,9 +137,9 @@ internal class TexWidget : IDataWindowWidget
             conf.QueueSave();
         }
 
-        var allBlames = this.textureManager.BlameTracker;
-        lock (allBlames)
+        lock (this.textureManager.BlameTracker)
         {
+            var allBlames = this.textureManager.BlameTracker;
             ImGui.PushID("blames"u8);
             var sizeSum = allBlames.Sum(static x => Math.Max(0, x.RawSpecs.EstimatedBytes));
             if (ImGui.CollapsingHeader(
