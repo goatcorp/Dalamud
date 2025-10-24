@@ -208,7 +208,7 @@ internal class DalamudCommands : IServiceType
         var chatGui = Service<ChatGui>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
-        configuration.BadWords ??= new List<string>();
+        configuration.BadWords ??= [];
 
         if (configuration.BadWords.Count == 0)
         {
@@ -227,7 +227,7 @@ internal class DalamudCommands : IServiceType
         var chatGui = Service<ChatGui>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
-        configuration.BadWords ??= new List<string>();
+        configuration.BadWords ??= [];
 
         configuration.BadWords.RemoveAll(x => x == arguments);
 

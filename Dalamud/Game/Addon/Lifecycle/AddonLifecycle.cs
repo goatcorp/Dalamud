@@ -69,12 +69,12 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <summary>
     /// Gets a list of all AddonLifecycle ReceiveEvent Listener Hooks.
     /// </summary>
-    internal List<AddonLifecycleReceiveEventListener> ReceiveEventListeners { get; } = new();
+    internal List<AddonLifecycleReceiveEventListener> ReceiveEventListeners { get; } = [];
     
     /// <summary>
     /// Gets a list of all AddonLifecycle Event Listeners.
     /// </summary>
-    internal List<AddonLifecycleEventListener> EventListeners { get; } = new();
+    internal List<AddonLifecycleEventListener> EventListeners { get; } = [];
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -387,7 +387,7 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycleService = Service<AddonLifecycle>.Get();
 
-    private readonly List<AddonLifecycleEventListener> eventListeners = new();
+    private readonly List<AddonLifecycleEventListener> eventListeners = [];
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()

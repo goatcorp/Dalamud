@@ -25,7 +25,7 @@ internal class SelfTestWindow : Window
 
     private readonly SelfTestRegistry selfTestRegistry;
 
-    private List<SelfTestWithResults> visibleSteps = new();
+    private List<SelfTestWithResults> visibleSteps = [];
 
     private bool selfTestRunning = false;
     private SelfTestGroup? currentTestGroup = null;
@@ -138,7 +138,7 @@ internal class SelfTestWindow : Window
         ImGui.SameLine();
 
         var stepNumber = this.currentStep != null ? this.visibleSteps.IndexOf(this.currentStep) : 0;
-        ImGui.Text($"Step: {stepNumber} / {this.visibleSteps.Count}"); 
+        ImGui.Text($"Step: {stepNumber} / {this.visibleSteps.Count}");
 
         ImGui.Spacing();
 

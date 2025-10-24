@@ -18,15 +18,15 @@ namespace Dalamud.Game.Inventory;
 [ServiceManager.EarlyLoadedService]
 internal class GameInventory : IInternalDisposableService
 {
-    private readonly List<GameInventoryPluginScoped> subscribersPendingChange = new();
-    private readonly List<GameInventoryPluginScoped> subscribers = new();
+    private readonly List<GameInventoryPluginScoped> subscribersPendingChange = [];
+    private readonly List<GameInventoryPluginScoped> subscribers = [];
 
-    private readonly List<InventoryItemAddedArgs> addedEvents = new();
-    private readonly List<InventoryItemRemovedArgs> removedEvents = new();
-    private readonly List<InventoryItemChangedArgs> changedEvents = new();
-    private readonly List<InventoryItemMovedArgs> movedEvents = new();
-    private readonly List<InventoryItemSplitArgs> splitEvents = new();
-    private readonly List<InventoryItemMergedArgs> mergedEvents = new();
+    private readonly List<InventoryItemAddedArgs> addedEvents = [];
+    private readonly List<InventoryItemRemovedArgs> removedEvents = [];
+    private readonly List<InventoryItemChangedArgs> changedEvents = [];
+    private readonly List<InventoryItemMovedArgs> movedEvents = [];
+    private readonly List<InventoryItemSplitArgs> splitEvents = [];
+    private readonly List<InventoryItemMergedArgs> mergedEvents = [];
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();

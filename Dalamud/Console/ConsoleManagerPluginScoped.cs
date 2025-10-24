@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -65,7 +65,7 @@ internal class ConsoleManagerPluginScoped : IConsole, IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly ConsoleManager console = Service<ConsoleManager>.Get();
 
-    private readonly List<IConsoleEntry> trackedEntries = new();
+    private readonly List<IConsoleEntry> trackedEntries = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConsoleManagerPluginScoped"/> class.

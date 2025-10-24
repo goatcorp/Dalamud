@@ -45,7 +45,7 @@ internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
 
             if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
             {
-                indexList = HookManager.MultiHookTracker[this.Address] = new List<IDalamudHook>();
+                indexList = HookManager.MultiHookTracker[this.Address] = [];
             }
 
             this.detourDelegate = detour;

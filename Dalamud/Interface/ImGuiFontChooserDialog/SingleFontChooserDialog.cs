@@ -31,7 +31,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
     private const float MaxFontSizePt = 127;
 
-    private static readonly List<IFontId> EmptyIFontList = new();
+    private static readonly List<IFontId> EmptyIFontList = [];
 
     private static readonly (string Name, float Value)[] FontSizeList =
     {

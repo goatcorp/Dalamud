@@ -50,7 +50,7 @@ public class StyleEditorWindow : Window
         this.didSave = false;
 
         var config = Service<DalamudConfiguration>.Get();
-        config.SavedStyles ??= new List<StyleModel>();
+        config.SavedStyles ??= [];
         this.currentSel = config.SavedStyles.FindIndex(x => x.Name == config.ChosenStyle);
 
         this.initialStyle = config.ChosenStyle;

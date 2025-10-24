@@ -85,7 +85,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
     private AutoUpdateBehavior? chosenAutoUpdateBehavior;
 
-    private Dictionary<string, int> currentFtueLevels = new();
+    private Dictionary<string, int> currentFtueLevels = [];
 
     private DateTime? isEligibleSince;
     private bool openedThroughEligibility;

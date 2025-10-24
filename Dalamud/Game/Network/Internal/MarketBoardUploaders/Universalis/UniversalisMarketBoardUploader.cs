@@ -64,7 +64,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
                 PricePerUnit = marketBoardItemListing.PricePerUnit,
                 Quantity = marketBoardItemListing.ItemQuantity,
                 RetainerCity = marketBoardItemListing.RetainerCityId,
-                Materia = new List<UniversalisItemMateria>(),
+                Materia = [],
             };
 #pragma warning restore CS0618 // Type or member is obsolete
 

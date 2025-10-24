@@ -43,7 +43,7 @@ internal class TexWidget : IDataWindowWidget
         [DrawBlameTableColumnUserId.NativeAddress] = static x => x.ResourceAddress,
     };
 
-    private readonly List<TextureEntry> addedTextures = new();
+    private readonly List<TextureEntry> addedTextures = [];
 
     private string allLoadedTexturesTableName = "##table";
     private string iconId = "18";
