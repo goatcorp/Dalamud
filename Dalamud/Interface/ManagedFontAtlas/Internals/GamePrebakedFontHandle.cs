@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Threading;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text;
@@ -12,6 +13,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
+
 using Lumina.Data.Files;
 
 using Vector4 = System.Numerics.Vector4;
@@ -103,7 +105,7 @@ internal class GamePrebakedFontHandle : FontHandle
     {
         private readonly Dictionary<GameFontStyle, int> gameFontsRc = new();
         private readonly HashSet<GamePrebakedFontHandle> handles = new();
-        private readonly object syncRoot = new();
+        private readonly Lock syncRoot = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HandleManager"/> class.

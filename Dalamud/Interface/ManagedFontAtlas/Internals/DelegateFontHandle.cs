@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
@@ -35,7 +36,7 @@ internal sealed class DelegateFontHandle : FontHandle
     internal sealed class HandleManager : IFontHandleManager
     {
         private readonly HashSet<DelegateFontHandle> handles = new();
-        private readonly object syncRoot = new();
+        private readonly Lock syncRoot = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HandleManager"/> class.

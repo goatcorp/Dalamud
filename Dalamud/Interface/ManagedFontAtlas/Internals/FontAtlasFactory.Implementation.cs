@@ -1,4 +1,4 @@
-﻿// #define VeryVerboseLog
+// #define VeryVerboseLog
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -41,7 +41,7 @@ internal sealed partial class FontAtlasFactory
     /// <summary>
     /// If set, disables concurrent font build operation.
     /// </summary>
-    private static readonly object? NoConcurrentBuildOperationLock = null; // new();
+    private static readonly Lock? NoConcurrentBuildOperationLock = null; // new();
 
     private static readonly ModuleLog Log = new(nameof(FontAtlasFactory));
 
@@ -254,7 +254,7 @@ internal sealed partial class FontAtlasFactory
         private readonly GamePrebakedFontHandle.HandleManager gameFontHandleManager;
         private readonly IFontHandleManager[] fontHandleManagers;
 
-        private readonly object syncRoot = new();
+        private readonly Lock syncRoot = new();
 
         private Task<FontAtlasBuiltData?> buildTask = EmptyTask;
         private FontAtlasBuiltData? builtData;

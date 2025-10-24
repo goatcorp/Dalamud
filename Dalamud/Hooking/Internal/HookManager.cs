@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
@@ -30,7 +31,7 @@ internal class HookManager : IInternalDisposableService
     /// <summary>
     /// Gets sync root object for hook enabling/disabling.
     /// </summary>
-    internal static object HookEnableSyncRoot { get; } = new();
+    internal static Lock HookEnableSyncRoot { get; } = new();
 
     /// <summary>
     /// Gets a static list of tracked and registered hooks.

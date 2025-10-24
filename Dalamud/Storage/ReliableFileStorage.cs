@@ -1,9 +1,11 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
+
 using SQLite;
 
 namespace Dalamud.Storage;
@@ -27,7 +29,7 @@ internal class ReliableFileStorage : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new("VFS");
 
-    private readonly object syncRoot = new();
+    private readonly Lock syncRoot = new();
 
     private SQLiteConnection? db;
 
