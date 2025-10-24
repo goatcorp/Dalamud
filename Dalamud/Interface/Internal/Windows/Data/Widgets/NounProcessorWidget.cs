@@ -60,7 +60,7 @@ internal class NounProcessorWidget : IDataWindowWidget
     private int amount = 1;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "noun" };
+    public string[]? CommandShortcuts { get; init; } = ["noun"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Noun Processor";

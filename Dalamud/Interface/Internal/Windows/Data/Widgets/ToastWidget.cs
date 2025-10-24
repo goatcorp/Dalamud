@@ -20,7 +20,7 @@ internal class ToastWidget : IDataWindowWidget
     private bool questToastCheckmark;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "toast" };
+    public string[]? CommandShortcuts { get; init; } = ["toast"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Toast";

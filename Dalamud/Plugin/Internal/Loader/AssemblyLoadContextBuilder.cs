@@ -140,7 +140,7 @@ internal class AssemblyLoadContextBuilder
             return this;
         }
 
-        var names = new Queue<AssemblyName>(new[] { assemblyName });
+        var names = new Queue<AssemblyName>([assemblyName]);
 
         while (names.TryDequeue(out var name))
         {

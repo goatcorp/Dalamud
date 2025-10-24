@@ -457,7 +457,7 @@ internal static class ServiceHelpers
                    BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
                    null,
                    null,
-                   new object?[] { includeUnloadDependencies }) ?? new List<Type>();
+                   [includeUnloadDependencies]) ?? new List<Type>();
     }
 
     /// <summary>

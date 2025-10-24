@@ -32,7 +32,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
     public bool Ready { get; set; }
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "atkarray" };
+    public string[]? CommandShortcuts { get; init; } = ["atkarray"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Atk Array Data";

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Utility;
 
@@ -37,7 +37,7 @@ public static class FontAwesomeExtensions
     public static IEnumerable<string> GetSearchTerms(this FontAwesomeIcon icon)
     {
         var searchTermsAttribute = icon.GetAttribute<FontAwesomeSearchTermsAttribute>();
-        return searchTermsAttribute == null ? new string[] { } : searchTermsAttribute.SearchTerms;
+        return searchTermsAttribute == null ? [] : searchTermsAttribute.SearchTerms;
     }
 
     /// <summary>
@@ -48,6 +48,6 @@ public static class FontAwesomeExtensions
     public static IEnumerable<string> GetCategories(this FontAwesomeIcon icon)
     {
         var categoriesAttribute = icon.GetAttribute<FontAwesomeCategoriesAttribute>();
-        return categoriesAttribute == null ? new string[] { } : categoriesAttribute.Categories;
+        return categoriesAttribute == null ? [] : categoriesAttribute.Categories;
     }
 }

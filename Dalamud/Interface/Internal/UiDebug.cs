@@ -25,8 +25,8 @@ internal unsafe class UiDebug
     private const int UnitListCount = 18;
 
     private readonly bool[] selectedInList = new bool[UnitListCount];
-    private readonly string[] listNames = new string[UnitListCount]
-    {
+    private readonly string[] listNames =
+    [
         "Depth Layer 1",
         "Depth Layer 2",
         "Depth Layer 3",
@@ -45,7 +45,7 @@ internal unsafe class UiDebug
         "Units 16",
         "Units 17",
         "Units 18",
-    };
+    ];
 
     private bool doingSearch;
     private string searchInput = string.Empty;

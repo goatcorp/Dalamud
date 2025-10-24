@@ -174,7 +174,7 @@ public class MapLinkPayload : Payload
         bytes.AddRange(yBytes);
 
         // unk
-        bytes.AddRange(new byte[] { 0xFF, 0x01, END_BYTE });
+        bytes.AddRange([0xFF, 0x01, END_BYTE]);
 
         return bytes.ToArray();
     }

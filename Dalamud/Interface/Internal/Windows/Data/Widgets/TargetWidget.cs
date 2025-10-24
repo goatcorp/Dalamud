@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface.Utility;
@@ -14,7 +14,7 @@ internal class TargetWidget : IDataWindowWidget
     private bool resolveGameData;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "target" };
+    public string[]? CommandShortcuts { get; init; } = ["target"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Target";

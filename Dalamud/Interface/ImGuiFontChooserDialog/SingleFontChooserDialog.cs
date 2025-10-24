@@ -34,7 +34,7 @@ public sealed class SingleFontChooserDialog : IDisposable
     private static readonly List<IFontId> EmptyIFontList = [];
 
     private static readonly (string Name, float Value)[] FontSizeList =
-    {
+    [
         ("9.6", 9.6f),
         ("10", 10f),
         ("12", 12f),
@@ -51,7 +51,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         ("46", 46),
         ("68", 68),
         ("90", 90),
-    };
+    ];
 
     private static int counterStatic;
 

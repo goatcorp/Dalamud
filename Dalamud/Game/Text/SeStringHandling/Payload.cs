@@ -381,7 +381,7 @@ public abstract partial class Payload
     {
         if (value < 0xCF)
         {
-            return new byte[] { (byte)(value + 1) };
+            return [(byte)(value + 1)];
         }
 
         var bytes = BitConverter.GetBytes(value);

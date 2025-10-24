@@ -33,7 +33,7 @@ public class IconBrowserWidget : IDataWindowWidget
     private Vector2 lastWindowSize = Vector2.Zero;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "icon", "icons" };
+    public string[]? CommandShortcuts { get; init; } = ["icon", "icons"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Icon Browser";
