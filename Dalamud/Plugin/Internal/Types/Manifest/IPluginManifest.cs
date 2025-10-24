@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Dalamud.Plugin.Internal.Types.Manifest;
 
@@ -118,4 +118,9 @@ public interface IPluginManifest
     /// Gets an URL for the plugin's icon.
     /// </summary>
     public string? IconUrl { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin is eligible for testing.
+    /// </summary>
+    public bool IsAvailableForTesting { get; }
 }
