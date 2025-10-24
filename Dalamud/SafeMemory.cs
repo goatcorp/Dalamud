@@ -193,7 +193,7 @@ public static class SafeMemory
             return null;
         var data = encoding.GetString(buffer);
         var eosPos = data.IndexOf('\0');
-        return eosPos == -1 ? data : data.Substring(0, eosPos);
+        return eosPos == -1 ? data : data[..eosPos];
     }
 
     /// <summary>

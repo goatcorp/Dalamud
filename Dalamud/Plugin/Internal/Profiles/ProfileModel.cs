@@ -32,7 +32,7 @@ public abstract class ProfileModel
     /// <exception cref="ArgumentException">Thrown when the parsed string is not a valid profile.</exception>
     public static ProfileModel? Deserialize(string model)
     {
-        var json = Util.DecompressString(Convert.FromBase64String(model.Substring(3)));
+        var json = Util.DecompressString(Convert.FromBase64String(model[3..]));
 
         if (model.StartsWith(ProfileModelV1.SerializedPrefix))
             return JsonConvert.DeserializeObject<ProfileModelV1>(json);

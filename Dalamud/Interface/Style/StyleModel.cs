@@ -68,7 +68,7 @@ public abstract class StyleModel
     /// <exception cref="ArgumentException">Thrown in case the version of the model is not known.</exception>
     public static StyleModel? Deserialize(string model)
     {
-        var json = Util.DecompressString(Convert.FromBase64String(model.Substring(3)));
+        var json = Util.DecompressString(Convert.FromBase64String(model[3..]));
 
         if (model.StartsWith(StyleModelV1.SerializedPrefix))
             return JsonConvert.DeserializeObject<StyleModelV1>(json);
