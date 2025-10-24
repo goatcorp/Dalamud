@@ -243,7 +243,7 @@ internal class ManagedLoadContext : AssemblyLoadContext
                     }
 
                     // check to see if there is a library entry for the library without the file extension
-                    var trimmedName = unmanagedDllName.Substring(0, unmanagedDllName.Length - suffix.Length);
+                    var trimmedName = unmanagedDllName[..^suffix.Length];
 
                     if (this.nativeLibraries.TryGetValue(prefix + trimmedName, out library))
                     {

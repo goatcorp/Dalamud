@@ -71,7 +71,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             if (separatorPosition + 1 >= content.Length)
             {
                 // Remove the trailing space
-                command = content.Substring(0, separatorPosition);
+                command = content[..separatorPosition];
             }
             else
             {
