@@ -117,7 +117,7 @@ public sealed class SystemFontFamilyId : IFontFamilyId
         return new(IObjectWithLocalizableName.GetLocaleNames(fn));
     }
 
-    private unsafe IReadOnlyList<IFontId> GetFonts()
+    private unsafe List<IFontId> GetFonts()
     {
         using var dwf = default(ComPtr<IDWriteFactory>);
         fixed (Guid* piid = &IID.IID_IDWriteFactory)
