@@ -15,7 +15,7 @@ namespace Dalamud.Plugin.Internal.Profiles;
 /// Class responsible for managing plugin profiles.
 /// </summary>
 [ServiceManager.BlockingEarlyLoadedService($"Data provider for {nameof(PluginManager)}.")]
-internal class ProfileManager : IServiceType
+internal partial class ProfileManager : IServiceType
 {
     private static readonly ModuleLog Log = new("PROFMAN");
     private readonly DalamudConfiguration config;
@@ -334,12 +334,15 @@ internal class ProfileManager : IServiceType
         }
     }
 
+    [GeneratedRegex(@" \(.* Mix\)")]
+    private static partial Regex MixRegex();
+
     private string GenerateUniqueProfileName(string startingWith)
     {
         if (this.profiles.All(x => x.Name != startingWith))
             return startingWith;
 
-        startingWith = Regex.Replace(startingWith, @" \(.* Mix\)", string.Empty);
+        startingWith = MixRegex().Replace(startingWith, string.Empty);
 
         while (true)
         {
