@@ -64,8 +64,7 @@ internal class ManagedLoadContext : AssemblyLoadContext
         bool shadowCopyNativeLibraries)
         : base(Path.GetFileNameWithoutExtension(mainAssemblyPath), isCollectible)
     {
-        if (resourceProbingPaths == null)
-            throw new ArgumentNullException(nameof(resourceProbingPaths));
+        ArgumentNullException.ThrowIfNull(resourceProbingPaths);
 
         this.mainAssemblyPath = mainAssemblyPath ?? throw new ArgumentNullException(nameof(mainAssemblyPath));
         this.dependencyResolver = new AssemblyDependencyResolver(mainAssemblyPath);

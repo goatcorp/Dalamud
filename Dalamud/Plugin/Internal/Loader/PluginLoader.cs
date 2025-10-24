@@ -53,8 +53,7 @@ internal class PluginLoader : IDisposable
     /// <returns>A loader.</returns>
     public static PluginLoader CreateFromAssemblyFile(string assemblyFile, Action<LoaderConfig> configure)
     {
-        if (configure == null)
-            throw new ArgumentNullException(nameof(configure));
+        ArgumentNullException.ThrowIfNull(configure);
 
         var config = new LoaderConfig(assemblyFile);
         configure(config);
