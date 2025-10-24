@@ -1514,11 +1514,7 @@ internal class PluginManager : IInternalDisposableService
                 JsonConvert.SerializeObject(repoManifest, Formatting.Indented));
 
             // Reload as a local manifest, add some attributes, and save again.
-            var tempManifest = LocalPluginManifest.Load(tempManifestFile);
-
-            if (tempManifest == null)
-                throw new Exception("Plugin had no valid manifest");
-
+            var tempManifest = LocalPluginManifest.Load(tempManifestFile) ?? throw new Exception("Plugin had no valid manifest");
             if (tempManifest.InternalName != repoManifest.InternalName)
             {
                 throw new Exception(

@@ -274,8 +274,9 @@ internal class ReliableFileStorage : IInternalDisposableService
                 throw new FileNotFoundException("Backup database was not available");
 
             var normalizedPath = NormalizePath(path);
-            var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId);
-            return file == null ? throw new FileNotFoundException() : file.Data;
+            var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId)
+                ?? throw new FileNotFoundException();
+            return file.Data;
         }
 
         // If the file doesn't exist, immediately check the backup db

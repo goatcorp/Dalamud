@@ -356,10 +356,7 @@ internal static class Service<T> where T : IServiceType
 
     private static async Task<T> ConstructObject(IReadOnlyCollection<object> additionalProvidedTypedObjects)
     {
-        var ctor = GetServiceConstructor();
-        if (ctor == null)
-            throw new Exception($"Service \"{typeof(T).FullName}\" had no applicable constructor");
-
+        var ctor = GetServiceConstructor() ?? throw new Exception($"Service \"{typeof(T).FullName}\" had no applicable constructor");
         var args = await ResolveInjectedParameters(ctor.GetParameters(), additionalProvidedTypedObjects)
                        .ConfigureAwait(false);
         using (Timings.Start($"{typeof(T).Name} Construct"))

@@ -99,10 +99,7 @@ internal partial class ConsoleManager : IServiceType
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(alias);
 
-        var target = this.FindEntry(name);
-        if (target == null)
-            throw new EntryNotFoundException(name);
-
+        var target = this.FindEntry(name) ?? throw new EntryNotFoundException(name);
         if (this.FindEntry(alias) != null)
             throw new InvalidOperationException($"Entry '{alias}' already exists.");
 
