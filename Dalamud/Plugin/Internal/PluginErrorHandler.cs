@@ -150,7 +150,7 @@ internal class PluginErrorHandler : IServiceType
 
         // Create expressions to convert array elements to parameter types
         var callArgs = new Expression[parameters.Length];
-        for (int i = 0; i < parameters.Length; i++)
+        for (var i = 0; i < parameters.Length; i++)
         {
             var paramType = parameters[i].ParameterType;
             var arrayAccess = Expression.ArrayIndex(argsParam, Expression.Constant(i));

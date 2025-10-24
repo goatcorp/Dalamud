@@ -188,7 +188,7 @@ public class ProfilerWindow : Window
                 }
             }
 
-            uint eventTextDepth = maxRectDept + 2;
+            var eventTextDepth = maxRectDept + 2;
 
             var eventsXPos = new List<float>();
             const float eventsXPosFudge = 5f;

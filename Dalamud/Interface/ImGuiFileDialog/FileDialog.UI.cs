@@ -54,7 +54,7 @@ public partial class FileDialog
             windowVisible = ImGui.Begin(name, ref this.visible, this.WindowFlags);
         }
 
-        bool wasClosed = false;
+        var wasClosed = false;
         if (windowVisible)
         {
             if (!this.visible)

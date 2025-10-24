@@ -97,7 +97,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
             reader.ReadByte();
 
             // if the next byte is 0xF3 then this listing is limited to home world
-            byte nextByte = reader.ReadByte();
+            var nextByte = reader.ReadByte();
             switch (nextByte)
             {
                 case (byte)PartyFinderLinkType.LimitedToHomeWorld:
@@ -125,7 +125,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
 
             // back to our regularly scheduled programming...
             var listingIDBytes = MakeInteger(this.ListingId);
-            bool isFlagSpecified = this.LinkType != PartyFinderLinkType.NotSpecified;
+            var isFlagSpecified = this.LinkType != PartyFinderLinkType.NotSpecified;
 
             var chunkLen = listingIDBytes.Length + 4;
             // 1 more byte for the type flag if it is specified
