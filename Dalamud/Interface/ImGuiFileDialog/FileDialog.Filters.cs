@@ -89,7 +89,7 @@ public partial class FileDialog
             foreach (var file in this.files)
             {
                 var show = true;
-                if (!string.IsNullOrEmpty(this.searchBuffer) && !file.FileName.ToLowerInvariant().Contains(this.searchBuffer.ToLowerInvariant()))
+                if (!string.IsNullOrEmpty(this.searchBuffer) && !file.FileName.Contains(this.searchBuffer, StringComparison.InvariantCultureIgnoreCase))
                 {
                     show = false;
                 }

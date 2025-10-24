@@ -68,7 +68,7 @@ public static class FontAwesomeHelpers
             {
                 var name = Enum.GetName(icon)?.ToLowerInvariant();
                 var searchTerms = icon.GetSearchTerms();
-                if (name!.Contains(search.ToLowerInvariant()) || searchTerms.Contains(search.ToLowerInvariant()))
+                if (name!.Contains(search, StringComparison.InvariantCultureIgnoreCase) || searchTerms.Contains(search.ToLowerInvariant()))
                 {
                     result.Add(icon);
                 }
@@ -98,7 +98,7 @@ public static class FontAwesomeHelpers
             var name = Enum.GetName(icon)?.ToLowerInvariant();
             var searchTerms = icon.GetSearchTerms();
             var categories = icon.GetCategories();
-            if ((name!.Contains(search.ToLowerInvariant()) || searchTerms.Contains(search.ToLowerInvariant())) && categories.Contains(category))
+            if ((name!.Contains(search, StringComparison.InvariantCultureIgnoreCase) || searchTerms.Contains(search.ToLowerInvariant())) && categories.Contains(category))
             {
                 result.Add(icon);
             }

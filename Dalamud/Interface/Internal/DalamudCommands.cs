@@ -326,7 +326,7 @@ internal class DalamudCommands : IServiceType
         var configuration = Service<DalamudConfiguration>.Get();
         var localization = Service<Localization>.Get();
 
-        if (Localization.ApplicableLangCodes.Contains(arguments.ToLowerInvariant()) || arguments.ToLowerInvariant() == "en")
+        if (Localization.ApplicableLangCodes.Contains(arguments.ToLowerInvariant()) || arguments.Equals("en", StringComparison.InvariantCultureIgnoreCase))
         {
             localization.SetupWithLangCode(arguments.ToLowerInvariant());
             configuration.LanguageOverride = arguments.ToLowerInvariant();
