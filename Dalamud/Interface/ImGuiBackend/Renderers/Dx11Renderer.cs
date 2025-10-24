@@ -398,8 +398,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     /// </summary>
     private void CreateFontsTexture()
     {
-        if (this.device.IsEmpty())
-            throw new ObjectDisposedException(nameof(Dx11Renderer));
+        ObjectDisposedException.ThrowIf(this.device.IsEmpty(), this);
 
         if (this.fontTextures.Any())
             return;
@@ -479,8 +478,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     /// </summary>
     private void EnsureDeviceObjects()
     {
-        if (this.device.IsEmpty())
-            throw new ObjectDisposedException(nameof(Dx11Renderer));
+        ObjectDisposedException.ThrowIf(this.device.IsEmpty(), this);
 
         var assembly = Assembly.GetExecutingAssembly();
 

@@ -159,7 +159,6 @@ internal class PluginLoader : IDisposable
 
     private void EnsureNotDisposed()
     {
-        if (this.disposed)
-            throw new ObjectDisposedException(nameof(PluginLoader));
+        ObjectDisposedException.ThrowIf(this.disposed, this);
     }
 }

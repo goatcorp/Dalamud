@@ -245,10 +245,7 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// </summary>
     protected void CheckDisposed()
     {
-        if (this.IsDisposed)
-        {
-            throw new ObjectDisposedException(message: "Hook is already disposed", null);
-        }
+        ObjectDisposedException.ThrowIf(this.IsDisposed, this);
     }
 
     private static unsafe IntPtr FromImportHelper32(IntPtr baseAddress, ref PeHeader.IMAGE_IMPORT_DESCRIPTOR desc, ref PeHeader.IMAGE_DATA_DIRECTORY dir, string functionName, uint hintOrOrdinal)
