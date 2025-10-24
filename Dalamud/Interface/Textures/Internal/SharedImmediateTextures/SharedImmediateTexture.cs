@@ -476,8 +476,8 @@ internal abstract class SharedImmediateTexture
         {
             var ownerCopy = this.owner;
             var wrapCopy = this.innerWrap;
-            if (ownerCopy is null || wrapCopy is null)
-                throw new ObjectDisposedException(nameof(RefCountableWrappingTextureWrap));
+
+            ObjectDisposedException.ThrowIf(ownerCopy is null || wrapCopy is null, this);
 
             ownerCopy.AddRef();
             return new RefCountableWrappingTextureWrap(wrapCopy, ownerCopy);
