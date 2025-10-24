@@ -5,9 +5,9 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.Inventory;
 using Dalamud.Game.Inventory.InventoryEventArgTypes;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Logging.Internal;
+
 using Serilog.Events;
 
 namespace Dalamud.Interface.Internal.Windows.Data;

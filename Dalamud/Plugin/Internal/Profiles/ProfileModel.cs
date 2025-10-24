@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 
 using Dalamud.Utility;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 

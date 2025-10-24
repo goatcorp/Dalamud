@@ -22,8 +22,11 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using Lumina.Text.ReadOnly;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows;

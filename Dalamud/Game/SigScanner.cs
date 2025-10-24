@@ -11,7 +11,9 @@ using System.Threading;
 using Dalamud.Plugin.Services;
 
 using Iced.Intel;
+
 using Newtonsoft.Json;
+
 using Serilog;
 
 namespace Dalamud.Game;

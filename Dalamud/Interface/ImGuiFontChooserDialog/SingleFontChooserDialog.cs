@@ -13,6 +13,7 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
+
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 

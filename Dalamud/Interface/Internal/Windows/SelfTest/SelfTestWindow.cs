@@ -10,6 +10,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
+
 using Dalamud.Plugin.SelfTest;
 using Dalamud.Plugin.SelfTest.Internal;
 using Dalamud.Utility;
