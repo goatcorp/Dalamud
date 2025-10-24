@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Game;
 using Dalamud.Hooking;
-using Dalamud.Logging;
 using Dalamud.Utility.Signatures.Wrappers;
+
 using Serilog;
 
 namespace Dalamud.Utility.Signatures;

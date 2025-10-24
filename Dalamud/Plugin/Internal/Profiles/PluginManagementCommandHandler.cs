@@ -3,12 +3,14 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Plugin.Internal.Profiles;

@@ -11,7 +11,6 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Lumina.Text.ReadOnly;
 
 // Customised version of https://github.com/aers/FFXIVUIDebug
 

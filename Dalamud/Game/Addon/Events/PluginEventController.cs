@@ -5,7 +5,6 @@ using Dalamud.Game.Addon.Events.EventDataTypes;
 using Dalamud.Game.Gui;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 

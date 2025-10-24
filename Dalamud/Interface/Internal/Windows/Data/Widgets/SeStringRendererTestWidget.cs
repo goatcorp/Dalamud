@@ -11,7 +11,9 @@ using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.Payloads;

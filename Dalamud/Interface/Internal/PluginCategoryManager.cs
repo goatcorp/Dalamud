@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using CheapLoc;
+
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 

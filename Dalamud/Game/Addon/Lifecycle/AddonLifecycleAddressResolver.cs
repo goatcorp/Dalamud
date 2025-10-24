@@ -1,5 +1,3 @@
-using FFXIVClientStructs.FFXIV.Component.GUI;
-
 namespace Dalamud.Game.Addon.Lifecycle;
 
 /// <summary>

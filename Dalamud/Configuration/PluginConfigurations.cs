@@ -2,6 +2,7 @@ using System.IO;
 using System.Reflection;
 
 using Dalamud.Storage;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Configuration;

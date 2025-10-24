@@ -3,6 +3,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Style;

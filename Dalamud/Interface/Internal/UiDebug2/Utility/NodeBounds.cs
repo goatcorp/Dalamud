@@ -4,6 +4,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using static System.MathF;
