@@ -338,7 +338,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
 
         return;
 
-        void TestSingle(ImFontPtr fontPtr, IFontHandle handle)
+        static void TestSingle(ImFontPtr fontPtr, IFontHandle handle)
         {
             var dim = ImGui.CalcTextSizeA(fontPtr, fontPtr.FontSize, float.MaxValue, 0f, "Test string"u8, out _);
             Log.Information($"{nameof(GamePrebakedFontsTestWidget)}: {handle} => {dim}");
