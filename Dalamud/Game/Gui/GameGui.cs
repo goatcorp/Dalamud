@@ -280,8 +280,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.HoveredItem = itemId;
         this.HoveredItemChanged?.InvokeSafely(this, itemId);
-
-        Log.Verbose($"HoveredItem changed: {itemId}");
     }
 
     private AtkValue* HandleItemOutDetour(AgentItemDetail* thisPtr, AtkValue* returnValue, AtkValue* values, uint valueCount, ulong eventKind)
@@ -292,22 +290,18 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         {
             this.HoveredItem = 0;
             this.HoveredItemChanged?.InvokeSafely(this, 0ul);
-
-            Log.Verbose("HoveredItem changed: 0");
         }
 
         return ret;
     }
 
-    private void HandleActionHoverDetour(AgentActionDetail* hoverState, FFXIVClientStructs.FFXIV.Client.UI.Agent.ActionKind actionKind, uint actionId, int a4, bool a5)
+    private void HandleActionHoverDetour(AgentActionDetail* hoverState, FFXIVClientStructs.FFXIV.Client.UI.Agent.ActionKind actionKind, uint actionId, int a4, bool a5, int a6, int a7)
     {
-        this.handleActionHoverHook.Original(hoverState, actionKind, actionId, a4, a5);
+        this.handleActionHoverHook.Original(hoverState, actionKind, actionId, a4, a5, a6, a7);
         this.HoveredAction.ActionKind = (HoverActionKind)actionKind;
         this.HoveredAction.BaseActionID = actionId;
         this.HoveredAction.ActionID = hoverState->ActionId;
         this.HoveredActionChanged?.InvokeSafely(this, this.HoveredAction);
-
-        Log.Verbose($"HoverActionId: {actionKind}/{actionId} this:{(nint)hoverState:X}");
     }
 
     private AtkValue* HandleActionOutDetour(AgentActionDetail* agentActionDetail, AtkValue* a2, AtkValue* a3, uint a4, ulong a5)
@@ -324,8 +318,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
                 this.HoveredAction.BaseActionID = 0;
                 this.HoveredAction.ActionID = 0;
                 this.HoveredActionChanged?.InvokeSafely(this, this.HoveredAction);
-
-                Log.Verbose("HoverActionId: 0");
             }
         }
 
