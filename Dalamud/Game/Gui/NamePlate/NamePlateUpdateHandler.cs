@@ -340,9 +340,13 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
                 return null;
             }
 
-            return this.gameObject ??= this.context.ObjectTable[
-                       this.context.Ui3DModule->NamePlateObjectInfoPointers[this.ArrayIndex]
-                           .Value->GameObject->ObjectIndex];
+            var objectInfoPtr = this.context.Ui3DModule->NamePlateObjectInfoPointers[this.ArrayIndex];
+            if (objectInfoPtr.Value == null) return null;
+
+            var gameObjectPtr = objectInfoPtr.Value->GameObject;
+            if (gameObjectPtr == null) return null;
+
+            return this.gameObject ??= this.context.ObjectTable[gameObjectPtr->ObjectIndex];
         }
     }
 
