@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
 
+using Dalamud.Game;
+
 namespace Dalamud.Utility;
 
 /// <summary>
@@ -23,7 +25,9 @@ public static class ThreadSafety
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AssertMainThread(string? message = null)
     {
-        if (!threadStaticIsMainThread)
+        var isFrameworkUnloading = Service<Framework>.GetNullable()?.IsFrameworkUnloading ?? true;
+
+        if (!threadStaticIsMainThread && !isFrameworkUnloading)
         {
             throw new InvalidOperationException(message ?? "Not on main thread!");
         }
@@ -36,7 +40,9 @@ public static class ThreadSafety
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AssertNotMainThread()
     {
-        if (threadStaticIsMainThread)
+        var isFrameworkUnloading = Service<Framework>.GetNullable()?.IsFrameworkUnloading ?? true;
+
+        if (threadStaticIsMainThread && !isFrameworkUnloading)
         {
             throw new InvalidOperationException("On main thread!");
         }
