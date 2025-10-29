@@ -1,11 +1,11 @@
-﻿using System.Threading;
+using System.Threading;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// Class offering cancellation tokens for common gameplay events.
 /// </summary>
-public interface IGameLifecycle
+public interface IGameLifecycle : IDalamudService
 {
     /// <summary>
     /// Gets a token that is cancelled when Dalamud is unloading.
