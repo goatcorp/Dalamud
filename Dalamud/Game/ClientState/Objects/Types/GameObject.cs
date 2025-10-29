@@ -1,9 +1,7 @@
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Memory;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
 

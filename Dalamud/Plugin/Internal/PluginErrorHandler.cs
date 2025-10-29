@@ -22,7 +22,7 @@ internal class PluginErrorHandler : IServiceType
     private readonly NotificationManager notificationManager;
     private readonly DalamudInterface di;
 
-    private readonly Dictionary<Type, Delegate> invokerCache = new();
+    private readonly Dictionary<Type, Delegate> invokerCache = [];
 
     private DateTime lastErrorTime = DateTime.MinValue;
     private IActiveNotification? activeNotification;
@@ -141,10 +141,7 @@ internal class PluginErrorHandler : IServiceType
     private static Action<TDelegate, object[]> CreateInvoker<TDelegate>() where TDelegate : Delegate
     {
         var delegateType = typeof(TDelegate);
-        var method = delegateType.GetMethod("Invoke");
-        if (method == null)
-            throw new InvalidOperationException($"Delegate {delegateType} does not have an Invoke method.");
-
+        var method = delegateType.GetMethod("Invoke") ?? throw new InvalidOperationException($"Delegate {delegateType} does not have an Invoke method.");
         var parameters = method.GetParameters();
 
         // Create parameters for the lambda
@@ -153,7 +150,7 @@ internal class PluginErrorHandler : IServiceType
 
         // Create expressions to convert array elements to parameter types
         var callArgs = new Expression[parameters.Length];
-        for (int i = 0; i < parameters.Length; i++)
+        for (var i = 0; i < parameters.Length; i++)
         {
             var paramType = parameters[i].ParameterType;
             var arrayAccess = Expression.ArrayIndex(argsParam, Expression.Constant(i));

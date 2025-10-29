@@ -200,30 +200,25 @@ public class GameFontLayoutPlan
                     return false;
 
                 // TODO: Whatever
-                switch (char.GetUnicodeCategory((char)this.Codepoint))
-                {
-                    case System.Globalization.UnicodeCategory.SpaceSeparator:
-                    case System.Globalization.UnicodeCategory.LineSeparator:
-                    case System.Globalization.UnicodeCategory.ParagraphSeparator:
-                    case System.Globalization.UnicodeCategory.Control:
-                    case System.Globalization.UnicodeCategory.Format:
-                    case System.Globalization.UnicodeCategory.Surrogate:
-                    case System.Globalization.UnicodeCategory.PrivateUse:
-                    case System.Globalization.UnicodeCategory.ConnectorPunctuation:
-                    case System.Globalization.UnicodeCategory.DashPunctuation:
-                    case System.Globalization.UnicodeCategory.OpenPunctuation:
-                    case System.Globalization.UnicodeCategory.ClosePunctuation:
-                    case System.Globalization.UnicodeCategory.InitialQuotePunctuation:
-                    case System.Globalization.UnicodeCategory.FinalQuotePunctuation:
-                    case System.Globalization.UnicodeCategory.OtherPunctuation:
-                    case System.Globalization.UnicodeCategory.MathSymbol:
-                    case System.Globalization.UnicodeCategory.ModifierSymbol:
-                    case System.Globalization.UnicodeCategory.OtherSymbol:
-                    case System.Globalization.UnicodeCategory.OtherNotAssigned:
-                        return true;
-                }
-
-                return false;
+                return char.GetUnicodeCategory((char)this.Codepoint)
+                    is System.Globalization.UnicodeCategory.SpaceSeparator
+                    or System.Globalization.UnicodeCategory.LineSeparator
+                    or System.Globalization.UnicodeCategory.ParagraphSeparator
+                    or System.Globalization.UnicodeCategory.Control
+                    or System.Globalization.UnicodeCategory.Format
+                    or System.Globalization.UnicodeCategory.Surrogate
+                    or System.Globalization.UnicodeCategory.PrivateUse
+                    or System.Globalization.UnicodeCategory.ConnectorPunctuation
+                    or System.Globalization.UnicodeCategory.DashPunctuation
+                    or System.Globalization.UnicodeCategory.OpenPunctuation
+                    or System.Globalization.UnicodeCategory.ClosePunctuation
+                    or System.Globalization.UnicodeCategory.InitialQuotePunctuation
+                    or System.Globalization.UnicodeCategory.FinalQuotePunctuation
+                    or System.Globalization.UnicodeCategory.OtherPunctuation
+                    or System.Globalization.UnicodeCategory.MathSymbol
+                    or System.Globalization.UnicodeCategory.ModifierSymbol
+                    or System.Globalization.UnicodeCategory.OtherSymbol
+                    or System.Globalization.UnicodeCategory.OtherNotAssigned;
             }
         }
     }
@@ -300,7 +295,7 @@ public class GameFontLayoutPlan
                 elements.Add(new() { Codepoint = c, Glyph = this.fdt.GetGlyph(c), });
 
             var lastBreakIndex = 0;
-            List<int> lineBreakIndices = new() { 0 };
+            List<int> lineBreakIndices = [0];
             for (var i = 1; i < elements.Count; i++)
             {
                 var prev = elements[i - 1];

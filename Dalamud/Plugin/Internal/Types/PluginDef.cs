@@ -7,7 +7,7 @@ namespace Dalamud.Plugin.Internal.Types;
 /// <summary>
 /// Plugin Definition.
 /// </summary>
-internal struct PluginDef
+internal readonly struct PluginDef
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginDef"/> struct.

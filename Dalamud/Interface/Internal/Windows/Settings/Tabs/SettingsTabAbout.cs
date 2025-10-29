@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
@@ -15,6 +16,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;

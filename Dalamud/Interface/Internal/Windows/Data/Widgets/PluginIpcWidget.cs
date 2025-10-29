@@ -1,10 +1,10 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -25,7 +25,7 @@ internal class PluginIpcWidget : IDataWindowWidget
     private string callGateResponse = string.Empty;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "ipc" };
+    public string[]? CommandShortcuts { get; init; } = ["ipc"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Plugin IPC";

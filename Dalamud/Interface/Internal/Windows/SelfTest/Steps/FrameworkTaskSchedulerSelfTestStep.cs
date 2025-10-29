@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 using Dalamud.Game;
 using Dalamud.Utility;
 
-using Microsoft.VisualBasic.Logging;
-
 using Log = Serilog.Log;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -92,7 +92,7 @@ public static class DisposeSafety
                         new AggregateException(
                             new[] { e }.Concat(
                                 (IEnumerable<Exception>)r.Exception?.InnerExceptions
-                                ?? new[] { new OperationCanceledException() })));
+                                ?? [new OperationCanceledException()])));
                 }
             }
 
@@ -125,7 +125,7 @@ public static class DisposeSafety
                     }
                     catch (Exception de)
                     {
-                        exceptions ??= new();
+                        exceptions ??= [];
                         exceptions.Add(de);
                     }
                 }
@@ -140,7 +140,7 @@ public static class DisposeSafety
     /// </summary>
     public class ScopedFinalizer : IDisposeCallback, IAsyncDisposable
     {
-        private readonly List<object> objects = new();
+        private readonly List<object> objects = [];
 
         /// <inheritdoc/>
         public event Action<IDisposeCallback>? BeforeDispose;
@@ -338,7 +338,7 @@ public static class DisposeSafety
                 }
                 catch (Exception ex)
                 {
-                    exceptions ??= new();
+                    exceptions ??= [];
                     exceptions.Add(ex);
                 }
             }
@@ -402,7 +402,7 @@ public static class DisposeSafety
                 }
                 catch (Exception ex)
                 {
-                    exceptions ??= new();
+                    exceptions ??= [];
                     exceptions.Add(ex);
                 }
             }

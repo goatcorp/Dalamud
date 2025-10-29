@@ -8,6 +8,7 @@ using Dalamud.Utility;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -172,7 +173,7 @@ public class ItemPayload : Payload
         };
         bytes.AddRange(idBytes);
         // unk
-        bytes.AddRange(new byte[] { 0x02, 0x01 });
+        bytes.AddRange([0x02, 0x01]);
 
         // Links don't have to include the name, but if they do, it requires additional work
         if (hasName)
@@ -183,17 +184,17 @@ public class ItemPayload : Payload
                 nameLen += 4; // space plus 3 bytes for HQ symbol
             }
 
-            bytes.AddRange(new byte[]
-            {
+            bytes.AddRange(
+            [
                 0xFF, // unk
                 (byte)nameLen,
-            });
+            ]);
             bytes.AddRange(Encoding.UTF8.GetBytes(this.displayName));
 
             if (this.IsHQ)
             {
                 // space and HQ symbol
-                bytes.AddRange(new byte[] { 0x20, 0xEE, 0x80, 0xBC });
+                bytes.AddRange([0x20, 0xEE, 0x80, 0xBC]);
             }
         }
 

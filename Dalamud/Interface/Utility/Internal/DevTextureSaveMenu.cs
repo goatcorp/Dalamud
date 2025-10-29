@@ -12,7 +12,9 @@ using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
+
 using Serilog;
+
 using TerraFX.Interop.Windows;
 
 namespace Dalamud.Interface.Utility.Internal;

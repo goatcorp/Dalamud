@@ -45,10 +45,10 @@ public class IconPayload : Payload
     {
         var indexBytes = MakeInteger((uint)this.Icon);
         var chunkLen = indexBytes.Length + 1;
-        var bytes = new List<byte>(new byte[]
-        {
+        var bytes = new List<byte>(
+        [
             START_BYTE, (byte)SeStringChunkType.Icon, (byte)chunkLen,
-        });
+        ]);
         bytes.AddRange(indexBytes);
         bytes.Add(END_BYTE);
         return bytes.ToArray();

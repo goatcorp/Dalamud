@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -17,9 +17,9 @@ namespace Dalamud.Console;
 [ServiceManager.BlockingEarlyLoadedService("Console is needed by other blocking early loaded services.")]
 internal partial class ConsoleManager : IServiceType
 {
-    private static readonly ModuleLog Log = new("CON");
+    private static readonly ModuleLog Log = ModuleLog.Create<ConsoleManager>();
 
-    private Dictionary<string, IConsoleEntry> entries = new();
+    private Dictionary<string, IConsoleEntry> entries = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConsoleManager"/> class.
@@ -99,10 +99,7 @@ internal partial class ConsoleManager : IServiceType
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(alias);
 
-        var target = this.FindEntry(name);
-        if (target == null)
-            throw new EntryNotFoundException(name);
-
+        var target = this.FindEntry(name) ?? throw new EntryNotFoundException(name);
         if (this.FindEntry(alias) != null)
             throw new InvalidOperationException($"Entry '{alias}' already exists.");
 
@@ -346,7 +343,7 @@ internal partial class ConsoleManager : IServiceType
 
     private static class Traits
     {
-        public static void ThrowIfTIsNullableAndNull<T>(T? argument, [CallerArgumentExpression("argument")] string? paramName = null)
+        public static void ThrowIfTIsNullableAndNull<T>(T? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
         {
             if (argument == null && !typeof(T).IsValueType)
                 throw new ArgumentNullException(paramName);

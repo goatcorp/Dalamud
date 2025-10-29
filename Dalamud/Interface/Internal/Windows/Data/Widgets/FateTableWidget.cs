@@ -1,7 +1,6 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Fates;
 using Dalamud.Interface.Textures.Internal;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -12,7 +11,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class FateTableWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "fate", "fatetable" };
+    public string[]? CommandShortcuts { get; init; } = ["fate", "fatetable"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Fate Table";

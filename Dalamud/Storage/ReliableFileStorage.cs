@@ -1,8 +1,10 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
+using System.Threading;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
+
 using SQLite;
 
 namespace Dalamud.Storage;
@@ -24,9 +26,9 @@ namespace Dalamud.Storage;
 [ServiceManager.ProvidedService]
 internal class ReliableFileStorage : IInternalDisposableService
 {
-    private static readonly ModuleLog Log = new("VFS");
+    private static readonly ModuleLog Log = ModuleLog.Create<ReliableFileStorage>();
 
-    private readonly object syncRoot = new();
+    private readonly Lock syncRoot = new();
 
     private SQLiteConnection? db;
 
@@ -264,10 +266,7 @@ internal class ReliableFileStorage : IInternalDisposableService
                 throw new FileNotFoundException("Backup database was not available");
 
             var normalizedPath = NormalizePath(path);
-            var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId);
-            if (file == null)
-                throw new FileNotFoundException();
-
+            var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId) ?? throw new FileNotFoundException();
             return file.Data;
         }
 

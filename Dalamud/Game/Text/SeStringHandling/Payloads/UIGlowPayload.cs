@@ -5,6 +5,7 @@ using Dalamud.Data;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -98,10 +99,10 @@ public class UIGlowPayload : Payload
         var colorBytes = MakeInteger(this.colorKey);
         var chunkLen = colorBytes.Length + 1;
 
-        var bytes = new List<byte>(new byte[]
-        {
+        var bytes = new List<byte>(
+        [
             START_BYTE, (byte)SeStringChunkType.UIGlow, (byte)chunkLen,
-        });
+        ]);
 
         bytes.AddRange(colorBytes);
         bytes.Add(END_BYTE);

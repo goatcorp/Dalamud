@@ -11,6 +11,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Networking.Http;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Internal.Windows;

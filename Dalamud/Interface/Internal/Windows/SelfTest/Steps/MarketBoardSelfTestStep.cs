@@ -4,7 +4,6 @@ using System.Linq;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.MarketBoard;
 using Dalamud.Game.Network.Structures;
-using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 

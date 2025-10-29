@@ -15,7 +15,9 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using SharpDX.DXGI;
+
 using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -25,8 +27,7 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 /// </summary>
 internal sealed partial class FontAtlasFactory
 {
-    private static readonly Dictionary<ulong, List<(char Left, char Right, float Distance)>> PairAdjustmentsCache =
-        new();
+    private static readonly Dictionary<ulong, List<(char Left, char Right, float Distance)>> PairAdjustmentsCache = [];
 
     /// <summary>
     /// Implementations for <see cref="IFontAtlasBuildToolkitPreBuild"/> and
@@ -44,7 +45,7 @@ internal sealed partial class FontAtlasFactory
         private readonly GamePrebakedFontHandle.HandleSubstance gameFontHandleSubstance;
         private readonly FontAtlasFactory factory;
         private readonly FontAtlasBuiltData data;
-        private readonly List<Action> registeredPostBuildActions = new();
+        private readonly List<Action> registeredPostBuildActions = [];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuildToolkit"/> class.
@@ -86,7 +87,7 @@ internal sealed partial class FontAtlasFactory
         /// <summary>
         /// Gets the font scale modes.
         /// </summary>
-        private Dictionary<ImFontPtr, FontScaleMode> FontScaleModes { get; } = new();
+        private Dictionary<ImFontPtr, FontScaleMode> FontScaleModes { get; } = [];
 
         /// <inheritdoc/>
         public void Dispose() => this.disposeAfterBuild.Dispose();
@@ -171,7 +172,7 @@ internal sealed partial class FontAtlasFactory
                 };
 
                 if (fontConfig.GlyphRanges is not { Length: > 0 } ranges)
-                    ranges = new ushort[] { 1, 0xFFFE, 0 };
+                    ranges = [1, 0xFFFE, 0];
 
                 raw.GlyphRanges = (ushort*)this.DisposeAfterBuild(
                     GCHandle.Alloc(ranges, GCHandleType.Pinned)).AddrOfPinnedObject();
@@ -189,7 +190,7 @@ internal sealed partial class FontAtlasFactory
                 {
                     if (!PairAdjustmentsCache.TryGetValue(hashIdent, out pairAdjustments))
                     {
-                        PairAdjustmentsCache.Add(hashIdent, pairAdjustments = new());
+                        PairAdjustmentsCache.Add(hashIdent, pairAdjustments = []);
                         try
                         {
                             pairAdjustments.AddRange(TrueTypeUtils.ExtractHorizontalPairAdjustments(raw).ToArray());
@@ -383,7 +384,7 @@ internal sealed partial class FontAtlasFactory
             DalamudAsset.FontAwesomeFreeSolid,
             fontConfig with
             {
-                GlyphRanges = new ushort[] { FontAwesomeIconMin, FontAwesomeIconMax, 0 },
+                GlyphRanges = [FontAwesomeIconMin, FontAwesomeIconMax, 0],
             });
 
         /// <inheritdoc/>
@@ -392,12 +393,12 @@ internal sealed partial class FontAtlasFactory
                 DalamudAsset.LodestoneGameSymbol,
                 fontConfig with
                 {
-                    GlyphRanges = new ushort[]
-                    {
+                    GlyphRanges =
+                    [
                         GamePrebakedFontHandle.SeIconCharMin,
                         GamePrebakedFontHandle.SeIconCharMax,
                         0,
-                    },
+                    ],
                 });
 
         /// <inheritdoc/>
@@ -630,7 +631,7 @@ internal sealed partial class FontAtlasFactory
             {
                 this.AddDalamudAssetFont(
                     DalamudAsset.NotoSansJpMedium,
-                    new() { GlyphRanges = new ushort[] { ' ', ' ', '\0' }, SizePx = 1 });
+                    new() { GlyphRanges = [' ', ' ', '\0'], SizePx = 1 });
             }
 
             if (!this.NewImAtlas.Build())

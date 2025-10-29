@@ -29,7 +29,7 @@ internal class PluginRepository
 
     private const int HttpRequestTimeoutSeconds = 20;
 
-    private static readonly ModuleLog Log = new("PLUGINR");
+    private static readonly ModuleLog Log = ModuleLog.Create<PluginRepository>();
     private readonly HttpClient httpClient;
 
     /// <summary>
@@ -119,13 +119,7 @@ internal class PluginRepository
             response.EnsureSuccessStatusCode();
 
             var data = await response.Content.ReadAsStringAsync();
-            var pluginMaster = JsonConvert.DeserializeObject<List<RemotePluginManifest>>(data);
-
-            if (pluginMaster == null)
-            {
-                throw new Exception("Deserialized PluginMaster was null.");
-            }
-
+            var pluginMaster = JsonConvert.DeserializeObject<List<RemotePluginManifest>>(data) ?? throw new Exception("Deserialized PluginMaster was null.");
             pluginMaster.Sort((pm1, pm2) => string.Compare(pm1.Name, pm2.Name, StringComparison.Ordinal));
 
             // Set the source for each remote manifest. Allows for checking if is 3rd party.
