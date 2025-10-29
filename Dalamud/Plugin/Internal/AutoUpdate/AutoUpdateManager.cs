@@ -491,13 +491,10 @@ internal class AutoUpdateManager : IServiceType
 
     private bool CanUpdateOrNag()
     {
-        var condition = Service<Condition>.Get();
+        var clientState = Service<ClientState>.Get();
         return this.IsPluginManagerReady() &&
             !this.dalamudInterface.IsPluginInstallerOpen &&
-            condition.OnlyAny(ConditionFlag.NormalConditions,
-                              ConditionFlag.Jumping,
-                              ConditionFlag.Mounted,
-                              ConditionFlag.UsingFashionAccessory);
+            clientState.IsClientIdle();
     }
 
     private bool IsPluginManagerReady()

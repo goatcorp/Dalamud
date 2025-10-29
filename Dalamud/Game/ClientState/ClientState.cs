@@ -249,7 +249,8 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
             ConditionFlag.NormalConditions,
             ConditionFlag.Jumping,
             ConditionFlag.Mounted,
-            ConditionFlag.UsingFashionAccessory]);
+            ConditionFlag.UsingFashionAccessory,
+            ConditionFlag.OnFreeTrial]);
 
         blockingFlag = blockingConditions.FirstOrDefault();
         return blockingFlag == 0;
