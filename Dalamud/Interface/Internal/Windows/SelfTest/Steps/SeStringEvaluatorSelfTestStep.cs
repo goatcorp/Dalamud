@@ -3,7 +3,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-
+using Dalamud.Plugin.SelfTest;
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
