@@ -497,7 +497,8 @@ internal class AutoUpdateManager : IServiceType
             condition.OnlyAny(ConditionFlag.NormalConditions,
                               ConditionFlag.Jumping,
                               ConditionFlag.Mounted,
-                              ConditionFlag.UsingFashionAccessory);
+                              ConditionFlag.UsingFashionAccessory,
+                              ConditionFlag.OnFreeTrial);
     }
 
     private bool IsPluginManagerReady()
