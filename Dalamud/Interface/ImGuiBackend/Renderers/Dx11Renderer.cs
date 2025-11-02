@@ -380,8 +380,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                     default:
                     {
                         // User callback, registered via ImDrawList::AddCallback()
-                        var cb = (delegate*<ImDrawListPtr, ref ImDrawCmd, void>)cmd.UserCallback;
-                        cb(cmdList, ref cmd);
+                        var cb = (delegate* unmanaged<ImDrawListPtr, ImDrawCmdPtr, void>)cmd.UserCallback;
+                        cb(cmdList, (ImDrawCmdPtr)Unsafe.AsPointer(ref cmd));
                         break;
                     }
                 }
