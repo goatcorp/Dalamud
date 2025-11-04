@@ -2454,10 +2454,11 @@ internal class PluginInstallerWindow : Window, IDisposable
         var configuration = Service<DalamudConfiguration>.Get();
         var pluginManager = Service<PluginManager>.Get();
 
+        var canUseTesting = pluginManager.CanUseTesting(manifest);
         var useTesting = pluginManager.UseTesting(manifest);
         var wasSeen = this.WasPluginSeen(manifest.InternalName);
 
-        var effectiveApiLevel = useTesting && manifest.TestingDalamudApiLevel != null ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
+        var effectiveApiLevel = useTesting ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
         var isOutdated = effectiveApiLevel < PluginManager.DalamudApiLevel;
 
         var isIncompatible = manifest.MinimumDalamudVersion != null &&
@@ -2487,7 +2488,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             label += Locs.PluginTitleMod_TestingExclusive;
         }
-        else if (configuration.DoPluginTest && PluginManager.HasTestingVersion(manifest))
+        else if (canUseTesting)
         {
             label += Locs.PluginTitleMod_TestingAvailable;
         }
@@ -2593,8 +2594,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var configuration = Service<DalamudConfiguration>.Get();
         var pluginManager = Service<PluginManager>.Get();
 
-        var hasTestingVersionAvailable = configuration.DoPluginTest &&
-                                         PluginManager.HasTestingVersion(manifest);
+        var hasTestingVersionAvailable = configuration.DoPluginTest && manifest.IsAvailableForTesting;
 
         if (ImGui.BeginPopupContextItem("ItemContextMenu"u8))
         {
@@ -2689,8 +2689,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             label += Locs.PluginTitleMod_TestingVersion;
         }
 
-        var hasTestingAvailable = this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName &&
-                                                                               x.IsAvailableForTesting);
+        var hasTestingAvailable = this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName && x.IsAvailableForTesting);
         if (hasTestingAvailable && configuration.DoPluginTest && testingOptIn == null)
         {
             label += Locs.PluginTitleMod_TestingAvailable;
@@ -3784,16 +3783,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private bool IsManifestFiltered(IPluginManifest manifest)
     {
-        var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
-        var oldApi = (manifest.TestingDalamudApiLevel == null
-                            || manifest.TestingDalamudApiLevel < PluginManager.DalamudApiLevel)
-                          && manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
-        var installed = this.IsManifestInstalled(manifest).IsInstalled;
-
-        if (oldApi && !hasSearchString && !installed)
-            return true;
-
-        if (!hasSearchString)
+        if (string.IsNullOrWhiteSpace(this.searchText))
             return false;
 
         return this.GetManifestSearchScore(manifest) < 1;
