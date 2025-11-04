@@ -340,6 +340,9 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
                 return null;
             }
 
+            if (this.ArrayIndex >= this.context.Ui3DModule->NamePlateObjectInfoCount)
+                return null;
+
             var objectInfoPtr = this.context.Ui3DModule->NamePlateObjectInfoPointers[this.ArrayIndex];
             if (objectInfoPtr.Value == null) return null;
 
