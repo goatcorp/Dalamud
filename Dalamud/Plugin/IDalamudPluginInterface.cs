@@ -15,6 +15,7 @@ using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Plugin;
 

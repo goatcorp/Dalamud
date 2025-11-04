@@ -1,9 +1,9 @@
-﻿namespace Dalamud.Interface.Internal.Windows.SelfTest;
+namespace Dalamud.Plugin.SelfTest;
 
 /// <summary>
 /// Enum declaring result states of tests.
 /// </summary>
-internal enum SelfTestStepResult
+public enum SelfTestStepResult
 {
     /// <summary>
     /// Test was not ran.
