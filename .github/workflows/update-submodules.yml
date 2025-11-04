@@ -41,6 +41,7 @@ jobs:
         git config --global user.email noreply@github.com
         git config --global pull.rebase false
     - name: Update submodule
+      id: update-submodule
       run: |
         git checkout -b ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }}
         git reset --hard origin/${{ matrix.branches }}
@@ -49,9 +50,19 @@ jobs:
         git reset --hard origin/${{ matrix.submodule.branch }}
         cd ../..
         git add ${{ matrix.submodule.path }}
+
+        if [[ -z "$(git status --porcelain --untracked-files=no)" ]]; then   
+          echo "No changes detected!"
+          echo "SUBMIT_PR=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        
         git commit --message "Update ${{ matrix.submodule.name }}"
         git push origin ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --force
+        echo "SUBMIT_PR=true" >> "$GITHUB_OUTPUT"
+        
     - name: Create PR
+      if: ${{ steps.update-submodule.outputs.SUBMIT_PR == 'true' }}
       run: |
         echo ${{ secrets.UPDATE_PAT }} | gh auth login --with-token
         prNumber=$(gh pr list --base ${{ matrix.branches }} --head ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --state open --json number --template "{{range .}}{{.number}}{{end}}")
