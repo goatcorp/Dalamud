@@ -546,9 +546,12 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     {
         var dtr = this.GetDtr();
         if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return;
-
-        this.eventHandles[node->AtkResNode.NodeId].ForEach(handle => this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, handle));
-        this.eventHandles[node->AtkResNode.NodeId].Clear();
+        
+        if (this.eventHandles.TryGetValue(node->AtkResNode.NodeId, out var eventHandles))
+        {
+            eventHandles.ForEach(handle => this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, handle));
+            eventHandles.Clear();
+        }
 
         var tmpPrevNode = node->AtkResNode.PrevSiblingNode;
         var tmpNextNode = node->AtkResNode.NextSiblingNode;
