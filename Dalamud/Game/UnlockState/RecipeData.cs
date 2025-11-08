@@ -54,7 +54,7 @@ internal unsafe class RecipeData : IInternalDisposableService
         this.clientState.Login += this.Update;
         this.clientState.Logout += this.OnLogout;
         this.clientState.LevelChanged += this.OnlevelChanged;
-        this.gameGui.UnlocksUpdate += this.Update;
+        this.gameGui.AgentUpdate += this.OnAgentUpdate;
     }
 
     /// <inheritdoc/>
@@ -63,7 +63,7 @@ internal unsafe class RecipeData : IInternalDisposableService
         this.clientState.Login -= this.Update;
         this.clientState.Logout -= this.OnLogout;
         this.clientState.LevelChanged -= this.OnlevelChanged;
-        this.gameGui.UnlocksUpdate -= this.Update;
+        this.gameGui.AgentUpdate -= this.OnAgentUpdate;
     }
 
     /// <summary>
@@ -119,6 +119,12 @@ internal unsafe class RecipeData : IInternalDisposableService
         {
             this.Update();
         }
+    }
+
+    private void OnAgentUpdate(AgentUpdateFlag agentUpdateFlag)
+    {
+        if (agentUpdateFlag.HasFlag(AgentUpdateFlag.UnlocksUpdate))
+            this.Update();
     }
 
     private void Update()

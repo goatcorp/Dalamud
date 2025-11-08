@@ -49,9 +49,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     [ServiceManager.ServiceConstructor]
     private UnlockState()
     {
-        this.clientState.Login += this.UpdateUnlocks;
+        this.clientState.Login += this.OnLogin;
         this.clientState.Logout += this.OnLogout;
-        this.gameGui.UnlocksUpdate += this.UpdateUnlocks;
+        this.gameGui.AgentUpdate += this.OnAgentUpdate;
     }
 
     /// <inheritdoc/>
@@ -62,9 +62,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.clientState.Login -= this.UpdateUnlocks;
+        this.clientState.Login -= this.OnLogin;
         this.clientState.Logout -= this.OnLogout;
-        this.gameGui.UnlocksUpdate -= this.UpdateUnlocks;
+        this.gameGui.AgentUpdate -= this.OnAgentUpdate;
     }
 
     /// <inheritdoc/>
@@ -577,12 +577,23 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         return UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(unlockLink);
     }
 
+    private void OnLogin()
+    {
+        this.Update();
+    }
+
     private void OnLogout(int type, int code)
     {
         this.cachedUnlockedRowIds.Clear();
     }
 
-    private void UpdateUnlocks()
+    private void OnAgentUpdate(AgentUpdateFlag agentUpdateFlag)
+    {
+        if (agentUpdateFlag.HasFlag(AgentUpdateFlag.UnlocksUpdate))
+            this.Update();
+    }
+
+    private void Update()
     {
         if (!this.IsLoaded)
             return;
