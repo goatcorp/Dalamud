@@ -17,8 +17,8 @@ public enum AgentUpdateFlag : byte
     /// <summary> Set when the RetainerMarket inventory has been updated. </summary>
     RetainerMarketInventoryUpdate = 1 << 2,
 
-    /// <summary> Unknown use case. </summary>
-    NameplateUpdate = 1 << 3,
+    // /// <summary> Unknown use case. </summary>
+    // NameplateUpdate = 1 << 3,
 
     /// <summary> Set when the player unlocked collectibles, contents or systems. </summary>
     UnlocksUpdate = 1 << 4,
