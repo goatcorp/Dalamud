@@ -2,8 +2,6 @@ using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.UnlockState;
 
-// TODO: Switch to FFXIVClientStructs.FFXIV.Client.Enums.ItemActionType.
-
 /// <summary>
 /// Enum for <see cref="ItemAction.Type"/>.
 /// </summary>
