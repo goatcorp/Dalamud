@@ -272,9 +272,9 @@ internal unsafe class RecipeData : IInternalDisposableService
             changed |= true;
         }
 
-        if (this.cachedCompletedQuests == null || !QuestManager.Instance()->CompletedQuestsBitmask.SequenceEqual(this.cachedCompletedQuests))
+        if (this.cachedCompletedQuests == null || !QuestManager.Instance()->CompletedQuests.SequenceEqual(this.cachedCompletedQuests))
         {
-            this.cachedCompletedQuests = QuestManager.Instance()->CompletedQuestsBitmask.ToArray();
+            this.cachedCompletedQuests = QuestManager.Instance()->CompletedQuests.ToArray();
             changed |= true;
         }
 
