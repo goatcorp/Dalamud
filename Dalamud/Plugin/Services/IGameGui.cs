@@ -27,6 +27,12 @@ public unsafe interface IGameGui
     public event EventHandler<HoveredAction> HoveredActionChanged;
 
     /// <summary>
+    /// Fired when the game sets one or more <see cref="AgentUpdateFlag"/> values,
+    /// used by agents to conditionally update their addons.
+    /// </summary>
+    event Action<AgentUpdateFlag> AgentUpdate;
+
+    /// <summary>
     /// Gets a value indicating whether the game UI is hidden.
     /// </summary>
     public bool GameUiHidden { get; }
