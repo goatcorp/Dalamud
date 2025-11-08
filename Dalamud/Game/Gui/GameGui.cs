@@ -95,16 +95,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     public event EventHandler<HoveredAction>? HoveredActionChanged;
 
     /// <inheritdoc/>
-    public event Action InventoryUpdate;
-
-    /// <inheritdoc/>
-    public event Action ActionBarUpdate;
-
-    /// <inheritdoc/>
-    public event Action UnlocksUpdate;
-
-    /// <inheritdoc/>
-    public event Action MainCommandEnabledStateUpdate;
+    public event Action<AgentUpdateFlag> AgentUpdate;
 
     /// <inheritdoc/>
     public bool GameUiHidden { get; private set; }
@@ -393,20 +384,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         if (agentUpdateFlag != RaptureAtkModule.AgentUpdateFlags.None)
         {
-            if (agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.InventoryUpdate) ||
-                agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.RetainerMarketInventoryUpdate) ||
-                agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.HousingInventoryUpdate) ||
-                agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.ContentInventoryUpdate))
-                this.InventoryUpdate.InvokeSafely();
-
-            if (agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.ActionBarUpdate))
-                this.ActionBarUpdate.InvokeSafely();
-
-            if (agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.UnlocksUpdate))
-                this.UnlocksUpdate.InvokeSafely();
-
-            if (agentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.MainCommandEnabledStateUpdate))
-                this.MainCommandEnabledStateUpdate.InvokeSafely();
+            this.AgentUpdate.InvokeSafely((AgentUpdateFlag)agentUpdateFlag);
         }
     }
 }
@@ -432,10 +410,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         this.gameGuiService.UiHideToggled += this.UiHideToggledForward;
         this.gameGuiService.HoveredItemChanged += this.HoveredItemForward;
         this.gameGuiService.HoveredActionChanged += this.HoveredActionForward;
-        this.gameGuiService.InventoryUpdate += this.InventoryUpdateForward;
-        this.gameGuiService.ActionBarUpdate += this.ActionBarUpdateForward;
-        this.gameGuiService.UnlocksUpdate += this.UnlocksUpdateForward;
-        this.gameGuiService.MainCommandEnabledStateUpdate += this.MainCommandEnabledStateUpdateForward;
+        this.gameGuiService.AgentUpdate += this.AgentUpdateForward;
     }
 
     /// <inheritdoc/>
@@ -448,16 +423,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     public event EventHandler<HoveredAction>? HoveredActionChanged;
 
     /// <inheritdoc/>
-    public event Action InventoryUpdate;
-
-    /// <inheritdoc/>
-    public event Action ActionBarUpdate;
-
-    /// <inheritdoc/>
-    public event Action UnlocksUpdate;
-
-    /// <inheritdoc/>
-    public event Action MainCommandEnabledStateUpdate;
+    public event Action<AgentUpdateFlag> AgentUpdate;
 
     /// <inheritdoc/>
     public bool GameUiHidden => this.gameGuiService.GameUiHidden;
@@ -478,10 +444,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         this.gameGuiService.UiHideToggled -= this.UiHideToggledForward;
         this.gameGuiService.HoveredItemChanged -= this.HoveredItemForward;
         this.gameGuiService.HoveredActionChanged -= this.HoveredActionForward;
-        this.gameGuiService.InventoryUpdate -= this.InventoryUpdateForward;
-        this.gameGuiService.ActionBarUpdate -= this.ActionBarUpdateForward;
-        this.gameGuiService.UnlocksUpdate -= this.UnlocksUpdateForward;
-        this.gameGuiService.MainCommandEnabledStateUpdate -= this.MainCommandEnabledStateUpdateForward;
+        this.gameGuiService.AgentUpdate -= this.AgentUpdateForward;
 
         this.UiHideToggled = null;
         this.HoveredItemChanged = null;
@@ -534,11 +497,5 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
 
     private void HoveredActionForward(object sender, HoveredAction hoverAction) => this.HoveredActionChanged?.Invoke(sender, hoverAction);
 
-    private void InventoryUpdateForward() => this.InventoryUpdate.InvokeSafely();
-
-    private void ActionBarUpdateForward() => this.ActionBarUpdate.InvokeSafely();
-
-    private void UnlocksUpdateForward() => this.UnlocksUpdate.InvokeSafely();
-
-    private void MainCommandEnabledStateUpdateForward() => this.MainCommandEnabledStateUpdate.InvokeSafely();
+    private void AgentUpdateForward(AgentUpdateFlag agentUpdateFlag) => this.AgentUpdate.InvokeSafely(agentUpdateFlag);
 }

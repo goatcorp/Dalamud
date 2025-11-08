@@ -27,25 +27,10 @@ public unsafe interface IGameGui
     public event EventHandler<HoveredAction> HoveredActionChanged;
 
     /// <summary>
-    /// Event that is fired when the inventory has been updated.
+    /// Fired when the game sets one or more <see cref="AgentUpdateFlag"/> values,
+    /// used by agents to conditionally update their addons.
     /// </summary>
-    event Action InventoryUpdate;
-
-    /// <summary>
-    /// Fired when the action bar needs to be updated, e.g. after changing Class/Job, 
-    /// updating Gear Sets, modifying Macros, or executing a hotbar slot.
-    /// </summary>
-    event Action ActionBarUpdate;
-
-    /// <summary>
-    /// Event that is fired when collectibles, content or systems were unlocked.
-    /// </summary>
-    event Action UnlocksUpdate;
-
-    /// <summary>
-    /// Event that is fired when the enable state of MainCommands has been updated.
-    /// </summary>
-    event Action MainCommandEnabledStateUpdate;
+    event Action<AgentUpdateFlag> AgentUpdate;
 
     /// <summary>
     /// Gets a value indicating whether the game UI is hidden.

@@ -46,7 +46,7 @@ internal class GameInventory : IInternalDisposableService
         this.inventoryTypes = Enum.GetValues<GameInventoryType>();
         this.inventoryItems = new GameInventoryItem[this.inventoryTypes.Length][];
 
-        this.gameGui.InventoryUpdate += this.OnInventoryUpdate;
+        this.gameGui.AgentUpdate += this.OnAgentUpdate;
     }
 
     /// <inheritdoc/>
@@ -58,7 +58,7 @@ internal class GameInventory : IInternalDisposableService
             this.subscribersPendingChange.Clear();
             this.subscribersChanged = false;
             this.framework.Update -= this.OnFrameworkUpdate;
-            this.gameGui.InventoryUpdate -= this.OnInventoryUpdate;
+            this.gameGui.AgentUpdate -= this.OnAgentUpdate;
         }
     }
 
@@ -309,7 +309,7 @@ internal class GameInventory : IInternalDisposableService
         return items;
     }
 
-    private void OnInventoryUpdate()
+    private void OnAgentUpdate(AgentUpdateFlag agentUpdateFlag)
     {
         this.inventoriesMightBeChanged |= true;
     }
