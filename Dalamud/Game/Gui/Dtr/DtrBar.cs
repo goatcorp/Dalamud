@@ -257,7 +257,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// <param name="toRemove">The resources to remove.</param>
     internal void RemoveEntry(DtrBarEntry toRemove)
     {
-        this.RemoveNode(toRemove.TextNode);
+        this.RemoveNode(toRemove);
 
         if (toRemove.Storage != null)
         {
@@ -542,9 +542,10 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         return true;
     }
 
-    private void RemoveNode(AtkTextNode* node)
+    private void RemoveNode(DtrBarEntry data)
     {
         var dtr = this.GetDtr();
+        var node = data.TextNode;
         if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return;
 
         if (this.eventHandles.TryGetValue(node->AtkResNode.NodeId, out var eventHandles))
@@ -565,6 +566,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         if (tmpPrevNode != null)
             tmpPrevNode->NextSiblingNode = tmpNextNode;
         node->AtkResNode.Destroy(true);
+        data.TextNode = null;
 
         dtr->RootNode->ChildCount = (ushort)(dtr->RootNode->ChildCount - 1);
         Log.Debug("Set last sibling of DTR and updated child count");
