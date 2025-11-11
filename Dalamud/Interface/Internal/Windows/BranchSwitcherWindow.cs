@@ -83,25 +83,12 @@ public class BranchSwitcherWindow : Window
 
             ImGuiHelpers.ScaledDummy(5);
 
-            void Pick()
+            if (ImGui.Button("Pick & Restart"u8))
             {
                 var config = Service<DalamudConfiguration>.Get();
                 config.DalamudBetaKind = pickedBranch.Key;
                 config.DalamudBetaKey = pickedBranch.Value.Key;
                 config.QueueSave();
-            }
-
-            if (ImGui.Button("Pick"u8))
-            {
-                Pick();
-                this.IsOpen = false;
-            }
-
-            ImGui.SameLine();
-
-            if (ImGui.Button("Pick & Restart"u8))
-            {
-                Pick();
 
                 // If we exit immediately, we need to write out the new config now
                 Service<DalamudConfiguration>.Get().ForceSave();
@@ -111,7 +98,16 @@ public class BranchSwitcherWindow : Window
 
                 if (File.Exists(xlPath))
                 {
-                    Process.Start(xlPath);
+                    var ps = new ProcessStartInfo
+                    {
+                        FileName = xlPath,
+                        UseShellExecute = false,
+                    };
+
+                    ps.ArgumentList.Add($"--dalamud-beta-kind={config.DalamudBetaKind}");
+                    ps.ArgumentList.Add($"--dalamud-beta-key={config.DalamudBetaKey}");
+
+                    Process.Start(ps);
                     Environment.Exit(0);
                 }
             }
