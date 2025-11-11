@@ -114,7 +114,7 @@ internal sealed unsafe class DalamudCompletion : IInternalDisposableService
         this.ResetCompletionData();
         this.ClearCachedCommands();
 
-        var currentText = component->UnkText1.StringPtr.ExtractText();
+        var currentText = component->EvaluatedString.StringPtr.ExtractText();
 
         var commands = this.commandManager.Commands
             .Where(kv => kv.Value.ShowInHelp && (currentText.Length == 0 || kv.Key.StartsWith(currentText)))
@@ -195,7 +195,7 @@ internal sealed unsafe class DalamudCompletion : IInternalDisposableService
 
         component = (AtkComponentTextInput*)componentBase;
 
-        addon = component->ContainingAddon;
+        addon = component->OwnerAddon;
 
         if (addon == null)
             addon = component->ContainingAddon2;
