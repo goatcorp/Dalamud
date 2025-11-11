@@ -103,7 +103,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <summary>
     /// Gets a value indicating whether auto-updates have already completed this session.
     /// </summary>
-    public bool IsAutoUpdateComplete => Service<AutoUpdateManager>.Get().IsAutoUpdateComplete;
+    public bool IsAutoUpdateComplete => Service<AutoUpdateManager>.GetNullable()?.IsAutoUpdateComplete ?? false;
 
     /// <summary>
     /// Gets the repository from which this plugin was installed.
