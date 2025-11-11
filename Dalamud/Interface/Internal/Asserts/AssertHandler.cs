@@ -110,7 +110,6 @@ internal class AssertHandler : IDisposable
         return new StackTrace(frames);
     }
 
-
     private unsafe void OnImGuiAssert(void* pExpr, void* pFile, int line)
     {
         var expr = Marshal.PtrToStringAnsi(new IntPtr(pExpr));

@@ -414,11 +414,11 @@ internal unsafe class UiDebug
                     var textInputComponent = (AtkComponentTextInput*)compNode->Component;
                     ImGui.Text("InputBase Text1: "u8);
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText1);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.EvaluatedString);
 
                     ImGui.Text("InputBase Text2: "u8);
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText2);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.RawString);
 
                     ImGui.Text("Text1: "u8);
                     ImGui.SameLine();
