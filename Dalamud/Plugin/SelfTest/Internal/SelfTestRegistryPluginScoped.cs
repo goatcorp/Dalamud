@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Plugin.SelfTest.Internal;
 
