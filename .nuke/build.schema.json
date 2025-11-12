@@ -87,7 +87,6 @@
               "CompileDalamudCrashHandler",
               "CompileImGuiNatives",
               "CompileInjector",
-              "CompileInjectorBoot",
               "Restore",
               "SetCILogging",
               "Test"
@@ -115,7 +114,6 @@
               "CompileDalamudCrashHandler",
               "CompileImGuiNatives",
               "CompileInjector",
-              "CompileInjectorBoot",
               "Restore",
               "SetCILogging",
               "Test"
