@@ -42,10 +42,7 @@ public class DalamudBuild : NukeBuild
 
     AbsolutePath InjectorProjectDir => RootDirectory / "Dalamud.Injector";
     AbsolutePath InjectorProjectFile => InjectorProjectDir / "Dalamud.Injector.csproj";
-
-    AbsolutePath InjectorBootProjectDir => RootDirectory / "Dalamud.Injector.Boot";
-    AbsolutePath InjectorBootProjectFile => InjectorBootProjectDir / "Dalamud.Injector.Boot.vcxproj";
-
+    
     AbsolutePath TestProjectDir => RootDirectory / "Dalamud.Test";
     AbsolutePath TestProjectFile => TestProjectDir / "Dalamud.Test.csproj";
 
@@ -172,14 +169,6 @@ public class DalamudBuild : NukeBuild
                 .EnableNoRestore());
         });
 
-    Target CompileInjectorBoot => _ => _
-        .Executes(() =>
-        {
-            MSBuildTasks.MSBuild(s => s
-                .SetTargetPath(InjectorBootProjectFile)
-                .SetConfiguration(Configuration));
-        });
-
     Target SetCILogging => _ => _
         .DependentFor(Compile)
         .OnlyWhenStatic(() => IsCIBuild)
@@ -196,7 +185,6 @@ public class DalamudBuild : NukeBuild
     .DependsOn(CompileDalamudBoot)
     .DependsOn(CompileDalamudCrashHandler)
     .DependsOn(CompileInjector)
-    .DependsOn(CompileInjectorBoot)
     ;
 
     Target CI => _ => _
@@ -249,11 +237,6 @@ public class DalamudBuild : NukeBuild
             DotNetTasks.DotNetClean(s => s
                 .SetProject(InjectorProjectFile)
                 .SetConfiguration(Configuration));
-
-            MSBuildTasks.MSBuild(s => s
-                .SetProjectFile(InjectorBootProjectFile)
-                .SetConfiguration(Configuration)
-                .SetTargets("Clean"));
 
             FileSystemTasks.DeleteDirectory(ArtifactsDirectory);
             Directory.CreateDirectory(ArtifactsDirectory);
