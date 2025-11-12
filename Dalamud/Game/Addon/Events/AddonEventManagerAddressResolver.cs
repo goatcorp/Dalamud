@@ -1,4 +1,6 @@
-﻿namespace Dalamud.Game.Addon.Events;
+using Dalamud.Plugin.Services;
+
+namespace Dalamud.Game.Addon.Events;
 
 /// <summary>
 /// AddonEventManager memory address resolver.
