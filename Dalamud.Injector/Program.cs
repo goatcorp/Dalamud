@@ -25,34 +25,20 @@ namespace Dalamud.Injector
     /// <summary>
     /// Entrypoint to the program.
     /// </summary>
-    public sealed class EntryPoint
+    public sealed class Program
     {
-        /// <summary>
-        /// A delegate used during initialization of the CLR from Dalamud.Injector.Boot.
-        /// </summary>
-        /// <param name="argc">Count of arguments.</param>
-        /// <param name="argvPtr">char** string arguments.</param>
-        /// <returns>Return value (HRESULT).</returns>
-        public delegate int MainDelegate(int argc, IntPtr argvPtr);
-
         /// <summary>
         /// Start the Dalamud injector.
         /// </summary>
-        /// <param name="argc">Count of arguments.</param>
-        /// <param name="argvPtr">byte** string arguments.</param>
+        /// <param name="argsArray">Command line arguments.</param>
         /// <returns>Return value (HRESULT).</returns>
-        public static int Main(int argc, IntPtr argvPtr)
+        public static int Main(string[] argsArray)
         {
             try
             {
-                List<string> args = new(argc);
-
-                unsafe
-                {
-                    var argv = (IntPtr*)argvPtr;
-                    for (var i = 0; i < argc; i++)
-                        args.Add(Marshal.PtrToStringUni(argv[i]));
-                }
+                // API14 TODO: Refactor
+                var args = argsArray.ToList();
+                args.Insert(0, Assembly.GetExecutingAssembly().Location);
 
                 Init(args);
                 args.Remove("-v"); // Remove "verbose" flag

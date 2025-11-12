@@ -13,12 +13,13 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Output">
-        <OutputType>Library</OutputType>
+        <OutputType>Exe</OutputType>
         <OutputPath>..\bin\$(Configuration)\</OutputPath>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
         <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+        <ApplicationIcon>dalamud.ico</ApplicationIcon>
     </PropertyGroup>
 
     <PropertyGroup Label="Documentation">
