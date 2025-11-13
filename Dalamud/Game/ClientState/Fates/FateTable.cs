@@ -110,12 +110,35 @@ internal sealed partial class FateTable
     /// <inheritdoc/>
     public IEnumerator<IFate> GetEnumerator()
     {
-        for (var i = 0; i < this.Length; i++)
-        {
-            yield return this[i];
-        }
+        return new Enumerator(this);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+    private struct Enumerator(FateTable fateTable) : IEnumerator<IFate>
+    {
+        private int index = 0;
+
+        public IFate Current { get; private set; }
+
+        object IEnumerator.Current => this.Current;
+
+        public bool MoveNext()
+        {
+            if (this.index == fateTable.Length) return false;
+            this.Current = fateTable[this.index];
+            this.index++;
+            return true;
+        }
+
+        public void Reset()
+        {
+            this.index = 0;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
 }
