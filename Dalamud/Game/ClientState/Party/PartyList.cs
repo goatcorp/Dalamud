@@ -133,18 +133,44 @@ internal sealed partial class PartyList
     /// <inheritdoc/>
     public IEnumerator<IPartyMember> GetEnumerator()
     {
-        // Normally using Length results in a recursion crash, however we know the party size via ptr.
-        for (var i = 0; i < this.Length; i++)
-        {
-            var member = this[i];
-
-            if (member == null)
-                break;
-
-            yield return member;
-        }
+        return new Enumerator(this);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+    private struct Enumerator(PartyList partyList) : IEnumerator<IPartyMember>
+    {
+        private int index = 0;
+
+        public IPartyMember Current { get; private set; }
+
+        object IEnumerator.Current => this.Current;
+
+        public bool MoveNext()
+        {
+            if (this.index == partyList.Length) return false;
+
+            for (; this.index < partyList.Length; this.index++)
+            {
+                var partyMember = partyList[this.index];
+                if (partyMember != null)
+                {
+                    this.Current = partyMember;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void Reset()
+        {
+            this.index = 0;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
 }
