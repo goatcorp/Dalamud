@@ -5,6 +5,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 
+using CSFateContext = FFXIVClientStructs.FFXIV.Client.Game.Fate.FateContext;
 using CSFateManager = FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager;
 
 namespace Dalamud.Game.ClientState.Fates;
@@ -25,7 +26,7 @@ internal sealed partial class FateTable : IServiceType, IFateTable
     }
 
     /// <inheritdoc/>
-    public unsafe IntPtr Address => (nint)CSFateManager.Instance();
+    public unsafe nint Address => (nint)CSFateManager.Instance();
 
     /// <inheritdoc/>
     public unsafe int Length
@@ -72,30 +73,29 @@ internal sealed partial class FateTable : IServiceType, IFateTable
     }
 
     /// <inheritdoc/>
-    public unsafe IntPtr GetFateAddress(int index)
+    public unsafe nint GetFateAddress(int index)
     {
         if (index >= this.Length)
-            return IntPtr.Zero;
+            return 0;
 
         var fateManager = CSFateManager.Instance();
         if (fateManager == null)
-            return IntPtr.Zero;
+            return 0;
 
-        return (IntPtr)fateManager->Fates[index].Value;
+        return (nint)fateManager->Fates[index].Value;
     }
 
     /// <inheritdoc/>
-    public IFate? CreateFateReference(IntPtr offset)
+    public unsafe IFate? CreateFateReference(IntPtr address)
     {
-        var clientState = Service<ClientState>.Get();
+        if (address == 0)
+            return null;
 
+        var clientState = Service<ClientState>.Get();
         if (clientState.LocalContentId == 0)
             return null;
 
-        if (offset == IntPtr.Zero)
-            return null;
-
-        return new Fate(offset);
+        return new Fate((CSFateContext*)address);
     }
 }
 
