@@ -63,47 +63,37 @@ public interface IAetheryteEntry
 }
 
 /// <summary>
-/// Class representing an aetheryte entry available to the game.
+/// This struct represents an aetheryte entry available to the game.
 /// </summary>
-internal sealed class AetheryteEntry : IAetheryteEntry
+/// <param name="data">Data read from the Aetheryte List.</param>
+internal readonly struct AetheryteEntry(TeleportInfo data) : IAetheryteEntry
 {
-    private readonly TeleportInfo data;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AetheryteEntry"/> class.
-    /// </summary>
-    /// <param name="data">Data read from the Aetheryte List.</param>
-    internal AetheryteEntry(TeleportInfo data)
-    {
-        this.data = data;
-    }
+    /// <inheritdoc />
+    public uint AetheryteId => data.AetheryteId;
 
     /// <inheritdoc />
-    public uint AetheryteId => this.data.AetheryteId;
+    public uint TerritoryId => data.TerritoryId;
 
     /// <inheritdoc />
-    public uint TerritoryId => this.data.TerritoryId;
+    public byte SubIndex => data.SubIndex;
 
     /// <inheritdoc />
-    public byte SubIndex => this.data.SubIndex;
+    public byte Ward => data.Ward;
 
     /// <inheritdoc />
-    public byte Ward => this.data.Ward;
+    public byte Plot => data.Plot;
 
     /// <inheritdoc />
-    public byte Plot => this.data.Plot;
+    public uint GilCost => data.GilCost;
 
     /// <inheritdoc />
-    public uint GilCost => this.data.GilCost;
+    public bool IsFavourite => data.IsFavourite;
 
     /// <inheritdoc />
-    public bool IsFavourite => this.data.IsFavourite;
+    public bool IsSharedHouse => data.IsSharedHouse;
 
     /// <inheritdoc />
-    public bool IsSharedHouse => this.data.IsSharedHouse;
-
-    /// <inheritdoc />
-    public bool IsApartment => this.data.IsApartment;
+    public bool IsApartment => data.IsApartment;
 
     /// <inheritdoc />
     public RowRef<Lumina.Excel.Sheets.Aetheryte> AetheryteData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Aetheryte>(this.AetheryteId);
