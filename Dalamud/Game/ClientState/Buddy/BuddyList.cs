@@ -8,6 +8,9 @@ using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
+using CSBuddy = FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy;
+using CSBuddyMember = FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember;
+
 namespace Dalamud.Game.ClientState.Buddy;
 
 /// <summary>
@@ -21,7 +24,7 @@ namespace Dalamud.Game.ClientState.Buddy;
 #pragma warning restore SA1015
 internal sealed partial class BuddyList : IServiceType, IBuddyList
 {
-    private const uint InvalidObjectID = 0xE0000000;
+    private const uint InvalidEntityId = 0xE0000000;
 
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientState = Service<ClientState>.Get();
@@ -69,7 +72,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
         }
     }
 
-    private unsafe FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy* BuddyListStruct => &UIState.Instance()->Buddy;
+    private unsafe CSBuddy* BuddyListStruct => &UIState.Instance()->Buddy;
 
     /// <inheritdoc/>
     public IBuddyMember? this[int index]
@@ -82,37 +85,37 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
     }
 
     /// <inheritdoc/>
-    public unsafe IntPtr GetCompanionBuddyMemberAddress()
+    public unsafe nint GetCompanionBuddyMemberAddress()
     {
-        return (IntPtr)this.BuddyListStruct->CompanionInfo.Companion;
+        return (nint)this.BuddyListStruct->CompanionInfo.Companion;
     }
 
     /// <inheritdoc/>
-    public unsafe IntPtr GetPetBuddyMemberAddress()
+    public unsafe nint GetPetBuddyMemberAddress()
     {
-        return (IntPtr)this.BuddyListStruct->PetInfo.Pet;
+        return (nint)this.BuddyListStruct->PetInfo.Pet;
     }
 
     /// <inheritdoc/>
-    public unsafe IntPtr GetBattleBuddyMemberAddress(int index)
+    public unsafe nint GetBattleBuddyMemberAddress(int index)
     {
         if (index < 0 || index >= 3)
-            return IntPtr.Zero;
+            return 0;
 
-        return (IntPtr)Unsafe.AsPointer(ref this.BuddyListStruct->BattleBuddies[index]);
+        return (nint)Unsafe.AsPointer(ref this.BuddyListStruct->BattleBuddies[index]);
     }
 
     /// <inheritdoc/>
-    public IBuddyMember? CreateBuddyMemberReference(IntPtr address)
+    public unsafe IBuddyMember? CreateBuddyMemberReference(nint address)
     {
+        if (address == 0)
+            return null;
+
         if (this.clientState.LocalContentId == 0)
             return null;
 
-        if (address == IntPtr.Zero)
-            return null;
-
-        var buddy = new BuddyMember(address);
-        if (buddy.ObjectId == InvalidObjectID)
+        var buddy = new BuddyMember((CSBuddyMember*)address);
+        if (buddy.EntityId == InvalidEntityId)
             return null;
 
         return buddy;
