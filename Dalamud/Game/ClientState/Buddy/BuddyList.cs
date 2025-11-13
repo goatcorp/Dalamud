@@ -130,12 +130,35 @@ internal sealed partial class BuddyList
     /// <inheritdoc/>
     public IEnumerator<IBuddyMember> GetEnumerator()
     {
-        for (var i = 0; i < this.Length; i++)
-        {
-            yield return this[i];
-        }
+        return new Enumerator(this);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+    private struct Enumerator(BuddyList buddyList) : IEnumerator<IBuddyMember>
+    {
+        private int index = 0;
+
+        public IBuddyMember Current { get; private set; }
+
+        object IEnumerator.Current => this.Current;
+
+        public bool MoveNext()
+        {
+            if (this.index == buddyList.Length) return false;
+            this.Current = buddyList[this.index];
+            this.index++;
+            return true;
+        }
+
+        public void Reset()
+        {
+            this.index = 0;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
 }
