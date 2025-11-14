@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration;
@@ -103,7 +104,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <summary>
     /// Gets a value indicating whether auto-updates have already completed this session.
     /// </summary>
-    public bool IsAutoUpdateComplete => Service<AutoUpdateManager>.Get().IsAutoUpdateComplete;
+    public bool IsAutoUpdateComplete => Service<AutoUpdateManager>.GetNullable()?.IsAutoUpdateComplete ?? false;
 
     /// <summary>
     /// Gets the repository from which this plugin was installed.
@@ -268,6 +269,30 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
         dalamudInterface.OpenDevMenu();
         return true;
     }
+
+    /// <summary>
+    /// Gets the plugin the given assembly is part of.
+    /// </summary>
+    /// <param name="assembly">The assembly to check.</param>
+    /// <returns>The plugin the given assembly is part of, or null if this is a shared assembly or if this information cannot be determined.</returns>
+    public IExposedPlugin? GetPlugin(Assembly assembly)
+        => AssemblyLoadContext.GetLoadContext(assembly) switch
+        {
+            null => null,
+            var context => this.GetPlugin(context),
+        };
+
+    /// <summary>
+    /// Gets the plugin that loads in the given context.
+    /// </summary>
+    /// <param name="context">The context to check.</param>
+    /// <returns>The plugin that loads in the given context, or null if this isn't a plugin's context or if this information cannot be determined.</returns>
+    public IExposedPlugin? GetPlugin(AssemblyLoadContext context)
+        => Service<PluginManager>.Get().InstalledPlugins.FirstOrDefault(p => p.LoadsIn(context)) switch
+        {
+            null => null,
+            var p => new ExposedPlugin(p),
+        };
 
     #region IPC
 

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration;
@@ -179,6 +181,20 @@ public interface IDalamudPluginInterface
     /// </summary>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
     bool OpenDeveloperMenu();
+
+    /// <summary>
+    /// Gets the plugin the given assembly is part of.
+    /// </summary>
+    /// <param name="assembly">The assembly to check.</param>
+    /// <returns>The plugin the given assembly is part of, or null if this is a shared assembly or if this information cannot be determined.</returns>
+    IExposedPlugin? GetPlugin(Assembly assembly);
+
+    /// <summary>
+    /// Gets the plugin that loads in the given context.
+    /// </summary>
+    /// <param name="context">The context to check.</param>
+    /// <returns>The plugin that loads in the given context, or null if this isn't a plugin's context or if this information cannot be determined.</returns>
+    IExposedPlugin? GetPlugin(AssemblyLoadContext context);
 
     /// <inheritdoc cref="DataShare.GetOrCreateData{T}"/>
     T GetOrCreateData<T>(string tag, Func<T> dataGenerator) where T : class;
