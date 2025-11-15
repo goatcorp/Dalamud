@@ -13,6 +13,7 @@ public enum XivChatType : ushort
     /// <summary>
     /// The debug chat type.
     /// </summary>
+    [XivChatTypeInfo("Debug", "debug", 0xFF808080)]
     Debug = 1,
 
     /// <summary>
@@ -42,12 +43,13 @@ public enum XivChatType : ushort
     /// <summary>
     /// The outgoing tell chat type.
     /// </summary>
+    [XivChatTypeInfo("Tell (Outgoing)", "tell_outgoing", 0xFFFF69B4)]
     TellOutgoing = 12,
 
     /// <summary>
     /// The incoming tell chat type.
     /// </summary>
-    [XivChatTypeInfo("Tell", "tell", 0xFFFF69B4)]
+    [XivChatTypeInfo("Tell (Incoming)", "tell_incoming", 0xFFFF69B4)]
     TellIncoming = 13,
 
     /// <summary>
@@ -167,31 +169,37 @@ public enum XivChatType : ushort
     /// <summary>
     /// The system error chat type.
     /// </summary>
+    [XivChatTypeInfo("System Error", "system_error", 0xFF808080)]
     SystemError = 58,
 
     /// <summary>
     /// The system message chat type.
     /// </summary>
+    [XivChatTypeInfo("System Message", "system_message", 0xFF808080)]
     SystemMessage = 57,
 
     /// <summary>
     /// The system message (gathering) chat type.
     /// </summary>
+    [XivChatTypeInfo("Gathering", "gathering", 0xFFCCCCCC)]
     GatheringSystemMessage = 59,
 
     /// <summary>
     /// The error message chat type.
     /// </summary>
+    [XivChatTypeInfo("Error", "error", 0xFFFF4A4A)]
     ErrorMessage = 60,
 
     /// <summary>
     /// The NPC Dialogue chat type.
     /// </summary>
+    [XivChatTypeInfo("NPC Dialogue", "npc_dialogue", 0xFFABD647)]
     NPCDialogue = 61,
 
     /// <summary>
     /// The NPC Dialogue (Announcements) chat type.
     /// </summary>
+    [XivChatTypeInfo("NPC Dialogue Announcements", "npc_dialogue_announcements", 0xFFABD647)]
     NPCDialogueAnnouncements = 68,
 
     /// <summary>
@@ -200,6 +208,7 @@ public enum XivChatType : ushort
     /// <remarks>
     /// This might be used for other purposes.
     /// </remarks>
+    [XivChatTypeInfo("Retainer", "retainer", 0xFF808080)]
     RetainerSale = 71,
 
     /// <summary>
