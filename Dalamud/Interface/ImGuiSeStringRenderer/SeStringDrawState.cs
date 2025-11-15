@@ -6,7 +6,9 @@ using System.Text;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 

@@ -1,4 +1,4 @@
-﻿using Dalamud.Configuration.Internal;
+using Dalamud.Configuration.Internal;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -9,7 +9,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class ConfigurationWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "config", "configuration" };
+    public string[]? CommandShortcuts { get; init; } = ["config", "configuration"];
     
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Configuration"; 

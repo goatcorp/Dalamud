@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +7,7 @@ using Dalamud.Game.Network.Structures;
 using Dalamud.Networking.Http;
 
 using Newtonsoft.Json;
+
 using Serilog;
 
 namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
@@ -64,7 +64,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
                 PricePerUnit = marketBoardItemListing.PricePerUnit,
                 Quantity = marketBoardItemListing.ItemQuantity,
                 RetainerCity = marketBoardItemListing.RetainerCityId,
-                Materia = new List<UniversalisItemMateria>(),
+                Materia = [],
             };
 #pragma warning restore CS0618 // Type or member is obsolete
 

@@ -1,7 +1,6 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.Addon.Events.EventDataTypes;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;

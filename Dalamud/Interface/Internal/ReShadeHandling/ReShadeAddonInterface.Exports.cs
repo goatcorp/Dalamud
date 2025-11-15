@@ -63,7 +63,7 @@ internal sealed unsafe partial class ReShadeAddonInterface
 
         return;
 
-        bool GetProcAddressInto(ProcessModule m, ReadOnlySpan<char> name, void* res)
+        static bool GetProcAddressInto(ProcessModule m, ReadOnlySpan<char> name, void* res)
         {
             Span<byte> name8 = stackalloc byte[Encoding.UTF8.GetByteCount(name) + 1];
             name8[Encoding.UTF8.GetBytes(name, name8)] = 0;

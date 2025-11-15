@@ -1,11 +1,9 @@
 using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text;
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Textures;

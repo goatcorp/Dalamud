@@ -1,6 +1,7 @@
 using Dalamud.Data;
 using Dalamud.Plugin.SelfTest;
 using Dalamud.Utility;
+
 using Lumina.Excel;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;

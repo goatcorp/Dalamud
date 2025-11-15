@@ -8,7 +8,9 @@ using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
+
 using Newtonsoft.Json;
+
 using Serilog;
 
 namespace Dalamud.Support;
@@ -32,7 +34,7 @@ public static class Troubleshooting
     {
         LastException = exception;
 
-        var fixedContext = context?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        var fixedContext = context?.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
 
         try
         {
@@ -127,7 +129,7 @@ public static class Troubleshooting
 
         public bool ForcedMinHook { get; set; }
 
-        public List<ThirdPartyRepoSettings> ThirdRepo => new();
+        public List<ThirdPartyRepoSettings> ThirdRepo => [];
 
         public bool HasThirdRepo { get; set; }
     }

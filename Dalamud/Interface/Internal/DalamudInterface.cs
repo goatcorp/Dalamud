@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImPlot;
 using Dalamud.Configuration.Internal;
@@ -36,9 +37,11 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.SelfTest.Internal;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using Serilog.Events;
 
 namespace Dalamud.Interface.Internal;
@@ -51,7 +54,7 @@ internal class DalamudInterface : IInternalDisposableService
 {
     private const float CreditsDarkeningMaxAlpha = 0.8f;
 
-    private static readonly ModuleLog Log = new("DUI");
+    private static readonly ModuleLog Log = ModuleLog.Create<DalamudInterface>();
 
     private readonly Dalamud dalamud;
     private readonly DalamudConfiguration configuration;
@@ -683,7 +686,7 @@ internal class DalamudInterface : IInternalDisposableService
 
                     if (ImGui.BeginMenu("Set log level..."u8))
                     {
-                        foreach (var logLevel in Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>())
+                        foreach (var logLevel in Enum.GetValues<LogEventLevel>())
                         {
                             if (ImGui.MenuItem(logLevel + "##logLevelSwitch", (byte*)null, EntryPoint.LogLevelSwitch.MinimumLevel == logLevel))
                             {
@@ -816,7 +819,7 @@ internal class DalamudInterface : IInternalDisposableService
 
                         if (ImGui.MenuItem("Cause CLR fastfail"u8))
                         {
-                            unsafe void CauseFastFail()
+                            static unsafe void CauseFastFail()
                             {
                                 // ReSharper disable once NotAccessedVariable
                                 var texture = Unsafe.AsRef<AtkTexture>((void*)0x12345678);
