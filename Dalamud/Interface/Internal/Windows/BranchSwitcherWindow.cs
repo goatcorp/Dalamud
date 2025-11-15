@@ -11,6 +11,8 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Networking.Http;
+using Dalamud.Utility;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Internal.Windows;
@@ -44,13 +46,10 @@ public class BranchSwitcherWindow : Window
             this.branches = await client.GetFromJsonAsync<Dictionary<string, VersionEntry>>(BranchInfoUrl);
             Debug.Assert(this.branches != null, "this.branches != null");
 
-            var config = Service<DalamudConfiguration>.Get();
-            this.selectedBranchIndex = this.branches!.Any(x => x.Key == config.DalamudBetaKind) ?
-                                           this.branches.TakeWhile(x => x.Key != config.DalamudBetaKind).Count()
+            var branch = Util.GetBranch();
+            this.selectedBranchIndex = this.branches!.Any(x => x.Value.Track == branch) ?
+                                           this.branches.TakeWhile(x => x.Value.Track != branch).Count()
                                            : 0;
-
-            if (this.branches.ElementAt(this.selectedBranchIndex).Value.Key != config.DalamudBetaKey)
-                this.selectedBranchIndex = 0;
         });
 
         base.OnOpen();
@@ -88,13 +87,12 @@ public class BranchSwitcherWindow : Window
                 var config = Service<DalamudConfiguration>.Get();
                 config.DalamudBetaKind = pickedBranch.Key;
                 config.DalamudBetaKey = pickedBranch.Value.Key;
-                config.QueueSave();
 
                 // If we exit immediately, we need to write out the new config now
-                Service<DalamudConfiguration>.Get().ForceSave();
+                config.ForceSave();
 
                 var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var xlPath = Path.Combine(appData, "XIVLauncher", "XIVLauncher.exe");
+                var xlPath = Path.Combine(appData, "XIVLauncher", "current", "XIVLauncher.exe");
 
                 if (File.Exists(xlPath))
                 {
