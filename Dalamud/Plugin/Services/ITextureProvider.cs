@@ -32,7 +32,7 @@ namespace Dalamud.Plugin.Services;
 /// <see cref="TexWidget"/>.
 /// </para>
 /// </remarks>
-public interface ITextureProvider
+public interface ITextureProvider : IDalamudService
 {
     /// <summary>Creates an empty texture.</summary>
     /// <param name="specs">Texture specifications.</param>

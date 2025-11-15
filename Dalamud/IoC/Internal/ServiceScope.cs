@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,7 +12,7 @@ namespace Dalamud.IoC.Internal;
 /// <summary>
 /// Container enabling the creation of scoped services.
 /// </summary>
-internal interface IServiceScope : IAsyncDisposable
+internal interface IServiceScope : IServiceProvider, IAsyncDisposable
 {
     /// <summary>
     /// Register objects that may be injected to scoped services,
@@ -56,6 +56,12 @@ internal class ServiceScopeImpl : IServiceScope
     /// <summary>Initializes a new instance of the <see cref="ServiceScopeImpl" /> class.</summary>
     /// <param name="container">The container this scope will use to create services.</param>
     public ServiceScopeImpl(ServiceContainer container) => this.container = container;
+
+    /// <inheritdoc/>
+    public object? GetService(Type serviceType)
+    {
+        return this.container.GetService(serviceType, this, []).ConfigureAwait(false).GetAwaiter().GetResult();
+    }
 
     /// <inheritdoc/>
     public void RegisterPrivateScopes(params object[] scopes)
