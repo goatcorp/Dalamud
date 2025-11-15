@@ -1,6 +1,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin.SelfTest;
@@ -51,8 +52,8 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                 // that it returned the local players name by using its EntityId,
                 // and that it didn't include the world name by checking the HomeWorldId against AgentLobby.Instance()->LobbyData.HomeWorldId.
 
-                var clientState = Service<ClientState>.Get();
-                var localPlayer = clientState.LocalPlayer;
+                var objectTable = Service<ObjectTable>.Get();
+                var localPlayer = objectTable.LocalPlayer;
                 if (localPlayer is null)
                 {
                     ImGui.Text("You need to be logged in for this step."u8);
