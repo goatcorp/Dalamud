@@ -162,6 +162,9 @@
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --tags --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
         </Exec>
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-parse --abbrev-ref HEAD" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitBranch" />
+        </Exec>
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
         </Exec>
@@ -169,6 +172,7 @@
         <PropertyGroup>
             <CommitCount>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitCount), @"\t|\n|\r", ""))</CommitCount>
             <CommitHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitHash), @"\t|\n|\r", ""))</CommitHash>
+            <Branch>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitBranch), @"\t|\n|\r", ""))</Branch>
             <SCMVersion>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitDescribeOutput), @"\t|\n|\r", ""))</SCMVersion>
             <CommitHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</CommitHashClientStructs>
         </PropertyGroup>
@@ -182,6 +186,7 @@
         <!-- stub out version since it takes a while. -->
         <PropertyGroup>
             <SCMVersion>Local build at $([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</SCMVersion>
+            <Branch>???</Branch>
             <CommitHashClientStructs>???</CommitHashClientStructs>
         </PropertyGroup>
     </Target>
@@ -204,6 +209,10 @@
             <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(CommitCount)' != ''">
                 <_Parameter1>GitCommitCount</_Parameter1>
                 <_Parameter2>$(CommitCount)</_Parameter2>
+            </AssemblyAttributes>
+            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(Branch)' != ''">
+                <_Parameter1>GitBranch</_Parameter1>
+                <_Parameter2>$(Branch)</_Parameter2>
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(CommitHashClientStructs)' != ''">
                 <_Parameter1>GitHashClientStructs</_Parameter1>
