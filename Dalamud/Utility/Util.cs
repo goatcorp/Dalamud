@@ -67,6 +67,7 @@ public static partial class Util
     private static string? scmVersionInternal;
     private static string? gitHashInternal;
     private static string? gitHashClientStructsInternal;
+    private static string? branchInternal;
 
     private static ulong moduleStartAddr;
     private static ulong moduleEndAddr;
@@ -132,6 +133,25 @@ public static partial class Util
         gitHashClientStructsInternal = attrs.First(a => a.Key == "GitHashClientStructs").Value;
 
         return gitHashClientStructsInternal;
+    }
+
+    /// <summary>
+    /// Gets the Dalamud branch name this version of Dalamud was built from, or null, if this is a Debug build.
+    /// </summary>
+    /// <returns>The branch name.</returns>
+    public static string? GetBranch()
+    {
+        if (branchInternal != null)
+            return branchInternal;
+
+        var asm = typeof(Util).Assembly;
+        var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
+
+        var gitBranch = attrs.FirstOrDefault(a => a.Key == "GitBranch")?.Value;
+        if (gitBranch == null)
+            return null;
+
+        return branchInternal = gitBranch == "master" ? "release" : gitBranch;
     }
 
     /// <inheritdoc cref="DescribeAddress(nint)"/>
