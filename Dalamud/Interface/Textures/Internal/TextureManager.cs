@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -248,7 +249,7 @@ internal sealed partial class TextureManager
             usage = D3D11_USAGE.D3D11_USAGE_DYNAMIC;
         else
             usage = D3D11_USAGE.D3D11_USAGE_DEFAULT;
-        
+
         using var texture = this.device.CreateTexture2D(
             new()
             {
