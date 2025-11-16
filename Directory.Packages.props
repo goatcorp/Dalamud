@@ -3,11 +3,13 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageVersionOverrideEnabled>false</CentralPackageVersionOverrideEnabled>
   </PropertyGroup>
+
   <ItemGroup>
     <!-- Analyzers -->
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
     <PackageVersion Include="JetBrains.Annotations" Version="2025.2.2" />
+
     <!-- Misc Libraries -->
     <PackageVersion Include="BitFaster.Caching" Version="2.4.1" />
     <PackageVersion Include="CheapLoc" Version="1.1.8" />
@@ -22,26 +24,35 @@
     <PackageVersion Include="System.Resources.Extensions" Version="10.0.0" />
     <PackageVersion Include="DotNet.ReproducibleBuilds" Version="1.2.39" />
     <PackageVersion Include="sqlite-net-pcl" Version="1.8.116" />
+
     <!-- DirectX / Win32 -->
     <PackageVersion Include="TerraFX.Interop.Windows" Version="10.0.22621.2" />
     <PackageVersion Include="SharpDX.Direct3D11" Version="4.2.0" />
     <PackageVersion Include="SharpDX.Mathematics" Version="4.2.0" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.183" />
+
     <!-- Logging -->
     <PackageVersion Include="Serilog" Version="4.0.2" />
     <PackageVersion Include="Serilog.Sinks.Async" Version="2.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
+
     <!-- Injector Utilities -->
     <PackageVersion Include="Iced" Version="1.17.0" />
     <PackageVersion Include="PeNet" Version="2.6.4" />
+
     <!-- HexaGen -->
     <PackageVersion Include="HexaGen.Runtime" Version="1.1.20" />
+
     <!-- Reloaded -->
     <PackageVersion Include="goatcorp.Reloaded.Hooks" Version="4.2.0-goatcorp7" />
     <PackageVersion Include="goatcorp.Reloaded.Assembler" Version="1.0.14-goatcorp5" />
     <PackageVersion Include="Reloaded.Memory" Version="7.0.0" />
     <PackageVersion Include="Reloaded.Memory.Buffers" Version="2.0.0" />
+
+    <!-- Named Pipes / RPC -->
+    <PackageVersion Include="StreamJsonRpc" Version="2.22.23" />
+
     <!-- Unit Testing -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
     <PackageVersion Include="xunit" Version="2.4.1" />
