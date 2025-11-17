@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings;
@@ -24,7 +22,7 @@ namespace Dalamud.Plugin;
 /// <summary>
 /// This interface acts as an interface to various objects needed to interact with Dalamud and the game.
 /// </summary>
-public interface IDalamudPluginInterface
+public interface IDalamudPluginInterface : IServiceProvider
 {
     /// <summary>
     /// Delegate for localization change with two-letter iso lang code.

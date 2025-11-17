@@ -8,7 +8,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This class represents the state of the game client at the time of access.
 /// </summary>
-public interface IClientState
+public interface IClientState : IDalamudService
 {
     /// <summary>
     /// A delegate type used for the <see cref="ClassJobChanged"/> event.
@@ -109,11 +109,13 @@ public interface IClientState
     /// <summary>
     /// Gets the local player character, if one is present.
     /// </summary>
+    [Obsolete($"Use {nameof(IPlayerState)} or {nameof(IObjectTable)}.{nameof(IObjectTable.LocalPlayer)} if necessary.")]
     public IPlayerCharacter? LocalPlayer { get; }
 
     /// <summary>
     /// Gets the content ID of the local character.
     /// </summary>
+    [Obsolete($"Use {nameof(IPlayerState)}.{nameof(IPlayerState.ContentId)}")]
     public ulong LocalContentId { get; }
 
     /// <summary>

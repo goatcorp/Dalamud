@@ -6,6 +6,7 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Network.Internal;
+using Dalamud.Game.Player;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -15,7 +16,6 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Application.Network;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -23,6 +23,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using Lumina.Excel.Sheets;
 
 using Action = System.Action;
+using CSUIState = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState;
 
 namespace Dalamud.Game.ClientState;
 
@@ -45,6 +46,12 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
     [ServiceManager.ServiceDependency]
     private readonly NetworkHandlers networkHandlers = Service<NetworkHandlers>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly PlayerState playerState = Service<PlayerState>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
 
     private Hook<LogoutCallbackInterface.Delegates.OnLogout> onLogoutHook;
     private bool initialized;
@@ -184,10 +191,10 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     }
 
     /// <inheritdoc/>
-    public IPlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as IPlayerCharacter;
+    public IPlayerCharacter? LocalPlayer => this.objectTable.LocalPlayer;
 
     /// <inheritdoc/>
-    public unsafe ulong LocalContentId => PlayerState.Instance()->ContentId;
+    public unsafe ulong LocalContentId => this.playerState.ContentId;
 
     /// <inheritdoc/>
     public unsafe bool IsLoggedIn
@@ -241,7 +248,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public bool IsClientIdle(out ConditionFlag blockingFlag)
     {
         blockingFlag = 0;
-        if (this.LocalPlayer is null) return true;
+        if (this.objectTable.LocalPlayer is null) return true;
 
         var condition = Service<Conditions.Condition>.GetNullable();
 
@@ -280,7 +287,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
         this.TerritoryType = (ushort)GameMain.Instance()->CurrentTerritoryTypeId;
         this.MapId = AgentMap.Instance()->CurrentMapId;
-        this.Instance = UIState.Instance()->PublicInstance.InstanceId;
+        this.Instance = CSUIState.Instance()->PublicInstance.InstanceId;
 
         this.initialized = true;
 
@@ -369,7 +376,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         if (condition == null || gameGui == null || data == null)
             return;
 
-        if (condition.Any() && this.lastConditionNone && this.LocalPlayer != null)
+        if (condition.Any() && this.lastConditionNone && this.objectTable.LocalPlayer != null)
         {
             Log.Debug("Is login");
             this.lastConditionNone = false;

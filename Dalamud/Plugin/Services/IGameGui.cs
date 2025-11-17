@@ -9,7 +9,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// A class handling many aspects of the in-game UI.
 /// </summary>
-public unsafe interface IGameGui
+public unsafe interface IGameGui : IDalamudService
 {
     /// <summary>
     /// Event which is fired when the game UI hiding is toggled.
