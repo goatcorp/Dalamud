@@ -6,6 +6,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Networking.Pipes.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+#pragma warning disable DAL_RPC
 
 namespace Dalamud.Networking.Pipes.Api;
 

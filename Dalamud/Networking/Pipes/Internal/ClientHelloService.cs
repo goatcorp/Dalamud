@@ -1,9 +1,12 @@
 ﻿using System.Threading.Tasks;
 
+using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Networking.Pipes.Rpc;
 using Dalamud.Utility;
+
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Networking.Pipes.Internal;
 
@@ -30,24 +33,48 @@ internal sealed class ClientHelloService : IInternalDisposableService
     /// <returns>Respond with information.</returns>
     public async Task<ClientHelloResponse> HandleHello(ClientHelloRequest request)
     {
-        var framework = await Service<Framework>.GetAsync();
         var dalamud = await Service<Dalamud>.GetAsync();
-        var clientState = await Service<ClientState>.GetAsync();
 
-        var response = await framework.RunOnFrameworkThread(() => new ClientHelloResponse
+        return new ClientHelloResponse
         {
             ApiVersion = "1.0",
             DalamudVersion = Util.GetScmVersion(),
             GameVersion = dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown",
-            PlayerName = clientState.IsLoggedIn ? clientState.LocalPlayer?.Name.ToString() ?? "Unknown" : null,
-        });
-
-        return response;
+            ClientIdentifier = await this.GetClientIdentifier(),
+        };
     }
 
     /// <inheritdoc/>
     public void DisposeService()
     {
+    }
+
+    private async Task<string> GetClientIdentifier()
+    {
+        var framework = await Service<Framework>.GetAsync();
+        var clientState = await Service<ClientState>.GetAsync();
+        var dataManager = await Service<DataManager>.GetAsync();
+
+        var clientIdentifier = $"FFXIV Process ${Environment.ProcessId}";
+
+        await framework.RunOnFrameworkThread(() =>
+        {
+            if (clientState.IsLoggedIn)
+            {
+                var player = clientState.LocalPlayer;
+                if (player != null)
+                {
+                    var world = dataManager.GetExcelSheet<World>().GetRow(player.HomeWorld.RowId);
+                    clientIdentifier = $"Logged in as {player.Name.TextValue} @ {world.Name.ExtractText()}";
+                }
+            }
+            else
+            {
+                clientIdentifier = "On login screen";
+            }
+        });
+
+        return clientIdentifier;
     }
 }
 
@@ -88,7 +115,7 @@ internal record ClientHelloResponse
     public string? GameVersion { get; init; }
 
     /// <summary>
-    /// Gets or sets the player name, or null if the player isn't logged in.
+    /// Gets an identifier for this client.
     /// </summary>
-    public string? PlayerName { get; set; }
+    public string? ClientIdentifier { get; init; }
 }
