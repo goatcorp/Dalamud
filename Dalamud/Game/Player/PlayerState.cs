@@ -23,6 +23,11 @@ namespace Dalamud.Game.Player;
 [ResolveVia<IPlayerState>]
 internal unsafe class PlayerState : IServiceType, IPlayerState
 {
+    [ServiceManager.ServiceConstructor]
+    private PlayerState()
+    {
+    }
+
     /// <inheritdoc/>
     public bool IsLoaded => CSPlayerState.Instance()->IsLoaded;
 
