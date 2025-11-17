@@ -1,4 +1,4 @@
-namespace Dalamud.Game.PlayerState;
+namespace Dalamud.Game.Player;
 
 /// <summary>
 /// Specifies the mentor certification version for a player.

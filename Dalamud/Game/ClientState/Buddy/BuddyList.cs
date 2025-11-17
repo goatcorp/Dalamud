@@ -2,11 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
+using Dalamud.Game.Player;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using CSBuddy = FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy;
+using CSUIState = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState;
 
 namespace Dalamud.Game.ClientState.Buddy;
 
@@ -24,7 +26,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
     private const uint InvalidObjectID = 0xE0000000;
 
     [ServiceManager.ServiceDependency]
-    private readonly PlayerState.PlayerState playerState = Service<PlayerState.PlayerState>.Get();
+    private readonly PlayerState playerState = Service<PlayerState>.Get();
 
     [ServiceManager.ServiceConstructor]
     private BuddyList()
@@ -69,7 +71,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
         }
     }
 
-    private unsafe FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy* BuddyListStruct => &UIState.Instance()->Buddy;
+    private unsafe CSBuddy* BuddyListStruct => &CSUIState.Instance()->Buddy;
 
     /// <inheritdoc/>
     public IBuddyMember? this[int index]

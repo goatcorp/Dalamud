@@ -11,6 +11,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
 using Dalamud.Game.Network.Structures;
+using Dalamud.Game.Player;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.Networking.Http;
@@ -268,7 +269,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private static (ulong UploaderId, uint WorldId) GetUploaderInfo()
     {
-        var playerState = Service<PlayerState.PlayerState>.Get();
+        var playerState = Service<PlayerState>.Get();
         return (playerState.ContentId, playerState.CurrentWorld.RowId);
     }
 

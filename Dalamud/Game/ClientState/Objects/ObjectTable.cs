@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.Player;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -32,7 +33,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     private static int objectTableLength;
 
     [ServiceManager.ServiceDependency]
-    private readonly PlayerState.PlayerState playerState = Service<PlayerState.PlayerState>.Get();
+    private readonly PlayerState playerState = Service<PlayerState>.Get();
 
     private readonly CachedEntry[] cachedObjectTable;
 

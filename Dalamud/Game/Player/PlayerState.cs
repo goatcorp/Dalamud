@@ -13,7 +13,7 @@ using Lumina.Excel.Sheets;
 using CSPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
 using GrandCompany = Lumina.Excel.Sheets.GrandCompany;
 
-namespace Dalamud.Game.PlayerState;
+namespace Dalamud.Game.Player;
 
 /// <summary>
 /// This class contains the PlayerState wrappers.

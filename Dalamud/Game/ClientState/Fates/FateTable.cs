@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
+using Dalamud.Game.Player;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -63,7 +64,7 @@ internal sealed partial class FateTable : IServiceType, IFateTable
         if (fate == null)
             return false;
 
-        var playerState = Service<PlayerState.PlayerState>.Get();
+        var playerState = Service<PlayerState>.Get();
         return playerState.IsLoaded == true;
     }
 
@@ -86,7 +87,7 @@ internal sealed partial class FateTable : IServiceType, IFateTable
         if (offset == IntPtr.Zero)
             return null;
 
-        var playerState = Service<PlayerState.PlayerState>.Get();
+        var playerState = Service<PlayerState>.Get();
         if (!playerState.IsLoaded)
             return null;
 

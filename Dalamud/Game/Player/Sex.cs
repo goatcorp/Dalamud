@@ -1,4 +1,4 @@
-namespace Dalamud.Game.PlayerState;
+namespace Dalamud.Game.Player;
 
 /// <summary>
 /// Represents the sex of a character.

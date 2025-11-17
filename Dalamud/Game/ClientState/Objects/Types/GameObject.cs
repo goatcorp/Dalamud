@@ -1,6 +1,7 @@
 using System.Numerics;
 
 using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.Player;
 using Dalamud.Game.Text.SeStringHandling;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
@@ -171,7 +172,7 @@ internal partial class GameObject
         if (actor == null)
             return false;
 
-        var playerState = Service<PlayerState.PlayerState>.Get();
+        var playerState = Service<PlayerState>.Get();
         return playerState.IsLoaded == true;
     }
 

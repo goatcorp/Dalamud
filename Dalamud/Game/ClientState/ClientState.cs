@@ -6,6 +6,7 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Network.Internal;
+using Dalamud.Game.Player;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -15,7 +16,6 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Application.Network;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -23,6 +23,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using Lumina.Excel.Sheets;
 
 using Action = System.Action;
+using CSUIState = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState;
 
 namespace Dalamud.Game.ClientState;
 
@@ -47,7 +48,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     private readonly NetworkHandlers networkHandlers = Service<NetworkHandlers>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly PlayerState.PlayerState playerState = Service<PlayerState.PlayerState>.Get();
+    private readonly PlayerState playerState = Service<PlayerState>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
@@ -285,7 +286,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
         this.TerritoryType = (ushort)GameMain.Instance()->CurrentTerritoryTypeId;
         this.MapId = AgentMap.Instance()->CurrentMapId;
-        this.Instance = UIState.Instance()->PublicInstance.InstanceId;
+        this.Instance = CSUIState.Instance()->PublicInstance.InstanceId;
 
         this.initialized = true;
 

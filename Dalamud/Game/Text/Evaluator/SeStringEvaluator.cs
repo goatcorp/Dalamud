@@ -8,6 +8,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Config;
+using Dalamud.Game.Player;
 using Dalamud.Game.Text.Evaluator.Internal;
 using Dalamud.Game.Text.Noun;
 using Dalamud.Game.Text.Noun.Enums;
@@ -68,7 +69,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     private readonly SheetRedirectResolver sheetRedirectResolver = Service<SheetRedirectResolver>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly PlayerState.PlayerState playerState = Service<PlayerState.PlayerState>.Get();
+    private readonly PlayerState playerState = Service<PlayerState>.Get();
 
     private readonly ConcurrentDictionary<StringCacheKey<ActionKind>, string> actStrCache = [];
     private readonly ConcurrentDictionary<StringCacheKey<ObjectKind>, string> objStrCache = [];

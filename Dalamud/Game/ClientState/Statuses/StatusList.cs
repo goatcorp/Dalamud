@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Game.Player;
+
 namespace Dalamud.Game.ClientState.Statuses;
 
 /// <summary>
@@ -72,7 +74,7 @@ public sealed unsafe partial class StatusList
         // The use case for CreateStatusListReference and CreateStatusReference to be static is so
         // fake status lists can be generated. Since they aren't exposed as services, it's either
         // here or somewhere else.
-        var playerState = Service<PlayerState.PlayerState>.Get();
+        var playerState = Service<PlayerState>.Get();
         if (!playerState.IsLoaded)
             return null;
 
@@ -89,7 +91,7 @@ public sealed unsafe partial class StatusList
         if (address == IntPtr.Zero)
             return null;
 
-        var playerState = Service<PlayerState.PlayerState>.Get();
+        var playerState = Service<PlayerState>.Get();
         if (!playerState.IsLoaded)
             return null;
 

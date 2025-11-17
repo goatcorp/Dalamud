@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-using Dalamud.Game.PlayerState;
+using Dalamud.Game.Player;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;

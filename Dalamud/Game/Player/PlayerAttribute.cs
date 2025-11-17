@@ -1,4 +1,4 @@
-namespace Dalamud.Game.PlayerState;
+namespace Dalamud.Game.Player;
 
 /// <summary>
 /// Represents a player's attribute.
