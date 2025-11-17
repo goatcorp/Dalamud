@@ -12,7 +12,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Interface for determining the players state.
 /// </summary>
-public interface IPlayerState
+public interface IPlayerState : IDalamudService
 {
     /// <summary>
     /// Gets a value indicating whether the local players data is loaded.
