@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Pipes.Rpc;
+using Dalamud.Utility;
 
 namespace Dalamud.Networking.Pipes.Internal;
 
@@ -65,10 +66,7 @@ internal class LinkHandlerService : IInternalDisposableService
         if (!this.handlers.TryGetValue(ns, out var list))
             return;
 
-        lock (list)
-        {
-            list.RemoveAll(x => x == handler);
-        }
+        list.RemoveAll(x => x == handler);
 
         if (list.Count == 0)
             this.handlers.TryRemove(ns, out _);
@@ -85,25 +83,12 @@ internal class LinkHandlerService : IInternalDisposableService
         this.log.Information("Received URI: {Uri}", uri.ToString());
 
         var ns = uri.Namespace;
-        if (!this.handlers.TryGetValue(ns, out var list))
+        if (!this.handlers.TryGetValue(ns, out var actions))
             return;
 
-        Action<DalamudUri>[] snapshot;
-        lock (list)
+        foreach (var h in actions)
         {
-            snapshot = list.ToArray();
-        }
-
-        foreach (var h in snapshot)
-        {
-            try
-            {
-                h(uri);
-            }
-            catch (Exception e)
-            {
-                this.log.Warning(e, "Link handler threw for {UriPath}", uri.Path);
-            }
+            h.InvokeSafely(uri);
         }
     }
 
@@ -116,14 +101,7 @@ internal class LinkHandlerService : IInternalDisposableService
         if (string.IsNullOrWhiteSpace(uri))
             return;
 
-        try
-        {
-            var du = DalamudUri.FromUri(uri);
-            this.Dispatch(du);
-        }
-        catch (Exception)
-        {
-            // swallow parse errors; clients shouldn't crash the host
-        }
+        var du = DalamudUri.FromUri(uri);
+        this.Dispatch(du);
     }
 }

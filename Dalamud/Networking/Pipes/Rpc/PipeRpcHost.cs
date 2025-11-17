@@ -53,7 +53,7 @@ internal class PipeRpcHost : IDisposable
     public void Start()
     {
         if (this.acceptLoopTask != null) return;
-        this.acceptLoopTask = Task.Run(this.AcceptLoopAsync);
+        this.acceptLoopTask = Task.Factory.StartNew(this.AcceptLoopAsync, TaskCreationOptions.LongRunning);
     }
 
     /// <summary>Invoke an RPC request on a specific client expecting a result.</summary>

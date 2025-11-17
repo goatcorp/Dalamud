@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 
+using Dalamud.Console;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Networking.Pipes.Internal;
@@ -43,7 +44,8 @@ public class PluginLinkHandler : IInternalDisposableService, IPluginLinkHandler
     private void HandleUri(DalamudUri uri)
     {
         var target = uri.Path.Split("/").FirstOrDefault();
-        if (target == null || !string.Equals(target, this.localPlugin.InternalName, StringComparison.OrdinalIgnoreCase))
+        var thisPlugin = ConsoleManagerPluginUtil.GetSanitizedNamespaceName(this.localPlugin.InternalName);
+        if (target == null || !string.Equals(target, thisPlugin, StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
