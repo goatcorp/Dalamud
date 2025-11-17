@@ -9,8 +9,6 @@ using Dalamud.Plugin.Services;
 
 using CSBuddy = FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy;
 using CSUIState = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState;
-
-using CSBuddy = FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy;
 using CSBuddyMember = FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember;
 
 namespace Dalamud.Game.ClientState.Buddy;
@@ -74,7 +72,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
         }
     }
 
-    private unsafe CSBuddy* BuddyListStruct => &UIState.Instance()->Buddy;
+    private unsafe CSBuddy* BuddyListStruct => &CSUIState.Instance()->Buddy;
 
     /// <inheritdoc/>
     public IBuddyMember? this[int index]
@@ -113,7 +111,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
         if (address == 0)
             return null;
 
-        if (this.clientState.LocalContentId == 0)
+        if (this.playerState.ContentId == 0)
             return null;
 
         var buddy = new BuddyMember((CSBuddyMember*)address);

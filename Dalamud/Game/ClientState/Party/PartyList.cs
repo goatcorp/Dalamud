@@ -93,7 +93,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     /// <inheritdoc/>
     public IPartyMember? CreatePartyMemberReference(nint address)
     {
-        if (this.clientState.LocalContentId == 0)
+        if (this.playerState.ContentId == 0)
             return null;
 
         if (address == 0)
@@ -114,7 +114,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     /// <inheritdoc/>
     public IPartyMember? CreateAllianceMemberReference(nint address)
     {
-        if (this.clientState.LocalContentId == 0)
+        if (this.playerState.ContentId == 0)
             return null;
 
         if (address == 0)
