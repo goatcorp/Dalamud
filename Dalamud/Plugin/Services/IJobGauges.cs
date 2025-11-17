@@ -1,11 +1,11 @@
-﻿using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.Game.ClientState.JobGauge.Types;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// This class converts in-memory Job gauge data to structs.
 /// </summary>
-public interface IJobGauges
+public interface IJobGauges : IDalamudService
 {
     /// <summary>
     /// Gets the address of the JobGauge data.

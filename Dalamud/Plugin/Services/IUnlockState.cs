@@ -11,7 +11,7 @@ namespace Dalamud.Plugin.Services;
 /// Interface for determining unlock state of various content in the game.
 /// </summary>
 [Experimental("UnlockState")]
-public interface IUnlockState
+public interface IUnlockState : IDalamudService
 {
     /// <summary>
     /// A delegate type used for the <see cref="Unlock"/> event.

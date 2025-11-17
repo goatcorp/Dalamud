@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -24,7 +24,7 @@ namespace Dalamud.Plugin.Services;
 /// <para>See <see cref="TaskSchedulerWidget"/> to see the difference in behaviors, and how would a misuse of these
 /// functions result in a deadlock.</para>
 /// </remarks>
-public interface IFramework
+public interface IFramework : IDalamudService
 {
     /// <summary>
     /// A delegate type used with the <see cref="Update"/> event.

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
@@ -8,7 +8,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Service responsible for the creation of hooks.
 /// </summary>
-public interface IGameInteropProvider
+public interface IGameInteropProvider : IDalamudService
 {
     /// <summary>
     /// Available hooking backends.
