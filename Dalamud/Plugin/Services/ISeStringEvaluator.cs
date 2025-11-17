@@ -9,7 +9,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Defines a service for retrieving localized text for various in-game entities.
 /// </summary>
-public interface ISeStringEvaluator
+public interface ISeStringEvaluator : IDalamudService
 {
     /// <summary>
     /// Evaluates macros in a <see cref="ReadOnlySeString"/>.

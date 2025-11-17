@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Data;
+using Dalamud.Game.Player;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 

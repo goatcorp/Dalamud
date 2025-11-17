@@ -10,7 +10,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This class handles interacting with the native chat UI.
 /// </summary>
-public interface IChatGui
+public interface IChatGui : IDalamudService
 {
     /// <summary>
     /// A delegate type used with the <see cref="ChatGui.ChatMessage"/> event.

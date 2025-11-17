@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 using Dalamud.Game.Config;
 using Dalamud.Plugin.Internal.Types;
@@ -17,7 +17,7 @@ namespace Dalamud.Plugin.Services;
 /// If property access from the plugin constructor is desired, do the value retrieval asynchronously via
 /// <see cref="IFramework.RunOnFrameworkThread{T}(Func{T})"/>; do not wait for the result right away.
 /// </remarks>
-public interface IGameConfig
+public interface IGameConfig : IDalamudService
 {
     /// <summary>
     /// Event which is fired when any game config option is changed.

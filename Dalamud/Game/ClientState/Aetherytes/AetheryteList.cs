@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -22,7 +23,7 @@ namespace Dalamud.Game.ClientState.Aetherytes;
 internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteList
 {
     [ServiceManager.ServiceDependency]
-    private readonly ClientState clientState = Service<ClientState>.Get();
+    private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
 
     private readonly Telepo* telepoInstance = Telepo.Instance();
 
@@ -37,7 +38,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
     {
         get
         {
-            if (this.clientState.LocalPlayer == null)
+            if (this.objectTable.LocalPlayer == null)
                 return 0;
 
             this.Update();
@@ -59,7 +60,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
                 return null;
             }
 
-            if (this.clientState.LocalPlayer == null)
+            if (this.objectTable.LocalPlayer == null)
                 return null;
 
             return new AetheryteEntry(this.telepoInstance->TeleportList[index]);
@@ -69,7 +70,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
     private void Update()
     {
         // this is very very important as otherwise it crashes
-        if (this.clientState.LocalPlayer == null)
+        if (this.objectTable.LocalPlayer == null)
             return;
 
         this.telepoInstance->UpdateAetheryteList();

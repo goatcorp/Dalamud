@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Game.Player;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -26,7 +27,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     private const int AllianceLength = 20;
 
     [ServiceManager.ServiceDependency]
-    private readonly ClientState clientState = Service<ClientState>.Get();
+    private readonly PlayerState playerState = Service<PlayerState>.Get();
 
     [ServiceManager.ServiceConstructor]
     private PartyList()
