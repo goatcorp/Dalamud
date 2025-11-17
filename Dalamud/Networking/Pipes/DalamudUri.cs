@@ -61,6 +61,23 @@ public record DalamudUri
     /// <inheritdoc/>
     public override string ToString() => this.rawUri.ToString();
 
+    /// <summary>
+    /// Build a DalamudURI from a given URI.
+    /// </summary>
+    /// <param name="uri">The URI to convert to a Dalamud URI.</param>
+    /// <returns>Returns a DalamudUri.</returns>
+    public static DalamudUri FromUri(Uri uri)
+    {
+        return new DalamudUri(uri);
+    }
+
+    /// <summary>
+    /// Build a DalamudURI from a URI in string format.
+    /// </summary>
+    /// <param name="uri">The URI to convert to a Dalamud URI.</param>
+    /// <returns>Returns a DalamudUri.</returns>
+    public static DalamudUri FromUri(string uri) => FromUri(new Uri(uri));
+
     private string[] GetDataSegments()
     {
         // reimplementation of the System.URI#Segments, under MIT license.
@@ -82,21 +99,4 @@ public record DalamudUri
 
         return segments.ToArray();
     }
-
-    /// <summary>
-    /// Build a DalamudURI from a given URI.
-    /// </summary>
-    /// <param name="uri">The URI to convert to a Dalamud URI.</param>
-    /// <returns>Returns a DalamudUri.</returns>
-    public static DalamudUri FromUri(Uri uri)
-    {
-        return new DalamudUri(uri);
-    }
-
-    /// <summary>
-    /// Build a DalamudURI from a URI in string format.
-    /// </summary>
-    /// <param name="uri">The URI to convert to a Dalamud URI.</param>
-    /// <returns>Returns a DalamudUri.</returns>
-    public static DalamudUri FromUri(string uri) => FromUri(new Uri(uri));
 }

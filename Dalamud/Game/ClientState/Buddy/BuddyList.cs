@@ -8,8 +8,8 @@ using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 
 using CSBuddy = FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy;
-using CSUIState = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState;
 using CSBuddyMember = FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember;
+using CSUIState = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState;
 
 namespace Dalamud.Game.ClientState.Buddy;
 
