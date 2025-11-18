@@ -9,26 +9,28 @@ using System.Threading.Tasks;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
-namespace Dalamud.Networking.Pipes.Rpc;
+namespace Dalamud.Networking.Rpc.Transport;
 
 /// <summary>
 /// Simple multi-client JSON-RPC named pipe host using StreamJsonRpc.
 /// </summary>
-internal class PipeRpcHost : IDisposable
+internal class PipeRpcTransport : IRpcTransport
 {
     private readonly ModuleLog log = new("RPC/Host");
 
-    private readonly RpcServiceRegistry registry = new();
+    private readonly RpcServiceRegistry registry;
     private readonly CancellationTokenSource cts = new();
     private readonly ConcurrentDictionary<Guid, RpcConnection> sessions = new();
     private Task? acceptLoopTask;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PipeRpcHost"/> class.
+    /// Initializes a new instance of the <see cref="PipeRpcTransport"/> class.
     /// </summary>
+    /// <param name="registry">The RPC service registry to use.</param>
     /// <param name="pipeName">The pipe name to create.</param>
-    public PipeRpcHost(string? pipeName = null)
+    public PipeRpcTransport(RpcServiceRegistry registry, string? pipeName = null)
     {
+        this.registry = registry;
         // Default pipe name based on current process ID for uniqueness per Dalamud instance.
         this.PipeName = pipeName ?? $"DalamudRPC.{Environment.ProcessId}";
     }
@@ -38,16 +40,8 @@ internal class PipeRpcHost : IDisposable
     /// </summary>
     public string PipeName { get; }
 
-    /// <summary>Adds a local object exposing RPC methods callable by clients.</summary>
-    /// <param name="service">An arbitrary service object that will be introspected to add to RPC.</param>
-    public void AddService(object service) => this.registry.AddService(service);
-
-    /// <summary>
-    /// Adds a standalone JSON-RPC method callable by clients.
-    /// </summary>
-    /// <param name="name">The name to add.</param>
-    /// <param name="handler">The delegate that acts as the handler.</param>
-    public void AddMethod(string name, Delegate handler) => this.registry.AddMethod(name, handler);
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<Guid, RpcConnection> Connections => this.sessions;
 
     /// <summary>Starts accepting client connections.</summary>
     public void Start()
@@ -85,12 +79,6 @@ internal class PipeRpcHost : IDisposable
 
         return Task.WhenAll(tasks);
     }
-
-    /// <summary>
-    /// Gets a list of connected client IDs.
-    /// </summary>
-    /// <returns>Connected client IDs.</returns>
-    public IReadOnlyCollection<Guid> GetClientIds() => this.sessions.Keys.AsReadOnlyCollection();
 
     /// <inheritdoc/>
     public void Dispose()

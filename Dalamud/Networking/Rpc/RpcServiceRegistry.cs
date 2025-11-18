@@ -3,7 +3,7 @@ using System.Threading;
 
 using StreamJsonRpc;
 
-namespace Dalamud.Networking.Pipes.Rpc;
+namespace Dalamud.Networking.Rpc;
 
 /// <summary>
 /// Thread-safe registry of local RPC target objects that are exposed to every connected JsonRpc session.

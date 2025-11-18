@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-using Dalamud.Networking.Pipes;
+using Dalamud.Networking.Rpc.Model;
 
 namespace Dalamud.Plugin.Services;
 
