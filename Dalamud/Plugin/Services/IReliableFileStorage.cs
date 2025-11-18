@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,7 @@ namespace Dalamud.Plugin.Services;
 ///
 /// Saved configuration data using the <see cref="PluginConfigurations"/> class uses this functionality implicitly.
 /// </summary>
+[Experimental("Dalamud001")]
 public interface IReliableFileStorage : IDalamudService
 {
     /// <summary>
