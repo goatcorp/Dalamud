@@ -2,6 +2,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
+using Dalamud.Configuration;
 using Dalamud.Storage;
 
 namespace Dalamud.Plugin.Services;
@@ -16,6 +17,8 @@ namespace Dalamud.Plugin.Services;
 /// However, this also means that operations using this service duplicate data on disk, so we don't recommend
 /// performing large file operations. The service will not permit files larger than <see cref="MaxFileSizeBytes"/>
 /// (64MB) to be written.
+///
+/// Saved configuration data using the <see cref="PluginConfigurations"/> class uses this functionality implicitly.
 /// </summary>
 public interface IReliableFileStorage : IDalamudService
 {
