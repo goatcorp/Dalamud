@@ -88,7 +88,7 @@ internal class RpcHostService : IServiceType, IInternalDisposableService
         var transport = new UnixRpcTransport(this.registry);
         this.transports.Add(transport);
         transport.Start();
-        this.log.Information("RpcHostService started Unix socket host: {Socket}", transport.SocketPath);
+        this.log.Information("RpcHostService listening to UNIX socket: {Socket}", transport.SocketPath);
     }
 
     private void StartPipeTransport()
@@ -100,6 +100,6 @@ internal class RpcHostService : IServiceType, IInternalDisposableService
         var transport = new PipeRpcTransport(this.registry);
         this.transports.Add(transport);
         transport.Start();
-        this.log.Information("RpcHostService started named pipe host: {Pipe}", transport.PipeName);
+        this.log.Information("RpcHostService listening to named pipe: {Pipe}", transport.PipeName);
     }
 }

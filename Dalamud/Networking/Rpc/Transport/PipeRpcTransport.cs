@@ -16,7 +16,7 @@ namespace Dalamud.Networking.Rpc.Transport;
 /// </summary>
 internal class PipeRpcTransport : IRpcTransport
 {
-    private readonly ModuleLog log = new("RPC/Host");
+    private readonly ModuleLog log = new("RPC/Transport/NamedPipe");
 
     private readonly RpcServiceRegistry registry;
     private readonly CancellationTokenSource cts = new();
@@ -107,7 +107,6 @@ internal class PipeRpcTransport : IRpcTransport
 
     private async Task AcceptLoopAsync()
     {
-        this.log.Information("PipeRpcHost starting on pipe {Pipe}", this.PipeName);
         var token = this.cts.Token;
         var security = this.BuildPipeSecurity();
 

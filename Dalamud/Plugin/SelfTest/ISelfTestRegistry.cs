@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+using Dalamud.Plugin.Services;
+
 namespace Dalamud.Plugin.SelfTest;
 
 /// <summary>
@@ -44,7 +46,7 @@ namespace Dalamud.Plugin.SelfTest;
 /// }
 /// </code>
 /// </example>
-public interface ISelfTestRegistry
+public interface ISelfTestRegistry : IDalamudService
 {
     /// <summary>
     /// Registers the self-test steps for this plugin.

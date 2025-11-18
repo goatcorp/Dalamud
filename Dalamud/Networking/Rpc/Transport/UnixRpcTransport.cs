@@ -17,7 +17,7 @@ namespace Dalamud.Networking.Rpc.Transport;
 /// </summary>
 internal class UnixRpcTransport : IRpcTransport
 {
-    private readonly ModuleLog log = new("RPC/UnixHost");
+    private readonly ModuleLog log = new("RPC/Transport/UnixSocket");
 
     private readonly RpcServiceRegistry registry;
     private readonly CancellationTokenSource cts = new();
@@ -173,7 +173,6 @@ internal class UnixRpcTransport : IRpcTransport
 
     private async Task AcceptLoopAsync()
     {
-        this.log.Information("UnixRpcHost starting on socket {Socket}", this.SocketPath);
         var token = this.cts.Token;
 
         try
