@@ -3,12 +3,13 @@
 using Dalamud.Console;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Networking.Pipes.Internal;
+using Dalamud.Networking.Rpc.Model;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+
 #pragma warning disable DAL_RPC
 
-namespace Dalamud.Networking.Pipes.Api;
+namespace Dalamud.Networking.Rpc.Service.Links;
 
 /// <inheritdoc cref="IPluginLinkHandler" />
 [PluginInterface]

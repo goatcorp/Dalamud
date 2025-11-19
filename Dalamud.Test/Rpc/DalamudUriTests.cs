@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Linq;
 
-using Dalamud.Networking.Pipes;
+using Dalamud.Networking.Rpc.Model;
+
 using Xunit;
 
-namespace Dalamud.Test.Pipes
+namespace Dalamud.Test.Rpc
 {
     public class DalamudUriTests
     {

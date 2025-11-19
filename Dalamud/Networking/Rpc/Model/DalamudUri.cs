@@ -2,7 +2,7 @@
 using System.Collections.Specialized;
 using System.Web;
 
-namespace Dalamud.Networking.Pipes;
+namespace Dalamud.Networking.Rpc.Model;
 
 /// <summary>
 /// A Dalamud Uri, in the format:

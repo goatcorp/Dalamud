@@ -3,12 +3,11 @@
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
-using Dalamud.Networking.Pipes.Rpc;
 using Dalamud.Utility;
 
 using Lumina.Excel.Sheets;
 
-namespace Dalamud.Networking.Pipes.Internal;
+namespace Dalamud.Networking.Rpc.Service;
 
 /// <summary>
 /// A minimal service to respond with information about this client.

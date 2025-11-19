@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-using Dalamud.Networking.Pipes;
+using Dalamud.Networking.Rpc.Model;
 
 namespace Dalamud.Plugin.Services;
 
@@ -9,7 +9,7 @@ namespace Dalamud.Plugin.Services;
 /// <c>dalamud://plugin/{PLUGIN_INTERNAL_NAME}/...</c> namespace.
 /// </summary>
 [Experimental("DAL_RPC", Message = "This service will be finalized around 7.41 and may change before then.")]
-public interface IPluginLinkHandler
+public interface IPluginLinkHandler : IDalamudService
 {
     /// <summary>
     /// A delegate containing the received URI.
