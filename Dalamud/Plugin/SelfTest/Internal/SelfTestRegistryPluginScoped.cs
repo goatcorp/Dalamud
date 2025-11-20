@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Plugin.SelfTest.Internal;
 
@@ -12,7 +13,7 @@ namespace Dalamud.Plugin.SelfTest.Internal;
 [PluginInterface]
 [ServiceManager.ScopedService]
 [ResolveVia<ISelfTestRegistry>]
-internal class SelfTestRegistryPluginScoped : ISelfTestRegistry, IInternalDisposableService
+internal class SelfTestRegistryPluginScoped : ISelfTestRegistry, IInternalDisposableService, IDalamudService
 {
     [ServiceManager.ServiceDependency]
     private readonly SelfTestRegistry selfTestRegistry = Service<SelfTestRegistry>.Get();

@@ -144,7 +144,8 @@ public sealed class EntryPoint
 
         // Load configuration first to get some early persistent state, like log level
         var fs = new ReliableFileStorage(Path.GetDirectoryName(info.ConfigurationPath)!);
-        var configuration = DalamudConfiguration.Load(info.ConfigurationPath!, fs);
+        var configuration = DalamudConfiguration.Load(info.ConfigurationPath!, fs)
+                                                .GetAwaiter().GetResult();
 
         // Set the appropriate logging level from the configuration
         if (!configuration.LogSynchronously)
