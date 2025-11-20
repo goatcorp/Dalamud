@@ -503,13 +503,13 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// <param name="path">Path to read from.</param>
     /// <param name="fs">File storage.</param>
     /// <returns>The deserialized configuration file.</returns>
-    public static DalamudConfiguration Load(string path, ReliableFileStorage fs)
+    public static async Task<DalamudConfiguration> Load(string path, ReliableFileStorage fs)
     {
         DalamudConfiguration deserialized = null;
 
         try
         {
-            fs.ReadAllText(path, text =>
+            await fs.ReadAllTextAsync(path, text =>
             {
                 deserialized =
                     JsonConvert.DeserializeObject<DalamudConfiguration>(text, SerializerSettings);
@@ -580,8 +580,6 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         {
             this.Save();
             this.isSaveQueued = false;
-
-            Log.Verbose("Config saved");
         }
     }
 
@@ -630,16 +628,20 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         // Wait for previous write to finish
         this.writeTask?.Wait();
 
-        this.writeTask = Task.Run(() =>
+        this.writeTask = Task.Run(async () =>
         {
-            Service<ReliableFileStorage>.Get().WriteAllText(
-                this.configPath,
-                JsonConvert.SerializeObject(this, SerializerSettings));
+            await Service<ReliableFileStorage>.Get().WriteAllTextAsync(
+                                                   this.configPath,
+                                                   JsonConvert.SerializeObject(this, SerializerSettings));
+            Log.Verbose("DalamudConfiguration saved");
         }).ContinueWith(t =>
         {
             if (t.IsFaulted)
             {
-                Log.Error(t.Exception, "Failed to save DalamudConfiguration to {Path}", this.configPath);
+                Log.Error(
+                    t.Exception,
+                    "Failed to save DalamudConfiguration to {Path}",
+                    this.configPath);
             }
         });
 

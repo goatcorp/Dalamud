@@ -22,7 +22,7 @@ using PublicContentSheet = Lumina.Excel.Sheets.PublicContent;
 
 namespace Dalamud.Game.UnlockState;
 
-#pragma warning disable UnlockState
+#pragma warning disable Dalamud001
 
 /// <summary>
 /// This class provides unlock state of various content in the game.
