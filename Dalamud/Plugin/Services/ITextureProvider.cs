@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -185,6 +186,17 @@ public interface ITextureProvider : IDalamudService
     Task<IDalamudTextureWrap> CreateFromClipboardAsync(
         string? debugName = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Creates a texture by drawing a SeString onto it.</summary>
+    /// <param name="text">SeString to render.</param>
+    /// <param name="drawParams">Parameters for drawing.</param>
+    /// <param name="debugName">Name for debug display purposes.</param>
+    /// <returns>The new texture.</returns>
+    /// <remarks>Can be only be used from the main thread.</remarks>
+    public IDalamudTextureWrap CreateTextureFromSeString(
+        ReadOnlySpan<byte> text,
+        scoped in SeStringDrawParams drawParams = default,
+        string? debugName = null);
 
     /// <summary>Gets the supported bitmap decoders.</summary>
     /// <returns>The supported bitmap decoders.</returns>
