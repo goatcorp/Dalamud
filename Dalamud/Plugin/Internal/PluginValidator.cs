@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Game.Command;
@@ -11,7 +11,7 @@ namespace Dalamud.Plugin.Internal;
 /// </summary>
 internal static class PluginValidator
 {
-    private static readonly char[] LineSeparator = new[] { ' ', '\n', '\r' };
+    private static readonly char[] LineSeparator = [' ', '\n', '\r'];
     
     /// <summary>
     /// Represents the severity of a validation problem.

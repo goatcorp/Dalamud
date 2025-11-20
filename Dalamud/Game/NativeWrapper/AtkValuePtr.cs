@@ -89,7 +89,7 @@ public readonly unsafe struct AtkValuePtr(nint address) : IEquatable<AtkValuePtr
     /// </returns>
     public unsafe bool TryGet<T>([NotNullWhen(true)] out T? result) where T : struct
     {
-        object? value = this.GetValue();
+        var value = this.GetValue();
         if (value is T typed)
         {
             result = typed;

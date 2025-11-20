@@ -1,9 +1,4 @@
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImGuizmo;
@@ -13,8 +8,6 @@ using Dalamud.Interface.ImGuiBackend.Helpers;
 using Dalamud.Interface.ImGuiBackend.InputHandler;
 using Dalamud.Interface.ImGuiBackend.Renderers;
 using Dalamud.Utility;
-
-using Serilog;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;

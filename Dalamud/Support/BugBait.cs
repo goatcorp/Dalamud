@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Support;

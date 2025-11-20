@@ -38,7 +38,7 @@ public sealed unsafe partial class StatusList
     /// <summary>
     /// Gets the amount of status effect slots the actor has.
     /// </summary>
-    public int Length => Struct->NumValidStatuses;
+    public int Length => this.Struct->NumValidStatuses;
 
     private static int StatusSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Status>();
 

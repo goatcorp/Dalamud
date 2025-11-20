@@ -25,7 +25,7 @@ internal class PluginIpcWidget : IDataWindowWidget
     private string callGateResponse = string.Empty;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "ipc" };
+    public string[]? CommandShortcuts { get; init; } = ["ipc"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Plugin IPC";

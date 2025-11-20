@@ -3,6 +3,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Style;
@@ -17,7 +18,7 @@ public class StyleModelV1 : StyleModel
     /// </summary>
     private StyleModelV1()
     {
-        this.Colors = new Dictionary<string, Vector4>();
+        this.Colors = [];
         this.Name = "Unknown";
     }
 
@@ -396,7 +397,7 @@ public class StyleModelV1 : StyleModel
         model.SelectableTextAlign = style.SelectableTextAlign;
         model.DisplaySafeAreaPadding = style.DisplaySafeAreaPadding;
 
-        model.Colors = new Dictionary<string, Vector4>();
+        model.Colors = [];
 
         foreach (var imGuiCol in Enum.GetValues<ImGuiCol>())
         {

@@ -25,7 +25,7 @@ internal class PresetModel
     /// Gets or sets a dictionary containing the windows in the preset, mapping their ID to the preset.
     /// </summary>
     [JsonProperty("w")]
-    public Dictionary<uint, PresetWindow> Windows { get; set; } = new();
+    public Dictionary<uint, PresetWindow> Windows { get; set; } = [];
 
     /// <summary>
     /// Class representing a window in a preset.

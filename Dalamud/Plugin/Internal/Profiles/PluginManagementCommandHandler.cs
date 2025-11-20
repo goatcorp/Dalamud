@@ -3,12 +3,14 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Plugin.Internal.Profiles;
@@ -39,7 +41,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
     private readonly ChatGui chat;
     private readonly Framework framework;
 
-    private List<(Target Target, PluginCommandOperation Operation)> commandQueue = new();
+    private List<(Target Target, PluginCommandOperation Operation)> commandQueue = [];
     
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginManagementCommandHandler"/> class.

@@ -1,4 +1,5 @@
 using Dalamud.Game.ClientState.JobGauge.Enums;
+
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 namespace Dalamud.Game.ClientState.JobGauge.Types;
@@ -82,12 +83,12 @@ public unsafe class BRDGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     {
         get
         {
-            return new[]
-            {
+            return
+            [
                 this.Struct->SongFlags.HasFlag(SongFlags.MagesBalladCoda) ? Song.Mage : Song.None,
                 this.Struct->SongFlags.HasFlag(SongFlags.ArmysPaeonCoda) ? Song.Army : Song.None,
                 this.Struct->SongFlags.HasFlag(SongFlags.WanderersMinuetCoda) ? Song.Wanderer : Song.None,
-            };
+            ];
         }
     }
 }

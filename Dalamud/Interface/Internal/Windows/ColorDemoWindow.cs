@@ -5,7 +5,6 @@ using System.Reflection;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 
 namespace Dalamud.Interface.Internal.Windows;

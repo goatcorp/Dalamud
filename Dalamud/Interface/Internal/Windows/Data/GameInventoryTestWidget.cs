@@ -5,9 +5,9 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.Inventory;
 using Dalamud.Game.Inventory.InventoryEventArgTypes;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Logging.Internal;
+
 using Serilog.Events;
 
 namespace Dalamud.Interface.Internal.Windows.Data;
@@ -17,14 +17,14 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 /// </summary>
 internal class GameInventoryTestWidget : IDataWindowWidget
 {
-    private static readonly ModuleLog Log = new(nameof(GameInventoryTestWidget));
+    private static readonly ModuleLog Log = ModuleLog.Create<GameInventoryTestWidget>();
 
     private GameInventoryPluginScoped? scoped;
     private bool standardEnabled;
     private bool rawEnabled;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "gameinventorytest" };
+    public string[]? CommandShortcuts { get; init; } = ["gameinventorytest"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "GameInventory Test";
