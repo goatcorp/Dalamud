@@ -11,6 +11,8 @@ using Dalamud.Plugin.Services;
 
 namespace Dalamud.Storage;
 
+#pragma warning disable Dalamud001
+
 /// <summary>
 /// Plugin-scoped VFS wrapper.
 /// </summary>
