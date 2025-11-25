@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Rpc.Transport;
-using Dalamud.Utility;
 
 namespace Dalamud.Networking.Rpc;
 
@@ -26,7 +25,6 @@ internal class RpcHostService : IServiceType, IInternalDisposableService
     public RpcHostService()
     {
         this.StartUnixTransport();
-        this.StartPipeTransport();
 
         if (this.transports.Count == 0)
         {
@@ -89,17 +87,5 @@ internal class RpcHostService : IServiceType, IInternalDisposableService
         this.transports.Add(transport);
         transport.Start();
         this.log.Information("RpcHostService listening to UNIX socket: {Socket}", transport.SocketPath);
-    }
-
-    private void StartPipeTransport()
-    {
-        // Wine doesn't support named pipes.
-        if (Util.IsWine())
-            return;
-
-        var transport = new PipeRpcTransport(this.registry);
-        this.transports.Add(transport);
-        transport.Start();
-        this.log.Information("RpcHostService listening to named pipe: {Pipe}", transport.PipeName);
     }
 }

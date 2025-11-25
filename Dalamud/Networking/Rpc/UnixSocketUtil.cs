@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using Serilog;
 
-namespace Dalamud.Utility;
+namespace Dalamud.Networking.Rpc;
 
 /// <summary>
 /// A set of utilities to help manage Unix sockets.

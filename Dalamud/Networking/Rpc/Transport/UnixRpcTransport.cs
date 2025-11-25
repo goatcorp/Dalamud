@@ -31,30 +31,30 @@ internal class UnixRpcTransport : IRpcTransport
     /// Initializes a new instance of the <see cref="UnixRpcTransport"/> class.
     /// </summary>
     /// <param name="registry">The RPC service registry to use.</param>
-    /// <param name="socketPath">The Unix socket path to create. If null, defaults to a path based on process ID.</param>
-    public UnixRpcTransport(RpcServiceRegistry registry, string? socketPath = null)
+    /// <param name="socketDirectory">The Unix socket directory to use. If null, defaults to Dalamud home directory.</param>
+    /// <param name="socketName">The name of the socket to create.</param>
+    public UnixRpcTransport(RpcServiceRegistry registry, string? socketDirectory = null, string? socketName = null)
     {
         this.registry = registry;
+        socketName ??= $"DalamudRPC.{Environment.ProcessId}.sock";
 
-        if (socketPath != null)
+        if (!socketDirectory.IsNullOrEmpty())
         {
-            this.SocketPath = socketPath;
+            this.SocketPath = Path.Combine(socketDirectory, socketName);
         }
         else
         {
-            var dalamudConfigPath = Service<Dalamud>.Get().StartInfo.ConfigurationPath;
-            var dalamudHome = Path.GetDirectoryName(dalamudConfigPath);
-            var socketName = $"DalamudRPC.{Environment.ProcessId}.sock";
+            socketDirectory = Service<Dalamud>.Get().StartInfo.TempDirectory;
 
-            if (dalamudHome == null)
+            if (socketDirectory == null)
             {
                 this.SocketPath = Path.Combine(Path.GetTempPath(), socketName);
-                this.log.Warning("Dalamud home is empty! UDS socket will be in temp.");
+                this.log.Warning("Temp dir was not set in StartInfo; using system temp for unix socket.");
             }
             else
             {
-                this.SocketPath = Path.Combine(dalamudHome, socketName);
-                this.cleanupSocketDirectory = dalamudHome;
+                this.SocketPath = Path.Combine(socketDirectory, socketName);
+                this.cleanupSocketDirectory = socketDirectory;
             }
         }
     }
@@ -76,15 +76,8 @@ internal class UnixRpcTransport : IRpcTransport
         var socketDir = Path.GetDirectoryName(this.SocketPath);
         if (!string.IsNullOrEmpty(socketDir) && !Directory.Exists(socketDir))
         {
-            try
-            {
-                Directory.CreateDirectory(socketDir);
-            }
-            catch (Exception ex)
-            {
-                this.log.Error(ex, "Failed to create socket directory: {Path}", socketDir);
-                return;
-            }
+            this.log.Error("Directory for unix socket does not exist: {Path}", socketDir);
+            return;
         }
 
         // Delete existing socket for this PID, if it exists.
@@ -103,6 +96,7 @@ internal class UnixRpcTransport : IRpcTransport
         this.acceptLoopTask = Task.Factory.StartNew(this.AcceptLoopAsync, TaskCreationOptions.LongRunning);
 
         // note: needs to be run _after_ we're alive so that we don't delete our own socket.
+        // TODO: This should *probably* be handed by the launcher instead.
         if (this.cleanupSocketDirectory != null)
         {
             Task.Run(async () => await UnixSocketUtil.CleanStaleSockets(this.cleanupSocketDirectory));
