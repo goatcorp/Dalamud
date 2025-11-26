@@ -19,8 +19,7 @@ internal unsafe class AddonVirtualTable : IDisposable
     // Copying extra entries is not problematic, and is considered safe.
     private const int VirtualTableEntryCount = 200;
 
-    private const bool EnableAdvancedLogging = false;
-    private const bool EnableSpammyLogging = false;
+    private const bool EnableLogging = false;
 
     private static readonly ModuleLog Log = new("LifecycleVT");
 
@@ -125,7 +124,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private AtkEventListener* OnAddonDestructor(AtkUnitBase* thisPtr, byte freeFlags)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         var result = this.originalVirtualTable->Dtor(thisPtr, freeFlags);
 
@@ -140,7 +139,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private void OnAddonSetup(AtkUnitBase* addon, uint valueCount, AtkValue* values)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         this.addonSetupArg.Clear();
         this.addonSetupArg.Addon = addon;
@@ -164,7 +163,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private void OnAddonFinalize(AtkUnitBase* thisPtr)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         this.addonFinalizeArg.Clear();
         this.addonFinalizeArg.Addon = thisPtr;
@@ -182,7 +181,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private void OnAddonDraw(AtkUnitBase* addon)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         this.addonDrawArg.Clear();
         this.addonDrawArg.Addon = addon;
@@ -202,7 +201,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private void OnAddonUpdate(AtkUnitBase* addon, float delta)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         this.addonUpdateArg.Clear();
         this.addonUpdateArg.Addon = addon;
@@ -223,7 +222,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private bool OnAddonRefresh(AtkUnitBase* addon, uint valueCount, AtkValue* values)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         var result = false;
 
@@ -250,7 +249,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private void OnRequestedUpdate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         this.addonRequestedUpdateArg.Clear();
         this.addonRequestedUpdateArg.Addon = addon;
@@ -274,7 +273,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private void OnAddonReceiveEvent(AtkUnitBase* addon, AtkEventType eventType, int eventParam, AtkEvent* atkEvent, AtkEventData* atkEventData)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         this.addonReceiveEventArg.Clear();
         this.addonReceiveEventArg.Addon = (nint)addon;
@@ -302,7 +301,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private bool OnAddonOpen(AtkUnitBase* thisPtr, uint depthLayer)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         var result = false;
 
@@ -326,7 +325,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private bool OnAddonClose(AtkUnitBase* thisPtr, bool fireCallback)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         var result = false;
 
@@ -350,7 +349,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private void OnAddonShow(AtkUnitBase* thisPtr, bool silenceOpenSoundEffect, uint unsetShowHideFlags)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         this.addonGenericArg.Clear();
         this.addonGenericArg.Addon = thisPtr;
@@ -370,7 +369,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private void OnAddonHide(AtkUnitBase* thisPtr, bool unkBool, bool callHideCallback, uint setShowHideFlags)
     {
-        this.LogEvent();
+        this.LogEvent(EnableLogging);
 
         this.addonGenericArg.Clear();
         this.addonGenericArg.Addon = thisPtr;
@@ -389,15 +388,13 @@ internal unsafe class AddonVirtualTable : IDisposable
     }
 
     [Conditional("DEBUG")]
-    private void LogEvent([CallerMemberName] string caller = "")
+    private void LogEvent(bool loggingEnabled, [CallerMemberName] string caller = "")
     {
-        if (EnableAdvancedLogging)
+        if (loggingEnabled)
         {
-            if (!EnableSpammyLogging)
-            {
-                if (caller is "OnAddonUpdate" or "OnAddonDraw" or "OnAddonReceiveEvent" or "OnRequestedUpdate")
-                    return;
-            }
+            // Manually disable the really spammy log events, you can comment this out if you need to debug them.
+            if (caller is "OnAddonUpdate" or "OnAddonDraw" or "OnAddonReceiveEvent" or "OnRequestedUpdate")
+                return;
 
             Log.Debug($"[{caller}]: {this.atkUnitBase->NameString}");
         }
