@@ -105,7 +105,7 @@ public class BranchSwitcherWindow : Window
                     };
 
                     ps.ArgumentList.Add($"--dalamud-beta-kind={config.DalamudBetaKind}");
-                    ps.ArgumentList.Add($"--dalamud-beta-key={config.DalamudBetaKey}");
+                    ps.ArgumentList.Add($"--dalamud-beta-key={(config.DalamudBetaKey.IsNullOrEmpty() ? "invalid" : config.DalamudBetaKey)}");
 
                     Process.Start(ps);
                     Environment.Exit(0);
