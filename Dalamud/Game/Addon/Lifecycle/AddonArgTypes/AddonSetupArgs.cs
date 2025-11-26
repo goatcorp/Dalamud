@@ -5,7 +5,7 @@ namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 /// <summary>
 /// Addon argument data for Setup events.
 /// </summary>
-public class AddonSetupArgs : AddonArgs, ICloneable
+public class AddonSetupArgs : AddonArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonSetupArgs"/> class.
@@ -33,17 +33,11 @@ public class AddonSetupArgs : AddonArgs, ICloneable
     /// </summary>
     public unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
 
-    /// <inheritdoc cref="ICloneable.Clone"/>
-    public AddonSetupArgs Clone() => (AddonSetupArgs)this.MemberwiseClone();
-
-    /// <inheritdoc cref="Clone"/>
-    object ICloneable.Clone() => this.Clone();
-
     /// <inheritdoc cref="AddonArgs.Clear"/>
     internal override void Clear()
     {
         base.Clear();
-        this.AtkValueCount = default;
-        this.AtkValues = default;
+        this.AtkValueCount = 0;
+        this.AtkValues = 0;
     }
 }

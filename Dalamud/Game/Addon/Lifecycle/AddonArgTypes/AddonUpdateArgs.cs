@@ -3,7 +3,7 @@ namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 /// <summary>
 /// Addon argument data for Update events.
 /// </summary>
-public class AddonUpdateArgs : AddonArgs, ICloneable
+public class AddonUpdateArgs : AddonArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonUpdateArgs"/> class.
@@ -30,16 +30,10 @@ public class AddonUpdateArgs : AddonArgs, ICloneable
     /// </summary>
     internal float TimeDeltaInternal { get; set; }
 
-    /// <inheritdoc cref="ICloneable.Clone"/>
-    public AddonUpdateArgs Clone() => (AddonUpdateArgs)this.MemberwiseClone();
-
-    /// <inheritdoc cref="Clone"/>
-    object ICloneable.Clone() => this.Clone();
-
     /// <inheritdoc cref="AddonArgs.Clear"/>
     internal override void Clear()
     {
         base.Clear();
-        this.TimeDeltaInternal = default;
+        this.TimeDeltaInternal = 0;
     }
 }

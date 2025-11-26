@@ -3,7 +3,7 @@ namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 /// <summary>
 /// Addon argument data for ReceiveEvent events.
 /// </summary>
-public class AddonReceiveEventArgs : AddonArgs, ICloneable
+public class AddonReceiveEventArgs : AddonArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonReceiveEventArgs"/> class.
@@ -36,19 +36,13 @@ public class AddonReceiveEventArgs : AddonArgs, ICloneable
     /// </summary>
     public nint Data { get; set; }
 
-    /// <inheritdoc cref="ICloneable.Clone"/>
-    public AddonReceiveEventArgs Clone() => (AddonReceiveEventArgs)this.MemberwiseClone();
-
-    /// <inheritdoc cref="Clone"/>
-    object ICloneable.Clone() => this.Clone();
-
     /// <inheritdoc cref="AddonArgs.Clear"/>
     internal override void Clear()
     {
         base.Clear();
-        this.AtkEventType = default;
-        this.EventParam = default;
-        this.AtkEvent = default;
-        this.Data = default;
+        this.AtkEventType = 0;
+        this.EventParam = 0;
+        this.AtkEvent = 0;
+        this.Data = 0;
     }
 }

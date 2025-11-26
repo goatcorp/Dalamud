@@ -5,7 +5,7 @@ namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 /// <summary>
 /// Base class for AddonLifecycle AddonArgTypes.
 /// </summary>
-public abstract unsafe class AddonArgs
+public abstract class AddonArgs
 {
     /// <summary>
     /// Constant string representing the name of an addon that is invalid.
