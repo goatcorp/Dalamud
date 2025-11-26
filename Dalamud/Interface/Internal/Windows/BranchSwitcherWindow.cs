@@ -46,10 +46,12 @@ public class BranchSwitcherWindow : Window
             this.branches = await client.GetFromJsonAsync<Dictionary<string, VersionEntry>>(BranchInfoUrl);
             Debug.Assert(this.branches != null, "this.branches != null");
 
-            var branch = Util.GetBranch();
-            this.selectedBranchIndex = this.branches!.Any(x => x.Value.Track == branch) ?
-                                           this.branches.TakeWhile(x => x.Value.Track != branch).Count()
-                                           : 0;
+            var trackName = Util.GetActiveTrack();
+            this.selectedBranchIndex = this.branches.IndexOf(x => x.Value.Track != trackName);
+            if (this.selectedBranchIndex == -1)
+            {
+                this.selectedBranchIndex = 0;
+            }
         });
 
         base.OnOpen();

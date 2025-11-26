@@ -52,7 +52,7 @@ internal class VfsWidget : IDataWindowWidget
             for (var i = 0; i < this.reps; i++)
             {
                 stopwatch.Restart();
-                service.WriteAllBytes(path, data);
+                service.WriteAllBytesAsync(path, data).GetAwaiter().GetResult();
                 stopwatch.Stop();
                 acc += stopwatch.ElapsedMilliseconds;
                 Log.Information("Turn {Turn} took {Ms}ms", i, stopwatch.ElapsedMilliseconds);
@@ -70,7 +70,7 @@ internal class VfsWidget : IDataWindowWidget
             for (var i = 0; i < this.reps; i++)
             {
                 stopwatch.Restart();
-                service.ReadAllBytes(path);
+                service.ReadAllBytesAsync(path).GetAwaiter().GetResult();
                 stopwatch.Stop();
                 acc += stopwatch.ElapsedMilliseconds;
                 Log.Information("Turn {Turn} took {Ms}ms", i, stopwatch.ElapsedMilliseconds);
