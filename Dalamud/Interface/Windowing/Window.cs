@@ -55,6 +55,9 @@ public abstract class Window
     private Vector2 fadeOutSize = Vector2.Zero;
     private Vector2 fadeOutOrigin = Vector2.Zero;
 
+    private bool hasError = false;
+    private Exception? lastError;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
     /// </summary>
@@ -458,14 +461,24 @@ public abstract class Window
                 this.presetDirty = true;
             }
 
-            // Draw the actual window contents
-            try
+            if (this.hasError)
             {
-                this.Draw();
+                this.DrawErrorMessage();
             }
-            catch (Exception ex)
+            else
             {
-                Log.Error(ex, "Error during Draw(): {WindowName}", this.WindowName);
+                // Draw the actual window contents
+                try
+                {
+                    this.Draw();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error during Draw(): {WindowName}", this.WindowName);
+
+                    this.hasError = true;
+                    this.lastError = ex;
+                }
             }
         }
 
@@ -793,7 +806,7 @@ public abstract class Window
                     hovered = true;
 
                     // We can't use ImGui native functions here, because they don't work with clickthrough
-                    if ((global::Windows.Win32.PInvoke.GetKeyState((int)VirtualKey.LBUTTON) & 0x8000) != 0)
+                    if ((Windows.Win32.PInvoke.GetKeyState((int)VirtualKey.LBUTTON) & 0x8000) != 0)
                     {
                         held = true;
                         pressed = true;
@@ -869,6 +882,52 @@ public abstract class Window
         }
 
         ImGui.End();
+    }
+
+    private void DrawErrorMessage()
+    {
+        // TODO: Once window systems are services, offer to reload the plugin
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudRed,Loc.Localize("WindowSystemErrorOccurred", "An error occurred while rendering this window. Please contact the developer for details."));
+
+        ImGuiHelpers.ScaledDummy(5);
+
+        if (ImGui.Button(Loc.Localize("WindowSystemErrorRecoverButton", "Attempt to retry")))
+        {
+            this.hasError = false;
+            this.lastError = null;
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button(Loc.Localize("WindowSystemErrorClose", "Close Window")))
+        {
+            this.IsOpen = false;
+            this.hasError = false;
+            this.lastError = null;
+        }
+
+        ImGuiHelpers.ScaledDummy(10);
+
+        if (this.lastError != null)
+        {
+            using var child = ImRaii.Child("##ErrorDetails", new Vector2(0, 200 * ImGuiHelpers.GlobalScale), true);
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+            {
+                ImGui.TextWrapped(Loc.Localize("WindowSystemErrorDetails", "Error Details:"));
+                ImGui.Separator();
+                ImGui.TextWrapped(this.lastError.ToString());
+            }
+
+            var childWindowSize = ImGui.GetWindowSize();
+            var copyText = Loc.Localize("WindowSystemErrorCopy", "Copy");
+            var buttonWidth = ImGuiComponents.GetIconButtonWithTextWidth(FontAwesomeIcon.Copy, copyText);
+            ImGui.SetCursorPos(new Vector2(childWindowSize.X - buttonWidth - ImGui.GetStyle().FramePadding.X,
+                                           ImGui.GetStyle().FramePadding.Y));
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Copy, copyText))
+            {
+                ImGui.SetClipboardText(this.lastError.ToString());
+            }
+        }
     }
 
     /// <summary>
