@@ -140,10 +140,10 @@ public static partial class Util
     }
 
     /// <summary>
-    /// Gets the Dalamud branch name this version of Dalamud was built from, or null, if this is a Debug build.
+    /// Gets the Git branch name this version of Dalamud was built from, or null, if this is a Debug build.
     /// </summary>
     /// <returns>The branch name.</returns>
-    public static string? GetBranch()
+    public static string? GetGitBranch()
     {
         if (branchInternal != null)
             return branchInternal;
@@ -155,7 +155,17 @@ public static partial class Util
         if (gitBranch == null)
             return null;
 
-        return branchInternal = gitBranch == "master" ? "release" : gitBranch;
+        return branchInternal = gitBranch;
+    }
+
+    /// <summary>
+    /// Gets the active Dalamud track, if this instance was launched through XIVLauncher and used a version
+    /// downloaded from webservices.
+    /// </summary>
+    /// <returns>The name of the track, or null.</returns>
+    internal static string? GetActiveTrack()
+    {
+        return Environment.GetEnvironmentVariable("DALAMUD_BRANCH");
     }
 
     /// <inheritdoc cref="DescribeAddress(nint)"/>
