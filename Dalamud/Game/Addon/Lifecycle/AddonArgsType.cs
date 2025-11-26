@@ -41,7 +41,7 @@ public enum AddonArgsType
     ReceiveEvent,
 
     /// <summary>
-    /// Generic arg type that contains no meaningful data
+    /// Generic arg type that contains no meaningful data.
     /// </summary>
     Generic,
 }

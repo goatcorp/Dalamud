@@ -5,7 +5,7 @@ namespace Dalamud.Game.Addon.Lifecycle;
 /// <summary>
 /// AddonLifecycleService memory address resolver.
 /// </summary>
-[Api13ToDo("Remove this class entirely, its not used by AddonLifecycleAnymore, and use something else for HookWidget")]
+[Api13ToDo("Remove this class entirely, its not used by AddonLifecycle anymore, also need to use something else for HookWidget")]
 internal class AddonLifecycleAddressResolver : BaseAddressResolver
 {
     /// <summary>
