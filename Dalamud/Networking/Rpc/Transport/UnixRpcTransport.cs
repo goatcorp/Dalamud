@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
-using TerraFX.Interop.Windows;
-
 namespace Dalamud.Networking.Rpc.Transport;
 
 /// <summary>
@@ -94,13 +92,6 @@ internal class UnixRpcTransport : IRpcTransport
         }
 
         this.acceptLoopTask = Task.Factory.StartNew(this.AcceptLoopAsync, TaskCreationOptions.LongRunning);
-
-        // note: needs to be run _after_ we're alive so that we don't delete our own socket.
-        // TODO: This should *probably* be handed by the launcher instead.
-        if (this.cleanupSocketDirectory != null)
-        {
-            Task.Run(async () => await UnixSocketUtil.CleanStaleSockets(this.cleanupSocketDirectory));
-        }
     }
 
     /// <summary>Invoke an RPC request on a specific client expecting a result.</summary>
