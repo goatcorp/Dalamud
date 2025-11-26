@@ -33,8 +33,6 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     {
         this.onInitializeAddonHook = Hook<AtkUnitBase.Delegates.Initialize>.FromAddress((nint)AtkUnitBase.StaticVirtualTablePointer->Initialize, this.OnAddonInitialize);
         this.onInitializeAddonHook.Enable();
-
-        Log.Warning($"FOUND INITIALIZE HOOK AT {this.onInitializeAddonHook.Address:X}");
     }
 
     /// <summary>
@@ -48,10 +46,13 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         this.onInitializeAddonHook?.Dispose();
         this.onInitializeAddonHook = null;
 
-        foreach (var virtualTable in this.modifiedTables.Values)
+        this.framework.RunOnFrameworkThread(() =>
         {
-            virtualTable.Dispose();
-        }
+            foreach (var virtualTable in this.modifiedTables.Values)
+            {
+                virtualTable.Dispose();
+            }
+        });
     }
 
     /// <summary>
