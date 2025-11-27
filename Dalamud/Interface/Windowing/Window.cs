@@ -57,6 +57,7 @@ public abstract class Window
 
     private bool hasError = false;
     private Exception? lastError;
+    private bool isErrorStylePushed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
@@ -425,8 +426,16 @@ public abstract class Window
                 UIGlobals.PlaySoundEffect(this.OnOpenSfxId);
         }
 
-        this.PreDraw();
-        this.ApplyConditionals();
+        if (!this.hasError)
+        {
+            this.PreDraw();
+            this.ApplyConditionals();
+        }
+        else
+        {
+            Style.StyleModelV1.DalamudStandard.Push();
+            this.isErrorStylePushed = true;
+        }
 
         if (this.ForceMainWindow)
             ImGuiHelpers.ForceNextWindowMainViewport();
@@ -448,10 +457,28 @@ public abstract class Window
         var flags = this.Flags;
 
         if (this.internalIsPinned || this.internalIsClickthrough)
-            flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
+        {
+            if (!this.hasError)
+            {
+                flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
+            }
+            else
+            {
+                flags &= ~(ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize);
+            }
+        }
 
         if (this.internalIsClickthrough)
-            flags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs;
+        {
+            if (!this.hasError)
+            {
+                flags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs;
+            }
+            else
+            {
+                flags &= ~(ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs);
+            }
+        }
 
         if (this.CanShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, flags) : ImGui.Begin(this.WindowName, flags))
         {
@@ -670,7 +697,17 @@ public abstract class Window
                 Task.FromResult<IDalamudTextureWrap>(tex));
         }
 
-        this.PostDraw();
+        if (!this.hasError)
+        {
+            this.PostDraw();
+        }
+        else
+        {
+            if (this.isErrorStylePushed)
+            {
+                Style.StyleModelV1.DalamudStandard.Pop();
+            }
+        }
 
         this.PostHandlePreset(persistence);
 
