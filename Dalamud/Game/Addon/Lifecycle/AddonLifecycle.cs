@@ -38,7 +38,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <summary>
     /// Gets a list of all AddonLifecycle Event Listeners.
     /// </summary>
-    internal List<AddonLifecycleEventListener> EventListeners { get; } = [];
+    internal Dictionary<AddonEvent, List<AddonLifecycleEventListener>> EventListeners { get; } = [];
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -61,10 +61,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AddonLifecycleEventListener listener)
     {
-        this.framework.RunOnTick(() =>
-        {
-            this.EventListeners.Add(listener);
-        });
+        this.EventListeners.TryAdd(listener.EventType, [ listener ]);
+        this.EventListeners[listener.EventType].Add(listener);
     }
 
     /// <summary>
@@ -73,13 +71,10 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
-        // Set removed state to true immediately, then lazily remove it from the EventListeners list on next Framework Update.
-        listener.Removed = true;
-
-        this.framework.RunOnTick(() =>
+        if (this.EventListeners.TryGetValue(listener.EventType, out var listenerList))
         {
-            this.EventListeners.Remove(listener);
-        });
+            listenerList.Remove(listener);
+        }
     }
 
     /// <summary>
@@ -90,16 +85,12 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="blame">What to blame on errors.</param>
     internal void InvokeListenersSafely(AddonEvent eventType, AddonArgs args, [CallerMemberName] string blame = "")
     {
+        // Early return if we don't have any listeners of this type
+        if (!this.EventListeners.TryGetValue(eventType, out var listenerList)) return;
+
         // Do not use linq; this is a high-traffic function, and more heap allocations avoided, the better.
-        foreach (var listener in this.EventListeners)
+        foreach (var listener in listenerList)
         {
-            if (listener.EventType != eventType)
-                continue;
-
-            // If the listener is pending removal, and is waiting until the next Framework Update, don't invoke listener.
-            if (listener.Removed)
-                continue;
-
             // Match on string.empty for listeners that want events for all addons.
             if (!string.IsNullOrWhiteSpace(listener.AddonName) && !args.IsAddon(listener.AddonName))
                 continue;
