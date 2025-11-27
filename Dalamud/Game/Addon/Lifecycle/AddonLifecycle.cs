@@ -38,7 +38,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <summary>
     /// Gets a list of all AddonLifecycle Event Listeners.
     /// </summary>
-    internal Dictionary<AddonEvent, List<AddonLifecycleEventListener>> EventListeners { get; } = [];
+    internal Dictionary<AddonEvent, HashSet<AddonLifecycleEventListener>> EventListeners { get; } = [];
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
