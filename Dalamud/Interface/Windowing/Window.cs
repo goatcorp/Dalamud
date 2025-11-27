@@ -227,6 +227,16 @@ public abstract class Window
     public bool AllowClickthrough { get; set; } = true;
 
     /// <summary>
+    /// Gets a value indicating whether this window is pinned.
+    /// </summary>
+    public bool IsPinned => this.internalIsPinned;
+
+    /// <summary>
+    /// Gets a value indicating whether this window is click-through.
+    /// </summary>
+    public bool IsClickthrough => this.internalIsClickthrough;
+
+    /// <summary>
     /// Gets or sets a list of available title bar buttons.
     ///
     /// If <see cref="AllowPinning"/> or <see cref="AllowClickthrough"/> are set to true, and this features is not

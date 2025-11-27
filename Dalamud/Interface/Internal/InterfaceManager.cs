@@ -1175,6 +1175,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         WindowSystem.HasAnyWindowSystemFocus = false;
         WindowSystem.FocusedWindowSystemNamespace = string.Empty;
+        WindowSystem.ShouldInhibitAtkCloseEvents = false;
 
         if (this.IsDispatchingEvents)
         {

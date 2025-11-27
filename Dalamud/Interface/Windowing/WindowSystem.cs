@@ -61,6 +61,12 @@ public class WindowSystem
     public string? Namespace { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether ATK close events should be inhibited while any window has focus.
+    /// Does not respect windows that are pinned or clickthrough.
+    /// </summary>
+    internal static bool ShouldInhibitAtkCloseEvents { get; set; }
+
+    /// <summary>
     /// Add a window to this <see cref="WindowSystem"/>.
     /// The window system doesn't own your window, it just renders it
     /// You need to store a reference to it to use it later.
@@ -130,7 +136,7 @@ public class WindowSystem
             window.DrawInternal(flags, persistence);
         }
 
-        var focusedWindow = this.windows.FirstOrDefault(window => window.IsFocused && window.RespectCloseHotkey);
+        var focusedWindow = this.windows.FirstOrDefault(window => window.IsFocused);
         this.HasAnyFocus = focusedWindow != default;
 
         if (this.HasAnyFocus)
@@ -154,6 +160,11 @@ public class WindowSystem
                 this.lastFocusedWindowName = string.Empty;
             }
         }
+
+        ShouldInhibitAtkCloseEvents |= this.windows.Any(w => w.IsFocused &&
+                                                            w.RespectCloseHotkey &&
+                                                            !w.IsPinned &&
+                                                            !w.IsClickthrough);
 
         if (hasNamespace)
             ImGui.PopID();
