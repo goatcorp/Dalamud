@@ -46,18 +46,6 @@ public class AddonLifecycleWidget : IDataWindowWidget
             return;
         }
 
-        if (ImGui.CollapsingHeader("Listeners"u8))
-        {
-            ImGui.Indent();
-            this.DrawEventListeners();
-            ImGui.Unindent();
-        }
-    }
-
-    private void DrawEventListeners()
-    {
-        if (!this.Ready) return;
-
         foreach (var (eventType, addonListeners) in this.AddonLifecycle.EventListeners)
         {
             using var eventId = ImRaii.PushId(eventType.ToString());
