@@ -2,7 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Addon.Lifecycle;
-using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -57,35 +58,38 @@ public class AddonLifecycleWidget : IDataWindowWidget
     {
         if (!this.Ready) return;
 
-        foreach (var (listenerType, listeners) in this.AddonLifecycle.EventListeners)
+        foreach (var (eventType, addonListeners) in this.AddonLifecycle.EventListeners)
         {
-            if (ImGui.CollapsingHeader(listenerType.ToString()))
+            using var eventId = ImRaii.PushId(eventType.ToString());
+
+            if (ImGui.CollapsingHeader(eventType.ToString()))
             {
-                ImGui.Indent();
+                using var eventIndent = ImRaii.PushIndent();
 
-                if (listeners.Count == 0)
+                if (addonListeners.Count == 0)
                 {
-                    ImGui.Text("No Listeners Registered for Event"u8);
+                    ImGui.Text("No Addons Registered for Event"u8);
                 }
 
-                if (ImGui.BeginTable("AddonLifecycleListenersTable"u8, 2))
+                foreach (var (addonName, listeners) in addonListeners)
                 {
-                    ImGui.TableSetupColumn("##AddonName"u8, ImGuiTableColumnFlags.WidthFixed, 100.0f * ImGuiHelpers.GlobalScale);
-                    ImGui.TableSetupColumn("##MethodInvoke"u8, ImGuiTableColumnFlags.WidthStretch);
+                    using var addonId = ImRaii.PushId(addonName);
 
-                    foreach (var listener in listeners)
+                    if (ImGui.CollapsingHeader(addonName.IsNullOrEmpty() ? "GLOBAL" : addonName))
                     {
-                        ImGui.TableNextColumn();
-                        ImGui.Text(listener.AddonName is "" ? "GLOBAL" : listener.AddonName);
+                        using var addonIndent = ImRaii.PushIndent();
 
-                        ImGui.TableNextColumn();
-                        ImGui.Text($"{listener.FunctionDelegate.Method.DeclaringType?.FullName ?? "Unknown Declaring Type"}::{listener.FunctionDelegate.Method.Name}");
+                        if (listeners.Count == 0)
+                        {
+                            ImGui.Text("No Listeners Registered for Event"u8);
+                        }
+
+                        foreach (var listener in listeners)
+                        {
+                            ImGui.Text($"{listener.FunctionDelegate.Method.DeclaringType?.FullName ?? "Unknown Declaring Type"}::{listener.FunctionDelegate.Method.Name}");
+                        }
                     }
-
-                    ImGui.EndTable();
                 }
-
-                ImGui.Unindent();
             }
         }
     }
