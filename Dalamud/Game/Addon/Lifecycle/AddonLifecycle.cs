@@ -38,7 +38,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <summary>
     /// Gets a list of all AddonLifecycle Event Listeners.
     /// </summary>
-    internal Dictionary<AddonEvent, HashSet<AddonLifecycleEventListener>> EventListeners { get; } = [];
+    /// Mapping is: EventType -> AddonName -> ListenerList
+    internal Dictionary<AddonEvent, Dictionary<string, HashSet<AddonLifecycleEventListener>>> EventListeners { get; } = [];
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -61,8 +62,18 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AddonLifecycleEventListener listener)
     {
-        this.EventListeners.TryAdd(listener.EventType, [ listener ]);
-        this.EventListeners[listener.EventType].Add(listener);
+        if (!this.EventListeners.ContainsKey(listener.EventType))
+        {
+            this.EventListeners.TryAdd(listener.EventType, []);
+        }
+
+        // Note: string.Empty is a valid addon name, as that will trigger on any addon for this event type
+        if (!this.EventListeners[listener.EventType].ContainsKey(listener.AddonName))
+        {
+            this.EventListeners[listener.EventType].TryAdd(listener.AddonName, []);
+        }
+
+        this.EventListeners[listener.EventType][listener.AddonName].Add(listener);
     }
 
     /// <summary>
@@ -71,9 +82,12 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
-        if (this.EventListeners.TryGetValue(listener.EventType, out var listenerList))
+        if (this.EventListeners.TryGetValue(listener.EventType, out var addonListeners))
         {
-            listenerList.Remove(listener);
+            if (addonListeners.TryGetValue(listener.AddonName, out var addonListener))
+            {
+                addonListener.Remove(listener);
+            }
         }
     }
 
@@ -86,22 +100,37 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     internal void InvokeListenersSafely(AddonEvent eventType, AddonArgs args, [CallerMemberName] string blame = "")
     {
         // Early return if we don't have any listeners of this type
-        if (!this.EventListeners.TryGetValue(eventType, out var listenerList)) return;
+        if (!this.EventListeners.TryGetValue(eventType, out var addonListeners)) return;
 
-        // Do not use linq; this is a high-traffic function, and more heap allocations avoided, the better.
-        foreach (var listener in listenerList)
+        // Handle listeners for this event type that don't care which addon is triggering it
+        if (addonListeners.TryGetValue(string.Empty, out var globalListeners))
         {
-            // Match on string.empty for listeners that want events for all addons.
-            if (!string.IsNullOrWhiteSpace(listener.AddonName) && !args.IsAddon(listener.AddonName))
-                continue;
-
-            try
+            foreach (var listener in globalListeners)
             {
-                listener.FunctionDelegate.Invoke(eventType, args);
+                try
+                {
+                    listener.FunctionDelegate.Invoke(eventType, args);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, $"Exception in {blame} during {eventType} invoke, for global addon event listener.");
+                }
             }
-            catch (Exception e)
+        }
+
+        // Handle listeners that are listening for this addon and event type specifically
+        if (addonListeners.TryGetValue(args.AddonName, out var addonListener))
+        {
+            foreach (var listener in addonListener)
             {
-                Log.Error(e, $"Exception in {blame} during {eventType} invoke.");
+                try
+                {
+                    listener.FunctionDelegate.Invoke(eventType, args);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, $"Exception in {blame} during {eventType} invoke, for specific addon {args.AddonName}.");
+                }
             }
         }
     }
