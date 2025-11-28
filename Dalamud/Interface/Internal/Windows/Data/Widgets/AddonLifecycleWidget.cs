@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Addon.Lifecycle;
@@ -58,12 +57,11 @@ public class AddonLifecycleWidget : IDataWindowWidget
     {
         if (!this.Ready) return;
 
-        foreach (var eventType in Enum.GetValues<AddonEvent>())
+        foreach (var (listenerType, listeners) in this.AddonLifecycle.EventListeners)
         {
-            if (ImGui.CollapsingHeader(eventType.ToString()))
+            if (ImGui.CollapsingHeader(listenerType.ToString()))
             {
                 ImGui.Indent();
-                var listeners = this.AddonLifecycle.EventListeners.Where(listener => listener.EventType == eventType).ToList();
 
                 if (listeners.Count == 0)
                 {
