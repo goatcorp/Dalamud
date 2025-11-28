@@ -167,7 +167,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
         this.addonFinalizeArg.Clear();
         this.addonFinalizeArg.Addon = thisPtr;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFinalize, this.addonDrawArg);
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFinalize, this.addonFinalizeArg);
 
         try
         {
