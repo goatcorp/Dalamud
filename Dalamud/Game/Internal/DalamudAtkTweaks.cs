@@ -113,7 +113,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
     private void AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, AtkEventType eventType, int eventParam, AtkEvent* atkEvent, AtkEventData* atkEventData)
     {
         // 3 == Close
-        if (eventType == AtkEventType.InputReceived && WindowSystem.HasAnyWindowSystemFocus && atkEventData != null && *(int*)atkEventData == 3 && this.configuration.IsFocusManagementEnabled)
+        if (eventType == AtkEventType.InputReceived && WindowSystem.ShouldInhibitAtkCloseEvents && atkEventData != null && *(int*)atkEventData == 3 && this.configuration.IsFocusManagementEnabled)
         {
             Log.Verbose($"Cancelling global event SendHotkey command due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
             return;
@@ -124,7 +124,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 
     private void AgentHudOpenSystemMenuDetour(AgentHUD* thisPtr, AtkValue* atkValueArgs, uint menuSize)
     {
-        if (WindowSystem.HasAnyWindowSystemFocus && this.configuration.IsFocusManagementEnabled)
+        if (WindowSystem.ShouldInhibitAtkCloseEvents && this.configuration.IsFocusManagementEnabled)
         {
             Log.Verbose($"Cancelling OpenSystemMenu due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
             return;

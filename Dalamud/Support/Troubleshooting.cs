@@ -73,7 +73,7 @@ public static class Troubleshooting
                 DalamudGitHash = Util.GetGitHash() ?? "Unknown",
                 GameVersion = startInfo.GameVersion?.ToString() ?? "Unknown",
                 Language = startInfo.Language.ToString(),
-                BetaKey = configuration.DalamudBetaKey,
+                BetaKey = Util.GetActiveTrack(),
                 DoPluginTest = configuration.DoPluginTest,
                 LoadAllApiLevels = pluginManager?.LoadAllApiLevels == true,
                 InterfaceLoaded = interfaceManager?.IsReady ?? false,
