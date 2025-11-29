@@ -100,6 +100,12 @@ public abstract class Window : IWindow
     public bool AllowClickthrough { get; set; } = true;
 
     /// <inheritdoc/>
+    public bool IsPinned { get; set; }
+
+    /// <inheritdoc/>
+    public bool IsClickthrough { get; set; }
+
+    /// <inheritdoc/>
     public List<TitleBarButton> TitleBarButtons { get; set; } = [];
 
     /// <inheritdoc/>

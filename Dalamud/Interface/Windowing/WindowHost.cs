@@ -34,9 +34,6 @@ public class WindowHost
     private static bool wasEscPressedLastFrame = false;
 
     private bool internalLastIsOpen = false;
-    private bool internalIsOpen = false;
-    private bool internalIsPinned = false;
-    private bool internalIsClickthrough = false;
     private bool didPushInternalAlpha = false;
     private float? internalAlpha = null;
 
@@ -50,6 +47,9 @@ public class WindowHost
     private IDrawListTextureWrap? fadeOutTexture = null;
     private Vector2 fadeOutSize = Vector2.Zero;
     private Vector2 fadeOutOrigin = Vector2.Zero;
+
+    private bool hasError = false;
+    private Exception? lastError;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WindowHost"/> class.
@@ -97,7 +97,7 @@ public class WindowHost
     /// </summary>
     public IWindow Window { get; set; }
 
-    private bool CanShowCloseButton => this.Window.ShowCloseButton && !this.internalIsClickthrough;
+    private bool CanShowCloseButton => this.Window.ShowCloseButton && !this.Window.IsClickthrough;
 
     /// <summary>
     /// Draw the window via ImGui.
@@ -111,9 +111,9 @@ public class WindowHost
 
         if (!this.Window.IsOpen)
         {
-            if (this.internalIsOpen != this.internalLastIsOpen)
+            if (this.Window.IsOpen != this.internalLastIsOpen)
             {
-                this.internalLastIsOpen = this.internalIsOpen;
+                this.internalLastIsOpen = this.Window.IsOpen;
                 this.Window.OnClose();
 
                 this.Window.IsFocused = false;
@@ -156,9 +156,9 @@ public class WindowHost
 
         this.PreHandlePreset(persistence);
 
-        if (this.internalLastIsOpen != this.internalIsOpen && this.internalIsOpen)
+        if (this.internalLastIsOpen != this.Window.IsOpen && this.Window.IsOpen)
         {
-            this.internalLastIsOpen = this.internalIsOpen;
+            this.internalLastIsOpen = this.Window.IsOpen;
             this.Window.OnOpen();
 
             if (internalDrawFlags.HasFlag(WindowDrawFlags.UseSoundEffects) && !this.Window.DisableWindowSounds)
@@ -194,38 +194,56 @@ public class WindowHost
 
         var flags = this.Window.Flags;
 
-        if (this.internalIsPinned || this.internalIsClickthrough)
+        if (this.Window.IsPinned || this.Window.IsClickthrough)
             flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
 
-        if (this.internalIsClickthrough)
+        if (this.Window.IsClickthrough)
             flags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs;
 
-        if (this.CanShowCloseButton ? ImGui.Begin(this.Window.WindowName, ref this.internalIsOpen, flags) : ImGui.Begin(this.Window.WindowName, flags))
+        var isWindowOpen = this.Window.IsOpen;
+
+        if (this.CanShowCloseButton ? ImGui.Begin(this.Window.WindowName, ref isWindowOpen, flags) : ImGui.Begin(this.Window.WindowName, flags))
         {
+            if (this.Window.IsOpen != isWindowOpen)
+            {
+                this.Window.IsOpen = isWindowOpen;
+            }
+
             var context = ImGui.GetCurrentContext();
             if (!context.IsNull)
             {
-                ImGuiP.GetCurrentWindow().InheritNoInputs = this.internalIsClickthrough;
+                ImGuiP.GetCurrentWindow().InheritNoInputs = this.Window.IsClickthrough;
             }
 
             // Not supported yet on non-main viewports
-            if ((this.internalIsPinned || this.internalIsClickthrough || this.internalAlpha.HasValue) &&
+            if ((this.Window.IsPinned || this.Window.IsClickthrough || this.internalAlpha.HasValue) &&
                 ImGui.GetWindowViewport().ID != ImGui.GetMainViewport().ID)
             {
                 this.internalAlpha = null;
-                this.internalIsPinned = false;
-                this.internalIsClickthrough = false;
+                this.Window.IsPinned = false;
+                this.Window.IsClickthrough = false;
                 this.presetDirty = true;
             }
 
             // Draw the actual window contents
-            try
+            if (this.hasError)
             {
-                this.Window.Draw();
+                this.DrawErrorMessage();
             }
-            catch (Exception ex)
+            else
             {
-                Log.Error(ex, "Error during Draw(): {WindowName}", this.Window.WindowName);
+                // Draw the actual window contents
+                try
+                {
+                    this.Window.Draw();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error during Draw(): {WindowName}", this.Window.WindowName);
+
+                    this.hasError = true;
+                    this.lastError = ex;
+                }
             }
         }
 
@@ -247,15 +265,15 @@ public class WindowHost
                 if (!isAvailable)
                     ImGui.BeginDisabled();
 
-                if (this.internalIsClickthrough)
+                if (this.Window.IsClickthrough)
                     ImGui.BeginDisabled();
 
                 if (this.Window.AllowPinning)
                 {
-                    var showAsPinned = this.internalIsPinned || this.internalIsClickthrough;
+                    var showAsPinned = this.Window.IsPinned || this.Window.IsClickthrough;
                     if (ImGui.Checkbox(Loc.Localize("WindowSystemContextActionPin", "Pin Window"), ref showAsPinned))
                     {
-                        this.internalIsPinned = showAsPinned;
+                        this.Window.IsPinned = showAsPinned;
                         this.presetDirty = true;
                     }
 
@@ -263,15 +281,17 @@ public class WindowHost
                         Loc.Localize("WindowSystemContextActionPinHint", "Pinned windows will not move or resize when you click and drag them, nor will they close when escape is pressed."));
                 }
 
-                if (this.internalIsClickthrough)
+                if (this.Window.IsClickthrough)
                     ImGui.EndDisabled();
 
                 if (this.Window.AllowClickthrough)
                 {
+                    var isClickthrough = this.Window.IsClickthrough;
                     if (ImGui.Checkbox(
                             Loc.Localize("WindowSystemContextActionClickthrough", "Make clickthrough"),
-                            ref this.internalIsClickthrough))
+                            ref isClickthrough))
                     {
+                        this.Window.IsClickthrough = isClickthrough;
                         this.presetDirty = true;
                     }
 
@@ -283,7 +303,7 @@ public class WindowHost
                 if (ImGui.SliderFloat(Loc.Localize("WindowSystemContextActionAlpha", "Opacity"), ref alpha, 20f,
                                       100f))
                 {
-                    this.internalAlpha = alpha / 100f;
+                    this.internalAlpha = Math.Clamp(alpha / 100f, 0.2f, 1f);
                     this.presetDirty = true;
                 }
 
@@ -332,7 +352,7 @@ public class WindowHost
                 IconOffset = new Vector2(2.5f, 1),
                 Click = _ =>
                 {
-                    this.internalIsClickthrough = false;
+                    this.Window.IsClickthrough = false;
                     this.presetDirty = false;
                     ImGui.OpenPopup(additionsPopupName);
                 },
@@ -356,7 +376,7 @@ public class WindowHost
 
         this.Window.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
 
-        if (internalDrawFlags.HasFlag(WindowDrawFlags.UseFocusManagement) && !this.internalIsPinned)
+        if (internalDrawFlags.HasFlag(WindowDrawFlags.UseFocusManagement) && !this.Window.IsPinned)
         {
             var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
             if (escapeDown && this.Window.IsFocused && !wasEscPressedLastFrame && this.Window.RespectCloseHotkey)
@@ -388,10 +408,11 @@ public class WindowHost
         // easier with the new bindings.
         // TODO: No fade-out if docking is enabled and the window is docked, since this makes them "unsnap".
         // Ideally we should get rid of this "fake window" thing and just insert a new drawlist at the correct spot.
-        if (!this.internalIsOpen && this.fadeOutTexture == null && doFades && !isCollapsed && !isDocked)
+        if (!this.Window.IsOpen && this.fadeOutTexture == null && doFades && !isCollapsed && !isDocked)
         {
             this.fadeOutTexture = Service<TextureManager>.Get().CreateDrawListTexture(
                 "WindowFadeOutTexture");
+            Log.Verbose("Attempting to fade out {WindowName}", this.Window.WindowName);
             this.fadeOutTexture.ResizeAndDrawWindow(this.Window.WindowName, Vector2.One);
             this.fadeOutTimer = FadeInOutTime;
         }
@@ -498,8 +519,8 @@ public class WindowHost
             return;
         }
 
-        this.internalIsPinned = this.presetWindow.IsPinned;
-        this.internalIsClickthrough = this.presetWindow.IsClickThrough;
+        this.Window.IsPinned = this.presetWindow.IsPinned;
+        this.Window.IsClickthrough = this.presetWindow.IsClickThrough;
         this.internalAlpha = this.presetWindow.Alpha;
     }
 
@@ -512,8 +533,8 @@ public class WindowHost
 
         if (this.presetDirty)
         {
-            this.presetWindow.IsPinned = this.internalIsPinned;
-            this.presetWindow.IsClickThrough = this.internalIsClickthrough;
+            this.presetWindow.IsPinned = this.Window.IsPinned;
+            this.presetWindow.IsClickThrough = this.Window.IsClickthrough;
             this.presetWindow.Alpha = this.internalAlpha;
 
             var id = ImGui.GetID(this.Window.WindowName);
@@ -563,7 +584,7 @@ public class WindowHost
             bool hovered, held;
             var pressed = false;
 
-            if (this.internalIsClickthrough)
+            if (this.Window.IsClickthrough)
             {
                 hovered = false;
                 held = false;
@@ -602,7 +623,7 @@ public class WindowHost
                 button.ShowTooltip?.Invoke();
 
             // Switch to moving the window after mouse is moved beyond the initial drag threshold
-            if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left) && !this.internalIsClickthrough)
+            if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left) && !this.Window.IsClickthrough)
                 ImGuiP.StartMouseMovingWindow(window);
 
             return pressed;
@@ -610,7 +631,7 @@ public class WindowHost
 
         foreach (var button in buttons.OrderBy(x => x.Priority))
         {
-            if (this.internalIsClickthrough && !button.AvailableClickthrough)
+            if (this.Window.IsClickthrough && !button.AvailableClickthrough)
                 return;
 
             Vector2 position = new(titleBarRect.Max.X - padR - buttonSize, titleBarRect.Min.Y + style.FramePadding.Y);
@@ -650,5 +671,51 @@ public class WindowHost
         }
 
         ImGui.End();
+    }
+
+    private void DrawErrorMessage()
+    {
+        // TODO: Once window systems are services, offer to reload the plugin
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudRed,Loc.Localize("WindowSystemErrorOccurred", "An error occurred while rendering this window. Please contact the developer for details."));
+
+        ImGuiHelpers.ScaledDummy(5);
+
+        if (ImGui.Button(Loc.Localize("WindowSystemErrorRecoverButton", "Attempt to retry")))
+        {
+            this.hasError = false;
+            this.lastError = null;
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button(Loc.Localize("WindowSystemErrorClose", "Close Window")))
+        {
+            this.Window.IsOpen = false;
+            this.hasError = false;
+            this.lastError = null;
+        }
+
+        ImGuiHelpers.ScaledDummy(10);
+
+        if (this.lastError != null)
+        {
+            using var child = ImRaii.Child("##ErrorDetails", new Vector2(0, 200 * ImGuiHelpers.GlobalScale), true);
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+            {
+                ImGui.TextWrapped(Loc.Localize("WindowSystemErrorDetails", "Error Details:"));
+                ImGui.Separator();
+                ImGui.TextWrapped(this.lastError.ToString());
+            }
+
+            var childWindowSize = ImGui.GetWindowSize();
+            var copyText = Loc.Localize("WindowSystemErrorCopy", "Copy");
+            var buttonWidth = ImGuiComponents.GetIconButtonWithTextWidth(FontAwesomeIcon.Copy, copyText);
+            ImGui.SetCursorPos(new Vector2(childWindowSize.X - buttonWidth - ImGui.GetStyle().FramePadding.X,
+                                           ImGui.GetStyle().FramePadding.Y));
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Copy, copyText))
+            {
+                ImGui.SetClipboardText(this.lastError.ToString());
+            }
+        }
     }
 }

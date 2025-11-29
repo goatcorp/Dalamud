@@ -119,6 +119,16 @@ public interface IWindow
     bool AllowClickthrough { get; set; }
 
     /// <summary>
+    /// Gets a value indicating whether this window is pinned.
+    /// </summary>
+    public bool IsPinned { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether this window is click-through.
+    /// </summary>
+    public bool IsClickthrough { get; set; }
+
+    /// <summary>
     /// Gets or sets a list of available title bar buttons.
     ///
     /// If <see cref="AllowPinning"/> or <see cref="AllowClickthrough"/> are set to true, and this features is not
