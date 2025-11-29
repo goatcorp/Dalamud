@@ -6,6 +6,10 @@
         <PlatformTarget>x64</PlatformTarget>
         <Platforms>x64</Platforms>
         <LangVersion>13.0</LangVersion>
+
+        <!-- Disable Intel CET. Causes crashes on unpatched Windows 10 systems. -->
+        <!-- https://github.com/dotnet/runtime/issues/108589 -->
+        <CETCompat>false</CETCompat>
     </PropertyGroup>
 
     <!-- Code analysis settings for all Dalamud projects. -->
