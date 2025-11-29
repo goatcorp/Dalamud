@@ -302,8 +302,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         this.profileManagerWidget.Reset();
 
-        var config = Service<DalamudConfiguration>.Get();
-        if (this.staleDalamudNewVersion == null && !config.DalamudBetaKind.IsNullOrEmpty())
+        if (this.staleDalamudNewVersion == null && !Util.GetActiveTrack().IsNullOrEmpty())
         {
             Service<DalamudReleases>.Get().GetVersionForCurrentTrack().ContinueWith(t =>
             {
@@ -311,10 +310,10 @@ internal class PluginInstallerWindow : Window, IDisposable
                     return;
 
                 var versionInfo = t.Result;
-                if (versionInfo.AssemblyVersion != Util.GetScmVersion() &&
-                    versionInfo.Track != "release" &&
-                    string.Equals(versionInfo.Key, config.DalamudBetaKey, StringComparison.OrdinalIgnoreCase))
+                if (versionInfo.AssemblyVersion != Util.GetScmVersion())
+                {
                     this.staleDalamudNewVersion = versionInfo.AssemblyVersion;
+                }
             });
         }
     }

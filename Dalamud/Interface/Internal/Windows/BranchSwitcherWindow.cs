@@ -6,7 +6,6 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
@@ -14,6 +13,8 @@ using Dalamud.Networking.Http;
 using Dalamud.Utility;
 
 using Newtonsoft.Json;
+
+using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -47,7 +48,7 @@ public class BranchSwitcherWindow : Window
             Debug.Assert(this.branches != null, "this.branches != null");
 
             var trackName = Util.GetActiveTrack();
-            this.selectedBranchIndex = this.branches.IndexOf(x => x.Value.Track != trackName);
+            this.selectedBranchIndex = this.branches.IndexOf(x => x.Value.Track == trackName);
             if (this.selectedBranchIndex == -1)
             {
                 this.selectedBranchIndex = 0;
@@ -86,12 +87,9 @@ public class BranchSwitcherWindow : Window
 
             if (ImGui.Button("Pick & Restart"u8))
             {
-                var config = Service<DalamudConfiguration>.Get();
-                config.DalamudBetaKind = pickedBranch.Key;
-                config.DalamudBetaKey = pickedBranch.Value.Key;
-
-                // If we exit immediately, we need to write out the new config now
-                config.ForceSave();
+                var newTrackName = pickedBranch.Key;
+                var newTrackKey = pickedBranch.Value.Key;
+                Log.Verbose("Switching to branch {Branch} with key {Key}", newTrackName, newTrackKey);
 
                 var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 var xlPath = Path.Combine(appData, "XIVLauncher", "current", "XIVLauncher.exe");
@@ -104,8 +102,8 @@ public class BranchSwitcherWindow : Window
                         UseShellExecute = false,
                     };
 
-                    ps.ArgumentList.Add($"--dalamud-beta-kind={config.DalamudBetaKind}");
-                    ps.ArgumentList.Add($"--dalamud-beta-key={(config.DalamudBetaKey.IsNullOrEmpty() ? "invalid" : config.DalamudBetaKey)}");
+                    ps.ArgumentList.Add($"--dalamud-beta-kind={newTrackName}");
+                    ps.ArgumentList.Add($"--dalamud-beta-key={(newTrackKey.IsNullOrEmpty() ? "invalid" : newTrackKey)}");
 
                     Process.Start(ps);
                     Environment.Exit(0);

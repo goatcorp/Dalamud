@@ -109,11 +109,6 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool DoPluginTest { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a key to opt into Dalamud staging builds.
-    /// </summary>
-    public string? DalamudBetaKey { get; set; } = null;
-
-    /// <summary>
     /// Gets or sets a list of custom repos.
     /// </summary>
     public List<ThirdPartyRepoSettings> ThirdRepoList { get; set; } = new();
@@ -277,11 +272,6 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether to resume game main thread after plugins load.
     /// </summary>
     public bool IsResumeGameAfterPluginLoad { get; set; } = false;
-
-    /// <summary>
-    /// Gets or sets the kind of beta to download when <see cref="DalamudBetaKey"/> matches the server value.
-    /// </summary>
-    public string? DalamudBetaKind { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether any plugin should be loaded when the game is started.
