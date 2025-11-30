@@ -175,17 +175,21 @@ internal sealed class SettingsWindow : Window
         {
             if (buttonChild)
             {
-                using var disabled = ImRaii.Disabled(this.tabs.Any(x => x.Entries.Any(y => !y.IsValid)));
-
                 using (ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 100f))
                 {
                     using var font = ImRaii.PushFont(InterfaceManager.IconFont);
+
+                    var hasInvalidEntries = this.tabs.Any(x => x.Entries.Any(y => !y.IsValid));
+
+                    using var disabled = ImRaii.Disabled(hasInvalidEntries);
 
                     if (ImGui.Button(FontAwesomeIcon.Save.ToIconString(), new Vector2(40)))
                     {
                         this.Save();
 
-                        if (!ImGui.IsKeyDown(ImGuiKey.ModShift))
+                        hasInvalidEntries = this.tabs.Any(x => x.Entries.Any(y => !y.IsValid));
+
+                        if (!hasInvalidEntries && !ImGui.IsKeyDown(ImGuiKey.ModShift))
                             this.IsOpen = false;
                     }
                 }

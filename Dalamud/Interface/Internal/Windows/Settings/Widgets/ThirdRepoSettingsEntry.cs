@@ -42,6 +42,7 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         this.thirdRepoList =
             [.. Service<DalamudConfiguration>.Get().ThirdRepoList.Select(x => x.Clone())];
         this.thirdRepoListChanged = false;
+        this.IsValid = true;
     }
 
     public override void Save()
@@ -50,8 +51,11 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         var addedPendingRepo = this.TryAddTempRepo();
         if (!addedPendingRepo && hasPendingRepo)
         {
+            this.IsValid = false;
             return;
         }
+
+        this.IsValid = true;
 
         Service<DalamudConfiguration>.Get().ThirdRepoList =
             [.. this.thirdRepoList.Select(x => x.Clone())];
@@ -179,6 +183,8 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
             var url = thirdRepoSetting.Url;
             if (ImGui.InputText($"##thirdRepoInput", ref url, 65535, ImGuiInputTextFlags.EnterReturnsTrue))
             {
+                this.IsValid = true;
+
                 var contains = this.thirdRepoList.Select(repo => repo.Url).Contains(url);
                 if (thirdRepoSetting.Url == url)
                 {
@@ -196,8 +202,8 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
                 }
                 else
                 {
+                    this.thirdRepoListChanged = thirdRepoSetting.Url != url;
                     thirdRepoSetting.Url = url;
-                    this.thirdRepoListChanged = url != thirdRepoSetting.Url;
                 }
             }
 
@@ -236,8 +242,10 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         ImGui.Text(repoNumber.ToString());
         ImGui.NextColumn();
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputText("##thirdRepoUrlInput"u8, ref this.thirdRepoTempUrl, 300);
-        ImGui.NextColumn();
+        if (ImGui.InputText("##thirdRepoUrlInput"u8, ref this.thirdRepoTempUrl, 300))
+        {
+            this.IsValid = true;
+        }        ImGui.NextColumn();
         // Enabled button
         ImGui.NextColumn();
         if (!string.IsNullOrEmpty(this.thirdRepoTempUrl) && ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
@@ -267,6 +275,7 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         {
             this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoExists", "Repo already exists.");
             Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
+            this.IsValid = false;
             return false;
         }
 
@@ -274,6 +283,7 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         {
             this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoNotUrl", "The entered address is not a valid URL.\nDid you mean to enter it as a DevPlugin in the fields above instead?");
             Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
+            this.IsValid = false;
             return false;
         }
 
@@ -284,6 +294,7 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         });
         this.thirdRepoListChanged = true;
         this.thirdRepoTempUrl = string.Empty;
+        this.IsValid = true;
 
         return true;
     }
