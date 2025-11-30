@@ -26,14 +26,18 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private readonly AddonLifecycle lifecycleService;
 
-    private readonly AddonSetupArgs addonSetupArg = new();
-    private readonly AddonFinalizeArgs addonFinalizeArg = new();
-    private readonly AddonDrawArgs addonDrawArg = new();
-    private readonly AddonUpdateArgs addonUpdateArg = new();
-    private readonly AddonRefreshArgs addonRefreshArg = new();
-    private readonly AddonRequestedUpdateArgs addonRequestedUpdateArg = new();
-    private readonly AddonReceiveEventArgs addonReceiveEventArg = new();
-    private readonly AddonGenericArgs addonGenericArg = new();
+    // Each addon gets its own set of args that are used to mutate the original call when used in pre-calls
+    private readonly AddonSetupArgs setupArgs = new();
+    private readonly AddonArgs finalizeArgs = new();
+    private readonly AddonArgs drawArgs = new();
+    private readonly AddonArgs updateArgs = new();
+    private readonly AddonRefreshArgs refreshArgs = new();
+    private readonly AddonRequestedUpdateArgs requestedUpdateArgs = new();
+    private readonly AddonReceiveEventArgs receiveEventArgs = new();
+    private readonly AddonArgs openArgs = new();
+    private readonly AddonArgs closeArgs = new();
+    private readonly AddonArgs showArgs = new();
+    private readonly AddonArgs hideArgs = new();
 
     private readonly AtkUnitBase* atkUnitBase;
 
@@ -133,12 +137,13 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonSetupArg.Addon = addon;
-        this.addonSetupArg.AtkValueCount = valueCount;
-        this.addonSetupArg.AtkValues = (nint)values;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreSetup, this.addonSetupArg);
-        valueCount = this.addonSetupArg.AtkValueCount;
-        values = (AtkValue*)this.addonSetupArg.AtkValues;
+        this.setupArgs.Addon = addon;
+        this.setupArgs.AtkValueCount = valueCount;
+        this.setupArgs.AtkValues = (nint)values;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreSetup, this.setupArgs);
+
+        valueCount = this.setupArgs.AtkValueCount;
+        values = (AtkValue*)this.setupArgs.AtkValues;
 
         try
         {
@@ -149,15 +154,15 @@ internal unsafe class AddonVirtualTable : IDisposable
             Log.Error(e, "Caught exception when calling original AddonSetup. This may be a bug in the game or another plugin hooking this method.");
         }
 
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostSetup, this.addonSetupArg);
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostSetup, this.setupArgs);
     }
 
     private void OnAddonFinalize(AtkUnitBase* thisPtr)
     {
         this.LogEvent(EnableLogging);
 
-        this.addonFinalizeArg.Addon = thisPtr;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFinalize, this.addonFinalizeArg);
+        this.finalizeArgs.Addon = thisPtr;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFinalize, this.finalizeArgs);
 
         try
         {
@@ -173,8 +178,8 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonDrawArg.Addon = addon;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreDraw, this.addonDrawArg);
+        this.drawArgs.Addon = addon;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreDraw, this.drawArgs);
 
         try
         {
@@ -185,16 +190,15 @@ internal unsafe class AddonVirtualTable : IDisposable
             Log.Error(e, "Caught exception when calling original AddonDraw. This may be a bug in the game or another plugin hooking this method.");
         }
 
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostDraw, this.addonDrawArg);
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostDraw, this.drawArgs);
     }
 
     private void OnAddonUpdate(AtkUnitBase* addon, float delta)
     {
         this.LogEvent(EnableLogging);
 
-        this.addonUpdateArg.Addon = addon;
-        this.addonUpdateArg.TimeDeltaInternal = delta;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreUpdate, this.addonUpdateArg);
+        this.updateArgs.Addon = addon;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreUpdate, this.updateArgs);
 
         try
         {
@@ -205,7 +209,7 @@ internal unsafe class AddonVirtualTable : IDisposable
             Log.Error(e, "Caught exception when calling original AddonUpdate. This may be a bug in the game or another plugin hooking this method.");
         }
 
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostUpdate, this.addonUpdateArg);
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostUpdate, this.updateArgs);
     }
 
     private bool OnAddonRefresh(AtkUnitBase* addon, uint valueCount, AtkValue* values)
@@ -214,12 +218,13 @@ internal unsafe class AddonVirtualTable : IDisposable
 
         var result = false;
 
-        this.addonRefreshArg.Addon = addon;
-        this.addonRefreshArg.AtkValueCount = valueCount;
-        this.addonRefreshArg.AtkValues = (nint)values;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreRefresh, this.addonRefreshArg);
-        valueCount = this.addonRefreshArg.AtkValueCount;
-        values = (AtkValue*)this.addonRefreshArg.AtkValues;
+        this.refreshArgs.Addon = addon;
+        this.refreshArgs.AtkValueCount = valueCount;
+        this.refreshArgs.AtkValues = (nint)values;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreRefresh, this.refreshArgs);
+
+        valueCount = this.refreshArgs.AtkValueCount;
+        values = (AtkValue*)this.refreshArgs.AtkValues;
 
         try
         {
@@ -230,7 +235,7 @@ internal unsafe class AddonVirtualTable : IDisposable
             Log.Error(e, "Caught exception when calling original AddonRefresh. This may be a bug in the game or another plugin hooking this method.");
         }
 
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostRefresh, this.addonRefreshArg);
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostRefresh, this.refreshArgs);
         return result;
     }
 
@@ -238,12 +243,13 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonRequestedUpdateArg.Addon = addon;
-        this.addonRequestedUpdateArg.NumberArrayData = (nint)numberArrayData;
-        this.addonRequestedUpdateArg.StringArrayData = (nint)stringArrayData;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreRequestedUpdate, this.addonRequestedUpdateArg);
-        numberArrayData = (NumberArrayData**)this.addonRequestedUpdateArg.NumberArrayData;
-        stringArrayData = (StringArrayData**)this.addonRequestedUpdateArg.StringArrayData;
+        this.requestedUpdateArgs.Addon = addon;
+        this.requestedUpdateArgs.NumberArrayData = (nint)numberArrayData;
+        this.requestedUpdateArgs.StringArrayData = (nint)stringArrayData;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreRequestedUpdate, this.requestedUpdateArgs);
+
+        numberArrayData = (NumberArrayData**)this.requestedUpdateArgs.NumberArrayData;
+        stringArrayData = (StringArrayData**)this.requestedUpdateArgs.StringArrayData;
 
         try
         {
@@ -254,23 +260,24 @@ internal unsafe class AddonVirtualTable : IDisposable
             Log.Error(e, "Caught exception when calling original AddonRequestedUpdate. This may be a bug in the game or another plugin hooking this method.");
         }
 
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostRequestedUpdate, this.addonRequestedUpdateArg);
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostRequestedUpdate, this.requestedUpdateArgs);
     }
 
     private void OnAddonReceiveEvent(AtkUnitBase* addon, AtkEventType eventType, int eventParam, AtkEvent* atkEvent, AtkEventData* atkEventData)
     {
         this.LogEvent(EnableLogging);
 
-        this.addonReceiveEventArg.Addon = (nint)addon;
-        this.addonReceiveEventArg.AtkEventType = (byte)eventType;
-        this.addonReceiveEventArg.EventParam = eventParam;
-        this.addonReceiveEventArg.AtkEvent = (IntPtr)atkEvent;
-        this.addonReceiveEventArg.Data = (nint)atkEventData;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreReceiveEvent, this.addonReceiveEventArg);
-        eventType = (AtkEventType)this.addonReceiveEventArg.AtkEventType;
-        eventParam = this.addonReceiveEventArg.EventParam;
-        atkEvent = (AtkEvent*)this.addonReceiveEventArg.AtkEvent;
-        atkEventData = (AtkEventData*)this.addonReceiveEventArg.Data;
+        this.receiveEventArgs.Addon = (nint)addon;
+        this.receiveEventArgs.AtkEventType = (byte)eventType;
+        this.receiveEventArgs.EventParam = eventParam;
+        this.receiveEventArgs.AtkEvent = (IntPtr)atkEvent;
+        this.receiveEventArgs.AtkEventData = (nint)atkEventData;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreReceiveEvent, this.receiveEventArgs);
+
+        eventType = (AtkEventType)this.receiveEventArgs.AtkEventType;
+        eventParam = this.receiveEventArgs.EventParam;
+        atkEvent = (AtkEvent*)this.receiveEventArgs.AtkEvent;
+        atkEventData = (AtkEventData*)this.receiveEventArgs.AtkEventData;
 
         try
         {
@@ -281,7 +288,7 @@ internal unsafe class AddonVirtualTable : IDisposable
             Log.Error(e, "Caught exception when calling original AddonReceiveEvent. This may be a bug in the game or another plugin hooking this method.");
         }
 
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostReceiveEvent, this.addonReceiveEventArg);
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostReceiveEvent, this.receiveEventArgs);
     }
 
     private bool OnAddonOpen(AtkUnitBase* thisPtr, uint depthLayer)
@@ -290,8 +297,8 @@ internal unsafe class AddonVirtualTable : IDisposable
 
         var result = false;
 
-        this.addonGenericArg.Addon = thisPtr;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreOpen, this.addonGenericArg);
+        this.openArgs.Addon = thisPtr;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreOpen, this.openArgs);
 
         try
         {
@@ -302,7 +309,7 @@ internal unsafe class AddonVirtualTable : IDisposable
             Log.Error(e, "Caught exception when calling original AddonOpen. This may be a bug in the game or another plugin hooking this method.");
         }
 
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostOpen, this.addonGenericArg);
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostOpen, this.openArgs);
 
         return result;
     }
@@ -313,8 +320,8 @@ internal unsafe class AddonVirtualTable : IDisposable
 
         var result = false;
 
-        this.addonGenericArg.Addon = thisPtr;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreClose, this.addonGenericArg);
+        this.closeArgs.Addon = thisPtr;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreClose, this.closeArgs);
 
         try
         {
@@ -325,7 +332,7 @@ internal unsafe class AddonVirtualTable : IDisposable
             Log.Error(e, "Caught exception when calling original AddonClose. This may be a bug in the game or another plugin hooking this method.");
         }
 
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostClose, this.addonGenericArg);
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostClose, this.closeArgs);
 
         return result;
     }
@@ -334,8 +341,8 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonGenericArg.Addon = thisPtr;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreShow, this.addonGenericArg);
+        this.showArgs.Addon = thisPtr;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreShow, this.showArgs);
 
         try
         {
@@ -346,15 +353,15 @@ internal unsafe class AddonVirtualTable : IDisposable
             Log.Error(e, "Caught exception when calling original AddonShow. This may be a bug in the game or another plugin hooking this method.");
         }
 
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostShow, this.addonGenericArg);
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostShow, this.showArgs);
     }
 
     private void OnAddonHide(AtkUnitBase* thisPtr, bool unkBool, bool callHideCallback, uint setShowHideFlags)
     {
         this.LogEvent(EnableLogging);
 
-        this.addonGenericArg.Addon = thisPtr;
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreHide, this.addonGenericArg);
+        this.hideArgs.Addon = thisPtr;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreHide, this.hideArgs);
 
         try
         {
@@ -365,7 +372,7 @@ internal unsafe class AddonVirtualTable : IDisposable
             Log.Error(e, "Caught exception when calling original AddonHide. This may be a bug in the game or another plugin hooking this method.");
         }
 
-        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostHide, this.addonGenericArg);
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostHide, this.hideArgs);
     }
 
     [Conditional("DEBUG")]

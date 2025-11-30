@@ -1,5 +1,3 @@
-using Dalamud.Utility;
-
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
@@ -35,6 +33,5 @@ public class AddonReceiveEventArgs : AddonArgs
     /// <summary>
     /// Gets or sets the pointer to an AtkEventData for this event message.
     /// </summary>
-    [Api14ToDo("Rename to AtkEventData")]
-    public nint Data { get; set; }
+    public nint AtkEventData { get; set; }
 }

@@ -59,13 +59,15 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     {
         if (!this.EventListeners.ContainsKey(listener.EventType))
         {
-            this.EventListeners.TryAdd(listener.EventType, []);
+            if (!this.EventListeners.TryAdd(listener.EventType, []))
+                return;
         }
 
         // Note: string.Empty is a valid addon name, as that will trigger on any addon for this event type
         if (!this.EventListeners[listener.EventType].ContainsKey(listener.AddonName))
         {
-            this.EventListeners[listener.EventType].TryAdd(listener.AddonName, []);
+            if (!this.EventListeners[listener.EventType].TryAdd(listener.AddonName, []))
+                return;
         }
 
         this.EventListeners[listener.EventType][listener.AddonName].Add(listener);

@@ -6,24 +6,14 @@
 public enum AddonArgsType
 {
     /// <summary>
+    /// Generic arg type that contains no meaningful data.
+    /// </summary>
+    Generic,
+
+    /// <summary>
     /// Contains argument data for Setup.
     /// </summary>
     Setup,
-
-    /// <summary>
-    /// Contains argument data for Update.
-    /// </summary>
-    Update,
-
-    /// <summary>
-    /// Contains argument data for Draw.
-    /// </summary>
-    Draw,
-
-    /// <summary>
-    /// Contains argument data for Finalize.
-    /// </summary>
-    Finalize,
 
     /// <summary>
     /// Contains argument data for RequestedUpdate.
@@ -39,9 +29,4 @@ public enum AddonArgsType
     /// Contains argument data for ReceiveEvent.
     /// </summary>
     ReceiveEvent,
-
-    /// <summary>
-    /// Generic arg type that contains no meaningful data.
-    /// </summary>
-    Generic,
 }

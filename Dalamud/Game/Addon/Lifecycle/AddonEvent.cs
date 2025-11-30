@@ -29,7 +29,6 @@ public enum AddonEvent
     /// An event that is fired before an addon begins its update cycle via <see cref="AtkUnitBase.Update"/>. This event
     /// is fired every frame that an addon is loaded, regardless of visibility.
     /// </summary>
-    /// <seealso cref="AddonUpdateArgs"/>
     PreUpdate,
 
     /// <summary>
@@ -42,7 +41,6 @@ public enum AddonEvent
     /// An event that is fired before an addon begins drawing to screen via <see cref="AtkUnitBase.Draw"/>. Unlike
     /// <see cref="PreUpdate"/>, this event is only fired if an addon is visible or otherwise drawing to screen.
     /// </summary>
-    /// <seealso cref="AddonDrawArgs"/>
     PreDraw,
 
     /// <summary>
@@ -62,7 +60,6 @@ public enum AddonEvent
     /// <br />
     /// As this is part of the destruction process for an addon, this event does not have an associated Post event.
     /// </remarks>
-    /// <seealso cref="AddonFinalizeArgs"/>
     PreFinalize,
 
     /// <summary>
