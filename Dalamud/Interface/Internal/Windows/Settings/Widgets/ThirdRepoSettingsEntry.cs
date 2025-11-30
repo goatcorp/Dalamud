@@ -245,7 +245,9 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         if (ImGui.InputText("##thirdRepoUrlInput"u8, ref this.thirdRepoTempUrl, 300))
         {
             this.IsValid = true;
-        }        ImGui.NextColumn();
+        }
+
+        ImGui.NextColumn();
         // Enabled button
         ImGui.NextColumn();
         if (!string.IsNullOrEmpty(this.thirdRepoTempUrl) && ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
