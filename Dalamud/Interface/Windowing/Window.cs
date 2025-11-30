@@ -458,26 +458,20 @@ public abstract class Window
 
         if (this.internalIsPinned || this.internalIsClickthrough)
         {
-            if (!this.hasError)
-            {
-                flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
-            }
-            else
-            {
-                flags &= ~(ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize);
-            }
+            flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
         }
 
         if (this.internalIsClickthrough)
         {
-            if (!this.hasError)
-            {
-                flags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs;
-            }
-            else
-            {
-                flags &= ~(ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs);
-            }
+            flags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs;
+        }
+
+        // If we have an error, reset all flags to default, and unlock window size.
+        if (this.hasError)
+        {
+            flags = ImGuiWindowFlags.None;
+            ImGui.SetNextWindowCollapsed(false, ImGuiCond.Once);
+            ImGui.SetNextWindowSizeConstraints(Vector2.Zero, Vector2.PositiveInfinity);
         }
 
         if (this.CanShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, flags) : ImGui.Begin(this.WindowName, flags))
