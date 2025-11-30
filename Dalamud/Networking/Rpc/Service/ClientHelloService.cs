@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
 
 using Dalamud.Data;
 using Dalamud.Game;
@@ -39,7 +40,9 @@ internal sealed class ClientHelloService : IInternalDisposableService
             ApiVersion = "1.0",
             DalamudVersion = Util.GetScmVersion(),
             GameVersion = dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown",
-            ClientIdentifier = await this.GetClientIdentifier(),
+            ProcessId = Environment.ProcessId,
+            ProcessStartTime = new DateTimeOffset(Process.GetCurrentProcess().StartTime).ToUnixTimeSeconds(),
+            ClientState = await this.GetClientIdentifier(),
         };
     }
 
@@ -114,7 +117,17 @@ internal record ClientHelloResponse
     public string? GameVersion { get; init; }
 
     /// <summary>
-    /// Gets an identifier for this client.
+    /// Gets the process ID of this client.
     /// </summary>
-    public string? ClientIdentifier { get; init; }
+    public int? ProcessId { get; init; }
+
+    /// <summary>
+    /// Gets the time this process started.
+    /// </summary>
+    public long? ProcessStartTime { get; init; }
+
+    /// <summary>
+    /// Gets a state for this client for user display.
+    /// </summary>
+    public string? ClientState { get; init; }
 }
