@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
-using Dalamud.Game.ClientState;
 using Dalamud.Hooking;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using Serilog;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -16,7 +16,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// <summary>
 /// Widget for displaying hook information.
 /// </summary>
-internal class HookWidget : IDataWindowWidget
+internal unsafe class HookWidget : IDataWindowWidget
 {
     private readonly List<IDalamudHook> hookStressTestList = [];
 
@@ -31,9 +31,9 @@ internal class HookWidget : IDataWindowWidget
     private bool hookStressTestRunning = false;
 
     private MessageBoxWDelegate? messageBoxWOriginal;
-    private HandleZoneInitPacketDelegate? zoneInitOriginal;
+    private AddonFinalizeDelegate? addonFinalizeOriginal;
 
-    private ClientStateAddressResolver? address;
+    private nint address;
 
     private delegate int MessageBoxWDelegate(
         IntPtr hWnd,
@@ -41,12 +41,12 @@ internal class HookWidget : IDataWindowWidget
         [MarshalAs(UnmanagedType.LPWStr)] string caption,
         MESSAGEBOX_STYLE type);
 
-    private delegate void HandleZoneInitPacketDelegate(nint a1, uint localPlayerEntityId, nint packet, byte type);
+    private delegate void AddonFinalizeDelegate(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase);
 
     private enum StressTestHookTarget
     {
         MessageBoxW,
-        ZoneInit,
+        AddonFinalize,
         Random,
     }
 
@@ -54,7 +54,7 @@ internal class HookWidget : IDataWindowWidget
     public string DisplayName { get; init; } = "Hook";
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "hook" };
+    public string[]? CommandShortcuts { get; init; } = ["hook"];
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -64,8 +64,8 @@ internal class HookWidget : IDataWindowWidget
     {
         this.Ready = true;
 
-        this.address = new ClientStateAddressResolver();
-        this.address.Setup(Service<TargetSigScanner>.Get());
+        var sigScanner = Service<TargetSigScanner>.Get();
+        this.address = sigScanner.ScanText("E8 ?? ?? ?? ?? 48 83 EF 01 75 D5");
     }
 
     /// <inheritdoc/>
@@ -178,7 +178,7 @@ internal class HookWidget : IDataWindowWidget
         return target switch
         {
             StressTestHookTarget.MessageBoxW => "MessageBoxW (Hook)",
-            StressTestHookTarget.ZoneInit => "ZoneInit (Hook)",
+            StressTestHookTarget.AddonFinalize => "AddonFinalize (Hook)",
             _ => target.ToString(),
         };
     }
@@ -197,10 +197,15 @@ internal class HookWidget : IDataWindowWidget
         return result;
     }
 
-    private void OnZoneInit(IntPtr a1, uint localPlayerEntityId, IntPtr packet, byte type)
+    private void OnAddonFinalize(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase)
     {
-        Log.Information("OnZoneInit");
-        this.zoneInitOriginal!.Invoke(a1, localPlayerEntityId, packet, type);
+        Log.Information("OnAddonFinalize");
+        this.addonFinalizeOriginal!(unitManager, atkUnitBase);
+    }
+
+    private void OnAddonUpdate(AtkUnitBase* thisPtr, float delta)
+    {
+        Log.Information("OnAddonUpdate");
     }
 
     private IDalamudHook HookMessageBoxW()
@@ -216,11 +221,11 @@ internal class HookWidget : IDataWindowWidget
         return hook;
     }
 
-    private IDalamudHook HookZoneInit()
+    private IDalamudHook HookAddonFinalize()
     {
-        var hook = Hook<HandleZoneInitPacketDelegate>.FromAddress(this.address!.HandleZoneInitPacket, this.OnZoneInit);
+        var hook = Hook<AddonFinalizeDelegate>.FromAddress(this.address, this.OnAddonFinalize);
 
-        this.zoneInitOriginal = hook.Original;
+        this.addonFinalizeOriginal = hook.Original;
         hook.Enable();
         return hook;
     }
@@ -235,7 +240,7 @@ internal class HookWidget : IDataWindowWidget
         return target switch
         {
             StressTestHookTarget.MessageBoxW => this.HookMessageBoxW(),
-            StressTestHookTarget.ZoneInit => this.HookZoneInit(),
+            StressTestHookTarget.AddonFinalize => this.HookAddonFinalize(),
             _ => throw new ArgumentOutOfRangeException(nameof(target), target, null),
         };
     }
