@@ -238,7 +238,7 @@ public static unsafe partial class ImGui
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.Float,
-        MemoryMarshal.Cast<Vector2, float>(new(ref v)),
+        MemoryMarshal.Cast<Vector2, float>(new Span<Vector2>(ref v)),
         vSpeed,
         vMin,
         vMax,
@@ -251,7 +251,7 @@ public static unsafe partial class ImGui
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.Float,
-        MemoryMarshal.Cast<Vector3, float>(new(ref v)),
+        MemoryMarshal.Cast<Vector3, float>(new Span<Vector3>(ref v)),
         vSpeed,
         vMin,
         vMax,
@@ -264,7 +264,7 @@ public static unsafe partial class ImGui
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.Float,
-        MemoryMarshal.Cast<Vector4, float>(new(ref v)),
+        MemoryMarshal.Cast<Vector4, float>(new Span<Vector4>(ref v)),
         vSpeed,
         vMin,
         vMax,

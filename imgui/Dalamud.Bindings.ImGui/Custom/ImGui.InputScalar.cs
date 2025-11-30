@@ -205,7 +205,7 @@ public static unsafe partial class ImGui
         InputScalar(
             label,
             ImGuiDataType.Float,
-            MemoryMarshal.Cast<Vector2, float>(new(ref data)),
+            MemoryMarshal.Cast<Vector2, float>(new Span<Vector2>(ref data)),
             step,
             stepFast,
             format.MoveOrDefault("%.3f"u8),
@@ -219,7 +219,7 @@ public static unsafe partial class ImGui
         InputScalar(
             label,
             ImGuiDataType.Float,
-            MemoryMarshal.Cast<Vector3, float>(new(ref data)),
+            MemoryMarshal.Cast<Vector3, float>(new Span<Vector3>(ref data)),
             step,
             stepFast,
             format.MoveOrDefault("%.3f"u8),
@@ -233,7 +233,7 @@ public static unsafe partial class ImGui
         InputScalar(
             label,
             ImGuiDataType.Float,
-            MemoryMarshal.Cast<Vector4, float>(new(ref data)),
+            MemoryMarshal.Cast<Vector4, float>(new Span<Vector4>(ref data)),
             step,
             stepFast,
             format.MoveOrDefault("%.3f"u8),
