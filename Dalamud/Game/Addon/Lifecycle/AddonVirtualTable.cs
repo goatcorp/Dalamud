@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Logging.Internal;
@@ -108,17 +109,11 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.modifiedVirtualTable->Hide = (delegate* unmanaged<AtkUnitBase*, bool, bool, uint, void>)Marshal.GetFunctionPointerForDelegate(this.hideFunction);
     }
 
-    /// <summary>
-    /// Gets an event that is invoked when this addon's Finalize method is called from native.
-    /// </summary>
-    public required Action OnAddonFinalized { get; init; }
-
-    /// <summary>
-    /// <em>WARNING!</em> This should not be called at any time except during dalamud unload.
-    /// </summary>
+    /// <inheritdoc/>
     public void Dispose()
     {
-        this.atkUnitBase->VirtualTable = this.originalVirtualTable;
+        // Ensure restoration is done atomically.
+        Interlocked.Exchange(ref *(nint*)&this.atkUnitBase->VirtualTable, (nint)this.originalVirtualTable);
         IMemorySpace.Free(this.modifiedVirtualTable, 0x8 * VirtualTableEntryCount);
     }
 
@@ -131,7 +126,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         if ((freeFlags & 1) == 1)
         {
             IMemorySpace.Free(this.modifiedVirtualTable, 0x8 * VirtualTableEntryCount);
-            this.OnAddonFinalized();
+            AddonLifecycle.AllocatedTables.Remove(this);
         }
 
         return result;

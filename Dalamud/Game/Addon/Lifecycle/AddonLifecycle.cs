@@ -19,12 +19,12 @@ namespace Dalamud.Game.Addon.Lifecycle;
 [ServiceManager.EarlyLoadedService]
 internal unsafe class AddonLifecycle : IInternalDisposableService
 {
+    /// <summary>
+    /// Gets a list of all allocated addon virtual tables.
+    /// </summary>
+    public static readonly List<AddonVirtualTable> AllocatedTables = [];
+
     private static readonly ModuleLog Log = new("AddonLifecycle");
-
-    [ServiceManager.ServiceDependency]
-    private readonly Framework framework = Service<Framework>.Get();
-
-    private readonly Dictionary<string, AddonVirtualTable> modifiedTables = [];
 
     private Hook<AtkUnitBase.Delegates.Initialize>? onInitializeAddonHook;
 
@@ -47,13 +47,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         this.onInitializeAddonHook?.Dispose();
         this.onInitializeAddonHook = null;
 
-        this.framework.RunOnFrameworkThread(() =>
-        {
-            foreach (var virtualTable in this.modifiedTables.Values)
-            {
-                virtualTable.Dispose();
-            }
-        });
+        AllocatedTables.ForEach(entry => entry.Dispose());
+        AllocatedTables.Clear();
     }
 
     /// <summary>
@@ -141,18 +136,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         {
             this.LogInitialize(addon->NameString);
 
-            if (!this.modifiedTables.ContainsKey(addon->NameString))
-            {
-                // AddonVirtualTable class handles creating the virtual table, and overriding each of the tracked virtual functions
-                var managedVirtualTableEntry = new AddonVirtualTable(addon, this)
-                {
-                    // This event is invoked when the game itself has disposed of an addon
-                    // We can use this to know when to remove our virtual table entry
-                    OnAddonFinalized = () => this.modifiedTables.Remove(addon->NameString),
-                };
-
-                this.modifiedTables.Add(addon->NameString,  managedVirtualTableEntry);
-            }
+            // AddonVirtualTable class handles creating the virtual table, and overriding each of the tracked virtual functions
+            AllocatedTables.Add(new AddonVirtualTable(addon, this));
         }
         catch (Exception e)
         {
