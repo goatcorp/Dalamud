@@ -34,40 +34,13 @@ public abstract class AddonArgs
     public abstract AddonArgsType Type { get; }
 
     /// <summary>
-    /// Checks if addon name matches the given span of char.
-    /// </summary>
-    /// <param name="name">The name to check.</param>
-    /// <returns>Whether it is the case.</returns>
-    internal bool IsAddon(string name)
-    {
-        if (this.Addon.IsNull)
-            return false;
-
-        if (name.Length is 0 or > 32)
-            return false;
-
-        if (string.IsNullOrEmpty(this.Addon.Name))
-            return false;
-
-        return name == this.Addon.Name;
-    }
-
-    /// <summary>
-    /// Clears this AddonArgs values.
-    /// </summary>
-    internal virtual void Clear()
-    {
-        this.addonName = null;
-        this.Addon = 0;
-    }
-
-    /// <summary>
     /// Helper method for ensuring the name of the addon is valid.
     /// </summary>
     /// <returns>The name of the addon for this object. <see cref="InvalidAddon"/> when invalid.</returns>
     private string GetAddonName()
     {
-        if (this.Addon.IsNull) return InvalidAddon;
+        if (this.Addon.IsNull)
+            return InvalidAddon;
 
         var name = this.Addon.Name;
 

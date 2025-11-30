@@ -1,3 +1,5 @@
+using Dalamud.Utility;
+
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
@@ -8,8 +10,7 @@ public class AddonReceiveEventArgs : AddonArgs
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonReceiveEventArgs"/> class.
     /// </summary>
-    [Obsolete("Not intended for public construction.", false)]
-    public AddonReceiveEventArgs()
+    internal AddonReceiveEventArgs()
     {
     }
 
@@ -32,17 +33,8 @@ public class AddonReceiveEventArgs : AddonArgs
     public nint AtkEvent { get; set; }
 
     /// <summary>
-    /// Gets or sets the pointer to a block of data for this event message.
+    /// Gets or sets the pointer to an AtkEventData for this event message.
     /// </summary>
+    [Api14ToDo("Rename to AtkEventData")]
     public nint Data { get; set; }
-
-    /// <inheritdoc cref="AddonArgs.Clear"/>
-    internal override void Clear()
-    {
-        base.Clear();
-        this.AtkEventType = 0;
-        this.EventParam = 0;
-        this.AtkEvent = 0;
-        this.Data = 0;
-    }
 }
