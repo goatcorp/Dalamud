@@ -45,7 +45,7 @@ public class PluginLinkHandler : IInternalDisposableService, IPluginLinkHandler
 
     private void HandleUri(DalamudUri uri)
     {
-        var target = uri.Path.Split("/").FirstOrDefault();
+        var target = uri.Path.Split("/").ElementAtOrDefault(1);
         var thisPlugin = ConsoleManagerPluginUtil.GetSanitizedNamespaceName(this.localPlugin.InternalName);
         if (target == null || !string.Equals(target, thisPlugin, StringComparison.OrdinalIgnoreCase))
         {
