@@ -1,15 +1,18 @@
+using Dalamud.Utility;
+
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
 /// Addon argument data for Update events.
 /// </summary>
+[Obsolete("Use AddonGenericArgs instead.")]
+[Api15ToDo("Remove this")]
 public class AddonUpdateArgs : AddonArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonUpdateArgs"/> class.
     /// </summary>
-    [Obsolete("Not intended for public construction.", false)]
-    public AddonUpdateArgs()
+    internal AddonUpdateArgs()
     {
     }
 
@@ -17,23 +20,16 @@ public class AddonUpdateArgs : AddonArgs
     public override AddonArgsType Type => AddonArgsType.Update;
 
     /// <summary>
-    /// Gets the time since the last update.
-    /// </summary>
-    public float TimeDelta
-    {
-        get => this.TimeDeltaInternal;
-        init => this.TimeDeltaInternal = value;
-    }
-
-    /// <summary>
     /// Gets or sets the time since the last update.
     /// </summary>
     internal float TimeDeltaInternal { get; set; }
 
-    /// <inheritdoc cref="AddonArgs.Clear"/>
-    internal override void Clear()
+    /// <summary>
+    /// Gets the time since the last update.
+    /// </summary>
+    private float TimeDelta
     {
-        base.Clear();
-        this.TimeDeltaInternal = 0;
+        get => this.TimeDeltaInternal;
+        init => this.TimeDeltaInternal = value;
     }
 }

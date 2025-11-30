@@ -26,8 +26,6 @@ internal unsafe class AddonVirtualTable : IDisposable
 
     private readonly AddonLifecycle lifecycleService;
 
-    // Obsolete warning is only to prevent users from creating their own event objects.
-#pragma warning disable CS0618 // Type or member is obsolete
     private readonly AddonSetupArgs addonSetupArg = new();
     private readonly AddonFinalizeArgs addonFinalizeArg = new();
     private readonly AddonDrawArgs addonDrawArg = new();
@@ -36,7 +34,6 @@ internal unsafe class AddonVirtualTable : IDisposable
     private readonly AddonRequestedUpdateArgs addonRequestedUpdateArg = new();
     private readonly AddonReceiveEventArgs addonReceiveEventArg = new();
     private readonly AddonGenericArgs addonGenericArg = new();
-#pragma warning restore CS0618 // Type or member is obsolete
 
     private readonly AtkUnitBase* atkUnitBase;
 
@@ -136,7 +133,6 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonSetupArg.Clear();
         this.addonSetupArg.Addon = addon;
         this.addonSetupArg.AtkValueCount = valueCount;
         this.addonSetupArg.AtkValues = (nint)values;
@@ -160,7 +156,6 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonFinalizeArg.Clear();
         this.addonFinalizeArg.Addon = thisPtr;
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFinalize, this.addonFinalizeArg);
 
@@ -178,7 +173,6 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonDrawArg.Clear();
         this.addonDrawArg.Addon = addon;
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PreDraw, this.addonDrawArg);
 
@@ -198,7 +192,6 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonUpdateArg.Clear();
         this.addonUpdateArg.Addon = addon;
         this.addonUpdateArg.TimeDeltaInternal = delta;
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PreUpdate, this.addonUpdateArg);
@@ -221,7 +214,6 @@ internal unsafe class AddonVirtualTable : IDisposable
 
         var result = false;
 
-        this.addonRefreshArg.Clear();
         this.addonRefreshArg.Addon = addon;
         this.addonRefreshArg.AtkValueCount = valueCount;
         this.addonRefreshArg.AtkValues = (nint)values;
@@ -246,7 +238,6 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonRequestedUpdateArg.Clear();
         this.addonRequestedUpdateArg.Addon = addon;
         this.addonRequestedUpdateArg.NumberArrayData = (nint)numberArrayData;
         this.addonRequestedUpdateArg.StringArrayData = (nint)stringArrayData;
@@ -270,7 +261,6 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonReceiveEventArg.Clear();
         this.addonReceiveEventArg.Addon = (nint)addon;
         this.addonReceiveEventArg.AtkEventType = (byte)eventType;
         this.addonReceiveEventArg.EventParam = eventParam;
@@ -300,7 +290,6 @@ internal unsafe class AddonVirtualTable : IDisposable
 
         var result = false;
 
-        this.addonGenericArg.Clear();
         this.addonGenericArg.Addon = thisPtr;
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PreOpen, this.addonGenericArg);
 
@@ -324,7 +313,6 @@ internal unsafe class AddonVirtualTable : IDisposable
 
         var result = false;
 
-        this.addonGenericArg.Clear();
         this.addonGenericArg.Addon = thisPtr;
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PreClose, this.addonGenericArg);
 
@@ -346,7 +334,6 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonGenericArg.Clear();
         this.addonGenericArg.Addon = thisPtr;
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PreShow, this.addonGenericArg);
 
@@ -366,7 +353,6 @@ internal unsafe class AddonVirtualTable : IDisposable
     {
         this.LogEvent(EnableLogging);
 
-        this.addonGenericArg.Clear();
         this.addonGenericArg.Addon = thisPtr;
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PreHide, this.addonGenericArg);
 
