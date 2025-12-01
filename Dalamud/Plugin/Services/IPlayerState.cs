@@ -79,7 +79,7 @@ public interface IPlayerState : IDalamudService
     bool IsLevelSynced { get; }
 
     /// <summary>
-    /// Gets the effective level of the local character.
+    /// Gets the effective level of the local character, taking level sync into account.
     /// </summary>
     short EffectiveLevel { get; }
 
