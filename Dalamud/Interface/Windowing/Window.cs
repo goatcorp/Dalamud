@@ -57,7 +57,6 @@ public abstract class Window
 
     private bool hasError = false;
     private Exception? lastError;
-    private bool isErrorStylePushed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
@@ -426,6 +425,7 @@ public abstract class Window
                 UIGlobals.PlaySoundEffect(this.OnOpenSfxId);
         }
 
+        var isErrorStylePushed = false;
         if (!this.hasError)
         {
             this.PreDraw();
@@ -434,7 +434,7 @@ public abstract class Window
         else
         {
             Style.StyleModelV1.DalamudStandard.Push();
-            this.isErrorStylePushed = true;
+            isErrorStylePushed = true;
         }
 
         if (this.ForceMainWindow)
@@ -697,7 +697,7 @@ public abstract class Window
         }
         else
         {
-            if (this.isErrorStylePushed)
+            if (isErrorStylePushed)
             {
                 Style.StyleModelV1.DalamudStandard.Pop();
             }
