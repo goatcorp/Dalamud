@@ -20,7 +20,7 @@ internal unsafe class AddonVirtualTable : IDisposable
     // Copying extra entries is not problematic, and is considered safe.
     private const int VirtualTableEntryCount = 200;
 
-    private const bool EnableLogging = true;
+    private const bool EnableLogging = false;
 
     private static readonly ModuleLog Log = new("LifecycleVT");
 
