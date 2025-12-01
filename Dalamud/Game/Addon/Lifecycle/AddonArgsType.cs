@@ -29,4 +29,19 @@ public enum AddonArgsType
     /// Contains argument data for ReceiveEvent.
     /// </summary>
     ReceiveEvent,
+
+    /// <summary>
+    /// Contains argument data for Show.
+    /// </summary>
+    Show,
+
+    /// <summary>
+    /// Contains argument data for Hide.
+    /// </summary>
+    Hide,
+
+    /// <summary>
+    /// Contains argument data for Close.
+    /// </summary>
+    Close,
 }

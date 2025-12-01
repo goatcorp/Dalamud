@@ -20,7 +20,7 @@ internal unsafe class AddonVirtualTable : IDisposable
     // Copying extra entries is not problematic, and is considered safe.
     private const int VirtualTableEntryCount = 200;
 
-    private const bool EnableLogging = false;
+    private const bool EnableLogging = true;
 
     private static readonly ModuleLog Log = new("LifecycleVT");
 
@@ -35,9 +35,13 @@ internal unsafe class AddonVirtualTable : IDisposable
     private readonly AddonRequestedUpdateArgs requestedUpdateArgs = new();
     private readonly AddonReceiveEventArgs receiveEventArgs = new();
     private readonly AddonArgs openArgs = new();
-    private readonly AddonArgs closeArgs = new();
-    private readonly AddonArgs showArgs = new();
-    private readonly AddonArgs hideArgs = new();
+    private readonly AddonCloseArgs closeArgs = new();
+    private readonly AddonShowArgs showArgs = new();
+    private readonly AddonHideArgs hideArgs = new();
+    private readonly AddonArgs onMoveArgs = new();
+    private readonly AddonArgs onMouseOverArgs = new();
+    private readonly AddonArgs onMouseOutArgs = new();
+    private readonly AddonArgs focusArgs = new();
 
     private readonly AtkUnitBase* atkUnitBase;
 
@@ -58,6 +62,10 @@ internal unsafe class AddonVirtualTable : IDisposable
     private readonly AtkUnitBase.Delegates.Close closeFunction;
     private readonly AtkUnitBase.Delegates.Show showFunction;
     private readonly AtkUnitBase.Delegates.Hide hideFunction;
+    private readonly AtkUnitBase.Delegates.OnMove onMoveFunction;
+    private readonly AtkUnitBase.Delegates.OnMouseOver onMouseOverFunction;
+    private readonly AtkUnitBase.Delegates.OnMouseOut onMouseOutFunction;
+    private readonly AtkUnitBase.Delegates.Focus focusFunction;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonVirtualTable"/> class.
@@ -94,6 +102,10 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.closeFunction = this.OnAddonClose;
         this.showFunction = this.OnAddonShow;
         this.hideFunction = this.OnAddonHide;
+        this.onMoveFunction = this.OnMove;
+        this.onMouseOverFunction = this.OnMouseOver;
+        this.onMouseOutFunction = this.OnMouseOut;
+        this.focusFunction = this.OnFocus;
 
         // Overwrite specific virtual table entries
         this.modifiedVirtualTable->Dtor = (delegate* unmanaged<AtkUnitBase*, byte, AtkEventListener*>)Marshal.GetFunctionPointerForDelegate(this.destructorFunction);
@@ -108,6 +120,10 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.modifiedVirtualTable->Close = (delegate* unmanaged<AtkUnitBase*, bool, bool>)Marshal.GetFunctionPointerForDelegate(this.closeFunction);
         this.modifiedVirtualTable->Show = (delegate* unmanaged<AtkUnitBase*, bool, uint, void>)Marshal.GetFunctionPointerForDelegate(this.showFunction);
         this.modifiedVirtualTable->Hide = (delegate* unmanaged<AtkUnitBase*, bool, bool, uint, void>)Marshal.GetFunctionPointerForDelegate(this.hideFunction);
+        this.modifiedVirtualTable->OnMove = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMoveFunction);
+        this.modifiedVirtualTable->OnMouseOver = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMouseOverFunction);
+        this.modifiedVirtualTable->OnMouseOut = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMouseOutFunction);
+        this.modifiedVirtualTable->Focus = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.focusFunction);
     }
 
     /// <inheritdoc/>
@@ -199,6 +215,9 @@ internal unsafe class AddonVirtualTable : IDisposable
 
         this.updateArgs.Addon = addon;
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PreUpdate, this.updateArgs);
+
+        // Note: Do not pass or allow manipulation of delta.
+        // It's realistically not something that should be needed.
 
         try
         {
@@ -321,7 +340,10 @@ internal unsafe class AddonVirtualTable : IDisposable
         var result = false;
 
         this.closeArgs.Addon = thisPtr;
+        this.closeArgs.FireCallback = fireCallback;
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PreClose, this.closeArgs);
+
+        fireCallback = this.closeArgs.FireCallback;
 
         try
         {
@@ -342,7 +364,12 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.LogEvent(EnableLogging);
 
         this.showArgs.Addon = thisPtr;
+        this.showArgs.SilenceOpenSoundEffect = silenceOpenSoundEffect;
+        this.showArgs.UnsetShowHideFlags = unsetShowHideFlags;
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PreShow, this.showArgs);
+
+        silenceOpenSoundEffect = this.showArgs.SilenceOpenSoundEffect;
+        unsetShowHideFlags = this.showArgs.UnsetShowHideFlags;
 
         try
         {
@@ -361,7 +388,14 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.LogEvent(EnableLogging);
 
         this.hideArgs.Addon = thisPtr;
+        this.hideArgs.UnknownBool = unkBool;
+        this.hideArgs.CallHideCallback = callHideCallback;
+        this.hideArgs.SetShowHideFlags = setShowHideFlags;
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PreHide, this.hideArgs);
+
+        unkBool = this.hideArgs.UnknownBool;
+        callHideCallback = this.hideArgs.CallHideCallback;
+        setShowHideFlags = this.hideArgs.SetShowHideFlags;
 
         try
         {
@@ -373,6 +407,82 @@ internal unsafe class AddonVirtualTable : IDisposable
         }
 
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PostHide, this.hideArgs);
+    }
+
+    private void OnMove(AtkUnitBase* thisPtr)
+    {
+        this.LogEvent(EnableLogging);
+
+        this.onMoveArgs.Addon = thisPtr;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreMove, this.onMoveArgs);
+
+        try
+        {
+            this.originalVirtualTable->OnMove(thisPtr);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original OnMove. This may be a bug in the game or another plugin hooking this method.");
+        }
+
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostMove, this.onMoveArgs);
+    }
+
+    private void OnMouseOver(AtkUnitBase* thisPtr)
+    {
+        this.LogEvent(EnableLogging);
+
+        this.onMouseOverArgs.Addon = thisPtr;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreMouseOver, this.onMouseOverArgs);
+
+        try
+        {
+            this.originalVirtualTable->OnMouseOver(thisPtr);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original OnMouseOver. This may be a bug in the game or another plugin hooking this method.");
+        }
+
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostMouseOver, this.onMouseOverArgs);
+    }
+
+    private void OnMouseOut(AtkUnitBase* thisPtr)
+    {
+        this.LogEvent(EnableLogging);
+
+        this.onMouseOutArgs.Addon = thisPtr;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreMouseOut, this.onMouseOutArgs);
+
+        try
+        {
+            this.originalVirtualTable->OnMouseOut(thisPtr);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original OnMouseOut. This may be a bug in the game or another plugin hooking this method.");
+        }
+
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostMouseOut, this.onMouseOutArgs);
+    }
+
+    private void OnFocus(AtkUnitBase* thisPtr)
+    {
+        this.LogEvent(EnableLogging);
+
+        this.focusArgs.Addon = thisPtr;
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFocus, this.focusArgs);
+
+        try
+        {
+            this.originalVirtualTable->Focus(thisPtr);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original OnFocus. This may be a bug in the game or another plugin hooking this method.");
+        }
+
+        this.lifecycleService.InvokeListenersSafely(AddonEvent.PostFocus, this.focusArgs);
     }
 
     [Conditional("DEBUG")]

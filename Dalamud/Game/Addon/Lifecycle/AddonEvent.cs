@@ -127,32 +127,80 @@ public enum AddonEvent
     PostOpen,
 
     /// <summary>
-    /// An even that is fired before an addon processes its close method.
+    /// An even that is fired before an addon processes its Close method.
     /// </summary>
     PreClose,
 
     /// <summary>
-    /// An event that is fired after an addon has processed its close method.
+    /// An event that is fired after an addon has processed its Close method.
     /// </summary>
     PostClose,
 
     /// <summary>
-    /// An event that is fired before an addon processes its show method.
+    /// An event that is fired before an addon processes its Show method.
     /// </summary>
     PreShow,
 
     /// <summary>
-    /// An event that is fired after an addon has processed its show method.
+    /// An event that is fired after an addon has processed its Show method.
     /// </summary>
     PostShow,
 
     /// <summary>
-    /// An event that is fired before an addon processes its hide method.
+    /// An event that is fired before an addon processes its Hide method.
     /// </summary>
     PreHide,
 
     /// <summary>
-    /// An event that is fired after an addon has processed its hide method.
+    /// An event that is fired after an addon has processed its Hide method.
     /// </summary>
     PostHide,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its OnMove method.
+    /// OnMove is triggered only when a move is completed.
+    /// </summary>
+    PreMove,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its OnMove method.
+    /// OnMove is triggered only when a move is completed.
+    /// </summary>
+    PostMove,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its MouseOver method.
+    /// </summary>
+    PreMouseOver,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its MouseOver method.
+    /// </summary>
+    PostMouseOver,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its MouseOut method.
+    /// </summary>
+    PreMouseOut,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its MouseOut method.
+    /// </summary>
+    PostMouseOut,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its Focus method.
+    /// </summary>
+    /// <remarks>
+    /// Be aware this is only called for certain popup windows, it is not triggered when clicking on windows.
+    /// </remarks>
+    PreFocus,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its Focus method.
+    /// </summary>
+    /// <remarks>
+    /// Be aware this is only called for certain popup windows, it is not triggered when clicking on windows.
+    /// </remarks>
+    PostFocus,
 }
