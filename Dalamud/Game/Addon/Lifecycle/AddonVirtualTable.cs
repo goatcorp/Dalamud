@@ -102,10 +102,10 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.closeFunction = this.OnAddonClose;
         this.showFunction = this.OnAddonShow;
         this.hideFunction = this.OnAddonHide;
-        this.onMoveFunction = this.OnMove;
-        this.onMouseOverFunction = this.OnMouseOver;
-        this.onMouseOutFunction = this.OnMouseOut;
-        this.focusFunction = this.OnFocus;
+        this.onMoveFunction = this.OnAddonMove;
+        this.onMouseOverFunction = this.OnAddonMouseOver;
+        this.onMouseOutFunction = this.OnAddonMouseOut;
+        this.focusFunction = this.OnAddonFocus;
 
         // Overwrite specific virtual table entries
         this.modifiedVirtualTable->Dtor = (delegate* unmanaged<AtkUnitBase*, byte, AtkEventListener*>)Marshal.GetFunctionPointerForDelegate(this.destructorFunction);
@@ -409,7 +409,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PostHide, this.hideArgs);
     }
 
-    private void OnMove(AtkUnitBase* thisPtr)
+    private void OnAddonMove(AtkUnitBase* thisPtr)
     {
         this.LogEvent(EnableLogging);
 
@@ -422,13 +422,13 @@ internal unsafe class AddonVirtualTable : IDisposable
         }
         catch (Exception e)
         {
-            Log.Error(e, "Caught exception when calling original OnMove. This may be a bug in the game or another plugin hooking this method.");
+            Log.Error(e, "Caught exception when calling original OnAddonMove. This may be a bug in the game or another plugin hooking this method.");
         }
 
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PostMove, this.onMoveArgs);
     }
 
-    private void OnMouseOver(AtkUnitBase* thisPtr)
+    private void OnAddonMouseOver(AtkUnitBase* thisPtr)
     {
         this.LogEvent(EnableLogging);
 
@@ -441,13 +441,13 @@ internal unsafe class AddonVirtualTable : IDisposable
         }
         catch (Exception e)
         {
-            Log.Error(e, "Caught exception when calling original OnMouseOver. This may be a bug in the game or another plugin hooking this method.");
+            Log.Error(e, "Caught exception when calling original OnAddonMouseOver. This may be a bug in the game or another plugin hooking this method.");
         }
 
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PostMouseOver, this.onMouseOverArgs);
     }
 
-    private void OnMouseOut(AtkUnitBase* thisPtr)
+    private void OnAddonMouseOut(AtkUnitBase* thisPtr)
     {
         this.LogEvent(EnableLogging);
 
@@ -460,13 +460,13 @@ internal unsafe class AddonVirtualTable : IDisposable
         }
         catch (Exception e)
         {
-            Log.Error(e, "Caught exception when calling original OnMouseOut. This may be a bug in the game or another plugin hooking this method.");
+            Log.Error(e, "Caught exception when calling original OnAddonMouseOut. This may be a bug in the game or another plugin hooking this method.");
         }
 
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PostMouseOut, this.onMouseOutArgs);
     }
 
-    private void OnFocus(AtkUnitBase* thisPtr)
+    private void OnAddonFocus(AtkUnitBase* thisPtr)
     {
         this.LogEvent(EnableLogging);
 
@@ -479,7 +479,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         }
         catch (Exception e)
         {
-            Log.Error(e, "Caught exception when calling original OnFocus. This may be a bug in the game or another plugin hooking this method.");
+            Log.Error(e, "Caught exception when calling original OnAddonFocus. This may be a bug in the game or another plugin hooking this method.");
         }
 
         this.lifecycleService.InvokeListenersSafely(AddonEvent.PostFocus, this.focusArgs);
