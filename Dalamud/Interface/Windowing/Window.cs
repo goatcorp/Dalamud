@@ -425,8 +425,17 @@ public abstract class Window
                 UIGlobals.PlaySoundEffect(this.OnOpenSfxId);
         }
 
-        this.PreDraw();
-        this.ApplyConditionals();
+        var isErrorStylePushed = false;
+        if (!this.hasError)
+        {
+            this.PreDraw();
+            this.ApplyConditionals();
+        }
+        else
+        {
+            Style.StyleModelV1.DalamudStandard.Push();
+            isErrorStylePushed = true;
+        }
 
         if (this.ForceMainWindow)
             ImGuiHelpers.ForceNextWindowMainViewport();
@@ -448,10 +457,22 @@ public abstract class Window
         var flags = this.Flags;
 
         if (this.internalIsPinned || this.internalIsClickthrough)
+        {
             flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
+        }
 
         if (this.internalIsClickthrough)
+        {
             flags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs;
+        }
+
+        // If we have an error, reset all flags to default, and unlock window size.
+        if (this.hasError)
+        {
+            flags = ImGuiWindowFlags.None;
+            ImGui.SetNextWindowCollapsed(false, ImGuiCond.Once);
+            ImGui.SetNextWindowSizeConstraints(Vector2.Zero, Vector2.PositiveInfinity);
+        }
 
         if (this.CanShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, flags) : ImGui.Begin(this.WindowName, flags))
         {
@@ -670,7 +691,17 @@ public abstract class Window
                 Task.FromResult<IDalamudTextureWrap>(tex));
         }
 
-        this.PostDraw();
+        if (!this.hasError)
+        {
+            this.PostDraw();
+        }
+        else
+        {
+            if (isErrorStylePushed)
+            {
+                Style.StyleModelV1.DalamudStandard.Pop();
+            }
+        }
 
         this.PostHandlePreset(persistence);
 
