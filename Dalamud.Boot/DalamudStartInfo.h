@@ -44,6 +44,7 @@ struct DalamudStartInfo {
     std::string ConfigurationPath;
     std::string LogPath;
     std::string LogName;
+    std::string TempDirectory;
     std::string PluginDirectory;
     std::string AssetDirectory;
     ClientLanguage Language = ClientLanguage::English;

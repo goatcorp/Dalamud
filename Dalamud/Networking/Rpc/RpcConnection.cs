@@ -1,34 +1,37 @@
-﻿using System.IO.Pipes;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Networking.Rpc.Service;
+
 using Serilog;
+
 using StreamJsonRpc;
 
-namespace Dalamud.Networking.Pipes.Rpc;
+namespace Dalamud.Networking.Rpc;
 
 /// <summary>
-/// A single RPC client session connected via named pipe.
+/// A single RPC client session connected via a stream (named pipe or Unix socket).
 /// </summary>
 internal class RpcConnection : IDisposable
 {
-    private readonly NamedPipeServerStream pipe;
+    private readonly Stream stream;
     private readonly RpcServiceRegistry registry;
     private readonly CancellationTokenSource cts = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RpcConnection"/> class.
     /// </summary>
-    /// <param name="pipe">The named pipe that this connection will handle.</param>
+    /// <param name="stream">The stream that this connection will handle.</param>
     /// <param name="registry">A registry of RPC services.</param>
-    public RpcConnection(NamedPipeServerStream pipe, RpcServiceRegistry registry)
+    public RpcConnection(Stream stream, RpcServiceRegistry registry)
     {
         this.Id = Guid.CreateVersion7();
-        this.pipe = pipe;
+        this.stream = stream;
         this.registry = registry;
 
         var formatter = new JsonMessageFormatter();
-        var handler = new HeaderDelimitedMessageHandler(pipe, pipe, formatter);
+        var handler = new HeaderDelimitedMessageHandler(stream, stream, formatter);
 
         this.Rpc = new JsonRpc(handler);
         this.Rpc.AllowModificationWhileListening = true;
@@ -72,11 +75,11 @@ internal class RpcConnection : IDisposable
 
         try
         {
-            this.pipe.Dispose();
+            this.stream.Dispose();
         }
         catch (Exception ex)
         {
-            Log.Debug(ex, "Error disposing pipe for client {Id}", this.Id);
+            Log.Debug(ex, "Error disposing stream for client {Id}", this.Id);
         }
 
         this.cts.Dispose();

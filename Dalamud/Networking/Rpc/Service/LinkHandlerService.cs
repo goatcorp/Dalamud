@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 
 using Dalamud.Logging.Internal;
-using Dalamud.Networking.Pipes.Rpc;
+using Dalamud.Networking.Rpc.Model;
 using Dalamud.Utility;
 
-namespace Dalamud.Networking.Pipes.Internal;
+namespace Dalamud.Networking.Rpc.Service;
 
 /// <summary>
 /// A service responsible for handling Dalamud URIs and dispatching them accordingly.
