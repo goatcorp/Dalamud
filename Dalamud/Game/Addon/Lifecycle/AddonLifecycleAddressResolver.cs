@@ -1,4 +1,4 @@
-using FFXIVClientStructs.FFXIV.Component.GUI;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Game.Addon.Lifecycle;
 
