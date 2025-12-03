@@ -269,8 +269,20 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
     }
 
     private static bool ValidThirdPartyRepoUrl(string url)
-        => Uri.TryCreate(url, UriKind.Absolute, out var uriResult)
-        && (uriResult.Scheme == Uri.UriSchemeHttps || uriResult.Scheme == Uri.UriSchemeHttp);
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uriResult))
+            return false;
+
+        if (uriResult.Scheme != Uri.UriSchemeHttps && uriResult.Scheme != Uri.UriSchemeHttp)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(uriResult.Host))
+            return false;
+
+        var hostNameType = Uri.CheckHostName(uriResult.Host);
+        return hostNameType != UriHostNameType.Unknown
+               && Uri.IsWellFormedUriString(url, UriKind.Absolute);
+    }
 
     private bool ValidateTempRepoInput()
     {
