@@ -32,4 +32,3 @@ public unsafe partial struct ImColorPtr
 			ImGuiNative.SetHSV(Handle, h, s, v, (float)(1.0f));
 		}
 }
-

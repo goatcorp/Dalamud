@@ -77,10 +77,10 @@ internal unsafe class BattleChara : Character, IBattleChara
     public StatusList StatusList => new(this.Struct->GetStatusManager());
 
     /// <inheritdoc/>
-    public bool IsCasting => this.Struct->GetCastInfo()->IsCasting > 0;
+    public bool IsCasting => this.Struct->GetCastInfo()->IsCasting;
 
     /// <inheritdoc/>
-    public bool IsCastInterruptible => this.Struct->GetCastInfo()->Interruptible > 0;
+    public bool IsCastInterruptible => this.Struct->GetCastInfo()->Interruptible;
 
     /// <inheritdoc/>
     public byte CastActionType => (byte)this.Struct->GetCastInfo()->ActionType;

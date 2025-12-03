@@ -118,6 +118,7 @@ public class SeString
     /// </summary>
     /// <param name="str">string to convert.</param>
     /// <returns>Equivalent SeString.</returns>
+    [Obsolete("Switch to using ReadOnlySeString instead of Lumina's SeString.", true)]
     public static explicit operator SeString(Lumina.Text.SeString str) => str.ToDalamudString();
 
     /// <summary>

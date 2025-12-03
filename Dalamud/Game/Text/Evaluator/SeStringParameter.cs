@@ -71,9 +71,12 @@ public readonly struct SeStringParameter
 
     public static implicit operator SeStringParameter(ReadOnlySeStringSpan value) => new(new ReadOnlySeString(value));
 
+    [Obsolete("Switch to using ReadOnlySeString instead of Lumina's SeString.", true)]
     public static implicit operator SeStringParameter(LSeString value) => new(new ReadOnlySeString(value.RawData));
 
     public static implicit operator SeStringParameter(DSeString value) => new(new ReadOnlySeString(value.Encode()));
 
     public static implicit operator SeStringParameter(string value) => new(value);
+
+    public static implicit operator SeStringParameter(ReadOnlySpan<byte> value) => new(value);
 }

@@ -16,4 +16,3 @@ public unsafe partial struct ImFontConfigPtr
 			ImGuiNative.Destroy(Handle);
 		}
 }
-

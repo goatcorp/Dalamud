@@ -451,14 +451,14 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             case ContextMenuType.Default:
                 {
                     var ownerAddonId = ((AgentContext*)this.SelectedAgent)->OwnerAddon;
-                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, this.SelectedAgent, 71, checked((ushort)ownerAddonId), 4);
+                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 71, checked((ushort)ownerAddonId), 4);
                     break;
                 }
 
             case ContextMenuType.Inventory:
                 {
                     var ownerAddonId = ((AgentInventoryContext*)this.SelectedAgent)->OwnerAddonId;
-                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, this.SelectedAgent, 0, checked((ushort)ownerAddonId), 4);
+                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 0, checked((ushort)ownerAddonId), 4);
                     break;
                 }
 

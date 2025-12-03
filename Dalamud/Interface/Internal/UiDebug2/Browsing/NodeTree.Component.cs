@@ -90,9 +90,9 @@ internal unsafe class ComponentNodeTree : ResNodeTree
             case TextInput:
                 var textInputComponent = (AtkComponentTextInput*)this.Component;
                 ImGui.Text(
-                    $"InputBase Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.UnkText1.StringPtr))}");
+                    $"InputBase Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.EvaluatedString.StringPtr))}");
                 ImGui.Text(
-                    $"InputBase Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.UnkText2.StringPtr))}");
+                    $"InputBase Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.RawString.StringPtr))}");
                 ImGui.Text(
                     $"Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText01.StringPtr))}");
                 ImGui.Text(

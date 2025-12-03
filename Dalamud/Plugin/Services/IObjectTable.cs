@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 
 namespace Dalamud.Plugin.Services;
@@ -7,7 +8,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This collection represents the currently spawned FFXIV game objects.
 /// </summary>
-public interface IObjectTable : IEnumerable<IGameObject>
+public interface IObjectTable : IDalamudService, IEnumerable<IGameObject>
 {
     /// <summary>
     /// Gets the address of the object table.
@@ -18,6 +19,11 @@ public interface IObjectTable : IEnumerable<IGameObject>
     /// Gets the length of the object table.
     /// </summary>
     public int Length { get; }
+
+    /// <summary>
+    /// Gets the local player character, if one is present.
+    /// </summary>
+    public IPlayerCharacter? LocalPlayer { get; }
 
     /// <summary>
     /// Gets an enumerator for accessing player objects. This will only contain BattleChara objects.

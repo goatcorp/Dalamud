@@ -73,4 +73,3 @@ public unsafe partial struct ImFontGlyphRangesBuilder
 		}
 }
 // DISCARDED: AddText
-

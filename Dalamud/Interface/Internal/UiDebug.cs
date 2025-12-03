@@ -243,8 +243,6 @@ internal unsafe class UiDebug
                     ImGui.Text($"BGColor: #{textNode->BackgroundColor.R:X2}{textNode->BackgroundColor.G:X2}{textNode->BackgroundColor.B:X2}{textNode->BackgroundColor.A:X2}");
 
                     ImGui.Text($"TextFlags: {textNode->TextFlags}");
-                    ImGui.SameLine();
-                    ImGui.Text($"TextFlags2: {textNode->TextFlags2}");
 
                     break;
                 case NodeType.Counter:
@@ -416,11 +414,11 @@ internal unsafe class UiDebug
                     var textInputComponent = (AtkComponentTextInput*)compNode->Component;
                     ImGui.Text("InputBase Text1: "u8);
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText1);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.EvaluatedString);
 
                     ImGui.Text("InputBase Text2: "u8);
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText2);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.RawString);
 
                     ImGui.Text("Text1: "u8);
                     ImGui.SameLine();

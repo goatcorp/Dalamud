@@ -10,19 +10,24 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     /// <summary>
     /// Gets the address of the keyboard state.
     /// </summary>
-    public IntPtr KeyboardState { get; private set; }
+    public nint KeyboardState { get; private set; }
 
     /// <summary>
     /// Gets the address of the keyboard state index array which translates the VK enumeration to the key state.
     /// </summary>
-    public IntPtr KeyboardStateIndexArray { get; private set; }
+    public nint KeyboardStateIndexArray { get; private set; }
 
     // Functions
 
     /// <summary>
-    /// Gets the address of the method which sets up the player.
+    /// Gets the address of the method that handles the ZoneInit packet.
     /// </summary>
-    public IntPtr ProcessPacketPlayerSetup { get; private set; }
+    public nint HandleZoneInitPacket { get; private set; }
+
+    /// <summary>
+    /// Gets the address of the method that sets the current public instance.
+    /// </summary>
+    public nint SetCurrentInstance { get; private set; }
 
     /// <summary>
     /// Scan for and setup any configured address pointers.
@@ -30,7 +35,8 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     /// <param name="sig">The signature scanner to facilitate setup.</param>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.ProcessPacketPlayerSetup = sig.ScanText("40 53 48 83 EC 20 48 8D 0D ?? ?? ?? ?? 48 8B DA E8 ?? ?? ?? ?? 48 8B D3"); // not in cs struct
+        this.HandleZoneInitPacket = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 45");
+        this.SetCurrentInstance = sig.ScanText("E8 ?? ?? ?? ?? 0F B6 55 ?? 48 8D 0D ?? ?? ?? ?? C0 EA"); // NetworkModuleProxy.SetCurrentInstance
 
         // These resolve to fixed offsets only, without the base address added in, so GetStaticAddressFromSig() can't be used.
         // lea   rcx, ds:1DB9F74h[rax*4]          KeyboardState

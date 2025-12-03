@@ -302,8 +302,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         this.profileManagerWidget.Reset();
 
-        var config = Service<DalamudConfiguration>.Get();
-        if (this.staleDalamudNewVersion == null && !config.DalamudBetaKind.IsNullOrEmpty())
+        if (this.staleDalamudNewVersion == null && !Util.GetActiveTrack().IsNullOrEmpty())
         {
             Service<DalamudReleases>.Get().GetVersionForCurrentTrack().ContinueWith(t =>
             {
@@ -311,10 +310,10 @@ internal class PluginInstallerWindow : Window, IDisposable
                     return;
 
                 var versionInfo = t.Result;
-                if (versionInfo.AssemblyVersion != Util.GetScmVersion() &&
-                    versionInfo.Track != "release" &&
-                    string.Equals(versionInfo.Key, config.DalamudBetaKey, StringComparison.OrdinalIgnoreCase))
+                if (versionInfo.AssemblyVersion != Util.GetScmVersion())
+                {
                     this.staleDalamudNewVersion = versionInfo.AssemblyVersion;
+                }
             });
         }
     }
@@ -2076,9 +2075,17 @@ internal class PluginInstallerWindow : Window, IDisposable
         var isOpen = this.openPluginCollapsibles.Contains(index);
 
         var sectionSize = ImGuiHelpers.GlobalScale * 66;
-        var tapeCursor = ImGui.GetCursorPos();
 
         ImGui.Separator();
+
+        var childId = $"plugin_child_{label}_{plugin?.EffectiveWorkingPluginId}_{manifest.InternalName}";
+        const ImGuiWindowFlags childFlags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+
+        using var pluginChild = ImRaii.Child(childId, new Vector2(ImGui.GetContentRegionAvail().X, sectionSize), false, childFlags);
+        if (!pluginChild)
+        {
+            return isOpen;
+        }
 
         var startCursor = ImGui.GetCursorPos();
 
@@ -2115,7 +2122,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
             }
 
-            DrawCautionTape(tapeCursor + new Vector2(0, 1), new Vector2(ImGui.GetWindowWidth(), sectionSize + ImGui.GetStyle().ItemSpacing.Y), ImGuiHelpers.GlobalScale * 40, 20);
+            DrawCautionTape(startCursor + new Vector2(0, 1), new Vector2(ImGui.GetWindowWidth(), sectionSize + ImGui.GetStyle().ItemSpacing.Y), ImGuiHelpers.GlobalScale * 40, 20);
         }
 
         ImGui.PushStyleColor(ImGuiCol.Button, isOpen ? new Vector4(0.5f, 0.5f, 0.5f, 0.1f) : Vector4.Zero);
@@ -2124,7 +2131,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.5f, 0.5f, 0.5f, 0.35f));
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
 
-        ImGui.SetCursorPos(tapeCursor);
+        ImGui.SetCursorPos(startCursor);
 
         if (ImGui.Button($"###plugin{index}CollapsibleBtn", new Vector2(ImGui.GetContentRegionAvail().X, sectionSize + ImGui.GetStyle().ItemSpacing.Y)))
         {
@@ -2446,10 +2453,11 @@ internal class PluginInstallerWindow : Window, IDisposable
         var configuration = Service<DalamudConfiguration>.Get();
         var pluginManager = Service<PluginManager>.Get();
 
+        var canUseTesting = pluginManager.CanUseTesting(manifest);
         var useTesting = pluginManager.UseTesting(manifest);
         var wasSeen = this.WasPluginSeen(manifest.InternalName);
 
-        var effectiveApiLevel = useTesting && manifest.TestingDalamudApiLevel != null ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
+        var effectiveApiLevel = useTesting ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
         var isOutdated = effectiveApiLevel < PluginManager.DalamudApiLevel;
 
         var isIncompatible = manifest.MinimumDalamudVersion != null &&
@@ -2479,7 +2487,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             label += Locs.PluginTitleMod_TestingExclusive;
         }
-        else if (configuration.DoPluginTest && PluginManager.HasTestingVersion(manifest))
+        else if (canUseTesting)
         {
             label += Locs.PluginTitleMod_TestingAvailable;
         }
@@ -2585,8 +2593,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var configuration = Service<DalamudConfiguration>.Get();
         var pluginManager = Service<PluginManager>.Get();
 
-        var hasTestingVersionAvailable = configuration.DoPluginTest &&
-                                         PluginManager.HasTestingVersion(manifest);
+        var hasTestingVersionAvailable = configuration.DoPluginTest && manifest.IsAvailableForTesting;
 
         if (ImGui.BeginPopupContextItem("ItemContextMenu"u8))
         {
@@ -2681,8 +2688,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             label += Locs.PluginTitleMod_TestingVersion;
         }
 
-        var hasTestingAvailable = this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName &&
-                                                                               x.IsAvailableForTesting);
+        var hasTestingAvailable = this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName && x.IsAvailableForTesting);
         if (hasTestingAvailable && configuration.DoPluginTest && testingOptIn == null)
         {
             label += Locs.PluginTitleMod_TestingAvailable;
@@ -3776,16 +3782,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private bool IsManifestFiltered(IPluginManifest manifest)
     {
-        var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
-        var oldApi = (manifest.TestingDalamudApiLevel == null
-                            || manifest.TestingDalamudApiLevel < PluginManager.DalamudApiLevel)
-                          && manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
-        var installed = this.IsManifestInstalled(manifest).IsInstalled;
-
-        if (oldApi && !hasSearchString && !installed)
-            return true;
-
-        if (!hasSearchString)
+        if (string.IsNullOrWhiteSpace(this.searchText))
             return false;
 
         return this.GetManifestSearchScore(manifest) < 1;

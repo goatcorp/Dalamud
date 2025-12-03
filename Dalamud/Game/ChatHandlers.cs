@@ -77,7 +77,7 @@ internal partial class ChatHandlers : IServiceType
         }
 
         // For injections while logged in
-        if (clientState.LocalPlayer != null && clientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
+        if (clientState.IsLoggedIn && clientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
             this.PrintWelcomeMessage();
 
 #if !DEBUG && false
@@ -124,11 +124,11 @@ internal partial class ChatHandlers : IServiceType
             var updateMessage = new SeStringBuilder()
                 .AddText(Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully!"))
                 .AddUiForeground(500)
-                .AddText("  [")
+                .AddText("  [ ")
                 .Add(linkPayload)
-                .AddText(Loc.Localize("DalamudClickToViewChangelogs", " Click here to view the changelog."))
+                .AddText(Loc.Localize("DalamudClickToViewChangelogs", "Click here to view the changelog."))
                 .Add(RawPayload.LinkTerminator)
-                .AddText("]")
+                .AddText(" ]")
                 .AddUiForegroundOff();
 
             chatGui.Print(new XivChatEntry

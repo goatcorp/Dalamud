@@ -18,6 +18,7 @@ using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.ImGuiBackend;
+using Dalamud.Interface.ImGuiBackend.Delegates;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Asserts;
@@ -128,7 +129,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// <summary>
     /// This event gets called each frame to facilitate ImGui drawing.
     /// </summary>
-    public event IImGuiBackend.BuildUiDelegate? Draw;
+    public event ImGuiBuildUiDelegate? Draw;
 
     /// <summary>
     /// This event gets called when ResizeBuffers is called.
@@ -518,15 +519,15 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     /// <summary> Safely invoke <seealso cref="DefaultGlobalScaleChanged"/>. </summary>
     internal void InvokeGlobalScaleChanged()
-        => DefaultGlobalScaleChanged.InvokeSafely();
+        => this.DefaultGlobalScaleChanged.InvokeSafely();
 
     /// <summary> Safely invoke <seealso cref="DefaultFontChanged"/>. </summary>
     internal void InvokeFontChanged()
-        => DefaultFontChanged.InvokeSafely();
+        => this.DefaultFontChanged.InvokeSafely();
 
     /// <summary> Safely invoke <seealso cref="DefaultStyleChanged"/>. </summary>
     internal void InvokeStyleChanged()
-        => DefaultStyleChanged.InvokeSafely();
+        => this.DefaultStyleChanged.InvokeSafely();
 
     private static InterfaceManager WhenFontsReady()
     {
@@ -633,29 +634,6 @@ internal partial class InterfaceManager : IInternalDisposableService
             {
                 Service<InterfaceManagerWithScene>.ProvideException(ex);
                 Log.Error(ex, "Could not load ImGui dependencies.");
-
-                fixed (void* lpText =
-                           "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?")
-                {
-                    fixed (void* lpCaption = "Dalamud Error")
-                    {
-                        var res = MessageBoxW(
-                            default,
-                            (ushort*)lpText,
-                            (ushort*)lpCaption,
-                            MB.MB_YESNO | MB.MB_TOPMOST | MB.MB_ICONERROR);
-
-                        if (res == IDYES)
-                        {
-                            var psi = new ProcessStartInfo
-                            {
-                                FileName = "https://aka.ms/vs/16/release/vc_redist.x64.exe",
-                                UseShellExecute = true,
-                            };
-                            Process.Start(psi);
-                        }
-                    }
-                }
 
                 Environment.Exit(-1);
 
@@ -1197,6 +1175,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         WindowSystem.HasAnyWindowSystemFocus = false;
         WindowSystem.FocusedWindowSystemNamespace = string.Empty;
+        WindowSystem.ShouldInhibitAtkCloseEvents = false;
 
         if (this.IsDispatchingEvents)
         {

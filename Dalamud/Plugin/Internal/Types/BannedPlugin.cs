@@ -17,7 +17,7 @@ internal struct BannedPlugin
     /// Gets plugin assembly version.
     /// </summary>
     [JsonProperty]
-    public Version AssemblyVersion { get; private set; }
+    public Version? AssemblyVersion { get; private set; }
 
     /// <summary>
     /// Gets reason for the ban.

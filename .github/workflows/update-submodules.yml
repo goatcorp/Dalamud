@@ -1,16 +1,26 @@
-name: Check for FFXIVCS changes
+name: Check for Submodule Changes
 on: 
   schedule:
-    - cron: "0 0,12,18 */1 * *"
+    - cron: "0 0,6,12,18 * * *"
   workflow_dispatch:
 
 jobs:
   check:
-    name: FFXIVCS Check
+    name: Check ${{ matrix.submodule.name }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         branches: [master]
+        submodule:
+          - name: ClientStructs
+            path: lib/FFXIVClientStructs
+            branch: main
+            branch-prefix: csupdate
+          - name: Excel Schema
+            path: lib/Lumina.Excel
+            branch: master
+            branch-prefix: schemaupdate
 
     defaults: 
       run:
@@ -24,30 +34,41 @@ jobs:
         ref: ${{ matrix.branches }}
         token: ${{ secrets.UPDATE_PAT }}
     - name: Create update branch
-      run: git checkout -b csupdate/${{ matrix.branches }}
+      run: git checkout -b ${{ matrix.submodule.branch-prefix }}/${{ matrix.branches }}
     - name: Initialize mandatory git config
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email noreply@github.com
         git config --global pull.rebase false
     - name: Update submodule
+      id: update-submodule
       run: |
-        git checkout -b csupdate-${{ matrix.branches }}
+        git checkout -b ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }}
         git reset --hard origin/${{ matrix.branches }}
-        cd lib/FFXIVClientStructs
+        cd ${{ matrix.submodule.path }}
         git fetch
-        git reset --hard origin/main
+        git reset --hard origin/${{ matrix.submodule.branch }}
         cd ../..
-        git add lib/FFXIVClientStructs
-        git commit --message "Update ClientStructs"
-        git push origin csupdate-${{ matrix.branches }} --force
+        git add ${{ matrix.submodule.path }}
+
+        if [[ -z "$(git status --porcelain --untracked-files=no)" ]]; then   
+          echo "No changes detected!"
+          echo "SUBMIT_PR=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        
+        git commit --message "Update ${{ matrix.submodule.name }}"
+        git push origin ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --force
+        echo "SUBMIT_PR=true" >> "$GITHUB_OUTPUT"
+        
     - name: Create PR
+      if: ${{ steps.update-submodule.outputs.SUBMIT_PR == 'true' }}
       run: |
         echo ${{ secrets.UPDATE_PAT }} | gh auth login --with-token
-        prNumber=$(gh pr list --base ${{ matrix.branches }} --head csupdate-${{ matrix.branches }} --state open --json number --template "{{range .}}{{.number}}{{end}}")
+        prNumber=$(gh pr list --base ${{ matrix.branches }} --head ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --state open --json number --template "{{range .}}{{.number}}{{end}}")
         if [ -z "$prNumber" ]; then
           echo "No PR found, creating one"
-          gh pr create --head csupdate-${{ matrix.branches }} --title "[${{ matrix.branches }}] Update ClientStructs" --body "" --base ${{ matrix.branches }}
+          gh pr create --head ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --title "[${{ matrix.branches }}] Update ${{ matrix.submodule.name }}" --body "" --base ${{ matrix.branches }}
         else
           echo "PR already exists, ignoring"
         fi

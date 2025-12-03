@@ -27,8 +27,8 @@ public static unsafe partial class ImGuiP
                 scaleMin,
                 scaleMax,
                 frameSize);
-            label.Dispose();
-            overlayText.Dispose();
+            label.Recycle();
+            overlayText.Recycle();
             return r;
         }
     }
@@ -59,8 +59,8 @@ public static unsafe partial class ImGuiP
                 scaleMin,
                 scaleMax,
                 frameSize);
-            label.Dispose();
-            overlayText.Dispose();
+            label.Recycle();
+            overlayText.Recycle();
             return r;
         }
     }
@@ -69,7 +69,7 @@ public static unsafe partial class ImGuiP
         ImGuiPlotType plotType, ImU8String label, ImGui.GetFloatRefContextDelegate<TContext> valuesGetter,
         scoped in TContext context,
         int valuesCount, int valuesOffset, ImU8String overlayText, float scaleMin, float scaleMax, Vector2 frameSize)
-        where TContext: allows ref struct
+        where TContext : allows ref struct
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (byte* overlayTextPtr = &overlayText.GetPinnableNullTerminatedReference())
@@ -91,8 +91,8 @@ public static unsafe partial class ImGuiP
                 scaleMin,
                 scaleMax,
                 frameSize);
-            label.Dispose();
-            overlayText.Dispose();
+            label.Recycle();
+            overlayText.Recycle();
             return r;
         }
     }

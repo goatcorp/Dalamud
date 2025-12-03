@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Interface;
 using Dalamud.Interface.Textures;
@@ -8,7 +8,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Interface for class responsible for managing elements in the title screen menu.
 /// </summary>
-public interface ITitleScreenMenu
+public interface ITitleScreenMenu : IDalamudService
 {
     /// <summary>
     /// Gets the list of read only entries in the title screen menu.

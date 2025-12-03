@@ -1,6 +1,7 @@
 using System.Numerics;
 
 using Dalamud.Data;
+using Dalamud.Game.Player;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 
@@ -150,15 +151,11 @@ internal unsafe partial class Fate
     /// <returns>True or false.</returns>
     public static bool IsValid(Fate fate)
     {
-        var clientState = Service<ClientState>.GetNullable();
-
-        if (fate == null || clientState == null)
+        if (fate == null)
             return false;
 
-        if (clientState.LocalContentId == 0)
-            return false;
-
-        return true;
+        var playerState = Service<PlayerState>.Get();
+        return playerState.IsLoaded == true;
     }
 
     /// <summary>

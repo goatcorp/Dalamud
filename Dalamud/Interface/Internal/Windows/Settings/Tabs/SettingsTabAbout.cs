@@ -20,7 +20,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-public class SettingsTabAbout : SettingsTab
+internal sealed class SettingsTabAbout : SettingsTab
 {
     private const float CreditFps = 60.0f;
     private const string ThankYouText = "Thank you!";
@@ -209,9 +209,11 @@ Contribute at: https://github.com/goatcorp/Dalamud
                             .CreateFontAtlas(nameof(SettingsTabAbout), FontAtlasAutoRebuildMode.Async);
     }
 
-    public override SettingsEntry[] Entries { get; } = { };
-
     public override string Title => Loc.Localize("DalamudAbout", "About");
+
+    public override SettingsOpenKind Kind => SettingsOpenKind.About;
+
+    public override SettingsEntry[] Entries { get; } = [];
 
     /// <inheritdoc/>
     public override unsafe void OnOpen()
@@ -287,7 +289,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
             var windowX = ImGui.GetWindowSize().X;
 
-            foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+            foreach (var creditsLine in this.creditsText.Split(["\r\n", "\r", "\n"], StringSplitOptions.None))
             {
                 var lineLenX = ImGui.CalcTextSize(creditsLine).X;
 

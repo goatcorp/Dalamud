@@ -2,10 +2,8 @@ using System.Collections.Generic;
 
 namespace Dalamud.Plugin;
 
-/// <summary>
-/// Contains data about changes to the list of active plugins.
-/// </summary>
-public class ActivePluginsChangedEventArgs : EventArgs
+/// <inheritdoc cref="IActivePluginsChangedEventArgs" />
+public class ActivePluginsChangedEventArgs : EventArgs, IActivePluginsChangedEventArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ActivePluginsChangedEventArgs"/> class
@@ -19,13 +17,9 @@ public class ActivePluginsChangedEventArgs : EventArgs
         this.AffectedInternalNames = affectedInternalNames;
     }
 
-    /// <summary>
-    /// Gets the invalidation kind that caused this event to be fired.
-    /// </summary>
+    /// <inheritdoc/>
     public PluginListInvalidationKind Kind { get; }
 
-    /// <summary>
-    /// Gets the InternalNames of affected plugins.
-    /// </summary>
+    /// <inheritdoc/>
     public IEnumerable<string> AffectedInternalNames { get; }
 }

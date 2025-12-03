@@ -33,6 +33,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.SelfTest.Internal;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
@@ -103,7 +104,8 @@ internal class DalamudInterface : IInternalDisposableService
         TitleScreenMenu titleScreenMenu,
         GameGui gameGui,
         ConsoleManager consoleManager,
-        AddonLifecycle addonLifecycle)
+        AddonLifecycle addonLifecycle,
+        SelfTestRegistry selfTestRegistry)
     {
         this.dalamud = dalamud;
         this.configuration = configuration;
@@ -119,7 +121,7 @@ internal class DalamudInterface : IInternalDisposableService
         this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
         this.pluginWindow = new PluginInstallerWindow(pluginImageCache, configuration) { IsOpen = false };
         this.settingsWindow = new SettingsWindow() { IsOpen = false };
-        this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
+        this.selfTestWindow = new SelfTestWindow(selfTestRegistry) { IsOpen = false };
         this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
         this.titleScreenMenuWindow = new TitleScreenMenuWindow(
             clientState,
@@ -180,7 +182,7 @@ internal class DalamudInterface : IInternalDisposableService
                     () => Service<DalamudInterface>.GetNullable()?.ToggleDevMenu(),
                     VirtualKey.SHIFT);
 
-                if (!configuration.DalamudBetaKind.IsNullOrEmpty())
+                if (Util.GetActiveTrack() != "release")
                 {
                     titleScreenMenu.AddEntryCore(
                         Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
@@ -582,16 +584,6 @@ internal class DalamudInterface : IInternalDisposableService
 
             if (this.isCreditsDarkening)
                 this.DrawCreditsDarkeningAnimation();
-
-            // Release focus of any ImGui window if we click into the game.
-            var io = ImGui.GetIO();
-            if (!io.WantCaptureMouse && (global::Windows.Win32.PInvoke.GetKeyState((int)VirtualKey.LBUTTON) & 0x8000) != 0)
-            {
-                unsafe
-                {
-                    ImGui.SetWindowFocus((byte*)null);
-                }
-            }
         }
         catch (Exception ex)
         {
@@ -863,9 +855,9 @@ internal class DalamudInterface : IInternalDisposableService
                         this.OpenBranchSwitcher();
                     }
 
-                    ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false);
-                    ImGui.MenuItem($"D: {Util.GetScmVersion()} CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false);
-                    ImGui.MenuItem($"CLR: {Environment.Version}", false);
+                    ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false, false);
+                    ImGui.MenuItem($"D: {Util.GetScmVersion()} CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false, false);
+                    ImGui.MenuItem($"CLR: {Environment.Version}", false, false);
 
                     ImGui.EndMenu();
                 }
@@ -1028,8 +1020,8 @@ internal class DalamudInterface : IInternalDisposableService
                     }
 
                     ImGui.Separator();
-                    ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false);
-                    ImGui.MenuItem("Loaded plugins:" + pluginManager.InstalledPlugins.Count(), false);
+                    ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false, false);
+                    ImGui.MenuItem("Loaded plugins:" + pluginManager.InstalledPlugins.Count(), false, false);
                     ImGui.EndMenu();
                 }
 
@@ -1075,7 +1067,8 @@ internal class DalamudInterface : IInternalDisposableService
                 {
                     ImGui.PushFont(InterfaceManager.MonoFont);
 
-                    ImGui.BeginMenu(Util.GetScmVersion(), false);
+                    ImGui.BeginMenu($"{Util.GetActiveTrack() ?? "???"} on {Util.GetGitBranch() ?? "???"}", false);
+                    ImGui.BeginMenu($"{Util.GetScmVersion()}", false);
                     ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
                     ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);

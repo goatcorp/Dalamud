@@ -8,7 +8,7 @@ using System.Text.Unicode;
 namespace Dalamud.Bindings.ImGui;
 
 [InterpolatedStringHandler]
-public ref struct ImU8String : IDisposable
+public ref struct ImU8String
 {
     public const int AllocFreeBufferSize = 512;
     private const int MinimumRentSize = AllocFreeBufferSize * 2;
@@ -35,7 +35,7 @@ public ref struct ImU8String : IDisposable
     }
 
     public ImU8String(int literalLength, int formattedCount)
-        : this(ReadOnlySpan<byte>.Empty)
+        : this(""u8)
     {
         this.state |= State.Interpolation;
         literalLength += formattedCount * 4;
@@ -51,6 +51,12 @@ public ref struct ImU8String : IDisposable
     public ImU8String(ReadOnlySpan<byte> text, bool ensureNullTermination = false)
         : this()
     {
+        if (Unsafe.IsNullRef(in MemoryMarshal.GetReference(text)))
+        {
+            this.state = State.None;
+            return;
+        }
+
         this.state = State.Initialized;
         if (text.IsEmpty)
         {
@@ -82,6 +88,12 @@ public ref struct ImU8String : IDisposable
     public ImU8String(ReadOnlySpan<char> text)
         : this()
     {
+        if (Unsafe.IsNullRef(in MemoryMarshal.GetReference(text)))
+        {
+            this.state = State.None;
+            return;
+        }
+
         this.state = State.Initialized | State.NullTerminated;
         this.Length = Encoding.UTF8.GetByteCount(text);
         if (this.Length + 1 < AllocFreeBufferSize)
@@ -169,6 +181,28 @@ public ref struct ImU8String : IDisposable
     public static unsafe implicit operator ImU8String(byte* text) => new(text);
     public static unsafe implicit operator ImU8String(char* text) => new(text);
 
+    public ref readonly byte GetPinnableReference()
+    {
+        if (this.IsNull)
+            return ref Unsafe.NullRef<byte>();
+
+        if (this.IsEmpty)
+            return ref this.FixedBufferSpan[0];
+
+        return ref this.Span.GetPinnableReference();
+    }
+
+    public ref readonly byte GetPinnableReference(ReadOnlySpan<byte> defaultValue)
+    {
+        if (this.IsNull)
+            return ref defaultValue.GetPinnableReference();
+
+        if (this.IsEmpty)
+            return ref this.FixedBufferSpan[0];
+
+        return ref this.Span.GetPinnableReference();
+    }
+
     public ref readonly byte GetPinnableNullTerminatedReference(ReadOnlySpan<byte> defaultValue = default)
     {
         if (this.IsNull)
@@ -213,7 +247,7 @@ public ref struct ImU8String : IDisposable
         this.externalFirstByte = ref Unsafe.NullRef<byte>();
     }
 
-    public void Dispose()
+    public void Recycle()
     {
         if (this.rentedBuffer is { } buf)
         {
@@ -226,7 +260,7 @@ public ref struct ImU8String : IDisposable
     {
         if (!this.IsNull)
         {
-            other.Dispose();
+            other.Recycle();
             var res = this;
             this = default;
             return res;
@@ -267,7 +301,7 @@ public ref struct ImU8String : IDisposable
     {
         var startingPos = this.Length;
         this.AppendFormatted(value, format);
-        FixAlignment(startingPos, alignment);
+        this.FixAlignment(startingPos, alignment);
     }
 
     public void AppendFormatted(ReadOnlySpan<char> value) => this.AppendFormatted(value, null);
@@ -288,8 +322,14 @@ public ref struct ImU8String : IDisposable
     {
         var startingPos = this.Length;
         this.AppendFormatted(value, format);
-        FixAlignment(startingPos, alignment);
+        this.FixAlignment(startingPos, alignment);
     }
+
+    public void AppendFormatted(object? value) => this.AppendFormatted<object>(value!);
+    public void AppendFormatted(object? value, string? format) => this.AppendFormatted<object>(value!, format);
+    public void AppendFormatted(object? value, int alignment) => this.AppendFormatted<object>(value!, alignment);
+    public void AppendFormatted(object? value, int alignment, string? format) =>
+        this.AppendFormatted<object>(value!, alignment, format);
 
     public void AppendFormatted<T>(T value) => this.AppendFormatted(value, null);
 
@@ -318,13 +358,13 @@ public ref struct ImU8String : IDisposable
     {
         var startingPos = this.Length;
         this.AppendFormatted(value, format);
-        FixAlignment(startingPos, alignment);
+        this.FixAlignment(startingPos, alignment);
     }
 
     public void Reserve(int length)
     {
         if (length >= AllocFreeBufferSize)
-            IncreaseBuffer(out _, length);
+            this.IncreaseBuffer(out _, length);
     }
 
     private void FixAlignment(int startingPos, int alignment)

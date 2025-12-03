@@ -2,7 +2,7 @@ using System.Linq;
 
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Interface.Utility;
-
+using Dalamud.Plugin.SelfTest;
 using Lumina.Text.Payloads;
 
 using LSeStringBuilder = Lumina.Text.SeStringBuilder;

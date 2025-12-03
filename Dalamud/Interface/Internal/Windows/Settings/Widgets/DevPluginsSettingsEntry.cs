@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
@@ -15,13 +16,14 @@ using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-public class DevPluginsSettingsEntry : SettingsEntry
+internal sealed class DevPluginsSettingsEntry : SettingsEntry
 {
-    private List<DevPluginLocationSettings> devPluginLocations = new();
+    private List<DevPluginLocationSettings> devPluginLocations = [];
     private bool devPluginLocationsChanged;
     private string devPluginTempLocation = string.Empty;
     private string devPluginLocationAddError = string.Empty;
@@ -29,25 +31,25 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
     public DevPluginsSettingsEntry()
     {
-        this.Name = Loc.Localize("DalamudSettingsDevPluginLocation", "Dev Plugin Locations");
+        this.Name = LazyLoc.Localize("DalamudSettingsDevPluginLocation", "Dev Plugin Locations");
     }
 
     public override void OnClose()
     {
         this.devPluginLocations =
-            Service<DalamudConfiguration>.Get().DevPluginLoadLocations.Select(x => x.Clone()).ToList();
+            [.. Service<DalamudConfiguration>.Get().DevPluginLoadLocations.Select(x => x.Clone())];
     }
 
     public override void Load()
     {
         this.devPluginLocations =
-            Service<DalamudConfiguration>.Get().DevPluginLoadLocations.Select(x => x.Clone()).ToList();
+            [.. Service<DalamudConfiguration>.Get().DevPluginLoadLocations.Select(x => x.Clone())];
         this.devPluginLocationsChanged = false;
     }
 
     public override void Save()
     {
-        Service<DalamudConfiguration>.Get().DevPluginLoadLocations = this.devPluginLocations.Select(x => x.Clone()).ToList();
+        Service<DalamudConfiguration>.Get().DevPluginLoadLocations = [.. this.devPluginLocations.Select(x => x.Clone())];
 
         if (this.devPluginLocationsChanged)
         {
@@ -59,7 +61,9 @@ public class DevPluginsSettingsEntry : SettingsEntry
     public override void Draw()
     {
         using var id = ImRaii.PushId("devPluginLocation"u8);
+
         ImGui.Text(this.Name);
+
         if (this.devPluginLocationsChanged)
         {
             using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))

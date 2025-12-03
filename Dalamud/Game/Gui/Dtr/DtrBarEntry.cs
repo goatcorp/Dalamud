@@ -1,4 +1,6 @@
-﻿using Dalamud.Configuration.Internal;
+﻿using System.Numerics;
+
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Addon.Events.EventDataTypes;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Internal.Types;
@@ -43,6 +45,16 @@ public interface IReadOnlyDtrBarEntry
     /// Gets a value indicating whether the user has hidden this entry from view through the Dalamud settings.
     /// </summary>
     public bool UserHidden { get; }
+
+    /// <summary>
+    /// Gets an action to be invoked when the user clicks on the dtr entry.
+    /// </summary>
+    public Action<DtrInteractionEvent>? OnClick { get; }
+
+    /// <summary>
+    /// Gets the axis-aligned bounding box of this entry, in screen coordinates.
+    /// </summary>
+    public (Vector2 Min, Vector2 Max) ScreenBounds { get; }
 }
 
 /// <summary>
@@ -68,7 +80,7 @@ public interface IDtrBarEntry : IReadOnlyDtrBarEntry
     /// <summary>
     /// Gets or sets an action to be invoked when the user clicks on the dtr entry.
     /// </summary>
-    public Action<AddonMouseEventData>? OnClick { get; set; }
+    public new Action<DtrInteractionEvent>? OnClick { get; set; }
 
     /// <summary>
     /// Remove this entry from the bar.
@@ -118,7 +130,7 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     public SeString? Tooltip { get; set; }
 
     /// <inheritdoc/>
-    public Action<AddonMouseEventData>? OnClick { get; set; }
+    public Action<DtrInteractionEvent>? OnClick { get; set; }
 
     /// <inheritdoc/>
     public bool HasClickAction => this.OnClick != null;
@@ -140,6 +152,17 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     /// <inheritdoc/>
     [Api13ToDo("Maybe make this config scoped to internal name?")]
     public bool UserHidden => this.configuration.DtrIgnore?.Contains(this.Title) ?? false;
+
+    /// <inheritdoc/>
+    public (Vector2 Min, Vector2 Max) ScreenBounds
+        => this.TextNode switch
+        {
+            null => default,
+            var node => node->IsVisible()
+                            ? (new(node->ScreenX, node->ScreenY),
+                                  new(node->ScreenX + node->GetWidth(), node->ScreenY + node->GetHeight()))
+                            : default,
+        };
 
     /// <summary>
     /// Gets or sets the internal text node of this entry.

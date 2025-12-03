@@ -12,4 +12,3 @@ namespace Dalamud.Bindings.ImGui;
 public unsafe partial struct ImDrawListPtrPtr
 {
 }
-

@@ -6,7 +6,7 @@
 
     <PropertyGroup Label="Feature">
         <Description>XIV Launcher addon framework</Description>
-        <DalamudVersion>13.0.0.0</DalamudVersion>
+        <DalamudVersion>13.0.0.12</DalamudVersion>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
@@ -61,38 +61,38 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BitFaster.Caching" Version="2.4.1" />
-        <PackageReference Include="CheapLoc" Version="1.1.8" />
-        <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.4" PrivateAssets="all" />
-        <PackageReference Include="goatcorp.Reloaded.Hooks" Version="4.2.0-goatcorp5" />
-        <PackageReference Include="goatcorp.Reloaded.Assembler" Version="1.0.14-goatcorp3" />
-        <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
-        <PackageReference Include="Lumina" Version="$(LuminaVersion)" />
-        <PackageReference Include="Lumina.Excel" Version="$(LuminaExcelVersion)" />
-        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0-preview.1.24081.5" />
-        <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183">
+        <PackageReference Include="BitFaster.Caching" />
+        <PackageReference Include="CheapLoc" />
+        <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all" />
+        <PackageReference Include="goatcorp.Reloaded.Hooks" />
+        <PackageReference Include="goatcorp.Reloaded.Assembler" />
+        <PackageReference Include="JetBrains.Annotations" />
+        <PackageReference Include="Lumina" />
+        <PackageReference Include="Microsoft.Extensions.ObjectPool" />
+        <PackageReference Include="Microsoft.Windows.CsWin32">
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="MinSharp" Version="1.0.4" />
-        <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
-        <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
-        <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-        <PackageReference Include="Serilog" Version="4.0.2" />
-        <PackageReference Include="Serilog.Sinks.Async" Version="2.0.0" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-        <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
-        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+        <PackageReference Include="MinSharp" />
+        <PackageReference Include="SharpDX.Direct3D11" />
+        <PackageReference Include="SharpDX.Mathematics" />
+        <PackageReference Include="Newtonsoft.Json" />
+        <PackageReference Include="Serilog" />
+        <PackageReference Include="Serilog.Sinks.Async" />
+        <PackageReference Include="Serilog.Sinks.Console" />
+        <PackageReference Include="Serilog.Sinks.File" />
+        <PackageReference Include="sqlite-net-pcl" />
+        <PackageReference Include="StyleCop.Analyzers">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
-        <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
-        <PackageReference Include="System.Reactive" Version="5.0.0" />
-        <PackageReference Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
-        <PackageReference Include="System.Resources.Extensions" Version="8.0.0" />
-        <PackageReference Include="TerraFX.Interop.Windows" Version="10.0.22621.2" />
+        <PackageReference Include="System.Collections.Immutable" />
+        <PackageReference Include="System.Drawing.Common"  />
+        <PackageReference Include="System.Reactive" />
+        <PackageReference Include="System.Reflection.MetadataLoadContext" />
+        <PackageReference Include="System.Resources.Extensions" />
+        <PackageReference Include="TerraFX.Interop.Windows" />
     </ItemGroup>
+
     <ItemGroup>
         <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\imgui-frag.hlsl.bytes">
           <LogicalName>imgui-frag.hlsl.bytes</LogicalName>
@@ -101,6 +101,7 @@
           <LogicalName>imgui-vertex.hlsl.bytes</LogicalName>
         </EmbeddedResource>
     </ItemGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Dalamud.Common\Dalamud.Common.csproj" />
         <ProjectReference Include="..\imgui\Dalamud.Bindings.ImGuizmo\Dalamud.Bindings.ImGuizmo.csproj" />
@@ -109,6 +110,7 @@
         <ProjectReference Include="..\imgui\ImGuiScene\ImGuiScene.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
+        <ProjectReference Include="..\lib\Lumina.Excel\src\Lumina.Excel\Lumina.Excel.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -160,6 +162,9 @@
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --tags --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
         </Exec>
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-parse --abbrev-ref HEAD" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitBranch" />
+        </Exec>
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
         </Exec>
@@ -167,6 +172,7 @@
         <PropertyGroup>
             <CommitCount>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitCount), @"\t|\n|\r", ""))</CommitCount>
             <CommitHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitHash), @"\t|\n|\r", ""))</CommitHash>
+            <Branch>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitBranch), @"\t|\n|\r", ""))</Branch>
             <SCMVersion>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitDescribeOutput), @"\t|\n|\r", ""))</SCMVersion>
             <CommitHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</CommitHashClientStructs>
         </PropertyGroup>
@@ -180,6 +186,7 @@
         <!-- stub out version since it takes a while. -->
         <PropertyGroup>
             <SCMVersion>Local build at $([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</SCMVersion>
+            <Branch>???</Branch>
             <CommitHashClientStructs>???</CommitHashClientStructs>
         </PropertyGroup>
     </Target>
@@ -202,6 +209,10 @@
             <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(CommitCount)' != ''">
                 <_Parameter1>GitCommitCount</_Parameter1>
                 <_Parameter2>$(CommitCount)</_Parameter2>
+            </AssemblyAttributes>
+            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(Branch)' != ''">
+                <_Parameter1>GitBranch</_Parameter1>
+                <_Parameter2>$(Branch)</_Parameter2>
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(CommitHashClientStructs)' != ''">
                 <_Parameter1>GitHashClientStructs</_Parameter1>

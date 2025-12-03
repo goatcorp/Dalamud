@@ -13,7 +13,7 @@ public static unsafe partial class ImGuiP
         ImGui.append(&g->DebugLogBuf, text.Span);
         if ((g->DebugLogFlags & ImGuiDebugLogFlags.OutputToTty) != ImGuiDebugLogFlags.None)
             Debug.Write(text.ToString());
-        text.Dispose();
+        text.Recycle();
     }
 
     public static int FindRenderedTextEnd(
@@ -35,20 +35,20 @@ public static unsafe partial class ImGuiP
         FindRenderedTextEnd(textBuf.Span, out var beforeBytes, out var afterBytes);
         before = text[..Encoding.UTF8.GetCharCount(beforeBytes)];
         after = text[before.Length..];
-        textBuf.Dispose();
+        textBuf.Recycle();
         return before.Length;
     }
 
     public static uint GetID(ImGuiWindowPtr self, ImU8String str)
     {
-        fixed (byte* strPtr = str.Span)
+        fixed (byte* strPtr = str)
         {
             var seed = *self.IDStack.Back;
             var id = ImGuiPNative.ImHashStr(strPtr, (nuint)str.Length, seed);
             var g = ImGui.GetCurrentContext();
             if (g.DebugHookIdInfo == id)
                 DebugHookIdInfo(id, (ImGuiDataType)ImGuiDataTypePrivate.String, strPtr, strPtr + str.Length);
-            str.Dispose();
+            str.Recycle();
             return id;
         }
     }
@@ -63,10 +63,10 @@ public static unsafe partial class ImGuiP
 
     public static uint ImHashStr(ImU8String data, uint seed = 0)
     {
-        fixed (byte* ptr = data.Span)
+        fixed (byte* ptr = data)
         {
             var res = ImGuiPNative.ImHashStr(ptr, (nuint)data.Length, seed);
-            data.Dispose();
+            data.Recycle();
             return res;
         }
     }
@@ -133,24 +133,24 @@ public static unsafe partial class ImGuiP
     public static void LogRenderedText(scoped in Vector2 refPos, ImU8String text)
     {
         fixed (Vector2* refPosPtr = &refPos)
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
             ImGuiPNative.LogRenderedText(refPosPtr, textPtr, textPtr + text.Length);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void RenderText(Vector2 pos, ImU8String text, bool hideTextAfterHash = true)
     {
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
             ImGuiPNative.RenderText(pos, textPtr, textPtr + text.Length, hideTextAfterHash ? (byte)1 : (byte)0);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void RenderTextWrapped(
         Vector2 pos, ImU8String text, float wrapWidth)
     {
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
             ImGuiPNative.RenderTextWrapped(pos, textPtr, textPtr + text.Length, wrapWidth);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void RenderTextClipped(
@@ -160,7 +160,7 @@ public static unsafe partial class ImGuiP
     {
         var textSizeIfKnownOrDefault = textSizeIfKnown ?? default;
         var clipRectOrDefault = clipRect ?? default;
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
             ImGuiPNative.RenderTextClipped(
                 posMin,
                 posMax,
@@ -169,7 +169,7 @@ public static unsafe partial class ImGuiP
                 textSizeIfKnown.HasValue ? &textSizeIfKnownOrDefault : null,
                 align,
                 clipRect.HasValue ? &clipRectOrDefault : null);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void RenderTextClippedEx(
@@ -179,7 +179,7 @@ public static unsafe partial class ImGuiP
     {
         var textSizeIfKnownOrDefault = textSizeIfKnown ?? default;
         var clipRectOrDefault = clipRect ?? default;
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
             ImGuiPNative.RenderTextClippedEx(
                 drawList.Handle,
                 posMin,
@@ -189,7 +189,7 @@ public static unsafe partial class ImGuiP
                 textSizeIfKnown.HasValue ? &textSizeIfKnownOrDefault : null,
                 align,
                 clipRect.HasValue ? &clipRectOrDefault : null);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void RenderTextEllipsis(
@@ -197,7 +197,7 @@ public static unsafe partial class ImGuiP
         ImU8String text, scoped in Vector2? textSizeIfKnown = null)
     {
         var textSizeIfKnownOrDefault = textSizeIfKnown ?? default;
-        fixed (byte* textPtr = text.Span)
+        fixed (byte* textPtr = text)
             ImGuiPNative.RenderTextEllipsis(
                 drawList.Handle,
                 posMin,
@@ -207,7 +207,7 @@ public static unsafe partial class ImGuiP
                 textPtr,
                 textPtr + text.Length,
                 textSizeIfKnown.HasValue ? &textSizeIfKnownOrDefault : null);
-        text.Dispose();
+        text.Recycle();
     }
 
     public static void TextEx(ReadOnlySpan<byte> text, ImGuiTextFlags flags)

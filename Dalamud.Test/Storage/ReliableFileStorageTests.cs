@@ -31,19 +31,19 @@ public class ReliableFileStorageTests
                       .Select(
                           i => Parallel.ForEachAsync(
                               Enumerable.Range(1, 100),
-                              (j, _) =>
+                              async (j, _) =>
                               {
                                   if (i % 2 == 0)
                                   {
                                       // ReSharper disable once AccessToDisposedClosure
-                                      rfs.Instance.WriteAllText(tempFile, j.ToString());
+                                      await rfs.Instance.WriteAllTextAsync(tempFile, j.ToString());
                                   }
                                   else if (i % 3 == 0)
                                   {
                                       try
                                       {
                                           // ReSharper disable once AccessToDisposedClosure
-                                          rfs.Instance.ReadAllText(tempFile);
+                                          await rfs.Instance.ReadAllTextAsync(tempFile);
                                       }
                                       catch (FileNotFoundException)
                                       {
@@ -54,8 +54,6 @@ public class ReliableFileStorageTests
                                   {
                                       File.Delete(tempFile);
                                   }
-
-                                  return ValueTask.CompletedTask;
                               })));
     }
 
@@ -112,41 +110,41 @@ public class ReliableFileStorageTests
     }
 
     [Fact]
-    public void Exists_WhenFileInBackup_ReturnsTrue()
+    public async Task Exists_WhenFileInBackup_ReturnsTrue()
     {
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
+        await rfs.Instance.WriteAllTextAsync(tempFile, TestFileContent1);
 
         File.Delete(tempFile);
         Assert.True(rfs.Instance.Exists(tempFile));
     }
 
     [Fact]
-    public void Exists_WhenFileInBackup_WithDifferentContainerId_ReturnsFalse()
+    public async Task Exists_WhenFileInBackup_WithDifferentContainerId_ReturnsFalse()
     {
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
+        await rfs.Instance.WriteAllTextAsync(tempFile, TestFileContent1);
 
         File.Delete(tempFile);
         Assert.False(rfs.Instance.Exists(tempFile, Guid.NewGuid()));
     }
 
     [Fact]
-    public void WriteAllText_ThrowsIfPathIsEmpty()
+    public async Task WriteAllText_ThrowsIfPathIsEmpty()
     {
         using var rfs = CreateRfs();
-        Assert.Throws<ArgumentException>(() => rfs.Instance.WriteAllText("", TestFileContent1));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await rfs.Instance.WriteAllTextAsync("", TestFileContent1));
     }
 
     [Fact]
-    public void WriteAllText_ThrowsIfPathIsNull()
+    public async Task  WriteAllText_ThrowsIfPathIsNull()
     {
         using var rfs = CreateRfs();
-        Assert.Throws<ArgumentNullException>(() => rfs.Instance.WriteAllText(null!, TestFileContent1));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await rfs.Instance.WriteAllTextAsync(null!, TestFileContent1));
     }
 
     [Fact]
@@ -155,26 +153,26 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
+        await rfs.Instance.WriteAllTextAsync(tempFile, TestFileContent1);
 
         Assert.True(File.Exists(tempFile));
-        Assert.Equal(TestFileContent1, rfs.Instance.ReadAllText(tempFile, forceBackup: true));
+        Assert.Equal(TestFileContent1, await rfs.Instance.ReadAllTextAsync(tempFile, forceBackup: true));
         Assert.Equal(TestFileContent1, await File.ReadAllTextAsync(tempFile));
     }
 
     [Fact]
-    public void WriteAllText_SeparatesContainers()
+    public async Task WriteAllText_SeparatesContainers()
     {
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         var containerId = Guid.NewGuid();
 
         using var rfs = CreateRfs();
-        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
-        rfs.Instance.WriteAllText(tempFile, TestFileContent2, containerId);
+        await rfs.Instance.WriteAllTextAsync(tempFile, TestFileContent1);
+        await rfs.Instance.WriteAllTextAsync(tempFile, TestFileContent2, containerId);
         File.Delete(tempFile);
 
-        Assert.Equal(TestFileContent1, rfs.Instance.ReadAllText(tempFile, forceBackup: true));
-        Assert.Equal(TestFileContent2, rfs.Instance.ReadAllText(tempFile, forceBackup: true, containerId));
+        Assert.Equal(TestFileContent1, await rfs.Instance.ReadAllTextAsync(tempFile, forceBackup: true));
+        Assert.Equal(TestFileContent2, await rfs.Instance.ReadAllTextAsync(tempFile, forceBackup: true, containerId));
     }
 
     [Fact]
@@ -183,7 +181,7 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateFailedRfs();
 
-        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
+        await rfs.Instance.WriteAllTextAsync(tempFile, TestFileContent1);
 
         Assert.True(File.Exists(tempFile));
         Assert.Equal(TestFileContent1, await File.ReadAllTextAsync(tempFile));
@@ -195,38 +193,38 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
-        rfs.Instance.WriteAllText(tempFile, TestFileContent2);
+        await rfs.Instance.WriteAllTextAsync(tempFile, TestFileContent1);
+        await rfs.Instance.WriteAllTextAsync(tempFile, TestFileContent2);
 
         Assert.True(File.Exists(tempFile));
-        Assert.Equal(TestFileContent2, rfs.Instance.ReadAllText(tempFile, forceBackup: true));
+        Assert.Equal(TestFileContent2, await rfs.Instance.ReadAllTextAsync(tempFile, forceBackup: true));
         Assert.Equal(TestFileContent2, await File.ReadAllTextAsync(tempFile));
     }
 
     [Fact]
-    public void WriteAllText_SupportsNullContent()
+    public async Task WriteAllText_SupportsNullContent()
     {
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.Instance.WriteAllText(tempFile, null);
+        await rfs.Instance.WriteAllTextAsync(tempFile, null);
 
         Assert.True(File.Exists(tempFile));
-        Assert.Equal("", rfs.Instance.ReadAllText(tempFile));
+        Assert.Equal("", await rfs.Instance.ReadAllTextAsync(tempFile));
     }
 
     [Fact]
-    public void ReadAllText_ThrowsIfPathIsEmpty()
+    public async Task ReadAllText_ThrowsIfPathIsEmpty()
     {
         using var rfs = CreateRfs();
-        Assert.Throws<ArgumentException>(() => rfs.Instance.ReadAllText(""));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await rfs.Instance.ReadAllTextAsync(""));
     }
 
     [Fact]
-    public void ReadAllText_ThrowsIfPathIsNull()
+    public async Task ReadAllText_ThrowsIfPathIsNull()
     {
         using var rfs = CreateRfs();
-        Assert.Throws<ArgumentNullException>(() => rfs.Instance.ReadAllText(null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await rfs.Instance.ReadAllTextAsync(null!));
     }
 
     [Fact]
@@ -236,40 +234,40 @@ public class ReliableFileStorageTests
         await File.WriteAllTextAsync(tempFile, TestFileContent1);
         using var rfs = CreateRfs();
 
-        Assert.Equal(TestFileContent1, rfs.Instance.ReadAllText(tempFile));
+        Assert.Equal(TestFileContent1, await rfs.Instance.ReadAllTextAsync(tempFile));
     }
 
     [Fact]
-    public void ReadAllText_WhenFileMissingWithBackup_ReturnsContent()
+    public async Task ReadAllText_WhenFileMissingWithBackup_ReturnsContent()
     {
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
+        await rfs.Instance.WriteAllTextAsync(tempFile, TestFileContent1);
         File.Delete(tempFile);
 
-        Assert.Equal(TestFileContent1, rfs.Instance.ReadAllText(tempFile));
+        Assert.Equal(TestFileContent1, await rfs.Instance.ReadAllTextAsync(tempFile));
     }
 
     [Fact]
-    public void ReadAllText_WhenFileMissingWithBackup_ThrowsWithDifferentContainerId()
+    public async Task ReadAllText_WhenFileMissingWithBackup_ThrowsWithDifferentContainerId()
     {
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         var containerId = Guid.NewGuid();
         using var rfs = CreateRfs();
 
-        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
+        await rfs.Instance.WriteAllTextAsync(tempFile, TestFileContent1);
         File.Delete(tempFile);
 
-        Assert.Throws<FileNotFoundException>(() => rfs.Instance.ReadAllText(tempFile, containerId: containerId));
+        await Assert.ThrowsAsync<FileNotFoundException>(async () => await rfs.Instance.ReadAllTextAsync(tempFile, containerId: containerId));
     }
 
     [Fact]
-    public void ReadAllText_WhenFileMissing_ThrowsIfDbFailed()
+    public async Task ReadAllText_WhenFileMissing_ThrowsIfDbFailed()
     {
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateFailedRfs();
-        Assert.Throws<FileNotFoundException>(() => rfs.Instance.ReadAllText(tempFile));
+        await Assert.ThrowsAsync<FileNotFoundException>(async () => await rfs.Instance.ReadAllTextAsync(tempFile));
     }
 
     [Fact]
@@ -278,7 +276,7 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         await File.WriteAllTextAsync(tempFile, TestFileContent1);
         using var rfs = CreateRfs();
-        rfs.Instance.ReadAllText(tempFile, text => Assert.Equal(TestFileContent1, text));
+        await rfs.Instance.ReadAllTextAsync(tempFile, text => Assert.Equal(TestFileContent1, text));
     }
 
     [Fact]
@@ -290,7 +288,7 @@ public class ReliableFileStorageTests
         var readerCalledOnce = false;
 
         using var rfs = CreateRfs();
-        Assert.Throws<FileReadException>(() => rfs.Instance.ReadAllText(tempFile, Reader));
+        await Assert.ThrowsAsync<FileReadException>(async () => await rfs.Instance.ReadAllTextAsync(tempFile, Reader));
 
         return;
 
@@ -303,7 +301,7 @@ public class ReliableFileStorageTests
     }
 
     [Fact]
-    public void ReadAllText_WithReader_WhenReaderThrows_ReadsContentFromBackup()
+    public async Task ReadAllText_WithReader_WhenReaderThrows_ReadsContentFromBackup()
     {
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
 
@@ -311,10 +309,10 @@ public class ReliableFileStorageTests
         var assertionCalled = false;
 
         using var rfs = CreateRfs();
-        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
+        await rfs.Instance.WriteAllTextAsync(tempFile, TestFileContent1);
         File.Delete(tempFile);
 
-        rfs.Instance.ReadAllText(tempFile, Reader);
+        await rfs.Instance.ReadAllTextAsync(tempFile, Reader);
         Assert.True(assertionCalled);
 
         return;
@@ -335,17 +333,17 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         await File.WriteAllTextAsync(tempFile, TestFileContent1);
         using var rfs = CreateRfs();
-        Assert.Throws<FileNotFoundException>(() => rfs.Instance.ReadAllText(tempFile, _ => throw new FileNotFoundException()));
+        await Assert.ThrowsAsync<FileNotFoundException>(async () => await rfs.Instance.ReadAllTextAsync(tempFile, _ => throw new FileNotFoundException()));
     }
 
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void ReadAllText_WhenFileDoesNotExist_Throws(bool forceBackup)
+    public async Task ReadAllText_WhenFileDoesNotExist_Throws(bool forceBackup)
     {
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
-        Assert.Throws<FileNotFoundException>(() => rfs.Instance.ReadAllText(tempFile, forceBackup));
+        await Assert.ThrowsAsync<FileNotFoundException>(async () => await rfs.Instance.ReadAllTextAsync(tempFile, forceBackup));
     }
 
     private static DisposableReliableFileStorage CreateRfs()

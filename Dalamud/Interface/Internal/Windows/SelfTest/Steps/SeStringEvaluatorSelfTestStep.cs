@@ -1,6 +1,10 @@
 using Dalamud.Bindings.ImGui;
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Text.Evaluator;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Plugin.SelfTest;
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
@@ -48,8 +52,8 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                 // that it returned the local players name by using its EntityId,
                 // and that it didn't include the world name by checking the HomeWorldId against AgentLobby.Instance()->LobbyData.HomeWorldId.
 
-                var clientState = Service<ClientState>.Get();
-                var localPlayer = clientState.LocalPlayer;
+                var objectTable = Service<ObjectTable>.Get();
+                var localPlayer = objectTable.LocalPlayer;
                 if (localPlayer is null)
                 {
                     ImGui.Text("You need to be logged in for this step."u8);
@@ -73,6 +77,55 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                         return SelfTestStepResult.Fail;
 
                     return SelfTestStepResult.Waiting;
+                }
+
+                this.step++;
+                break;
+
+            case 2:
+                ImGui.Text("Checking AutoTranslatePayload.Text results..."u8);
+
+                var config = Service<DalamudConfiguration>.Get();
+                var originalLanguageOverride = config.LanguageOverride;
+
+                Span<(string Language, uint Group, uint Key, string ExpectedText)> tests = [
+                    ("en", 49u, 209u, " albino karakul "), // Mount
+                    ("en", 62u, 116u, " /echo "), // TextCommand - testing Command
+                    ("en", 62u, 143u, " /dutyfinder "), // TextCommand - testing Alias over Command
+                    ("en", 65u, 67u, " Minion of Light "), // Companion - testing noun handling for the german language (special case)
+                    ("en", 71u, 7u, " Phantom Geomancer "), // MKDSupportJob
+
+                    ("de", 49u, 209u, " Albino-Karakul "), // Mount
+                    ("de", 62u, 115u, " /freiegesellschaft "), // TextCommand - testing Alias over Command
+                    ("de", 62u, 116u, " /echo "), // TextCommand - testing Command
+                    ("de", 65u, 67u, " Begleiter des Lichts "), // Companion - testing noun handling for the german language (special case)
+                    ("de", 71u, 7u, " Phantom-Geomant "), // MKDSupportJob
+                ];
+
+                try
+                {
+                    foreach (var (language, group, key, expectedText) in tests)
+                    {
+                        config.LanguageOverride = language;
+
+                        var payload = new AutoTranslatePayload(group, key);
+
+                        if (payload.Text != expectedText)
+                        {
+                            ImGui.Text($"Test failed for Group {group}, Key {key}");
+                            ImGui.Text($"Expected: {expectedText}");
+                            ImGui.Text($"Got: {payload.Text}");
+
+                            if (ImGui.Button("Continue"u8))
+                                return SelfTestStepResult.Fail;
+
+                            return SelfTestStepResult.Waiting;
+                        }
+                    }
+                }
+                finally
+                {
+                    config.LanguageOverride = originalLanguageOverride;
                 }
 
                 return SelfTestStepResult.Pass;

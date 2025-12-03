@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
@@ -13,12 +13,13 @@ using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Memory;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
+
 using Lumina.Data;
 using Lumina.Data.Files.Excel;
 using Lumina.Data.Structs.Excel;
@@ -89,6 +90,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         { MacroCode.FrNoun, ["SheetName", "ArticleType", "RowId", "Amount", "Case", "UnkInt5"] },
         { MacroCode.ChNoun, ["SheetName", "ArticleType", "RowId", "Amount", "Case", "UnkInt5"] },
         { MacroCode.LowerHead, ["String"] },
+        { MacroCode.SheetSub, ["SheetName", "RowId", "SubrowId", "ColumnIndex", "SecondarySheetName", "SecondarySheetColumnIndex"] },
         { MacroCode.ColorType, ["ColorType"] },
         { MacroCode.EdgeColorType, ["ColorType"] },
         { MacroCode.Ruby, ["StandardText", "RubyText"] },
@@ -103,13 +105,16 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         { LinkMacroPayloadType.Character, ["Flags", "WorldId"] },
         { LinkMacroPayloadType.Item, ["ItemId", "Rarity"] },
         { LinkMacroPayloadType.MapPosition, ["TerritoryType/MapId", "RawX", "RawY"] },
-        { LinkMacroPayloadType.Quest, ["QuestId"] },
-        { LinkMacroPayloadType.Achievement, ["AchievementId"] },
-        { LinkMacroPayloadType.HowTo, ["HowToId"] },
+        { LinkMacroPayloadType.Quest, ["RowId"] },
+        { LinkMacroPayloadType.Achievement, ["RowId"] },
+        { LinkMacroPayloadType.HowTo, ["RowId"] },
         // PartyFinderNotification
         { LinkMacroPayloadType.Status, ["StatusId"] },
         { LinkMacroPayloadType.PartyFinder, ["ListingId", string.Empty, "WorldId"] },
-        { LinkMacroPayloadType.AkatsukiNote, ["AkatsukiNoteId"] },
+        { LinkMacroPayloadType.AkatsukiNote, ["RowId"] },
+        { LinkMacroPayloadType.Description, ["RowId"] },
+        { LinkMacroPayloadType.WKSPioneeringTrail, ["RowId", "SubrowId"] },
+        { LinkMacroPayloadType.MKDLore, ["RowId"] },
         { DalamudLinkType, ["CommandId", "Extra1", "Extra2", "ExtraString"] },
     };
 
@@ -142,6 +147,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
     private SeStringParameter[]? localParameters = [Util.GetScmVersion()];
     private ReadOnlySeString input;
     private ClientLanguage? language;
+    private Task? validImportSheetNamesTask;
     private int importSelectedSheetName;
     private int importRowId;
     private string[]? validImportSheetNames;
@@ -309,13 +315,13 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             ImGui.Text(i switch
             {
                 0 => "Player Name",
-                1 => "Temp Player 1 Name",
-                2 => "Temp Player 2 Name",
+                1 => "Temp Entity 1: Name",
+                2 => "Temp Entity 2: Name",
                 3 => "Player Sex",
-                4 => "Temp Player 1 Sex",
-                5 => "Temp Player 2 Sex",
-                6 => "Temp Player 1 Unk 1",
-                7 => "Temp Player 2 Unk 1",
+                4 => "Temp Entity 1: Sex",
+                5 => "Temp Entity 2: Sex",
+                6 => "Temp Entity 1: ObjStrId",
+                7 => "Temp Entity 2: ObjStrId",
                 10 => "Eorzea Time Hours",
                 11 => "Eorzea Time Minutes",
                 12 => "ColorSay",
@@ -364,14 +370,19 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 62 => "ColorLoot",
                 63 => "ColorCraft",
                 64 => "ColorGathering",
-                65 => "Temp Player 1 Unk 2",
-                66 => "Temp Player 2 Unk 2",
+                65 => "Temp Entity 1: Name starts with Vowel",
+                66 => "Temp Entity 2: Name starts with Vowel",
                 67 => "Player ClassJobId",
                 68 => "Player Level",
+                69 => "Player StartTown",
                 70 => "Player Race",
                 71 => "Player Synced Level",
-                77 => "Client/Plattform?",
+                73 => "Quest#66047: Has met Alphinaud and Alisaie",
+                74 => "PlayStation Generation",
+                75 => "Is Legacy Player",
+                77 => "Client/Platform?",
                 78 => "Player BirthMonth",
+                79 => "PadMode",
                 82 => "Datacenter Region",
                 83 => "ColorCWLS2",
                 84 => "ColorCWLS3",
@@ -392,6 +403,11 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 100 => "LogSetRoleColor 1: LogColorOtherClass",
                 101 => "LogSetRoleColor 2: LogColorOtherClass",
                 102 => "Has Login Security Token",
+                103 => "Is subscribed to PlayStation Plus",
+                104 => "PadMouseMode",
+                106 => "Preferred World Bonus Max Level",
+                107 => "Occult Crescent Support Job Level",
+                108 => "Deep Dungeon Id",
                 _ => string.Empty,
             });
         }
@@ -506,7 +522,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                     }
                 }
 
-                ImGui.SetClipboardText(sb.ToReadOnlySeString().ToString());
+                ImGui.SetClipboardText(sb.ToReadOnlySeString().ToMacroString());
             }
 
             ImGui.SameLine();
@@ -551,22 +567,31 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         var dataManager = Service<DataManager>.Get();
 
-        this.validImportSheetNames ??= dataManager.Excel.SheetNames.Where(sheetName =>
+        this.validImportSheetNamesTask ??= Task.Run(() =>
         {
-            try
+            this.validImportSheetNames = dataManager.Excel.SheetNames.Where(sheetName =>
             {
-                var headerFile = dataManager.GameData.GetFile<ExcelHeaderFile>($"exd/{sheetName}.exh");
-                if (headerFile.Header.Variant != ExcelVariant.Default)
-                    return false;
+                try
+                {
+                    var headerFile = dataManager.GameData.GetFile<ExcelHeaderFile>($"exd/{sheetName}.exh");
+                    if (headerFile.Header.Variant != ExcelVariant.Default)
+                        return false;
 
-                var sheet = dataManager.Excel.GetSheet<RawRow>(Language.English, sheetName);
-                return sheet.Columns.Any(col => col.Type == ExcelColumnDataType.String);
-            }
-            catch
-            {
-                return false;
-            }
-        }).OrderBy(sheetName => sheetName, StringComparer.InvariantCulture).ToArray();
+                    var sheet = dataManager.Excel.GetSheet<RawRow>(Language.English, sheetName);
+                    return sheet.Columns.Any(col => col.Type == ExcelColumnDataType.String);
+                }
+                catch
+                {
+                    return false;
+                }
+            }).OrderBy(sheetName => sheetName, StringComparer.InvariantCulture).ToArray();
+        });
+
+        if (this.validImportSheetNames == null)
+        {
+            ImGui.Text("Loading sheets..."u8);
+            return;
+        }
 
         var sheetChanged = ImGui.Combo("Sheet Name", ref this.importSelectedSheetName, this.validImportSheetNames);
 
@@ -621,7 +646,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 ImGui.Text(i.ToString());
 
                 ImGui.TableNextColumn();
-                if (ImGui.Selectable($"{value.ToString().Truncate(100)}###Column{i}"))
+                if (ImGui.Selectable($"{value.ToMacroString().Truncate(100)}###Column{i}"))
                 {
                     foreach (var payload in value)
                     {
@@ -692,7 +717,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             ImGui.TableNextColumn(); // Text
             var message = entry.Message;
             ImGui.SetNextItemWidth(-1);
-            if (ImGui.InputText($"##{i}_Message", ref message, 255))
+            if (ImGui.InputText($"##{i}_Message", ref message, 2048))
             {
                 entry.Message = message;
                 updateString |= true;
@@ -1065,10 +1090,10 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                         break;
 
                     case LinkMacroPayloadType.AkatsukiNote when
-                        dataManager.GetSubrowExcelSheet<AkatsukiNote>(this.language).TryGetRow(u32, out var akatsukiNoteRow) &&
-                        dataManager.GetExcelSheet<AkatsukiNoteString>(this.language).TryGetRow((uint)akatsukiNoteRow[0].Unknown2, out var akatsukiNoteStringRow):
+                        dataManager.GetSubrowExcelSheet<AkatsukiNote>(this.language).TryGetSubrow(u32, 0, out var akatsukiNoteRow) &&
+                        akatsukiNoteRow.ListName.ValueNullable is { } akatsukiNoteStringRow:
                         ImGui.SameLine();
-                        ImGui.Text(akatsukiNoteStringRow.Unknown0.ExtractText());
+                        ImGui.Text(akatsukiNoteStringRow.Text.ExtractText());
                         break;
                 }
             }

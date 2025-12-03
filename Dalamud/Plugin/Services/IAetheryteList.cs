@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Game.ClientState.Aetherytes;
 
@@ -7,7 +7,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This collection represents the list of available Aetherytes in the Teleport window.
 /// </summary>
-public interface IAetheryteList : IReadOnlyCollection<IAetheryteEntry>
+public interface IAetheryteList : IDalamudService, IReadOnlyCollection<IAetheryteEntry>
 {
     /// <summary>
     /// Gets the amount of Aetherytes the local player has unlocked.

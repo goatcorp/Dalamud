@@ -1,5 +1,6 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Fates;
+using Dalamud.Plugin.SelfTest;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;

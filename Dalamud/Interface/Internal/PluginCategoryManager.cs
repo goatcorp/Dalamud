@@ -294,7 +294,7 @@ internal class PluginCategoryManager
                 }
             }
 
-            if (PluginManager.HasTestingVersion(manifest) || manifest.IsTestingExclusive)
+            if (manifest.IsTestingExclusive || manifest.IsAvailableForTesting)
                 categoryList.Add(CategoryKind.AvailableForTesting);
 
             // always add, even if empty

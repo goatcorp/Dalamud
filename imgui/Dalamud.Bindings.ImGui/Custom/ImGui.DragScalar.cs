@@ -309,8 +309,8 @@ public static unsafe partial class ImGui
         fixed (T* vMaxPtr = &vMax)
         {
             var res = ImGuiNative.DragScalar(labelPtr, dataType, vPtr, vSpeed, vMinPtr, vMaxPtr, formatPtr, flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -336,8 +336,8 @@ public static unsafe partial class ImGui
                           vMaxPtr,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -362,8 +362,8 @@ public static unsafe partial class ImGui
                           vMaxPtr,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -389,8 +389,8 @@ public static unsafe partial class ImGui
                           vMaxPtr,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -418,9 +418,9 @@ public static unsafe partial class ImGui
                 formatPtr,
                 formatMaxPtr,
                 flags);
-            label.Dispose();
-            format.Dispose();
-            formatMax.Dispose();
+            label.Recycle();
+            format.Recycle();
+            formatMax.Recycle();
             return res != 0;
         }
     }
@@ -448,9 +448,9 @@ public static unsafe partial class ImGui
                 formatPtr,
                 formatMaxPtr,
                 flags);
-            label.Dispose();
-            format.Dispose();
-            formatMax.Dispose();
+            label.Recycle();
+            format.Recycle();
+            formatMax.Recycle();
             return res != 0;
         }
     }

@@ -6,18 +6,15 @@
         <PlatformTarget>x64</PlatformTarget>
         <Platforms>x64</Platforms>
         <LangVersion>13.0</LangVersion>
-    </PropertyGroup>
 
-    <!-- Dependency versions -->
-    <PropertyGroup Label="Dependency Versions">
-        <LuminaVersion>5.7.0</LuminaVersion>
-        <LuminaExcelVersion>7.2.2</LuminaExcelVersion>
-        <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
+        <!-- Disable Intel CET. Causes crashes on unpatched Windows 10 systems. -->
+        <!-- https://github.com/dotnet/runtime/issues/108589 -->
+        <CETCompat>false</CETCompat>
     </PropertyGroup>
 
     <!-- Code analysis settings for all Dalamud projects. -->
     <ItemGroup Label="Code Analysis">
-        <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" PrivateAssets="All" />
+        <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="All" />
         <AdditionalFiles Include="$(MSBuildThisFileDirectory)tools\BannedSymbols.txt" />
     </ItemGroup>
     <!--

@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -301,7 +302,7 @@ internal class LocalPlugin : IAsyncDisposable
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name}, game is newer than applicable version {this.manifest.ApplicableVersion}");
 
             // We want to allow loading dev plugins with a lower API level than the current Dalamud API level, for ease of development
-            if (this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels && !this.IsDev)
+            if (!pluginManager.LoadAllApiLevels && !this.IsDev && this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel)
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name}, incompatible API level {this.manifest.EffectiveApiLevel}");
 
             // We might want to throw here?
@@ -552,6 +553,14 @@ internal class LocalPlugin : IAsyncDisposable
             return x.PluginMasterUrl == this.manifest.InstalledFromUrl;
         });
     }
+
+    /// <summary>
+    /// Checks whether this plugin loads in the given load context.
+    /// </summary>
+    /// <param name="context">The load context to check.</param>
+    /// <returns>Whether this plugin loads in the given load context.</returns>
+    public bool LoadsIn(AssemblyLoadContext context)
+        => this.loader?.LoadContext == context;
 
     /// <summary>
     /// Save this plugin manifest.

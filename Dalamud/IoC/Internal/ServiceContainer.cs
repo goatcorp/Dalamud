@@ -18,7 +18,7 @@ namespace Dalamud.IoC.Internal;
 /// Dalamud services are constructed via Service{T}.ConstructObject at the moment.
 /// </summary>
 [ServiceManager.ProvidedService]
-internal class ServiceContainer : IServiceProvider, IServiceType
+internal class ServiceContainer : IServiceType
 {
     private static readonly ModuleLog Log = new("SERVICECONTAINER");
 
@@ -112,27 +112,15 @@ internal class ServiceContainer : IServiceProvider, IServiceType
             errorStep = "property injection";
             await this.InjectProperties(instance, scopedObjects, scope);
 
+            // Invoke ctor from a separate thread (LongRunning will spawn a new one)
+            // so that it does not count towards thread pool active threads cap.
+            // Plugin ctor can block to wait for Tasks, as we currently do not support asynchronous plugin init.
             errorStep = "ctor invocation";
-            var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            var thr = new Thread(
-                () =>
-                {
-                    try
-                    {
-                        ctor.Invoke(instance, resolvedParams);
-                    }
-                    catch (Exception e)
-                    {
-                        tcs.SetException(e);
-                        return;
-                    }
-
-                    tcs.SetResult();
-                });
-
-            thr.Start();
-            await tcs.Task.ConfigureAwait(false);
-            thr.Join();
+            await Task.Factory.StartNew(
+                () => ctor.Invoke(instance, resolvedParams),
+                CancellationToken.None,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default).ConfigureAwait(false);
 
             return instance;
         }
@@ -172,10 +160,21 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// <returns>An implementation of a service scope.</returns>
     public IServiceScope GetScope() => new ServiceScopeImpl(this);
 
-    /// <inheritdoc/>
-    object? IServiceProvider.GetService(Type serviceType) => this.GetSingletonService(serviceType);
-
-    private async Task<object> GetService(Type serviceType, ServiceScopeImpl? scope, object[] scopedObjects)
+    /// <summary>
+    /// Resolves and returns an instance of the specified service type, using either singleton or scoped lifetime as
+    /// appropriate.
+    /// </summary>
+    /// <param name="serviceType">The type of the service to resolve. This must be a concrete or interface type registered with the service
+    /// manager.</param>
+    /// <param name="scope">The scope within which to create scoped services. Required if the requested service type is registered as
+    /// scoped; otherwise, can be null.</param>
+    /// <param name="scopedObjects">An array of objects available for scoped resolution. Used to locate or create scoped service instances when
+    /// applicable.</param>
+    /// <returns>An instance of the requested service type. Returns a singleton instance if available, a scoped instance if
+    /// required, or an object from the provided scoped objects if it matches the service type.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if a scoped service is requested but no scope is provided, or if the requested service type cannot be
+    /// resolved from the scoped objects.</exception>
+    public async Task<object> GetService(Type serviceType, ServiceScopeImpl? scope, object[] scopedObjects)
     {
         if (this.interfaceToTypeMap.TryGetValue(serviceType, out var implementingType))
             serviceType = implementingType;

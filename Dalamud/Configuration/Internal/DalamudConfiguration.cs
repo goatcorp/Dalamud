@@ -109,11 +109,6 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool DoPluginTest { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a key to opt into Dalamud staging builds.
-    /// </summary>
-    public string? DalamudBetaKey { get; set; } = null;
-
-    /// <summary>
     /// Gets or sets a list of custom repos.
     /// </summary>
     public List<ThirdPartyRepoSettings> ThirdRepoList { get; set; } = new();
@@ -250,7 +245,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// This setting is effected by the in-game "System Sounds" option and volume.
     /// </summary>
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "ABI")]
-    public bool EnablePluginUISoundEffects { get; set; }
+    public bool EnablePluginUISoundEffects { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether an additional button allowing pinning and clickthrough options should be shown
@@ -277,11 +272,6 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether to resume game main thread after plugins load.
     /// </summary>
     public bool IsResumeGameAfterPluginLoad { get; set; } = false;
-
-    /// <summary>
-    /// Gets or sets the kind of beta to download when <see cref="DalamudBetaKey"/> matches the server value.
-    /// </summary>
-    public string? DalamudBetaKind { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether any plugin should be loaded when the game is started.
@@ -497,19 +487,27 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// </summary>
     public Vector2 NotificationAnchorPosition { get; set; } = new(1f, 1f);
 
+#pragma warning disable SA1600
+#pragma warning disable SA1516
+    // XLCore/XoM compatibility until they move it out
+    public string? DalamudBetaKey { get; set; } = null;
+    public string? DalamudBetaKind { get; set; }
+#pragma warning restore SA1516
+#pragma warning restore SA1600
+
     /// <summary>
     /// Load a configuration from the provided path.
     /// </summary>
     /// <param name="path">Path to read from.</param>
     /// <param name="fs">File storage.</param>
     /// <returns>The deserialized configuration file.</returns>
-    public static DalamudConfiguration Load(string path, ReliableFileStorage fs)
+    public static async Task<DalamudConfiguration> Load(string path, ReliableFileStorage fs)
     {
         DalamudConfiguration deserialized = null;
 
         try
         {
-            fs.ReadAllText(path, text =>
+            await fs.ReadAllTextAsync(path, text =>
             {
                 deserialized =
                     JsonConvert.DeserializeObject<DalamudConfiguration>(text, SerializerSettings);
@@ -580,8 +578,6 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         {
             this.Save();
             this.isSaveQueued = false;
-
-            Log.Verbose("Config saved");
         }
     }
 
@@ -630,16 +626,20 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         // Wait for previous write to finish
         this.writeTask?.Wait();
 
-        this.writeTask = Task.Run(() =>
+        this.writeTask = Task.Run(async () =>
         {
-            Service<ReliableFileStorage>.Get().WriteAllText(
-                this.configPath,
-                JsonConvert.SerializeObject(this, SerializerSettings));
+            await Service<ReliableFileStorage>.Get().WriteAllTextAsync(
+                                                   this.configPath,
+                                                   JsonConvert.SerializeObject(this, SerializerSettings));
+            Log.Verbose("DalamudConfiguration saved");
         }).ContinueWith(t =>
         {
             if (t.IsFaulted)
             {
-                Log.Error(t.Exception, "Failed to save DalamudConfiguration to {Path}", this.configPath);
+                Log.Error(
+                    t.Exception,
+                    "Failed to save DalamudConfiguration to {Path}",
+                    this.configPath);
             }
         });
 

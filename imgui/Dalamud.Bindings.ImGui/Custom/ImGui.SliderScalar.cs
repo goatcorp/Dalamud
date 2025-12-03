@@ -277,8 +277,8 @@ public static unsafe partial class ImGui
                           vMaxPtr,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -305,8 +305,8 @@ public static unsafe partial class ImGui
                           vMaxPtr,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -332,8 +332,8 @@ public static unsafe partial class ImGui
                           vMaxPtr,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -360,8 +360,8 @@ public static unsafe partial class ImGui
                           vMaxPtr,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -383,8 +383,8 @@ public static unsafe partial class ImGui
                           vDegreesMax,
                           formatPtr,
                           flags) != 0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }
@@ -466,8 +466,8 @@ public static unsafe partial class ImGui
         {
             var res = ImGuiNative.VSliderScalar(labelPtr, size, dataType, dataPtr, minPtr, maxPtr, formatPtr, flags) !=
                       0;
-            label.Dispose();
-            format.Dispose();
+            label.Recycle();
+            format.Recycle();
             return res;
         }
     }

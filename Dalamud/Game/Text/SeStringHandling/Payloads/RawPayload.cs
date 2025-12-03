@@ -95,14 +95,12 @@ public class RawPayload : Payload
     /// <inheritdoc/>
     protected override byte[] EncodeImpl()
     {
-        var chunkLen = this.data.Length + 1;
-
         var bytes = new List<byte>()
         {
             START_BYTE,
             this.chunkType,
-            (byte)chunkLen,
         };
+        bytes.AddRange(MakeInteger((uint)this.data.Length)); // chunkLen
         bytes.AddRange(this.data);
 
         bytes.Add(END_BYTE);
@@ -113,6 +111,6 @@ public class RawPayload : Payload
     /// <inheritdoc/>
     protected override void DecodeImpl(BinaryReader reader, long endOfStream)
     {
-        this.data = reader.ReadBytes((int)(endOfStream - reader.BaseStream.Position + 1));
+        this.data = reader.ReadBytes((int)(endOfStream - reader.BaseStream.Position));
     }
 }

@@ -49,4 +49,3 @@ public unsafe partial struct ImGuiInputTextCallbackData
 		}
 }
 // DISCARDED: InsertChars
-

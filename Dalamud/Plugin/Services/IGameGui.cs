@@ -9,7 +9,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// A class handling many aspects of the in-game UI.
 /// </summary>
-public unsafe interface IGameGui
+public unsafe interface IGameGui : IDalamudService
 {
     /// <summary>
     /// Event which is fired when the game UI hiding is toggled.
@@ -27,6 +27,12 @@ public unsafe interface IGameGui
     public event EventHandler<HoveredAction> HoveredActionChanged;
 
     /// <summary>
+    /// Fired when the game sets one or more <see cref="AgentUpdateFlag"/> values,
+    /// used by agents to conditionally update their addons.
+    /// </summary>
+    event Action<AgentUpdateFlag> AgentUpdate;
+
+    /// <summary>
     /// Gets a value indicating whether the game UI is hidden.
     /// </summary>
     public bool GameUiHidden { get; }
@@ -36,7 +42,7 @@ public unsafe interface IGameGui
     /// If > 1.000.000, subtract 1.000.000 and treat it as HQ.
     /// </summary>
     public ulong HoveredItem { get; set; }
-    
+
     /// <summary>
     /// Gets the action ID that is current hovered by the player. 0 when no action is hovered.
     /// </summary>
@@ -88,6 +94,15 @@ public unsafe interface IGameGui
     /// <param name="index">Index of addon to find (1-indexed).</param>
     /// <returns>A pointer wrapper to the addon.</returns>
     public AtkUnitBasePtr GetAddonByName(string name, int index = 1);
+
+    /// <summary>
+    /// Gets the pointer to the Addon with the given name and index.
+    /// </summary>
+    /// <param name="name">Name of addon to find.</param>
+    /// <param name="index">Index of addon to find (1-indexed).</param>
+    /// <returns>A pointer wrapper to the addon.</returns>
+    /// <typeparam name="T">Type of addon pointer AtkUnitBase or any derived struct.</typeparam>
+    public T* GetAddonByName<T>(string name, int index = 1) where T : unmanaged;
 
     /// <summary>
     /// Find the agent associated with an addon, if possible.

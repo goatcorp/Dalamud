@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
@@ -17,12 +18,17 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Support;
+
 using Lumina.Excel.Sheets;
+
 using Serilog;
+
 using TerraFX.Interop.Windows;
+
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -65,6 +71,7 @@ public static partial class Util
     private static string? scmVersionInternal;
     private static string? gitHashInternal;
     private static string? gitHashClientStructsInternal;
+    private static string? branchInternal;
 
     private static ulong moduleStartAddr;
     private static ulong moduleEndAddr;
@@ -130,6 +137,35 @@ public static partial class Util
         gitHashClientStructsInternal = attrs.First(a => a.Key == "GitHashClientStructs").Value;
 
         return gitHashClientStructsInternal;
+    }
+
+    /// <summary>
+    /// Gets the Git branch name this version of Dalamud was built from, or null, if this is a Debug build.
+    /// </summary>
+    /// <returns>The branch name.</returns>
+    public static string? GetGitBranch()
+    {
+        if (branchInternal != null)
+            return branchInternal;
+
+        var asm = typeof(Util).Assembly;
+        var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
+
+        var gitBranch = attrs.FirstOrDefault(a => a.Key == "GitBranch")?.Value;
+        if (gitBranch == null)
+            return null;
+
+        return branchInternal = gitBranch;
+    }
+
+    /// <summary>
+    /// Gets the active Dalamud track, if this instance was launched through XIVLauncher and used a version
+    /// downloaded from webservices.
+    /// </summary>
+    /// <returns>The name of the track, or null.</returns>
+    internal static string? GetActiveTrack()
+    {
+        return Environment.GetEnvironmentVariable("DALAMUD_BRANCH");
     }
 
     /// <inheritdoc cref="DescribeAddress(nint)"/>
@@ -522,17 +558,36 @@ public static partial class Util
     public static bool IsWindows11() => Environment.OSVersion.Version.Build >= 22000;
 
     /// <summary>
-    /// Open a link in the default browser.
+    /// Open a link in the default browser, and attempts to focus the newly launched application.
     /// </summary>
     /// <param name="url">The link to open.</param>
-    public static void OpenLink(string url)
-    {
-        var process = new ProcessStartInfo(url)
+    public static void OpenLink(string url) => new Thread(
+        static url =>
         {
-            UseShellExecute = true,
-        };
-        Process.Start(process);
-    }
+            try
+            {
+                var psi = new ProcessStartInfo((string)url!)
+                {
+                    UseShellExecute = true,
+                    ErrorDialogParentHandle = Service<InterfaceManager>.GetNullable() is { } im
+                                                  ? im.GameWindowHandle
+                                                  : 0,
+                    Verb = "open",
+                };
+                if (Process.Start(psi) is not { } process)
+                    return;
+
+                if (process.Id != 0)
+                    TerraFX.Interop.Windows.Windows.AllowSetForegroundWindow((uint)process.Id);
+                process.WaitForInputIdle();
+                TerraFX.Interop.Windows.Windows.SetForegroundWindow(
+                    (TerraFX.Interop.Windows.HWND)process.MainWindowHandle);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "{fn}: failed to open {url}", nameof(OpenLink), url);
+            }
+        }).Start(url);
 
     /// <summary>
     /// Perform a "zipper merge" (A, 1, B, 2, C, 3) of multiple enumerables, allowing for lists to end early.
@@ -731,7 +786,7 @@ public static partial class Util
             $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
 
         if (actor is Npc npc)
-            actorString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
+            actorString += $"       BaseId: {npc.BaseId}  NameId:{npc.NameId}\n";
 
         if (actor is ICharacter chara)
         {
@@ -765,7 +820,7 @@ public static partial class Util
             $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
 
         if (actor is Npc npc)
-            actorString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
+            actorString += $"       BaseId: {npc.BaseId}  NameId:{npc.NameId}\n";
 
         if (actor is Character chara)
         {

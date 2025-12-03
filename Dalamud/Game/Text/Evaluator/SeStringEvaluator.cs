@@ -8,6 +8,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Config;
+using Dalamud.Game.Player;
 using Dalamud.Game.Text.Evaluator.Internal;
 using Dalamud.Game.Text.Noun;
 using Dalamud.Game.Text.Noun.Enums;
@@ -35,7 +36,6 @@ using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 using AddonSheet = Lumina.Excel.Sheets.Addon;
-using PlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
 using StatusSheet = Lumina.Excel.Sheets.Status;
 
 namespace Dalamud.Game.Text.Evaluator;
@@ -67,6 +67,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     [ServiceManager.ServiceDependency]
     private readonly SheetRedirectResolver sheetRedirectResolver = Service<SheetRedirectResolver>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly PlayerState playerState = Service<PlayerState>.Get();
 
     private readonly ConcurrentDictionary<StringCacheKey<ActionKind>, string> actStrCache = [];
     private readonly ConcurrentDictionary<StringCacheKey<ObjectKind>, string> objStrCache = [];
@@ -115,6 +118,15 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     /// <inheritdoc/>
     public ReadOnlySeString EvaluateMacroString(
         string macroString,
+        Span<SeStringParameter> localParameters = default,
+        ClientLanguage? language = null)
+    {
+        return this.Evaluate(ReadOnlySeString.FromMacroString(macroString).AsSpan(), localParameters, language);
+    }
+
+    /// <inheritdoc/>
+    public ReadOnlySeString EvaluateMacroString(
+        ReadOnlySpan<byte> macroString,
         Span<SeStringParameter> localParameters = default,
         ClientLanguage? language = null)
     {
@@ -247,6 +259,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             case MacroCode.Switch:
                 return this.TryResolveSwitch(in context, payload);
 
+            case MacroCode.SwitchPlatform:
+                return this.TryResolveSwitchPlatform(in context, payload);
+
             case MacroCode.PcName:
                 return this.TryResolvePcName(in context, payload);
 
@@ -314,6 +329,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
             case MacroCode.Sheet:
                 return this.TryResolveSheet(in context, payload);
+
+            case MacroCode.SheetSub:
+                return this.TryResolveSheetSub(in context, payload);
 
             case MacroCode.String:
                 return this.TryResolveString(in context, payload);
@@ -447,6 +465,29 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return false;
     }
 
+    private bool TryResolveSwitchPlatform(in SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var expr1))
+            return false;
+
+        if (!expr1.TryGetInt(out var intVal))
+            return false;
+
+        // Our version of the game uses IsMacClient() here and the
+        // Xbox version seems to always return 7 for the platform.
+        var platform = Util.IsWine() ? 5 : 3;
+
+        // The sheet is seeminly split into first 20 rows for wired controllers
+        // and the last 20 rows for wireless controllers.
+        var rowId = (uint)((20 * ((intVal - 1) / 20)) + (platform - 4 < 2 ? 2 : 1));
+
+        if (!this.dataManager.GetExcelSheet<Platform>().TryGetRow(rowId, out var platformRow))
+            return false;
+
+        context.Builder.Append(platformRow.Name);
+        return true;
+    }
+
     private unsafe bool TryResolvePcName(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eEntityId))
@@ -526,7 +567,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             return false;
 
         // the game uses LocalPlayer here, but using PlayerState seems more safe.
-        return this.ResolveStringExpression(in context, PlayerState.Instance()->EntityId == entityId ? eTrue : eFalse);
+        return this.ResolveStringExpression(in context, this.playerState.EntityId == entityId ? eTrue : eFalse);
     }
 
     private bool TryResolveColor(in SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -755,6 +796,65 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         this.CreateSheetLink(context, resolvedSheetName, text, eRowIdValue, eColParamValue);
 
         return true;
+    }
+
+    private bool TryResolveSheetSub(in SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        var enu = payload.GetEnumerator();
+
+        if (!enu.MoveNext() || !enu.Current.TryGetString(out var eSheetNameStr))
+            return false;
+
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var eRowIdValue))
+            return false;
+
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var eSubrowIdValue))
+            return false;
+
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var eColIndexValue))
+            return false;
+
+        var secondaryRowId = this.GetSubrowSheetIntValue(context.Language, eSheetNameStr.ExtractText(), eRowIdValue, (ushort)eSubrowIdValue, eColIndexValue);
+        if (secondaryRowId == -1)
+            return false;
+
+        if (!enu.MoveNext() || !enu.Current.TryGetString(out var eSecondarySheetNameStr))
+            return false;
+
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var secondaryColIndex))
+            return false;
+
+        var text = this.FormatSheetValue(context.Language, eSecondarySheetNameStr.ExtractText(), (uint)secondaryRowId, secondaryColIndex, 0);
+        if (text.IsEmpty)
+            return false;
+
+        this.CreateSheetLink(context, eSecondarySheetNameStr.ExtractText(), text, eRowIdValue, eSubrowIdValue);
+
+        return true;
+    }
+
+    private int GetSubrowSheetIntValue(ClientLanguage language, string sheetName, uint rowId, ushort subrowId, uint colIndex)
+    {
+        if (!this.dataManager.Excel.SheetNames.Contains(sheetName))
+            return -1;
+
+        if (!this.dataManager.GetSubrowExcelSheet<RawSubrow>(language, sheetName)
+            .TryGetSubrow(rowId, subrowId, out var row))
+            return -1;
+
+        if (colIndex >= row.Columns.Count)
+            return -1;
+
+        var column = row.Columns[(int)colIndex];
+        return column.Type switch
+        {
+            ExcelColumnDataType.Int8 => row.ReadInt8(column.Offset),
+            ExcelColumnDataType.UInt8 => row.ReadUInt8(column.Offset),
+            ExcelColumnDataType.Int16 => row.ReadInt16(column.Offset),
+            ExcelColumnDataType.UInt16 => row.ReadUInt16(column.Offset),
+            ExcelColumnDataType.Int32 => row.ReadInt32(column.Offset),
+            _ => -1,
+        };
     }
 
     private ReadOnlySeString FormatSheetValue(ClientLanguage language, string sheetName, uint rowId, uint colIndex, uint colParam)
@@ -1532,23 +1632,63 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             return true;
 
         var isNoun = false;
-        var col = 0;
 
-        if (ranges.StartsWith("noun"))
-        {
-            isNoun = true;
-        }
-        else if (ranges.StartsWith("col"))
-        {
-            var colRangeEnd = ranges.IndexOf(',');
-            if (colRangeEnd == -1)
-                colRangeEnd = ranges.Length;
+        var colIndex = 0;
+        Span<int> cols = stackalloc int[8];
+        cols.Clear();
+        var hasRanges = false;
+        var isInRange = false;
 
-            col = int.Parse(ranges[4..colRangeEnd]);
-        }
-        else if (ranges.StartsWith("tail"))
+        while (!string.IsNullOrWhiteSpace(ranges))
         {
-            // couldn't find any, so we don't handle them :p
+            // find the end of the current entry
+            var entryEnd = ranges.IndexOf(',');
+            if (entryEnd == -1)
+                entryEnd = ranges.Length;
+
+            var entry = ranges.AsSpan(0, entryEnd);
+
+            if (ranges.StartsWith("noun", StringComparison.Ordinal))
+            {
+                isNoun = true;
+            }
+            else if (ranges.StartsWith("col", StringComparison.Ordinal) && colIndex < cols.Length)
+            {
+                cols[colIndex++] = int.Parse(entry[4..]);
+            }
+            else if (ranges.StartsWith("tail", StringComparison.Ordinal))
+            {
+                // currently not supported, since there are no known uses
+                context.Builder.Append(payload);
+                return false;
+            }
+            else
+            {
+                var dash = entry.IndexOf('-');
+
+                hasRanges |= true;
+
+                if (dash == -1)
+                {
+                    isInRange |= int.Parse(entry) == rowId;
+                }
+                else
+                {
+                    isInRange |= rowId >= int.Parse(entry[..dash])
+                        && rowId <= int.Parse(entry[(dash + 1)..]);
+                }
+            }
+
+            // if it's the end of the string, we're done
+            if (entryEnd == ranges.Length)
+                break;
+
+            // else, move to the next entry
+            ranges = ranges[(entryEnd + 1)..].TrimStart();
+        }
+
+        if (hasRanges && !isInRange)
+        {
             context.Builder.Append(payload);
             return false;
         }
@@ -1566,7 +1706,23 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
         else if (this.dataManager.GetExcelSheet<RawRow>(context.Language, sheetName).TryGetRow(rowId, out var row))
         {
-            context.Builder.Append(row.ReadStringColumn(col));
+            if (colIndex == 0)
+            {
+                context.Builder.Append(row.ReadStringColumn(0));
+                return true;
+            }
+            else
+            {
+                for (var i = 0; i < colIndex; i++)
+                {
+                    var text = row.ReadStringColumn(cols[i]);
+                    if (!text.IsEmpty)
+                    {
+                        context.Builder.Append(text);
+                        break;
+                    }
+                }
+            }
         }
 
         return true;
@@ -1910,7 +2066,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                     value = (uint)MacroDecoder.GetMacroTime()->tm_mday;
                     return true;
                 case ExpressionType.Weekday:
-                    value = (uint)MacroDecoder.GetMacroTime()->tm_wday;
+                    value = (uint)MacroDecoder.GetMacroTime()->tm_wday + 1;
                     return true;
                 case ExpressionType.Month:
                     value = (uint)MacroDecoder.GetMacroTime()->tm_mon + 1;

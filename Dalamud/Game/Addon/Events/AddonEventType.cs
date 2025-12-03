@@ -74,7 +74,7 @@ public enum AddonEventType : byte
     /// <summary>
     /// Resize (ChatLogPanel).
     /// </summary>
-    Resize = 19,
+    Resize = 21,
 
     /// <summary>
     /// AtkComponentButton Press, sent on MouseDown on Button.
