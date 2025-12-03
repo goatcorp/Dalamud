@@ -191,6 +191,29 @@ internal class NounProcessorSelfTestStep : ISelfTestStep
         new(nameof(LSheets.Item), 44348, ClientLanguage.French, 2, (int)FrenchArticleType.PossessiveFirstPerson, 1, "mes mémoquartz inhabituels fantasmagoriques"),
         new(nameof(LSheets.Item), 44348, ClientLanguage.French, 2, (int)FrenchArticleType.PossessiveSecondPerson, 1, "tes mémoquartz inhabituels fantasmagoriques"),
         new(nameof(LSheets.Item), 44348, ClientLanguage.French, 2, (int)FrenchArticleType.PossessiveThirdPerson, 1, "ses mémoquartz inhabituels fantasmagoriques"),
+
+        // ColumnOffset tests
+
+        new(nameof(LSheets.BeastTribe), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Indefinite, 1, "a Amalj'aa"),
+        new(nameof(LSheets.BeastTribe), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Definite, 1, "the Amalj'aa"),
+
+        new(nameof(LSheets.DeepDungeonEquipment), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Indefinite, 1, "an aetherpool arm"),
+        new(nameof(LSheets.DeepDungeonEquipment), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Definite, 1, "the aetherpool arm"),
+
+        new(nameof(LSheets.DeepDungeonItem), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Indefinite, 1, "a pomander of safety"),
+        new(nameof(LSheets.DeepDungeonItem), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Definite, 1, "the pomander of safety"),
+
+        new(nameof(LSheets.DeepDungeonMagicStone), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Indefinite, 1, "a splinter of Inferno magicite"),
+        new(nameof(LSheets.DeepDungeonMagicStone), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Definite, 1, "the splinter of Inferno magicite"),
+
+        new(nameof(LSheets.DeepDungeonDemiclone), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Indefinite, 1, "an Unei demiclone"),
+        new(nameof(LSheets.DeepDungeonDemiclone), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Definite, 1, "the Unei demiclone"),
+
+        new(nameof(LSheets.Glasses), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Indefinite, 1, "a pair of oval spectacles"),
+        new(nameof(LSheets.Glasses), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Definite, 1, "the pair of oval spectacles"),
+
+        new(nameof(LSheets.GlassesStyle), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Indefinite, 1, "a shaded spectacles"),
+        new(nameof(LSheets.GlassesStyle), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Definite, 1, "the shaded spectacles"),
     ];
 
     private enum GermanCases
