@@ -181,29 +181,34 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
 
             ImGui.SetNextItemWidth(-1);
             var url = thirdRepoSetting.Url;
-            if (ImGui.InputText($"##thirdRepoInput", ref url, 65535, ImGuiInputTextFlags.EnterReturnsTrue))
+            if (ImGui.InputText($"##thirdRepoInput", ref url, 65535))
             {
-                this.IsValid = true;
+                var trimmedUrl = url.Trim();
 
-                var contains = this.thirdRepoList.Select(repo => repo.Url).Contains(url);
-                if (thirdRepoSetting.Url == url)
+                if (string.Equals(thirdRepoSetting.Url, trimmedUrl, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    // no change.
+                    this.thirdRepoAddError = string.Empty;
+                    this.IsValid = true;
                 }
-                else if (contains && thirdRepoSetting.Url != url)
+                else if (this.thirdRepoList
+                             .Where(repo => !string.Equals(repo.Url, thirdRepoSetting.Url, StringComparison.InvariantCultureIgnoreCase))
+                             .Select(repo => repo.Url)
+                             .Contains(trimmedUrl))
                 {
                     this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoExists", "Repo already exists.");
-                    Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
+                    this.IsValid = false;
                 }
-                else if (!ValidThirdPartyRepoUrl(url))
+                else if (!ValidThirdPartyRepoUrl(trimmedUrl))
                 {
                     this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoNotUrl", "The entered address is not a valid URL.\nDid you mean to enter it as a DevPlugin in the fields above instead?");
-                    Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
+                    this.IsValid = false;
                 }
                 else
                 {
-                    this.thirdRepoListChanged = thirdRepoSetting.Url != url;
-                    thirdRepoSetting.Url = url;
+                    this.thirdRepoAddError = string.Empty;
+                    this.thirdRepoListChanged = !string.Equals(thirdRepoSetting.Url, trimmedUrl, StringComparison.InvariantCultureIgnoreCase);
+                    thirdRepoSetting.Url = trimmedUrl;
+                    this.IsValid = true;
                 }
             }
 
@@ -244,7 +249,7 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         ImGui.SetNextItemWidth(-1);
         if (ImGui.InputText("##thirdRepoUrlInput"u8, ref this.thirdRepoTempUrl, 300))
         {
-            this.IsValid = true;
+            this.ValidateTempRepoInput();
         }
 
         ImGui.NextColumn();
@@ -267,16 +272,20 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         => Uri.TryCreate(url, UriKind.Absolute, out var uriResult)
         && (uriResult.Scheme == Uri.UriSchemeHttps || uriResult.Scheme == Uri.UriSchemeHttp);
 
-    private bool TryAddTempRepo()
+    private bool ValidateTempRepoInput()
     {
-        if (string.IsNullOrWhiteSpace(this.thirdRepoTempUrl))
-            return false;
-
         this.thirdRepoTempUrl = this.thirdRepoTempUrl.Trim();
+
+        if (string.IsNullOrEmpty(this.thirdRepoTempUrl))
+        {
+            this.thirdRepoAddError = string.Empty;
+            this.IsValid = true;
+            return false;
+        }
+
         if (this.thirdRepoList.Any(r => string.Equals(r.Url, this.thirdRepoTempUrl, StringComparison.InvariantCultureIgnoreCase)))
         {
             this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoExists", "Repo already exists.");
-            Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
             this.IsValid = false;
             return false;
         }
@@ -284,10 +293,19 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         if (!ValidThirdPartyRepoUrl(this.thirdRepoTempUrl))
         {
             this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoNotUrl", "The entered address is not a valid URL.\nDid you mean to enter it as a DevPlugin in the fields above instead?");
-            Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
             this.IsValid = false;
             return false;
         }
+
+        this.thirdRepoAddError = string.Empty;
+        this.IsValid = true;
+        return true;
+    }
+
+    private bool TryAddTempRepo()
+    {
+        if (!this.ValidateTempRepoInput())
+            return false;
 
         this.thirdRepoList.Add(new ThirdPartyRepoSettings
         {

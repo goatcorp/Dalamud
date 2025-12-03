@@ -187,8 +187,6 @@ internal sealed class SettingsWindow : Window
                     {
                         this.Save();
 
-                        hasInvalidEntries = this.tabs.Any(x => x.Entries.Any(y => !y.IsValid));
-
                         if (!hasInvalidEntries && !ImGui.IsKeyDown(ImGuiKey.ModShift))
                             this.IsOpen = false;
                     }
