@@ -12,7 +12,10 @@ public record struct SeStringDrawParams
     /// <summary>Gets or sets the target draw list.</summary>
     /// <value>Target draw list, <c>default(ImDrawListPtr)</c> to not draw, or <c>null</c> to use
     /// <see cref="ImGui.GetWindowDrawList"/> (the default).</value>
-    /// <remarks>If this value is set, <see cref="ImGui.Dummy"/> will not be called, and ImGui ID will be ignored.
+    /// <remarks>
+    /// If this value is set, <see cref="ImGui.Dummy"/> will not be called, and ImGui ID will be ignored.
+    /// You <b>must</b> specify a valid draw list and a valid font via <see cref="Font"/> if you set this value,
+    /// since the renderer will not be able to retrieve them from ImGui context.
     /// </remarks>
     public ImDrawListPtr? TargetDrawList { get; set; }
 
