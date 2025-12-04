@@ -256,7 +256,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                 var gwh = default(HWND);
                 fixed (char* pClass = "FFXIVGAME")
                 {
-                    while ((gwh = FindWindowExW(default, gwh, (ushort*)pClass, default)) != default)
+                    while ((gwh = FindWindowExW(default, gwh, pClass, default)) != default)
                     {
                         uint pid;
                         _ = GetWindowThreadProcessId(gwh, &pid);

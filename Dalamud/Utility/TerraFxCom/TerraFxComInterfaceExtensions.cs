@@ -88,7 +88,7 @@ internal static unsafe partial class TerraFxComInterfaceExtensions
         fixed (char* pPath = path)
         {
             SHCreateStreamOnFileEx(
-                (ushort*)pPath,
+                pPath,
                 grfMode,
                 (uint)attributes,
                 fCreate,
@@ -115,7 +115,7 @@ internal static unsafe partial class TerraFxComInterfaceExtensions
         {
             fixed (char* pName = name)
             {
-                var option = new PROPBAG2 { pstrName = (ushort*)pName };
+                var option = new PROPBAG2 { pstrName = pName };
                 return obj.Write(1, &option, &varValue);
             }
         }
@@ -145,7 +145,7 @@ internal static unsafe partial class TerraFxComInterfaceExtensions
             try
             {
                 fixed (char* pName = name)
-                    return obj.SetMetadataByName((ushort*)pName, &propVarValue);
+                    return obj.SetMetadataByName(pName, &propVarValue);
             }
             finally
             {
@@ -165,7 +165,7 @@ internal static unsafe partial class TerraFxComInterfaceExtensions
     public static HRESULT RemoveMetadataByName(ref this IWICMetadataQueryWriter obj, string name)
     {
         fixed (char* pName = name)
-            return obj.RemoveMetadataByName((ushort*)pName);
+            return obj.RemoveMetadataByName(pName);
     }
 
     [LibraryImport("propsys.dll")]

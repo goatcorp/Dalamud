@@ -133,7 +133,7 @@ internal sealed partial class TextureManager
                             },
                         },
                     };
-                    namea.AsSpan().CopyTo(new(fgda.fgd.e0.cFileName, 260));
+                    namea.AsSpan().CopyTo(new(Unsafe.AsPointer(ref fgda.fgd.e0.cFileName[0]), 260));
 
                     AddToDataObject(
                         pdo,
@@ -157,7 +157,7 @@ internal sealed partial class TextureManager
                             },
                         },
                     };
-                    preferredFileNameWithoutExtension.AsSpan().CopyTo(new(fgdw.fgd.e0.cFileName, 260));
+                    preferredFileNameWithoutExtension.AsSpan().CopyTo(new(Unsafe.AsPointer(ref fgdw.fgd.e0.cFileName[0]), 260));
 
                     AddToDataObject(
                         pdo,
@@ -450,7 +450,7 @@ internal sealed partial class TextureManager
                 try
                 {
                     IStream* pfs;
-                    SHCreateStreamOnFileW((ushort*)pPath, sharedRead, &pfs).ThrowOnError();
+                    SHCreateStreamOnFileW((char*)pPath, sharedRead, &pfs).ThrowOnError();
 
                     var stgm2 = new STGMEDIUM
                     {

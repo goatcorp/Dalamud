@@ -94,7 +94,7 @@ internal static unsafe class ReShadeUnwrapper
         static bool HasProcExported(ProcessModule m, ReadOnlySpan<byte> name)
         {
             fixed (byte* p = name)
-                return GetProcAddress((HMODULE)m.BaseAddress, (sbyte*)p) != 0;
+                return GetProcAddress((HMODULE)m.BaseAddress, (sbyte*)p) != null;
         }
     }
 
