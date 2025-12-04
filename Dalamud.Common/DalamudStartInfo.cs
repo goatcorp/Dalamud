@@ -35,6 +35,12 @@ public record DalamudStartInfo
     public string? ConfigurationPath { get; set; }
 
     /// <summary>
+    /// Gets or sets the directory for temporary files. This directory needs to exist and be writable to the user.
+    /// It should also be predictable and easy for launchers to find.
+    /// </summary>
+    public string? TempDirectory { get; set; }
+
+    /// <summary>
     /// Gets or sets the path of the log files.
     /// </summary>
     public string? LogPath { get; set; }

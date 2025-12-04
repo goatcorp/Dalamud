@@ -1,6 +1,7 @@
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 

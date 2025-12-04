@@ -291,6 +291,7 @@ namespace Dalamud.Injector
             var configurationPath = startInfo.ConfigurationPath;
             var pluginDirectory = startInfo.PluginDirectory;
             var assetDirectory = startInfo.AssetDirectory;
+            var tempDirectory = startInfo.TempDirectory;
             var delayInitializeMs = startInfo.DelayInitializeMs;
             var logName = startInfo.LogName;
             var logPath = startInfo.LogPath;
@@ -320,6 +321,10 @@ namespace Dalamud.Injector
                 else if (args[i].StartsWith(key = "--dalamud-asset-directory="))
                 {
                     assetDirectory = args[i][key.Length..];
+                }
+                else if (args[i].StartsWith(key = "--dalamud-temp-directory="))
+                {
+                    tempDirectory = args[i][key.Length..];
                 }
                 else if (args[i].StartsWith(key = "--dalamud-delay-initialize="))
                 {
@@ -433,6 +438,7 @@ namespace Dalamud.Injector
             startInfo.ConfigurationPath = configurationPath;
             startInfo.PluginDirectory = pluginDirectory;
             startInfo.AssetDirectory = assetDirectory;
+            startInfo.TempDirectory = tempDirectory;
             startInfo.Language = clientLanguage;
             startInfo.Platform = platform;
             startInfo.DelayInitializeMs = delayInitializeMs;
