@@ -33,7 +33,7 @@ internal class LocalPlugin : IAsyncDisposable
     protected LocalPluginManifest manifest;
 #pragma warning restore SA1401
 
-    private static readonly ModuleLog Log = new("LOCALPLUGIN");
+    private static readonly ModuleLog Log = ModuleLog.Create<LocalPlugin>();
 
     private readonly FileInfo manifestFile;
     private readonly FileInfo disabledFile;

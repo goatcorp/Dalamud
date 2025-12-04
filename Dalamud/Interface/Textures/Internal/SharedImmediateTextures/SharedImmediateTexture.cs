@@ -23,8 +23,8 @@ internal abstract class SharedImmediateTexture
 
     private static long instanceCounter;
 
-    private readonly object reviveLock = new();
-    private readonly List<LocalPlugin> ownerPlugins = new();
+    private readonly Lock reviveLock = new();
+    private readonly List<LocalPlugin> ownerPlugins = [];
 
     private bool resourceReleased;
     private int refCount;
@@ -476,8 +476,8 @@ internal abstract class SharedImmediateTexture
         {
             var ownerCopy = this.owner;
             var wrapCopy = this.innerWrap;
-            if (ownerCopy is null || wrapCopy is null)
-                throw new ObjectDisposedException(nameof(RefCountableWrappingTextureWrap));
+
+            ObjectDisposedException.ThrowIf(ownerCopy is null || wrapCopy is null, this);
 
             ownerCopy.AddRef();
             return new RefCountableWrappingTextureWrap(wrapCopy, ownerCopy);

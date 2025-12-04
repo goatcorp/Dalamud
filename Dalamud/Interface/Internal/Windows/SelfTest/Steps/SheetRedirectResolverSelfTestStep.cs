@@ -4,6 +4,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Game.Text.Evaluator.Internal;
 using Dalamud.Plugin.SelfTest;
+
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 

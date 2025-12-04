@@ -4,8 +4,6 @@ using Dalamud.Game;
 using Dalamud.Plugin.SelfTest;
 using Dalamud.Utility;
 
-using Microsoft.VisualBasic.Logging;
-
 using Log = Serilog.Log;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;

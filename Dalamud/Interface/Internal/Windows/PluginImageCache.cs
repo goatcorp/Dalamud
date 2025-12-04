@@ -6,7 +6,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Game;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Networking.Http;
@@ -15,6 +14,7 @@ using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows;
@@ -51,8 +51,8 @@ internal class PluginImageCache : IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
 
-    private readonly BlockingCollection<Tuple<ulong, Func<Task>>> downloadQueue = new();
-    private readonly BlockingCollection<Func<Task>> loadQueue = new();
+    private readonly BlockingCollection<Tuple<ulong, Func<Task>>> downloadQueue = [];
+    private readonly BlockingCollection<Func<Task>> loadQueue = [];
     private readonly CancellationTokenSource cancelToken = new();
     private readonly Task downloadTask;
     private readonly Task loadTask;
@@ -144,7 +144,7 @@ internal class PluginImageCache : IInternalDisposableService
         this.downloadQueue.CompleteAdding();
         this.loadQueue.CompleteAdding();
 
-        if (!Task.WaitAll(new[] { this.loadTask, this.downloadTask }, 4000))
+        if (!Task.WaitAll([this.loadTask, this.downloadTask], 4000))
         {
             Log.Error("Plugin Image download/load thread has not cancelled in time");
         }
@@ -357,7 +357,7 @@ internal class PluginImageCache : IInternalDisposableService
             try
             {
                 token.ThrowIfCancellationRequested();
-                if (!pendingFuncs.Any())
+                if (pendingFuncs.Count == 0)
                 {
                     if (!this.downloadQueue.TryTake(out var taskTuple, -1, token))
                         return;
@@ -373,7 +373,7 @@ internal class PluginImageCache : IInternalDisposableService
                 pendingFuncs = pendingFuncs.OrderBy(x => x.Item1).ToList();
 
                 var item1 = pendingFuncs.Last().Item1;
-                while (pendingFuncs.Any() && pendingFuncs.Last().Item1 == item1)
+                while (pendingFuncs.Count != 0 && pendingFuncs.Last().Item1 == item1)
                 {
                     token.ThrowIfCancellationRequested();
                     while (runningTasks.Count >= concurrency)

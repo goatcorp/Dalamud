@@ -1,10 +1,12 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
 using Dalamud.Memory;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Common.Configuration;
+
 using Serilog;
 
 namespace Dalamud.Game.Config;

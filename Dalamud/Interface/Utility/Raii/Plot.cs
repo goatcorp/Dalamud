@@ -96,7 +96,7 @@ public static partial class ImRaii
 
     public sealed class PlotStyle : IDisposable
     {
-        internal static readonly List<(ImPlotStyleVar, Vector2)> Stack = new();
+        internal static readonly List<(ImPlotStyleVar, Vector2)> Stack = [];
 
         private int count;
 
@@ -249,7 +249,7 @@ public static partial class ImRaii
 
     public sealed class PlotColor : IDisposable
     {
-        internal static readonly List<(ImPlotCol, uint)> Stack = new();
+        internal static readonly List<(ImPlotCol, uint)> Stack = [];
         private int count;
 
         // Reimplementation of https://github.com/ocornut/imgui/blob/868facff9ded2d61425c67deeba354eb24275bd1/imgui.cpp#L3035

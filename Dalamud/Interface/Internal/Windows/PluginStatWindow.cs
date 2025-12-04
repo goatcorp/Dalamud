@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -14,6 +13,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows;
@@ -186,7 +186,7 @@ internal class PluginStatWindow : Window
                     ImGui.SameLine();
                     ImGuiComponents.TextWithLabel("Total Average", $"{totalAverage:F4}ms", "All average update times added together");
                     ImGui.SameLine();
-                    ImGuiComponents.TextWithLabel("Collective Average", $"{(statsHistory.Any() ? totalAverage / statsHistory.Length : 0):F4}ms", "Average of all average update times");
+                    ImGuiComponents.TextWithLabel("Collective Average", $"{(statsHistory.Length != 0 ? totalAverage / statsHistory.Length : 0):F4}ms", "Average of all average update times");
 
                     ImGui.InputTextWithHint(
                         "###PluginStatWindow_FrameworkSearch"u8,
@@ -230,7 +230,7 @@ internal class PluginStatWindow : Window
 
                         foreach (var handlerHistory in statsHistory)
                         {
-                            if (!handlerHistory.Value.Any())
+                            if (handlerHistory.Value.Count == 0)
                             {
                                 continue;
                             }

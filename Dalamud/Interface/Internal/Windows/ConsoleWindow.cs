@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -22,6 +21,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
 using Serilog;
 using Serilog.Events;
 
@@ -40,7 +40,7 @@ internal class ConsoleWindow : Window, IDisposable
     private readonly RollingList<LogEntry> logText;
     private readonly RollingList<LogEntry> filteredLogEntries;
 
-    private readonly List<PluginFilterEntry> pluginFilters = new();
+    private readonly List<PluginFilterEntry> pluginFilters = [];
 
     private readonly DalamudConfiguration configuration;
 

@@ -213,11 +213,10 @@ public abstract partial class Payload
         return payload;
     }
 
-    private static Payload DecodeText(BinaryReader reader)
+    private static TextPayload DecodeText(BinaryReader reader)
     {
         var payload = new TextPayload();
         payload.DecodeImpl(reader, reader.BaseStream.Length);
-
         return payload;
     }
 }
@@ -382,7 +381,7 @@ public abstract partial class Payload
     {
         if (value < 0xCF)
         {
-            return new byte[] { (byte)(value + 1) };
+            return [(byte)(value + 1)];
         }
 
         var bytes = BitConverter.GetBytes(value);

@@ -40,7 +40,7 @@ namespace Dalamud.Utility
         {
             ThrowHelper.ThrowArgumentOutOfRangeExceptionIfLessThan(nameof(size), size, 0);
             this.size = size;
-            this.items = new();
+            this.items = [];
         }
 
         /// <summary>Initializes a new instance of the <see cref="RollingList{T}"/> class.</summary>

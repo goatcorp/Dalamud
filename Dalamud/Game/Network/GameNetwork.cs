@@ -2,9 +2,6 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Hooking;
-using Dalamud.IoC;
-using Dalamud.IoC.Internal;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Network;

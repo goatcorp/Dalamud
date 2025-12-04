@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
 using JetBrains.Annotations;
+
 using Windows.Win32.System.Memory;
 
 using Win32Exception = System.ComponentModel.Win32Exception;
@@ -45,7 +45,7 @@ internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
 
             if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
             {
-                indexList = HookManager.MultiHookTracker[this.Address] = new List<IDalamudHook>();
+                indexList = HookManager.MultiHookTracker[this.Address] = [];
             }
 
             this.detourDelegate = detour;

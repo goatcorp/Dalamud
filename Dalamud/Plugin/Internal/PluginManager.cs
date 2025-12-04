@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
@@ -31,6 +32,7 @@ using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Support;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal;
@@ -56,9 +58,9 @@ internal class PluginManager : IInternalDisposableService
     private readonly DirectoryInfo pluginDirectory;
     private readonly BannedPlugin[]? bannedPlugins;
 
-    private readonly List<LocalPlugin> installedPluginsList = new();
-    private readonly List<RemotePluginManifest> availablePluginsList = new();
-    private readonly List<AvailablePluginUpdate> updatablePluginsList = new();
+    private readonly List<LocalPlugin> installedPluginsList = [];
+    private readonly List<RemotePluginManifest> availablePluginsList = [];
+    private readonly List<AvailablePluginUpdate> updatablePluginsList = [];
 
     private readonly Task<DalamudLinkPayload> openInstallerWindowPluginChangelogsLink;
 
@@ -131,7 +133,7 @@ internal class PluginManager : IInternalDisposableService
                             PluginInstallerOpenKind.Changelogs);
                     }));
 
-        this.configuration.PluginTestingOptIns ??= new();
+        this.configuration.PluginTestingOptIns ??= [];
         this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
 
         registerStartupBlocker(
@@ -230,7 +232,7 @@ internal class PluginManager : IInternalDisposableService
     /// <summary>
     /// Gets a list of all plugin repositories. The main repo should always be first.
     /// </summary>
-    public List<PluginRepository> Repos { get; private set; } = new();
+    public List<PluginRepository> Repos { get; private set; } = [];
 
     /// <summary>
     /// Gets a value indicating whether plugins are not still loading from boot.
@@ -1514,11 +1516,7 @@ internal class PluginManager : IInternalDisposableService
                 JsonConvert.SerializeObject(repoManifest, Formatting.Indented));
 
             // Reload as a local manifest, add some attributes, and save again.
-            var tempManifest = LocalPluginManifest.Load(tempManifestFile);
-
-            if (tempManifest == null)
-                throw new Exception("Plugin had no valid manifest");
-
+            var tempManifest = LocalPluginManifest.Load(tempManifestFile) ?? throw new Exception("Plugin had no valid manifest");
             if (tempManifest.InternalName != repoManifest.InternalName)
             {
                 throw new Exception(
@@ -1897,9 +1895,9 @@ internal class PluginManager : IInternalDisposableService
     /// </summary>
     public class StartupLoadTracker
     {
-        private readonly Dictionary<string, string> internalToPublic = new();
-        private readonly ConcurrentBag<string> allInternalNames = new();
-        private readonly ConcurrentBag<string> finishedInternalNames = new();
+        private readonly Dictionary<string, string> internalToPublic = [];
+        private readonly ConcurrentBag<string> allInternalNames = [];
+        private readonly ConcurrentBag<string> finishedInternalNames = [];
 
         /// <summary>
         /// Gets a value indicating the total load progress.

@@ -21,7 +21,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
     public string DisplayName { get; init; } = "Addon Lifecycle";
 
     /// <inheritdoc/>
-    [MemberNotNullWhen(true, "AddonLifecycle")]
+    [MemberNotNullWhen(true, nameof(AddonLifecycle))]
     public bool Ready { get; set; }
 
     private AddonLifecycle? AddonLifecycle { get; set; }

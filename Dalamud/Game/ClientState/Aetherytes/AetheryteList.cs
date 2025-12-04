@@ -8,6 +8,7 @@ using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Aetherytes;

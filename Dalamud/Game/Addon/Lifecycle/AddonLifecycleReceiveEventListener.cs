@@ -14,7 +14,7 @@ namespace Dalamud.Game.Addon.Lifecycle;
 /// </summary>
 internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
 {
-    private static readonly ModuleLog Log = new("AddonLifecycle");
+    private static readonly ModuleLog Log = ModuleLog.Create<AddonLifecycle>();
 
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecyclePooledArgs argsPool = Service<AddonLifecyclePooledArgs>.Get();

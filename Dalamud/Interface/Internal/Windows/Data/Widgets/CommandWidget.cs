@@ -2,7 +2,6 @@ using System.Linq;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Command;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -13,7 +12,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class CommandWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "command" };
+    public string[]? CommandShortcuts { get; init; } = ["command"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Command";
