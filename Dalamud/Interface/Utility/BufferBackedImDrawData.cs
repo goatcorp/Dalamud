@@ -39,9 +39,8 @@ public unsafe struct BufferBackedImDrawData : IDisposable
         *ds = default;
 
         var atlas = ImGui.GetIO().Fonts;
-        ref var atlasTail = ref ImFontAtlasTailReal.From(atlas);
         ds->SharedData = *ImGui.GetDrawListSharedData().Handle;
-        ds->SharedData.TexIdCommon = atlas.Textures[atlasTail.TextureIndexCommon].TexID;
+        ds->SharedData.TexIdCommon = atlas.Textures[atlas.TextureIndexCommon].TexID;
         ds->SharedData.TexUvWhitePixel = atlas.TexUvWhitePixel;
         ds->SharedData.TexUvLines = (Vector4*)Unsafe.AsPointer(ref atlas.TexUvLines[0]);
         ds->SharedData.Font = ImGui.GetIO().FontDefault;
@@ -60,7 +59,7 @@ public unsafe struct BufferBackedImDrawData : IDisposable
 
         res.ListPtr._ResetForNewFrame();
         res.ListPtr.PushClipRectFullScreen();
-        res.ListPtr.PushTextureID(new(atlasTail.TextureIndexCommon));
+        res.ListPtr.PushTextureID(new(atlas.TextureIndexCommon));
         return res;
     }
 
@@ -89,24 +88,5 @@ public unsafe struct BufferBackedImDrawData : IDisposable
         public ImDrawList* ListPtr;
         public ImDrawList List;
         public ImDrawListSharedData SharedData;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct ImFontAtlasTailReal
-    {
-        /// <summary>Index of texture containing the below.</summary>
-        public int TextureIndexCommon;
-
-        /// <summary>Custom texture rectangle ID for both of the below.</summary>
-        public int PackIdCommon;
-
-        /// <summary>Custom texture rectangle for white pixel and mouse cursors.</summary>
-        public ImFontAtlasCustomRect RectMouseCursors;
-
-        /// <summary>Custom texture rectangle for baked anti-aliased lines.</summary>
-        public ImFontAtlasCustomRect RectLines;
-
-        public static ref ImFontAtlasTailReal From(ImFontAtlasPtr fontAtlasPtr) =>
-            ref *(ImFontAtlasTailReal*)(&fontAtlasPtr.Handle->FontBuilderFlags + sizeof(uint));
     }
 }
