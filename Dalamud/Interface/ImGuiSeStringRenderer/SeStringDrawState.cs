@@ -17,7 +17,7 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer;
 
 /// <summary>Calculated values from <see cref="SeStringDrawParams"/> using ImGui styles.</summary>
 [StructLayout(LayoutKind.Sequential)]
-public unsafe ref struct SeStringDrawState : IDisposable
+public unsafe ref struct SeStringDrawState
 {
     private static readonly int ChannelCount = Enum.GetValues<SeStringDrawChannel>().Length;
 
@@ -180,10 +180,6 @@ public unsafe ref struct SeStringDrawState : IDisposable
 
     /// <summary>Gets the text fragments.</summary>
     internal List<TextFragment> Fragments { get; }
-
-    /// <inheritdoc/>
-    public void Dispose() =>
-        ImGuiNative.Destroy((ImDrawListSplitter*)Unsafe.AsPointer(ref this.splitter));
 
     /// <summary>Sets the current channel in the ImGui draw list splitter.</summary>
     /// <param name="channelIndex">Channel to switch to.</param>

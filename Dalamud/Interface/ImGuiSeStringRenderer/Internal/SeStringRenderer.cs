@@ -168,7 +168,7 @@ internal class SeStringRenderer : IServiceType
 
         // This also does argument validation for drawParams. Do it here.
         // `using var` makes a struct read-only, but we do want to modify it.
-        using var stateStorage = new SeStringDrawState(
+        var stateStorage = new SeStringDrawState(
             sss,
             drawParams,
             ThreadSafety.IsMainThread ? this.colorStackSetMainThread : new(this.colorStackSetMainThread.ColorTypes),
