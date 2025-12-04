@@ -27,8 +27,6 @@
 
     <!-- DirectX / Win32 -->
     <PackageVersion Include="TerraFX.Interop.Windows" Version="10.0.22621.2" />
-    <PackageVersion Include="SharpDX.Direct3D11" Version="4.2.0" />
-    <PackageVersion Include="SharpDX.Mathematics" Version="4.2.0" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.183" />
 
     <!-- Logging -->
