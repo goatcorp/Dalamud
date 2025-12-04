@@ -1,6 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
+using Windows.Win32.Foundation;
+
 namespace Dalamud;
 
 /// <summary>
@@ -28,12 +30,18 @@ public static class SafeMemory
     /// <returns>Whether the read succeeded.</returns>
     public static unsafe bool ReadBytes(IntPtr address, int count, out byte[] buffer)
     {
+        if (Handle.IsClosed || Handle.IsInvalid)
+        {
+            buffer = [];
+            return false;
+        }
+
         buffer = new byte[count <= 0 ? 0 : count];
         fixed (byte* p = buffer)
         {
             UIntPtr bytesRead;
             if (!Windows.Win32.PInvoke.ReadProcessMemory(
-                Handle,
+                (HANDLE)Handle.DangerousGetHandle(),
                 address.ToPointer(),
                 p,
                 new UIntPtr((uint)count),
@@ -54,6 +62,9 @@ public static class SafeMemory
     /// <returns>Whether the write succeeded.</returns>
     public static unsafe bool WriteBytes(IntPtr address, byte[] buffer)
     {
+        if (Handle.IsClosed || Handle.IsInvalid)
+            return false;
+
         if (buffer.Length == 0)
             return true;
 
@@ -61,7 +72,7 @@ public static class SafeMemory
         fixed (byte* p = buffer)
         {
             if (!Windows.Win32.PInvoke.WriteProcessMemory(
-                Handle,
+                (HANDLE)Handle.DangerousGetHandle(),
                 address.ToPointer(),
                 p,
                 new UIntPtr((uint)buffer.Length),

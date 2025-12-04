@@ -27,7 +27,7 @@
 
     <!-- DirectX / Win32 -->
     <PackageVersion Include="TerraFX.Interop.Windows" Version="10.0.26100.5" />
-    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.183" />
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.259" />
 
     <!-- Logging -->
     <PackageVersion Include="Serilog" Version="4.0.2" />

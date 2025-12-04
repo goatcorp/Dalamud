@@ -1,7 +1,8 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 
+using Windows.Win32.Foundation;
 using Windows.Win32.Storage.FileSystem;
 
 namespace Dalamud.Utility;
@@ -61,8 +62,11 @@ public static class FilesystemUtil
 
         // Write the data
         uint bytesWritten = 0;
-        if (!Windows.Win32.PInvoke.WriteFile(tempFile, new ReadOnlySpan<byte>(bytes), &bytesWritten, null))
-            throw new Win32Exception();
+        fixed (byte* ptr = bytes)
+        {
+            if (!Windows.Win32.PInvoke.WriteFile((HANDLE)tempFile.DangerousGetHandle(), ptr, (uint)bytes.Length, &bytesWritten, null))
+                throw new Win32Exception();
+        }
 
         if (bytesWritten != bytes.Length)
             throw new Exception($"Could not write all bytes to temp file ({bytesWritten} of {bytes.Length})");
