@@ -12,7 +12,6 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
-using Dalamud.Plugin;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using Serilog;
@@ -149,13 +148,6 @@ public interface IUiBuilder
     /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
     /// </summary>
     public ImFontPtr FontMono { get; }
-
-    /// <summary>
-    /// Gets the game's active Direct3D device.
-    /// </summary>
-    // TODO: Remove it on API11/APIXI, and remove SharpDX/PInvoke/etc. dependency from Dalamud.
-    [Obsolete($"Use {nameof(DeviceHandle)} and wrap it using DirectX wrapper library of your choice.")]
-    SharpDX.Direct3D11.Device Device { get; }
 
     /// <summary>Gets the game's active Direct3D device.</summary>
     /// <value>Pointer to the instance of IUnknown that the game is using and should be containing an ID3D11Device,
@@ -301,8 +293,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     private IFontHandle? iconFontHandle;
     private IFontHandle? monoFontHandle;
     private IFontHandle? iconFontFixedWidthHandle;
-
-    private SharpDX.Direct3D11.Device? sdxDevice;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
@@ -492,12 +482,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
                 new FontHandleWrapper(
                     this.InterfaceManagerWithScene?.MonoFontHandle
                     ?? throw new InvalidOperationException("Scene is not yet ready.")));
-
-    /// <inheritdoc/>
-    // TODO: Remove it on API11/APIXI, and remove SharpDX/PInvoke/etc. dependency from Dalamud.
-    [Obsolete($"Use {nameof(DeviceHandle)} and wrap it using DirectX wrapper library of your choice.")]
-    public SharpDX.Direct3D11.Device Device =>
-        this.sdxDevice ??= new(this.InterfaceManagerWithScene!.Backend!.DeviceHandle);
 
     /// <inheritdoc/>
     public nint DeviceHandle => this.InterfaceManagerWithScene?.Backend?.DeviceHandle ?? 0;
