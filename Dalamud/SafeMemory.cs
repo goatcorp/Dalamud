@@ -14,11 +14,11 @@ namespace Dalamud;
 /// </remarks>
 public static class SafeMemory
 {
-    private static readonly SafeHandle Handle;
+    private static readonly HANDLE Handle;
 
     static SafeMemory()
     {
-        Handle = Windows.Win32.PInvoke.GetCurrentProcess_SafeHandle();
+        Handle = Windows.Win32.PInvoke.GetCurrentProcess();
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public static class SafeMemory
     /// <returns>Whether the read succeeded.</returns>
     public static unsafe bool ReadBytes(IntPtr address, int count, out byte[] buffer)
     {
-        if (Handle.IsClosed || Handle.IsInvalid)
+        if (Handle.IsNull)
         {
             buffer = [];
             return false;
@@ -41,7 +41,7 @@ public static class SafeMemory
         {
             UIntPtr bytesRead;
             if (!Windows.Win32.PInvoke.ReadProcessMemory(
-                (HANDLE)Handle.DangerousGetHandle(),
+                Handle,
                 address.ToPointer(),
                 p,
                 new UIntPtr((uint)count),
@@ -62,7 +62,7 @@ public static class SafeMemory
     /// <returns>Whether the write succeeded.</returns>
     public static unsafe bool WriteBytes(IntPtr address, byte[] buffer)
     {
-        if (Handle.IsClosed || Handle.IsInvalid)
+        if (Handle.IsNull)
             return false;
 
         if (buffer.Length == 0)
@@ -72,7 +72,7 @@ public static class SafeMemory
         fixed (byte* p = buffer)
         {
             if (!Windows.Win32.PInvoke.WriteProcessMemory(
-                (HANDLE)Handle.DangerousGetHandle(),
+                Handle,
                 address.ToPointer(),
                 p,
                 new UIntPtr((uint)buffer.Length),

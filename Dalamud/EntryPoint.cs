@@ -263,7 +263,7 @@ public sealed class EntryPoint
             var symbolPath = Path.Combine(info.AssetDirectory, "UIRes", "pdb");
             var searchPath = $".;{symbolPath}";
 
-            var currentProcess = Windows.Win32.PInvoke.GetCurrentProcess_SafeHandle();
+            var currentProcess = Windows.Win32.PInvoke.GetCurrentProcess();
 
             // Remove any existing Symbol Handler and Init a new one with our search path added
             Windows.Win32.PInvoke.SymCleanup(currentProcess);

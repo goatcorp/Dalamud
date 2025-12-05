@@ -48,33 +48,39 @@ public static class FilesystemUtil
         // Open the temp file
         var tempPath = path + ".tmp";
 
-        using var tempFile = Windows.Win32.PInvoke.CreateFile(
+        var tempFile = Windows.Win32.PInvoke.CreateFile(
             tempPath,
             (uint)(FILE_ACCESS_RIGHTS.FILE_GENERIC_READ | FILE_ACCESS_RIGHTS.FILE_GENERIC_WRITE),
             FILE_SHARE_MODE.FILE_SHARE_NONE,
             null,
             FILE_CREATION_DISPOSITION.CREATE_ALWAYS,
             FILE_FLAGS_AND_ATTRIBUTES.FILE_ATTRIBUTE_NORMAL,
-            null);
+            HANDLE.Null);
 
-        if (tempFile.IsInvalid)
+        if (tempFile.IsNull)
             throw new Win32Exception();
 
         // Write the data
         uint bytesWritten = 0;
         fixed (byte* ptr = bytes)
         {
-            if (!Windows.Win32.PInvoke.WriteFile((HANDLE)tempFile.DangerousGetHandle(), ptr, (uint)bytes.Length, &bytesWritten, null))
+            if (!Windows.Win32.PInvoke.WriteFile(tempFile, ptr, (uint)bytes.Length, &bytesWritten, null))
                 throw new Win32Exception();
         }
 
         if (bytesWritten != bytes.Length)
+        {
+            Windows.Win32.PInvoke.CloseHandle(tempFile);
             throw new Exception($"Could not write all bytes to temp file ({bytesWritten} of {bytes.Length})");
+        }
 
         if (!Windows.Win32.PInvoke.FlushFileBuffers(tempFile))
+        {
+            Windows.Win32.PInvoke.CloseHandle(tempFile);
             throw new Win32Exception();
+        }
 
-        tempFile.Close();
+        Windows.Win32.PInvoke.CloseHandle(tempFile);
 
         if (!Windows.Win32.PInvoke.MoveFileEx(tempPath, path, MOVE_FILE_FLAGS.MOVEFILE_REPLACE_EXISTING | MOVE_FILE_FLAGS.MOVEFILE_WRITE_THROUGH))
             throw new Win32Exception();
