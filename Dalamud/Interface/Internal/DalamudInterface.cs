@@ -533,6 +533,13 @@ internal class DalamudInterface : IInternalDisposableService
             this.creditsDarkeningAnimation.Restart();
     }
 
+    /// <inheritdoc cref="DataWindow.GetWidget{T}"/>
+    public T GetDataWindowWidget<T>() where T : IDataWindowWidget => this.dataWindow.GetWidget<T>();
+
+    /// <summary>Sets the data window current widget.</summary>
+    /// <param name="widget">Widget to set current.</param>
+    public void SetDataWindowWidget(IDataWindowWidget widget) => this.dataWindow.CurrentWidget = widget;
+
     private void OnDraw()
     {
         this.FrameCount++;

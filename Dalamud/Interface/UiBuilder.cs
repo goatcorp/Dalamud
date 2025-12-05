@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
@@ -675,13 +676,14 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
         FontAtlasAutoRebuildMode autoRebuildMode,
         bool isGlobalScaled = true,
         string? debugName = null) =>
-        this.scopedFinalizer.Add(Service<FontAtlasFactory>
-                                 .Get()
-                                 .CreateFontAtlas(
-                                     this.namespaceName + ":" + (debugName ?? "custom"),
-                                     autoRebuildMode,
-                                     isGlobalScaled,
-                                     this.plugin));
+        this.scopedFinalizer.Add(
+            Service<FontAtlasFactory>
+                .Get()
+                .CreateFontAtlas(
+                    this.namespaceName + ":" + (debugName ?? "custom"),
+                    autoRebuildMode,
+                    isGlobalScaled,
+                    this.plugin));
 
     /// <summary>
     /// Unregister the UiBuilder. Do not call this in plugin code.
@@ -852,6 +854,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             // Note: do not dispose w; we do not own it
         }
 
+        public ILockedImFont? TryLock(out string? errorMessage)
+        {
+            if (this.wrapped is { } w)
+                return w.TryLock(out errorMessage);
+
+            errorMessage = nameof(ObjectDisposedException);
+            return null;
+        }
+
         public ILockedImFont Lock() =>
             this.wrapped?.Lock() ?? throw new ObjectDisposedException(nameof(FontHandleWrapper));
 
@@ -860,7 +871,13 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
         public void Pop() => this.WrappedNotDisposed.Pop();
 
         public Task<IFontHandle> WaitAsync() =>
-            this.WrappedNotDisposed.WaitAsync().ContinueWith(_ => (IFontHandle)this);
+            this.wrapped?.WaitAsync().ContinueWith(_ => (IFontHandle)this)
+            ?? Task.FromException<IFontHandle>(new ObjectDisposedException(nameof(FontHandleWrapper)));
+
+        public Task<IFontHandle> WaitAsync(CancellationToken cancellationToken) =>
+            this.wrapped?.WaitAsync(cancellationToken)
+                .ContinueWith(_ => (IFontHandle)this, cancellationToken)
+            ?? Task.FromException<IFontHandle>(new ObjectDisposedException(nameof(FontHandleWrapper)));
 
         public override string ToString() =>
             $"{nameof(FontHandleWrapper)}({this.wrapped?.ToString() ?? "disposed"})";
