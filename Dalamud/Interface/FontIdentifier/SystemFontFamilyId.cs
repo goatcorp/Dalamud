@@ -133,8 +133,8 @@ public sealed class SystemFontFamilyId : IFontFamilyId
 
         var familyIndex = 0u;
         BOOL exists = false;
-        fixed (void* pName = this.EnglishName)
-            sfc.Get()->FindFamilyName((ushort*)pName, &familyIndex, &exists).ThrowOnError();
+        fixed (char* pName = this.EnglishName)
+            sfc.Get()->FindFamilyName(pName, &familyIndex, &exists).ThrowOnError();
         if (!exists)
             throw new FileNotFoundException($"Font \"{this.EnglishName}\" not found.");
 

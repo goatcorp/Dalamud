@@ -216,7 +216,7 @@ internal partial class StaThreadService : IInternalDisposableService
                     lpfnWndProc = &MessageReceiverWndProcStatic,
                     hInstance = hInstance,
                     hbrBackground = (HBRUSH)(COLOR.COLOR_BACKGROUND + 1),
-                    lpszClassName = (ushort*)name,
+                    lpszClassName = name,
                 };
 
                 wndClassAtom = RegisterClassExW(&wndClass);
@@ -226,8 +226,8 @@ internal partial class StaThreadService : IInternalDisposableService
                 this.messageReceiverHwndTask.SetResult(
                     CreateWindowExW(
                         0,
-                        (ushort*)wndClassAtom,
-                        (ushort*)name,
+                        (char*)wndClassAtom,
+                        name,
                         0,
                         CW_USEDEFAULT,
                         CW_USEDEFAULT,
@@ -275,7 +275,7 @@ internal partial class StaThreadService : IInternalDisposableService
             _ = OleFlushClipboard();
             OleUninitialize();
             if (wndClassAtom != 0)
-                UnregisterClassW((ushort*)wndClassAtom, hInstance);
+                UnregisterClassW((char*)wndClassAtom, hInstance);
             this.messageReceiverHwndTask.TrySetException(e);
         }
     }

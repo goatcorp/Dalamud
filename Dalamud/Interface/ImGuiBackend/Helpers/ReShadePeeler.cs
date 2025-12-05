@@ -104,19 +104,19 @@ internal static unsafe class ReShadePeeler
             fixed (byte* pfn5 = "glBegin"u8)
             fixed (byte* pfn6 = "vkCreateDevice"u8)
             {
-                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn0) == 0)
+                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn0) == null)
                     continue;
-                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn1) == 0)
+                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn1) == null)
                     continue;
-                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn2) == 0)
+                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn2) == null)
                     continue;
-                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn3) == 0)
+                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn3) == null)
                     continue;
-                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn4) == 0)
+                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn4) == null)
                     continue;
-                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn5) == 0)
+                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn5) == null)
                     continue;
-                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn6) == 0)
+                if (GetProcAddress((HMODULE)dosh, (sbyte*)pfn6) == null)
                     continue;
             }
 
