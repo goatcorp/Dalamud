@@ -6,6 +6,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+#define CUSTOM_EXCEPTION_EXTERNAL_EVENT 0x12345679
+
 struct exception_info
 {
     LPEXCEPTION_POINTERS pExceptionPointers;

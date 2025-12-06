@@ -121,6 +121,8 @@
       <Content Include="licenses.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <None Remove="Interface\ImGuiBackend\Renderers\gaussian.hlsl" />
+      <None Remove="Interface\ImGuiBackend\Renderers\fullscreen-quad.hlsl.bytes" />
     </ItemGroup>
 
     <ItemGroup>

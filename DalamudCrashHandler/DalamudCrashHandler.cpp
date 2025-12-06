@@ -119,7 +119,7 @@ std::wstring describe_module(const std::filesystem::path& path) {
         return std::format(L"<error: GetFileVersionInfoSizeW#2 returned {}>", GetLastError());
 
     UINT size = 0;
-    
+
     std::wstring version = L"v?.?.?.?";
     if (LPVOID lpBuffer; VerQueryValueW(block.data(), L"\\", &lpBuffer, &size)) {
         const auto& v = *static_cast<const VS_FIXEDFILEINFO*>(lpBuffer);
@@ -176,7 +176,7 @@ const std::map<HMODULE, size_t>& get_remote_modules() {
         std::vector<HMODULE> buf(8192);
         for (size_t i = 0; i < 64; i++) {
             if (DWORD needed; !EnumProcessModules(g_hProcess, &buf[0], static_cast<DWORD>(std::span(buf).size_bytes()), &needed)) {
-                std::cerr << std::format("EnumProcessModules error: 0x{:x}", GetLastError()) << std::endl; 
+                std::cerr << std::format("EnumProcessModules error: 0x{:x}", GetLastError()) << std::endl;
                 break;
             } else if (needed > std::span(buf).size_bytes()) {
                 buf.resize(needed / sizeof(HMODULE) + 16);
@@ -201,7 +201,7 @@ const std::map<HMODULE, size_t>& get_remote_modules() {
 
             data[hModule] = nth64.OptionalHeader.SizeOfImage;
         }
-        
+
         return data;
     }();
 
@@ -292,35 +292,43 @@ std::wstring to_address_string(const DWORD64 address, const bool try_ptrderef = 
 
 void print_exception_info(HANDLE hThread, const EXCEPTION_POINTERS& ex, const CONTEXT& ctx, std::wostringstream& log) {
     std::vector<EXCEPTION_RECORD> exRecs;
-    if (ex.ExceptionRecord) {
+    if (ex.ExceptionRecord)
+    {
         size_t rec_index = 0;
         size_t read;
-        exRecs.emplace_back();
+
         for (auto pRemoteExRec = ex.ExceptionRecord;
-             pRemoteExRec
-             && rec_index < 64
-             && ReadProcessMemory(g_hProcess, pRemoteExRec, &exRecs.back(), sizeof exRecs.back(), &read)
-             && read >= offsetof(EXCEPTION_RECORD, ExceptionInformation)
-             && read >= static_cast<size_t>(reinterpret_cast<const char*>(&exRecs.back().ExceptionInformation[exRecs.back().NumberParameters]) - reinterpret_cast<const char*>(&exRecs.back()));
-             rec_index++) {
+             pRemoteExRec && rec_index < 64;
+             rec_index++)
+        {
+            exRecs.emplace_back();
+
+            if (!ReadProcessMemory(g_hProcess, pRemoteExRec, &exRecs.back(), sizeof exRecs.back(), &read)
+                || read < offsetof(EXCEPTION_RECORD, ExceptionInformation)
+                || read < static_cast<size_t>(reinterpret_cast<const char*>(&exRecs.back().ExceptionInformation[exRecs.
+                    back().NumberParameters]) - reinterpret_cast<const char*>(&exRecs.back())))
+            {
+                exRecs.pop_back();
+                break;
+            }
 
             log << std::format(L"\nException Info #{}\n", rec_index);
             log << std::format(L"Address: {:X}\n", exRecs.back().ExceptionCode);
             log << std::format(L"Flags: {:X}\n", exRecs.back().ExceptionFlags);
             log << std::format(L"Address: {:X}\n", reinterpret_cast<size_t>(exRecs.back().ExceptionAddress));
-            if (!exRecs.back().NumberParameters)
-                continue;
-            log << L"Parameters: ";
-            for (DWORD i = 0; i < exRecs.back().NumberParameters; ++i) {
-                if (i != 0)
-                    log << L", ";
-                log << std::format(L"{:X}", exRecs.back().ExceptionInformation[i]);
+            if (exRecs.back().NumberParameters)
+            {
+                log << L"Parameters: ";
+                for (DWORD i = 0; i < exRecs.back().NumberParameters; ++i)
+                {
+                    if (i != 0)
+                        log << L", ";
+                    log << std::format(L"{:X}", exRecs.back().ExceptionInformation[i]);
+                }
             }
 
             pRemoteExRec = exRecs.back().ExceptionRecord;
-            exRecs.emplace_back();
         }
-        exRecs.pop_back();
     }
 
     log << L"\nCall Stack\n{";
@@ -410,7 +418,7 @@ void print_exception_info_extended(const EXCEPTION_POINTERS& ex, const CONTEXT& 
 
 std::wstring escape_shell_arg(const std::wstring& arg) {
     // https://docs.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
-    
+
     std::wstring res;
     if (!arg.empty() && arg.find_first_of(L" \t\n\v\"") == std::wstring::npos) {
         res.append(arg);
@@ -504,7 +512,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         filePath.emplace(pFilePath);
 
         std::fstream fileStream(*filePath, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
-        
+
         mz_zip_archive zipa{};
         zipa.m_pIO_opaque = &fileStream;
         zipa.m_pRead = [](void* pOpaque, mz_uint64 file_ofs, void* pBuf, size_t n) -> size_t {
@@ -566,7 +574,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
             const auto hLogFile = CreateFileW(logFilePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
             if (hLogFile == INVALID_HANDLE_VALUE)
                 throw_last_error(std::format("indiv. log file: CreateFileW({})", ws_to_u8(logFilePath.wstring())));
-            
+
             std::unique_ptr<void, decltype(&CloseHandle)> hLogFileClose(hLogFile, &CloseHandle);
 
             LARGE_INTEGER size, baseOffset{};
@@ -695,7 +703,7 @@ int main() {
 
     // IFileSaveDialog only works on STA
     CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-    
+
     std::vector<std::wstring> args;
     if (int argc = 0; const auto argv = CommandLineToArgvW(GetCommandLineW(), &argc)) {
         for (auto i = 0; i < argc; i++)
@@ -823,14 +831,14 @@ int main() {
                 hr = pOleWindow->GetWindow(&hwndProgressDialog);
                 if (SUCCEEDED(hr))
                 {
-                    SetWindowPos(hwndProgressDialog, HWND_TOPMOST, 0, 0, 0, 0, 
+                    SetWindowPos(hwndProgressDialog, HWND_TOPMOST, 0, 0, 0, 0,
                         SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
                     SetForegroundWindow(hwndProgressDialog);
                 }
-                
+
                 pOleWindow->Release();
             }
-        
+
         }
         else {
             std::cerr << "Failed to create progress window" << std::endl;
@@ -852,14 +860,14 @@ int main() {
 
         https://github.com/sumatrapdfreader/sumatrapdf/blob/master/src/utils/DbgHelpDyn.cpp
         */
-        
+
         if (g_bSymbolsAvailable) {
             SymRefreshModuleList(g_hProcess);
         }
         else if(!assetDir.empty())
         {
             auto symbol_search_path = std::format(L".;{}", (assetDir / "UIRes" / "pdb").wstring());
-            
+
             g_bSymbolsAvailable = SymInitializeW(g_hProcess, symbol_search_path.c_str(), true);
             std::wcout << std::format(L"Init symbols with PDB at {}", symbol_search_path) << std::endl;
 
@@ -870,12 +878,12 @@ int main() {
             g_bSymbolsAvailable = SymInitializeW(g_hProcess, nullptr, true);
             std::cout << "Init symbols without PDB" << std::endl;
         }
-        
+
         if (!g_bSymbolsAvailable) {
             std::wcerr << std::format(L"SymInitialize error: 0x{:x}", GetLastError()) << std::endl;
         }
 
-        if (pProgressDialog) 
+        if (pProgressDialog)
             pProgressDialog->SetLine(3, L"Reading troubleshooting data", FALSE, NULL);
 
         std::wstring stackTrace(exinfo.dwStackTraceLength, L'\0');
@@ -930,13 +938,23 @@ int main() {
             } while (false);
         }
 
+        const bool is_external_event = exinfo.ExceptionRecord.ExceptionCode == CUSTOM_EXCEPTION_EXTERNAL_EVENT;
+
         std::wostringstream log;
-        log << std::format(L"Unhandled native exception occurred at {}", to_address_string(exinfo.ContextRecord.Rip, false)) << std::endl;
-        log << std::format(L"Code: {:X}", exinfo.ExceptionRecord.ExceptionCode) << std::endl;
+
+        if (!is_external_event)
+        {
+            log << std::format(L"Unhandled native exception occurred at {}", to_address_string(exinfo.ContextRecord.Rip, false)) << std::endl;
+            log << std::format(L"Code: {:X}", exinfo.ExceptionRecord.ExceptionCode) << std::endl;
+        }
+        else
+        {
+            log << L"CLR error occurred" << std::endl;
+        }
 
         if (shutup)
             log << L"======= Crash handler was globally muted(shutdown?) =======" << std::endl;
-        
+
         if (dumpPath.empty())
             log << L"Dump skipped" << std::endl;
         else if (dumpError.empty())
@@ -949,9 +967,19 @@ int main() {
         if (pProgressDialog)
             pProgressDialog->SetLine(3, L"Refreshing Module List", FALSE, NULL);
 
+        std::wstring window_log_str;
+
+        // Cut the log here for external events, the rest is unreadable and doesn't matter since we can't get
+        // symbols for mixed-mode stacks yet.
+        if (is_external_event)
+            window_log_str = log.str();
+
         SymRefreshModuleList(GetCurrentProcess());
         print_exception_info(exinfo.hThreadHandle, exinfo.ExceptionPointers, exinfo.ContextRecord, log);
-        const auto window_log_str = log.str();
+
+        if (!is_external_event)
+            window_log_str = log.str();
+
         print_exception_info_extended(exinfo.ExceptionPointers, exinfo.ContextRecord, log);
         std::wofstream(logPath) << log.str();
 
@@ -1003,7 +1031,7 @@ int main() {
             R"aa(<a href="help">Help</a> | <a href="logdir">Open log directory</a> | <a href="logfile">Open log file</a>)aa"
         );
 #endif
-        
+
         // Can't do this, xiv stops pumping messages here
         //config.hwndParent = FindWindowA("FFXIVGAME", NULL);
 
@@ -1056,13 +1084,13 @@ int main() {
             return (*reinterpret_cast<decltype(callback)*>(dwRefData))(hwnd, uNotification, wParam, lParam);
         };
         config.lpCallbackData = reinterpret_cast<LONG_PTR>(&callback);
-        
+
         if (pProgressDialog) {
             pProgressDialog->StopProgressDialog();
             pProgressDialog->Release();
             pProgressDialog = NULL;
         }
-        
+
         const auto kill_game = [&] { TerminateProcess(g_hProcess, exinfo.ExceptionRecord.ExceptionCode); };
 
         if (shutup) {
