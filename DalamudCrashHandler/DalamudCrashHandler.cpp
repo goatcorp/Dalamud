@@ -938,9 +938,19 @@ int main() {
             } while (false);
         }
 
+        const bool is_external_event = exinfo.ExceptionRecord.ExceptionCode == CUSTOM_EXCEPTION_EXTERNAL_EVENT;
+
         std::wostringstream log;
-        log << std::format(L"Unhandled native exception occurred at {}", to_address_string(exinfo.ContextRecord.Rip, false)) << std::endl;
-        log << std::format(L"Code: {:X}", exinfo.ExceptionRecord.ExceptionCode) << std::endl;
+
+        if (!is_external_event)
+        {
+            log << std::format(L"Unhandled native exception occurred at {}", to_address_string(exinfo.ContextRecord.Rip, false)) << std::endl;
+            log << std::format(L"Code: {:X}", exinfo.ExceptionRecord.ExceptionCode) << std::endl;
+        }
+        else
+        {
+            log << L"CLR error occurred" << std::endl;
+        }
 
         if (shutup)
             log << L"======= Crash handler was globally muted(shutdown?) =======" << std::endl;
@@ -957,9 +967,19 @@ int main() {
         if (pProgressDialog)
             pProgressDialog->SetLine(3, L"Refreshing Module List", FALSE, NULL);
 
+        std::wstring window_log_str;
+
+        // Cut the log here for external events, the rest is unreadable and doesn't matter since we can't get
+        // symbols for mixed-mode stacks yet.
+        if (is_external_event)
+            window_log_str = log.str();
+
         SymRefreshModuleList(GetCurrentProcess());
         print_exception_info(exinfo.hThreadHandle, exinfo.ExceptionPointers, exinfo.ContextRecord, log);
-        const auto window_log_str = log.str();
+
+        if (!is_external_event)
+            window_log_str = log.str();
+
         print_exception_info_extended(exinfo.ExceptionPointers, exinfo.ContextRecord, log);
         std::wofstream(logPath) << log.str();
 

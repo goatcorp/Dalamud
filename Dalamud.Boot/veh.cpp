@@ -11,8 +11,6 @@
 #include "crashhandler_shared.h"
 #include "DalamudStartInfo.h"
 
-#define CUSTOM_EXCEPTION_EXTERNAL_EVENT 0x12345679
-
 #pragma comment(lib, "comctl32.lib")
 
 #if defined _M_IX86
