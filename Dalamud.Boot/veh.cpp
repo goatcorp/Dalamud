@@ -11,6 +11,8 @@
 #include "crashhandler_shared.h"
 #include "DalamudStartInfo.h"
 
+#define CUSTOM_EXCEPTION_EXTERNAL_EVENT 0x12345679
+
 #pragma comment(lib, "comctl32.lib")
 
 #if defined _M_IX86
@@ -30,6 +32,8 @@ std::optional<hooks::import_hook<decltype(SetUnhandledExceptionFilter)>> g_HookS
 HANDLE g_crashhandler_process = nullptr;
 HANDLE g_crashhandler_event = nullptr;
 HANDLE g_crashhandler_pipe_write = nullptr;
+
+wchar_t g_external_event_info[16384] = L"";
 
 std::recursive_mutex g_exception_handler_mutex;
 
@@ -190,7 +194,11 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     DuplicateHandle(GetCurrentProcess(), g_crashhandler_event, g_crashhandler_process, &exinfo.hEventHandle, 0, TRUE, DUPLICATE_SAME_ACCESS);
 
     std::wstring stackTrace;
-    if (!g_clr)
+    if (ex->ExceptionRecord->ExceptionCode == CUSTOM_EXCEPTION_EXTERNAL_EVENT)
+    {
+        stackTrace = std::wstring(g_external_event_info);
+    }
+    else if (!g_clr)
     {
         stackTrace = L"(no CLR stack trace available)";
     }
@@ -251,6 +259,12 @@ LONG WINAPI structured_exception_handler(EXCEPTION_POINTERS* ex)
 
 LONG WINAPI vectored_exception_handler(EXCEPTION_POINTERS* ex)
 {
+    // special case for CLR exceptions, always trigger crash handler
+    if (ex->ExceptionRecord->ExceptionCode == CUSTOM_EXCEPTION_EXTERNAL_EVENT)
+    {
+        return exception_handler(ex);
+    }
+
     if (ex->ExceptionRecord->ExceptionCode == 0x12345678)
     {
         // pass
@@ -268,7 +282,7 @@ LONG WINAPI vectored_exception_handler(EXCEPTION_POINTERS* ex)
 
         if (!is_ffxiv_address(L"ffxiv_dx11.exe", ex->ContextRecord->Rip) &&
             !is_ffxiv_address(L"cimgui.dll", ex->ContextRecord->Rip))
-            return EXCEPTION_CONTINUE_SEARCH;   
+            return EXCEPTION_CONTINUE_SEARCH;
     }
 
     return exception_handler(ex);
@@ -297,7 +311,7 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
     if (HANDLE hReadPipeRaw, hWritePipeRaw; CreatePipe(&hReadPipeRaw, &hWritePipeRaw, nullptr, 65536))
     {
         hWritePipe.emplace(hWritePipeRaw, &CloseHandle);
-        
+
         if (HANDLE hReadPipeInheritableRaw; DuplicateHandle(GetCurrentProcess(), hReadPipeRaw, GetCurrentProcess(), &hReadPipeInheritableRaw, 0, TRUE, DUPLICATE_SAME_ACCESS | DUPLICATE_CLOSE_SOURCE))
         {
             hReadPipeInheritable.emplace(hReadPipeInheritableRaw, &CloseHandle);
@@ -315,9 +329,9 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
     }
 
     // additional information
-    STARTUPINFOEXW siex{};     
+    STARTUPINFOEXW siex{};
     PROCESS_INFORMATION pi{};
-    
+
     siex.StartupInfo.cb = sizeof siex;
     siex.StartupInfo.dwFlags = STARTF_USESHOWWINDOW;
     siex.StartupInfo.wShowWindow = g_startInfo.CrashHandlerShow ? SW_SHOW : SW_HIDE;
@@ -385,7 +399,7 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
         argstr.push_back(L' ');
     }
     argstr.pop_back();
-    
+
     if (!handles.empty() && !UpdateProcThreadAttribute(siex.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST, &handles[0], std::span(handles).size_bytes(), nullptr, nullptr))
     {
         logging::W("Failed to launch DalamudCrashHandler.exe: UpdateProcThreadAttribute error 0x{:x}", GetLastError());
@@ -400,7 +414,7 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
         TRUE,                          // Set handle inheritance to FALSE
         EXTENDED_STARTUPINFO_PRESENT,  // lpStartupInfo actually points to a STARTUPINFOEX(W)
         nullptr,                       // Use parent's environment block
-        nullptr,                       // Use parent's starting directory 
+        nullptr,                       // Use parent's starting directory
         &siex.StartupInfo,             // Pointer to STARTUPINFO structure
         &pi                            // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
         ))
@@ -416,7 +430,7 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
     }
 
     CloseHandle(pi.hThread);
-    
+
     g_crashhandler_process = pi.hProcess;
     g_crashhandler_pipe_write = hWritePipe->release();
     logging::I("Launched DalamudCrashHandler.exe: PID {}", pi.dwProcessId);
@@ -433,4 +447,11 @@ bool veh::remove_handler()
         return true;
     }
     return false;
+}
+
+void veh::raise_external_event(const std::wstring& errorMessage)
+{
+    const auto info_size = std::min(errorMessage.size(), std::size(g_external_event_info) - 1);
+    wcsncpy_s(g_external_event_info, errorMessage.c_str(), info_size);
+    RaiseException(CUSTOM_EXCEPTION_EXTERNAL_EVENT, 0, 0, nullptr);
 }
