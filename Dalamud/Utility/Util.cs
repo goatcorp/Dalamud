@@ -858,7 +858,7 @@ public static partial class Util
         var sizeWithTerminators = pathBytesSize + (pathBytes.Length * 2);
 
         var dropFilesSize = sizeof(DROPFILES);
-        var hGlobal = Win32_PInvoke.GlobalAlloc_SafeHandle(
+        var hGlobal = Win32_PInvoke.GlobalAlloc(
             GLOBAL_ALLOC_FLAGS.GHND,
             // struct size + size of encoded strings + null terminator for each
             // string + two null terminators for end of list
@@ -896,12 +896,11 @@ public static partial class Util
         {
             Win32_PInvoke.SetClipboardData(
                 (uint)CLIPBOARD_FORMAT.CF_HDROP,
-                hGlobal);
+                (Windows.Win32.Foundation.HANDLE)hGlobal.Value);
             Win32_PInvoke.CloseClipboard();
             return true;
         }
 
-        hGlobal.Dispose();
         return false;
     }
 
