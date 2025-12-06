@@ -331,6 +331,51 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
         logging::I("VEH was disabled manually");
     }
 
+    // ============================== CLR Reporting =================================== //
+
+    // This is pretty horrible - CLR just doesn't provide a way for us to handle these events, and the API for it
+    // was pushed back to .NET 11, so we have to hook ReportEventW and catch them ourselves for now.
+    // Ideally all of this will go away once they get to it.
+    static std::shared_ptr<hooks::global_import_hook<decltype(ReportEventW)>> s_report_event_hook;
+    s_report_event_hook = std::make_shared<hooks::global_import_hook<decltype(ReportEventW)>>(
+        "advapi32.dll!ReportEventW (global import, hook_clr_report_event)", L"advapi32.dll", "ReportEventW");
+    s_report_event_hook->set_detour([hook = s_report_event_hook.get()](
+        HANDLE hEventLog,
+        WORD wType,
+        WORD wCategory,
+        DWORD dwEventID,
+        PSID lpUserSid,
+        WORD wNumStrings,
+        DWORD dwDataSize,
+        LPCWSTR* lpStrings,
+        LPVOID lpRawData)-> BOOL {
+
+        // Check for CLR Error Event IDs
+        // https://github.com/dotnet/runtime/blob/v10.0.0/src/coreclr/vm/eventreporter.cpp#L370
+        if (dwEventID != 1026 && // ERT_UnhandledException: The process was terminated due to an unhandled exception
+            dwEventID != 1025 && // ERT_ManagedFailFast: The application requested process termination through System.Environment.FailFast
+            dwEventID != 1023 && // ERT_UnmanagedFailFast: The process was terminated due to an internal error in the .NET Runtime
+            dwEventID != 1027 && // ERT_StackOverflow: The process was terminated due to a stack overflow
+            dwEventID != 1028)   // ERT_CodeContractFailed: The application encountered a bug.  A managed code contract (precondition, postcondition, object invariant, or assert) failed
+        {
+            return hook->call_original(hEventLog, wType, wCategory, dwEventID, lpUserSid, wNumStrings, dwDataSize, lpStrings, lpRawData);
+        }
+
+        if (wNumStrings == 0 || lpStrings == nullptr) {
+            logging::W("ReportEventW called with no strings.");
+            return hook->call_original(hEventLog, wType, wCategory, dwEventID, lpUserSid, wNumStrings, dwDataSize, lpStrings, lpRawData);
+        }
+
+        // In most cases, DalamudCrashHandler will kill us now, so call original here to make sure we still write to the event log.
+        const BOOL original_ret = hook->call_original(hEventLog, wType, wCategory, dwEventID, lpUserSid, wNumStrings, dwDataSize, lpStrings, lpRawData);
+
+        const std::wstring error_details(lpStrings[0]);
+        veh::raise_external_event(error_details);
+
+        return original_ret;
+    });
+    logging::I("ReportEventW hook installed.");
+
     // ============================== Dalamud ==================================== //
 
     if (static_cast<int>(g_startInfo.BootWaitMessageBox) & static_cast<int>(DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudEntrypoint))
