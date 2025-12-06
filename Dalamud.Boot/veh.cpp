@@ -449,9 +449,9 @@ bool veh::remove_handler()
     return false;
 }
 
-void veh::raise_external_event(const std::wstring& errorMessage)
+void veh::raise_external_event(const std::wstring& info)
 {
-    const auto info_size = std::min(errorMessage.size(), std::size(g_external_event_info) - 1);
-    wcsncpy_s(g_external_event_info, errorMessage.c_str(), info_size);
+    const auto info_size = std::min(info.size(), std::size(g_external_event_info) - 1);
+    wcsncpy_s(g_external_event_info, info.c_str(), info_size);
     RaiseException(CUSTOM_EXCEPTION_EXTERNAL_EVENT, 0, 0, nullptr);
 }

@@ -336,19 +336,22 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     // This is pretty horrible - CLR just doesn't provide a way for us to handle these events, and the API for it
     // was pushed back to .NET 11, so we have to hook ReportEventW and catch them ourselves for now.
     // Ideally all of this will go away once they get to it.
-    static std::shared_ptr<hooks::global_import_hook<decltype(ReportEventW)>> s_hook;
-    s_hook = std::make_shared<hooks::global_import_hook<decltype(ReportEventW)>>("advapi32.dll!ReportEventW (global import, hook_clr_report_event)", L"advapi32.dll", "ReportEventW");
-    s_hook->set_detour([hook = s_hook.get()]( HANDLE  hEventLog,
-         WORD    wType,
-         WORD    wCategory,
-         DWORD   dwEventID,
-         PSID    lpUserSid,
-         WORD    wNumStrings,
-         DWORD   dwDataSize,
-         LPCWSTR* lpStrings,
-         LPVOID  lpRawData)->BOOL {
+    static std::shared_ptr<hooks::global_import_hook<decltype(ReportEventW)>> s_report_event_hook;
+    s_report_event_hook = std::make_shared<hooks::global_import_hook<decltype(ReportEventW)>>(
+        "advapi32.dll!ReportEventW (global import, hook_clr_report_event)", L"advapi32.dll", "ReportEventW");
+    s_report_event_hook->set_detour([hook = s_report_event_hook.get()](
+        HANDLE hEventLog,
+        WORD wType,
+        WORD wCategory,
+        DWORD dwEventID,
+        PSID lpUserSid,
+        WORD wNumStrings,
+        DWORD dwDataSize,
+        LPCWSTR* lpStrings,
+        LPVOID lpRawData)-> BOOL {
 
         // Check for CLR Error Event IDs
+        // https://github.com/dotnet/runtime/blob/v10.0.0/src/coreclr/vm/eventreporter.cpp#L370
         if (dwEventID != 1026 && // ERT_UnhandledException: The process was terminated due to an unhandled exception
             dwEventID != 1025 && // ERT_ManagedFailFast: The application requested process termination through System.Environment.FailFast
             dwEventID != 1023 && // ERT_UnmanagedFailFast: The process was terminated due to an internal error in the .NET Runtime
@@ -371,6 +374,7 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
 
         return original_ret;
     });
+    logging::I("ReportEventW hook installed.");
 
     // ============================== Dalamud ==================================== //
 
