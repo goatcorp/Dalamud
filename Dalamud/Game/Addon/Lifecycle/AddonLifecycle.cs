@@ -29,7 +29,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     private Hook<AtkUnitBase.Delegates.Initialize>? onInitializeAddonHook;
 
     [ServiceManager.ServiceConstructor]
-    private AddonLifecycle(TargetSigScanner sigScanner)
+    private AddonLifecycle()
     {
         this.onInitializeAddonHook = Hook<AtkUnitBase.Delegates.Initialize>.FromAddress((nint)AtkUnitBase.StaticVirtualTablePointer->Initialize, this.OnAddonInitialize);
         this.onInitializeAddonHook.Enable();
