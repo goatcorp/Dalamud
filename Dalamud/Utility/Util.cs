@@ -79,7 +79,7 @@ public static partial class Util
     /// <summary>
     /// Gets the Dalamud version.
     /// </summary>
-    [Api13ToDo("Remove. Make both versions here internal. Add an API somewhere.")]
+    [Api14ToDo("Remove. Make both versions here internal. Add an API somewhere.")]
     public static string AssemblyVersion { get; } =
         Assembly.GetAssembly(typeof(ChatHandlers))!.GetName().Version!.ToString();
 

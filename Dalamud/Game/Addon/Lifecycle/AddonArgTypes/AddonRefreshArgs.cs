@@ -1,3 +1,5 @@
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
@@ -5,13 +7,12 @@ namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 /// <summary>
 /// Addon argument data for Refresh events.
 /// </summary>
-public class AddonRefreshArgs : AddonArgs, ICloneable
+public class AddonRefreshArgs : AddonArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonRefreshArgs"/> class.
     /// </summary>
-    [Obsolete("Not intended for public construction.", false)]
-    public AddonRefreshArgs()
+    internal AddonRefreshArgs()
     {
     }
 
@@ -31,19 +32,7 @@ public class AddonRefreshArgs : AddonArgs, ICloneable
     /// <summary>
     /// Gets the AtkValues in the form of a span.
     /// </summary>
+    [Obsolete("Pending removal, unsafe to use when using custom ClientStructs")]
+    [Api15ToDo("Remove this")]
     public unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
-
-    /// <inheritdoc cref="ICloneable.Clone"/>
-    public AddonRefreshArgs Clone() => (AddonRefreshArgs)this.MemberwiseClone();
-
-    /// <inheritdoc cref="Clone"/>
-    object ICloneable.Clone() => this.Clone();
-
-    /// <inheritdoc cref="AddonArgs.Clear"/>
-    internal override void Clear()
-    {
-        base.Clear();
-        this.AtkValueCount = default;
-        this.AtkValues = default;
-    }
 }

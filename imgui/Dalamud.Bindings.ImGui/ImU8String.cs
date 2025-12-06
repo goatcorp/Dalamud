@@ -156,7 +156,7 @@ public ref struct ImU8String
 
             return this.rentedBuffer is { } buf
                        ? buf.AsSpan()
-                       : MemoryMarshal.Cast<FixedBufferContainer, byte>(new(ref Unsafe.AsRef(ref this.fixedBuffer)));
+                       : MemoryMarshal.Cast<FixedBufferContainer, byte>(new Span<FixedBufferContainer>(ref Unsafe.AsRef(ref this.fixedBuffer)));
         }
     }
 
@@ -165,7 +165,7 @@ public ref struct ImU8String
     private ref byte FixedBufferByteRef => ref this.FixedBufferSpan[0];
 
     private Span<byte> FixedBufferSpan =>
-        MemoryMarshal.Cast<FixedBufferContainer, byte>(new(ref Unsafe.AsRef(ref this.fixedBuffer)));
+        MemoryMarshal.Cast<FixedBufferContainer, byte>(new Span<FixedBufferContainer>(ref Unsafe.AsRef(ref this.fixedBuffer)));
 
     public static implicit operator ImU8String(ReadOnlySpan<byte> text) => new(text);
     public static implicit operator ImU8String(ReadOnlyMemory<byte> text) => new(text);
