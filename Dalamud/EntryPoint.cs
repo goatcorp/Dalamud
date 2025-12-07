@@ -292,7 +292,6 @@ public sealed class EntryPoint
                 }
 
                 var pluginInfo = string.Empty;
-                var supportText = ", please visit us on Discord for more help";
                 try
                 {
                     var pm = Service<PluginManager>.GetNullable();
@@ -300,9 +299,6 @@ public sealed class EntryPoint
                     if (plugin != null)
                     {
                         pluginInfo = $"Plugin that caused this:\n{plugin.Name}\n\nClick \"Yes\" and remove it.\n\n";
-
-                        if (plugin.IsThirdParty)
-                            supportText = string.Empty;
                     }
                 }
                 catch
@@ -310,31 +306,18 @@ public sealed class EntryPoint
                     // ignored
                 }
 
-                const MESSAGEBOX_STYLE flags = MESSAGEBOX_STYLE.MB_YESNO | MESSAGEBOX_STYLE.MB_ICONERROR | MESSAGEBOX_STYLE.MB_SYSTEMMODAL;
-                var result = Windows.Win32.PInvoke.MessageBox(
-                    new HWND(Process.GetCurrentProcess().MainWindowHandle),
-                    $"An internal error in a Dalamud plugin occurred.\nThe game must close.\n\n{ex.GetType().Name}\n{info}\n\n{pluginInfo}More information has been recorded separately{supportText}.\n\nDo you want to disable all plugins the next time you start the game?",
-                    "Dalamud",
-                    flags);
-
-                if (result == MESSAGEBOX_RESULT.IDYES)
-                {
-                    Log.Information("User chose to disable plugins on next launch...");
-                    var config = Service<DalamudConfiguration>.Get();
-                    config.PluginSafeMode = true;
-                    config.ForceSave();
-                }
-
                 Log.CloseAndFlush();
-                Environment.Exit(-1);
+
+                ErrorHandling.CrashWithContext($"{ex}\n\n{info}\n\n{pluginInfo}");
                 break;
             default:
                 Log.Fatal("Unhandled SEH object on AppDomain: {Object}", args.ExceptionObject);
 
                 Log.CloseAndFlush();
-                Environment.Exit(-1);
                 break;
         }
+
+        Environment.Exit(-1);
     }
 
     private static void OnUnhandledExceptionStallDebug(object sender, UnhandledExceptionEventArgs args)
