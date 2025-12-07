@@ -220,6 +220,12 @@ public interface IUiBuilder
     bool ShouldUseReducedMotion { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the user has enabled the "Enable sound effects for plugin windows" setting.<br />
+    /// This setting is effected by the in-game "System Sounds" option and volume.
+    /// </summary>
+    bool PluginUISoundEffectsEnabled { get; }
+
+    /// <summary>
     /// Loads an ULD file that can load textures containing multiple icons in a single texture.
     /// </summary>
     /// <param name="uldPath">The path of the requested ULD file.</param>
@@ -559,6 +565,9 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// intrusive animations, or disable them entirely.
     /// </summary>
     public bool ShouldUseReducedMotion => Service<DalamudConfiguration>.Get().ReduceMotions ?? false;
+
+    /// <inheritdoc />
+    public bool PluginUISoundEffectsEnabled => Service<DalamudConfiguration>.Get().EnablePluginUISoundEffects;
 
     /// <summary>
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
