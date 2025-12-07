@@ -6,37 +6,39 @@ on:
     tags:
       - '*'
 
+permissions: read-all
+
 jobs:
   generate-changelog:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history and tags
           submodules: true  # Fetch submodules
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.14'
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests
-      
+
       - name: Generate and post changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_TERMINAL_PROMPT: 0
         run: |
           python .github/generate_changelog.py \
             --webhook-url "${{ secrets.DISCORD_CHANGELOG_WEBHOOK_URL }}" \
-            --ignore "^Merge" \
-            --ignore "^build:" \
-            --ignore "^docs:"
-        env:
-          GIT_TERMINAL_PROMPT: 0
-      
+            --ignore "Update ClientStructs" \
+            --ignore "^build:"
+
       - name: Upload changelog as artifact
         if: always()
         uses: actions/upload-artifact@v4
