@@ -158,16 +158,6 @@ public static partial class Util
         return branchInternal = gitBranch;
     }
 
-    /// <summary>
-    /// Gets the active Dalamud track, if this instance was launched through XIVLauncher and used a version
-    /// downloaded from webservices.
-    /// </summary>
-    /// <returns>The name of the track, or null.</returns>
-    internal static string? GetActiveTrack()
-    {
-        return Environment.GetEnvironmentVariable("DALAMUD_BRANCH");
-    }
-
     /// <inheritdoc cref="DescribeAddress(nint)"/>
     public static unsafe string DescribeAddress(void* p) => DescribeAddress((nint)p);
 
@@ -701,6 +691,16 @@ public static partial class Util
             if (i >= 64 || !Path.Exists(tempPath))
                 return tempPath;
         }
+    }
+
+    /// <summary>
+    /// Gets the active Dalamud track, if this instance was launched through XIVLauncher and used a version
+    /// downloaded from webservices.
+    /// </summary>
+    /// <returns>The name of the track, or null.</returns>
+    internal static string? GetActiveTrack()
+    {
+        return Environment.GetEnvironmentVariable("DALAMUD_BRANCH");
     }
 
     /// <summary>
