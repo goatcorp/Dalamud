@@ -14,8 +14,9 @@ public record struct SeStringDrawParams
     /// <see cref="ImGui.GetWindowDrawList"/> (the default).</value>
     /// <remarks>
     /// If this value is set, <see cref="ImGui.Dummy"/> will not be called, and ImGui ID will be ignored.
-    /// You <b>must</b> specify a valid draw list and a valid font via <see cref="Font"/> if you set this value,
+    /// You <b>must</b> specify a valid draw list, a valid font via <see cref="Font"/> and <see cref="FontSize"/> if you set this value,
     /// since the renderer will not be able to retrieve them from ImGui context.
+    /// Must be set when drawing off the main thread.
     /// </remarks>
     public ImDrawListPtr? TargetDrawList { get; set; }
 
@@ -29,11 +30,13 @@ public record struct SeStringDrawParams
 
     /// <summary>Gets or sets the font to use.</summary>
     /// <value>Font to use, or <c>null</c> to use <see cref="ImGui.GetFont"/> (the default).</value>
+    /// <remarks>Must be set when specifying a target draw-list or drawing off the main thread.</remarks>
     public ImFontPtr? Font { get; set; }
 
     /// <summary>Gets or sets the font size.</summary>
     /// <value>Font size in pixels, or <c>0</c> to use the current ImGui font size <see cref="ImGui.GetFontSize"/>.
     /// </value>
+    /// <remarks>Must be set when specifying a target draw-list or drawing off the main thread.</remarks>
     public float? FontSize { get; set; }
 
     /// <summary>Gets or sets the line height ratio.</summary>
