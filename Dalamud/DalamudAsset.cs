@@ -151,7 +151,7 @@ public enum DalamudAsset
     /// <see cref="DalamudAssetPurpose.Font"/>: FontAwesome Free Solid.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.Font)]
-    [DalamudAssetPath("UIRes", "FontAwesomeFreeSolid.otf")]
+    [DalamudAssetPath("UIRes", "FontAwesome710FreeSolid.otf")]
     FontAwesomeFreeSolid = 2003,
 
     /// <summary>
