@@ -454,3 +454,9 @@ void veh::raise_external_event(const std::wstring& info)
     wcsncpy_s(g_external_event_info, info.c_str(), info_size);
     RaiseException(CUSTOM_EXCEPTION_EXTERNAL_EVENT, 0, 0, nullptr);
 }
+
+extern "C" __declspec(dllexport) void BootVehRaiseExternalEventW(LPCWSTR info)
+{
+    const std::wstring info_wstr(info);
+    veh::raise_external_event(info_wstr);
+}

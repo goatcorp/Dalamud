@@ -177,6 +177,24 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
             ImGuiHelpers.SeStringWrapped(this.logkind.Value.Data.Span, this.style);
         }
 
+        if (ImGui.CollapsingHeader("Draw into drawlist"))
+        {
+            ImGuiHelpers.ScaledDummy(100);
+            ImGui.SetCursorScreenPos(ImGui.GetItemRectMin() + ImGui.GetStyle().FramePadding);
+            var clipMin = ImGui.GetItemRectMin() + ImGui.GetStyle().FramePadding;
+            var clipMax = ImGui.GetItemRectMax() - ImGui.GetStyle().FramePadding;
+            clipMin.Y = MathF.Max(clipMin.Y, ImGui.GetWindowPos().Y);
+            clipMax.Y = MathF.Min(clipMax.Y, ImGui.GetWindowPos().Y + ImGui.GetWindowHeight());
+
+            var dl = ImGui.GetWindowDrawList();
+            dl.PushClipRect(clipMin, clipMax);
+            ImGuiHelpers.CompileSeStringWrapped(
+                "<icon(1)>Test test<icon(1)>",
+                new SeStringDrawParams
+                    { Color = 0xFFFFFFFF, WrapWidth = float.MaxValue, TargetDrawList = dl });
+            dl.PopClipRect();
+        }
+
         if (ImGui.CollapsingHeader("Addon Table"u8))
         {
             if (ImGui.BeginTable("Addon Sheet"u8, 3))
