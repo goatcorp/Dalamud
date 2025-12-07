@@ -63,11 +63,12 @@ public unsafe ref struct SeStringDrawState
         else
         {
             this.drawList = ssdp.TargetDrawList.Value;
-            this.ScreenOffset = Vector2.Zero;
+            this.ScreenOffset = ssdp.ScreenOffset ?? Vector2.Zero;
 
             // API14: Remove, always throw
             if (ThreadSafety.IsMainThread)
             {
+                this.ScreenOffset = ssdp.ScreenOffset ?? ImGui.GetCursorScreenPos();
                 this.FontSize = ssdp.FontSize ?? ImGui.GetFontSize();
             }
             else

@@ -25,7 +25,9 @@ public record struct SeStringDrawParams
     public SeStringReplacementEntity.GetEntityDelegate? GetEntity { get; set; }
 
     /// <summary>Gets or sets the screen offset of the left top corner.</summary>
-    /// <value>Screen offset to draw at, or <c>null</c> to use <see cref="ImGui.GetCursorScreenPos()"/>.</value>
+    /// <value>Screen offset to draw at, or <c>null</c> to use <see cref="ImGui.GetCursorScreenPos()"/>, if no <see cref="TargetDrawList"/>
+    /// is specified. Otherwise, you must specify it (for example, by passing <see cref="ImGui.GetCursorScreenPos()"/> when passing the window
+    /// draw list.</value>
     public Vector2? ScreenOffset { get; set; }
 
     /// <summary>Gets or sets the font to use.</summary>
