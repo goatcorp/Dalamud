@@ -63,9 +63,22 @@ public unsafe ref struct SeStringDrawState
         else
         {
             this.drawList = ssdp.TargetDrawList.Value;
-            this.ScreenOffset = Vector2.Zero;
-            this.FontSize = ssdp.FontSize ?? throw new ArgumentException(
-                                $"{nameof(ssdp.FontSize)} must be set to render outside the main thread.");
+            this.ScreenOffset = ssdp.ScreenOffset ?? Vector2.Zero;
+
+            // API14: Remove, always throw
+            if (ThreadSafety.IsMainThread)
+            {
+                this.ScreenOffset = ssdp.ScreenOffset ?? ImGui.GetCursorScreenPos();
+                this.FontSize = ssdp.FontSize ?? ImGui.GetFontSize();
+            }
+            else
+            {
+                throw new ArgumentException(
+                    $"{nameof(ssdp.FontSize)} must be set when specifying a target draw list, as it cannot be fetched from the ImGui state.");
+            }
+
+            // this.FontSize = ssdp.FontSize ?? throw new ArgumentException(
+            //                     $"{nameof(ssdp.FontSize)} must be set when specifying a target draw list, as it cannot be fetched from the ImGui state.");
             this.WrapWidth = ssdp.WrapWidth ?? float.MaxValue;
             this.Color = ssdp.Color ?? uint.MaxValue;
             this.LinkHoverBackColor = 0; // Interactivity is unused outside the main thread.

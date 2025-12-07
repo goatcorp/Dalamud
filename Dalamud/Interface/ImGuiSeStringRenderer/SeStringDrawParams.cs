@@ -14,8 +14,9 @@ public record struct SeStringDrawParams
     /// <see cref="ImGui.GetWindowDrawList"/> (the default).</value>
     /// <remarks>
     /// If this value is set, <see cref="ImGui.Dummy"/> will not be called, and ImGui ID will be ignored.
-    /// You <b>must</b> specify a valid draw list and a valid font via <see cref="Font"/> if you set this value,
+    /// You <b>must</b> specify a valid draw list, a valid font via <see cref="Font"/> and <see cref="FontSize"/> if you set this value,
     /// since the renderer will not be able to retrieve them from ImGui context.
+    /// Must be set when drawing off the main thread.
     /// </remarks>
     public ImDrawListPtr? TargetDrawList { get; set; }
 
@@ -24,16 +25,20 @@ public record struct SeStringDrawParams
     public SeStringReplacementEntity.GetEntityDelegate? GetEntity { get; set; }
 
     /// <summary>Gets or sets the screen offset of the left top corner.</summary>
-    /// <value>Screen offset to draw at, or <c>null</c> to use <see cref="ImGui.GetCursorScreenPos()"/>.</value>
+    /// <value>Screen offset to draw at, or <c>null</c> to use <see cref="ImGui.GetCursorScreenPos()"/>, if no <see cref="TargetDrawList"/>
+    /// is specified. Otherwise, you must specify it (for example, by passing <see cref="ImGui.GetCursorScreenPos()"/> when passing the window
+    /// draw list.</value>
     public Vector2? ScreenOffset { get; set; }
 
     /// <summary>Gets or sets the font to use.</summary>
     /// <value>Font to use, or <c>null</c> to use <see cref="ImGui.GetFont"/> (the default).</value>
+    /// <remarks>Must be set when specifying a target draw-list or drawing off the main thread.</remarks>
     public ImFontPtr? Font { get; set; }
 
     /// <summary>Gets or sets the font size.</summary>
     /// <value>Font size in pixels, or <c>0</c> to use the current ImGui font size <see cref="ImGui.GetFontSize"/>.
     /// </value>
+    /// <remarks>Must be set when specifying a target draw-list or drawing off the main thread.</remarks>
     public float? FontSize { get; set; }
 
     /// <summary>Gets or sets the line height ratio.</summary>

@@ -1014,8 +1014,8 @@ int main() {
         config.pButtons = buttons;
         config.cButtons = ARRAYSIZE(buttons);
         config.nDefaultButton = IdButtonRestart;
-        config.pszExpandedControlText = L"Hide stack trace";
-        config.pszCollapsedControlText = L"Stack trace for plugin developers";
+        config.pszExpandedControlText = L"Hide further information";
+        config.pszCollapsedControlText = L"Further information for developers";
         config.pszExpandedInformation = window_log_str.c_str();
         config.pszWindowTitle = L"Dalamud Crash Handler";
         config.pRadioButtons = radios;
