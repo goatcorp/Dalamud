@@ -864,7 +864,7 @@ public abstract class Window
         foreach (var button in this.allButtons)
         {
             if (this.internalIsClickthrough && !button.AvailableClickthrough)
-                return;
+                continue;
 
             Vector2 position = new(titleBarRect.Max.X - padR - buttonSize, titleBarRect.Min.Y + style.FramePadding.Y);
             padR += buttonSize + style.ItemInnerSpacing.X;
