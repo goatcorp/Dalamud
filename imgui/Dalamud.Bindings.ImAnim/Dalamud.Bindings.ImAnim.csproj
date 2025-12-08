@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <DisableRuntimeMarshalling>true</DisableRuntimeMarshalling>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Dalamud.Bindings.ImGui\Dalamud.Bindings.ImGui.csproj" />
+    </ItemGroup>
+</Project>

@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using CheapLoc;
+
+using Dalamud.Bindings.ImAnim;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImPlot;
 using Dalamud.Configuration.Internal;
@@ -88,6 +90,8 @@ internal class DalamudInterface : IInternalDisposableService
 
     private bool isImGuiDrawDemoWindow = false;
     private bool isImPlotDrawDemoWindow = false;
+    private bool isImAnimDrawDemoWindow = false;
+    private bool isImAnimUnifiedInspector = false;
     private bool isImGuiTestWindowsInMonospace = false;
     private bool isImGuiDrawMetricsWindow = false;
 
@@ -576,6 +580,12 @@ internal class DalamudInterface : IInternalDisposableService
             if (this.isImPlotDrawDemoWindow)
                 ImPlot.ShowDemoWindow(ref this.isImPlotDrawDemoWindow);
 
+            if (this.isImAnimDrawDemoWindow)
+                ImAnim.DemoWindow();
+
+            if (this.isImAnimUnifiedInspector)
+                ImAnim.ShowUnifiedInspector(ref this.isImAnimUnifiedInspector);
+
             if (this.isImGuiDrawMetricsWindow)
                 ImGui.ShowMetricsWindow(ref this.isImGuiDrawMetricsWindow);
 
@@ -874,6 +884,8 @@ internal class DalamudInterface : IInternalDisposableService
                     ImGui.MenuItem("Use Monospace font for following windows"u8, (byte*)null, ref this.isImGuiTestWindowsInMonospace);
                     ImGui.MenuItem("Draw ImGui demo"u8, (byte*)null, ref this.isImGuiDrawDemoWindow);
                     ImGui.MenuItem("Draw ImPlot demo"u8, (byte*)null, ref this.isImPlotDrawDemoWindow);
+                    ImGui.MenuItem("Draw ImAnim demo"u8, (byte*)null, ref this.isImAnimDrawDemoWindow);
+                    ImGui.MenuItem("Draw ImAnim Inspector"u8, (byte*)null, ref this.isImAnimUnifiedInspector);
                     ImGui.MenuItem("Draw metrics"u8, (byte*)null, ref this.isImGuiDrawMetricsWindow);
 
                     ImGui.Separator();
