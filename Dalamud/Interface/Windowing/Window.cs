@@ -84,7 +84,7 @@ public abstract class Window
             Click = _ =>
             {
                 this.internalIsClickthrough = false;
-                this.presetDirty = false;
+                this.presetDirty = true;
                 ImGui.OpenPopup(AdditionsPopupName);
             },
             Priority = int.MinValue,
@@ -905,7 +905,7 @@ public abstract class Window
     private void DrawErrorMessage()
     {
         // TODO: Once window systems are services, offer to reload the plugin
-        ImGui.TextColoredWrapped(ImGuiColors.DalamudRed,Loc.Localize("WindowSystemErrorOccurred", "An error occurred while rendering this window. Please contact the developer for details."));
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, Loc.Localize("WindowSystemErrorOccurred", "An error occurred while rendering this window. Please contact the developer for details."));
 
         ImGuiHelpers.ScaledDummy(5);
 
