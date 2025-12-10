@@ -1,11 +1,9 @@
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Addon.Lifecycle;
-using Dalamud.Interface.Colors;
-using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -48,97 +46,38 @@ public class AddonLifecycleWidget : IDataWindowWidget
             return;
         }
 
-        if (ImGui.CollapsingHeader("Listeners"u8))
+        foreach (var (eventType, addonListeners) in this.AddonLifecycle.EventListeners)
         {
-            ImGui.Indent();
-            this.DrawEventListeners();
-            ImGui.Unindent();
-        }
+            using var eventId = ImRaii.PushId(eventType.ToString());
 
-        if (ImGui.CollapsingHeader("ReceiveEvent Hooks"u8))
-        {
-            ImGui.Indent();
-            this.DrawReceiveEventHooks();
-            ImGui.Unindent();
-        }
-    }
-
-    private void DrawEventListeners()
-    {
-        if (!this.Ready) return;
-
-        foreach (var eventType in Enum.GetValues<AddonEvent>())
-        {
             if (ImGui.CollapsingHeader(eventType.ToString()))
             {
-                ImGui.Indent();
-                var listeners = this.AddonLifecycle.EventListeners.Where(listener => listener.EventType == eventType).ToList();
+                using var eventIndent = ImRaii.PushIndent();
 
-                if (listeners.Count == 0)
+                if (addonListeners.Count == 0)
                 {
-                    ImGui.Text("No Listeners Registered for Event"u8);
+                    ImGui.Text("No Addons Registered for Event"u8);
                 }
 
-                if (ImGui.BeginTable("AddonLifecycleListenersTable"u8, 2))
+                foreach (var (addonName, listeners) in addonListeners)
                 {
-                    ImGui.TableSetupColumn("##AddonName"u8, ImGuiTableColumnFlags.WidthFixed, 100.0f * ImGuiHelpers.GlobalScale);
-                    ImGui.TableSetupColumn("##MethodInvoke"u8, ImGuiTableColumnFlags.WidthStretch);
+                    using var addonId = ImRaii.PushId(addonName);
 
-                    foreach (var listener in listeners)
+                    if (ImGui.CollapsingHeader(addonName.IsNullOrEmpty() ? "GLOBAL" : addonName))
                     {
-                        ImGui.TableNextColumn();
-                        ImGui.Text(listener.AddonName is "" ? "GLOBAL" : listener.AddonName);
+                        using var addonIndent = ImRaii.PushIndent();
 
-                        ImGui.TableNextColumn();
-                        ImGui.Text($"{listener.FunctionDelegate.Method.DeclaringType?.FullName ?? "Unknown Declaring Type"}::{listener.FunctionDelegate.Method.Name}");
+                        if (listeners.Count == 0)
+                        {
+                            ImGui.Text("No Listeners Registered for Event"u8);
+                        }
+
+                        foreach (var listener in listeners)
+                        {
+                            ImGui.Text($"{listener.FunctionDelegate.Method.DeclaringType?.FullName ?? "Unknown Declaring Type"}::{listener.FunctionDelegate.Method.Name}");
+                        }
                     }
-
-                    ImGui.EndTable();
                 }
-
-                ImGui.Unindent();
-            }
-        }
-    }
-
-    private void DrawReceiveEventHooks()
-    {
-        if (!this.Ready) return;
-
-        var listeners = this.AddonLifecycle.ReceiveEventListeners;
-
-        if (listeners.Count == 0)
-        {
-            ImGui.Text("No ReceiveEvent Hooks are Registered"u8);
-        }
-
-        foreach (var receiveEventListener in this.AddonLifecycle.ReceiveEventListeners)
-        {
-            if (ImGui.CollapsingHeader(string.Join(", ", receiveEventListener.AddonNames)))
-            {
-                ImGui.Columns(2);
-
-                var functionAddress = receiveEventListener.FunctionAddress;
-
-                ImGui.Text("Hook Address"u8);
-                ImGui.NextColumn();
-                ImGui.Text($"0x{functionAddress:X} (ffxiv_dx11.exe+{functionAddress - Process.GetCurrentProcess().MainModule!.BaseAddress:X})");
-
-                ImGui.NextColumn();
-                ImGui.Text("Hook Status"u8);
-                ImGui.NextColumn();
-                if (receiveEventListener.Hook is null)
-                {
-                    ImGui.Text("Hook is null"u8);
-                }
-                else
-                {
-                    var color = receiveEventListener.Hook.IsEnabled ? ImGuiColors.HealerGreen : ImGuiColors.DalamudRed;
-                    var text = receiveEventListener.Hook.IsEnabled ? "Enabled"u8 : "Disabled"u8;
-                    ImGui.TextColored(color, text);
-                }
-
-                ImGui.Columns(1);
             }
         }
     }

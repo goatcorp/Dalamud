@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
-using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Serilog;
@@ -34,7 +33,7 @@ internal unsafe class HookWidget : IDataWindowWidget
     private MessageBoxWDelegate? messageBoxWOriginal;
     private AddonFinalizeDelegate? addonFinalizeOriginal;
 
-    private AddonLifecycleAddressResolver? address;
+    private nint address;
 
     private delegate int MessageBoxWDelegate(
         IntPtr hWnd,
@@ -55,7 +54,7 @@ internal unsafe class HookWidget : IDataWindowWidget
     public string DisplayName { get; init; } = "Hook";
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "hook" };
+    public string[]? CommandShortcuts { get; init; } = ["hook"];
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -65,8 +64,8 @@ internal unsafe class HookWidget : IDataWindowWidget
     {
         this.Ready = true;
 
-        this.address = new AddonLifecycleAddressResolver();
-        this.address.Setup(Service<TargetSigScanner>.Get());
+        var sigScanner = Service<TargetSigScanner>.Get();
+        this.address = sigScanner.ScanText("E8 ?? ?? ?? ?? 48 83 EF 01 75 D5");
     }
 
     /// <inheritdoc/>
@@ -224,7 +223,7 @@ internal unsafe class HookWidget : IDataWindowWidget
 
     private IDalamudHook HookAddonFinalize()
     {
-        var hook = Hook<AddonFinalizeDelegate>.FromAddress(this.address!.AddonFinalize, this.OnAddonFinalize);
+        var hook = Hook<AddonFinalizeDelegate>.FromAddress(this.address, this.OnAddonFinalize);
 
         this.addonFinalizeOriginal = hook.Original;
         hook.Enable();
