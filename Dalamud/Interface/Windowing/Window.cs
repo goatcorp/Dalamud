@@ -672,16 +672,13 @@ public abstract class Window
                 Task.FromResult<IDalamudTextureWrap>(tex));
         }
 
-        if (!this.hasError)
+        if (isErrorStylePushed)
         {
-            this.PostDraw();
+            Style.StyleModelV1.DalamudStandard.Pop();
         }
         else
         {
-            if (isErrorStylePushed)
-            {
-                Style.StyleModelV1.DalamudStandard.Pop();
-            }
+            this.PostDraw();
         }
 
         this.PostHandlePreset(persistence);
