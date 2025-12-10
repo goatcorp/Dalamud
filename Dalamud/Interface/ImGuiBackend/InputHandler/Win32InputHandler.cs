@@ -494,7 +494,12 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             // (This is the position you can get with ::GetCursorPos() or WM_MOUSEMOVE + ::ClientToScreen(). In theory adding viewport->Pos to a client position would also be the same.)
             var mousePos = mouseScreenPos;
             if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) == 0)
-                ClientToScreen(focusedWindow, &mousePos);
+            {
+                // Use game window, otherwise, positions are calculated based on the focused window which might not be the game.
+                // Leads to offsets.
+                ClientToScreen(this.hWnd, &mousePos);
+            }
+
             io.AddMousePosEvent(mousePos.x, mousePos.y);
         }
 
