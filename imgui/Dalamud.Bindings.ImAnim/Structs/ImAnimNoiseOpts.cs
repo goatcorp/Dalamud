@@ -6,6 +6,7 @@ namespace Dalamud.Bindings.ImAnim;
 public unsafe struct ImAnimNoiseOpts
 {
     public ImAnimNoiseType Type;
+
     /// <summary>
     /// Number of octaves for fractal noise (1-8)
     /// </summary>

@@ -8,19 +8,19 @@ namespace Dalamud.Bindings.ImAnim;
 
 public static unsafe class ImAnim
 {
-    public delegate void ClipCallback(uint inst_id, void* user_data); // iam_clip_callback
-    public delegate void MarkerCallback(uint inst_id, uint marker_id, float marker_time, void* user_data); // iam_marker_callback
+    public delegate void ClipCallback(uint instId, void* userData); // iam_clip_callback
+    public delegate void MarkerCallback(uint instId, uint markerId, float markerTime, void* userData); // iam_marker_callback 
     public delegate float EaseFn(float t); // iam_ease_fn
 
-    public delegate float FloatResolver(void* user_data); // iam_float_resolver
-    public delegate Vector2 Vec2Resolver(void* user_data); // iam_vec2_resolver
-    public delegate Vector4 Vec4Resolver(void* user_data); // iam_vec4_resolver
-    public delegate int IntResolver(void* user_data); // iam_int_resolver
+    public delegate float FloatResolver(void* userData); // iam_float_resolver
+    public delegate Vector2 Vec2Resolver(void* userData); // iam_vec2_resolver
+    public delegate Vector4 Vec4Resolver(void* userData); // iam_vec4_resolver
+    public delegate int IntResolver(void* userData); // iam_int_resolver
 
-    public delegate float VariationFloatFn(int index, void* user_data); // iam_variation_float_fn
-    public delegate int VariationIntFn(int index, void* user_data); // iam_variation_int_fn
-    public delegate Vector2 VariationVec2Fn(int index, void* user_data); // iam_variation_vec2_fn
-    public delegate Vector4 VariationVec4Fn(int index, void* user_data); // iam_variation_vec4_fn
+    public delegate float VariationFloatFn(int index, void* userData); // iam_variation_float_fn
+    public delegate int VariationIntFn(int index, void* userData); // iam_variation_int_fn
+    public delegate Vector2 VariationVec2Fn(int index, void* userData); // iam_variation_vec2_fn
+    public delegate Vector4 VariationVec4Fn(int index, void* userData); // iam_variation_vec4_fn
 
     // ----------------------------------------------------
     // Public API declarations
@@ -380,69 +380,69 @@ public static unsafe class ImAnim
 
     public static float TweenFloatResolved(uint id, uint channelId, Func<float> fn, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
     {
-        float callback(void* user_data) => fn();
+        float callback(void* userData) => fn();
         return ImAnimNative.TweenFloatResolved(id, channelId, (delegate* unmanaged[Cdecl]<void*, float>)Marshal.GetFunctionPointerForDelegate(callback), null, dur, &ez, policy, dt);
     }
 
-    public static float TweenFloatResolved(uint id, uint channelId, FloatResolver fn, void* user_data, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
+    public static float TweenFloatResolved(uint id, uint channelId, FloatResolver fn, void* userData, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
     {
-        return ImAnimNative.TweenFloatResolved(id, channelId, (delegate* unmanaged[Cdecl]<void*, float>)Marshal.GetFunctionPointerForDelegate(fn), user_data, dur, &ez, policy, dt);
+        return ImAnimNative.TweenFloatResolved(id, channelId, (delegate* unmanaged[Cdecl]<void*, float>)Marshal.GetFunctionPointerForDelegate(fn), userData, dur, &ez, policy, dt);
     }
 
     public static Vector2 TweenVec2Resolved(uint id, uint channelId, Func<Vector2> fn, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
     {
-        Vector2 callback(void* user_data) => fn();
+        Vector2 callback(void* userData) => fn();
         Vector2 ret = default;
         ImAnimNative.TweenVec2Resolved(&ret, id, channelId, (delegate* unmanaged[Cdecl]<void*, Vector2>)Marshal.GetFunctionPointerForDelegate(callback), null, dur, &ez, policy, dt);
         return ret;
     }
 
-    public static Vector2 TweenVec2Resolved(uint id, uint channelId, Vec2Resolver fn, void* user_data, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
+    public static Vector2 TweenVec2Resolved(uint id, uint channelId, Vec2Resolver fn, void* userData, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
     {
         Vector2 ret = default;
-        ImAnimNative.TweenVec2Resolved(&ret, id, channelId, (delegate* unmanaged[Cdecl]<void*, Vector2>)Marshal.GetFunctionPointerForDelegate(fn), user_data, dur, &ez, policy, dt);
+        ImAnimNative.TweenVec2Resolved(&ret, id, channelId, (delegate* unmanaged[Cdecl]<void*, Vector2>)Marshal.GetFunctionPointerForDelegate(fn), userData, dur, &ez, policy, dt);
         return ret;
     }
 
     public static Vector4 TweenVec4Resolved(uint id, uint channelId, Func<Vector4> fn, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
     {
-        Vector4 callback(void* user_data) => fn();
+        Vector4 callback(void* userData) => fn();
         Vector4 ret = default;
         ImAnimNative.TweenVec4Resolved(&ret, id, channelId, (delegate* unmanaged[Cdecl]<void*, Vector4>)Marshal.GetFunctionPointerForDelegate(callback), null, dur, &ez, policy, dt);
         return ret;
     }
 
-    public static Vector4 TweenVec4Resolved(uint id, uint channelId, Vec4Resolver fn, void* user_data, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
+    public static Vector4 TweenVec4Resolved(uint id, uint channelId, Vec4Resolver fn, void* userData, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
     {
         Vector4 ret = default;
-        ImAnimNative.TweenVec4Resolved(&ret, id, channelId, (delegate* unmanaged[Cdecl]<void*, Vector4>)Marshal.GetFunctionPointerForDelegate(fn), user_data, dur, &ez, policy, dt);
+        ImAnimNative.TweenVec4Resolved(&ret, id, channelId, (delegate* unmanaged[Cdecl]<void*, Vector4>)Marshal.GetFunctionPointerForDelegate(fn), userData, dur, &ez, policy, dt);
         return ret;
     }
 
     public static Vector4 TweenColorResolved(uint id, uint channelId, Func<Vector4> fn, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, ImAnimColorSpace colorSpace, float dt)
     {
-        Vector4 callback(void* user_data) => fn();
+        Vector4 callback(void* userData) => fn();
         Vector4 ret = default;
         ImAnimNative.TweenColorResolved(&ret, id, channelId, (delegate* unmanaged[Cdecl]<void*, Vector4>)Marshal.GetFunctionPointerForDelegate(callback), null, dur, &ez, policy, colorSpace, dt);
         return ret;
     }
 
-    public static Vector4 TweenColorResolved(uint id, uint channelId, Vec4Resolver fn, void* user_data, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, ImAnimColorSpace colorSpace, float dt)
+    public static Vector4 TweenColorResolved(uint id, uint channelId, Vec4Resolver fn, void* userData, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, ImAnimColorSpace colorSpace, float dt)
     {
         Vector4 ret = default;
-        ImAnimNative.TweenColorResolved(&ret, id, channelId, (delegate* unmanaged[Cdecl]<void*, Vector4>)Marshal.GetFunctionPointerForDelegate(fn), user_data, dur, &ez, policy, colorSpace, dt);
+        ImAnimNative.TweenColorResolved(&ret, id, channelId, (delegate* unmanaged[Cdecl]<void*, Vector4>)Marshal.GetFunctionPointerForDelegate(fn), userData, dur, &ez, policy, colorSpace, dt);
         return ret;
     }
 
     public static int TweenIntResolved(uint id, uint channelId, Func<int> fn, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
     {
-        int callback(void* user_data) => fn();
+        int callback(void* userData) => fn();
         return ImAnimNative.TweenIntResolved(id, channelId, (delegate* unmanaged[Cdecl]<void*, int>)Marshal.GetFunctionPointerForDelegate(callback), null, dur, &ez, policy, dt);
     }
 
-    public static int TweenIntResolved(uint id, uint channelId, IntResolver fn, void* user_data, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
+    public static int TweenIntResolved(uint id, uint channelId, IntResolver fn, void* userData, float dur, ImAnimEaseDesc ez, ImAnimPolicy policy, float dt)
     {
-        return ImAnimNative.TweenIntResolved(id, channelId, (delegate* unmanaged[Cdecl]<void*, int>)Marshal.GetFunctionPointerForDelegate(fn), user_data, dur, &ez, policy, dt);
+        return ImAnimNative.TweenIntResolved(id, channelId, (delegate* unmanaged[Cdecl]<void*, int>)Marshal.GetFunctionPointerForDelegate(fn), userData, dur, &ez, policy, dt);
     }
 
     // Color blending utility
@@ -1184,9 +1184,9 @@ public static unsafe class ImAnim
         ImAnimNative.LayerBegin(instanceId);
     }
 
-    public static void LayerAdd(ImAnimInstance* inst, float weight) // TODO: ref this?
+    public static void LayerAdd(ImAnimInstance inst, float weight)
     {
-        ImAnimNative.LayerAdd(inst, weight);
+        ImAnimNative.LayerAdd(&inst, weight);
     }
 
     public static void LayerEnd(uint instanceId)
@@ -1194,24 +1194,28 @@ public static unsafe class ImAnim
         ImAnimNative.LayerEnd(instanceId);
     }
 
-    public static bool GetBlendedFloat(uint instanceId, uint channel, float* outVal)
+    public static bool GetBlendedFloat(uint instanceId, uint channel, out float value)
     {
-        return ImAnimNative.GetBlendedFloat(instanceId, channel, outVal) == 1;
+        fixed (float* outVal = &value)
+            return ImAnimNative.GetBlendedFloat(instanceId, channel, outVal) == 1;
     }
 
-    public static bool GetBlendedVec2(uint instanceId, uint channel, Vector2* outVal)
+    public static bool GetBlendedVec2(uint instanceId, uint channel, out Vector2 value)
     {
-        return ImAnimNative.GetBlendedVec2(instanceId, channel, outVal) == 1;
+        fixed (Vector2* outVal = &value)
+            return ImAnimNative.GetBlendedVec2(instanceId, channel, outVal) == 1;
     }
 
-    public static bool GetBlendedVec4(uint instanceId, uint channel, Vector4* outVal)
+    public static bool GetBlendedVec4(uint instanceId, uint channel, out Vector4 value)
     {
-        return ImAnimNative.GetBlendedVec4(instanceId, channel, outVal) == 1;
+        fixed (Vector4* outVal = &value)
+            return ImAnimNative.GetBlendedVec4(instanceId, channel, outVal) == 1;
     }
 
-    public static bool GetBlendedInt(uint instanceId, uint channel, int* outVal)
+    public static bool GetBlendedInt(uint instanceId, uint channel, out int value)
     {
-        return ImAnimNative.GetBlendedInt(instanceId, channel, outVal) == 1;
+        fixed (int* outVal = &value)
+            return ImAnimNative.GetBlendedInt(instanceId, channel, outVal) == 1;
     }
 
     // Persistence (optional)
