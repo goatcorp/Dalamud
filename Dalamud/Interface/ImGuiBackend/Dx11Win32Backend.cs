@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImAnim;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImGuizmo;
 using Dalamud.Bindings.ImPlot;
@@ -40,6 +41,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
     private int targetWidth;
     private int targetHeight;
+    private int gcCounter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Dx11Win32Backend"/> class.
@@ -75,6 +77,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             ImGuizmo.SetImGuiContext(ctx);
             ImPlot.SetImGuiContext(ctx);
             ImPlot.CreateContext();
+            ImAnim.SetImGuiContext(ctx);
 
             ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable | ImGuiConfigFlags.ViewportsEnable;
 
@@ -168,6 +171,15 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
         ImGui.NewFrame();
         ImGuizmo.BeginFrame();
+        ImAnim.UpdateBeginFrame();
+        ImAnim.ClipUpdate(ImGui.GetIO().DeltaTime);
+
+        if (++this.gcCounter >= 300)
+        {
+            this.gcCounter = 0;
+            ImAnim.Gc(600);        // Remove tweens inactive for 600+ frames
+            ImAnim.ClipGc(600);    // Remove clip instances inactive for 600+ frames
+        }
 
         this.BuildUi?.Invoke();
 
