@@ -487,6 +487,14 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// </summary>
     public Vector2 NotificationAnchorPosition { get; set; } = new(1f, 1f);
 
+#pragma warning disable SA1600
+#pragma warning disable SA1516
+    // XLCore/XoM compatibility until they move it out
+    public string? DalamudBetaKey { get; set; } = null;
+    public string? DalamudBetaKind { get; set; }
+#pragma warning restore SA1516
+#pragma warning restore SA1600
+
     /// <summary>
     /// Load a configuration from the provided path.
     /// </summary>

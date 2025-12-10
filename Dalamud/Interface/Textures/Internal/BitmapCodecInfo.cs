@@ -44,12 +44,12 @@ internal sealed class BitmapCodecInfo : IBitmapCodecInfo
 
     private static unsafe string ReadStringUsing(
         IWICBitmapCodecInfo* codecInfo,
-        delegate* unmanaged<IWICBitmapCodecInfo*, uint, ushort*, uint*, int> readFuncPtr)
+        delegate* unmanaged[MemberFunction]<IWICBitmapCodecInfo*, uint, char*, uint*, int> readFuncPtr)
     {
         var cch = 0u;
         _ = readFuncPtr(codecInfo, 0, null, &cch);
         var buf = stackalloc char[(int)cch + 1];
-        Marshal.ThrowExceptionForHR(readFuncPtr(codecInfo, cch + 1, (ushort*)buf, &cch));
+        Marshal.ThrowExceptionForHR(readFuncPtr(codecInfo, cch + 1, buf, &cch));
         return new(buf, 0, (int)cch);
     }
 }

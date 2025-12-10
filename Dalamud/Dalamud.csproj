@@ -6,7 +6,7 @@
 
     <PropertyGroup Label="Feature">
         <Description>XIV Launcher addon framework</Description>
-        <DalamudVersion>13.0.0.11</DalamudVersion>
+        <DalamudVersion>13.0.0.13</DalamudVersion>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
@@ -73,8 +73,6 @@
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="MinSharp" />
-        <PackageReference Include="SharpDX.Direct3D11" />
-        <PackageReference Include="SharpDX.Mathematics" />
         <PackageReference Include="Newtonsoft.Json" />
         <PackageReference Include="Serilog" />
         <PackageReference Include="Serilog.Sinks.Async" />
@@ -123,6 +121,8 @@
       <Content Include="licenses.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <None Remove="Interface\ImGuiBackend\Renderers\gaussian.hlsl" />
+      <None Remove="Interface\ImGuiBackend\Renderers\fullscreen-quad.hlsl.bytes" />
     </ItemGroup>
 
     <ItemGroup>
@@ -226,10 +226,5 @@
         </ItemGroup>
         <!-- writes the attribute to the customAssemblyInfo file -->
         <WriteCodeFragment Language="C#" OutputFile="$(CustomAssemblyInfoFile)" AssemblyAttributes="@(AssemblyAttributes)" />
-    </Target>
-
-    <!-- Copy plugin .targets folder into distrib -->
-    <Target Name="CopyPluginTargets" AfterTargets="Build">
-        <Copy SourceFiles="$(ProjectDir)\..\targets\Dalamud.Plugin.targets;$(ProjectDir)\..\targets\Dalamud.Plugin.Bootstrap.targets" DestinationFolder="$(OutDir)\targets" />
     </Target>
 </Project>

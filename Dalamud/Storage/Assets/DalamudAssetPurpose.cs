@@ -11,12 +11,12 @@ public enum DalamudAssetPurpose
     Empty = 0,
     
     /// <summary>
-    /// The asset is a .png file, and can be purposed as a <see cref="SharpDX.Direct3D11.Texture2D"/>.
+    /// The asset is a .png file, and can be purposed as a <see cref="TerraFX.Interop.DirectX.ID3D11Texture2D"/>.
     /// </summary>
     TextureFromPng = 10,
-    
+
     /// <summary>
-    /// The asset is a raw texture, and can be purposed as a <see cref="SharpDX.Direct3D11.Texture2D"/>.
+    /// The asset is a raw texture, and can be purposed as a <see cref="TerraFX.Interop.DirectX.ID3D11Texture2D"/>.
     /// </summary>
     TextureFromRaw = 1001,
 

@@ -77,7 +77,7 @@ internal unsafe class PlayerState : IServiceType, IPlayerState
     public RowRef<ClassJob> ClassJob => this.IsLoaded ? LuminaUtils.CreateRef<ClassJob>(CSPlayerState.Instance()->CurrentClassJobId) : default;
 
     /// <inheritdoc/>
-    public short Level => this.IsLoaded ? CSPlayerState.Instance()->CurrentLevel : default;
+    public short Level => this.IsLoaded && this.ClassJob.IsValid ? this.GetClassJobLevel(this.ClassJob.Value) : this.EffectiveLevel;
 
     /// <inheritdoc/>
     public bool IsLevelSynced => this.IsLoaded && CSPlayerState.Instance()->IsLevelSynced;

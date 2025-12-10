@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.IoC;
@@ -279,6 +280,18 @@ internal sealed class TextureManagerPluginScoped
     {
         var manager = await this.ManagerTask;
         var textureWrap = await manager.CreateFromClipboardAsync(debugName, cancellationToken);
+        manager.Blame(textureWrap, this.plugin);
+        return textureWrap;
+    }
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap CreateTextureFromSeString(
+        ReadOnlySpan<byte> text,
+        scoped in SeStringDrawParams drawParams = default,
+        string? debugName = null)
+    {
+        var manager = this.ManagerOrThrow;
+        var textureWrap = manager.CreateTextureFromSeString(text, drawParams, debugName);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }

@@ -31,6 +31,8 @@ HANDLE g_crashhandler_process = nullptr;
 HANDLE g_crashhandler_event = nullptr;
 HANDLE g_crashhandler_pipe_write = nullptr;
 
+wchar_t g_external_event_info[16384] = L"";
+
 std::recursive_mutex g_exception_handler_mutex;
 
 std::chrono::time_point<std::chrono::system_clock> g_time_start;
@@ -191,7 +193,11 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     DuplicateHandle(GetCurrentProcess(), g_crashhandler_event, g_crashhandler_process, &exinfo.hEventHandle, 0, TRUE, DUPLICATE_SAME_ACCESS);
 
     std::wstring stackTrace;
-    if (!g_clr)
+    if (ex->ExceptionRecord->ExceptionCode == CUSTOM_EXCEPTION_EXTERNAL_EVENT)
+    {
+        stackTrace = std::wstring(g_external_event_info);
+    }
+    else if (!g_clr)
     {
         stackTrace = L"(no CLR stack trace available)";
     }
@@ -252,6 +258,12 @@ LONG WINAPI structured_exception_handler(EXCEPTION_POINTERS* ex)
 
 LONG WINAPI vectored_exception_handler(EXCEPTION_POINTERS* ex)
 {
+    // special case for CLR exceptions, always trigger crash handler
+    if (ex->ExceptionRecord->ExceptionCode == CUSTOM_EXCEPTION_EXTERNAL_EVENT)
+    {
+        return exception_handler(ex);
+    }
+
     if (ex->ExceptionRecord->ExceptionCode == 0x12345678)
     {
         // pass
@@ -434,4 +446,17 @@ bool veh::remove_handler()
         return true;
     }
     return false;
+}
+
+void veh::raise_external_event(const std::wstring& info)
+{
+    const auto info_size = std::min(info.size(), std::size(g_external_event_info) - 1);
+    wcsncpy_s(g_external_event_info, info.c_str(), info_size);
+    RaiseException(CUSTOM_EXCEPTION_EXTERNAL_EVENT, 0, 0, nullptr);
+}
+
+extern "C" __declspec(dllexport) void BootVehRaiseExternalEventW(LPCWSTR info)
+{
+    const std::wstring info_wstr(info);
+    veh::raise_external_event(info_wstr);
 }

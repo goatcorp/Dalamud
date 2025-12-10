@@ -158,16 +158,6 @@ public static partial class Util
         return branchInternal = gitBranch;
     }
 
-    /// <summary>
-    /// Gets the active Dalamud track, if this instance was launched through XIVLauncher and used a version
-    /// downloaded from webservices.
-    /// </summary>
-    /// <returns>The name of the track, or null.</returns>
-    internal static string? GetActiveTrack()
-    {
-        return Environment.GetEnvironmentVariable("DALAMUD_BRANCH");
-    }
-
     /// <inheritdoc cref="DescribeAddress(nint)"/>
     public static unsafe string DescribeAddress(void* p) => DescribeAddress((nint)p);
 
@@ -704,6 +694,16 @@ public static partial class Util
     }
 
     /// <summary>
+    /// Gets the active Dalamud track, if this instance was launched through XIVLauncher and used a version
+    /// downloaded from webservices.
+    /// </summary>
+    /// <returns>The name of the track, or null.</returns>
+    internal static string? GetActiveTrack()
+    {
+        return Environment.GetEnvironmentVariable("DALAMUD_BRANCH");
+    }
+
+    /// <summary>
     /// Gets a random, inoffensive, human-friendly string.
     /// </summary>
     /// <returns>A random human-friendly name.</returns>
@@ -858,7 +858,7 @@ public static partial class Util
         var sizeWithTerminators = pathBytesSize + (pathBytes.Length * 2);
 
         var dropFilesSize = sizeof(DROPFILES);
-        var hGlobal = Win32_PInvoke.GlobalAlloc_SafeHandle(
+        var hGlobal = Win32_PInvoke.GlobalAlloc(
             GLOBAL_ALLOC_FLAGS.GHND,
             // struct size + size of encoded strings + null terminator for each
             // string + two null terminators for end of list
@@ -896,12 +896,11 @@ public static partial class Util
         {
             Win32_PInvoke.SetClipboardData(
                 (uint)CLIPBOARD_FORMAT.CF_HDROP,
-                hGlobal);
+                (Windows.Win32.Foundation.HANDLE)hGlobal.Value);
             Win32_PInvoke.CloseClipboard();
             return true;
         }
 
-        hGlobal.Dispose();
         return false;
     }
 

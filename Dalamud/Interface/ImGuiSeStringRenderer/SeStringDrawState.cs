@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -6,6 +7,8 @@ using System.Text;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Utility;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
@@ -19,46 +22,88 @@ public unsafe ref struct SeStringDrawState
     private static readonly int ChannelCount = Enum.GetValues<SeStringDrawChannel>().Length;
 
     private readonly ImDrawList* drawList;
-    private readonly SeStringColorStackSet colorStackSet;
-    private readonly ImDrawListSplitter* splitter;
+
+    private ImDrawListSplitter splitter;
 
     /// <summary>Initializes a new instance of the <see cref="SeStringDrawState"/> struct.</summary>
     /// <param name="span">Raw SeString byte span.</param>
     /// <param name="ssdp">Instance of <see cref="SeStringDrawParams"/> to initialize from.</param>
     /// <param name="colorStackSet">Instance of <see cref="SeStringColorStackSet"/> to use.</param>
-    /// <param name="splitter">Instance of ImGui Splitter to use.</param>
+    /// <param name="fragments">Fragments.</param>
+    /// <param name="font">Font to use.</param>
     internal SeStringDrawState(
         ReadOnlySpan<byte> span,
         scoped in SeStringDrawParams ssdp,
         SeStringColorStackSet colorStackSet,
-        ImDrawListSplitter* splitter)
+        List<TextFragment> fragments,
+        ImFont* font)
     {
-        this.colorStackSet = colorStackSet;
-        this.splitter = splitter;
-        this.drawList = ssdp.TargetDrawList ?? ImGui.GetWindowDrawList();
         this.Span = span;
+        this.ColorStackSet = colorStackSet;
+        this.Fragments = fragments;
+        this.Font = font;
+
+        if (ssdp.TargetDrawList is null)
+        {
+            if (!ThreadSafety.IsMainThread)
+            {
+                throw new ArgumentException(
+                    $"{nameof(ssdp.TargetDrawList)} must be set to render outside the main thread.");
+            }
+
+            this.drawList = ssdp.TargetDrawList ?? ImGui.GetWindowDrawList();
+            this.ScreenOffset = ssdp.ScreenOffset ?? ImGui.GetCursorScreenPos();
+            this.FontSize = ssdp.FontSize ?? ImGui.GetFontSize();
+            this.WrapWidth = ssdp.WrapWidth ?? ImGui.GetContentRegionAvail().X;
+            this.Color = ssdp.Color ?? ImGui.GetColorU32(ImGuiCol.Text);
+            this.LinkHoverBackColor = ssdp.LinkHoverBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonHovered);
+            this.LinkActiveBackColor = ssdp.LinkActiveBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonActive);
+            this.ThemeIndex = ssdp.ThemeIndex ?? AtkStage.Instance()->AtkUIColorHolder->ActiveColorThemeType;
+        }
+        else
+        {
+            this.drawList = ssdp.TargetDrawList.Value;
+            this.ScreenOffset = ssdp.ScreenOffset ?? Vector2.Zero;
+
+            // API14: Remove, always throw
+            if (ThreadSafety.IsMainThread)
+            {
+                this.ScreenOffset = ssdp.ScreenOffset ?? ImGui.GetCursorScreenPos();
+                this.FontSize = ssdp.FontSize ?? ImGui.GetFontSize();
+            }
+            else
+            {
+                throw new ArgumentException(
+                    $"{nameof(ssdp.FontSize)} must be set when specifying a target draw list, as it cannot be fetched from the ImGui state.");
+            }
+
+            // this.FontSize = ssdp.FontSize ?? throw new ArgumentException(
+            //                     $"{nameof(ssdp.FontSize)} must be set when specifying a target draw list, as it cannot be fetched from the ImGui state.");
+            this.WrapWidth = ssdp.WrapWidth ?? float.MaxValue;
+            this.Color = ssdp.Color ?? uint.MaxValue;
+            this.LinkHoverBackColor = 0; // Interactivity is unused outside the main thread.
+            this.LinkActiveBackColor = 0; // Interactivity is unused outside the main thread.
+            this.ThemeIndex = ssdp.ThemeIndex ?? 0;
+        }
+
+        this.splitter = default;
         this.GetEntity = ssdp.GetEntity;
-        this.ScreenOffset = ssdp.ScreenOffset ?? ImGui.GetCursorScreenPos();
         this.ScreenOffset = new(MathF.Round(this.ScreenOffset.X), MathF.Round(this.ScreenOffset.Y));
-        this.Font = ssdp.EffectiveFont;
-        this.FontSize = ssdp.FontSize ?? ImGui.GetFontSize();
-        this.FontSizeScale = this.FontSize / this.Font->FontSize;
+        this.FontSizeScale = this.FontSize / this.Font.FontSize;
         this.LineHeight = MathF.Round(ssdp.EffectiveLineHeight);
-        this.WrapWidth = ssdp.WrapWidth ?? ImGui.GetContentRegionAvail().X;
         this.LinkUnderlineThickness = ssdp.LinkUnderlineThickness ?? 0f;
         this.Opacity = ssdp.EffectiveOpacity;
         this.EdgeOpacity = (ssdp.EdgeStrength ?? 0.25f) * ssdp.EffectiveOpacity;
-        this.Color = ssdp.Color ?? ImGui.GetColorU32(ImGuiCol.Text);
         this.EdgeColor = ssdp.EdgeColor ?? 0xFF000000;
         this.ShadowColor = ssdp.ShadowColor ?? 0xFF000000;
-        this.LinkHoverBackColor = ssdp.LinkHoverBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonHovered);
-        this.LinkActiveBackColor = ssdp.LinkActiveBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonActive);
         this.ForceEdgeColor = ssdp.ForceEdgeColor;
-        this.ThemeIndex = ssdp.ThemeIndex ?? AtkStage.Instance()->AtkUIColorHolder->ActiveColorThemeType;
         this.Bold = ssdp.Bold;
         this.Italic = ssdp.Italic;
         this.Edge = ssdp.Edge;
         this.Shadow = ssdp.Shadow;
+
+        this.ColorStackSet.Initialize(ref this);
+        fragments.Clear();
     }
 
     /// <inheritdoc cref="SeStringDrawParams.TargetDrawList"/>
@@ -74,7 +119,7 @@ public unsafe ref struct SeStringDrawState
     public Vector2 ScreenOffset { get; }
 
     /// <inheritdoc cref="SeStringDrawParams.Font"/>
-    public ImFont* Font { get; }
+    public ImFontPtr Font { get; }
 
     /// <inheritdoc cref="SeStringDrawParams.FontSize"/>
     public float FontSize { get; }
@@ -135,7 +180,7 @@ public unsafe ref struct SeStringDrawState
 
     /// <summary>Gets a value indicating whether the edge should be drawn.</summary>
     public readonly bool ShouldDrawEdge =>
-        (this.Edge || this.colorStackSet.HasAdditionalEdgeColor) && this.EdgeColor >= 0x1000000;
+        (this.Edge || this.ColorStackSet.HasAdditionalEdgeColor) && this.EdgeColor >= 0x1000000;
 
     /// <summary>Gets a value indicating whether the edge should be drawn.</summary>
     public readonly bool ShouldDrawShadow => this is { Shadow: true, ShadowColor: >= 0x1000000 };
@@ -143,11 +188,17 @@ public unsafe ref struct SeStringDrawState
     /// <summary>Gets a value indicating whether the edge should be drawn.</summary>
     public readonly bool ShouldDrawForeground => this is { Color: >= 0x1000000 };
 
+    /// <summary>Gets the color stacks.</summary>
+    internal SeStringColorStackSet ColorStackSet { get; }
+
+    /// <summary>Gets the text fragments.</summary>
+    internal List<TextFragment> Fragments { get; }
+
     /// <summary>Sets the current channel in the ImGui draw list splitter.</summary>
     /// <param name="channelIndex">Channel to switch to.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly void SetCurrentChannel(SeStringDrawChannel channelIndex) =>
-        this.splitter->SetCurrentChannel(this.drawList, (int)channelIndex);
+    public void SetCurrentChannel(SeStringDrawChannel channelIndex) =>
+        this.splitter.SetCurrentChannel(this.drawList, (int)channelIndex);
 
     /// <summary>Draws a single texture.</summary>
     /// <param name="igTextureId">ImGui texture ID to draw from.</param>
@@ -216,9 +267,9 @@ public unsafe ref struct SeStringDrawState
     /// <summary>Draws a single glyph using current styling configurations.</summary>
     /// <param name="g">Glyph to draw.</param>
     /// <param name="offset">Offset of the glyph in pixels w.r.t. <see cref="ScreenOffset"/>.</param>
-    internal readonly void DrawGlyph(scoped in ImGuiHelpers.ImFontGlyphReal g, Vector2 offset)
+    internal void DrawGlyph(scoped in ImGuiHelpers.ImFontGlyphReal g, Vector2 offset)
     {
-        var texId = this.Font->ContainerAtlas->Textures.Ref<ImFontAtlasTexture>(g.TextureIndex).TexID;
+        var texId = this.Font.ContainerAtlas.Textures.Ref<ImFontAtlasTexture>(g.TextureIndex).TexID;
         var xy0 = new Vector2(
             MathF.Round(g.X0 * this.FontSizeScale),
             MathF.Round(g.Y0 * this.FontSizeScale));
@@ -268,14 +319,14 @@ public unsafe ref struct SeStringDrawState
     /// <param name="offset">Offset of the glyph in pixels w.r.t.
     /// <see cref="SeStringDrawParams.ScreenOffset"/>.</param>
     /// <param name="advanceWidth">Advance width of the glyph.</param>
-    internal readonly void DrawLinkUnderline(Vector2 offset, float advanceWidth)
+    internal void DrawLinkUnderline(Vector2 offset, float advanceWidth)
     {
         if (this.LinkUnderlineThickness < 1f)
             return;
 
         offset += this.ScreenOffset;
         offset.Y += (this.LinkUnderlineThickness - 1) / 2f;
-        offset.Y += MathF.Round(((this.LineHeight - this.FontSize) / 2) + (this.Font->Ascent * this.FontSizeScale));
+        offset.Y += MathF.Round(((this.LineHeight - this.FontSize) / 2) + (this.Font.Ascent * this.FontSizeScale));
 
         this.SetCurrentChannel(SeStringDrawChannel.Foreground);
         this.DrawList.AddLine(
@@ -302,9 +353,9 @@ public unsafe ref struct SeStringDrawState
     internal readonly ref ImGuiHelpers.ImFontGlyphReal FindGlyph(Rune rune)
     {
         var p = rune.Value is >= ushort.MinValue and < ushort.MaxValue
-                    ? this.Font->FindGlyph((ushort)rune.Value)
-                    : this.Font->FallbackGlyph;
-        return ref *(ImGuiHelpers.ImFontGlyphReal*)p;
+                    ? (ImFontGlyphPtr)this.Font.FindGlyph((ushort)rune.Value)
+                    : this.Font.FallbackGlyph;
+        return ref *(ImGuiHelpers.ImFontGlyphReal*)p.Handle;
     }
 
     /// <summary>Gets the glyph corresponding to the given codepoint.</summary>
@@ -337,7 +388,7 @@ public unsafe ref struct SeStringDrawState
             return 0;
 
         return MathF.Round(
-            this.Font->GetDistanceAdjustmentForPair(
+            this.Font.GetDistanceAdjustmentForPair(
                 (ushort)left.Value,
                 (ushort)right.Value) * this.FontSizeScale);
     }
@@ -350,15 +401,15 @@ public unsafe ref struct SeStringDrawState
         switch (payload.MacroCode)
         {
             case MacroCode.Color:
-                this.colorStackSet.HandleColorPayload(ref this, payload);
+                this.ColorStackSet.HandleColorPayload(ref this, payload);
                 return true;
 
             case MacroCode.EdgeColor:
-                this.colorStackSet.HandleEdgeColorPayload(ref this, payload);
+                this.ColorStackSet.HandleEdgeColorPayload(ref this, payload);
                 return true;
 
             case MacroCode.ShadowColor:
-                this.colorStackSet.HandleShadowColorPayload(ref this, payload);
+                this.ColorStackSet.HandleShadowColorPayload(ref this, payload);
                 return true;
 
             case MacroCode.Bold when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
@@ -379,11 +430,11 @@ public unsafe ref struct SeStringDrawState
                 return true;
 
             case MacroCode.ColorType:
-                this.colorStackSet.HandleColorTypePayload(ref this, payload);
+                this.ColorStackSet.HandleColorTypePayload(ref this, payload);
                 return true;
 
             case MacroCode.EdgeColorType:
-                this.colorStackSet.HandleEdgeColorTypePayload(ref this, payload);
+                this.ColorStackSet.HandleEdgeColorTypePayload(ref this, payload);
                 return true;
 
             default:
@@ -393,10 +444,9 @@ public unsafe ref struct SeStringDrawState
 
     /// <summary>Splits the draw list.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal readonly void SplitDrawList() =>
-        this.splitter->Split(this.drawList, ChannelCount);
+    internal void SplitDrawList() => this.splitter.Split(this.drawList, ChannelCount);
 
     /// <summary>Merges the draw list.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal readonly void MergeDrawList() => this.splitter->Merge(this.drawList);
+    internal void MergeDrawList() => this.splitter.Merge(this.drawList);
 }

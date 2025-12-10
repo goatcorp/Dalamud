@@ -533,6 +533,13 @@ internal class DalamudInterface : IInternalDisposableService
             this.creditsDarkeningAnimation.Restart();
     }
 
+    /// <inheritdoc cref="DataWindow.GetWidget{T}"/>
+    public T GetDataWindowWidget<T>() where T : IDataWindowWidget => this.dataWindow.GetWidget<T>();
+
+    /// <summary>Sets the data window current widget.</summary>
+    /// <param name="widget">Widget to set current.</param>
+    public void SetDataWindowWidget(IDataWindowWidget widget) => this.dataWindow.CurrentWidget = widget;
+
     private void OnDraw()
     {
         this.FrameCount++;
@@ -660,6 +667,8 @@ internal class DalamudInterface : IInternalDisposableService
     {
         if (this.isImGuiDrawDevMenu)
         {
+            using var barColor = ImRaii.PushColor(ImGuiCol.WindowBg, new Vector4(0.060f, 0.060f, 0.060f, 0.773f));
+            barColor.Push(ImGuiCol.MenuBarBg, Vector4.Zero);
             if (ImGui.BeginMainMenuBar())
             {
                 var pluginManager = Service<PluginManager>.Get();
@@ -830,6 +839,11 @@ internal class DalamudInterface : IInternalDisposableService
                         {
                             ImGui.PopStyleVar();
                             ImGui.PopStyleVar();
+                        }
+
+                        if (ImGui.MenuItem("Raise external event through boot"))
+                        {
+                            ErrorHandling.CrashWithContext("Tést");
                         }
 
                         ImGui.EndMenu();

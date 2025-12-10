@@ -8,6 +8,7 @@ using System.Text;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Memory;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -34,11 +35,12 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
     private readonly HCURSOR[] cursors;
 
     private readonly WndProcDelegate wndProcDelegate;
-    private readonly bool[] imguiMouseIsDown;
     private readonly nint platformNamePtr;
 
     private ViewportHandler viewportHandler;
 
+    private int mouseButtonsDown;
+    private bool mouseTracked;
     private long lastTime;
 
     private nint iniPathPtr;
@@ -64,7 +66,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
         io.BackendFlags |= ImGuiBackendFlags.HasMouseCursors |
                            ImGuiBackendFlags.HasSetMousePos |
                            ImGuiBackendFlags.RendererHasViewports |
-                           ImGuiBackendFlags.PlatformHasViewports;
+                           ImGuiBackendFlags.PlatformHasViewports |
+                           ImGuiBackendFlags.HasMouseHoveredViewport;
 
         this.platformNamePtr = Marshal.StringToHGlobalAnsi("imgui_impl_win32_c#");
         io.Handle->BackendPlatformName = (byte*)this.platformNamePtr;
@@ -73,8 +76,6 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
         mainViewport.PlatformHandle = mainViewport.PlatformHandleRaw = hWnd;
         if (io.ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable))
             this.viewportHandler = new(this);
-
-        this.imguiMouseIsDown = new bool[5];
 
         this.cursors = new HCURSOR[9];
         this.cursors[(int)ImGuiMouseCursor.Arrow] = LoadCursorW(default, IDC.IDC_ARROW);
@@ -94,8 +95,6 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
     ~Win32InputHandler() => this.ReleaseUnmanagedResources();
 
     private delegate LRESULT WndProcDelegate(HWND hWnd, uint uMsg, WPARAM wparam, LPARAM lparam);
-
-    private delegate BOOL MonitorEnumProcDelegate(HMONITOR monitor, HDC hdc, RECT* rect, LPARAM lparam);
 
     /// <inheritdoc/>
     public bool UpdateCursor { get; set; } = true;
@@ -155,6 +154,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
     public void NewFrame(int targetWidth, int targetHeight)
     {
         var io = ImGui.GetIO();
+        var focusedWindow = GetForegroundWindow();
 
         io.DisplaySize.X = targetWidth;
         io.DisplaySize.Y = targetHeight;
@@ -168,9 +168,9 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
 
         this.viewportHandler.UpdateMonitors();
 
-        this.UpdateMousePos();
+        this.UpdateMouseData(focusedWindow);
 
-        this.ProcessKeyEventsWorkarounds();
+        this.ProcessKeyEventsWorkarounds(focusedWindow);
 
         // TODO: need to figure out some way to unify all this
         // The bottom case works(?) if the caller hooks SetCursor, but otherwise causes fps issues
@@ -224,6 +224,40 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
 
         switch (msg)
         {
+            case WM.WM_MOUSEMOVE:
+            {
+                if (!this.mouseTracked)
+                {
+                    var tme = new TRACKMOUSEEVENT
+                    {
+                        cbSize = (uint)sizeof(TRACKMOUSEEVENT),
+                        dwFlags = TME.TME_LEAVE,
+                        hwndTrack = hWndCurrent,
+                    };
+                    this.mouseTracked = TrackMouseEvent(&tme);
+                }
+
+                var mousePos = new POINT(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+                if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
+                    ClientToScreen(hWndCurrent, &mousePos);
+                io.AddMousePosEvent(mousePos.x, mousePos.y);
+                break;
+            }
+
+            case WM.WM_MOUSELEAVE:
+            {
+                this.mouseTracked = false;
+                var mouseScreenPos = new POINT(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+                ClientToScreen(hWndCurrent, &mouseScreenPos);
+                if (this.ViewportFromPoint(mouseScreenPos).IsNull)
+                {
+                    var fltMax = ImGuiNative.GETFLTMAX();
+                    io.AddMousePosEvent(-fltMax, -fltMax);
+                }
+
+                break;
+            }
+
             case WM.WM_LBUTTONDOWN:
             case WM.WM_LBUTTONDBLCLK:
             case WM.WM_RBUTTONDOWN:
@@ -236,11 +270,10 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 var button = GetButton(msg, wParam);
                 if (io.WantCaptureMouse)
                 {
-                    if (!ImGui.IsAnyMouseDown() && GetCapture() == nint.Zero)
+                    if (this.mouseButtonsDown == 0 && GetCapture() == nint.Zero)
                         SetCapture(hWndCurrent);
-
-                    io.MouseDown[button] = true;
-                    this.imguiMouseIsDown[button] = true;
+                    this.mouseButtonsDown |= 1 << button;
+                    io.AddMouseButtonEvent(button, true);
                     return default(LRESULT);
                 }
 
@@ -256,13 +289,12 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             case WM.WM_XBUTTONUP:
             {
                 var button = GetButton(msg, wParam);
-                if (io.WantCaptureMouse && this.imguiMouseIsDown[button])
+                if (io.WantCaptureMouse)
                 {
-                    if (!ImGui.IsAnyMouseDown() && GetCapture() == hWndCurrent)
+                    this.mouseButtonsDown &= ~(1 << button);
+                    if (this.mouseButtonsDown == 0 && GetCapture() == hWndCurrent)
                         ReleaseCapture();
-
-                    io.MouseDown[button] = false;
-                    this.imguiMouseIsDown[button] = false;
+                    io.AddMouseButtonEvent(button, false);
                     return default(LRESULT);
                 }
 
@@ -272,7 +304,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             case WM.WM_MOUSEWHEEL:
                 if (io.WantCaptureMouse)
                 {
-                    io.MouseWheel += GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
+                    io.AddMouseWheelEvent(0, GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA);
                     return default(LRESULT);
                 }
 
@@ -280,7 +312,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             case WM.WM_MOUSEHWHEEL:
                 if (io.WantCaptureMouse)
                 {
-                    io.MouseWheelH += GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
+                    io.AddMouseWheelEvent(GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA, 0);
                     return default(LRESULT);
                 }
 
@@ -374,66 +406,84 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 this.viewportHandler.UpdateMonitors();
                 break;
 
-            case WM.WM_KILLFOCUS when hWndCurrent == this.hWnd:
-                if (!ImGui.IsAnyMouseDown() && GetCapture() == hWndCurrent)
-                    ReleaseCapture();
+            case WM.WM_SETFOCUS when hWndCurrent == this.hWnd:
+                io.AddFocusEvent(true);
+                break;
 
-                ImGui.GetIO().WantCaptureMouse = false;
-                ImGui.ClearWindowFocus();
+            case WM.WM_KILLFOCUS when hWndCurrent == this.hWnd:
+                io.AddFocusEvent(false);
+                // if (!ImGui.IsAnyMouseDown() && GetCapture() == hWndCurrent)
+                //     ReleaseCapture();
+                //
+                // ImGui.GetIO().WantCaptureMouse = false;
+                // ImGui.ClearWindowFocus();
                 break;
         }
 
         return null;
     }
 
-    private void UpdateMousePos()
+    private void UpdateMouseData(HWND focusedWindow)
     {
         var io = ImGui.GetIO();
-        var pt = default(POINT);
 
-        // Depending on if Viewports are enabled, we have to change how we process
-        // the cursor position. If viewports are enabled, we pass the absolute cursor
-        // position to ImGui. Otherwise, we use the old method of passing client-local
-        // mouse position to ImGui.
-        if (io.ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable))
+        var mouseScreenPos = default(POINT);
+        var hasMouseScreenPos = GetCursorPos(&mouseScreenPos) != 0;
+
+        var isAppFocused =
+            focusedWindow != default
+            && (focusedWindow == this.hWnd
+                || IsChild(focusedWindow, this.hWnd)
+                || !ImGui.FindViewportByPlatformHandle(focusedWindow).IsNull);
+
+        if (isAppFocused)
         {
+            // (Optional) Set OS mouse position from Dear ImGui if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
+            // When multi-viewports are enabled, all Dear ImGui positions are same as OS positions.
             if (io.WantSetMousePos)
             {
-                SetCursorPos((int)io.MousePos.X, (int)io.MousePos.Y);
+                var pos = new POINT((int)io.MousePos.X, (int)io.MousePos.Y);
+                if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
+                    ClientToScreen(this.hWnd, &pos);
+                SetCursorPos(pos.x, pos.y);
             }
+        }
 
-            if (GetCursorPos(&pt))
-            {
-                io.MousePos.X = pt.x;
-                io.MousePos.Y = pt.y;
-            }
-            else
-            {
-                io.MousePos.X = float.MinValue;
-                io.MousePos.Y = float.MinValue;
-            }
+        // (Optional) Fallback to provide mouse position when focused (WM_MOUSEMOVE already provides this when hovered or captured)
+        if (!io.WantSetMousePos && !this.mouseTracked && hasMouseScreenPos)
+        {
+            // Single viewport mode: mouse position in client window coordinates (io.MousePos is (0,0) when the mouse is on the upper-left corner of the app window)
+            // (This is the position you can get with ::GetCursorPos() + ::ScreenToClient() or WM_MOUSEMOVE.)
+            // Multi-viewport mode: mouse position in OS absolute coordinates (io.MousePos is (0,0) when the mouse is on the upper-left of the primary monitor)
+            // (This is the position you can get with ::GetCursorPos() or WM_MOUSEMOVE + ::ClientToScreen(). In theory adding viewport->Pos to a client position would also be the same.)
+            var mousePos = mouseScreenPos;
+            if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) == 0)
+                ClientToScreen(focusedWindow, &mousePos);
+            io.AddMousePosEvent(mousePos.x, mousePos.y);
+        }
+
+        // (Optional) When using multiple viewports: call io.AddMouseViewportEvent() with the viewport the OS mouse cursor is hovering.
+        // If ImGuiBackendFlags_HasMouseHoveredViewport is not set by the backend, Dear imGui will ignore this field and infer the information using its flawed heuristic.
+        // - [X] Win32 backend correctly ignore viewports with the _NoInputs flag (here using ::WindowFromPoint with WM_NCHITTEST + HTTRANSPARENT in WndProc does that)
+        //       Some backend are not able to handle that correctly. If a backend report an hovered viewport that has the _NoInputs flag (e.g. when dragging a window
+        //       for docking, the viewport has the _NoInputs flag in order to allow us to find the viewport under), then Dear ImGui is forced to ignore the value reported
+        //       by the backend, and use its flawed heuristic to guess the viewport behind.
+        // - [X] Win32 backend correctly reports this regardless of another viewport behind focused and dragged from (we need this to find a useful drag and drop target).
+        if (hasMouseScreenPos)
+        {
+            var viewport = this.ViewportFromPoint(mouseScreenPos);
+            io.AddMouseViewportEvent(!viewport.IsNull ? viewport.ID : 0u);
         }
         else
         {
-            if (io.WantSetMousePos)
-            {
-                pt.x = (int)io.MousePos.X;
-                pt.y = (int)io.MousePos.Y;
-                ClientToScreen(this.hWnd, &pt);
-                SetCursorPos(pt.x, pt.y);
-            }
-
-            if (GetCursorPos(&pt) && ScreenToClient(this.hWnd, &pt))
-            {
-                io.MousePos.X = pt.x;
-                io.MousePos.Y = pt.y;
-            }
-            else
-            {
-                io.MousePos.X = float.MinValue;
-                io.MousePos.Y = float.MinValue;
-            }
+            io.AddMouseViewportEvent(0);
         }
+    }
+
+    private ImGuiViewportPtr ViewportFromPoint(POINT mouseScreenPos)
+    {
+        var hoveredHwnd = WindowFromPoint(mouseScreenPos);
+        return hoveredHwnd != default ? ImGui.FindViewportByPlatformHandle(hoveredHwnd) : default;
     }
 
     private bool UpdateMouseCursor()
@@ -451,7 +501,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
         return true;
     }
 
-    private void ProcessKeyEventsWorkarounds()
+    private void ProcessKeyEventsWorkarounds(HWND focusedWindow)
     {
         // Left & right Shift keys: when both are pressed together, Windows tend to not generate the WM_KEYUP event for the first released one.
         if (ImGui.IsKeyDown(ImGuiKey.LeftShift) && !IsVkDown(VK.VK_LSHIFT))
@@ -480,7 +530,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
         {
             // See: https://github.com/goatcorp/ImGuiScene/pull/13
             // > GetForegroundWindow from winuser.h is a surprisingly expensive function.
-            var isForeground = GetForegroundWindow() == this.hWnd;
+            var isForeground = focusedWindow == this.hWnd;
             for (var i = (int)ImGuiKey.NamedKeyBegin; i < (int)ImGuiKey.NamedKeyEnd; i++)
             {
                 // Skip raising modifier keys if the game is focused.
@@ -622,7 +672,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     hbrBackground = (HBRUSH)(1 + COLOR.COLOR_BACKGROUND),
                     lpfnWndProc = (delegate* unmanaged<HWND, uint, WPARAM, LPARAM, LRESULT>)Marshal
                         .GetFunctionPointerForDelegate(this.input.wndProcDelegate),
-                    lpszClassName = (ushort*)windowClassNamePtr,
+                    lpszClassName = windowClassNamePtr,
                 };
 
                 if (RegisterClassExW(&wcex) == 0)
@@ -646,19 +696,12 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 return;
 
             var pio = ImGui.GetPlatformIO();
-
-            if (ImGui.GetPlatformIO().Handle->Monitors.Data != null)
-            {
-                // We allocated the platform monitor data in OnUpdateMonitors ourselves,
-                // so we have to free it ourselves to ImGui doesn't try to, or else it will crash
-                Marshal.FreeHGlobal(new IntPtr(ImGui.GetPlatformIO().Handle->Monitors.Data));
-                ImGui.GetPlatformIO().Handle->Monitors = default;
-            }
+            ImGui.GetPlatformIO().Handle->Monitors.Free();
 
             fixed (char* windowClassNamePtr = WindowClassName)
             {
                 UnregisterClassW(
-                    (ushort*)windowClassNamePtr,
+                    windowClassNamePtr,
                     (HINSTANCE)Marshal.GetHINSTANCE(typeof(ViewportHandler).Module));
             }
 
@@ -693,58 +736,49 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             // Here we use a manual ImVector overload, free the existing monitor data,
             // and allocate our own, as we are responsible for telling ImGui about monitors
             var pio = ImGui.GetPlatformIO();
-            var numMonitors = GetSystemMetrics(SM.SM_CMONITORS);
-            var data = Marshal.AllocHGlobal(Marshal.SizeOf<ImGuiPlatformMonitor>() * numMonitors);
-            if (pio.Handle->Monitors.Data != null)
-                Marshal.FreeHGlobal(new IntPtr(pio.Handle->Monitors.Data));
-            pio.Handle->Monitors = new(numMonitors, numMonitors, (ImGuiPlatformMonitor*)data.ToPointer());
+            pio.Handle->Monitors.Resize(0);
 
-            // ImGuiPlatformIOPtr platformIO = ImGui.GetPlatformIO();
-            // Marshal.FreeHGlobal(platformIO.Handle->Monitors.Data);
-            // int numMonitors = GetSystemMetrics(SystemMetric.SM_CMONITORS);
-            // nint data = Marshal.AllocHGlobal(Marshal.SizeOf<ImGuiPlatformMonitor>() * numMonitors);
-            // platformIO.Handle->Monitors = new ImVector(numMonitors, numMonitors, data);
-
-            var monitorIndex = -1;
-            var enumfn = new MonitorEnumProcDelegate(
-                (hMonitor, _, _, _) =>
-                {
-                    monitorIndex++;
-                    var info = new MONITORINFO { cbSize = (uint)sizeof(MONITORINFO) };
-                    if (!GetMonitorInfoW(hMonitor, &info))
-                        return true;
-
-                    var monitorLt = new Vector2(info.rcMonitor.left, info.rcMonitor.top);
-                    var monitorRb = new Vector2(info.rcMonitor.right, info.rcMonitor.bottom);
-                    var workLt = new Vector2(info.rcWork.left, info.rcWork.top);
-                    var workRb = new Vector2(info.rcWork.right, info.rcWork.bottom);
-                    // Give ImGui the info for this display
-
-                    ref var imMonitor = ref ImGui.GetPlatformIO().Monitors.Ref(monitorIndex);
-                    imMonitor.MainPos = monitorLt;
-                    imMonitor.MainSize = monitorRb - monitorLt;
-                    imMonitor.WorkPos = workLt;
-                    imMonitor.WorkSize = workRb - workLt;
-                    imMonitor.DpiScale = 1f;
-                    return true;
-                });
-            EnumDisplayMonitors(
-                default,
-                null,
-                (delegate* unmanaged<HMONITOR, HDC, RECT*, LPARAM, BOOL>)Marshal.GetFunctionPointerForDelegate(enumfn),
-                default);
+            EnumDisplayMonitors(default, null, &EnumDisplayMonitorsCallback, default);
 
             Log.Information("Monitors set up!");
-            for (var i = 0; i < numMonitors; i++)
+            foreach (ref var monitor in pio.Handle->Monitors)
             {
-                var monitor = pio.Handle->Monitors[i];
                 Log.Information(
-                    "Monitor {Index}: {MainPos} {MainSize} {WorkPos} {WorkSize}",
-                    i,
+                    "Monitor: {MainPos} {MainSize} {WorkPos} {WorkSize}",
                     monitor.MainPos,
                     monitor.MainSize,
                     monitor.WorkPos,
                     monitor.WorkSize);
+            }
+
+            return;
+
+            [UnmanagedCallersOnly]
+            static BOOL EnumDisplayMonitorsCallback(HMONITOR hMonitor, HDC hdc, RECT* rect, LPARAM lParam)
+            {
+                var info = new MONITORINFO { cbSize = (uint)sizeof(MONITORINFO) };
+                if (!GetMonitorInfoW(hMonitor, &info))
+                    return true;
+
+                var monitorLt = new Vector2(info.rcMonitor.left, info.rcMonitor.top);
+                var monitorRb = new Vector2(info.rcMonitor.right, info.rcMonitor.bottom);
+                var workLt = new Vector2(info.rcWork.left, info.rcWork.top);
+                var workRb = new Vector2(info.rcWork.right, info.rcWork.bottom);
+
+                // Give ImGui the info for this display
+                var imMonitor = new ImGuiPlatformMonitor
+                {
+                    MainPos = monitorLt,
+                    MainSize = monitorRb - monitorLt,
+                    WorkPos = workLt,
+                    WorkSize = workRb - workLt,
+                    DpiScale = 1f,
+                };
+                if ((info.dwFlags & MONITORINFOF_PRIMARY) != 0)
+                    ImGui.GetPlatformIO().Monitors.PushFront(imMonitor);
+                else
+                    ImGui.GetPlatformIO().Monitors.PushBack(imMonitor);
+                return true;
             }
         }
 
@@ -781,8 +815,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             {
                 data->Hwnd = CreateWindowExW(
                     (uint)data->DwExStyle,
-                    (ushort*)windowClassNamePtr,
-                    (ushort*)windowClassNamePtr,
+                    windowClassNamePtr,
+                    windowClassNamePtr,
                     (uint)data->DwStyle,
                     rect.left,
                     rect.top,
@@ -793,6 +827,9 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     (HINSTANCE)Marshal.GetHINSTANCE(typeof(ViewportHandler).Module),
                     null);
             }
+
+            if (data->Hwnd == 0)
+                Util.Fatal($"CreateWindowExW failed: {GetLastError()}", "ImGui Viewport error");
 
             data->HwndOwned = true;
             viewport.PlatformRequestResize = false;
@@ -993,7 +1030,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
             fixed (char* pwszTitle = MemoryHelper.ReadStringNullTerminated((nint)title))
-                SetWindowTextW(data->Hwnd, (ushort*)pwszTitle);
+                SetWindowTextW(data->Hwnd, pwszTitle);
         }
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
