@@ -10,6 +10,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
@@ -17,7 +18,7 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer;
 
 /// <summary>Calculated values from <see cref="SeStringDrawParams"/> using ImGui styles.</summary>
 [StructLayout(LayoutKind.Sequential)]
-public unsafe ref struct SeStringDrawState
+public unsafe ref struct SeStringDrawState : IDisposable
 {
     private static readonly int ChannelCount = Enum.GetValues<SeStringDrawChannel>().Length;
 
@@ -193,6 +194,9 @@ public unsafe ref struct SeStringDrawState
 
     /// <summary>Gets the text fragments.</summary>
     internal List<TextFragment> Fragments { get; }
+
+    /// <inheritdoc/>
+    public void Dispose() => this.splitter.ClearFreeMemory();
 
     /// <summary>Sets the current channel in the ImGui draw list splitter.</summary>
     /// <param name="channelIndex">Channel to switch to.</param>
