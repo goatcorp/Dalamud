@@ -25,6 +25,11 @@ public interface IFontSpec
     float LineHeightPx { get; }
 
     /// <summary>
+    /// Gets the font no.
+    /// </summary>
+    int FontNo { get; }
+
+    /// <summary>
     /// Creates a font handle corresponding to this font specification.
     /// </summary>
     /// <param name="atlas">The atlas to bind this font handle to.</param>

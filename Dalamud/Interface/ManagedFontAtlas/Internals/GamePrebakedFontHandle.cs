@@ -412,14 +412,14 @@ internal class GamePrebakedFontHandle : FontHandle
         private ImFontPtr CreateTemplateFont(IFontAtlasBuildToolkitPreBuild toolkitPreBuild, float sizePx)
         {
             var font = toolkitPreBuild.AddDalamudAssetFont(
-                DalamudAsset.NotoSansJpMedium,
+                DalamudAsset.NotoSansCJKMedium,
                 new()
                 {
                     GlyphRanges = new ushort[] { ' ', ' ', '\0' },
                     SizePx = sizePx,
                 });
             this.templatedFonts.Add(font);
-            return font;
+            return font; 
         }
 
         private unsafe void PatchFontMetricsIfNecessary(GameFontStyle style, ImFontPtr font, float atlasScale)

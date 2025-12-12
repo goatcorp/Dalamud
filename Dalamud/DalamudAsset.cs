@@ -1,4 +1,4 @@
-﻿using Dalamud.Storage.Assets;
+using Dalamud.Storage.Assets;
 
 using TerraFX.Interop.DirectX;
 
@@ -128,17 +128,17 @@ public enum DalamudAsset
     /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK JP Medium.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.Font)]
-    [DalamudAssetPath("UIRes", "NotoSansCJKjp-Regular.otf")]
-    [DalamudAssetPath("UIRes", "NotoSansCJKjp-Medium.otf")]
-    NotoSansJpMedium = 2000,
+    //[DalamudAssetPath("UIRes", "NotoSansCJKjp-Regular.otf")]
+    [DalamudAssetPath("UIRes", "NotoSansCJK-Medium.ttc")]
+    NotoSansCJKMedium = 2000,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK KR Regular.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.Font)]
-    [DalamudAssetPath("UIRes", "NotoSansCJKkr-Regular.otf")]
-    [DalamudAssetPath("UIRes", "NotoSansKR-Regular.otf")]
-    NotoSansKrRegular = 2001,
+    //[DalamudAssetPath("UIRes", "NotoSansCJKkr-Regular.otf")]
+    [DalamudAssetPath("UIRes", "NotoSansCJK-Regular.ttc")]
+    NotoSansCJKRegular = 2001,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.Font"/>: Inconsolata Regular.
