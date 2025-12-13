@@ -669,6 +669,8 @@ internal class DalamudInterface : IInternalDisposableService
         {
             using var barColor = ImRaii.PushColor(ImGuiCol.WindowBg, new Vector4(0.060f, 0.060f, 0.060f, 0.773f));
             barColor.Push(ImGuiCol.MenuBarBg, Vector4.Zero);
+            barColor.Push(ImGuiCol.Border, Vector4.Zero);
+            barColor.Push(ImGuiCol.BorderShadow, Vector4.Zero);
             if (ImGui.BeginMainMenuBar())
             {
                 var pluginManager = Service<PluginManager>.Get();

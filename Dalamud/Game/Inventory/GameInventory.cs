@@ -305,7 +305,8 @@ internal class GameInventory : IInternalDisposableService
     private GameInventoryItem[] CreateItemsArray(int length)
     {
         var items = new GameInventoryItem[length];
-        items.Initialize();
+        foreach (ref var item in items.AsSpan())
+            item = new();
         return items;
     }
 

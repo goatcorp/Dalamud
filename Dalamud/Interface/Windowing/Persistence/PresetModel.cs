@@ -53,6 +53,7 @@ internal class PresetModel
         /// <summary>
         /// Gets a value indicating whether this preset is in the default state.
         /// </summary>
+        [JsonIgnore]
         public bool IsDefault =>
             !this.IsPinned &&
             !this.IsClickThrough &&
