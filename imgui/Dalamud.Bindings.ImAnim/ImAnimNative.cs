@@ -60,6 +60,9 @@ public static unsafe partial class ImAnimNative
     [LibraryImport(LibName, EntryPoint = "c_iam_show_unified_inspector")]
     public static partial void ShowUnifiedInspector(byte* pOpen = null);
 
+    [LibraryImport(LibName, EntryPoint = "c_iam_show_debug_timeline")]
+    public static partial void ShowDebugTimeline(uint instance_id);
+
     // Performance Profiler
 
     [LibraryImport(LibName, EntryPoint = "c_iam_profiler_enable")]

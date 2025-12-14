@@ -9,7 +9,7 @@ namespace Dalamud.Bindings.ImAnim;
 public static unsafe class ImAnim
 {
     public delegate void ClipCallback(uint instId, void* userData); // iam_clip_callback
-    public delegate void MarkerCallback(uint instId, uint markerId, float markerTime, void* userData); // iam_marker_callback 
+    public delegate void MarkerCallback(uint instId, uint markerId, float markerTime, void* userData); // iam_marker_callback
     public delegate float EaseFn(float t); // iam_ease_fn
 
     public delegate float FloatResolver(void* userData); // iam_float_resolver
@@ -106,6 +106,11 @@ public static unsafe class ImAnim
         var open = (byte)(pOpen ? 1 : 0);
         ImAnimNative.ShowUnifiedInspector(&open);
         pOpen = open == 1;
+    }
+
+    public static void ShowDebugTimeline(uint instanceId)
+    {
+        ImAnimNative.ShowDebugTimeline(instanceId);
     }
 
     // Performance Profiler

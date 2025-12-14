@@ -32,6 +32,7 @@ CIMGUI_API void   c_iam_get_custom_ease(iam_ease_fn* pOut, int slot);
 
 // Debug UI
 CIMGUI_API void   c_iam_show_unified_inspector(bool* p_open);
+CIMGUI_API void   c_iam_show_debug_timeline(ImGuiID instance_id);
 
 // Performance Profiler
 CIMGUI_API void   c_iam_profiler_enable(bool enable);
