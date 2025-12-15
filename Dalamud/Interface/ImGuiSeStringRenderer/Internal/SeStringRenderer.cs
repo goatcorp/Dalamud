@@ -162,8 +162,7 @@ internal class SeStringRenderer : IServiceType
         if (drawParams.Font.HasValue)
             font = drawParams.Font.Value;
 
-        // API14: Remove commented out code
-        if (ThreadSafety.IsMainThread /* && drawParams.TargetDrawList is null */ && font is null)
+        if (ThreadSafety.IsMainThread && drawParams.TargetDrawList is null && font is null)
             font = ImGui.GetFont();
         if (font is null)
             throw new ArgumentException("Specified font is empty.");
