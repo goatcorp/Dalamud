@@ -19,6 +19,9 @@ public interface ICallGateProvider
 
     /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
     public void UnregisterFunc();
+
+    /// <inheritdoc cref="CallGatePubSubBase.GetContext"/>
+    public IpcContext? GetContext();
 }
 
 /// <inheritdoc cref="ICallGateProvider"/>
