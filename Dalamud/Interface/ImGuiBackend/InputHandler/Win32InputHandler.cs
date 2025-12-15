@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Console;
 using Dalamud.Memory;
 using Dalamud.Utility;
 
@@ -36,6 +37,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
 
     private readonly WndProcDelegate wndProcDelegate;
     private readonly nint platformNamePtr;
+
+    private readonly IConsoleVariable<bool> cvLogMouseEvents;
 
     private ViewportHandler viewportHandler;
 
@@ -87,6 +90,11 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
         this.cursors[(int)ImGuiMouseCursor.ResizeNwse] = LoadCursorW(default, IDC.IDC_SIZENWSE);
         this.cursors[(int)ImGuiMouseCursor.Hand] = LoadCursorW(default, IDC.IDC_HAND);
         this.cursors[(int)ImGuiMouseCursor.NotAllowed] = LoadCursorW(default, IDC.IDC_NO);
+
+        this.cvLogMouseEvents = Service<ConsoleManager>.Get().AddVariable(
+            "imgui.log_mouse_events",
+            "Log mouse events to console for debugging",
+            false);
     }
 
     /// <summary>
@@ -267,11 +275,23 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             case WM.WM_XBUTTONDOWN:
             case WM.WM_XBUTTONDBLCLK:
             {
+                if (this.cvLogMouseEvents.Value)
+                {
+                    Log.Verbose(
+                        "Handle MouseDown {Btn} WantCaptureMouse: {Want} mouseButtonsDown: {Down}",
+                        GetButton(msg, wParam),
+                        io.WantCaptureMouse,
+                        this.mouseButtonsDown);
+                }
+
                 var button = GetButton(msg, wParam);
                 if (io.WantCaptureMouse)
                 {
                     if (this.mouseButtonsDown == 0 && GetCapture() == nint.Zero)
+                    {
                         SetCapture(hWndCurrent);
+                    }
+
                     this.mouseButtonsDown |= 1 << button;
                     io.AddMouseButtonEvent(button, true);
                     return default(LRESULT);
@@ -288,12 +308,28 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             case WM.WM_MBUTTONUP:
             case WM.WM_XBUTTONUP:
             {
+                if (this.cvLogMouseEvents.Value)
+                {
+                    Log.Verbose(
+                        "Handle MouseUp   {Btn} WantCaptureMouse: {Want} mouseButtonsDown: {Down}",
+                        GetButton(msg, wParam),
+                        io.WantCaptureMouse,
+                        this.mouseButtonsDown);
+                }
+
                 var button = GetButton(msg, wParam);
-                if (io.WantCaptureMouse)
+
+                // Need to check if we captured the button event away from the game here, otherwise the game might get
+                // a down event but no up event, causing the cursor to get stuck.
+                // Can happen if WantCaptureMouse becomes true in between down and up
+                if (io.WantCaptureMouse && (this.mouseButtonsDown & (1 << button)) != 0)
                 {
                     this.mouseButtonsDown &= ~(1 << button);
                     if (this.mouseButtonsDown == 0 && GetCapture() == hWndCurrent)
+                    {
                         ReleaseCapture();
+                    }
+
                     io.AddMouseButtonEvent(button, false);
                     return default(LRESULT);
                 }
@@ -458,7 +494,12 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             // (This is the position you can get with ::GetCursorPos() or WM_MOUSEMOVE + ::ClientToScreen(). In theory adding viewport->Pos to a client position would also be the same.)
             var mousePos = mouseScreenPos;
             if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) == 0)
-                ClientToScreen(focusedWindow, &mousePos);
+            {
+                // Use game window, otherwise, positions are calculated based on the focused window which might not be the game.
+                // Leads to offsets.
+                ClientToScreen(this.hWnd, &mousePos);
+            }
+
             io.AddMousePosEvent(mousePos.x, mousePos.y);
         }
 
