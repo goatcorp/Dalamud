@@ -147,7 +147,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         var pmWantsChangelog = pm?.InstalledPlugins.Any() ?? true;
         return (string.IsNullOrEmpty(configuration.LastChangelogMajorMinor) ||
                 (!WarrantsChangelogForMajorMinor.StartsWith(configuration.LastChangelogMajorMinor) &&
-                 Util.AssemblyVersion.StartsWith(WarrantsChangelogForMajorMinor))) && pmWantsChangelog;
+                 Versioning.GetAssemblyVersion().StartsWith(WarrantsChangelogForMajorMinor))) && pmWantsChangelog;
     }
 
     /// <inheritdoc/>
@@ -357,7 +357,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                 {
                     case State.WindowFadeIn:
                     case State.ExplainerIntro:
-                        ImGui.TextWrapped($"Welcome to Dalamud v{Util.GetScmVersion()}!");
+                        ImGui.TextWrapped($"Welcome to Dalamud v{Versioning.GetScmVersion()}!");
                         ImGuiHelpers.ScaledDummy(5);
                         ImGui.TextWrapped(ChangeLog);
                         ImGuiHelpers.ScaledDummy(5);

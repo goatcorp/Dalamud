@@ -10,6 +10,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
@@ -17,7 +18,7 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer;
 
 /// <summary>Calculated values from <see cref="SeStringDrawParams"/> using ImGui styles.</summary>
 [StructLayout(LayoutKind.Sequential)]
-public unsafe ref struct SeStringDrawState
+public unsafe ref struct SeStringDrawState : IDisposable
 {
     private static readonly int ChannelCount = Enum.GetValues<SeStringDrawChannel>().Length;
 
@@ -65,17 +66,10 @@ public unsafe ref struct SeStringDrawState
             this.drawList = ssdp.TargetDrawList.Value;
             this.ScreenOffset = ssdp.ScreenOffset ?? Vector2.Zero;
 
-            // API14: Remove, always throw
-            if (ThreadSafety.IsMainThread)
-            {
-                this.ScreenOffset = ssdp.ScreenOffset ?? ImGui.GetCursorScreenPos();
-                this.FontSize = ssdp.FontSize ?? ImGui.GetFontSize();
-            }
-            else
-            {
-                throw new ArgumentException(
-                    $"{nameof(ssdp.FontSize)} must be set when specifying a target draw list, as it cannot be fetched from the ImGui state.");
-            }
+            this.ScreenOffset = ssdp.ScreenOffset ?? throw new ArgumentException(
+                                    $"{nameof(ssdp.ScreenOffset)} must be set when specifying a target draw list, as it cannot be fetched from the ImGui state. (GetCursorScreenPos?)");
+            this.FontSize = ssdp.FontSize ?? throw new ArgumentException(
+                                $"{nameof(ssdp.FontSize)} must be set when specifying a target draw list, as it cannot be fetched from the ImGui state.");
 
             // this.FontSize = ssdp.FontSize ?? throw new ArgumentException(
             //                     $"{nameof(ssdp.FontSize)} must be set when specifying a target draw list, as it cannot be fetched from the ImGui state.");
@@ -193,6 +187,9 @@ public unsafe ref struct SeStringDrawState
 
     /// <summary>Gets the text fragments.</summary>
     internal List<TextFragment> Fragments { get; }
+
+    /// <inheritdoc/>
+    public void Dispose() => this.splitter.ClearFreeMemory();
 
     /// <summary>Sets the current channel in the ImGui draw list splitter.</summary>
     /// <param name="channelIndex">Channel to switch to.</param>
