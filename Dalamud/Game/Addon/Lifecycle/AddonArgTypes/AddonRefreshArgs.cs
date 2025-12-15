@@ -4,6 +4,7 @@ using Dalamud.Game.NativeWrapper;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.Interop;
 
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
@@ -54,7 +55,7 @@ public class AddonRefreshArgs : AddonArgs
                 AtkValuePtr ptr;
                 unsafe
                 {
-                    ptr = new AtkValuePtr((nint)this.AtkValueSpan[i].Pointer);
+                    ptr = new AtkValuePtr((nint)this.AtkValueSpan.GetPointer(i));
                 }
 
                 yield return ptr;
