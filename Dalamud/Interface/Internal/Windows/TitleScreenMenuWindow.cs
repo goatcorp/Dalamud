@@ -503,7 +503,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         lssb.PushEdgeColorType(701).PushColorType(539)
             .Append(SeIconChar.BoxedLetterD.ToIconChar())
             .PopColorType().PopEdgeColorType();
-        lssb.Append($" Dalamud: {Util.GetScmVersion()}");
+        lssb.Append($" Dalamud: {Versioning.GetScmVersion()}");
 
         lssb.Append($" - {count} {(count != 1 ? "plugins" : "plugin")} loaded");
 

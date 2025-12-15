@@ -1790,7 +1790,7 @@ internal class PluginManager : IInternalDisposableService
                 var updates = this.AvailablePlugins
                                   .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
                                   .Where(remoteManifest => plugin.Manifest.InstalledFromUrl == remoteManifest.SourceRepo.PluginMasterUrl || !remoteManifest.SourceRepo.IsThirdParty)
-                                  .Where(remoteManifest => remoteManifest.MinimumDalamudVersion == null || Util.AssemblyVersionParsed >= remoteManifest.MinimumDalamudVersion)
+                                  .Where(remoteManifest => remoteManifest.MinimumDalamudVersion == null || Versioning.GetAssemblyVersionParsed() >= remoteManifest.MinimumDalamudVersion)
                                   .Where(remoteManifest =>
                                   {
                                       var useTesting = this.UseTesting(remoteManifest);

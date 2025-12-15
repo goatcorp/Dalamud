@@ -144,7 +144,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         new TextEntry(TextEntryType.Macro, " <string(lstr1)>"),
     ];
 
-    private SeStringParameter[]? localParameters = [Util.GetScmVersion()];
+    private SeStringParameter[]? localParameters = [Versioning.GetScmVersion()];
     private ReadOnlySeString input;
     private ClientLanguage? language;
     private Task? validImportSheetNamesTask;

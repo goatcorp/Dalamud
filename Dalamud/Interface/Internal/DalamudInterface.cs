@@ -182,7 +182,7 @@ internal class DalamudInterface : IInternalDisposableService
                     () => Service<DalamudInterface>.GetNullable()?.ToggleDevMenu(),
                     VirtualKey.SHIFT);
 
-                if (Util.GetActiveTrack() != "release")
+                if (Versioning.GetActiveTrack() != "release")
                 {
                     titleScreenMenu.AddEntryCore(
                         Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
@@ -865,7 +865,7 @@ internal class DalamudInterface : IInternalDisposableService
                     }
 
                     ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false, false);
-                    ImGui.MenuItem($"D: {Util.GetScmVersion()} CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false, false);
+                    ImGui.MenuItem($"D: {Versioning.GetScmVersion()} CS: {Versioning.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false, false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false, false);
 
                     ImGui.EndMenu();
@@ -1076,8 +1076,8 @@ internal class DalamudInterface : IInternalDisposableService
                 {
                     ImGui.PushFont(InterfaceManager.MonoFont);
 
-                    ImGui.BeginMenu($"{Util.GetActiveTrack() ?? "???"} on {Util.GetGitBranch() ?? "???"}", false);
-                    ImGui.BeginMenu($"{Util.GetScmVersion()}", false);
+                    ImGui.BeginMenu($"{Versioning.GetActiveTrack() ?? "???"} on {Versioning.GetGitBranch() ?? "???"}", false);
+                    ImGui.BeginMenu($"{Versioning.GetScmVersion()}", false);
                     ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
                     ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
