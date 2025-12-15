@@ -210,7 +210,7 @@ public static unsafe partial class ImGui
         ImU8String format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => SliderScalar(
         label,
         ImGuiDataType.Float,
-        MemoryMarshal.Cast<Vector2, float>(new(ref v)),
+        MemoryMarshal.Cast<Vector2, float>(new Span<Vector2>(ref v)),
         vMin,
         vMax,
         format.MoveOrDefault("%.3f"u8),
@@ -222,7 +222,7 @@ public static unsafe partial class ImGui
         SliderScalar(
             label,
             ImGuiDataType.Float,
-            MemoryMarshal.Cast<Vector3, float>(new(ref v)),
+            MemoryMarshal.Cast<Vector3, float>(new Span<Vector3>(ref v)),
             vMin,
             vMax,
             format.MoveOrDefault("%.3f"u8),
@@ -236,7 +236,7 @@ public static unsafe partial class ImGui
         SliderScalar(
             label,
             ImGuiDataType.Float,
-            MemoryMarshal.Cast<Vector4, float>(new(ref v)),
+            MemoryMarshal.Cast<Vector4, float>(new Span<Vector4>(ref v)),
             vMin,
             vMax,
             format.MoveOrDefault("%.3f"u8),

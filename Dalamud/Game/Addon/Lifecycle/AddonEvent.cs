@@ -16,7 +16,7 @@ public enum AddonEvent
     /// </summary>
     /// <seealso cref="AddonSetupArgs"/>
     PreSetup,
-    
+
     /// <summary>
     /// An event that is fired after an addon has finished its initial setup. This event is particularly useful for
     /// developers seeking to add custom elements to now-initialized and populated node lists, as well as reading data
@@ -29,7 +29,6 @@ public enum AddonEvent
     /// An event that is fired before an addon begins its update cycle via <see cref="AtkUnitBase.Update"/>. This event
     /// is fired every frame that an addon is loaded, regardless of visibility.
     /// </summary>
-    /// <seealso cref="AddonUpdateArgs"/>
     PreUpdate,
 
     /// <summary>
@@ -42,7 +41,6 @@ public enum AddonEvent
     /// An event that is fired before an addon begins drawing to screen via <see cref="AtkUnitBase.Draw"/>. Unlike
     /// <see cref="PreUpdate"/>, this event is only fired if an addon is visible or otherwise drawing to screen.
     /// </summary>
-    /// <seealso cref="AddonDrawArgs"/>
     PreDraw,
 
     /// <summary>
@@ -62,9 +60,8 @@ public enum AddonEvent
     /// <br />
     /// As this is part of the destruction process for an addon, this event does not have an associated Post event.
     /// </remarks>
-    /// <seealso cref="AddonFinalizeArgs"/>
     PreFinalize,
-    
+
     /// <summary>
     /// An event that is fired before a call to <see cref="AtkUnitBase.OnRequestedUpdate"/> is made in response to a
     /// change in the subscribed <see cref="AddonRequestedUpdateArgs.NumberArrayData"/> or
@@ -81,13 +78,13 @@ public enum AddonEvent
     /// to the Free Company's overview.
     /// </example>
     PreRequestedUpdate,
-    
+
     /// <summary>
     /// An event that is fired after an addon has finished processing an <c>ArrayData</c> update.
     /// See <see cref="PreRequestedUpdate"/> for more information.
     /// </summary>
     PostRequestedUpdate,
-    
+
     /// <summary>
     /// An event that is fired before an addon calls its <see cref="AtkUnitManager.RefreshAddon"/> method. Refreshes are
     /// generally triggered in response to certain user interactions such as changing tabs, and are primarily used to
@@ -96,13 +93,13 @@ public enum AddonEvent
     /// <seealso cref="AddonRefreshArgs"/>
     /// <seealso cref="PostRefresh"/>
     PreRefresh,
-    
+
     /// <summary>
     /// An event that is fired after an addon has finished its refresh.
     /// See <see cref="PreRefresh"/> for more information.
     /// </summary>
     PostRefresh,
-    
+
     /// <summary>
     /// An event that is fired before an addon begins processing a user-driven event via
     /// <see cref="AtkEventListener.ReceiveEvent"/>, such as mousing over an element or clicking a button. This event
@@ -112,10 +109,98 @@ public enum AddonEvent
     /// <seealso cref="AddonReceiveEventArgs"/>
     /// <seealso cref="PostReceiveEvent"/>
     PreReceiveEvent,
-    
+
     /// <summary>
     /// An event that is fired after an addon finishes calling its <see cref="AtkEventListener.ReceiveEvent"/> method.
     /// See <see cref="PreReceiveEvent"/> for more information.
     /// </summary>
     PostReceiveEvent,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its open method.
+    /// </summary>
+    PreOpen,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its open method.
+    /// </summary>
+    PostOpen,
+
+    /// <summary>
+    /// An even that is fired before an addon processes its Close method.
+    /// </summary>
+    PreClose,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its Close method.
+    /// </summary>
+    PostClose,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its Show method.
+    /// </summary>
+    PreShow,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its Show method.
+    /// </summary>
+    PostShow,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its Hide method.
+    /// </summary>
+    PreHide,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its Hide method.
+    /// </summary>
+    PostHide,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its OnMove method.
+    /// OnMove is triggered only when a move is completed.
+    /// </summary>
+    PreMove,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its OnMove method.
+    /// OnMove is triggered only when a move is completed.
+    /// </summary>
+    PostMove,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its MouseOver method.
+    /// </summary>
+    PreMouseOver,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its MouseOver method.
+    /// </summary>
+    PostMouseOver,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its MouseOut method.
+    /// </summary>
+    PreMouseOut,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its MouseOut method.
+    /// </summary>
+    PostMouseOut,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its Focus method.
+    /// </summary>
+    /// <remarks>
+    /// Be aware this is only called for certain popup windows, it is not triggered when clicking on windows.
+    /// </remarks>
+    PreFocus,
+
+    /// <summary>
+    /// An event that is fired after an addon has processed its Focus method.
+    /// </summary>
+    /// <remarks>
+    /// Be aware this is only called for certain popup windows, it is not triggered when clicking on windows.
+    /// </remarks>
+    PostFocus,
 }

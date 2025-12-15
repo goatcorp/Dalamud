@@ -25,17 +25,12 @@ internal class AddonLifecycleEventListener
     /// string.Empty if it wants to be called for any addon.
     /// </summary>
     public string AddonName { get; init; }
-    
-    /// <summary>
-    /// Gets or sets a value indicating whether this event has been unregistered.
-    /// </summary>
-    public bool Removed { get; set; }
-    
+
     /// <summary>
     /// Gets the event type this listener is looking for.
     /// </summary>
     public AddonEvent EventType { get; init; }
-    
+
     /// <summary>
     /// Gets the delegate this listener invokes.
     /// </summary>

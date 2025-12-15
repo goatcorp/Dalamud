@@ -1,17 +1,22 @@
+using System.Collections.Generic;
+
+using Dalamud.Game.NativeWrapper;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.Interop;
 
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
 /// Addon argument data for Setup events.
 /// </summary>
-public class AddonSetupArgs : AddonArgs, ICloneable
+public class AddonSetupArgs : AddonArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonSetupArgs"/> class.
     /// </summary>
-    [Obsolete("Not intended for public construction.", false)]
-    public AddonSetupArgs()
+    internal AddonSetupArgs()
     {
     }
 
@@ -31,19 +36,30 @@ public class AddonSetupArgs : AddonArgs, ICloneable
     /// <summary>
     /// Gets the AtkValues in the form of a span.
     /// </summary>
+    [Obsolete("Pending removal, Use AtkValueEnumerable instead.")]
+    [Api15ToDo("Make this internal, remove obsolete")]
     public unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
 
-    /// <inheritdoc cref="ICloneable.Clone"/>
-    public AddonSetupArgs Clone() => (AddonSetupArgs)this.MemberwiseClone();
-
-    /// <inheritdoc cref="Clone"/>
-    object ICloneable.Clone() => this.Clone();
-
-    /// <inheritdoc cref="AddonArgs.Clear"/>
-    internal override void Clear()
+    /// <summary>
+    /// Gets an enumerable collection of <see cref="AtkValuePtr"/> of the event's AtkValues.
+    /// </summary>
+    /// <returns>
+    /// An <see cref="IEnumerable{T}"/> of <see cref="AtkValuePtr"/> corresponding to the event's AtkValues.
+    /// </returns>
+    public IEnumerable<AtkValuePtr> AtkValueEnumerable
     {
-        base.Clear();
-        this.AtkValueCount = default;
-        this.AtkValues = default;
+        get
+        {
+            for (var i = 0; i < this.AtkValueCount; i++)
+            {
+                AtkValuePtr ptr;
+                unsafe
+                {
+                    ptr = new AtkValuePtr((nint)this.AtkValueSpan.GetPointer(i));
+                }
+
+                yield return ptr;
+            }
+        }
     }
 }
