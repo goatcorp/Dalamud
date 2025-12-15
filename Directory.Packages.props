@@ -6,40 +6,35 @@
 
   <ItemGroup>
     <!-- Analyzers -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
-    <PackageVersion Include="JetBrains.Annotations" Version="2025.2.2" />
+    <PackageVersion Include="JetBrains.Annotations" Version="2025.2.4" />
 
     <!-- Misc Libraries -->
-    <PackageVersion Include="BitFaster.Caching" Version="2.4.1" />
+    <PackageVersion Include="BitFaster.Caching" Version="2.5.4" />
     <PackageVersion Include="CheapLoc" Version="1.1.8" />
     <PackageVersion Include="MinSharp" Version="1.0.4" />
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Lumina" Version="6.5.1" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.0" />
-    <PackageVersion Include="System.Collections.Immutable" Version="10.0.0" />
-    <PackageVersion Include="System.Drawing.Common" Version="10.0.0" />
-    <PackageVersion Include="System.Reactive" Version="5.0.0" />
+    <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="10.0.0" />
-    <PackageVersion Include="System.Resources.Extensions" Version="10.0.0" />
     <PackageVersion Include="DotNet.ReproducibleBuilds" Version="1.2.39" />
-    <PackageVersion Include="sqlite-net-pcl" Version="1.8.116" />
+    <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
 
     <!-- DirectX / Win32 -->
-    <PackageVersion Include="TerraFX.Interop.Windows" Version="10.0.22621.2" />
-    <PackageVersion Include="SharpDX.Direct3D11" Version="4.2.0" />
-    <PackageVersion Include="SharpDX.Mathematics" Version="4.2.0" />
-    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.183" />
+    <PackageVersion Include="TerraFX.Interop.Windows" Version="10.0.26100.5" />
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.259" />
 
     <!-- Logging -->
-    <PackageVersion Include="Serilog" Version="4.0.2" />
-    <PackageVersion Include="Serilog.Sinks.Async" Version="2.0.0" />
-    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
-    <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageVersion Include="Serilog" Version="4.3.0" />
+    <PackageVersion Include="Serilog.Sinks.Async" Version="2.1.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
 
     <!-- Injector Utilities -->
-    <PackageVersion Include="Iced" Version="1.17.0" />
-    <PackageVersion Include="PeNet" Version="2.6.4" />
+    <PackageVersion Include="Iced" Version="1.21.0" />
+    <PackageVersion Include="PeNet" Version="5.1.0" />
 
     <!-- HexaGen -->
     <PackageVersion Include="HexaGen.Runtime" Version="1.1.20" />
@@ -54,15 +49,15 @@
     <PackageVersion Include="StreamJsonRpc" Version="2.22.23" />
 
     <!-- Unit Testing -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
-    <PackageVersion Include="xunit" Version="2.4.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
-    <PackageVersion Include="xunit.analyzers" Version="0.10.0" />
-    <PackageVersion Include="xunit.assert" Version="2.4.1" />
-    <PackageVersion Include="xunit.core" Version="2.4.1" />
-    <PackageVersion Include="xunit.extensibility.core" Version="2.4.1" />
-    <PackageVersion Include="xunit.extensibility.execution" Version="2.4.1" />
-    <PackageVersion Include="xunit.runner.console" Version="2.4.1" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.3" />
+    <PackageVersion Include="xunit.analyzers" Version="1.26.0" />
+    <PackageVersion Include="xunit.assert" Version="2.9.3" />
+    <PackageVersion Include="xunit.core" Version="2.9.3" />
+    <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />
+    <PackageVersion Include="xunit.extensibility.execution" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.console" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>
 </Project>

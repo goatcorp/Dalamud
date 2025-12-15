@@ -30,8 +30,8 @@ internal static class ClipboardFormats
     private static unsafe uint ClipboardFormatFromName(ReadOnlySpan<char> name)
     {
         uint cf;
-        fixed (void* p = name)
-            cf = RegisterClipboardFormatW((ushort*)p);
+        fixed (char* p = name)
+            cf = RegisterClipboardFormatW(p);
         if (cf != 0)
             return cf;
         throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ??

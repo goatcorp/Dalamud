@@ -63,11 +63,11 @@ internal sealed unsafe partial class ReShadeAddonInterface
 
         return;
 
-        bool GetProcAddressInto(ProcessModule m, ReadOnlySpan<char> name, void* res)
+        static bool GetProcAddressInto(ProcessModule m, ReadOnlySpan<char> name, void* res)
         {
             Span<byte> name8 = stackalloc byte[Encoding.UTF8.GetByteCount(name) + 1];
             name8[Encoding.UTF8.GetBytes(name, name8)] = 0;
-            *(nint*)res = GetProcAddress((HMODULE)m.BaseAddress, (sbyte*)Unsafe.AsPointer(ref name8[0]));
+            *(nint*)res = (nint)GetProcAddress((HMODULE)m.BaseAddress, (sbyte*)Unsafe.AsPointer(ref name8[0]));
             return *(nint*)res != 0;
         }
     }
@@ -174,7 +174,7 @@ internal sealed unsafe partial class ReShadeAddonInterface
                 CERT.CERT_NAME_SIMPLE_DISPLAY_TYPE,
                 CERT.CERT_NAME_ISSUER_FLAG,
                 null,
-                (ushort*)Unsafe.AsPointer(ref issuerName[0]),
+                (char*)Unsafe.AsPointer(ref issuerName[0]),
                 pcb);
             if (pcb == 0)
                 throw new Win32Exception("CertGetNameStringW(2)");

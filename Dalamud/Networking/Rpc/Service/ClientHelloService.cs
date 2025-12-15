@@ -38,7 +38,7 @@ internal sealed class ClientHelloService : IInternalDisposableService
         return new ClientHelloResponse
         {
             ApiVersion = "1.0",
-            DalamudVersion = Util.GetScmVersion(),
+            DalamudVersion = Versioning.GetScmVersion(),
             GameVersion = dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown",
             ProcessId = Environment.ProcessId,
             ProcessStartTime = new DateTimeOffset(Process.GetCurrentProcess().StartTime).ToUnixTimeSeconds(),

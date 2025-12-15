@@ -114,14 +114,6 @@ public class SeString
     public static implicit operator SeString(string str) => new(new TextPayload(str));
 
     /// <summary>
-    /// Implicitly convert a string into a SeString containing a <see cref="TextPayload"/>.
-    /// </summary>
-    /// <param name="str">string to convert.</param>
-    /// <returns>Equivalent SeString.</returns>
-    [Obsolete("Switch to using ReadOnlySeString instead of Lumina's SeString.", true)]
-    public static explicit operator SeString(Lumina.Text.SeString str) => str.ToDalamudString();
-
-    /// <summary>
     /// Parse a binary game message into an SeString.
     /// </summary>
     /// <param name="ptr">Pointer to the string's data in memory.</param>

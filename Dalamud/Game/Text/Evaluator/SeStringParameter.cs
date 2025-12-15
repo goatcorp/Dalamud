@@ -3,7 +3,6 @@ using System.Globalization;
 using Lumina.Text.ReadOnly;
 
 using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
-using LSeString = Lumina.Text.SeString;
 
 namespace Dalamud.Game.Text.Evaluator;
 
@@ -70,9 +69,6 @@ public readonly struct SeStringParameter
     public static implicit operator SeStringParameter(ReadOnlySeString value) => new(value);
 
     public static implicit operator SeStringParameter(ReadOnlySeStringSpan value) => new(new ReadOnlySeString(value));
-
-    [Obsolete("Switch to using ReadOnlySeString instead of Lumina's SeString.", true)]
-    public static implicit operator SeStringParameter(LSeString value) => new(new ReadOnlySeString(value.RawData));
 
     public static implicit operator SeStringParameter(DSeString value) => new(new ReadOnlySeString(value.Encode()));
 

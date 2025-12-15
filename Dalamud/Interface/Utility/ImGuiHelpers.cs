@@ -575,6 +575,15 @@ public static partial class ImGuiHelpers
     public static unsafe ImFontPtr OrElse(this ImFontPtr self, ImFontPtr other) =>
         self.IsNull ? other : self;
 
+    /// <summary>Creates a draw data that will draw the given SeString onto it.</summary>
+    /// <param name="sss">SeString to render.</param>
+    /// <param name="style">Initial rendering style.</param>
+    /// <returns>A new self-contained draw data.</returns>
+    internal static BufferBackedImDrawData CreateDrawData(
+        ReadOnlySpan<byte> sss,
+        scoped in SeStringDrawParams style = default) =>
+        Service<SeStringRenderer>.Get().CreateDrawData(sss, style);
+
     /// <summary>
     /// Mark 4K page as used, after adding a codepoint to a font.
     /// </summary>

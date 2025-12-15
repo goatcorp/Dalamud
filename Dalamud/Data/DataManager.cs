@@ -82,8 +82,13 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
                         var tsInfo =
                             JsonConvert.DeserializeObject<LauncherTroubleshootingInfo>(
                                 dalamud.StartInfo.TroubleshootingPackData);
-                        this.HasModifiedGameDataFiles =
-                            tsInfo?.IndexIntegrity is LauncherTroubleshootingInfo.IndexIntegrityResult.Failed or LauncherTroubleshootingInfo.IndexIntegrityResult.Exception;
+
+                        // Don't fail for IndexIntegrityResult.Exception, since the check during launch has a very small timeout
+                        // this.HasModifiedGameDataFiles =
+                        //     tsInfo?.IndexIntegrity is LauncherTroubleshootingInfo.IndexIntegrityResult.Failed;
+
+                        // TODO: Put above back when check in XL is fixed
+                        this.HasModifiedGameDataFiles = false;
 
                         if (this.HasModifiedGameDataFiles)
                             Log.Verbose("Game data integrity check failed!\n{TsData}", dalamud.StartInfo.TroubleshootingPackData);

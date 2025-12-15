@@ -16,18 +16,15 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Internal.Windows.PluginInstaller;
-using Dalamud.Interface.Internal.Windows.SelfTest;
-using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
-using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
-using Dalamud.Plugin.Services;
+using Dalamud.Plugin.VersionInfo;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -204,11 +201,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
         return true;
     }
 
-    /// <summary>
-    /// Gets the plugin the given assembly is part of.
-    /// </summary>
-    /// <param name="assembly">The assembly to check.</param>
-    /// <returns>The plugin the given assembly is part of, or null if this is a shared assembly or if this information cannot be determined.</returns>
+    /// <inheritdoc/>
     public IExposedPlugin? GetPlugin(Assembly assembly)
         => AssemblyLoadContext.GetLoadContext(assembly) switch
         {
@@ -216,17 +209,19 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
             var context => this.GetPlugin(context),
         };
 
-    /// <summary>
-    /// Gets the plugin that loads in the given context.
-    /// </summary>
-    /// <param name="context">The context to check.</param>
-    /// <returns>The plugin that loads in the given context, or null if this isn't a plugin's context or if this information cannot be determined.</returns>
+    /// <inheritdoc/>
     public IExposedPlugin? GetPlugin(AssemblyLoadContext context)
         => Service<PluginManager>.Get().InstalledPlugins.FirstOrDefault(p => p.LoadsIn(context)) switch
         {
             null => null,
             var p => new ExposedPlugin(p),
         };
+
+    /// <inheritdoc/>
+    public IDalamudVersionInfo GetDalamudVersion()
+    {
+        return new DalamudVersionInfo(Versioning.GetAssemblyVersionParsed(), Versioning.GetActiveTrack());
+    }
 
     #region IPC
 

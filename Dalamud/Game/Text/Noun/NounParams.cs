@@ -60,8 +60,8 @@ internal record struct NounParams()
     /// </summary>
     public readonly int ColumnOffset => this.SheetName switch
     {
-        // See "E8 ?? ?? ?? ?? 44 8B 6B 08"
-        nameof(LSheets.BeastTribe) => 10,
+        // See "E8 ?? ?? ?? ?? 44 8B 66 ?? 8B E8"
+        nameof(LSheets.BeastTribe) => 11,
         nameof(LSheets.DeepDungeonItem) => 1,
         nameof(LSheets.DeepDungeonEquipment) => 1,
         nameof(LSheets.DeepDungeonMagicStone) => 1,

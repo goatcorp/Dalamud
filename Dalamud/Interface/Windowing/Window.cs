@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using CheapLoc;
@@ -19,9 +16,12 @@ using Dalamud.Interface.Utility.Internal;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.Logging.Internal;
-using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
+
+using TerraFX.Interop.Windows;
+
+using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.Interface.Windowing;
 
@@ -31,10 +31,14 @@ namespace Dalamud.Interface.Windowing;
 public abstract class Window
 {
     private const float FadeInOutTime = 0.072f;
+    private const string AdditionsPopupName = "WindowSystemContextActions";
 
     private static readonly ModuleLog Log = new("WindowSystem");
 
     private static bool wasEscPressedLastFrame = false;
+
+    private readonly TitleBarButton additionsButton;
+    private readonly List<TitleBarButton> allButtons = [];
 
     private bool internalLastIsOpen = false;
     private bool internalIsOpen = false;
@@ -72,6 +76,20 @@ public abstract class Window
         this.WindowName = name;
         this.Flags = flags;
         this.ForceMainWindow = forceMainWindow;
+
+        this.additionsButton = new()
+        {
+            Icon = FontAwesomeIcon.Bars,
+            IconOffset = new Vector2(2.5f, 1),
+            Click = _ =>
+            {
+                this.internalIsClickthrough = false;
+                this.presetDirty = true;
+                ImGui.OpenPopup(AdditionsPopupName);
+            },
+            Priority = int.MinValue,
+            AvailableClickthrough = true,
+        };
     }
 
     /// <summary>
@@ -425,8 +443,17 @@ public abstract class Window
                 UIGlobals.PlaySoundEffect(this.OnOpenSfxId);
         }
 
-        this.PreDraw();
-        this.ApplyConditionals();
+        var isErrorStylePushed = false;
+        if (!this.hasError)
+        {
+            this.PreDraw();
+            this.ApplyConditionals();
+        }
+        else
+        {
+            Style.StyleModelV1.DalamudStandard.Push();
+            isErrorStylePushed = true;
+        }
 
         if (this.ForceMainWindow)
             ImGuiHelpers.ForceNextWindowMainViewport();
@@ -448,10 +475,22 @@ public abstract class Window
         var flags = this.Flags;
 
         if (this.internalIsPinned || this.internalIsClickthrough)
+        {
             flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
+        }
 
         if (this.internalIsClickthrough)
+        {
             flags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs;
+        }
+
+        // If we have an error, reset all flags to default, and unlock window size.
+        if (this.hasError)
+        {
+            flags = ImGuiWindowFlags.None;
+            ImGui.SetNextWindowCollapsed(false, ImGuiCond.Once);
+            ImGui.SetNextWindowSizeConstraints(Vector2.Zero, Vector2.PositiveInfinity);
+        }
 
         if (this.CanShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, flags) : ImGui.Begin(this.WindowName, flags))
         {
@@ -461,14 +500,12 @@ public abstract class Window
                 ImGuiP.GetCurrentWindow().InheritNoInputs = this.internalIsClickthrough;
             }
 
-            // Not supported yet on non-main viewports
-            if ((this.internalIsPinned || this.internalIsClickthrough || this.internalAlpha.HasValue) &&
-                ImGui.GetWindowViewport().ID != ImGui.GetMainViewport().ID)
+            if (ImGui.GetWindowViewport().ID != ImGui.GetMainViewport().ID)
             {
-                this.internalAlpha = null;
-                this.internalIsPinned = false;
-                this.internalIsClickthrough = false;
-                this.presetDirty = true;
+                if ((flags & ImGuiWindowFlags.NoInputs) == ImGuiWindowFlags.NoInputs)
+                    ImGui.GetWindowViewport().Flags |= ImGuiViewportFlags.NoInputs;
+                else
+                    ImGui.GetWindowViewport().Flags &= ~ImGuiViewportFlags.NoInputs;
             }
 
             if (this.hasError)
@@ -492,7 +529,6 @@ public abstract class Window
             }
         }
 
-        const string additionsPopupName = "WindowSystemContextActions";
         var flagsApplicableForTitleBarIcons = !flags.HasFlag(ImGuiWindowFlags.NoDecoration) &&
                                               !flags.HasFlag(ImGuiWindowFlags.NoTitleBar);
         var showAdditions = (this.AllowPinning || this.AllowClickthrough) &&
@@ -503,13 +539,8 @@ public abstract class Window
         {
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
 
-            if (ImGui.BeginPopup(additionsPopupName, ImGuiWindowFlags.NoMove))
+            if (ImGui.BeginPopup(AdditionsPopupName, ImGuiWindowFlags.NoMove))
             {
-                var isAvailable = ImGuiHelpers.CheckIsWindowOnMainViewport();
-
-                if (!isAvailable)
-                    ImGui.BeginDisabled();
-
                 if (this.internalIsClickthrough)
                     ImGui.BeginDisabled();
 
@@ -557,21 +588,11 @@ public abstract class Window
                     this.presetDirty = true;
                 }
 
-                if (isAvailable)
-                {
-                    ImGui.TextColored(ImGuiColors.DalamudGrey,
-                                      Loc.Localize("WindowSystemContextActionClickthroughDisclaimer",
-                                                   "Open this menu again by clicking the three dashes to disable clickthrough."));
-                }
-                else
-                {
-                    ImGui.TextColored(ImGuiColors.DalamudGrey,
-                                      Loc.Localize("WindowSystemContextActionViewportDisclaimer",
-                                                   "These features are only available if this window is inside the game window."));
-                }
-
-                if (!isAvailable)
-                    ImGui.EndDisabled();
+                ImGui.TextColored(
+                    ImGuiColors.DalamudGrey,
+                    Loc.Localize(
+                        "WindowSystemContextActionClickthroughDisclaimer",
+                        "Open this menu again by clicking the three dashes to disable clickthrough."));
 
                 if (ImGui.Button(Loc.Localize("WindowSystemContextActionPrintWindow", "Print window")))
                     printWindow = true;
@@ -582,34 +603,15 @@ public abstract class Window
             ImGui.PopStyleVar();
         }
 
-        unsafe
+        if (flagsApplicableForTitleBarIcons)
         {
-            var window = ImGuiP.GetCurrentWindow();
-
-            ImRect outRect;
-            ImGuiP.TitleBarRect(&outRect, window);
-
-            var additionsButton = new TitleBarButton
-            {
-                Icon = FontAwesomeIcon.Bars,
-                IconOffset = new Vector2(2.5f, 1),
-                Click = _ =>
-                {
-                    this.internalIsClickthrough = false;
-                    this.presetDirty = false;
-                    ImGui.OpenPopup(additionsPopupName);
-                },
-                Priority = int.MinValue,
-                AvailableClickthrough = true,
-            };
-
-            if (flagsApplicableForTitleBarIcons)
-            {
-                this.DrawTitleBarButtons(window, flags, outRect,
-                                         showAdditions
-                                             ? this.TitleBarButtons.Append(additionsButton)
-                                             : this.TitleBarButtons);
-            }
+            this.allButtons.Clear();
+            this.allButtons.EnsureCapacity(this.TitleBarButtons.Count + 1);
+            this.allButtons.AddRange(this.TitleBarButtons);
+            if (showAdditions)
+                this.allButtons.Add(this.additionsButton);
+            this.allButtons.Sort(static (a, b) => b.Priority - a.Priority);
+            this.DrawTitleBarButtons();
         }
 
         if (wasFocused)
@@ -670,7 +672,14 @@ public abstract class Window
                 Task.FromResult<IDalamudTextureWrap>(tex));
         }
 
-        this.PostDraw();
+        if (isErrorStylePushed)
+        {
+            Style.StyleModelV1.DalamudStandard.Pop();
+        }
+        else
+        {
+            this.PostDraw();
+        }
 
         this.PostHandlePreset(persistence);
 
@@ -766,8 +775,11 @@ public abstract class Window
         }
     }
 
-    private unsafe void DrawTitleBarButtons(ImGuiWindowPtr window, ImGuiWindowFlags flags, ImRect titleBarRect, IEnumerable<TitleBarButton> buttons)
+    private unsafe void DrawTitleBarButtons()
     {
+        var window = ImGuiP.GetCurrentWindow();
+        var flags = window.Flags;
+        var titleBarRect = window.TitleBarRect();
         ImGui.PushClipRect(ImGui.GetWindowPos(), ImGui.GetWindowPos() + ImGui.GetWindowSize(), false);
 
         var style = ImGui.GetStyle();
@@ -802,26 +814,22 @@ public abstract class Window
             var max = pos + new Vector2(fontSize, fontSize);
             ImRect bb = new(pos, max);
             var isClipped = !ImGuiP.ItemAdd(bb, id, null, 0);
-            bool hovered, held;
-            var pressed = false;
+            bool hovered, held, pressed;
 
             if (this.internalIsClickthrough)
             {
-                hovered = false;
-                held = false;
-
                 // ButtonBehavior does not function if the window is clickthrough, so we have to do it ourselves
-                if (ImGui.IsMouseHoveringRect(pos, max))
-                {
-                    hovered = true;
+                var pad = ImGui.GetStyle().TouchExtraPadding;
+                var rect = new ImRect(pos - pad, max + pad);
+                hovered = rect.Contains(ImGui.GetMousePos());
 
-                    // We can't use ImGui native functions here, because they don't work with clickthrough
-                    if ((Windows.Win32.PInvoke.GetKeyState((int)VirtualKey.LBUTTON) & 0x8000) != 0)
-                    {
-                        held = true;
-                        pressed = true;
-                    }
-                }
+                // Temporarily enable inputs
+                // This will be reset on next frame, and then enabled again if it is still being hovered
+                if (hovered && ImGui.GetWindowViewport().ID != ImGui.GetMainViewport().ID)
+                    ImGui.GetWindowViewport().Flags &= ~ImGuiViewportFlags.NoInputs;
+
+                // We can't use ImGui native functions here, because they don't work with clickthrough
+                pressed = held = hovered && (GetKeyState(VK.VK_LBUTTON) & 0x8000) != 0;
             }
             else
             {
@@ -850,10 +858,10 @@ public abstract class Window
             return pressed;
         }
 
-        foreach (var button in buttons.OrderBy(x => x.Priority))
+        foreach (var button in this.allButtons)
         {
             if (this.internalIsClickthrough && !button.AvailableClickthrough)
-                return;
+                continue;
 
             Vector2 position = new(titleBarRect.Max.X - padR - buttonSize, titleBarRect.Min.Y + style.FramePadding.Y);
             padR += buttonSize + style.ItemInnerSpacing.X;
@@ -897,7 +905,7 @@ public abstract class Window
     private void DrawErrorMessage()
     {
         // TODO: Once window systems are services, offer to reload the plugin
-        ImGui.TextColoredWrapped(ImGuiColors.DalamudRed,Loc.Localize("WindowSystemErrorOccurred", "An error occurred while rendering this window. Please contact the developer for details."));
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, Loc.Localize("WindowSystemErrorOccurred", "An error occurred while rendering this window. Please contact the developer for details."));
 
         ImGuiHelpers.ScaledDummy(5);
 
@@ -1004,7 +1012,7 @@ public abstract class Window
         /// <summary>
         /// Gets or sets an action that is called when the button is clicked.
         /// </summary>
-        public Action<ImGuiMouseButton> Click { get; set; }
+        public Action<ImGuiMouseButton>? Click { get; set; }
 
         /// <summary>
         /// Gets or sets the priority the button shall be shown in.

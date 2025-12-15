@@ -219,14 +219,14 @@ internal sealed partial class TextureManager
 
             return;
 
-            [UnmanagedCallersOnly]
+            [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
             static int QueryInterfaceStatic(IUnknown* pThis, Guid* riid, void** ppvObject) =>
                 ToManagedObject(pThis)?.QueryInterface(riid, ppvObject) ?? E.E_UNEXPECTED;
 
-            [UnmanagedCallersOnly]
+            [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
             static uint AddRefStatic(IUnknown* pThis) => (uint)(ToManagedObject(pThis)?.AddRef() ?? 0);
 
-            [UnmanagedCallersOnly]
+            [UnmanagedCallersOnly(CallConvs = [typeof(CallConvMemberFunction)])]
             static uint ReleaseStatic(IUnknown* pThis) => (uint)(ToManagedObject(pThis)?.Release() ?? 0);
         }
 
