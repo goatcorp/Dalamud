@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+
+using Dalamud.Game.NativeWrapper;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -32,7 +35,30 @@ public class AddonSetupArgs : AddonArgs
     /// <summary>
     /// Gets the AtkValues in the form of a span.
     /// </summary>
-    [Obsolete("Pending removal, unsafe to use when using custom ClientStructs")]
-    [Api15ToDo("Remove this")]
+    [Obsolete("Pending removal, Use AtkValueEnumerable instead.")]
+    [Api15ToDo("Make this internal, remove obsolete")]
     public unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
+
+    /// <summary>
+    /// Gets an enumerable collection of <see cref="AtkValuePtr"/> of the event's AtkValues.
+    /// </summary>
+    /// <returns>
+    /// An <see cref="IEnumerable{T}"/> of <see cref="AtkValuePtr"/> corresponding to the event's AtkValues.
+    /// </returns>
+    public IEnumerable<AtkValuePtr> AtkValueEnumerable
+    {
+        get
+        {
+            for (var i = 0; i < this.AtkValueCount; i++)
+            {
+                AtkValuePtr ptr;
+                unsafe
+                {
+                    ptr = new AtkValuePtr((nint)this.AtkValueSpan[i].Pointer);
+                }
+
+                yield return ptr;
+            }
+        }
+    }
 }
