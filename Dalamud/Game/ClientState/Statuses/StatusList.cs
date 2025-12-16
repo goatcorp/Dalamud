@@ -153,7 +153,7 @@ public sealed partial class StatusList : IReadOnlyCollection<IStatus>, ICollecti
 
     private struct Enumerator(StatusList statusList) : IEnumerator<IStatus>
     {
-        private int index = 0;
+        private int index = -1;
 
         public IStatus Current { get; private set; }
 
@@ -161,9 +161,7 @@ public sealed partial class StatusList : IReadOnlyCollection<IStatus>, ICollecti
 
         public bool MoveNext()
         {
-            if (this.index == statusList.Length) return false;
-
-            for (; this.index < statusList.Length; this.index++)
+            while (++this.index < statusList.Length)
             {
                 var status = statusList[this.index];
                 if (status != null && status.StatusId != 0)
@@ -173,12 +171,13 @@ public sealed partial class StatusList : IReadOnlyCollection<IStatus>, ICollecti
                 }
             }
 
+            this.Current = default;
             return false;
         }
 
         public void Reset()
         {
-            this.index = 0;
+            this.index = -1;
         }
 
         public void Dispose()

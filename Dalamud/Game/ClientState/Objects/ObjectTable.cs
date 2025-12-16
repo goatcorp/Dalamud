@@ -246,17 +246,15 @@ internal sealed partial class ObjectTable
     {
         private int index = -1;
 
-        public IGameObject Current { get; private set; } = null!;
+        public IGameObject Current { get; private set; }
 
         object IEnumerator.Current => this.Current;
 
         public bool MoveNext()
         {
-            if (this.index == objectTableLength)
-                return false;
-
             var cache = owner.cachedObjectTable.AsSpan();
-            for (this.index++; this.index < objectTableLength; this.index++)
+
+            while (++this.index < objectTableLength)
             {
                 if (cache[this.index].Update() is { } ao)
                 {
@@ -265,10 +263,14 @@ internal sealed partial class ObjectTable
                 }
             }
 
+            this.Current = default;
             return false;
         }
 
-        public void Reset() => this.index = -1;
+        public void Reset()
+        {
+            this.index = -1;
+        }
 
         public void Dispose()
         {

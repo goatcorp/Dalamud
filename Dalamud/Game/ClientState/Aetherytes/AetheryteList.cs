@@ -99,7 +99,7 @@ internal sealed partial class AetheryteList
 
     private struct Enumerator(AetheryteList aetheryteList) : IEnumerator<IAetheryteEntry>
     {
-        private int index = 0;
+        private int index = -1;
 
         public IAetheryteEntry Current { get; private set; }
 
@@ -107,15 +107,19 @@ internal sealed partial class AetheryteList
 
         public bool MoveNext()
         {
-            if (this.index == aetheryteList.Length) return false;
-            this.Current = aetheryteList[this.index];
-            this.index++;
-            return true;
+            if (++this.index < aetheryteList.Length)
+            {
+                this.Current = aetheryteList[this.index];
+                return true;
+            }
+
+            this.Current = default;
+            return false;
         }
 
         public void Reset()
         {
-            this.index = 0;
+            this.index = -1;
         }
 
         public void Dispose()

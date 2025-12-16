@@ -115,7 +115,7 @@ internal sealed partial class FateTable
 
     private struct Enumerator(FateTable fateTable) : IEnumerator<IFate>
     {
-        private int index = 0;
+        private int index = -1;
 
         public IFate Current { get; private set; }
 
@@ -123,15 +123,19 @@ internal sealed partial class FateTable
 
         public bool MoveNext()
         {
-            if (this.index == fateTable.Length) return false;
-            this.Current = fateTable[this.index];
-            this.index++;
-            return true;
+            if (++this.index < fateTable.Length)
+            {
+                this.Current = fateTable[this.index];
+                return true;
+            }
+
+            this.Current = default;
+            return false;
         }
 
         public void Reset()
         {
-            this.index = 0;
+            this.index = -1;
         }
 
         public void Dispose()
