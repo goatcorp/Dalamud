@@ -143,7 +143,7 @@ internal sealed partial class PartyList
 
     private struct Enumerator(PartyList partyList) : IEnumerator<IPartyMember>
     {
-        private int index = 0;
+        private int index = -1;
 
         public IPartyMember Current { get; private set; }
 
@@ -151,9 +151,7 @@ internal sealed partial class PartyList
 
         public bool MoveNext()
         {
-            if (this.index == partyList.Length) return false;
-
-            for (; this.index < partyList.Length; this.index++)
+            while (++this.index < partyList.Length)
             {
                 var partyMember = partyList[this.index];
                 if (partyMember != null)
@@ -163,12 +161,13 @@ internal sealed partial class PartyList
                 }
             }
 
+            this.Current = default;
             return false;
         }
 
         public void Reset()
         {
-            this.index = 0;
+            this.index = -1;
         }
 
         public void Dispose()

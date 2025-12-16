@@ -141,7 +141,7 @@ internal sealed partial class BuddyList
 
     private struct Enumerator(BuddyList buddyList) : IEnumerator<IBuddyMember>
     {
-        private int index = 0;
+        private int index = -1;
 
         public IBuddyMember Current { get; private set; }
 
@@ -149,15 +149,19 @@ internal sealed partial class BuddyList
 
         public bool MoveNext()
         {
-            if (this.index == buddyList.Length) return false;
-            this.Current = buddyList[this.index];
-            this.index++;
-            return true;
+            if (++this.index < buddyList.Length)
+            {
+                this.Current = buddyList[this.index];
+                return true;
+            }
+
+            this.Current = default;
+            return false;
         }
 
         public void Reset()
         {
-            this.index = 0;
+            this.index = -1;
         }
 
         public void Dispose()
