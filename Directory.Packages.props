@@ -33,7 +33,8 @@
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
 
     <!-- Injector Utilities -->
-    <PackageVersion Include="Iced" Version="1.21.0" />
+    <!-- Take care: must be pinned to version used in goatcorp.Reloaded.Hooks, otherwise we are trampling the injector's version when building Dalamud -->
+    <PackageVersion Include="Iced" Version="1.17.0" />
     <PackageVersion Include="PeNet" Version="5.1.0" />
 
     <!-- HexaGen -->
