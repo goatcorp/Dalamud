@@ -1,3 +1,5 @@
+using Dalamud.Plugin.Internal.Types;
+
 #pragma warning disable SA1402 // File may only contain a single type
 
 namespace Dalamud.Plugin.Ipc.Internal;
@@ -5,9 +7,9 @@ namespace Dalamud.Plugin.Ipc.Internal;
 /// <inheritdoc cref="CallGatePubSubBase"/>
 internal class CallGatePubSub<TRet> : CallGatePubSubBase, ICallGateProvider<TRet>, ICallGateSubscriber<TRet>
 {
-    /// <inheritdoc cref="CallGatePubSubBase(string)"/>
-    public CallGatePubSub(string name)
-        : base(name)
+    /// <inheritdoc cref="CallGatePubSubBase(string, LocalPlugin?)"/>
+    public CallGatePubSub(string name, LocalPlugin? owningPlugin = null)
+        : base(name, owningPlugin)
     {
     }
 
@@ -43,9 +45,9 @@ internal class CallGatePubSub<TRet> : CallGatePubSubBase, ICallGateProvider<TRet
 /// <inheritdoc cref="CallGatePubSubBase"/>
 internal class CallGatePubSub<T1, TRet> : CallGatePubSubBase, ICallGateProvider<T1, TRet>, ICallGateSubscriber<T1, TRet>
 {
-    /// <inheritdoc cref="CallGatePubSubBase(string)"/>
-    public CallGatePubSub(string name)
-        : base(name)
+    /// <inheritdoc cref="CallGatePubSubBase(string, LocalPlugin?)"/>
+    public CallGatePubSub(string name, LocalPlugin? owningPlugin = null)
+        : base(name, owningPlugin)
     {
     }
 
@@ -81,9 +83,9 @@ internal class CallGatePubSub<T1, TRet> : CallGatePubSubBase, ICallGateProvider<
 /// <inheritdoc cref="CallGatePubSubBase"/>
 internal class CallGatePubSub<T1, T2, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, TRet>, ICallGateSubscriber<T1, T2, TRet>
 {
-    /// <inheritdoc cref="CallGatePubSubBase(string)"/>
-    public CallGatePubSub(string name)
-        : base(name)
+    /// <inheritdoc cref="CallGatePubSubBase(string, LocalPlugin?)"/>
+    public CallGatePubSub(string name, LocalPlugin? owningPlugin = null)
+        : base(name, owningPlugin)
     {
     }
 
@@ -119,9 +121,9 @@ internal class CallGatePubSub<T1, T2, TRet> : CallGatePubSubBase, ICallGateProvi
 /// <inheritdoc cref="CallGatePubSubBase"/>
 internal class CallGatePubSub<T1, T2, T3, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, TRet>, ICallGateSubscriber<T1, T2, T3, TRet>
 {
-    /// <inheritdoc cref="CallGatePubSubBase(string)"/>
-    public CallGatePubSub(string name)
-        : base(name)
+    /// <inheritdoc cref="CallGatePubSubBase(string, LocalPlugin?)"/>
+    public CallGatePubSub(string name, LocalPlugin? owningPlugin = null)
+        : base(name, owningPlugin)
     {
     }
 
@@ -157,9 +159,9 @@ internal class CallGatePubSub<T1, T2, T3, TRet> : CallGatePubSubBase, ICallGateP
 /// <inheritdoc cref="CallGatePubSubBase"/>
 internal class CallGatePubSub<T1, T2, T3, T4, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, T4, TRet>, ICallGateSubscriber<T1, T2, T3, T4, TRet>
 {
-    /// <inheritdoc cref="CallGatePubSubBase(string)"/>
-    public CallGatePubSub(string name)
-        : base(name)
+    /// <inheritdoc cref="CallGatePubSubBase(string, LocalPlugin?)"/>
+    public CallGatePubSub(string name, LocalPlugin? owningPlugin = null)
+        : base(name, owningPlugin)
     {
     }
 
@@ -195,9 +197,9 @@ internal class CallGatePubSub<T1, T2, T3, T4, TRet> : CallGatePubSubBase, ICallG
 /// <inheritdoc cref="CallGatePubSubBase"/>
 internal class CallGatePubSub<T1, T2, T3, T4, T5, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, T4, T5, TRet>, ICallGateSubscriber<T1, T2, T3, T4, T5, TRet>
 {
-    /// <inheritdoc cref="CallGatePubSubBase(string)"/>
-    public CallGatePubSub(string name)
-        : base(name)
+    /// <inheritdoc cref="CallGatePubSubBase(string, LocalPlugin?)"/>
+    public CallGatePubSub(string name, LocalPlugin? owningPlugin = null)
+        : base(name, owningPlugin)
     {
     }
 
@@ -233,9 +235,9 @@ internal class CallGatePubSub<T1, T2, T3, T4, T5, TRet> : CallGatePubSubBase, IC
 /// <inheritdoc cref="CallGatePubSubBase"/>
 internal class CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, T4, T5, T6, TRet>, ICallGateSubscriber<T1, T2, T3, T4, T5, T6, TRet>
 {
-    /// <inheritdoc cref="CallGatePubSubBase(string)"/>
-    public CallGatePubSub(string name)
-        : base(name)
+    /// <inheritdoc cref="CallGatePubSubBase(string, LocalPlugin?)"/>
+    public CallGatePubSub(string name, LocalPlugin? owningPlugin = null)
+        : base(name, owningPlugin)
     {
     }
 
@@ -271,9 +273,9 @@ internal class CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet> : CallGatePubSubBase
 /// <inheritdoc cref="CallGatePubSubBase"/>
 internal class CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, TRet>, ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, TRet>
 {
-    /// <inheritdoc cref="CallGatePubSubBase(string)"/>
-    public CallGatePubSub(string name)
-        : base(name)
+    /// <inheritdoc cref="CallGatePubSubBase(string, LocalPlugin?)"/>
+    public CallGatePubSub(string name, LocalPlugin? owningPlugin = null)
+        : base(name, owningPlugin)
     {
     }
 
@@ -309,9 +311,9 @@ internal class CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet> : CallGatePubSub
 /// <inheritdoc cref="CallGatePubSubBase"/>
 internal class CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet> : CallGatePubSubBase, ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, T8, TRet>, ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet>
 {
-    /// <inheritdoc cref="CallGatePubSubBase(string)"/>
-    public CallGatePubSub(string name)
-        : base(name)
+    /// <inheritdoc cref="CallGatePubSubBase(string, LocalPlugin?)"/>
+    public CallGatePubSub(string name, LocalPlugin? owningPlugin = null)
+        : base(name, owningPlugin)
     {
     }
 

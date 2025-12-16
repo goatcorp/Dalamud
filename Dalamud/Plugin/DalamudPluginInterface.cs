@@ -243,75 +243,75 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     /// <inheritdoc/>
     public ICallGateProvider<TRet> GetIpcProvider<TRet>(string name)
-        => new CallGatePubSub<TRet>(name);
+        => new CallGatePubSub<TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, TRet> GetIpcProvider<T1, TRet>(string name)
-        => new CallGatePubSub<T1, TRet>(name);
+        => new CallGatePubSub<T1, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, TRet> GetIpcProvider<T1, T2, TRet>(string name)
-        => new CallGatePubSub<T1, T2, TRet>(name);
+        => new CallGatePubSub<T1, T2, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, TRet> GetIpcProvider<T1, T2, T3, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, TRet> GetIpcProvider<T1, T2, T3, T4, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, TRet> GetIpcProvider<T1, T2, T3, T4, T5, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, T6, TRet> GetIpcProvider<T1, T2, T3, T4, T5, T6, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, TRet> GetIpcProvider<T1, T2, T3, T4, T5, T6, T7, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, T8, TRet> GetIpcProvider<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<TRet> GetIpcSubscriber<TRet>(string name)
-        => new CallGatePubSub<TRet>(name);
+        => new CallGatePubSub<TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, TRet> GetIpcSubscriber<T1, TRet>(string name)
-        => new CallGatePubSub<T1, TRet>(name);
+        => new CallGatePubSub<T1, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, TRet> GetIpcSubscriber<T1, T2, TRet>(string name)
-        => new CallGatePubSub<T1, T2, TRet>(name);
+        => new CallGatePubSub<T1, T2, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, TRet> GetIpcSubscriber<T1, T2, T3, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, TRet> GetIpcSubscriber<T1, T2, T3, T4, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, T6, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, T6, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, T6, T7, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name, this.plugin);
 
     #endregion
 

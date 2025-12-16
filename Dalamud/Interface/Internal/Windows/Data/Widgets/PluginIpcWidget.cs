@@ -48,12 +48,20 @@ internal class PluginIpcWidget : IDataWindowWidget
 
             this.ipcPub.RegisterAction(msg =>
             {
-                Log.Information("Data action was called: {Msg}", msg);
+                Log.Information(
+                    "Data action was called: {Msg}\n" +
+                    "    Context: {Context}",
+                    msg,
+                    this.ipcPub.GetContext());
             });
 
             this.ipcPub.RegisterFunc(msg =>
             {
-                Log.Information("Data func was called: {Msg}", msg);
+                Log.Information(
+                    "Data func was called: {Msg}\n" +
+                    "    Context: {Context}",
+                    msg,
+                    this.ipcPub.GetContext());
                 return Guid.NewGuid().ToString();
             });
         }
@@ -61,14 +69,8 @@ internal class PluginIpcWidget : IDataWindowWidget
         if (this.ipcSub == null)
         {
             this.ipcSub = new CallGatePubSub<string, string>("dataDemo1");
-            this.ipcSub.Subscribe(_ =>
-            {
-                Log.Information("PONG1");
-            });
-            this.ipcSub.Subscribe(_ =>
-            {
-                Log.Information("PONG2");
-            });
+            this.ipcSub.Subscribe(_ => { Log.Information("PONG1"); });
+            this.ipcSub.Subscribe(_ => { Log.Information("PONG2"); });
             this.ipcSub.Subscribe(_ => throw new Exception("PONG3"));
         }
 
@@ -78,12 +80,21 @@ internal class PluginIpcWidget : IDataWindowWidget
 
             this.ipcPubGo.RegisterAction(go =>
             {
-                Log.Information("Data action was called: {Name}", go?.Name);
+                Log.Information(
+                    "Data action was called: {Name}" +
+                    "\n    Context: {Context}",
+                    go?.Name,
+                    this.ipcPubGo.GetContext());
             });
 
             this.ipcPubGo.RegisterFunc(go =>
             {
-                Log.Information("Data func was called: {Name}", go?.Name);
+                Log.Information(
+                    "Data func was called: {Name}\n" +
+                    "    Context: {Context}",
+                    go?.Name,
+                    this.ipcPubGo.GetContext());
+
                 return "test";
             });
         }
