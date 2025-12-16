@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -5,6 +6,7 @@ using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Bindings.ImAnim;
 
+[Experimental("Dalamud001")]
 public static unsafe partial class ImAnimNative
 {
     private const string LibName = "cimanim";

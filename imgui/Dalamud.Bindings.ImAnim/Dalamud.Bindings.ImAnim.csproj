@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <DisableRuntimeMarshalling>true</DisableRuntimeMarshalling>
+        <NoWarn>$(NoWarn);Dalamud001</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

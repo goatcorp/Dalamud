@@ -20,6 +20,8 @@ using Serilog;
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
+#pragma warning disable Dalamud001 // for ImAnim
+
 namespace Dalamud.Interface.ImGuiBackend;
 
 /// <summary>

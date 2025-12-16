@@ -43,6 +43,8 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Serilog.Events;
 
+#pragma warning disable Dalamud001 // for ImAnim
+
 namespace Dalamud.Interface.Internal;
 
 /// <summary>

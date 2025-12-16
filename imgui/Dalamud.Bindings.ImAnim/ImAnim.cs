@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -6,6 +7,7 @@ using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Bindings.ImAnim;
 
+[Experimental("Dalamud001")]
 public static unsafe class ImAnim
 {
     public delegate void ClipCallback(uint instId, void* userData); // iam_clip_callback
