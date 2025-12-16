@@ -18,7 +18,7 @@ internal sealed class Condition : IInternalDisposableService, ICondition
     /// <summary>
     /// Gets the current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
     /// </summary>
-    internal const int MaxConditionEntries = 104;
+    internal const int MaxConditionEntries = 112;
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
