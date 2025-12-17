@@ -31,7 +31,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     private static readonly ModuleLog Log = new("ContextMenu");
 
     private readonly Hook<AtkModuleVf22OpenAddonByAgentDelegate> atkModuleVf22OpenAddonByAgentHook;
-    private readonly Hook<AddonContextMenuOnMenuSelectedDelegate> addonContextMenuOnMenuSelectedHook;
+    private readonly Hook<AddonContextMenu.Delegates.OnMenuSelected> addonContextMenuOnMenuSelectedHook;
 
     private uint? addonContextSubNameId;
 
@@ -40,17 +40,13 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     {
         var raptureAtkModuleVtable = (nint*)RaptureAtkModule.StaticVirtualTablePointer;
         this.atkModuleVf22OpenAddonByAgentHook = Hook<AtkModuleVf22OpenAddonByAgentDelegate>.FromAddress(raptureAtkModuleVtable[22], this.AtkModuleVf22OpenAddonByAgentDetour);
-        this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenuOnMenuSelectedDelegate>.FromAddress((nint)AddonContextMenu.StaticVirtualTablePointer->OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
+        this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenu.Delegates.OnMenuSelected>.FromAddress((nint)AddonContextMenu.StaticVirtualTablePointer->OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
 
         this.atkModuleVf22OpenAddonByAgentHook.Enable();
         this.addonContextMenuOnMenuSelectedHook.Enable();
     }
 
     private delegate ushort AtkModuleVf22OpenAddonByAgentDelegate(AtkModule* module, byte* addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8);
-
-    private delegate bool AddonContextMenuOnMenuSelectedDelegate(AddonContextMenu* addon, int selectedIdx, byte a3);
-
-    private delegate ushort RaptureAtkModuleOpenAddonDelegate(RaptureAtkModule* a1, uint addonNameId, uint valueCount, AtkValue* values, AgentInterface* parentAgent, ulong unk, ushort parentAddonId, int unk2);
 
     /// <inheritdoc/>
     public event IContextMenu.OnMenuOpenedDelegate? OnMenuOpened;
@@ -185,7 +181,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         values[0].ChangeType(ValueType.UInt);
         values[0].UInt = 0;
         values[1].ChangeType(ValueType.String);
-        values[1].SetManagedString(name.Encode().NullTerminate());
+        values[1].SetManagedString(name.EncodeWithNullTerminator());
         values[2].ChangeType(ValueType.Int);
         values[2].Int = x;
         values[3].ChangeType(ValueType.Int);
@@ -265,7 +261,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 submenuMask |= 1u << i;
 
             nameData[i].ChangeType(ValueType.String);
-            nameData[i].SetManagedString(this.GetPrefixedName(item).Encode().NullTerminate());
+            nameData[i].SetManagedString(this.GetPrefixedName(item).EncodeWithNullTerminator());
         }
 
         for (var i = 0; i < prefixMenuSize; ++i)
@@ -295,8 +291,9 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         // 2: UInt = Return Mask (?)
         // 3: UInt = Submenu Mask
         // 4: UInt = OpenAtCursorPosition ? 2 : 1
-        // 5: UInt = 0
-        // 6: UInt = 0
+        // 5: UInt = ?
+        // 6: UInt = ?
+        // 7: UInt = ?
 
         foreach (var item in items)
         {
@@ -312,7 +309,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             }
         }
 
-        this.SetupGenericMenu(7, 0, 2, 3, items, ref valueCount, ref values);
+        this.SetupGenericMenu(8, 0, 2, 3, items, ref valueCount, ref values);
     }
 
     private void SetupContextSubMenu(IReadOnlyList<IMenuItem> items, ref int valueCount, ref AtkValue* values)
