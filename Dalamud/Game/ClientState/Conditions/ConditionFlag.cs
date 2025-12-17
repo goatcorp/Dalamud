@@ -520,4 +520,17 @@ public enum ConditionFlag
     PilotingMech = 102,
 
     // Unknown103 = 103,
+
+    /// <summary>
+    /// Unable to execute command while editing a strategy board.
+    /// </summary>
+    EditingStrategyBoard = 104,
+
+    // Unknown105 = 105,
+    // Unknown106 = 106,
+    // Unknown107 = 107,
+    // Unknown108 = 108,
+    // Unknown109 = 109,
+    // Unknown110 = 110,
+    // Unknown111 = 111,
 }
