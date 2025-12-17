@@ -209,7 +209,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     /// <inheritdoc/>
     public bool IsEmjVoiceNpcUnlocked(EmjVoiceNpc row)
     {
-        return this.IsUnlockLinkUnlocked(row.Unknown26);
+        return this.IsUnlockLinkUnlocked(row.UnlockLink);
     }
 
     /// <inheritdoc/>
@@ -217,7 +217,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     {
         return this.dataManager.GetExcelSheet<EmjVoiceNpc>().TryGetRow(row.RowId, out var emjVoiceNpcRow)
             && this.IsEmjVoiceNpcUnlocked(emjVoiceNpcRow)
-            && QuestManager.IsQuestComplete(row.Unknown1);
+            && QuestManager.IsQuestComplete(row.UnlockQuest.RowId);
     }
 
     /// <inheritdoc/>
@@ -264,47 +264,47 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
         // To avoid the ExdModule.GetItemRowById call, which can return null if the excel page
         // is not loaded, we're going to imitate the IsItemActionUnlocked call first:
-        switch ((ItemActionType)row.ItemAction.Value.Type)
+        switch ((ItemActionAction)row.ItemAction.Value.Action.RowId)
         {
-            case ItemActionType.Companion:
+            case ItemActionAction.Companion:
                 return UIState.Instance()->IsCompanionUnlocked(row.ItemAction.Value.Data[0]);
 
-            case ItemActionType.BuddyEquip:
+            case ItemActionAction.BuddyEquip:
                 return UIState.Instance()->Buddy.CompanionInfo.IsBuddyEquipUnlocked(row.ItemAction.Value.Data[0]);
 
-            case ItemActionType.Mount:
+            case ItemActionAction.Mount:
                 return PlayerState.Instance()->IsMountUnlocked(row.ItemAction.Value.Data[0]);
 
-            case ItemActionType.SecretRecipeBook:
+            case ItemActionAction.SecretRecipeBook:
                 return PlayerState.Instance()->IsSecretRecipeBookUnlocked(row.ItemAction.Value.Data[0]);
 
-            case ItemActionType.UnlockLink:
-            case ItemActionType.OccultRecords:
+            case ItemActionAction.UnlockLink:
+            case ItemActionAction.OccultRecords:
                 return UIState.Instance()->IsUnlockLinkUnlocked(row.ItemAction.Value.Data[0]);
 
-            case ItemActionType.TripleTriadCard when row.AdditionalData.Is<TripleTriadCard>():
+            case ItemActionAction.TripleTriadCard when row.AdditionalData.Is<TripleTriadCard>():
                 return UIState.Instance()->IsTripleTriadCardUnlocked((ushort)row.AdditionalData.RowId);
 
-            case ItemActionType.FolkloreTome:
+            case ItemActionAction.FolkloreTome:
                 return PlayerState.Instance()->IsFolkloreBookUnlocked(row.ItemAction.Value.Data[0]);
 
-            case ItemActionType.OrchestrionRoll when row.AdditionalData.Is<Orchestrion>():
+            case ItemActionAction.OrchestrionRoll when row.AdditionalData.Is<Orchestrion>():
                 return PlayerState.Instance()->IsOrchestrionRollUnlocked(row.AdditionalData.RowId);
 
-            case ItemActionType.FramersKit:
+            case ItemActionAction.FramersKit:
                 return PlayerState.Instance()->IsFramersKitUnlocked(row.AdditionalData.RowId);
 
-            case ItemActionType.Ornament:
+            case ItemActionAction.Ornament:
                 return PlayerState.Instance()->IsOrnamentUnlocked(row.ItemAction.Value.Data[0]);
 
-            case ItemActionType.Glasses:
+            case ItemActionAction.Glasses:
                 return PlayerState.Instance()->IsGlassesUnlocked((ushort)row.AdditionalData.RowId);
 
-            case ItemActionType.SoulShards when PublicContentOccultCrescent.GetState() is var occultCrescentState && occultCrescentState != null:
+            case ItemActionAction.SoulShards when PublicContentOccultCrescent.GetState() is var occultCrescentState && occultCrescentState != null:
                 var supportJobId = (byte)row.ItemAction.Value.Data[0];
                 return supportJobId < occultCrescentState->SupportJobLevels.Length && occultCrescentState->SupportJobLevels[supportJobId] != 0;
 
-            case ItemActionType.CompanySealVouchers:
+            case ItemActionAction.CompanySealVouchers:
                 return false;
         }
 
@@ -327,7 +327,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     /// <inheritdoc/>
     public bool IsMKDLoreUnlocked(MKDLore row)
     {
-        return this.IsUnlockLinkUnlocked(row.Unknown2);
+        return this.IsUnlockLinkUnlocked(row.UnlockLink);
     }
 
     /// <inheritdoc/>
@@ -414,20 +414,20 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (row.ItemAction.RowId == 0)
             return false;
 
-        return (ItemActionType)row.ItemAction.Value.Type
-            is ItemActionType.Companion
-            or ItemActionType.BuddyEquip
-            or ItemActionType.Mount
-            or ItemActionType.SecretRecipeBook
-            or ItemActionType.UnlockLink
-            or ItemActionType.TripleTriadCard
-            or ItemActionType.FolkloreTome
-            or ItemActionType.OrchestrionRoll
-            or ItemActionType.FramersKit
-            or ItemActionType.Ornament
-            or ItemActionType.Glasses
-            or ItemActionType.OccultRecords
-            or ItemActionType.SoulShards;
+        return (ItemActionAction)row.ItemAction.Value.Action.RowId
+            is ItemActionAction.Companion
+            or ItemActionAction.BuddyEquip
+            or ItemActionAction.Mount
+            or ItemActionAction.SecretRecipeBook
+            or ItemActionAction.UnlockLink
+            or ItemActionAction.TripleTriadCard
+            or ItemActionAction.FolkloreTome
+            or ItemActionAction.OrchestrionRoll
+            or ItemActionAction.FramersKit
+            or ItemActionAction.Ornament
+            or ItemActionAction.Glasses
+            or ItemActionAction.OccultRecords
+            or ItemActionAction.SoulShards;
     }
 
     /// <inheritdoc/>

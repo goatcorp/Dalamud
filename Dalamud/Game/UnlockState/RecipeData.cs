@@ -158,67 +158,23 @@ internal unsafe class RecipeData : IInternalDisposableService
                 {
                     noteBookDivisionIndex++;
 
-                    // For future Lumina.Excel update, replace with:
-                    // if (!notebookDivisionRow.AllowedCraftTypes[craftType])
-                    //     continue;
-
-                    switch (craftTypeRow.RowId)
-                    {
-                        case 0 when !noteBookDivisionRow.CRPCraft: continue;
-                        case 1 when !noteBookDivisionRow.BSMCraft: continue;
-                        case 2 when !noteBookDivisionRow.ARMCraft: continue;
-                        case 3 when !noteBookDivisionRow.GSMCraft: continue;
-                        case 4 when !noteBookDivisionRow.LTWCraft: continue;
-                        case 5 when !noteBookDivisionRow.WVRCraft: continue;
-                        case 6 when !noteBookDivisionRow.ALCCraft: continue;
-                        case 7 when !noteBookDivisionRow.CULCraft: continue;
-                    }
+                    if (!noteBookDivisionRow.AllowedCraftTypes[craftType])
+                        continue;
 
                     if (noteBookDivisionRow.GatheringOpeningLevel != byte.MaxValue)
                         continue;
 
-                    // For future Lumina.Excel update, replace with:
-                    // if (notebookDivisionRow.RequiresSecretRecipeBookGroupUnlock)
-                    if (noteBookDivisionRow.Unknown1)
+                    if (noteBookDivisionRow.RequiresSecretRecipeBookGroupUnlock)
                     {
                         var secretRecipeBookUnlocked = false;
 
-                        // For future Lumina.Excel update, iterate over notebookDivisionRow.SecretRecipeBookGroups
-                        for (var i = 0; i < 2; i++)
+                        foreach (var secretRecipeBookGroup in noteBookDivisionRow.SecretRecipeBookGroups)
                         {
-                            // For future Lumina.Excel update, replace with:
-                            // if (secretRecipeBookGroup.RowId == 0 || !secretRecipeBookGroup.IsValid)
-                            //     continue;
-                            var secretRecipeBookGroupRowId = i switch
-                            {
-                                0 => noteBookDivisionRow.Unknown2,
-                                1 => noteBookDivisionRow.Unknown2,
-                                _ => default,
-                            };
-
-                            if (secretRecipeBookGroupRowId == 0)
+                            if (secretRecipeBookGroup.RowId == 0 || !secretRecipeBookGroup.IsValid)
                                 continue;
 
-                            if (!this.dataManager.GetExcelSheet<SecretRecipeBookGroup>().TryGetRow(secretRecipeBookGroupRowId, out var secretRecipeBookGroupRow))
-                                continue;
-
-                            // For future Lumina.Excel update, replace with:
-                            // var bitIndex = secretRecipeBookGroup.Value.UnlockBitIndex[craftType];
-
-                            var bitIndex = craftType switch
-                            {
-                                0 => secretRecipeBookGroupRow.Unknown0,
-                                1 => secretRecipeBookGroupRow.Unknown1,
-                                2 => secretRecipeBookGroupRow.Unknown2,
-                                3 => secretRecipeBookGroupRow.Unknown3,
-                                4 => secretRecipeBookGroupRow.Unknown4,
-                                5 => secretRecipeBookGroupRow.Unknown5,
-                                6 => secretRecipeBookGroupRow.Unknown6,
-                                7 => secretRecipeBookGroupRow.Unknown7,
-                                _ => default,
-                            };
-
-                            if (PlayerState.Instance()->UnlockedSecretRecipeBooksBitArray.Get(bitIndex))
+                            var bitIndex = secretRecipeBookGroup.Value.SecretRecipeBook[craftType].RowId;
+                            if (PlayerState.Instance()->UnlockedSecretRecipeBooksBitArray.Get((int)bitIndex))
                             {
                                 secretRecipeBookUnlocked = true;
                                 break;
