@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.Text;
+
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
@@ -125,10 +126,15 @@ public static class ItemUtil
 
         if (IsEventItem(itemId))
         {
+            // Only English, German, and French have a Name field.
+            // For other languages, the Name is an empty string, and the Singular field should be used instead.
+            language ??= dataManager.Language;
+            var useSingular = language is not (ClientLanguage.English or ClientLanguage.German or ClientLanguage.French);
+
             return dataManager
                 .GetExcelSheet<EventItem>(language)
                 .TryGetRow(itemId, out var eventItem)
-                    ? eventItem.Name
+                    ? (useSingular ? eventItem.Singular : eventItem.Name)
                     : default;
         }
 
