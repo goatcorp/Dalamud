@@ -109,13 +109,13 @@ public interface IClientState : IDalamudService
     /// <summary>
     /// Gets the local player character, if one is present.
     /// </summary>
-    [Obsolete($"Use {nameof(IPlayerState)} or {nameof(IObjectTable)}.{nameof(IObjectTable.LocalPlayer)} if necessary.")]
+    [Obsolete($"Use {nameof(IPlayerState)} or {nameof(IObjectTable)}.{nameof(IObjectTable.LocalPlayer)} if necessary.", true)]
     public IPlayerCharacter? LocalPlayer { get; }
 
     /// <summary>
     /// Gets the content ID of the local character.
     /// </summary>
-    [Obsolete($"Use {nameof(IPlayerState)}.{nameof(IPlayerState.ContentId)}")]
+    [Obsolete($"Use {nameof(IPlayerState)}.{nameof(IPlayerState.ContentId)}", true)]
     public ulong LocalContentId { get; }
 
     /// <summary>
