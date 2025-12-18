@@ -16,16 +16,6 @@ namespace Dalamud.Game.Addon.Lifecycle;
 /// </summary>
 internal unsafe class AddonVirtualTable : IDisposable
 {
-    /// <summary>
-    /// The original virtual table address for this addon.
-    /// </summary>
-    internal readonly AtkUnitBase.AtkUnitBaseVirtualTable* OriginalVirtualTable;
-
-    /// <summary>
-    /// The modified virtual address for this addon.
-    /// </summary>
-    internal readonly AtkUnitBase.AtkUnitBaseVirtualTable* ModifiedVirtualTable;
-
     // This need to be at minimum the largest virtual table size of all addons
     // Copying extra entries is not problematic, and is considered safe.
     private const int VirtualTableEntryCount = 200;
@@ -132,6 +122,16 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.ModifiedVirtualTable->OnMouseOut = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMouseOutFunction);
         this.ModifiedVirtualTable->Focus = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.focusFunction);
     }
+
+    /// <summary>
+    /// Gets the original virtual table address for this addon.
+    /// </summary>
+    internal AtkUnitBase.AtkUnitBaseVirtualTable* OriginalVirtualTable { get; private set; }
+
+    /// <summary>
+    /// Gets the modified virtual address for this addon.
+    /// </summary>
+    internal AtkUnitBase.AtkUnitBaseVirtualTable* ModifiedVirtualTable { get; private set; }
 
     /// <inheritdoc/>
     public void Dispose()
