@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
@@ -132,6 +133,19 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         }
     }
 
+    /// <summary>
+    /// Resolves a virtual table address to the original virtual table address.
+    /// </summary>
+    /// <param name="tableAddress">The modified address to resolve.</param>
+    /// <returns>The original address.</returns>
+    internal AtkUnitBase.AtkUnitBaseVirtualTable* GetOriginalVirtualTable(AtkUnitBase.AtkUnitBaseVirtualTable* tableAddress)
+    {
+        var matchedTable = AllocatedTables.FirstOrDefault(table => table.ModifiedVirtualTable == tableAddress);
+        if (matchedTable == null) return null;
+
+        return matchedTable.OriginalVirtualTable;
+    }
+
     private void OnAddonInitialize(AtkUnitBase* addon)
     {
         try
@@ -246,4 +260,8 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
             });
         }
     }
+
+    /// <inheritdoc/>
+    public unsafe nint GetOriginalVirtualTable(nint virtualTableAddress)
+        => (nint)this.addonLifecycleService.GetOriginalVirtualTable((AtkUnitBase.AtkUnitBaseVirtualTable*)virtualTableAddress);
 }
