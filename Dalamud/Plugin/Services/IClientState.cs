@@ -2,6 +2,7 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Services;
 
@@ -109,13 +110,15 @@ public interface IClientState : IDalamudService
     /// <summary>
     /// Gets the local player character, if one is present.
     /// </summary>
-    [Obsolete($"Use {nameof(IPlayerState)} or {nameof(IObjectTable)}.{nameof(IObjectTable.LocalPlayer)} if necessary.", true)]
+    [Api15ToDo("Remove")]
+    [Obsolete($"Use {nameof(IPlayerState)} or {nameof(IObjectTable)}.{nameof(IObjectTable.LocalPlayer)} if necessary.")]
     public IPlayerCharacter? LocalPlayer { get; }
 
     /// <summary>
     /// Gets the content ID of the local character.
     /// </summary>
-    [Obsolete($"Use {nameof(IPlayerState)}.{nameof(IPlayerState.ContentId)}", true)]
+    [Api15ToDo("Remove")]
+    [Obsolete($"Use {nameof(IPlayerState)}.{nameof(IPlayerState.ContentId)}")]
     public ulong LocalContentId { get; }
 
     /// <summary>

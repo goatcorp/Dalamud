@@ -55,7 +55,9 @@ public class AddonSetupArgs : AddonArgs
                 AtkValuePtr ptr;
                 unsafe
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     ptr = new AtkValuePtr((nint)this.AtkValueSpan.GetPointer(i));
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
 
                 yield return ptr;

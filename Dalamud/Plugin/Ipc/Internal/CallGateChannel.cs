@@ -149,16 +149,27 @@ internal class CallGateChannel
         return (TRet)result;
     }
 
+    /// <summary>
+    /// Set the context for the invocations through this channel.
+    /// </summary>
+    /// <param name="ipcContext">The context to set.</param>
     internal void SetInvocationContext(IpcContext ipcContext)
     {
         this.ipcExecutionContext.Value = ipcContext;
     }
 
+    /// <summary>
+    /// Get the context for invocations through this channel.
+    /// </summary>
+    /// <returns>The context, if one was set.</returns>
     internal IpcContext? GetInvocationContext()
     {
         return this.ipcExecutionContext.IsValueCreated ? this.ipcExecutionContext.Value : null;
     }
 
+    /// <summary>
+    /// Clear the context for this channel.
+    /// </summary>
     internal void ClearInvocationContext()
     {
         this.ipcExecutionContext.Value = null;
