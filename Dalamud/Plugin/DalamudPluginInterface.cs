@@ -220,7 +220,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <inheritdoc/>
     public IDalamudVersionInfo GetDalamudVersion()
     {
-        return new DalamudVersionInfo(Versioning.GetAssemblyVersionParsed(), Versioning.GetActiveTrack());
+        return new DalamudVersionInfo(Versioning.GetAssemblyVersionParsed(), Versioning.GetActiveTrack(), Versioning.GetGitHash(), Versioning.GetGitHashClientStructs(), Versioning.GetScmVersion());
     }
 
     #region IPC
