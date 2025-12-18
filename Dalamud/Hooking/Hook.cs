@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Hooking.Internal;
+using Dalamud.Hooking.Internal.Verification;
 
 namespace Dalamud.Hooking;
 
@@ -229,6 +230,8 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
+
+        HookVerifier.Verify<T>(procAddress);
 
         procAddress = HookManager.FollowJmp(procAddress);
         if (useMinHook)
