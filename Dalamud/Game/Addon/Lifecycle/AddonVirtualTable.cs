@@ -16,6 +16,16 @@ namespace Dalamud.Game.Addon.Lifecycle;
 /// </summary>
 internal unsafe class AddonVirtualTable : IDisposable
 {
+    /// <summary>
+    /// The original virtual table address for this addon.
+    /// </summary>
+    internal readonly AtkUnitBase.AtkUnitBaseVirtualTable* OriginalVirtualTable;
+
+    /// <summary>
+    /// The modified virtual address for this addon.
+    /// </summary>
+    internal readonly AtkUnitBase.AtkUnitBaseVirtualTable* ModifiedVirtualTable;
+
     // This need to be at minimum the largest virtual table size of all addons
     // Copying extra entries is not problematic, and is considered safe.
     private const int VirtualTableEntryCount = 200;
@@ -44,9 +54,6 @@ internal unsafe class AddonVirtualTable : IDisposable
     private readonly AddonArgs focusArgs = new();
 
     private readonly AtkUnitBase* atkUnitBase;
-
-    private readonly AtkUnitBase.AtkUnitBaseVirtualTable* originalVirtualTable;
-    private readonly AtkUnitBase.AtkUnitBaseVirtualTable* modifiedVirtualTable;
 
     // Pinned Function Delegates, as these functions get assigned to an unmanaged virtual table,
     // the CLR needs to know they are in use, or it will invalidate them causing random crashing.
@@ -78,16 +85,16 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.lifecycleService = lifecycleService;
 
         // Save original virtual table
-        this.originalVirtualTable = addon->VirtualTable;
+        this.OriginalVirtualTable = addon->VirtualTable;
 
         // Create copy of original table
         // Note this will copy any derived/overriden functions that this specific addon has.
         // Note: currently there are 73 virtual functions, but there's no harm in copying more for when they add new virtual functions to the game
-        this.modifiedVirtualTable = (AtkUnitBase.AtkUnitBaseVirtualTable*)IMemorySpace.GetUISpace()->Malloc(0x8 * VirtualTableEntryCount, 8);
-        NativeMemory.Copy(addon->VirtualTable, this.modifiedVirtualTable, 0x8 * VirtualTableEntryCount);
+        this.ModifiedVirtualTable = (AtkUnitBase.AtkUnitBaseVirtualTable*)IMemorySpace.GetUISpace()->Malloc(0x8 * VirtualTableEntryCount, 8);
+        NativeMemory.Copy(addon->VirtualTable, this.ModifiedVirtualTable, 0x8 * VirtualTableEntryCount);
 
         // Overwrite the addons existing virtual table with our own
-        addon->VirtualTable = this.modifiedVirtualTable;
+        addon->VirtualTable = this.ModifiedVirtualTable;
 
         // Pin each of our listener functions
         this.destructorFunction = this.OnAddonDestructor;
@@ -108,30 +115,30 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.focusFunction = this.OnAddonFocus;
 
         // Overwrite specific virtual table entries
-        this.modifiedVirtualTable->Dtor = (delegate* unmanaged<AtkUnitBase*, byte, AtkEventListener*>)Marshal.GetFunctionPointerForDelegate(this.destructorFunction);
-        this.modifiedVirtualTable->OnSetup = (delegate* unmanaged<AtkUnitBase*, uint, AtkValue*, void>)Marshal.GetFunctionPointerForDelegate(this.onSetupFunction);
-        this.modifiedVirtualTable->Finalizer = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.finalizerFunction);
-        this.modifiedVirtualTable->Draw = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.drawFunction);
-        this.modifiedVirtualTable->Update = (delegate* unmanaged<AtkUnitBase*, float, void>)Marshal.GetFunctionPointerForDelegate(this.updateFunction);
-        this.modifiedVirtualTable->OnRefresh = (delegate* unmanaged<AtkUnitBase*, uint, AtkValue*, bool>)Marshal.GetFunctionPointerForDelegate(this.onRefreshFunction);
-        this.modifiedVirtualTable->OnRequestedUpdate = (delegate* unmanaged<AtkUnitBase*, NumberArrayData**, StringArrayData**, void>)Marshal.GetFunctionPointerForDelegate(this.onRequestedUpdateFunction);
-        this.modifiedVirtualTable->ReceiveEvent = (delegate* unmanaged<AtkUnitBase*, AtkEventType, int, AtkEvent*, AtkEventData*, void>)Marshal.GetFunctionPointerForDelegate(this.onReceiveEventFunction);
-        this.modifiedVirtualTable->Open = (delegate* unmanaged<AtkUnitBase*, uint, bool>)Marshal.GetFunctionPointerForDelegate(this.openFunction);
-        this.modifiedVirtualTable->Close = (delegate* unmanaged<AtkUnitBase*, bool, bool>)Marshal.GetFunctionPointerForDelegate(this.closeFunction);
-        this.modifiedVirtualTable->Show = (delegate* unmanaged<AtkUnitBase*, bool, uint, void>)Marshal.GetFunctionPointerForDelegate(this.showFunction);
-        this.modifiedVirtualTable->Hide = (delegate* unmanaged<AtkUnitBase*, bool, bool, uint, void>)Marshal.GetFunctionPointerForDelegate(this.hideFunction);
-        this.modifiedVirtualTable->OnMove = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMoveFunction);
-        this.modifiedVirtualTable->OnMouseOver = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMouseOverFunction);
-        this.modifiedVirtualTable->OnMouseOut = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMouseOutFunction);
-        this.modifiedVirtualTable->Focus = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.focusFunction);
+        this.ModifiedVirtualTable->Dtor = (delegate* unmanaged<AtkUnitBase*, byte, AtkEventListener*>)Marshal.GetFunctionPointerForDelegate(this.destructorFunction);
+        this.ModifiedVirtualTable->OnSetup = (delegate* unmanaged<AtkUnitBase*, uint, AtkValue*, void>)Marshal.GetFunctionPointerForDelegate(this.onSetupFunction);
+        this.ModifiedVirtualTable->Finalizer = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.finalizerFunction);
+        this.ModifiedVirtualTable->Draw = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.drawFunction);
+        this.ModifiedVirtualTable->Update = (delegate* unmanaged<AtkUnitBase*, float, void>)Marshal.GetFunctionPointerForDelegate(this.updateFunction);
+        this.ModifiedVirtualTable->OnRefresh = (delegate* unmanaged<AtkUnitBase*, uint, AtkValue*, bool>)Marshal.GetFunctionPointerForDelegate(this.onRefreshFunction);
+        this.ModifiedVirtualTable->OnRequestedUpdate = (delegate* unmanaged<AtkUnitBase*, NumberArrayData**, StringArrayData**, void>)Marshal.GetFunctionPointerForDelegate(this.onRequestedUpdateFunction);
+        this.ModifiedVirtualTable->ReceiveEvent = (delegate* unmanaged<AtkUnitBase*, AtkEventType, int, AtkEvent*, AtkEventData*, void>)Marshal.GetFunctionPointerForDelegate(this.onReceiveEventFunction);
+        this.ModifiedVirtualTable->Open = (delegate* unmanaged<AtkUnitBase*, uint, bool>)Marshal.GetFunctionPointerForDelegate(this.openFunction);
+        this.ModifiedVirtualTable->Close = (delegate* unmanaged<AtkUnitBase*, bool, bool>)Marshal.GetFunctionPointerForDelegate(this.closeFunction);
+        this.ModifiedVirtualTable->Show = (delegate* unmanaged<AtkUnitBase*, bool, uint, void>)Marshal.GetFunctionPointerForDelegate(this.showFunction);
+        this.ModifiedVirtualTable->Hide = (delegate* unmanaged<AtkUnitBase*, bool, bool, uint, void>)Marshal.GetFunctionPointerForDelegate(this.hideFunction);
+        this.ModifiedVirtualTable->OnMove = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMoveFunction);
+        this.ModifiedVirtualTable->OnMouseOver = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMouseOverFunction);
+        this.ModifiedVirtualTable->OnMouseOut = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMouseOutFunction);
+        this.ModifiedVirtualTable->Focus = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.focusFunction);
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
         // Ensure restoration is done atomically.
-        Interlocked.Exchange(ref *(nint*)&this.atkUnitBase->VirtualTable, (nint)this.originalVirtualTable);
-        IMemorySpace.Free(this.modifiedVirtualTable, 0x8 * VirtualTableEntryCount);
+        Interlocked.Exchange(ref *(nint*)&this.atkUnitBase->VirtualTable, (nint)this.OriginalVirtualTable);
+        IMemorySpace.Free(this.ModifiedVirtualTable, 0x8 * VirtualTableEntryCount);
     }
 
     private AtkEventListener* OnAddonDestructor(AtkUnitBase* thisPtr, byte freeFlags)
@@ -144,7 +151,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                result = this.originalVirtualTable->Dtor(thisPtr, freeFlags);
+                result = this.OriginalVirtualTable->Dtor(thisPtr, freeFlags);
             }
             catch (Exception e)
             {
@@ -153,7 +160,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             if ((freeFlags & 1) == 1)
             {
-                IMemorySpace.Free(this.modifiedVirtualTable, 0x8 * VirtualTableEntryCount);
+                IMemorySpace.Free(this.ModifiedVirtualTable, 0x8 * VirtualTableEntryCount);
                 AddonLifecycle.AllocatedTables.Remove(this);
             }
         }
@@ -182,7 +189,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->OnSetup(addon, valueCount, values);
+                this.OriginalVirtualTable->OnSetup(addon, valueCount, values);
             }
             catch (Exception e)
             {
@@ -209,7 +216,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->Finalizer(thisPtr);
+                this.OriginalVirtualTable->Finalizer(thisPtr);
             }
             catch (Exception e)
             {
@@ -234,7 +241,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->Draw(addon);
+                this.OriginalVirtualTable->Draw(addon);
             }
             catch (Exception e)
             {
@@ -265,7 +272,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->Update(addon,  delta);
+                this.OriginalVirtualTable->Update(addon,  delta);
             }
             catch (Exception e)
             {
@@ -299,7 +306,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                result = this.originalVirtualTable->OnRefresh(addon, valueCount, values);
+                result = this.OriginalVirtualTable->OnRefresh(addon, valueCount, values);
             }
             catch (Exception e)
             {
@@ -333,7 +340,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->OnRequestedUpdate(addon, numberArrayData, stringArrayData);
+                this.OriginalVirtualTable->OnRequestedUpdate(addon, numberArrayData, stringArrayData);
             }
             catch (Exception e)
             {
@@ -369,7 +376,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->ReceiveEvent(addon, eventType, eventParam, atkEvent, atkEventData);
+                this.OriginalVirtualTable->ReceiveEvent(addon, eventType, eventParam, atkEvent, atkEventData);
             }
             catch (Exception e)
             {
@@ -398,7 +405,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                result = this.originalVirtualTable->Open(thisPtr, depthLayer);
+                result = this.OriginalVirtualTable->Open(thisPtr, depthLayer);
             }
             catch (Exception e)
             {
@@ -432,7 +439,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                result = this.originalVirtualTable->Close(thisPtr, fireCallback);
+                result = this.OriginalVirtualTable->Close(thisPtr, fireCallback);
             }
             catch (Exception e)
             {
@@ -466,7 +473,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->Show(thisPtr, silenceOpenSoundEffect, unsetShowHideFlags);
+                this.OriginalVirtualTable->Show(thisPtr, silenceOpenSoundEffect, unsetShowHideFlags);
             }
             catch (Exception e)
             {
@@ -500,7 +507,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->Hide(thisPtr, unkBool, callHideCallback, setShowHideFlags);
+                this.OriginalVirtualTable->Hide(thisPtr, unkBool, callHideCallback, setShowHideFlags);
             }
             catch (Exception e)
             {
@@ -527,7 +534,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->OnMove(thisPtr);
+                this.OriginalVirtualTable->OnMove(thisPtr);
             }
             catch (Exception e)
             {
@@ -554,7 +561,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->OnMouseOver(thisPtr);
+                this.OriginalVirtualTable->OnMouseOver(thisPtr);
             }
             catch (Exception e)
             {
@@ -581,7 +588,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->OnMouseOut(thisPtr);
+                this.OriginalVirtualTable->OnMouseOut(thisPtr);
             }
             catch (Exception e)
             {
@@ -608,7 +615,7 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.originalVirtualTable->Focus(thisPtr);
+                this.OriginalVirtualTable->Focus(thisPtr);
             }
             catch (Exception e)
             {
