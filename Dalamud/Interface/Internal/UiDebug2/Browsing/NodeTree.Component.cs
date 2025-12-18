@@ -89,20 +89,14 @@ internal unsafe class ComponentNodeTree : ResNodeTree
         {
             case TextInput:
                 var textInputComponent = (AtkComponentTextInput*)this.Component;
-                ImGui.Text(
-                    $"InputBase Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.EvaluatedString.StringPtr))}");
-                ImGui.Text(
-                    $"InputBase Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.RawString.StringPtr))}");
-                ImGui.Text(
-                    $"Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText01.StringPtr))}");
-                ImGui.Text(
-                    $"Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText02.StringPtr))}");
-                ImGui.Text(
-                    $"AvailableLines: {Marshal.PtrToStringAnsi(new(textInputComponent->AvailableLines.StringPtr))}");
-                ImGui.Text(
-                    $"HighlightedAutoTranslateOptionColorPrefix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorPrefix.StringPtr))}");
-                ImGui.Text(
-                    $"HighlightedAutoTranslateOptionColorSuffix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorSuffix.StringPtr))}");
+                ImGui.Text($"InputBase Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.EvaluatedString.StringPtr))}");
+                ImGui.Text($"InputBase Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.RawString.StringPtr))}");
+                // TODO: Reenable when unknowns have been unprivated / named
+                // ImGui.Text($"Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText01.StringPtr))}");
+                // ImGui.Text($"Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText02.StringPtr))}");
+                ImGui.Text($"AvailableLines: {Marshal.PtrToStringAnsi(new(textInputComponent->AvailableLines.StringPtr))}");
+                ImGui.Text($"HighlightedAutoTranslateOptionColorPrefix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorPrefix.StringPtr))}");
+                ImGui.Text($"HighlightedAutoTranslateOptionColorSuffix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorSuffix.StringPtr))}");
                 break;
             case List:
             case TreeList:
