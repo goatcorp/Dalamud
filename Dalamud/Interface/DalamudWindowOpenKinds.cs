@@ -57,6 +57,11 @@ public enum SettingsOpenKind
     ServerInfoBar,
 
     /// <summary>
+    /// Open to the "Badges" page.
+    /// </summary>
+    Badge,
+
+    /// <summary>
     /// Open to the "Experimental" page.
     /// </summary>
     Experimental,

@@ -46,6 +46,7 @@ internal sealed class SettingsWindow : Window
             new SettingsTabLook(),
             new SettingsTabAutoUpdates(),
             new SettingsTabDtr(),
+            new SettingsTabBadge(),
             new SettingsTabExperimental(),
             new SettingsTabAbout()
         ];
