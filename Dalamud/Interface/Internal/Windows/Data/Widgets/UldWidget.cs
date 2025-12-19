@@ -263,7 +263,7 @@ internal class UldWidget : IDataWindowWidget
     }
 
     private string ToThemedPath(string path) =>
-        this.UldBaseBath + (this.selectedTheme > 0 ? $"img{this.selectedTheme:D2}" : "") + path[this.UldBaseBath.Length..];
+        UldBaseBath + (this.selectedTheme > 0 ? $"img{this.selectedTheme:D2}" : "") + path[UldBaseBath.Length..];
 
     private void DrawTextureEntry(UldRoot.TextureEntry textureEntry, TextureManager textureManager)
     {
