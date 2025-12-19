@@ -1,6 +1,7 @@
 using System.IO;
 
 using Dalamud.Game.Text.Evaluator;
+using Dalamud.Utility;
 
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
@@ -32,13 +33,14 @@ public class AutoTranslatePayload : Payload, ITextProvider
         this.Group = group;
         this.Key = key;
 
-        var ssb = Lumina.Text.SeStringBuilder.SharedPool.Get();
-        this.payload = ssb.BeginMacro(MacroCode.Fixed)
-                     .AppendUIntExpression(group - 1)
-                     .AppendUIntExpression(key)
-                     .EndMacro()
-                     .ToReadOnlySeString();
-        Lumina.Text.SeStringBuilder.SharedPool.Return(ssb);
+        using var rssb = new RentedSeStringBuilder();
+
+        this.payload = rssb.Builder
+            .BeginMacro(MacroCode.Fixed)
+            .AppendUIntExpression(group - 1)
+            .AppendUIntExpression(key)
+            .EndMacro()
+            .ToReadOnlySeString();
     }
 
     /// <summary>

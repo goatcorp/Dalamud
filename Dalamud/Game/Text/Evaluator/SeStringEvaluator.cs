@@ -102,16 +102,15 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         // TODO: remove culture info toggling after supporting CultureInfo for SeStringBuilder.Append,
         //       and then remove try...finally block (discard builder from the pool on exception)
         var previousCulture = CultureInfo.CurrentCulture;
-        var builder = SeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
         try
         {
             CultureInfo.CurrentCulture = Localization.GetCultureInfoFromLangCode(lang.ToCode());
-            return this.EvaluateAndAppendTo(builder, str, localParameters, lang).ToReadOnlySeString();
+            return this.EvaluateAndAppendTo(rssb.Builder, str, localParameters, lang).ToReadOnlySeString();
         }
         finally
         {
             CultureInfo.CurrentCulture = previousCulture;
-            SeStringBuilder.SharedPool.Return(builder);
         }
     }
 
@@ -930,7 +929,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             itemId += 1000000;
         }
 
-        var sb = SeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
+        var sb = rssb.Builder;
 
         sb.Append(this.EvaluateFromAddon(6, [rarity], context.Language));
 
@@ -956,7 +956,6 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             sb.PopLink();
 
         text = sb.ToReadOnlySeString();
-        SeStringBuilder.SharedPool.Return(sb);
     }
 
     private void CreateSheetLink(in SeStringContext context, string resolvedSheetName, ReadOnlySeString text, uint eRowIdValue, uint eColParamValue)
@@ -1028,40 +1027,33 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!payload.TryGetExpression(out var eStr))
             return false;
 
-        var builder = SeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
-        try
+        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
+
+        if (!this.ResolveStringExpression(headContext, eStr))
+            return false;
+
+        var str = rssb.Builder.ToReadOnlySeString();
+        var pIdx = 0;
+
+        foreach (var p in str)
         {
-            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
+            pIdx++;
 
-            if (!this.ResolveStringExpression(headContext, eStr))
-                return false;
+            if (p.Type == ReadOnlySePayloadType.Invalid)
+                continue;
 
-            var str = builder.ToReadOnlySeString();
-            var pIdx = 0;
-
-            foreach (var p in str)
+            if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
             {
-                pIdx++;
-
-                if (p.Type == ReadOnlySePayloadType.Invalid)
-                    continue;
-
-                if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
-                {
-                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).ToUpper(context.CultureInfo));
-                    continue;
-                }
-
-                context.Builder.Append(p);
+                context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).ToUpper(context.CultureInfo));
+                continue;
             }
 
-            return true;
+            context.Builder.Append(p);
         }
-        finally
-        {
-            SeStringBuilder.SharedPool.Return(builder);
-        }
+
+        return true;
     }
 
     private bool TryResolveHead(in SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -1069,40 +1061,33 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!payload.TryGetExpression(out var eStr))
             return false;
 
-        var builder = SeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
-        try
+        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
+
+        if (!this.ResolveStringExpression(headContext, eStr))
+            return false;
+
+        var str = rssb.Builder.ToReadOnlySeString();
+        var pIdx = 0;
+
+        foreach (var p in str)
         {
-            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
+            pIdx++;
 
-            if (!this.ResolveStringExpression(headContext, eStr))
-                return false;
+            if (p.Type == ReadOnlySePayloadType.Invalid)
+                continue;
 
-            var str = builder.ToReadOnlySeString();
-            var pIdx = 0;
-
-            foreach (var p in str)
+            if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
             {
-                pIdx++;
-
-                if (p.Type == ReadOnlySePayloadType.Invalid)
-                    continue;
-
-                if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
-                {
-                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.Span).FirstCharToUpper(context.CultureInfo));
-                    continue;
-                }
-
-                context.Builder.Append(p);
+                context.Builder.Append(Encoding.UTF8.GetString(p.Body.Span).FirstCharToUpper(context.CultureInfo));
+                continue;
             }
 
-            return true;
+            context.Builder.Append(p);
         }
-        finally
-        {
-            SeStringBuilder.SharedPool.Return(builder);
-        }
+
+        return true;
     }
 
     private bool TryResolveSplit(in SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -1113,32 +1098,25 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!eSeparator.TryGetString(out var eSeparatorVal) || !eIndex.TryGetUInt(out var eIndexVal) || eIndexVal <= 0)
             return false;
 
-        var builder = SeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
-        try
-        {
-            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
+        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
 
-            if (!this.ResolveStringExpression(headContext, eText))
-                return false;
-
-            var separator = eSeparatorVal.ExtractText();
-            if (separator.Length < 1)
-                return false;
-
-            var splitted = builder.ToReadOnlySeString().ExtractText().Split(separator[0]);
-            if (eIndexVal <= splitted.Length)
-            {
-                context.Builder.Append(splitted[eIndexVal - 1]);
-                return true;
-            }
-
+        if (!this.ResolveStringExpression(headContext, eText))
             return false;
-        }
-        finally
+
+        var separator = eSeparatorVal.ExtractText();
+        if (separator.Length < 1)
+            return false;
+
+        var splitted = rssb.Builder.ToReadOnlySeString().ExtractText().Split(separator[0]);
+        if (eIndexVal <= splitted.Length)
         {
-            SeStringBuilder.SharedPool.Return(builder);
+            context.Builder.Append(splitted[eIndexVal - 1]);
+            return true;
         }
+
+        return false;
     }
 
     private bool TryResolveHeadAll(in SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -1146,37 +1124,30 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!payload.TryGetExpression(out var eStr))
             return false;
 
-        var builder = SeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
-        try
+        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
+
+        if (!this.ResolveStringExpression(headContext, eStr))
+            return false;
+
+        var str = rssb.Builder.ToReadOnlySeString();
+
+        foreach (var p in str)
         {
-            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
+            if (p.Type == ReadOnlySePayloadType.Invalid)
+                continue;
 
-            if (!this.ResolveStringExpression(headContext, eStr))
-                return false;
-
-            var str = builder.ToReadOnlySeString();
-
-            foreach (var p in str)
+            if (p.Type == ReadOnlySePayloadType.Text)
             {
-                if (p.Type == ReadOnlySePayloadType.Invalid)
-                    continue;
-
-                if (p.Type == ReadOnlySePayloadType.Text)
-                {
-                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.Span).ToUpper(true, true, false, context.Language));
-                    continue;
-                }
-
-                context.Builder.Append(p);
+                context.Builder.Append(Encoding.UTF8.GetString(p.Body.Span).ToUpper(true, true, false, context.Language));
+                continue;
             }
 
-            return true;
+            context.Builder.Append(p);
         }
-        finally
-        {
-            SeStringBuilder.SharedPool.Return(builder);
-        }
+
+        return true;
     }
 
     private bool TryResolveFixed(in SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -1306,14 +1277,13 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             if (!this.dataManager.GetExcelSheet<Lumina.Excel.Sheets.Map>().TryGetRow(mapId, out var mapRow))
                 return false;
 
-            var sb = SeStringBuilder.SharedPool.Get();
+            using var rssb = new RentedSeStringBuilder();
 
-            sb.Append(placeNameRow.Name);
+            rssb.Builder.Append(placeNameRow.Name);
             if (instance is > 0 and <= 9)
-                sb.Append((char)((char)0xE0B0 + (char)instance));
+                rssb.Builder.Append((char)((char)0xE0B0 + (char)instance));
 
-            var placeNameWithInstance = sb.ToReadOnlySeString();
-            SeStringBuilder.SharedPool.Return(sb);
+            var placeNameWithInstance = rssb.Builder.ToReadOnlySeString();
 
             var mapPosX = ConvertRawToMapPosX(mapRow, rawX / 1000f);
             var mapPosY = ConvertRawToMapPosY(mapRow, rawY / 1000f);
@@ -1462,23 +1432,22 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             statusDescription = statusRow.Description.AsSpan();
         }
 
-        var sb = SeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
         switch (statusRow.StatusCategory)
         {
             case 1:
-                sb.Append(this.EvaluateFromAddon(376, default, context.Language));
+                rssb.Builder.Append(this.EvaluateFromAddon(376, default, context.Language));
                 break;
 
             case 2:
-                sb.Append(this.EvaluateFromAddon(377, default, context.Language));
+                rssb.Builder.Append(this.EvaluateFromAddon(377, default, context.Language));
                 break;
         }
 
-        sb.Append(statusName);
+        rssb.Builder.Append(statusName);
 
-        var linkText = sb.ToReadOnlySeString();
-        SeStringBuilder.SharedPool.Return(sb);
+        var linkText = rssb.Builder.ToReadOnlySeString();
 
         context.Builder
                .BeginMacro(MacroCode.Link)
@@ -1733,38 +1702,31 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!payload.TryGetExpression(out var eStr))
             return false;
 
-        var builder = SeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
-        try
+        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
+
+        if (!this.ResolveStringExpression(headContext, eStr))
+            return false;
+
+        var str = rssb.Builder.ToReadOnlySeString();
+
+        foreach (var p in str)
         {
-            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
+            if (p.Type == ReadOnlySePayloadType.Invalid)
+                continue;
 
-            if (!this.ResolveStringExpression(headContext, eStr))
-                return false;
-
-            var str = builder.ToReadOnlySeString();
-
-            foreach (var p in str)
+            if (p.Type == ReadOnlySePayloadType.Text)
             {
-                if (p.Type == ReadOnlySePayloadType.Invalid)
-                    continue;
+                context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).ToLower(context.CultureInfo));
 
-                if (p.Type == ReadOnlySePayloadType.Text)
-                {
-                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).ToLower(context.CultureInfo));
-
-                    continue;
-                }
-
-                context.Builder.Append(p);
+                continue;
             }
 
-            return true;
+            context.Builder.Append(p);
         }
-        finally
-        {
-            SeStringBuilder.SharedPool.Return(builder);
-        }
+
+        return true;
     }
 
     private bool TryResolveNoun(ClientLanguage language, in SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -1834,40 +1796,33 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!payload.TryGetExpression(out var eStr))
             return false;
 
-        var builder = SeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
-        try
+        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
+
+        if (!this.ResolveStringExpression(headContext, eStr))
+            return false;
+
+        var str = rssb.Builder.ToReadOnlySeString();
+        var pIdx = 0;
+
+        foreach (var p in str)
         {
-            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
+            pIdx++;
 
-            if (!this.ResolveStringExpression(headContext, eStr))
-                return false;
+            if (p.Type == ReadOnlySePayloadType.Invalid)
+                continue;
 
-            var str = builder.ToReadOnlySeString();
-            var pIdx = 0;
-
-            foreach (var p in str)
+            if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
             {
-                pIdx++;
-
-                if (p.Type == ReadOnlySePayloadType.Invalid)
-                    continue;
-
-                if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
-                {
-                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.Span).FirstCharToLower(context.CultureInfo));
-                    continue;
-                }
-
-                context.Builder.Append(p);
+                context.Builder.Append(Encoding.UTF8.GetString(p.Body.Span).FirstCharToLower(context.CultureInfo));
+                continue;
             }
 
-            return true;
+            context.Builder.Append(p);
         }
-        finally
-        {
-            SeStringBuilder.SharedPool.Return(builder);
-        }
+
+        return true;
     }
 
     private bool TryResolveColorType(in SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -2132,19 +2087,19 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                     if (operand1.TryGetString(out var strval1) && operand2.TryGetString(out var strval2))
                     {
+                        using var rssb1 = new RentedSeStringBuilder();
+                        using var rssb2 = new RentedSeStringBuilder();
                         var resolvedStr1 = this.EvaluateAndAppendTo(
-                            SeStringBuilder.SharedPool.Get(),
+                            rssb1.Builder,
                             strval1,
                             context.LocalParameters,
                             context.Language);
                         var resolvedStr2 = this.EvaluateAndAppendTo(
-                            SeStringBuilder.SharedPool.Get(),
+                            rssb2.Builder,
                             strval2,
                             context.LocalParameters,
                             context.Language);
                         var equals = resolvedStr1.GetViewAsSpan().SequenceEqual(resolvedStr2.GetViewAsSpan());
-                        SeStringBuilder.SharedPool.Return(resolvedStr1);
-                        SeStringBuilder.SharedPool.Return(resolvedStr2);
 
                         if ((ExpressionType)exprType == ExpressionType.Equal)
                             value = equals ? 1u : 0u;

@@ -198,8 +198,9 @@ public class SeString
         var textColor = ItemUtil.GetItemRarityColorType(rawId);
         var textEdgeColor = textColor + 1u;
 
-        var sb = LSeStringBuilder.SharedPool.Get();
-        var itemLink = sb
+        using var rssb = new RentedSeStringBuilder();
+
+        var itemLink = rssb.Builder
             .PushColorType(textColor)
             .PushEdgeColorType(textEdgeColor)
             .PushLinkItem(rawId, copyName)
@@ -208,7 +209,6 @@ public class SeString
             .PopEdgeColorType()
             .PopColorType()
             .ToReadOnlySeString();
-        LSeStringBuilder.SharedPool.Return(sb);
 
         return SeString.Parse(seStringEvaluator.EvaluateFromAddon(371, [itemLink], clientState.ClientLanguage));
     }
