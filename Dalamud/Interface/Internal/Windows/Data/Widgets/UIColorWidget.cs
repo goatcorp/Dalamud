@@ -44,7 +44,7 @@ internal class UiColorWidget : IDataWindowWidget
             "<edgecolor(0xEEEEFF)><color(0x0000FF)>BB<color(stackcolor)><edgecolor(stackcolor)>.<br>" +
             "· Click on a color to copy the color code.<br>" +
             "· Hover on a color to preview the text with edge, when the next color has been used together.");
-        if (!ImGui.BeginTable("UIColor"u8, 5))
+        if (!ImGui.BeginTable("UIColor"u8, 7))
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
@@ -62,6 +62,8 @@ internal class UiColorWidget : IDataWindowWidget
         ImGui.TableSetupColumn("Light"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
         ImGui.TableSetupColumn("Classic FF"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
         ImGui.TableSetupColumn("Clear Blue"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableSetupColumn("Clear White"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableSetupColumn("Clear Green"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
         ImGui.TableHeadersRow();
 
         var clipper = ImGui.ImGuiListClipper();
@@ -119,6 +121,22 @@ internal class UiColorWidget : IDataWindowWidget
                 if (this.DrawColorColumn(row.ClearBlue) &&
                     adjacentRow.HasValue)
                     DrawEdgePreview(id, row.ClearBlue, adjacentRow.Value.ClearBlue);
+                ImGui.PopID();
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.PushID($"row{id}_white");
+                if (this.DrawColorColumn(row.Unknown0) &&
+                    adjacentRow.HasValue)
+                    DrawEdgePreview(id, row.Unknown0, adjacentRow.Value.Unknown0);
+                ImGui.PopID();
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.PushID($"row{id}_green");
+                if (this.DrawColorColumn(row.Unknown1) &&
+                    adjacentRow.HasValue)
+                    DrawEdgePreview(id, row.Unknown1, adjacentRow.Value.Unknown1);
                 ImGui.PopID();
             }
         }
