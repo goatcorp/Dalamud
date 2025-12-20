@@ -37,7 +37,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
     private readonly GameLifecycle lifecycle;
     private readonly ClientStateAddressResolver address;
-    private readonly Hook<HandleZoneInitPacketDelegate> handleZoneInitPacketHook;
     private readonly Hook<UIModule.Delegates.HandlePacket> uiModuleHandlePacketHook;
     private readonly Hook<SetCurrentInstanceDelegate> setCurrentInstanceHook;
 
@@ -72,13 +71,11 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
         this.ClientLanguage = (ClientLanguage)dalamud.StartInfo.Language;
 
-        this.handleZoneInitPacketHook = Hook<HandleZoneInitPacketDelegate>.FromAddress(this.AddressResolver.HandleZoneInitPacket, this.HandleZoneInitPacketDetour);
         this.uiModuleHandlePacketHook = Hook<UIModule.Delegates.HandlePacket>.FromAddress((nint)UIModule.StaticVirtualTablePointer->HandlePacket, this.UIModuleHandlePacketDetour);
         this.setCurrentInstanceHook = Hook<SetCurrentInstanceDelegate>.FromAddress(this.AddressResolver.SetCurrentInstance, this.SetCurrentInstanceDetour);
 
         this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
 
-        this.handleZoneInitPacketHook.Enable();
         this.uiModuleHandlePacketHook.Enable();
         this.setCurrentInstanceHook.Enable();
 
@@ -271,7 +268,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
-        this.handleZoneInitPacketHook.Dispose();
         this.uiModuleHandlePacketHook.Dispose();
         this.onLogoutHook.Dispose();
         this.setCurrentInstanceHook.Dispose();
@@ -292,23 +288,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.initialized = true;
 
         this.framework.Update += this.OnFrameworkUpdate;
-    }
-
-    private void HandleZoneInitPacketDetour(nint a1, uint localPlayerEntityId, nint packet, byte type)
-    {
-        this.handleZoneInitPacketHook.Original(a1, localPlayerEntityId, packet, type);
-
-        try
-        {
-            var eventArgs = ZoneInitEventArgs.Read(packet);
-            Log.Debug($"ZoneInit: {eventArgs}");
-            this.ZoneInit?.InvokeSafely(eventArgs);
-            this.TerritoryType = (ushort)eventArgs.TerritoryType.RowId;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Exception during ZoneInit");
-        }
     }
 
     private unsafe void UIModuleHandlePacketDetour(
@@ -354,6 +333,15 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
                     }
                 }
 
+                break;
+            }
+
+            case (UIModulePacketType)5: // TODO: Use UIModulePacketType.InitZone when available
+            {
+                var eventArgs = ZoneInitEventArgs.Read((nint)packet);
+                Log.Debug($"ZoneInit: {eventArgs}");
+                this.ZoneInit?.InvokeSafely(eventArgs);
+                this.TerritoryType = (ushort)eventArgs.TerritoryType.RowId;
                 break;
             }
         }
