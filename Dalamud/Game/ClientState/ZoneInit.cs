@@ -59,7 +59,7 @@ public class ZoneInitEventArgs : EventArgs
         eventArgs.ContentFinderCondition = dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(*(ushort*)(packet + 0x06));
         eventArgs.Weather = dataManager.GetExcelSheet<Weather>().GetRow(*(byte*)(packet + 0x10));
 
-        const int NumFestivals = 4;
+        const int NumFestivals = 8;
         eventArgs.ActiveFestivals = new Festival[NumFestivals];
         eventArgs.ActiveFestivalPhases = new ushort[NumFestivals];
 
@@ -67,7 +67,7 @@ public class ZoneInitEventArgs : EventArgs
         // but it's unclear why they exist as separate entries and why they would be different.
         for (var i = 0; i < NumFestivals; i++)
         {
-            eventArgs.ActiveFestivals[i] = dataManager.GetExcelSheet<Festival>().GetRow(*(ushort*)(packet + 0x2E + (i * 2)));
+            eventArgs.ActiveFestivals[i] = dataManager.GetExcelSheet<Festival>().GetRow(*(ushort*)(packet + 0x26 + (i * 2)));
             eventArgs.ActiveFestivalPhases[i] = *(ushort*)(packet + 0x36 + (i * 2));
         }
 
