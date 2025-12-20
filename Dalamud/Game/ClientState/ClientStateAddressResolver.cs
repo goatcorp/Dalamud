@@ -22,11 +22,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     // Functions
 
     /// <summary>
-    /// Gets the address of the method that handles the ZoneInit packet.
-    /// </summary>
-    public nint HandleZoneInitPacket { get; private set; }
-
-    /// <summary>
     /// Gets the address of the method that sets the current public instance.
     /// </summary>
     public nint SetCurrentInstance { get; private set; }
@@ -37,7 +32,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     /// <param name="sig">The signature scanner to facilitate setup.</param>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.HandleZoneInitPacket = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 45");
         this.SetCurrentInstance = sig.ScanText("E8 ?? ?? ?? ?? 0F B6 55 ?? 48 8D 0D ?? ?? ?? ?? C0 EA"); // NetworkModuleProxy.SetCurrentInstance
 
         // These resolve to fixed offsets only, without the base address added in, so GetStaticAddressFromSig() can't be used.
