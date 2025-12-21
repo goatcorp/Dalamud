@@ -6,6 +6,7 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Utility;
 
 using Lumina.Excel;
 
@@ -124,6 +125,7 @@ internal unsafe readonly struct PartyMember(CSPartyMember* ptr) : IPartyMember
     public Vector3 Position => ptr->Position;
 
     /// <inheritdoc/>
+    [Api15ToDo("Change type to ulong.")]
     public long ContentId => (long)ptr->ContentId;
 
     /// <inheritdoc/>
