@@ -5,7 +5,6 @@ using Dalamud.Game;
 using Dalamud.Game.Text;
 
 using Lumina.Excel.Sheets;
-using Lumina.Text;
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Utility;
@@ -150,23 +149,21 @@ public static class ItemUtil
         if (!includeIcon || kind is not (ItemKind.Hq or ItemKind.Collectible))
             return item.Name;
 
-        var builder = SeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
-        builder.Append(item.Name);
+        rssb.Builder.Append(item.Name);
 
         switch (kind)
         {
             case ItemKind.Hq:
-                builder.Append($" {(char)SeIconChar.HighQuality}");
+                rssb.Builder.Append($" {(char)SeIconChar.HighQuality}");
                 break;
             case ItemKind.Collectible:
-                builder.Append($" {(char)SeIconChar.Collectible}");
+                rssb.Builder.Append($" {(char)SeIconChar.Collectible}");
                 break;
         }
 
-        var itemName = builder.ToReadOnlySeString();
-        SeStringBuilder.SharedPool.Return(builder);
-        return itemName;
+        return rssb.Builder.ToReadOnlySeString();
     }
 
     /// <summary>

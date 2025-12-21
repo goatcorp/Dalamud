@@ -3,9 +3,9 @@ using System.Linq;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.SelfTest;
-using Lumina.Text.Payloads;
+using Dalamud.Utility;
 
-using LSeStringBuilder = Lumina.Text.SeStringBuilder;
+using Lumina.Text.Payloads;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -29,25 +29,25 @@ internal class GamepadStateSelfTestStep : ISelfTestStep
             (GamepadButtons.L1, 12),
         };
 
-        var builder = LSeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
-        builder.Append("Hold down ");
+        rssb.Builder.Append("Hold down ");
 
         for (var i = 0; i < buttons.Length; i++)
         {
             var (button, iconId) = buttons[i];
 
-            builder.BeginMacro(MacroCode.Icon).AppendUIntExpression(iconId).EndMacro();
-            builder.PushColorRgba(gamepadState.Raw(button) == 1 ? 0x0000FF00u : 0x000000FF);
-            builder.Append(button.ToString());
-            builder.PopColor();
-
-            builder.Append(i < buttons.Length - 1 ? ", " : ".");
+            rssb.Builder
+                .BeginMacro(MacroCode.Icon)
+                .AppendUIntExpression(iconId)
+                .EndMacro()
+                .PushColorRgba(gamepadState.Raw(button) == 1 ? 0x0000FF00u : 0x000000FF)
+                .Append(button.ToString())
+                .PopColor()
+                .Append(i < buttons.Length - 1 ? ", " : ".");
         }
 
-        ImGuiHelpers.SeStringWrapped(builder.ToReadOnlySeString());
-
-        LSeStringBuilder.SharedPool.Return(builder);
+        ImGuiHelpers.SeStringWrapped(rssb.Builder.ToReadOnlySeString());
 
         if (buttons.All(tuple => gamepadState.Raw(tuple.Button) == 1))
         {

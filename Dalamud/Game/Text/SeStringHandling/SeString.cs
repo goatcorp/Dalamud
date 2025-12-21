@@ -198,8 +198,9 @@ public class SeString
         var textColor = ItemUtil.GetItemRarityColorType(rawId);
         var textEdgeColor = textColor + 1u;
 
-        var sb = LSeStringBuilder.SharedPool.Get();
-        var itemLink = sb
+        using var rssb = new RentedSeStringBuilder();
+
+        var itemLink = rssb.Builder
             .PushColorType(textColor)
             .PushEdgeColorType(textEdgeColor)
             .PushLinkItem(rawId, copyName)
@@ -208,7 +209,6 @@ public class SeString
             .PopEdgeColorType()
             .PopColorType()
             .ToReadOnlySeString();
-        LSeStringBuilder.SharedPool.Return(sb);
 
         return SeString.Parse(seStringEvaluator.EvaluateFromAddon(371, [itemLink], clientState.ClientLanguage));
     }
@@ -250,16 +250,12 @@ public class SeString
         var mapPayload = new MapLinkPayload(territoryId, mapId, rawX, rawY);
         var nameString = GetMapLinkNameString(mapPayload.PlaceName, instance, mapPayload.CoordinateString);
 
-        var payloads = new List<Payload>(new Payload[]
-        {
+        return new SeString(new List<Payload>([
             mapPayload,
-            // arrow goes here
+            ..TextArrowPayloads,
             new TextPayload(nameString),
             RawPayload.LinkTerminator,
-        });
-        payloads.InsertRange(1, TextArrowPayloads);
-
-        return new SeString(payloads);
+        ]));
     }
 
     /// <summary>
@@ -290,16 +286,12 @@ public class SeString
         var mapPayload = new MapLinkPayload(territoryId, mapId, xCoord, yCoord, fudgeFactor);
         var nameString = GetMapLinkNameString(mapPayload.PlaceName, instance, mapPayload.CoordinateString);
 
-        var payloads = new List<Payload>(new Payload[]
-        {
+        return new SeString(new List<Payload>([
             mapPayload,
-            // arrow goes here
+            ..TextArrowPayloads,
             new TextPayload(nameString),
             RawPayload.LinkTerminator,
-        });
-        payloads.InsertRange(1, TextArrowPayloads);
-
-        return new SeString(payloads);
+        ]));
     }
 
     /// <summary>
@@ -355,21 +347,15 @@ public class SeString
     /// <returns>An SeString containing all the payloads necessary to display a party finder link in the chat log.</returns>
     public static SeString CreatePartyFinderLink(uint listingId, string recruiterName, bool isCrossWorld = false)
     {
-        var payloads = new List<Payload>()
-        {
+        var clientState = Service<ClientState.ClientState>.Get();
+        var seStringEvaluator = Service<SeStringEvaluator>.Get();
+
+        return new SeString(new List<Payload>([
             new PartyFinderPayload(listingId, isCrossWorld ? PartyFinderPayload.PartyFinderLinkType.NotSpecified : PartyFinderPayload.PartyFinderLinkType.LimitedToHomeWorld),
-            // ->
-            new TextPayload($"Looking for Party ({recruiterName})" + (isCrossWorld ? " " : string.Empty)),
-        };
-
-        payloads.InsertRange(1, TextArrowPayloads);
-
-        if (isCrossWorld)
-            payloads.Add(new IconPayload(BitmapFontIcon.CrossWorld));
-
-        payloads.Add(RawPayload.LinkTerminator);
-
-        return new SeString(payloads);
+            ..TextArrowPayloads,
+            ..SeString.Parse(seStringEvaluator.EvaluateFromAddon(2265, [recruiterName, isCrossWorld ? 0 : 1], clientState.ClientLanguage)).Payloads,
+            RawPayload.LinkTerminator
+        ]));
     }
 
     /// <summary>
@@ -379,16 +365,12 @@ public class SeString
     /// <returns>An SeString containing all the payloads necessary to display a link to the party finder search conditions.</returns>
     public static SeString CreatePartyFinderSearchConditionsLink(string message)
     {
-        var payloads = new List<Payload>()
-        {
+        return new SeString(new List<Payload>([
             new PartyFinderPayload(),
-            // ->
+            ..TextArrowPayloads,
             new TextPayload(message),
-        };
-        payloads.InsertRange(1, TextArrowPayloads);
-        payloads.Add(RawPayload.LinkTerminator);
-
-        return new SeString(payloads);
+            RawPayload.LinkTerminator
+        ]));
     }
 
     /// <summary>

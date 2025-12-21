@@ -26,7 +26,6 @@ using Lumina.Text;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
-using LSeStringBuilder = Lumina.Text.SeStringBuilder;
 using SeString = Dalamud.Game.Text.SeStringHandling.SeString;
 using SeStringBuilder = Dalamud.Game.Text.SeStringHandling.SeStringBuilder;
 
@@ -207,21 +206,21 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         if (this.chatQueue.Count == 0)
             return;
 
-        var sb = LSeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
         Span<byte> namebuf = stackalloc byte[256];
         using var sender = new Utf8String();
         using var message = new Utf8String();
         while (this.chatQueue.TryDequeue(out var chat))
         {
-            sb.Clear();
+            rssb.Builder.Clear();
             foreach (var c in UtfEnumerator.From(chat.MessageBytes, UtfEnumeratorFlags.Utf8SeString))
             {
                 if (c.IsSeStringPayload)
-                    sb.Append((ReadOnlySeStringSpan)chat.MessageBytes.AsSpan(c.ByteOffset, c.ByteLength));
+                    rssb.Builder.Append((ReadOnlySeStringSpan)chat.MessageBytes.AsSpan(c.ByteOffset, c.ByteLength));
                 else if (c.Value.IntValue == 0x202F)
-                    sb.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
+                    rssb.Builder.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
                 else
-                    sb.Append(c);
+                    rssb.Builder.Append(c);
             }
 
             if (chat.NameBytes.Length + 1 < namebuf.Length)
@@ -235,7 +234,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 sender.SetString(chat.NameBytes.NullTerminate());
             }
 
-            message.SetString(sb.GetViewAsSpan());
+            message.SetString(rssb.Builder.GetViewAsSpan());
 
             var targetChannel = chat.Type ?? this.configuration.GeneralChatType;
 
@@ -247,8 +246,6 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 chat.Timestamp,
                 (byte)(chat.Silent ? 1 : 0));
         }
-
-        LSeStringBuilder.SharedPool.Return(sb);
     }
 
     /// <summary>
@@ -326,29 +323,28 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
     private void PrintTagged(ReadOnlySpan<byte> message, XivChatType channel, string? tag, ushort? color)
     {
-        var sb = LSeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
         if (!tag.IsNullOrEmpty())
         {
             if (color is not null)
             {
-                sb.PushColorType(color.Value);
-                sb.Append($"[{tag}] ");
-                sb.PopColorType();
+                rssb.Builder
+                    .PushColorType(color.Value)
+                    .Append($"[{tag}] ")
+                    .PopColorType();
             }
             else
             {
-                sb.Append($"[{tag}] ");
+                rssb.Builder.Append($"[{tag}] ");
             }
         }
 
         this.Print(new XivChatEntry
         {
-            MessageBytes = sb.Append((ReadOnlySeStringSpan)message).ToArray(),
+            MessageBytes = rssb.Builder.Append((ReadOnlySeStringSpan)message).ToArray(),
             Type = channel,
         });
-
-        LSeStringBuilder.SharedPool.Return(sb);
     }
 
     private void InventoryItemCopyDetour(InventoryItem* thisPtr, InventoryItem* otherPtr)
@@ -457,7 +453,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
         Log.Verbose($"InteractableLinkClicked: {Payload.EmbeddedInfoType.DalamudLink}");
 
-        var sb = LSeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
+
         try
         {
             var seStringSpan = new ReadOnlySeStringSpan(linkData->Payload);
@@ -465,7 +462,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             // read until link terminator
             foreach (var payload in seStringSpan)
             {
-                sb.Append(payload);
+                rssb.Builder.Append(payload);
 
                 if (payload.Type == ReadOnlySePayloadType.Macro &&
                     payload.MacroCode == MacroCode.Link &&
@@ -477,7 +474,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 }
             }
 
-            var seStr = SeString.Parse(sb.ToArray());
+            var seStr = SeString.Parse(rssb.Builder.ToArray());
             if (seStr.Payloads.Count == 0 || seStr.Payloads[0] is not DalamudLinkPayload link)
                 return;
 
@@ -494,10 +491,6 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         catch (Exception ex)
         {
             Log.Error(ex, "Exception in HandleLinkClickDetour");
-        }
-        finally
-        {
-            LSeStringBuilder.SharedPool.Return(sb);
         }
     }
 }

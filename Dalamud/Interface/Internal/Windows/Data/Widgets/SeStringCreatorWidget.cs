@@ -29,8 +29,6 @@ using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
-using LSeStringBuilder = Lumina.Text.SeStringBuilder;
-
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
@@ -474,25 +472,25 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         if (ImGui.Button("Print Evaluated"u8))
         {
-            var sb = new LSeStringBuilder();
+            using var rssb = new RentedSeStringBuilder();
 
             foreach (var entry in this.entries)
             {
                 switch (entry.Type)
                 {
                     case TextEntryType.String:
-                        sb.Append(entry.Message);
+                        rssb.Builder.Append(entry.Message);
                         break;
 
                     case TextEntryType.Macro:
                     case TextEntryType.Fixed:
-                        sb.AppendMacroString(entry.Message);
+                        rssb.Builder.AppendMacroString(entry.Message);
                         break;
                 }
             }
 
             var evaluated = Service<SeStringEvaluator>.Get().Evaluate(
-                sb.ToReadOnlySeString(),
+                rssb.Builder.ToReadOnlySeString(),
                 this.localParameters,
                 this.language);
 
@@ -505,24 +503,24 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
             if (ImGui.Button("Copy MacroString"u8))
             {
-                var sb = new LSeStringBuilder();
+                using var rssb = new RentedSeStringBuilder();
 
                 foreach (var entry in this.entries)
                 {
                     switch (entry.Type)
                     {
                         case TextEntryType.String:
-                            sb.Append(entry.Message);
+                            rssb.Builder.Append(entry.Message);
                             break;
 
                         case TextEntryType.Macro:
                         case TextEntryType.Fixed:
-                            sb.AppendMacroString(entry.Message);
+                            rssb.Builder.AppendMacroString(entry.Message);
                             break;
                     }
                 }
 
-                ImGui.SetClipboardText(sb.ToReadOnlySeString().ToMacroString());
+                ImGui.SetClipboardText(rssb.Builder.ToReadOnlySeString().ToMacroString());
             }
 
             ImGui.SameLine();
@@ -802,24 +800,24 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
     private unsafe void UpdateInputString(bool resetLocalParameters = true)
     {
-        var sb = new LSeStringBuilder();
+        using var rssb = new RentedSeStringBuilder();
 
         foreach (var entry in this.entries)
         {
             switch (entry.Type)
             {
                 case TextEntryType.String:
-                    sb.Append(entry.Message);
+                    rssb.Builder.Append(entry.Message);
                     break;
 
                 case TextEntryType.Macro:
                 case TextEntryType.Fixed:
-                    sb.AppendMacroString(entry.Message);
+                    rssb.Builder.AppendMacroString(entry.Message);
                     break;
             }
         }
 
-        this.input = sb.ToReadOnlySeString();
+        this.input = rssb.Builder.ToReadOnlySeString();
 
         if (resetLocalParameters)
             this.localParameters = null;
@@ -998,10 +996,9 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                     }
                 }
 
-                var builder = LSeStringBuilder.SharedPool.Get();
-                builder.AppendIcon(iconId);
-                ImGuiHelpers.SeStringWrapped(builder.ToArray());
-                LSeStringBuilder.SharedPool.Return(builder);
+                using var rssb = new RentedSeStringBuilder();
+                rssb.Builder.AppendIcon(iconId);
+                ImGuiHelpers.SeStringWrapped(rssb.Builder.ToArray());
 
                 ImGui.SameLine();
             }
