@@ -5,6 +5,8 @@ using Dalamud.Data;
 
 using Lumina.Excel.Sheets;
 
+using Serilog;
+
 namespace Dalamud.Game.ClientState;
 
 /// <summary>
@@ -52,23 +54,30 @@ public class ZoneInitEventArgs : EventArgs
         var dataManager = Service<DataManager>.Get();
         var eventArgs = new ZoneInitEventArgs();
 
-        var flags = *(byte*)(packet + 0x12);
-
-        eventArgs.TerritoryType = dataManager.GetExcelSheet<TerritoryType>().GetRow(*(ushort*)(packet + 0x02));
-        eventArgs.Instance = flags >= 0 ? (ushort)0 : *(ushort*)(packet + 0x04);
-        eventArgs.ContentFinderCondition = dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(*(ushort*)(packet + 0x06));
-        eventArgs.Weather = dataManager.GetExcelSheet<Weather>().GetRow(*(byte*)(packet + 0x10));
-
-        const int NumFestivals = 8;
-        eventArgs.ActiveFestivals = new Festival[NumFestivals];
-        eventArgs.ActiveFestivalPhases = new ushort[NumFestivals];
-
-        // There are also 4 festival ids and phases for PlayerState at +0x3E and +0x46 respectively,
-        // but it's unclear why they exist as separate entries and why they would be different.
-        for (var i = 0; i < NumFestivals; i++)
+        try
         {
-            eventArgs.ActiveFestivals[i] = dataManager.GetExcelSheet<Festival>().GetRow(*(ushort*)(packet + 0x26 + (i * 2)));
-            eventArgs.ActiveFestivalPhases[i] = *(ushort*)(packet + 0x36 + (i * 2));
+            var flags = *(byte*)(packet + 0x12);
+
+            eventArgs.TerritoryType = dataManager.GetExcelSheet<TerritoryType>().GetRow(*(ushort*)(packet + 0x02));
+            eventArgs.Instance = flags >= 0 ? (ushort)0 : *(ushort*)(packet + 0x04);
+            eventArgs.ContentFinderCondition = dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(*(ushort*)(packet + 0x06));
+            eventArgs.Weather = dataManager.GetExcelSheet<Weather>().GetRow(*(byte*)(packet + 0x10));
+
+            const int NumFestivals = 8;
+            eventArgs.ActiveFestivals = new Festival[NumFestivals];
+            eventArgs.ActiveFestivalPhases = new ushort[NumFestivals];
+
+            // There are also 4 festival ids and phases for PlayerState at +0x3E and +0x46 respectively,
+            // but it's unclear why they exist as separate entries and why they would be different.
+            for (var i = 0; i < NumFestivals; i++)
+            {
+                eventArgs.ActiveFestivals[i] = dataManager.GetExcelSheet<Festival>().GetRow(*(ushort*)(packet + 0x26 + (i * 2)));
+                eventArgs.ActiveFestivalPhases[i] = *(ushort*)(packet + 0x36 + (i * 2));
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to read ZoneInit packet");
         }
 
         return eventArgs;
