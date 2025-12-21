@@ -267,26 +267,26 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         switch ((ItemActionAction)row.ItemAction.Value.Action.RowId)
         {
             case ItemActionAction.Companion:
-                return UIState.Instance()->IsCompanionUnlocked(row.ItemAction.Value.Data[0]);
+                return UIState.Instance()->IsCompanionUnlocked(row.ItemAction.Value.Data[0].RowId);
 
             case ItemActionAction.BuddyEquip:
-                return UIState.Instance()->Buddy.CompanionInfo.IsBuddyEquipUnlocked(row.ItemAction.Value.Data[0]);
+                return UIState.Instance()->Buddy.CompanionInfo.IsBuddyEquipUnlocked(row.ItemAction.Value.Data[0].RowId);
 
             case ItemActionAction.Mount:
-                return PlayerState.Instance()->IsMountUnlocked(row.ItemAction.Value.Data[0]);
+                return PlayerState.Instance()->IsMountUnlocked(row.ItemAction.Value.Data[0].RowId);
 
             case ItemActionAction.SecretRecipeBook:
-                return PlayerState.Instance()->IsSecretRecipeBookUnlocked(row.ItemAction.Value.Data[0]);
+                return PlayerState.Instance()->IsSecretRecipeBookUnlocked(row.ItemAction.Value.Data[0].RowId);
 
             case ItemActionAction.UnlockLink:
             case ItemActionAction.OccultRecords:
-                return UIState.Instance()->IsUnlockLinkUnlocked(row.ItemAction.Value.Data[0]);
+                return UIState.Instance()->IsUnlockLinkUnlocked(row.ItemAction.Value.Data[0].RowId);
 
             case ItemActionAction.TripleTriadCard when row.AdditionalData.Is<TripleTriadCard>():
                 return UIState.Instance()->IsTripleTriadCardUnlocked((ushort)row.AdditionalData.RowId);
 
             case ItemActionAction.FolkloreTome:
-                return PlayerState.Instance()->IsFolkloreBookUnlocked(row.ItemAction.Value.Data[0]);
+                return PlayerState.Instance()->IsFolkloreBookUnlocked(row.ItemAction.Value.Data[0].RowId);
 
             case ItemActionAction.OrchestrionRoll when row.AdditionalData.Is<Orchestrion>():
                 return PlayerState.Instance()->IsOrchestrionRollUnlocked(row.AdditionalData.RowId);
@@ -295,13 +295,13 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
                 return PlayerState.Instance()->IsFramersKitUnlocked(row.AdditionalData.RowId);
 
             case ItemActionAction.Ornament:
-                return PlayerState.Instance()->IsOrnamentUnlocked(row.ItemAction.Value.Data[0]);
+                return PlayerState.Instance()->IsOrnamentUnlocked(row.ItemAction.Value.Data[0].RowId);
 
             case ItemActionAction.Glasses:
                 return PlayerState.Instance()->IsGlassesUnlocked((ushort)row.AdditionalData.RowId);
 
             case ItemActionAction.SoulShards when PublicContentOccultCrescent.GetState() is var occultCrescentState && occultCrescentState != null:
-                var supportJobId = (byte)row.ItemAction.Value.Data[0];
+                var supportJobId = (byte)row.ItemAction.Value.Data[0].RowId;
                 return supportJobId < occultCrescentState->SupportJobLevels.Length && occultCrescentState->SupportJobLevels[supportJobId] != 0;
 
             case ItemActionAction.CompanySealVouchers:
