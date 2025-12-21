@@ -3,6 +3,7 @@ using System.Text;
 
 using Dalamud.Data;
 
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 using Serilog;
@@ -17,7 +18,7 @@ public class ZoneInitEventArgs : EventArgs
     /// <summary>
     /// Gets the territory type of the zone being entered.
     /// </summary>
-    public TerritoryType TerritoryType { get; private set; }
+    public RowRef<TerritoryType> TerritoryType { get; private set; }
 
     /// <summary>
     /// Gets the instance number of the zone, used when multiple copies of an area are active.
@@ -27,17 +28,17 @@ public class ZoneInitEventArgs : EventArgs
     /// <summary>
     /// Gets the associated content finder condition for the zone, if any.
     /// </summary>
-    public ContentFinderCondition ContentFinderCondition { get; private set; }
+    public RowRef<ContentFinderCondition> ContentFinderCondition { get; private set; }
 
     /// <summary>
     /// Gets the current weather in the zone upon entry.
     /// </summary>
-    public Weather Weather { get; private set; }
+    public RowRef<Weather> Weather { get; private set; }
 
     /// <summary>
     /// Gets the set of active festivals in the zone.
     /// </summary>
-    public Festival[] ActiveFestivals { get; private set; } = [];
+    public RowRef<Festival>[] ActiveFestivals { get; private set; } = [];
 
     /// <summary>
     /// Gets the phases corresponding to the active festivals.
@@ -54,30 +55,23 @@ public class ZoneInitEventArgs : EventArgs
         var dataManager = Service<DataManager>.Get();
         var eventArgs = new ZoneInitEventArgs();
 
-        try
+        var flags = *(byte*)(packet + 0x12);
+
+        eventArgs.TerritoryType = LuminaUtils.CreateRef<TerritoryType>(*(ushort*)(packet + 0x02));
+        eventArgs.Instance = flags >= 0 ? (ushort)0 : *(ushort*)(packet + 0x04);
+        eventArgs.ContentFinderCondition = LuminaUtils.CreateRef<ContentFinderCondition>(*(ushort*)(packet + 0x06));
+        eventArgs.Weather = LuminaUtils.CreateRef<Weather>(*(byte*)(packet + 0x10));
+
+        const int NumFestivals = 8;
+        eventArgs.ActiveFestivals = new RowRef<Festival>[NumFestivals];
+        eventArgs.ActiveFestivalPhases = new ushort[NumFestivals];
+
+        // There are also 4 festival ids and phases for PlayerState at +0x3E and +0x46 respectively,
+        // but it's unclear why they exist as separate entries and why they would be different.
+        for (var i = 0; i < NumFestivals; i++)
         {
-            var flags = *(byte*)(packet + 0x12);
-
-            eventArgs.TerritoryType = dataManager.GetExcelSheet<TerritoryType>().GetRow(*(ushort*)(packet + 0x02));
-            eventArgs.Instance = flags >= 0 ? (ushort)0 : *(ushort*)(packet + 0x04);
-            eventArgs.ContentFinderCondition = dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(*(ushort*)(packet + 0x06));
-            eventArgs.Weather = dataManager.GetExcelSheet<Weather>().GetRow(*(byte*)(packet + 0x10));
-
-            const int NumFestivals = 8;
-            eventArgs.ActiveFestivals = new Festival[NumFestivals];
-            eventArgs.ActiveFestivalPhases = new ushort[NumFestivals];
-
-            // There are also 4 festival ids and phases for PlayerState at +0x3E and +0x46 respectively,
-            // but it's unclear why they exist as separate entries and why they would be different.
-            for (var i = 0; i < NumFestivals; i++)
-            {
-                eventArgs.ActiveFestivals[i] = dataManager.GetExcelSheet<Festival>().GetRow(*(ushort*)(packet + 0x26 + (i * 2)));
-                eventArgs.ActiveFestivalPhases[i] = *(ushort*)(packet + 0x36 + (i * 2));
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to read ZoneInit packet");
+            eventArgs.ActiveFestivals[i] = LuminaUtils.CreateRef<Festival>(*(ushort*)(packet + 0x26 + (i * 2)));
+            eventArgs.ActiveFestivalPhases[i] = *(ushort*)(packet + 0x36 + (i * 2));
         }
 
         return eventArgs;
