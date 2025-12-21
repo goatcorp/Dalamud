@@ -20,7 +20,7 @@ internal sealed class SettingsTabBadge : SettingsTab
 
     public override string Title => Loc.Localize("DalamudSettingsBadge", "Badges");
 
-    public override SettingsOpenKind Kind => SettingsOpenKind.ServerInfoBar;
+    public override SettingsOpenKind Kind => SettingsOpenKind.Badge;
 
     public override SettingsEntry[] Entries { get; } =
     [
@@ -36,12 +36,12 @@ internal sealed class SettingsTabBadge : SettingsTab
         var badgeManager = Service<BadgeManager>.Get();
         var dalamudInterface = Service<DalamudInterface>.Get();
 
-        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarHint", "Plugins can put additional information into your server information bar(where world & time can be seen).\nYou can reorder and disable these here."));
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingBadgesHint", "On this tab, you can unlock small badges that show on your title screen.\nBadge codes are usually given out during community events or contests."));
 
         ImGuiHelpers.ScaledDummy(5);
 
         ImGui.Text(Loc.Localize("DalamudSettingsBadgesUnlock", "Unlock a badge"));
-        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsBadgesUnlockHint", "If you have received a code for a badge, enter it here to unlock the badge.\nCodes are usually given out during community events or contests."));
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsBadgesUnlockHint", "If you have received a code for a badge, enter it here to unlock the badge."));
         ImGui.InputTextWithHint(
             "##BadgePassword",
             Loc.Localize("DalamudSettingsBadgesUnlockHintInput", "Enter badge code here"),
@@ -79,7 +79,7 @@ internal sealed class SettingsTabBadge : SettingsTab
 
         if (haveBadges.Length == 0)
         {
-            ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarDidNone", "You did not unlock any badges yet.\nBadges can be unlocked by participating in community events or contests."));
+            ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsBadgesDidNone", "You did not unlock any badges yet."));
         }
 
         var badgeTexture = Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(DalamudAsset.BadgeAtlas);
