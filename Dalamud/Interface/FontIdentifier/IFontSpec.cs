@@ -25,7 +25,7 @@ public interface IFontSpec
     float LineHeightPx { get; }
 
     /// <summary>
-    /// Gets or sets the font face index within a TrueType Collection (TTC) file.
+    /// Gets the font face index within a TrueType Collection (TTC) file.
     /// </summary>
     /// <remarks>
     /// This property only applies to <see cref="DalamudAsset.NotoSansCJKRegular"/> and
