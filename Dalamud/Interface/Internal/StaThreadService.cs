@@ -113,7 +113,7 @@ internal partial class StaThreadService : IInternalDisposableService
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             this.cancellationTokenSource.Token,
             cancellationToken);
-        await this.taskFactory.StartNew(action, cancellationToken).ConfigureAwait(true);
+        await this.taskFactory.StartNew(action, cts.Token).ConfigureAwait(true);
     }
 
     /// <summary>Runs a given delegate in the messaging thread.</summary>
@@ -126,7 +126,7 @@ internal partial class StaThreadService : IInternalDisposableService
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             this.cancellationTokenSource.Token,
             cancellationToken);
-        return await this.taskFactory.StartNew(func, cancellationToken).ConfigureAwait(true);
+        return await this.taskFactory.StartNew(func, cts.Token).ConfigureAwait(true);
     }
 
     /// <summary>Runs a given delegate in the messaging thread.</summary>
@@ -138,7 +138,7 @@ internal partial class StaThreadService : IInternalDisposableService
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             this.cancellationTokenSource.Token,
             cancellationToken);
-        await await this.taskFactory.StartNew(func, cancellationToken).ConfigureAwait(true);
+        await await this.taskFactory.StartNew(func, cts.Token).ConfigureAwait(true);
     }
 
     /// <summary>Runs a given delegate in the messaging thread.</summary>
@@ -151,7 +151,7 @@ internal partial class StaThreadService : IInternalDisposableService
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             this.cancellationTokenSource.Token,
             cancellationToken);
-        return await await this.taskFactory.StartNew(func, cancellationToken).ConfigureAwait(true);
+        return await await this.taskFactory.StartNew(func, cts.Token).ConfigureAwait(true);
     }
 
     [LibraryImport("ole32.dll")]
