@@ -65,9 +65,7 @@ public record SingleFontSpec : IFontSpec
     [JsonProperty]
     public ushort[]? GlyphRanges { get; init; }
 
-    /// <summary>
-    /// Gets the font no.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public int FontNo { get; init; }
 

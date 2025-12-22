@@ -130,7 +130,8 @@ public enum DalamudAsset
     [DalamudAsset(DalamudAssetPurpose.Font)]
     [DalamudAssetPath("UIRes", "NotoSansCJK-Medium.ttc")]
     NotoSansCJKMedium = 2000,
-    
+
+    /// <summary>
     /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: Atlas containing badges.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
