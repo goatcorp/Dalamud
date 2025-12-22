@@ -12,7 +12,7 @@ using Lumina.Excel;
 
 using System.Diagnostics.CodeAnalysis;
 
-using TerraFX.Interop.Windows;
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Chat;
 
@@ -72,7 +72,7 @@ public interface ILogMessage : IEquatable<ILogMessage>
     /// </summary>
     /// <remarks>This can cause side effects such as playing sound effects and thus should only be used for debugging.</remarks>
     /// <returns>The formatted string.</returns>
-    SeString FormatLogMessageForDebugging();
+    ReadOnlySeString FormatLogMessageForDebugging();
 }
 
 /// <summary>
@@ -144,7 +144,7 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
     }
 
     /// <inheritdoc/>
-    public SeString FormatLogMessageForDebugging()
+    public ReadOnlySeString FormatLogMessageForDebugging()
     {
         var logModule = RaptureLogModule.Instance();
 
@@ -155,7 +155,9 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
         SetName(logModule, this.TargetEntity);
         logModule->RaptureTextModule->FormatString(this.GameData.Value.Text.ToDalamudString().EncodeWithNullTerminator(), &ptr->Parameters, &utf8);
 
-        return SeString.Parse(utf8.AsSpan());
+        var result = new ReadOnlySeString(utf8.AsSpan());
+        utf8.Dtor();
+        return result;
 
         void SetName(RaptureLogModule* self, LogMessageEntity item)
         {

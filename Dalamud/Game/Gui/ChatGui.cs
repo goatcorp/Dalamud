@@ -42,7 +42,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
     private readonly Queue<XivChatEntry> chatQueue = new();
     private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = new();
-    private readonly List<IntPtr> seenLogMessageObjects = new();
+    private readonly List<nint> seenLogMessageObjects = new();
 
     private readonly Hook<PrintMessageDelegate> printMessageHook;
     private readonly Hook<InventoryItem.Delegates.Copy> inventoryItemCopyHook;
@@ -534,7 +534,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             this.seenLogMessageObjects.Clear();
             foreach (ref var item in thisPtr->LogMessageQueue)
             {
-                this.seenLogMessageObjects.Add((IntPtr)Unsafe.AsPointer(ref item));
+                this.seenLogMessageObjects.Add((nint)Unsafe.AsPointer(ref item));
             }
         }
         catch (Exception ex)
