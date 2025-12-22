@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32319.34
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -7,8 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		tools\BannedSymbols.txt = tools\BannedSymbols.txt
-		targets\Dalamud.Plugin.Bootstrap.targets = targets\Dalamud.Plugin.Bootstrap.targets
-		targets\Dalamud.Plugin.targets = targets\Dalamud.Plugin.targets
 		tools\dalamud.ruleset = tools\dalamud.ruleset
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
@@ -26,8 +24,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dalamud.Boot", "Dalamud.Boot\Dalamud.Boot.vcxproj", "{55198DC3-A03D-408E-A8EB-2077780C8576}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dalamud.Injector", "Dalamud.Injector\Dalamud.Injector.csproj", "{5B832F73-5F54-4ADC-870F-D0095EF72C9A}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dalamud.Injector.Boot", "Dalamud.Injector.Boot\Dalamud.Injector.Boot.vcxproj", "{8874326B-E755-4D13-90B4-59AB263A3E6B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dalamud.Test", "Dalamud.Test\Dalamud.Test.csproj", "{C8004563-1806-4329-844F-0EF6274291FC}"
 EndProject
@@ -48,8 +44,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteropGenerator", "lib\FFXIVClientStructs\InteropGenerator\InteropGenerator.csproj", "{3620414C-7DFC-423E-929F-310E19F5D930}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteropGenerator.Runtime", "lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj", "{A6AA1C3F-9470-4922-9D3F-D4549657AB22}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Injector", "Injector", "{19775C83-7117-4A5F-AA00-18889F46A490}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{8F079208-C227-4D96-9427-2BEBE0003944}"
 EndProject
@@ -103,10 +97,6 @@ Global
 		{5B832F73-5F54-4ADC-870F-D0095EF72C9A}.Debug|Any CPU.Build.0 = Debug|x64
 		{5B832F73-5F54-4ADC-870F-D0095EF72C9A}.Release|Any CPU.ActiveCfg = Release|x64
 		{5B832F73-5F54-4ADC-870F-D0095EF72C9A}.Release|Any CPU.Build.0 = Release|x64
-		{8874326B-E755-4D13-90B4-59AB263A3E6B}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{8874326B-E755-4D13-90B4-59AB263A3E6B}.Debug|Any CPU.Build.0 = Debug|x64
-		{8874326B-E755-4D13-90B4-59AB263A3E6B}.Release|Any CPU.ActiveCfg = Release|x64
-		{8874326B-E755-4D13-90B4-59AB263A3E6B}.Release|Any CPU.Build.0 = Release|x64
 		{C8004563-1806-4329-844F-0EF6274291FC}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{C8004563-1806-4329-844F-0EF6274291FC}.Debug|Any CPU.Build.0 = Debug|x64
 		{C8004563-1806-4329-844F-0EF6274291FC}.Release|Any CPU.ActiveCfg = Release|x64
@@ -188,8 +178,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{5B832F73-5F54-4ADC-870F-D0095EF72C9A} = {19775C83-7117-4A5F-AA00-18889F46A490}
-		{8874326B-E755-4D13-90B4-59AB263A3E6B} = {19775C83-7117-4A5F-AA00-18889F46A490}
 		{4AFDB34A-7467-4D41-B067-53BC4101D9D0} = {8F079208-C227-4D96-9427-2BEBE0003944}
 		{C9B87BD7-AF49-41C3-91F1-D550ADEB7833} = {8BBACF2D-7AB8-4610-A115-0E363D35C291}
 		{E0D51896-604F-4B40-8CFE-51941607B3A1} = {8BBACF2D-7AB8-4610-A115-0E363D35C291}

@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Hooking.Internal;
+using Dalamud.Hooking.Internal.Verification;
 
 namespace Dalamud.Hooking;
 
@@ -201,19 +202,19 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
 
-        using var moduleHandle = Windows.Win32.PInvoke.GetModuleHandle(moduleName);
-        if (moduleHandle.IsInvalid)
+        var moduleHandle = Windows.Win32.PInvoke.GetModuleHandle(moduleName);
+        if (moduleHandle.IsNull)
             throw new Exception($"Could not get a handle to module {moduleName}");
 
-        var procAddress = (nint)Windows.Win32.PInvoke.GetProcAddress(moduleHandle, exportName);
-        if (procAddress == IntPtr.Zero)
+        var procAddress = Windows.Win32.PInvoke.GetProcAddress(moduleHandle, exportName);
+        if (procAddress.IsNull)
             throw new Exception($"Could not get the address of {moduleName}::{exportName}");
 
-        procAddress = HookManager.FollowJmp(procAddress);
+        var address = HookManager.FollowJmp(procAddress.Value);
         if (useMinHook)
-            return new MinHookHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
+            return new MinHookHook<T>(address, detour, Assembly.GetCallingAssembly());
         else
-            return new ReloadedHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
+            return new ReloadedHook<T>(address, detour, Assembly.GetCallingAssembly());
     }
 
     /// <summary>
@@ -229,6 +230,8 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
+
+        HookVerifier.Verify<T>(procAddress);
 
         procAddress = HookManager.FollowJmp(procAddress);
         if (useMinHook)

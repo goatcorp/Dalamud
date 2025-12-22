@@ -88,15 +88,42 @@ internal sealed partial class AetheryteList
     /// <inheritdoc/>
     public IEnumerator<IAetheryteEntry> GetEnumerator()
     {
-        for (var i = 0; i < this.Length; i++)
-        {
-            yield return this[i];
-        }
+        return new Enumerator(this);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return this.GetEnumerator();
+    }
+
+    private struct Enumerator(AetheryteList aetheryteList) : IEnumerator<IAetheryteEntry>
+    {
+        private int index = -1;
+
+        public IAetheryteEntry Current { get; private set; }
+
+        object IEnumerator.Current => this.Current;
+
+        public bool MoveNext()
+        {
+            if (++this.index < aetheryteList.Length)
+            {
+                this.Current = aetheryteList[this.index];
+                return true;
+            }
+
+            this.Current = default;
+            return false;
+        }
+
+        public void Reset()
+        {
+            this.index = -1;
+        }
+
+        public void Dispose()
+        {
+        }
     }
 }

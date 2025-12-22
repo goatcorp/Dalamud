@@ -113,7 +113,7 @@ internal partial class StaThreadService : IInternalDisposableService
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             this.cancellationTokenSource.Token,
             cancellationToken);
-        await this.taskFactory.StartNew(action, cancellationToken).ConfigureAwait(true);
+        await this.taskFactory.StartNew(action, cts.Token).ConfigureAwait(true);
     }
 
     /// <summary>Runs a given delegate in the messaging thread.</summary>
@@ -126,7 +126,7 @@ internal partial class StaThreadService : IInternalDisposableService
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             this.cancellationTokenSource.Token,
             cancellationToken);
-        return await this.taskFactory.StartNew(func, cancellationToken).ConfigureAwait(true);
+        return await this.taskFactory.StartNew(func, cts.Token).ConfigureAwait(true);
     }
 
     /// <summary>Runs a given delegate in the messaging thread.</summary>
@@ -138,7 +138,7 @@ internal partial class StaThreadService : IInternalDisposableService
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             this.cancellationTokenSource.Token,
             cancellationToken);
-        await await this.taskFactory.StartNew(func, cancellationToken).ConfigureAwait(true);
+        await await this.taskFactory.StartNew(func, cts.Token).ConfigureAwait(true);
     }
 
     /// <summary>Runs a given delegate in the messaging thread.</summary>
@@ -151,7 +151,7 @@ internal partial class StaThreadService : IInternalDisposableService
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             this.cancellationTokenSource.Token,
             cancellationToken);
-        return await await this.taskFactory.StartNew(func, cancellationToken).ConfigureAwait(true);
+        return await await this.taskFactory.StartNew(func, cts.Token).ConfigureAwait(true);
     }
 
     [LibraryImport("ole32.dll")]
@@ -216,7 +216,7 @@ internal partial class StaThreadService : IInternalDisposableService
                     lpfnWndProc = &MessageReceiverWndProcStatic,
                     hInstance = hInstance,
                     hbrBackground = (HBRUSH)(COLOR.COLOR_BACKGROUND + 1),
-                    lpszClassName = (ushort*)name,
+                    lpszClassName = name,
                 };
 
                 wndClassAtom = RegisterClassExW(&wndClass);
@@ -226,8 +226,8 @@ internal partial class StaThreadService : IInternalDisposableService
                 this.messageReceiverHwndTask.SetResult(
                     CreateWindowExW(
                         0,
-                        (ushort*)wndClassAtom,
-                        (ushort*)name,
+                        (char*)wndClassAtom,
+                        name,
                         0,
                         CW_USEDEFAULT,
                         CW_USEDEFAULT,
@@ -275,7 +275,7 @@ internal partial class StaThreadService : IInternalDisposableService
             _ = OleFlushClipboard();
             OleUninitialize();
             if (wndClassAtom != 0)
-                UnregisterClassW((ushort*)wndClassAtom, hInstance);
+                UnregisterClassW((char*)wndClassAtom, hInstance);
             this.messageReceiverHwndTask.TrySetException(e);
         }
     }

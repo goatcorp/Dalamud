@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Nuke.Common;
 using Nuke.Common.Execution;
 using Nuke.Common.Git;
@@ -42,10 +41,7 @@ public class DalamudBuild : NukeBuild
 
     AbsolutePath InjectorProjectDir => RootDirectory / "Dalamud.Injector";
     AbsolutePath InjectorProjectFile => InjectorProjectDir / "Dalamud.Injector.csproj";
-
-    AbsolutePath InjectorBootProjectDir => RootDirectory / "Dalamud.Injector.Boot";
-    AbsolutePath InjectorBootProjectFile => InjectorBootProjectDir / "Dalamud.Injector.Boot.vcxproj";
-
+    
     AbsolutePath TestProjectDir => RootDirectory / "Dalamud.Test";
     AbsolutePath TestProjectFile => TestProjectDir / "Dalamud.Test.csproj";
 
@@ -131,7 +127,7 @@ public class DalamudBuild : NukeBuild
                 if (IsCIBuild)
                 {
                     s = s
-                        .SetProcessArgumentConfigurator(a => a.Add("/clp:NoSummary")); // Disable MSBuild summary on CI builds
+                        .SetProcessAdditionalArguments("/clp:NoSummary"); // Disable MSBuild summary on CI builds
                 }
                 // We need to emit compiler generated files for the docs build, since docfx can't run generators directly
                 // TODO: This fails every build after this because of redefinitions...
@@ -172,14 +168,6 @@ public class DalamudBuild : NukeBuild
                 .EnableNoRestore());
         });
 
-    Target CompileInjectorBoot => _ => _
-        .Executes(() =>
-        {
-            MSBuildTasks.MSBuild(s => s
-                .SetTargetPath(InjectorBootProjectFile)
-                .SetConfiguration(Configuration));
-        });
-
     Target SetCILogging => _ => _
         .DependentFor(Compile)
         .OnlyWhenStatic(() => IsCIBuild)
@@ -196,7 +184,6 @@ public class DalamudBuild : NukeBuild
     .DependsOn(CompileDalamudBoot)
     .DependsOn(CompileDalamudCrashHandler)
     .DependsOn(CompileInjector)
-    .DependsOn(CompileInjectorBoot)
     ;
 
     Target CI => _ => _
@@ -250,12 +237,6 @@ public class DalamudBuild : NukeBuild
                 .SetProject(InjectorProjectFile)
                 .SetConfiguration(Configuration));
 
-            MSBuildTasks.MSBuild(s => s
-                .SetProjectFile(InjectorBootProjectFile)
-                .SetConfiguration(Configuration)
-                .SetTargets("Clean"));
-
-            FileSystemTasks.DeleteDirectory(ArtifactsDirectory);
-            Directory.CreateDirectory(ArtifactsDirectory);
+            ArtifactsDirectory.CreateOrCleanDirectory();
         });
 }

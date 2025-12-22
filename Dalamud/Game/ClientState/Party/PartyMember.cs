@@ -1,26 +1,28 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Memory;
+using Dalamud.Utility;
 
 using Lumina.Excel;
+
+using CSPartyMember = FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember;
 
 namespace Dalamud.Game.ClientState.Party;
 
 /// <summary>
 /// Interface representing a party member.
 /// </summary>
-public interface IPartyMember
+public interface IPartyMember : IEquatable<IPartyMember>
 {
     /// <summary>
     /// Gets the address of this party member in memory.
     /// </summary>
-    IntPtr Address { get; }
+    nint Address { get; }
 
     /// <summary>
     /// Gets a list of buffs or debuffs applied to this party member.
@@ -108,69 +110,82 @@ public interface IPartyMember
 }
 
 /// <summary>
-/// This class represents a party member in the group manager.
+/// This struct represents a party member in the group manager.
 /// </summary>
-internal unsafe class PartyMember : IPartyMember
+/// <param name="ptr">A pointer to the PartyMember.</param>
+internal unsafe readonly struct PartyMember(CSPartyMember* ptr) : IPartyMember
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PartyMember"/> class.
-    /// </summary>
-    /// <param name="address">Address of the party member.</param>
-    internal PartyMember(IntPtr address)
-    {
-        this.Address = address;
-    }
+    /// <inheritdoc/>
+    public nint Address => (nint)ptr;
 
     /// <inheritdoc/>
-    public IntPtr Address { get; }
+    public StatusList Statuses => new(&ptr->StatusManager);
 
     /// <inheritdoc/>
-    public StatusList Statuses => new(&this.Struct->StatusManager);
+    public Vector3 Position => ptr->Position;
 
     /// <inheritdoc/>
-    public Vector3 Position => this.Struct->Position;
+    [Api15ToDo("Change type to ulong.")]
+    public long ContentId => (long)ptr->ContentId;
 
     /// <inheritdoc/>
-    public long ContentId => (long)this.Struct->ContentId;
+    public uint ObjectId => ptr->EntityId;
 
     /// <inheritdoc/>
-    public uint ObjectId => this.Struct->EntityId;
-
-    /// <inheritdoc/>
-    public uint EntityId => this.Struct->EntityId;
+    public uint EntityId => ptr->EntityId;
 
     /// <inheritdoc/>
     public IGameObject? GameObject => Service<ObjectTable>.Get().SearchById(this.EntityId);
 
     /// <inheritdoc/>
-    public uint CurrentHP => this.Struct->CurrentHP;
+    public uint CurrentHP => ptr->CurrentHP;
 
     /// <inheritdoc/>
-    public uint MaxHP => this.Struct->MaxHP;
+    public uint MaxHP => ptr->MaxHP;
 
     /// <inheritdoc/>
-    public ushort CurrentMP => this.Struct->CurrentMP;
+    public ushort CurrentMP => ptr->CurrentMP;
 
     /// <inheritdoc/>
-    public ushort MaxMP => this.Struct->MaxMP;
+    public ushort MaxMP => ptr->MaxMP;
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.TerritoryType> Territory => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(this.Struct->TerritoryType);
+    public RowRef<Lumina.Excel.Sheets.TerritoryType> Territory => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(ptr->TerritoryType);
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.World> World => LuminaUtils.CreateRef<Lumina.Excel.Sheets.World>(this.Struct->HomeWorld);
+    public RowRef<Lumina.Excel.Sheets.World> World => LuminaUtils.CreateRef<Lumina.Excel.Sheets.World>(ptr->HomeWorld);
 
     /// <inheritdoc/>
-    public SeString Name => SeString.Parse(this.Struct->Name);
+    public SeString Name => SeString.Parse(ptr->Name);
 
     /// <inheritdoc/>
-    public byte Sex => this.Struct->Sex;
+    public byte Sex => ptr->Sex;
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.ClassJob> ClassJob => LuminaUtils.CreateRef<Lumina.Excel.Sheets.ClassJob>(this.Struct->ClassJob);
+    public RowRef<Lumina.Excel.Sheets.ClassJob> ClassJob => LuminaUtils.CreateRef<Lumina.Excel.Sheets.ClassJob>(ptr->ClassJob);
 
     /// <inheritdoc/>
-    public byte Level => this.Struct->Level;
+    public byte Level => ptr->Level;
 
-    private FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember*)this.Address;
+    public static bool operator ==(PartyMember x, PartyMember y) => x.Equals(y);
+
+    public static bool operator !=(PartyMember x, PartyMember y) => !(x == y);
+
+    /// <inheritdoc/>
+    public bool Equals(IPartyMember? other)
+    {
+        return this.EntityId == other.EntityId;
+    }
+
+    /// <inheritdoc/>
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        return obj is PartyMember fate && this.Equals(fate);
+    }
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return this.EntityId.GetHashCode();
+    }
 }

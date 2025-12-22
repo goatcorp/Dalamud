@@ -1,9 +1,8 @@
 name: Build Dalamud
 on: [push, pull_request, workflow_dispatch]
 
-# Globally blocking because of git pushes in deploy step
 concurrency:
-  group: build_dalamud_${{ github.repository_owner }}
+  group: build_dalamud_${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -24,7 +23,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
       - uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '9.0.200'
+          dotnet-version: '10.0.100'
       - name: Define VERSION
         run: |
           $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)

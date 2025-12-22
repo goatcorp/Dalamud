@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 using Dalamud.Data;
+using Dalamud.Utility;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -87,14 +86,12 @@ public class PlayerPayload : Payload
     /// <inheritdoc/>
     protected override byte[] EncodeImpl()
     {
-        var ssb = Lumina.Text.SeStringBuilder.SharedPool.Get();
-        var res = ssb
-                  .PushLinkCharacter(this.playerName, this.serverId)
-                  .Append(this.playerName)
-                  .PopLink()
-                  .ToArray();
-        Lumina.Text.SeStringBuilder.SharedPool.Return(ssb);
-        return res;
+        using var rssb = new RentedSeStringBuilder();
+        return rssb.Builder
+            .PushLinkCharacter(this.playerName, this.serverId)
+            .Append(this.playerName)
+            .PopLink()
+            .ToArray();
     }
 
     /// <inheritdoc/>

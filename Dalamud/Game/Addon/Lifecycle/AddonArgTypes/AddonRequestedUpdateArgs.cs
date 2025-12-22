@@ -3,13 +3,12 @@ namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 /// <summary>
 /// Addon argument data for OnRequestedUpdate events.
 /// </summary>
-public class AddonRequestedUpdateArgs : AddonArgs, ICloneable
+public class AddonRequestedUpdateArgs : AddonArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonRequestedUpdateArgs"/> class.
     /// </summary>
-    [Obsolete("Not intended for public construction.", false)]
-    public AddonRequestedUpdateArgs()
+    internal AddonRequestedUpdateArgs()
     {
     }
 
@@ -25,18 +24,4 @@ public class AddonRequestedUpdateArgs : AddonArgs, ICloneable
     /// Gets or sets the StringArrayData** for this event.
     /// </summary>
     public nint StringArrayData { get; set; }
-
-    /// <inheritdoc cref="ICloneable.Clone"/>
-    public AddonRequestedUpdateArgs Clone() => (AddonRequestedUpdateArgs)this.MemberwiseClone();
-
-    /// <inheritdoc cref="Clone"/>
-    object ICloneable.Clone() => this.Clone();
-
-    /// <inheritdoc cref="AddonArgs.Clear"/>
-    internal override void Clear()
-    {
-        base.Clear();
-        this.NumberArrayData = default;
-        this.StringArrayData = default;
-    }
 }

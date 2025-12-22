@@ -26,8 +26,6 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Text.ReadOnly;
 using Serilog;
 
-using LSeStringBuilder = Lumina.Text.SeStringBuilder;
-
 namespace Dalamud.Interface.Internal.Windows;
 
 /// <summary>
@@ -472,9 +470,9 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
     private unsafe void OnVersionStringDraw(AddonEvent ev, AddonArgs args)
     {
-        if (args is not AddonDrawArgs drawArgs) return;
+        if (ev is not (AddonEvent.PostDraw or AddonEvent.PreDraw)) return;
 
-        var addon = drawArgs.Addon.Struct;
+        var addon = args.Addon.Struct;
         var textNode = addon->GetTextNodeById(3);
 
         // look and feel init. should be harmless to set.
@@ -498,20 +496,23 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             return;
         this.lastLoadedPluginCount = count;
 
-        var lssb = LSeStringBuilder.SharedPool.Get();
-        lssb.Append(new ReadOnlySeStringSpan(addon->AtkValues[1].String.Value)).Append("\n\n");
-        lssb.PushEdgeColorType(701).PushColorType(539)
-            .Append(SeIconChar.BoxedLetterD.ToIconChar())
-            .PopColorType().PopEdgeColorType();
-        lssb.Append($" Dalamud: {Util.GetScmVersion()}");
+        using var rssb = new RentedSeStringBuilder();
 
-        lssb.Append($" - {count} {(count != 1 ? "plugins" : "plugin")} loaded");
+        rssb.Builder
+            .Append(new ReadOnlySeStringSpan(addon->AtkValues[1].String.Value))
+            .Append("\n\n")
+            .PushEdgeColorType(701)
+            .PushColorType(539)
+            .Append(SeIconChar.BoxedLetterD.ToIconChar())
+            .PopColorType()
+            .PopEdgeColorType()
+            .Append($" Dalamud: {Versioning.GetScmVersion()}")
+            .Append($" - {count} {(count != 1 ? "plugins" : "plugin")} loaded");
 
         if (pm?.SafeMode is true)
-            lssb.PushColorType(17).Append(" [SAFE MODE]").PopColorType();
+            rssb.Builder.PushColorType(17).Append(" [SAFE MODE]").PopColorType();
 
-        textNode->SetText(lssb.GetViewAsSpan());
-        LSeStringBuilder.SharedPool.Return(lssb);
+        textNode->SetText(rssb.Builder.GetViewAsSpan());
     }
 
     private void TitleScreenMenuEntryListChange() => this.privateAtlas.BuildFontsAsync();

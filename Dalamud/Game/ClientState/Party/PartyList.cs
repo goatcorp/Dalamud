@@ -9,6 +9,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 
 using CSGroupManager = FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager;
+using CSPartyMember = FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember;
 
 namespace Dalamud.Game.ClientState.Party;
 
@@ -43,20 +44,20 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     public bool IsAlliance => this.GroupManagerStruct->MainGroup.AllianceFlags > 0;
 
     /// <inheritdoc/>
-    public unsafe IntPtr GroupManagerAddress => (nint)CSGroupManager.Instance();
+    public unsafe nint GroupManagerAddress => (nint)CSGroupManager.Instance();
 
     /// <inheritdoc/>
-    public IntPtr GroupListAddress => (IntPtr)Unsafe.AsPointer(ref GroupManagerStruct->MainGroup.PartyMembers[0]);
+    public nint GroupListAddress => (nint)Unsafe.AsPointer(ref GroupManagerStruct->MainGroup.PartyMembers[0]);
 
     /// <inheritdoc/>
-    public IntPtr AllianceListAddress => (IntPtr)Unsafe.AsPointer(ref this.GroupManagerStruct->MainGroup.AllianceMembers[0]);
+    public nint AllianceListAddress => (nint)Unsafe.AsPointer(ref this.GroupManagerStruct->MainGroup.AllianceMembers[0]);
 
     /// <inheritdoc/>
     public long PartyId => this.GroupManagerStruct->MainGroup.PartyId;
 
-    private static int PartyMemberSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember>();
+    private static int PartyMemberSize { get; } = Marshal.SizeOf<CSPartyMember>();
 
-    private FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager* GroupManagerStruct => (FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager*)this.GroupManagerAddress;
+    private CSGroupManager* GroupManagerStruct => (CSGroupManager*)this.GroupManagerAddress;
 
     /// <inheritdoc/>
     public IPartyMember? this[int index]
@@ -81,39 +82,45 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     }
 
     /// <inheritdoc/>
-    public IntPtr GetPartyMemberAddress(int index)
+    public nint GetPartyMemberAddress(int index)
     {
         if (index < 0 || index >= GroupLength)
-            return IntPtr.Zero;
+            return 0;
 
         return this.GroupListAddress + (index * PartyMemberSize);
     }
 
     /// <inheritdoc/>
-    public IPartyMember? CreatePartyMemberReference(IntPtr address)
+    public IPartyMember? CreatePartyMemberReference(nint address)
     {
-        if (address == IntPtr.Zero || !this.playerState.IsLoaded)
+        if (this.playerState.ContentId == 0)
             return null;
 
-        return new PartyMember(address);
+        if (address == 0)
+            return null;
+
+        return new PartyMember((CSPartyMember*)address);
     }
 
     /// <inheritdoc/>
-    public IntPtr GetAllianceMemberAddress(int index)
+    public nint GetAllianceMemberAddress(int index)
     {
         if (index < 0 || index >= AllianceLength)
-            return IntPtr.Zero;
+            return 0;
 
         return this.AllianceListAddress + (index * PartyMemberSize);
     }
 
     /// <inheritdoc/>
-    public IPartyMember? CreateAllianceMemberReference(IntPtr address)
+    public IPartyMember? CreateAllianceMemberReference(nint address)
     {
-        if (address == IntPtr.Zero || !this.playerState.IsLoaded)
+        if (this.playerState.ContentId == 0)
             return null;
 
-        return new PartyMember(address);
+        if (address == 0)
+            return null;
+
+        return new PartyMember((CSPartyMember*)address);
     }
 }
 
@@ -128,18 +135,43 @@ internal sealed partial class PartyList
     /// <inheritdoc/>
     public IEnumerator<IPartyMember> GetEnumerator()
     {
-        // Normally using Length results in a recursion crash, however we know the party size via ptr.
-        for (var i = 0; i < this.Length; i++)
-        {
-            var member = this[i];
-
-            if (member == null)
-                break;
-
-            yield return member;
-        }
+        return new Enumerator(this);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+    private struct Enumerator(PartyList partyList) : IEnumerator<IPartyMember>
+    {
+        private int index = -1;
+
+        public IPartyMember Current { get; private set; }
+
+        object IEnumerator.Current => this.Current;
+
+        public bool MoveNext()
+        {
+            while (++this.index < partyList.Length)
+            {
+                var partyMember = partyList[this.index];
+                if (partyMember != null)
+                {
+                    this.Current = partyMember;
+                    return true;
+                }
+            }
+
+            this.Current = default;
+            return false;
+        }
+
+        public void Reset()
+        {
+            this.index = -1;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
 }

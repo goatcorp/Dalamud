@@ -11,7 +11,7 @@ namespace Dalamud.Configuration;
 /// <summary>
 /// Configuration to store settings for a dalamud plugin.
 /// </summary>
-[Api13ToDo("Make this a service. We need to be able to dispose it reliably to write configs asynchronously. Maybe also let people write files with vfs.")]
+[Api15ToDo("Make this a service. We need to be able to dispose it reliably to write configs asynchronously. Maybe also let people write files with vfs.")]
 public sealed class PluginConfigurations
 {
     private readonly DirectoryInfo configDirectory;

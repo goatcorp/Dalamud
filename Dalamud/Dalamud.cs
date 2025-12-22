@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Hooking.Internal.Verification;
 using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
@@ -72,6 +73,11 @@ internal sealed unsafe class Dalamud : IServiceType
             configuration,
             scanner,
             Localization.FromAssets(info.AssetDirectory!, configuration.LanguageOverride));
+
+        using (Timings.Start("HookVerifier Init"))
+        {
+            HookVerifier.Initialize(scanner);
+        }
 
         // Set up FFXIVClientStructs
         this.SetupClientStructsResolver(cacheDir);

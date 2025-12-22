@@ -9,7 +9,6 @@ using Dalamud.Utility;
 using Lumina.Excel;
 using Lumina.Text.ReadOnly;
 
-using LSeStringBuilder = Lumina.Text.SeStringBuilder;
 using LSheets = Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Text.Noun;
@@ -147,30 +146,28 @@ internal class NounProcessor : IServiceType
 
         var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(LSheets.Attributive));
 
-        var builder = LSeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
         // Ko-So-A-Do
         var ksad = attributiveSheet.GetRow((uint)nounParams.ArticleType).ReadStringColumn(nounParams.Quantity > 1 ? 1 : 0);
         if (!ksad.IsEmpty)
         {
-            builder.Append(ksad);
+            rssb.Builder.Append(ksad);
 
             if (nounParams.Quantity > 1)
             {
-                builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
+                rssb.Builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
             }
         }
 
         if (!nounParams.LinkMarker.IsEmpty)
-            builder.Append(nounParams.LinkMarker);
+            rssb.Builder.Append(nounParams.LinkMarker);
 
         var text = row.ReadStringColumn(nounParams.ColumnOffset);
         if (!text.IsEmpty)
-            builder.Append(text);
+            rssb.Builder.Append(text);
 
-        var ross = builder.ToReadOnlySeString();
-        LSeStringBuilder.SharedPool.Return(builder);
-        return ross;
+        return rssb.Builder.ToReadOnlySeString();
     }
 
     /// <summary>
@@ -200,7 +197,7 @@ internal class NounProcessor : IServiceType
 
         var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(LSheets.Attributive));
 
-        var builder = LSeStringBuilder.SharedPool.Get();
+        using var rssb = new RentedSeStringBuilder();
 
         var isProperNounColumn = nounParams.ColumnOffset + ArticleColumnIdx;
         var isProperNoun = isProperNounColumn >= 0 ? row.ReadInt8Column(isProperNounColumn) : ~isProperNounColumn;
@@ -216,21 +213,19 @@ internal class NounProcessor : IServiceType
             var article = attributiveSheet.GetRow((uint)nounParams.ArticleType)
                                           .ReadStringColumn(articleColumn + grammaticalNumberColumnOffset);
             if (!article.IsEmpty)
-                builder.Append(article);
+                rssb.Builder.Append(article);
 
             if (!nounParams.LinkMarker.IsEmpty)
-                builder.Append(nounParams.LinkMarker);
+                rssb.Builder.Append(nounParams.LinkMarker);
         }
 
         var text = row.ReadStringColumn(nounParams.ColumnOffset + (nounParams.Quantity == 1 ? SingularColumnIdx : PluralColumnIdx));
         if (!text.IsEmpty)
-            builder.Append(text);
+            rssb.Builder.Append(text);
 
-        builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
+        rssb.Builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
 
-        var ross = builder.ToReadOnlySeString();
-        LSeStringBuilder.SharedPool.Return(builder);
-        return ross;
+        return rssb.Builder.ToReadOnlySeString();
     }
 
     /// <summary>
@@ -262,17 +257,13 @@ internal class NounProcessor : IServiceType
 
         var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(LSheets.Attributive));
 
-        var builder = LSeStringBuilder.SharedPool.Get();
-        ReadOnlySeString ross;
+        using var rssb = new RentedSeStringBuilder();
 
         if (nounParams.IsActionSheet)
         {
-            builder.Append(row.ReadStringColumn(nounParams.GrammaticalCase));
-            builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
-
-            ross = builder.ToReadOnlySeString();
-            LSeStringBuilder.SharedPool.Return(builder);
-            return ross;
+            rssb.Builder.Append(row.ReadStringColumn(nounParams.GrammaticalCase));
+            rssb.Builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
+            return rssb.Builder.ToReadOnlySeString();
         }
 
         var genderIndexColumn = nounParams.ColumnOffset + PronounColumnIdx;
@@ -302,35 +293,32 @@ internal class NounProcessor : IServiceType
                 var grammaticalGender = attributiveSheet.GetRow((uint)nounParams.ArticleType)
                                                         .ReadStringColumn(caseColumnOffset + genderIndex); // Genus
                 if (!grammaticalGender.IsEmpty)
-                    builder.Append(grammaticalGender);
+                    rssb.Builder.Append(grammaticalGender);
             }
 
             if (!nounParams.LinkMarker.IsEmpty)
-                builder.Append(nounParams.LinkMarker);
+                rssb.Builder.Append(nounParams.LinkMarker);
 
-            builder.Append(text);
+            rssb.Builder.Append(text);
 
             var plural = attributiveSheet.GetRow((uint)(caseRowOffset + 26))
                                          .ReadStringColumn(caseColumnOffset + genderIndex);
-            if (builder.ContainsText("[p]"u8))
-                builder.ReplaceText("[p]"u8, plural);
+            if (rssb.Builder.ContainsText("[p]"u8))
+                rssb.Builder.ReplaceText("[p]"u8, plural);
             else
-                builder.Append(plural);
+                rssb.Builder.Append(plural);
 
             if (hasT)
             {
                 var article =
                     attributiveSheet.GetRow(39).ReadStringColumn(caseColumnOffset + genderIndex); // Definiter Artikel
-                builder.ReplaceText("[t]"u8, article);
+                rssb.Builder.ReplaceText("[t]"u8, article);
             }
         }
 
-        var pa = attributiveSheet.GetRow(24).ReadStringColumn(caseColumnOffset + genderIndex);
-        builder.ReplaceText("[pa]"u8, pa);
+        rssb.Builder.ReplaceText("[pa]"u8, attributiveSheet.GetRow(24).ReadStringColumn(caseColumnOffset + genderIndex));
 
-        RawRow declensionRow;
-
-        declensionRow = (GermanArticleType)nounParams.ArticleType switch
+        var declensionRow = (GermanArticleType)nounParams.ArticleType switch
         {
             // Schwache Flexion eines Adjektivs?!
             GermanArticleType.Possessive or GermanArticleType.Demonstrative => attributiveSheet.GetRow(25),
@@ -347,14 +335,10 @@ internal class NounProcessor : IServiceType
             _ => attributiveSheet.GetRow(26),
         };
 
-        var declension = declensionRow.ReadStringColumn(caseColumnOffset + genderIndex);
-        builder.ReplaceText("[a]"u8, declension);
+        rssb.Builder.ReplaceText("[a]"u8, declensionRow.ReadStringColumn(caseColumnOffset + genderIndex));
+        rssb.Builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
 
-        builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
-
-        ross = builder.ToReadOnlySeString();
-        LSeStringBuilder.SharedPool.Return(builder);
-        return ross;
+        return rssb.Builder.ToReadOnlySeString();
     }
 
     /// <summary>
@@ -385,8 +369,7 @@ internal class NounProcessor : IServiceType
 
         var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(LSheets.Attributive));
 
-        var builder = LSeStringBuilder.SharedPool.Get();
-        ReadOnlySeString ross;
+        using var rssb = new RentedSeStringBuilder();
 
         var startsWithVowelColumn = nounParams.ColumnOffset + StartsWithVowelColumnIdx;
         var startsWithVowel = startsWithVowelColumn >= 0
@@ -405,21 +388,19 @@ internal class NounProcessor : IServiceType
         {
             var v21 = attributiveSheet.GetRow((uint)nounParams.ArticleType).ReadStringColumn(v20);
             if (!v21.IsEmpty)
-                builder.Append(v21);
+                rssb.Builder.Append(v21);
 
             if (!nounParams.LinkMarker.IsEmpty)
-                builder.Append(nounParams.LinkMarker);
+                rssb.Builder.Append(nounParams.LinkMarker);
 
             var text = row.ReadStringColumn(nounParams.ColumnOffset + (nounParams.Quantity <= 1 ? SingularColumnIdx : PluralColumnIdx));
             if (!text.IsEmpty)
-                builder.Append(text);
+                rssb.Builder.Append(text);
 
             if (nounParams.Quantity <= 1)
-                builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
+                rssb.Builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
 
-            ross = builder.ToReadOnlySeString();
-            LSeStringBuilder.SharedPool.Return(builder);
-            return ross;
+            return rssb.Builder.ToReadOnlySeString();
         }
 
         var v17 = row.ReadInt8Column(nounParams.ColumnOffset + Unknown5ColumnIdx);
@@ -428,34 +409,32 @@ internal class NounProcessor : IServiceType
             var v29 = attributiveSheet.GetRow((uint)nounParams.ArticleType).ReadStringColumn(v20 + 2);
             if (!v29.IsEmpty)
             {
-                builder.Append(v29);
+                rssb.Builder.Append(v29);
 
                 if (!nounParams.LinkMarker.IsEmpty)
-                    builder.Append(nounParams.LinkMarker);
+                    rssb.Builder.Append(nounParams.LinkMarker);
 
                 var text = row.ReadStringColumn(nounParams.ColumnOffset + PluralColumnIdx);
                 if (!text.IsEmpty)
-                    builder.Append(text);
+                    rssb.Builder.Append(text);
             }
         }
         else
         {
             var v27 = attributiveSheet.GetRow((uint)nounParams.ArticleType).ReadStringColumn(v20 + (v17 != 0 ? 1 : 3));
             if (!v27.IsEmpty)
-                builder.Append(v27);
+                rssb.Builder.Append(v27);
 
             if (!nounParams.LinkMarker.IsEmpty)
-                builder.Append(nounParams.LinkMarker);
+                rssb.Builder.Append(nounParams.LinkMarker);
 
             var text = row.ReadStringColumn(nounParams.ColumnOffset + SingularColumnIdx);
             if (!text.IsEmpty)
-                builder.Append(text);
+                rssb.Builder.Append(text);
         }
 
-        builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
+        rssb.Builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
 
-        ross = builder.ToReadOnlySeString();
-        LSeStringBuilder.SharedPool.Return(builder);
-        return ross;
+        return rssb.Builder.ToReadOnlySeString();
     }
 }

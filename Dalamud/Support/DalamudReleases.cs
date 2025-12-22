@@ -38,7 +38,7 @@ internal class DalamudReleases : IServiceType
     /// <returns>The version info for the current track.</returns>
     public async Task<DalamudVersionInfo?> GetVersionForCurrentTrack()
     {
-        var currentTrack = Util.GetActiveTrack();
+        var currentTrack = Versioning.GetActiveTrack();
         if (currentTrack.IsNullOrEmpty())
             return null;
 

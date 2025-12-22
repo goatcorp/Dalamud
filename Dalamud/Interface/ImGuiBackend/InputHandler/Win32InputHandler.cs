@@ -713,7 +713,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     hbrBackground = (HBRUSH)(1 + COLOR.COLOR_BACKGROUND),
                     lpfnWndProc = (delegate* unmanaged<HWND, uint, WPARAM, LPARAM, LRESULT>)Marshal
                         .GetFunctionPointerForDelegate(this.input.wndProcDelegate),
-                    lpszClassName = (ushort*)windowClassNamePtr,
+                    lpszClassName = windowClassNamePtr,
                 };
 
                 if (RegisterClassExW(&wcex) == 0)
@@ -742,7 +742,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             fixed (char* windowClassNamePtr = WindowClassName)
             {
                 UnregisterClassW(
-                    (ushort*)windowClassNamePtr,
+                    windowClassNamePtr,
                     (HINSTANCE)Marshal.GetHINSTANCE(typeof(ViewportHandler).Module));
             }
 
@@ -856,8 +856,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             {
                 data->Hwnd = CreateWindowExW(
                     (uint)data->DwExStyle,
-                    (ushort*)windowClassNamePtr,
-                    (ushort*)windowClassNamePtr,
+                    windowClassNamePtr,
+                    windowClassNamePtr,
                     (uint)data->DwStyle,
                     rect.left,
                     rect.top,
@@ -1071,7 +1071,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
         {
             var data = (ImGuiViewportDataWin32*)viewport.PlatformUserData;
             fixed (char* pwszTitle = MemoryHelper.ReadStringNullTerminated((nint)title))
-                SetWindowTextW(data->Hwnd, (ushort*)pwszTitle);
+                SetWindowTextW(data->Hwnd, pwszTitle);
         }
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]

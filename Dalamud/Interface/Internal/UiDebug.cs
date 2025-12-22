@@ -420,13 +420,13 @@ internal unsafe class UiDebug
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.RawString);
 
-                    ImGui.Text("Text1: "u8);
-                    ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText01);
-
-                    ImGui.Text("Text2: "u8);
-                    ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText02);
+                    // ImGui.Text("Text1: "u8);
+                    // ImGui.SameLine();
+                    // Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText01);
+                    //
+                    // ImGui.Text("Text2: "u8);
+                    // ImGui.SameLine();
+                    // Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText02);
 
                     ImGui.Text("AvailableLines: "u8);
                     ImGui.SameLine();

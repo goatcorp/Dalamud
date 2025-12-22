@@ -223,7 +223,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
                                                   .Select(plugin => $"{plugin.Manifest.Name} by {plugin.Manifest.Author}\n")
                                                   .Aggregate(string.Empty, (current, next) => $"{current}{next}");
 
-        this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Util.GetGitHashClientStructs());
+        this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Versioning.GetGitHashClientStructs());
 
         var gameGui = Service<GameGui>.Get();
         var playerState = PlayerState.Instance();

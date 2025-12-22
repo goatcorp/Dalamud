@@ -15,7 +15,6 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-using SharpDX.DXGI;
 using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -753,7 +752,7 @@ internal sealed partial class FontAtlasFactory
                             new(
                                 width,
                                 height,
-                                (int)(use4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm),
+                                (int)(use4 ? DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM),
                                 width * bpp),
                             buf,
                             name);

@@ -15,7 +15,7 @@ using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
-using Dalamud.Plugin.Services;
+using Dalamud.Plugin.VersionInfo;
 
 namespace Dalamud.Plugin;
 
@@ -193,6 +193,12 @@ public interface IDalamudPluginInterface : IServiceProvider
     /// <param name="context">The context to check.</param>
     /// <returns>The plugin that loads in the given context, or null if this isn't a plugin's context or if this information cannot be determined.</returns>
     IExposedPlugin? GetPlugin(AssemblyLoadContext context);
+
+    /// <summary>
+    /// Gets information about the version of Dalamud this plugin is loaded into.
+    /// </summary>
+    /// <returns>Class containing version information.</returns>
+    IDalamudVersionInfo GetDalamudVersion();
 
     /// <inheritdoc cref="DataShare.GetOrCreateData{T}"/>
     T GetOrCreateData<T>(string tag, Func<T> dataGenerator) where T : class;

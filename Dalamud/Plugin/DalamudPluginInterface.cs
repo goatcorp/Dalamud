@@ -16,18 +16,15 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Internal.Windows.PluginInstaller;
-using Dalamud.Interface.Internal.Windows.SelfTest;
-using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
-using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
-using Dalamud.Plugin.Services;
+using Dalamud.Plugin.VersionInfo;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -204,11 +201,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
         return true;
     }
 
-    /// <summary>
-    /// Gets the plugin the given assembly is part of.
-    /// </summary>
-    /// <param name="assembly">The assembly to check.</param>
-    /// <returns>The plugin the given assembly is part of, or null if this is a shared assembly or if this information cannot be determined.</returns>
+    /// <inheritdoc/>
     public IExposedPlugin? GetPlugin(Assembly assembly)
         => AssemblyLoadContext.GetLoadContext(assembly) switch
         {
@@ -216,17 +209,19 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
             var context => this.GetPlugin(context),
         };
 
-    /// <summary>
-    /// Gets the plugin that loads in the given context.
-    /// </summary>
-    /// <param name="context">The context to check.</param>
-    /// <returns>The plugin that loads in the given context, or null if this isn't a plugin's context or if this information cannot be determined.</returns>
+    /// <inheritdoc/>
     public IExposedPlugin? GetPlugin(AssemblyLoadContext context)
         => Service<PluginManager>.Get().InstalledPlugins.FirstOrDefault(p => p.LoadsIn(context)) switch
         {
             null => null,
             var p => new ExposedPlugin(p),
         };
+
+    /// <inheritdoc/>
+    public IDalamudVersionInfo GetDalamudVersion()
+    {
+        return new DalamudVersionInfo(Versioning.GetAssemblyVersionParsed(), Versioning.GetActiveTrack(), Versioning.GetGitHash(), Versioning.GetGitHashClientStructs(), Versioning.GetScmVersion());
+    }
 
     #region IPC
 
@@ -248,75 +243,75 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     /// <inheritdoc/>
     public ICallGateProvider<TRet> GetIpcProvider<TRet>(string name)
-        => new CallGatePubSub<TRet>(name);
+        => new CallGatePubSub<TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, TRet> GetIpcProvider<T1, TRet>(string name)
-        => new CallGatePubSub<T1, TRet>(name);
+        => new CallGatePubSub<T1, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, TRet> GetIpcProvider<T1, T2, TRet>(string name)
-        => new CallGatePubSub<T1, T2, TRet>(name);
+        => new CallGatePubSub<T1, T2, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, TRet> GetIpcProvider<T1, T2, T3, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, TRet> GetIpcProvider<T1, T2, T3, T4, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, TRet> GetIpcProvider<T1, T2, T3, T4, T5, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, T6, TRet> GetIpcProvider<T1, T2, T3, T4, T5, T6, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, TRet> GetIpcProvider<T1, T2, T3, T4, T5, T6, T7, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, T8, TRet> GetIpcProvider<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<TRet> GetIpcSubscriber<TRet>(string name)
-        => new CallGatePubSub<TRet>(name);
+        => new CallGatePubSub<TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, TRet> GetIpcSubscriber<T1, TRet>(string name)
-        => new CallGatePubSub<T1, TRet>(name);
+        => new CallGatePubSub<T1, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, TRet> GetIpcSubscriber<T1, T2, TRet>(string name)
-        => new CallGatePubSub<T1, T2, TRet>(name);
+        => new CallGatePubSub<T1, T2, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, TRet> GetIpcSubscriber<T1, T2, T3, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, TRet> GetIpcSubscriber<T1, T2, T3, T4, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, T6, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, T6, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, T6, T7, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, TRet>(name, this.plugin);
 
     /// <inheritdoc/>
     public ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(string name)
-        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name);
+        => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name, this.plugin);
 
     #endregion
 

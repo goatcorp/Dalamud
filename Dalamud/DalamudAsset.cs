@@ -73,7 +73,7 @@ public enum DalamudAsset
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
     [DalamudAssetPath("UIRes", "troubleIcon.png")]
     TroubleIcon = 1006,
-    
+
     /// <summary>
     /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: The plugin trouble icon overlay.
     /// </summary>
@@ -130,6 +130,12 @@ public enum DalamudAsset
     [DalamudAsset(DalamudAssetPurpose.Font)]
     [DalamudAssetPath("UIRes", "NotoSansCJK-Medium.ttc")]
     NotoSansCJKMedium = 2000,
+    
+    /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: Atlas containing badges.
+    /// </summary>
+    [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
+    [DalamudAssetPath("UIRes", "badgeAtlas.png")]
+    BadgeAtlas = 1015,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK JP Medium.
@@ -165,7 +171,7 @@ public enum DalamudAsset
     /// <see cref="DalamudAssetPurpose.Font"/>: FontAwesome Free Solid.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.Font)]
-    [DalamudAssetPath("UIRes", "FontAwesomeFreeSolid.otf")]
+    [DalamudAssetPath("UIRes", "FontAwesome710FreeSolid.otf")]
     FontAwesomeFreeSolid = 2003,
 
     /// <summary>

@@ -13,7 +13,6 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
-using Dalamud.Plugin;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using Serilog;
@@ -151,13 +150,6 @@ public interface IUiBuilder
     /// </summary>
     public ImFontPtr FontMono { get; }
 
-    /// <summary>
-    /// Gets the game's active Direct3D device.
-    /// </summary>
-    // TODO: Remove it on API11/APIXI, and remove SharpDX/PInvoke/etc. dependency from Dalamud.
-    [Obsolete($"Use {nameof(DeviceHandle)} and wrap it using DirectX wrapper library of your choice.")]
-    SharpDX.Direct3D11.Device Device { get; }
-
     /// <summary>Gets the game's active Direct3D device.</summary>
     /// <value>Pointer to the instance of IUnknown that the game is using and should be containing an ID3D11Device,
     /// or 0 if it is not available yet.</value>
@@ -226,6 +218,12 @@ public interface IUiBuilder
     /// intrusive animations, or disable them entirely.
     /// </summary>
     bool ShouldUseReducedMotion { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the user has enabled the "Enable sound effects for plugin windows" setting.<br />
+    /// This setting is effected by the in-game "System Sounds" option and volume.
+    /// </summary>
+    bool PluginUISoundEffectsEnabled { get; }
 
     /// <summary>
     /// Loads an ULD file that can load textures containing multiple icons in a single texture.
@@ -302,8 +300,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     private IFontHandle? iconFontHandle;
     private IFontHandle? monoFontHandle;
     private IFontHandle? iconFontFixedWidthHandle;
-
-    private SharpDX.Direct3D11.Device? sdxDevice;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
@@ -495,12 +491,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
                     ?? throw new InvalidOperationException("Scene is not yet ready.")));
 
     /// <inheritdoc/>
-    // TODO: Remove it on API11/APIXI, and remove SharpDX/PInvoke/etc. dependency from Dalamud.
-    [Obsolete($"Use {nameof(DeviceHandle)} and wrap it using DirectX wrapper library of your choice.")]
-    public SharpDX.Direct3D11.Device Device =>
-        this.sdxDevice ??= new(this.InterfaceManagerWithScene!.Backend!.DeviceHandle);
-
-    /// <inheritdoc/>
     public nint DeviceHandle => this.InterfaceManagerWithScene?.Backend?.DeviceHandle ?? 0;
 
     /// <inheritdoc/>
@@ -575,6 +565,9 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// intrusive animations, or disable them entirely.
     /// </summary>
     public bool ShouldUseReducedMotion => Service<DalamudConfiguration>.Get().ReduceMotions ?? false;
+
+    /// <inheritdoc />
+    public bool PluginUISoundEffectsEnabled => Service<DalamudConfiguration>.Get().EnablePluginUISoundEffects;
 
     /// <summary>
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.

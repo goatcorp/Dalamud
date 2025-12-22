@@ -162,15 +162,14 @@ internal class SeStringRenderer : IServiceType
         if (drawParams.Font.HasValue)
             font = drawParams.Font.Value;
 
-        // API14: Remove commented out code
-        if (ThreadSafety.IsMainThread /* && drawParams.TargetDrawList is null */ && font is null)
+        if (ThreadSafety.IsMainThread && drawParams.TargetDrawList is null && font is null)
             font = ImGui.GetFont();
         if (font is null)
             throw new ArgumentException("Specified font is empty.");
 
         // This also does argument validation for drawParams. Do it here.
         // `using var` makes a struct read-only, but we do want to modify it.
-        var stateStorage = new SeStringDrawState(
+        using var stateStorage = new SeStringDrawState(
             sss,
             drawParams,
             ThreadSafety.IsMainThread ? this.colorStackSetMainThread : new(this.colorStackSetMainThread.ColorTypes),

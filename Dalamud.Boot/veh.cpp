@@ -124,6 +124,7 @@ static DalamudExpected<void> append_injector_launch_args(std::vector<std::wstrin
     args.emplace_back(L"--logname=\"" + unicode::convert<std::wstring>(g_startInfo.LogName) + L"\"");
     args.emplace_back(L"--dalamud-plugin-directory=\"" + unicode::convert<std::wstring>(g_startInfo.PluginDirectory) + L"\"");
     args.emplace_back(L"--dalamud-asset-directory=\"" + unicode::convert<std::wstring>(g_startInfo.AssetDirectory) + L"\"");
+    args.emplace_back(L"--dalamud-temp-directory=\"" + unicode::convert<std::wstring>(g_startInfo.TempDirectory) + L"\"");
     args.emplace_back(std::format(L"--dalamud-client-language={}", static_cast<int>(g_startInfo.Language)));
     args.emplace_back(std::format(L"--dalamud-delay-initialize={}", g_startInfo.DelayInitializeMs));
     // NoLoadPlugins/NoLoadThirdPartyPlugins: supplied from DalamudCrashHandler

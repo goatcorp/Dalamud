@@ -1,17 +1,22 @@
+using System.Collections.Generic;
+
+using Dalamud.Game.NativeWrapper;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.Interop;
 
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
 /// Addon argument data for Refresh events.
 /// </summary>
-public class AddonRefreshArgs : AddonArgs, ICloneable
+public class AddonRefreshArgs : AddonArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonRefreshArgs"/> class.
     /// </summary>
-    [Obsolete("Not intended for public construction.", false)]
-    public AddonRefreshArgs()
+    internal AddonRefreshArgs()
     {
     }
 
@@ -31,19 +36,32 @@ public class AddonRefreshArgs : AddonArgs, ICloneable
     /// <summary>
     /// Gets the AtkValues in the form of a span.
     /// </summary>
+    [Obsolete("Pending removal, Use AtkValueEnumerable instead.")]
+    [Api15ToDo("Make this internal, remove obsolete")]
     public unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
 
-    /// <inheritdoc cref="ICloneable.Clone"/>
-    public AddonRefreshArgs Clone() => (AddonRefreshArgs)this.MemberwiseClone();
-
-    /// <inheritdoc cref="Clone"/>
-    object ICloneable.Clone() => this.Clone();
-
-    /// <inheritdoc cref="AddonArgs.Clear"/>
-    internal override void Clear()
+    /// <summary>
+    /// Gets an enumerable collection of <see cref="AtkValuePtr"/> of the event's AtkValues.
+    /// </summary>
+    /// <returns>
+    /// An <see cref="IEnumerable{T}"/> of <see cref="AtkValuePtr"/> corresponding to the event's AtkValues.
+    /// </returns>
+    public IEnumerable<AtkValuePtr> AtkValueEnumerable
     {
-        base.Clear();
-        this.AtkValueCount = default;
-        this.AtkValues = default;
+        get
+        {
+            for (var i = 0; i < this.AtkValueCount; i++)
+            {
+                AtkValuePtr ptr;
+                unsafe
+                {
+#pragma warning disable CS0618 // Type or member is obsolete
+                    ptr = new AtkValuePtr((nint)this.AtkValueSpan.GetPointer(i));
+#pragma warning restore CS0618 // Type or member is obsolete
+                }
+
+                yield return ptr;
+            }
+        }
     }
 }

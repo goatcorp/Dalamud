@@ -3,9 +3,9 @@ using Lumina.Excel.Sheets;
 namespace Dalamud.Game.UnlockState;
 
 /// <summary>
-/// Enum for <see cref="ItemAction.Type"/>.
+/// Enum for <see cref="ItemAction.Action"/>.
 /// </summary>
-internal enum ItemActionType : ushort
+internal enum ItemActionAction : ushort
 {
     /// <summary>
     /// No item action.

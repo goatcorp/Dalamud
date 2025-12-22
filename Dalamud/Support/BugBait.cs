@@ -37,7 +37,7 @@ internal static class BugBait
             Name = plugin.InternalName,
             Version = isTesting ? plugin.TestingAssemblyVersion?.ToString() : plugin.AssemblyVersion.ToString(),
             Platform = Util.GetHostPlatform().ToString(),
-            DalamudHash = Util.GetScmVersion(),
+            DalamudHash = Versioning.GetScmVersion(),
         };
 
         if (includeException)

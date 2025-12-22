@@ -13,8 +13,6 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.Interop;
 
-using Microsoft.Extensions.ObjectPool;
-
 using CSGameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
 using CSGameObjectManager = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager;
 
@@ -37,8 +35,6 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
 
     private readonly CachedEntry[] cachedObjectTable;
 
-    private readonly Enumerator?[] frameworkThreadEnumerators = new Enumerator?[4];
-
     [ServiceManager.ServiceConstructor]
     private unsafe ObjectTable()
     {
@@ -48,9 +44,6 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         this.cachedObjectTable = new CachedEntry[objectTableLength];
         for (var i = 0; i < this.cachedObjectTable.Length; i++)
             this.cachedObjectTable[i] = new(nativeObjectTable.GetPointer(i));
-
-        for (var i = 0; i < this.frameworkThreadEnumerators.Length; i++)
-            this.frameworkThreadEnumerators[i] = new(this, i);
     }
 
     /// <inheritdoc/>
@@ -243,43 +236,25 @@ internal sealed partial class ObjectTable
     public IEnumerator<IGameObject> GetEnumerator()
     {
         ThreadSafety.AssertMainThread();
-
-        // If we're on the framework thread, see if there's an already allocated enumerator available for use.
-        foreach (ref var x in this.frameworkThreadEnumerators.AsSpan())
-        {
-            if (x is not null)
-            {
-                var t = x;
-                x = null;
-                t.Reset();
-                return t;
-            }
-        }
-
-        // No reusable enumerator is available; allocate a new temporary one.
-        return new Enumerator(this, -1);
+        return new Enumerator(this);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-    private sealed class Enumerator(ObjectTable owner, int slotId) : IEnumerator<IGameObject>, IResettable
+    private struct Enumerator(ObjectTable owner) : IEnumerator<IGameObject>
     {
-        private ObjectTable? owner = owner;
-
         private int index = -1;
 
-        public IGameObject Current { get; private set; } = null!;
+        public IGameObject Current { get; private set; }
 
         object IEnumerator.Current => this.Current;
 
         public bool MoveNext()
         {
-            if (this.index == objectTableLength)
-                return false;
+            var cache = owner.cachedObjectTable.AsSpan();
 
-            var cache = this.owner!.cachedObjectTable.AsSpan();
-            for (this.index++; this.index < objectTableLength; this.index++)
+            while (++this.index < objectTableLength)
             {
                 if (cache[this.index].Update() is { } ao)
                 {
@@ -288,24 +263,17 @@ internal sealed partial class ObjectTable
                 }
             }
 
+            this.Current = default;
             return false;
         }
 
-        public void Reset() => this.index = -1;
+        public void Reset()
+        {
+            this.index = -1;
+        }
 
         public void Dispose()
         {
-            if (this.owner is not { } o)
-                return;
-
-            if (slotId != -1)
-                o.frameworkThreadEnumerators[slotId] = this;
-        }
-
-        public bool TryReset()
-        {
-            this.Reset();
-            return true;
         }
     }
 }

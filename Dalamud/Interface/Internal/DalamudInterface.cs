@@ -19,6 +19,9 @@ using Dalamud.Game.Gui;
 using Dalamud.Hooking;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.Internal.Badge;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.Data;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
@@ -182,7 +185,7 @@ internal class DalamudInterface : IInternalDisposableService
                     () => Service<DalamudInterface>.GetNullable()?.ToggleDevMenu(),
                     VirtualKey.SHIFT);
 
-                if (Util.GetActiveTrack() != "release")
+                if (Versioning.GetActiveTrack() != "release")
                 {
                     titleScreenMenu.AddEntryCore(
                         Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
@@ -540,6 +543,25 @@ internal class DalamudInterface : IInternalDisposableService
     /// <param name="widget">Widget to set current.</param>
     public void SetDataWindowWidget(IDataWindowWidget widget) => this.dataWindow.CurrentWidget = widget;
 
+    /// <summary>
+    /// Play an animation when a badge has been unlocked.
+    /// </summary>
+    /// <param name="badge">The badge that has been unlocked.</param>
+    public void StartBadgeUnlockAnimation(BadgeInfo badge)
+    {
+        var badgeTexture = Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(DalamudAsset.BadgeAtlas);
+        var uvs = badge.GetIconUv(badgeTexture.Width, badgeTexture.Height);
+
+        // TODO: Make it more fancy?
+        Service<NotificationManager>.Get().AddNotification(
+            new Notification
+            {
+                Title = "Badge unlocked!",
+                Content = $"You unlocked the badge '{badge.Name()}'",
+                Type = NotificationType.Success,
+            });
+    }
+
     private void OnDraw()
     {
         this.FrameCount++;
@@ -561,6 +583,7 @@ internal class DalamudInterface : IInternalDisposableService
         {
             this.DrawHiddenDevMenuOpener();
             this.DrawDevMenu();
+            this.DrawTitleScreenBadges();
 
             if (Service<GameGui>.Get().GameUiHidden)
                 return;
@@ -589,6 +612,68 @@ internal class DalamudInterface : IInternalDisposableService
         {
             Log.Error(ex, "Error during OnDraw");
         }
+    }
+
+    private void DrawTitleScreenBadges()
+    {
+        if (!this.titleScreenMenuWindow.IsOpen)
+            return;
+
+        var badgeManager = Service<BadgeManager>.Get();
+        if (!this.configuration.ShowBadgesOnTitleScreen || !badgeManager.UnlockedBadges.Any())
+            return;
+
+        var vp = ImGui.GetMainViewport();
+        ImGui.SetNextWindowPos(vp.Pos);
+        ImGui.SetNextWindowSize(vp.Size);
+        ImGuiHelpers.ForceNextWindowMainViewport();
+        ImGui.SetNextWindowBgAlpha(0f);
+
+        ImGui.Begin(
+            "###TitleScreenBadgeWindow"u8,
+            ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
+            ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus |
+            ImGuiWindowFlags.NoNav);
+
+        var badgeAtlas = Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(DalamudAsset.BadgeAtlas);
+        var badgeSize = ImGuiHelpers.GlobalScale * 80;
+        var spacing = ImGuiHelpers.GlobalScale * 10;
+        const float margin = 60f;
+        var startPos = vp.Pos + new Vector2(vp.Size.X - margin, margin);
+
+        // Use the mouse position in screen space for hover detection because the usual ImGui hover checks
+        // don't work with this full-viewport overlay window setup.
+        var mouse = ImGui.GetMousePos();
+
+        foreach (var badge in badgeManager.UnlockedBadges)
+        {
+            var uvs = badge.GetIconUv(badgeAtlas.Width, badgeAtlas.Height);
+
+            startPos.X -= badgeSize;
+            ImGui.SetCursorPos(startPos);
+            ImGui.Image(badgeAtlas.Handle, new Vector2(badgeSize), uvs.Uv0, uvs.Uv1);
+
+            // Get the actual screen-space bounds of the image we just drew
+            var badgeMin = ImGui.GetItemRectMin();
+            var badgeMax = ImGui.GetItemRectMax();
+
+            // add spacing to the left for the next badge
+            startPos.X -= spacing;
+
+            // Manual hit test using mouse position
+            if (mouse.X >= badgeMin.X && mouse.X <= badgeMax.X && mouse.Y >= badgeMin.Y && mouse.Y <= badgeMax.Y)
+            {
+                ImGui.BeginTooltip();
+                ImGui.PushTextWrapPos(300 * ImGuiHelpers.GlobalScale);
+                ImGui.TextWrapped(badge.Name());
+                ImGui.Separator();
+                ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, badge.Description());
+                ImGui.PopTextWrapPos();
+                ImGui.EndTooltip();
+            }
+        }
+
+        ImGui.End();
     }
 
     private void DrawCreditsDarkeningAnimation()
@@ -865,7 +950,7 @@ internal class DalamudInterface : IInternalDisposableService
                     }
 
                     ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false, false);
-                    ImGui.MenuItem($"D: {Util.GetScmVersion()} CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false, false);
+                    ImGui.MenuItem($"D: {Versioning.GetScmVersion()} CS: {Versioning.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false, false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false, false);
 
                     ImGui.EndMenu();
@@ -1076,8 +1161,8 @@ internal class DalamudInterface : IInternalDisposableService
                 {
                     ImGui.PushFont(InterfaceManager.MonoFont);
 
-                    ImGui.BeginMenu($"{Util.GetActiveTrack() ?? "???"} on {Util.GetGitBranch() ?? "???"}", false);
-                    ImGui.BeginMenu($"{Util.GetScmVersion()}", false);
+                    ImGui.BeginMenu($"{Versioning.GetActiveTrack() ?? "???"} on {Versioning.GetGitBranch() ?? "???"}", false);
+                    ImGui.BeginMenu($"{Versioning.GetScmVersion()}", false);
                     ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
                     ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);

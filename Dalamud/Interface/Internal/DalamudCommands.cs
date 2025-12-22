@@ -305,12 +305,12 @@ internal class DalamudCommands : IServiceType
 
         chatGui.Print(new SeStringBuilder()
                       .AddItalics("Dalamud:")
-                      .AddText($" {Util.GetScmVersion()}")
+                      .AddText($" {Versioning.GetScmVersion()}")
                       .Build());
 
         chatGui.Print(new SeStringBuilder()
                       .AddItalics("FFXIVCS:")
-                      .AddText($" {Util.GetGitHashClientStructs()}")
+                      .AddText($" {Versioning.GetGitHashClientStructs()}")
                       .Build());
     }
 

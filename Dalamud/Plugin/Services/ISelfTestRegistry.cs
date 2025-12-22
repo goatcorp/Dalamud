@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 
-namespace Dalamud.Plugin.SelfTest;
+using Dalamud.Plugin.SelfTest;
+
+namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// Interface for registering and unregistering self-test steps from plugins.
@@ -44,7 +46,7 @@ namespace Dalamud.Plugin.SelfTest;
 /// }
 /// </code>
 /// </example>
-public interface ISelfTestRegistry
+public interface ISelfTestRegistry : IDalamudService
 {
     /// <summary>
     /// Registers the self-test steps for this plugin.

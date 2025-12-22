@@ -496,6 +496,16 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
 #pragma warning restore SA1600
 
     /// <summary>
+    /// Gets or sets a list of badge passwords used to unlock badges.
+    /// </summary>
+    public List<string> UsedBadgePasswords { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets a value indicating whether badges should be shown on the title screen.
+    /// </summary>
+    public bool ShowBadgesOnTitleScreen { get; set; } = true;
+
+    /// <summary>
     /// Load a configuration from the provided path.
     /// </summary>
     /// <param name="path">Path to read from.</param>
