@@ -1,13 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 
 using Dalamud.Data;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Chat;
 
@@ -19,7 +19,7 @@ public interface ILogMessageEntity : IEquatable<ILogMessageEntity>
     /// <summary>
     /// Gets the name of this entity.
     /// </summary>
-    SeString Name { get; }
+    ReadOnlySeString Name { get; }
 
     /// <summary>
     /// Gets the ID of the homeworld of this entity, if it is a player.
@@ -44,14 +44,15 @@ public interface ILogMessageEntity : IEquatable<ILogMessageEntity>
 
 
 /// <summary>
-/// This struct represents a status effect an actor is afflicted by.
+/// This struct represents an entity related to a log message.
 /// </summary>
-/// <param name="ptr">A pointer to the Status.</param>
+/// <param name="ptr">A pointer to the log message item.</param>
+/// <param name="source">If <see langword="true"/> represents the source entity of the log message, otherwise represents the target entity</param>
 internal unsafe readonly struct LogMessageEntity(LogMessageQueueItem* ptr, bool source) : ILogMessageEntity
 {
     public Span<byte> NameSpan => source ? ptr->SourceName : ptr->TargetName;
 
-    public SeString Name => SeString.Parse(this.NameSpan);
+    public ReadOnlySeString Name => new ReadOnlySeString(this.NameSpan);
 
     public ushort HomeWorldId => source ? ptr->SourceHomeWorld : ptr->TargetHomeWorld;
 

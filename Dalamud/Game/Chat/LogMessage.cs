@@ -76,9 +76,9 @@ public interface ILogMessage : IEquatable<ILogMessage>
 }
 
 /// <summary>
-/// This struct represents a status effect an actor is afflicted by.
+/// This struct represents log message in the queue to be added to the chat.
 /// </summary>
-/// <param name="ptr">A pointer to the Status.</param>
+/// <param name="ptr">A pointer to the log message.</param>
 internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessage
 {
     /// <inheritdoc/>
