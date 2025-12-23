@@ -1,7 +1,5 @@
 using System.Globalization;
 
-using FFXIVClientStructs.FFXIV.Component.Text;
-
 using Lumina.Text.ReadOnly;
 
 using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
@@ -77,12 +75,4 @@ public readonly struct SeStringParameter
     public static implicit operator SeStringParameter(string value) => new(value);
 
     public static implicit operator SeStringParameter(ReadOnlySpan<byte> value) => new(value);
-
-    public static unsafe implicit operator SeStringParameter(TextParameter value) => value.Type switch
-    {
-        TextParameterType.Uninitialized => default,
-        TextParameterType.Integer => new((uint)value.IntValue),
-        TextParameterType.ReferencedUtf8String => new(new ReadOnlySeString(value.ReferencedUtf8StringValue->Utf8String.AsSpan())),
-        TextParameterType.String => new(value.StringValue),
-    };
 }
