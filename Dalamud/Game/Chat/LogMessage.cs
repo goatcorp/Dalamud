@@ -1,18 +1,18 @@
 using Dalamud.Data;
+using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Utility;
 
-using FFXIVClientStructs.FFXIV.Client.System.String;
+
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
 using FFXIVClientStructs.Interop;
 
 using Lumina.Excel;
+using Lumina.Text.ReadOnly;
 
 using System.Diagnostics.CodeAnalysis;
-
-using Lumina.Text.ReadOnly;
+using System.Linq;
 
 namespace Dalamud.Game.Chat;
 
@@ -150,12 +150,9 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
 
         // the formatting logic is taken from RaptureLogModule_Update
 
-        using var utf8 = new Utf8String();
         SetName(logModule, this.SourceEntity);
         SetName(logModule, this.TargetEntity);
-        logModule->RaptureTextModule->FormatString(this.GameData.Value.Text.ToDalamudString().EncodeWithNullTerminator(), &ptr->Parameters, &utf8);
-
-        return new ReadOnlySeString(utf8.AsSpan());
+        return Service<SeStringEvaluator>.Get().EvaluateFromLogMessage(this.LogMessageId, ptr->Parameters.Select(p => (SeStringParameter)p).ToArray());
 
         void SetName(RaptureLogModule* self, LogMessageEntity item)
         {
