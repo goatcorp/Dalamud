@@ -150,14 +150,12 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
 
         // the formatting logic is taken from RaptureLogModule_Update
 
-        var utf8 = new Utf8String();
+        using var utf8 = new Utf8String();
         SetName(logModule, this.SourceEntity);
         SetName(logModule, this.TargetEntity);
         logModule->RaptureTextModule->FormatString(this.GameData.Value.Text.ToDalamudString().EncodeWithNullTerminator(), &ptr->Parameters, &utf8);
 
-        var result = new ReadOnlySeString(utf8.AsSpan());
-        utf8.Dtor();
-        return result;
+        return new ReadOnlySeString(utf8.AsSpan());
 
         void SetName(RaptureLogModule* self, LogMessageEntity item)
         {
