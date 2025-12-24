@@ -52,7 +52,7 @@ internal unsafe readonly struct LogMessageEntity(LogMessageQueueItem* ptr, bool 
 {
     public Span<byte> NameSpan => source ? ptr->SourceName : ptr->TargetName;
 
-    public ReadOnlySeString Name => new ReadOnlySeString(this.NameSpan);
+    public ReadOnlySeString Name => new ReadOnlySeString(this.NameSpan[..this.NameSpan.IndexOf((byte)0)]);
 
     public ushort HomeWorldId => source ? ptr->SourceHomeWorld : ptr->TargetHomeWorld;
 
