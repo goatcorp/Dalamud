@@ -1,5 +1,4 @@
 using Dalamud.Data;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
@@ -64,7 +63,7 @@ public interface ILogMessage : IEquatable<ILogMessage>
     /// <param name="index">The index of the parameter to retrieve.</param>
     /// <param name="value">The value of the parameter.</param>
     /// <returns><see langword="true"/> if the parameter was retrieved successfully.</returns>
-    bool TryGetStringParameter(int index, [NotNullWhen(true)] out SeString? value);
+    bool TryGetStringParameter(int index, out ReadOnlySeString value);
 
     /// <summary>
     /// Formats this log message into an approximation of the string that will eventually be shown in the log.
@@ -124,18 +123,18 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
     }
 
     /// <inheritdoc/>
-    public bool TryGetStringParameter(int index, [NotNullWhen(true)] out SeString? value)
+    public bool TryGetStringParameter(int index, out ReadOnlySeString value)
     {
-        value = null;
+        value = default;
         if (!this.TryGetParameter(index, out var parameter)) return false;
         if (parameter.Type == TextParameterType.String)
         {
-            value = SeString.Parse(parameter.StringValue.Value);
+            value = new(parameter.StringValue.AsSpan());
             return true;
         }
         if (parameter.Type == TextParameterType.ReferencedUtf8String)
         {
-            value = SeString.Parse(parameter.ReferencedUtf8StringValue->Utf8String.AsSpan());
+            value = new(parameter.ReferencedUtf8StringValue->Utf8String.AsSpan());
             return true;
         }
 
