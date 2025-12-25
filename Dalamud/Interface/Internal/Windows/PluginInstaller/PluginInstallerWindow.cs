@@ -235,6 +235,9 @@ internal class PluginInstallerWindow : Window, IDisposable
         Testing,
         Updateable,
         Dev,
+        Enabled,
+        Disabled,
+        Incompatible,
     }
 
     private bool AnyOperationInProgress => this.installStatus == OperationStatus.InProgress ||
@@ -1453,6 +1456,15 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (filter == InstalledPluginListFilter.Testing && !manager.HasTestingOptIn(plugin.Manifest))
                 continue;
 
+            if (filter == InstalledPluginListFilter.Enabled && (!plugin.IsWantedByAnyProfile || plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned || plugin.IsDecommissioned))
+                continue;
+
+            if (filter == InstalledPluginListFilter.Disabled && (plugin.IsWantedByAnyProfile || plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned || plugin.IsDecommissioned))
+                continue;
+
+            if (filter == InstalledPluginListFilter.Incompatible && !(plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned || plugin.IsDecommissioned))
+                continue;
+
             // Find applicable update and manifest, if we have them
             AvailablePluginUpdate? update = null;
             RemotePluginManifest? remoteManifest = null;
@@ -1485,6 +1497,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                 InstalledPluginListFilter.Testing => Locs.TabBody_NoPluginsTesting,
                 InstalledPluginListFilter.Updateable => Locs.TabBody_NoPluginsUpdateable,
                 InstalledPluginListFilter.Dev => Locs.TabBody_NoPluginsDev,
+                InstalledPluginListFilter.Enabled => Locs.TabBody_NoPluginsEnabled,
+                InstalledPluginListFilter.Disabled => Locs.TabBody_NoPluginsDisabled,
+                InstalledPluginListFilter.Incompatible => Locs.TabBody_NoPluginsIncompatible,
                 _ => throw new ArgumentException(null, nameof(filter)),
             };
 
@@ -1723,6 +1738,18 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                     case PluginCategoryManager.CategoryKind.UpdateablePlugins:
                         this.DrawInstalledPluginList(InstalledPluginListFilter.Updateable);
+                        break;
+
+                    case PluginCategoryManager.CategoryKind.EnabledPlugins:
+                        this.DrawInstalledPluginList(InstalledPluginListFilter.Enabled);
+                        break;
+
+                    case PluginCategoryManager.CategoryKind.DisabledPlugins:
+                        this.DrawInstalledPluginList(InstalledPluginListFilter.Disabled);
+                        break;
+
+                    case PluginCategoryManager.CategoryKind.IncompatiblePlugins:
+                        this.DrawInstalledPluginList(InstalledPluginListFilter.Incompatible);
                         break;
 
                     case PluginCategoryManager.CategoryKind.PluginProfiles:
@@ -4096,6 +4123,12 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string TabBody_NoPluginsUpdateable => Loc.Localize("InstallerNoPluginsUpdate", "No plugins have updates available at the moment.");
 
         public static string TabBody_NoPluginsDev => Loc.Localize("InstallerNoPluginsDev", "You don't have any dev plugins. Add them from the settings.");
+
+        public static string TabBody_NoPluginsEnabled => Loc.Localize("InstallerNoPluginsEnabled", "You don't have any enabled plugins.");
+
+        public static string TabBody_NoPluginsDisabled => Loc.Localize("InstallerNoPluginsDisabled", "You don't have any disabled plugins.");
+
+        public static string TabBody_NoPluginsIncompatible => Loc.Localize("InstallerNoPluginsIncompatible", "You don't have any incompatible plugins.");
 
         #endregion
 
