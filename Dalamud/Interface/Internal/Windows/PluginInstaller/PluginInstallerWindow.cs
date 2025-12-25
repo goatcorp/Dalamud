@@ -127,11 +127,26 @@ internal class PluginInstallerWindow : Window, IDisposable
     private bool adaptiveSort = true;
 
     private string? selectedRepoUrl = null; // null = All Repositories
-    private List<string> cachedRepoUrls = new();
-    private HashSet<string> cachedRepoUrlsNormalized = new(StringComparer.OrdinalIgnoreCase);
+    private string selectedRepoUrlNormalized = string.Empty;
+    private int repoFilterCacheKey = 0;
+
+    private readonly List<string> cachedRepoUrls = new();
+    private readonly HashSet<string> cachedRepoUrlsNormalized = new(StringComparer.OrdinalIgnoreCase);
     private const string XivLauncherRepoKey = "XIVLauncher";
 
-    private OperationStatus installStatus = OperationStatus.Idle;
+    private void SetSelectedRepo(string? repoUrl)
+    {
+        if (this.selectedRepoUrl == repoUrl)
+            return;
+
+        this.selectedRepoUrl = repoUrl;
+        this.selectedRepoUrlNormalized = NormalizeRepoUrl(repoUrl);
+
+        this.UpdateCategoriesOnPluginsChange();
+        this.openPluginCollapsibles.Clear();
+    }
+
+private OperationStatus installStatus = OperationStatus.Idle;
     private OperationStatus updateStatus = OperationStatus.Idle;
 
     private OperationStatus enableDisableStatus = OperationStatus.Idle;
@@ -817,17 +832,13 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 if (ImGui.Selectable("All Repositories", this.selectedRepoUrl == null))
                 {
-                    this.selectedRepoUrl = null;
-                    this.UpdateCategoriesOnPluginsChange();
-                    this.openPluginCollapsibles.Clear();
-                }
+                    this.SetSelectedRepo(null);
+}
 
                 if (ImGui.Selectable("XIVLauncher", this.selectedRepoUrl == XivLauncherRepoKey))
                 {
-                    this.selectedRepoUrl = XivLauncherRepoKey;
-                    this.UpdateCategoriesOnPluginsChange();
-                    this.openPluginCollapsibles.Clear();
-                }
+                    this.SetSelectedRepo(XivLauncherRepoKey);
+}
 
                 ImGui.Separator();
 
@@ -839,10 +850,8 @@ internal class PluginInstallerWindow : Window, IDisposable
                     // Use stable unique IDs to avoid ImGui collisions with long/duplicate URLs.
                     if (ImGui.Selectable($"{repoUrl}##repo_{i}", selected))
                     {
-                        this.selectedRepoUrl = repoUrl;
-                        this.UpdateCategoriesOnPluginsChange();
-                        this.openPluginCollapsibles.Clear();
-                    }
+                        this.SetSelectedRepo(repoUrl);
+}
                 }
 
                 ImGui.EndCombo();
@@ -4067,7 +4076,25 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         var config = Service<DalamudConfiguration>.Get();
 
-        this.cachedRepoUrls.Clear();
+        // Avoid rebuilding every frame unless the repo list actually changed.
+        var newKey = 17;
+        unchecked
+        {
+            foreach (var repo in config.ThirdRepoList)
+            {
+                if (string.IsNullOrWhiteSpace(repo.Url))
+                    continue;
+
+                newKey = (newKey * 31) + StringComparer.OrdinalIgnoreCase.GetHashCode(repo.Url.Trim());
+            }
+        }
+
+        if (newKey == this.repoFilterCacheKey)
+            return;
+
+        this.repoFilterCacheKey = newKey;
+
+this.cachedRepoUrls.Clear();
         this.cachedRepoUrlsNormalized.Clear();
 
         // Main repo is represented by the "XIVLauncher" entry; here we only list third-party repos.
@@ -4131,7 +4158,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     }
 
 
-    private static string? GetRepoFilterUrl(RemotePluginManifest manifest)
+private static string? GetRepoFilterUrl(RemotePluginManifest manifest)
 {
     // For available manifests, RepoUrl is often the plugin's project URL (or null).
     // The repository identity we care about is the *source repo* (pluginmaster URL) vs XIVLauncher (main repo).
@@ -4141,7 +4168,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     return PluginRepository.MainRepoUrl;
 }
 
-    private static string? GetRepoFilterUrl(LocalPlugin plugin)
+private static string? GetRepoFilterUrl(LocalPlugin plugin)
 {
     // Installed third-party plugins store their origin in InstalledFromUrl.
     if (plugin.IsThirdParty)
@@ -4168,15 +4195,15 @@ internal class PluginInstallerWindow : Window, IDisposable
                 return true;
 
             // Anything not matching the configured third-party repos is considered "XIVLauncher".
-            return !this.cachedRepoUrlsNormalized.Any(u => RepoUrlMatches(u, normalized) || string.Equals(u, normalized, StringComparison.OrdinalIgnoreCase));
+            return !this.cachedRepoUrlsNormalized.Contains(normalized);
         }
 
-        return RepoUrlMatches(repoUrl, this.selectedRepoUrl);
+        return RepoUrlMatches(repoUrl, this.selectedRepoUrlNormalized);
     }
 
     private bool PassesRepoFilter(RemotePluginManifest manifest) => this.PassesRepoFilter(GetRepoFilterUrl(manifest));
 
-    private void DrawFontawesomeIconOutlined(FontAwesomeIcon icon, Vector4 outline, Vector4 iconColor)
+private void DrawFontawesomeIconOutlined(FontAwesomeIcon icon, Vector4 outline, Vector4 iconColor)
     {
         var positionOffset = ImGuiHelpers.ScaledVector2(0.0f, 1.0f);
         var cursorStart = ImGui.GetCursorPos() + positionOffset;
