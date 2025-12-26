@@ -99,6 +99,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Dalamud.Common\Dalamud.Common.csproj" />
+        <ProjectReference Include="..\imgui\Dalamud.Bindings.ImAnim\Dalamud.Bindings.ImAnim.csproj" />
         <ProjectReference Include="..\imgui\Dalamud.Bindings.ImGuizmo\Dalamud.Bindings.ImGuizmo.csproj" />
         <ProjectReference Include="..\imgui\Dalamud.Bindings.ImGui\Dalamud.Bindings.ImGui.csproj" />
         <ProjectReference Include="..\imgui\Dalamud.Bindings.ImPlot\Dalamud.Bindings.ImPlot.csproj" />
