@@ -44,6 +44,7 @@ internal class DataWindow : Window, IDisposable
         new ImGuiWidget(),
         new InventoryWidget(),
         new KeyStateWidget(),
+        new LogMessageMonitorWidget(),
         new MarketBoardWidget(),
         new NetworkMonitorWidget(),
         new NounProcessorWidget(),

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -50,6 +51,13 @@ public interface IChatGui : IDalamudService
     /// <param name="message">The message sent.</param>
     public delegate void OnMessageUnhandledDelegate(XivChatType type, int timestamp, SeString sender, SeString message);
 
+
+    /// <summary>
+    /// A delegate type used with the <see cref="IChatGui.LogMessage"/> event.
+    /// </summary>
+    /// <param name="message">The message sent.</param>
+    public delegate void OnLogMessageDelegate(ILogMessage message);
+
     /// <summary>
     /// Event that will be fired when a chat message is sent to chat by the game.
     /// </summary>
@@ -69,6 +77,11 @@ public interface IChatGui : IDalamudService
     /// Event that will be fired when a chat message is not handled by Dalamud or a Plugin.
     /// </summary>
     public event OnMessageUnhandledDelegate ChatMessageUnhandled;
+
+    /// <summary>
+    /// Event that will be fired when a log message, that is a chat message based on entries in the LogMessage sheet, is sent.
+    /// </summary>
+    public event OnLogMessageDelegate LogMessage;
 
     /// <summary>
     /// Gets the ID of the last linked item.
