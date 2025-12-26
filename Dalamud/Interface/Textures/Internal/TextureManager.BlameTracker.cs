@@ -59,7 +59,7 @@ internal sealed partial class TextureManager
     /// <param name="textureWrap">The texture.</param>
     /// <param name="ownerPlugin">The plugin.</param>
     /// <returns>Same <paramref name="textureWrap"/>.</returns>
-    public unsafe IDalamudTextureWrap Blame(IDalamudTextureWrap textureWrap, LocalPlugin? ownerPlugin)
+    public unsafe IDalamudTextureWrap Blame(IDalamudTextureWrap? textureWrap, LocalPlugin? ownerPlugin)
     {
         if (!this.dalamudConfiguration.UseTexturePluginTracking)
             return textureWrap;

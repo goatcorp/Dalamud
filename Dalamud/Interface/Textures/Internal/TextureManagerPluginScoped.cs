@@ -454,6 +454,15 @@ internal sealed class TextureManagerPluginScoped
         await manager.CopyToClipboardAsync(wrap, preferredFileNameWithoutExtension, leaveWrapOpen, cancellationToken);
     }
 
+    /// <inheritdoc/>
+    public IDalamudTextureWrap? TryGetFileThumbnail(string path)
+    {
+        var manager = this.ManagerOrThrow;
+        var textureWrap = manager.TryGetFileThumbnail(path);
+        manager.Blame(textureWrap, this.plugin);
+        return textureWrap;
+    }
+
     private void ResultOnInterceptTexDataLoad(string path, ref string? replacementPath) =>
         this.InterceptTexDataLoad?.Invoke(path, ref replacementPath);
 }
