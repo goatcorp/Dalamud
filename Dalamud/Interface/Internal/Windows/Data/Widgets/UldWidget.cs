@@ -295,7 +295,7 @@ internal class UldWidget : IDataWindowWidget
             else if (e is not null)
                 ImGui.Text(e.ToString());
 
-            if (this.selectedTheme != 0)
+            if (this.selectedTheme != 0 && (textureEntry.ThemeSupportBitmask & (1 << (this.selectedTheme - 1))) != 0)
             {
                 var texturePathThemed = this.ToThemedPath(texturePath);
                 if (this.dataManager.FileExists(texturePathThemed))
