@@ -47,6 +47,7 @@ internal class UldWidget : IDataWindowWidget
         ("48 8D 15 ?? ?? ?? ?? 45 33 C0 E9 ?? ?? ?? ??", 3)
     ];
 
+    private DataManager dataManager;
     private CancellationTokenSource? cts;
     private Task<string[]>? uldNamesTask;
 
@@ -69,6 +70,8 @@ internal class UldWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Load()
     {
+        this.dataManager ??= Service<DataManager>.Get();
+
         this.cts?.Cancel();
         ClearTask(ref this.uldNamesTask);
         this.uldNamesTask = null;
@@ -295,11 +298,14 @@ internal class UldWidget : IDataWindowWidget
             if (this.selectedTheme != 0)
             {
                 var texturePathThemed = this.ToThemedPath(texturePath);
-                ImGui.Text($"Themed path at {texturePathThemed}:");
-                if (textureManager.Shared.GetFromGame(texturePathThemed).TryGetWrap(out wrap, out e))
-                    ImGui.Image(wrap.Handle, wrap.Size);
-                else if (e is not null)
-                    ImGui.Text(e.ToString());
+                if (this.dataManager.FileExists(texturePathThemed))
+                {
+                    ImGui.Text($"Themed path at {texturePathThemed}:");
+                    if (textureManager.Shared.GetFromGame(texturePathThemed).TryGetWrap(out wrap, out e))
+                        ImGui.Image(wrap.Handle, wrap.Size);
+                    else if (e is not null)
+                        ImGui.Text(e.ToString());
+                }
             }
 
             ImGui.EndTooltip();
