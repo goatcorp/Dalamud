@@ -25,7 +25,7 @@
   <PropertyGroup Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <LinkIncremental>false</LinkIncremental>
     <CharacterSet>Unicode</CharacterSet>
     <OutDir>bin\$(Configuration)\</OutDir>

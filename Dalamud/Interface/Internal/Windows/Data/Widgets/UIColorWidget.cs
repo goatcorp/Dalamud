@@ -126,17 +126,17 @@ internal class UiColorWidget : IDataWindowWidget
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
                 ImGui.PushID($"row{id}_white");
-                if (this.DrawColorColumn(row.Unknown0) &&
+                if (this.DrawColorColumn(row.ClearWhite) &&
                     adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.Unknown0, adjacentRow.Value.Unknown0);
+                    DrawEdgePreview(id, row.ClearWhite, adjacentRow.Value.ClearWhite);
                 ImGui.PopID();
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
                 ImGui.PushID($"row{id}_green");
-                if (this.DrawColorColumn(row.Unknown1) &&
+                if (this.DrawColorColumn(row.ClearGreen) &&
                     adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.Unknown1, adjacentRow.Value.Unknown1);
+                    DrawEdgePreview(id, row.ClearGreen, adjacentRow.Value.ClearGreen);
                 ImGui.PopID();
             }
         }
