@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,6 +42,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 /// </summary>
 internal class PluginInstallerWindow : Window, IDisposable
 {
+    private const string PluginLoadOrderPayload = "PLUGIN_LOAD_ORDER";
     private static readonly ModuleLog Log = new("PLUGINW");
 
     private readonly Vector4 changelogBgColor = new(0.114f, 0.584f, 0.192f, 0.678f);
@@ -99,6 +101,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private bool deletePluginConfigWarningModalExplainTesting = false;
     private string deletePluginConfigWarningModalPluginName = string.Empty;
     private TaskCompletionSource<bool>? deletePluginConfigWarningModalTaskCompletionSource;
+    private string loadOrderAddSelection = string.Empty;
 
     private bool feedbackModalDrawing = true;
     private bool feedbackModalOnNextFrame = false;
@@ -1505,6 +1508,320 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
+    private void DrawPluginLoadOrder()
+    {
+        var configuration = Service<DalamudConfiguration>.Get();
+        var profileManager = Service<ProfileManager>.Get();
+        var enabledPlugins = this.GetEnabledPlugins(profileManager);
+
+        if (enabledPlugins.Count == 0)
+        {
+            DrawMutedBodyText(Locs.LoadOrder_NoEnabledPlugins, 60, 20);
+            return;
+        }
+
+        var orderNames = this.GetConfiguredPluginLoadOrder(configuration, enabledPlugins);
+        var orderedSet = new HashSet<string>(orderNames, StringComparer.OrdinalIgnoreCase);
+        var pluginLookup = enabledPlugins.ToDictionary(p => p.Manifest.InternalName, StringComparer.OrdinalIgnoreCase);
+        var availablePlugins = enabledPlugins
+                               .Where(p => !orderedSet.Contains(p.Manifest.InternalName))
+                               .OrderBy(p => p.Manifest.Name, StringComparer.OrdinalIgnoreCase)
+                               .ToList();
+        this.CleanupLoadOrderOverrides(configuration, orderedSet);
+
+        ImGui.TextWrapped(Locs.LoadOrder_Hint);
+        ImGuiHelpers.ScaledDummy(10);
+
+        if (availablePlugins.Count > 0)
+        {
+            ImGui.Text(Locs.LoadOrder_AddLabel);
+
+            var selected = availablePlugins.FirstOrDefault(p => p.Manifest.InternalName.Equals(this.loadOrderAddSelection, StringComparison.OrdinalIgnoreCase));
+            var preview = selected != null ? selected.Manifest.Name : Locs.LoadOrder_AddPlaceholder;
+            ImGui.SetNextItemWidth(-1);
+            if (ImGui.BeginCombo("##PluginLoadOrderAdd"u8, preview))
+            {
+                foreach (var plugin in availablePlugins)
+                {
+                    var isSelected = plugin.Manifest.InternalName.Equals(this.loadOrderAddSelection, StringComparison.OrdinalIgnoreCase);
+                    if (ImGui.Selectable(plugin.Manifest.Name, isSelected))
+                        this.loadOrderAddSelection = plugin.Manifest.InternalName;
+                }
+
+                ImGui.EndCombo();
+            }
+
+            if (ImGui.Button(Locs.LoadOrder_AddButton) && selected != null)
+            {
+                orderNames.Add(selected.Manifest.InternalName);
+                this.ApplyPluginLoadOrder(configuration, orderNames);
+                this.loadOrderAddSelection = string.Empty;
+            }
+
+            ImGuiHelpers.ScaledDummy(10);
+        }
+
+        int? moveFrom = null;
+        int? moveTo = null;
+        int? removeIndex = null;
+        Span<byte> payloadData = stackalloc byte[sizeof(int)];
+
+        using var listChild = ImRaii.Child("PluginLoadOrderList"u8, new Vector2(-1, -1), true);
+        if (!listChild)
+            return;
+
+        if (orderNames.Count == 0)
+        {
+            DrawMutedBodyText(Locs.LoadOrder_NoneSelected, 20, 10);
+            return;
+        }
+
+        if (!ImGui.BeginTable("PluginLoadOrderTable"u8, 4, ImGuiTableFlags.RowBg | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingStretchProp))
+            return;
+
+            ImGui.TableSetupColumn(Locs.LoadOrder_ColumnName, ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn(Locs.LoadOrder_ColumnDefault, ImGuiTableColumnFlags.WidthFixed, 90 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn(Locs.LoadOrder_ColumnOverride, ImGuiTableColumnFlags.WidthFixed, 130 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn(Locs.LoadOrder_ColumnRemove, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize(Locs.LoadOrder_RemoveButton).X + (ImGui.GetStyle().FramePadding.X * 2));
+            ImGui.TableHeadersRow();
+
+            for (var i = 0; i < orderNames.Count; i++)
+            {
+                var internalName = orderNames[i];
+                if (!pluginLookup.TryGetValue(internalName, out var plugin))
+                    continue;
+
+                ImGui.PushID(internalName);
+                ImGui.TableNextRow();
+
+                ImGui.TableSetColumnIndex(0);
+                ImGui.Selectable($"{plugin.Manifest.Name}###PluginLoadOrder_{internalName}", false);
+
+                if (ImGui.BeginDragDropSource())
+                {
+                    unsafe
+                    {
+                        var payloadIndex = i;
+                        MemoryMarshal.Write(payloadData, in payloadIndex);
+                        ImGui.SetDragDropPayload(PluginLoadOrderPayload, payloadData);
+                    }
+
+                    ImGui.Text(plugin.Manifest.Name);
+                    ImGui.EndDragDropSource();
+                }
+
+                if (ImGui.BeginDragDropTarget())
+                {
+                    unsafe
+                    {
+                        var payload = ImGui.AcceptDragDropPayload(PluginLoadOrderPayload);
+                        if (!payload.IsNull && payload.Data != null && payload.DataSize >= sizeof(int))
+                        {
+                            var sourceIndex = MemoryMarshal.Read<int>(new ReadOnlySpan<byte>(payload.Data, payload.DataSize));
+                            moveFrom = sourceIndex;
+                            moveTo = i;
+                        }
+                    }
+
+                    ImGui.EndDragDropTarget();
+                }
+
+                var defaultIsSync = plugin.Manifest is LocalPluginManifest localManifest && localManifest.LoadSync;
+                ImGui.TableSetColumnIndex(1);
+                ImGui.Text(defaultIsSync ? Locs.LoadOrder_DefaultSync : Locs.LoadOrder_DefaultAsync);
+
+                ImGui.TableSetColumnIndex(2);
+                var overrideMode = this.GetLoadOrderOverride(configuration, internalName);
+                var overridePreview = overrideMode switch
+                {
+                    PluginLoadOrderMode.ForceSync => Locs.LoadOrder_OverrideSync,
+                    PluginLoadOrderMode.ForceAsync => Locs.LoadOrder_OverrideAsync,
+                    _ => Locs.LoadOrder_OverrideDefault,
+                };
+
+                ImGui.SetNextItemWidth(-1);
+                if (ImGui.BeginCombo("##PluginLoadOrderOverride"u8, overridePreview))
+                {
+                    if (ImGui.Selectable(Locs.LoadOrder_OverrideDefault, overrideMode == PluginLoadOrderMode.Default))
+                        this.SetLoadOrderOverride(configuration, internalName, PluginLoadOrderMode.Default);
+                    if (ImGui.Selectable(Locs.LoadOrder_OverrideSync, overrideMode == PluginLoadOrderMode.ForceSync))
+                        this.SetLoadOrderOverride(configuration, internalName, PluginLoadOrderMode.ForceSync);
+                    if (ImGui.Selectable(Locs.LoadOrder_OverrideAsync, overrideMode == PluginLoadOrderMode.ForceAsync))
+                        this.SetLoadOrderOverride(configuration, internalName, PluginLoadOrderMode.ForceAsync);
+                    ImGui.EndCombo();
+                }
+
+                ImGui.TableSetColumnIndex(3);
+                if (ImGui.SmallButton(Locs.LoadOrder_RemoveButton))
+                    removeIndex = i;
+
+                ImGui.PopID();
+            }
+
+        ImGui.EndTable();
+
+        if (removeIndex.HasValue)
+        {
+            var removedInternalName = orderNames[removeIndex.Value];
+            orderNames.RemoveAt(removeIndex.Value);
+            this.SetLoadOrderOverride(configuration, removedInternalName, PluginLoadOrderMode.Default);
+            this.ApplyPluginLoadOrder(configuration, orderNames);
+        }
+
+        if (moveFrom.HasValue && moveTo.HasValue && moveFrom != moveTo)
+        {
+            var item = orderNames[moveFrom.Value];
+            orderNames.RemoveAt(moveFrom.Value);
+            if (moveFrom.Value < moveTo.Value)
+                moveTo--;
+            orderNames.Insert(moveTo.Value, item);
+
+            this.ApplyPluginLoadOrder(configuration, orderNames);
+        }
+    }
+
+    private List<LocalPlugin> GetEnabledPlugins(ProfileManager profileManager)
+    {
+        var enabledPlugins = new List<LocalPlugin>();
+        using var scope = profileManager.GetSyncScope();
+
+        foreach (var plugin in this.pluginListInstalled)
+        {
+            if (plugin.State == PluginState.Loaded)
+            {
+                enabledPlugins.Add(plugin);
+                continue;
+            }
+
+            foreach (var profile in profileManager.Profiles)
+            {
+                if (!profile.IsEnabled)
+                    continue;
+
+                var wants = profile.WantsPlugin(plugin.EffectiveWorkingPluginId);
+                if (wants == true)
+                {
+                    enabledPlugins.Add(plugin);
+                    break;
+                }
+            }
+        }
+
+        return enabledPlugins;
+    }
+
+    private List<string> GetConfiguredPluginLoadOrder(DalamudConfiguration configuration, IReadOnlyList<LocalPlugin> enabledPlugins)
+    {
+        var enabledNames = new HashSet<string>(enabledPlugins.Select(p => p.Manifest.InternalName), StringComparer.OrdinalIgnoreCase);
+        var normalized = new List<string>(enabledPlugins.Count);
+        var normalizedSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var changed = false;
+
+        if (configuration.PluginLoadOrder != null)
+        {
+            foreach (var internalName in configuration.PluginLoadOrder)
+            {
+                if (internalName.IsNullOrEmpty())
+                {
+                    changed = true;
+                    continue;
+                }
+
+                if (!enabledNames.Contains(internalName))
+                {
+                    changed = true;
+                    continue;
+                }
+
+                if (normalizedSet.Add(internalName))
+                {
+                    normalized.Add(internalName);
+                }
+                else
+                {
+                    changed = true;
+                }
+            }
+        }
+
+        if (changed)
+        {
+            this.ApplyPluginLoadOrder(configuration, normalized);
+        }
+
+        return normalized;
+    }
+
+    private void ApplyPluginLoadOrder(DalamudConfiguration configuration, IReadOnlyList<string> orderNames)
+    {
+        if (configuration.PluginLoadOrder != null &&
+            configuration.PluginLoadOrder.SequenceEqual(orderNames, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        configuration.PluginLoadOrder = orderNames.ToList();
+        configuration.QueueSave();
+    }
+
+    private void CleanupLoadOrderOverrides(DalamudConfiguration configuration, HashSet<string> orderedSet)
+    {
+        if (configuration.PluginLoadOrderOverrides == null || configuration.PluginLoadOrderOverrides.Count == 0)
+            return;
+
+        var removedAny = false;
+        var keysToRemove = configuration.PluginLoadOrderOverrides.Keys
+                                         .Where(key => !orderedSet.Contains(key))
+                                         .ToList();
+        foreach (var key in keysToRemove)
+        {
+            configuration.PluginLoadOrderOverrides.Remove(key);
+            removedAny = true;
+        }
+
+        if (configuration.PluginLoadOrderOverrides.Count == 0)
+            configuration.PluginLoadOrderOverrides = null;
+
+        if (removedAny)
+            configuration.QueueSave();
+    }
+
+    private PluginLoadOrderMode GetLoadOrderOverride(DalamudConfiguration configuration, string internalName)
+    {
+        if (configuration.PluginLoadOrderOverrides == null)
+            return PluginLoadOrderMode.Default;
+
+        return configuration.PluginLoadOrderOverrides.TryGetValue(internalName, out var mode)
+                   ? mode
+                   : PluginLoadOrderMode.Default;
+    }
+
+    private void SetLoadOrderOverride(DalamudConfiguration configuration, string internalName, PluginLoadOrderMode mode)
+    {
+        if (mode == PluginLoadOrderMode.Default)
+        {
+            if (configuration.PluginLoadOrderOverrides == null)
+                return;
+
+            if (configuration.PluginLoadOrderOverrides.Remove(internalName))
+            {
+                if (configuration.PluginLoadOrderOverrides.Count == 0)
+                    configuration.PluginLoadOrderOverrides = null;
+                configuration.QueueSave();
+            }
+
+            return;
+        }
+
+        configuration.PluginLoadOrderOverrides ??= new Dictionary<string, PluginLoadOrderMode>(StringComparer.OrdinalIgnoreCase);
+
+        if (configuration.PluginLoadOrderOverrides.TryGetValue(internalName, out var existing) && existing == mode)
+            return;
+
+        configuration.PluginLoadOrderOverrides[internalName] = mode;
+        configuration.QueueSave();
+    }
+
     private void DrawPluginCategories()
     {
         var useContentHeight = -40f; // button height + spacing
@@ -1698,6 +2015,10 @@ internal class PluginInstallerWindow : Window, IDisposable
                 {
                     case PluginCategoryManager.CategoryKind.DevInstalled:
                         this.DrawInstalledPluginList(InstalledPluginListFilter.Dev);
+                        break;
+
+                    case PluginCategoryManager.CategoryKind.PluginLoadOrder:
+                        this.DrawPluginLoadOrder();
                         break;
 
                     case PluginCategoryManager.CategoryKind.IconTester:
@@ -4096,6 +4417,42 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string TabBody_NoPluginsUpdateable => Loc.Localize("InstallerNoPluginsUpdate", "No plugins have updates available at the moment.");
 
         public static string TabBody_NoPluginsDev => Loc.Localize("InstallerNoPluginsDev", "You don't have any dev plugins. Add them from the settings.");
+
+        #endregion
+
+        #region Load order
+
+        public static string LoadOrder_Hint => Loc.Localize("InstallerPluginLoadOrderHint", "Plugins added here load in the order shown. Default load flavor is shown and can be overridden. Changes apply the next time Dalamud starts.");
+
+        public static string LoadOrder_NoEnabledPlugins => Loc.Localize("InstallerPluginLoadOrderNone", "No enabled plugins were found.");
+
+        public static string LoadOrder_NoneSelected => Loc.Localize("InstallerPluginLoadOrderEmpty", "No plugins are selected yet.");
+
+        public static string LoadOrder_AddLabel => Loc.Localize("InstallerPluginLoadOrderAddLabel", "Add an enabled plugin:");
+
+        public static string LoadOrder_AddPlaceholder => Loc.Localize("InstallerPluginLoadOrderAddPlaceholder", "Select a plugin...");
+
+        public static string LoadOrder_AddButton => Loc.Localize("InstallerPluginLoadOrderAddButton", "Add to load order");
+
+        public static string LoadOrder_RemoveButton => Loc.Localize("InstallerPluginLoadOrderRemoveButton", "Remove");
+
+        public static string LoadOrder_ColumnName => Loc.Localize("InstallerPluginLoadOrderColumnName", "Name");
+
+        public static string LoadOrder_ColumnDefault => Loc.Localize("InstallerPluginLoadOrderColumnDefault", "Default");
+
+        public static string LoadOrder_ColumnOverride => Loc.Localize("InstallerPluginLoadOrderColumnOverride", "Override");
+
+        public static string LoadOrder_ColumnRemove => Loc.Localize("InstallerPluginLoadOrderColumnRemove", "Remove");
+
+        public static string LoadOrder_DefaultSync => Loc.Localize("InstallerPluginLoadOrderDefaultSync", "Sync");
+
+        public static string LoadOrder_DefaultAsync => Loc.Localize("InstallerPluginLoadOrderDefaultAsync", "Async");
+
+        public static string LoadOrder_OverrideDefault => Loc.Localize("InstallerPluginLoadOrderOverrideDefault", "Default");
+
+        public static string LoadOrder_OverrideSync => Loc.Localize("InstallerPluginLoadOrderOverrideSync", "Force Sync");
+
+        public static string LoadOrder_OverrideAsync => Loc.Localize("InstallerPluginLoadOrderOverrideAsync", "Force Async");
 
         #endregion
 

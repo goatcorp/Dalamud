@@ -338,6 +338,16 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public List<string>? DtrOrder { get; set; }
 
     /// <summary>
+    /// Gets or sets the plugin load order, by internal name.
+    /// </summary>
+    public List<string>? PluginLoadOrder { get; set; }
+
+    /// <summary>
+    /// Gets or sets the plugin load order override mode, by internal name.
+    /// </summary>
+    public Dictionary<string, PluginLoadOrderMode>? PluginLoadOrderOverrides { get; set; }
+
+    /// <summary>
     /// Gets or sets the list of ignored DTR elements, by title.
     /// </summary>
     public List<string>? DtrIgnore { get; set; }

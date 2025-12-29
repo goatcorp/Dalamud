@@ -620,6 +620,21 @@ internal class PluginManager : IInternalDisposableService
             Log.Information($"============= LoadPluginsAsync({logPrefix}) END =============");
         }
 
+        async Task LoadPluginsAsyncOrdered(string logPrefix, IEnumerable<PluginDef> pluginDefsList, CancellationToken token)
+        {
+            Log.Information($"============= LoadPluginsAsyncOrdered({logPrefix}) START =============");
+
+            await Task.Run(
+                async () =>
+                {
+                    foreach (var pluginDef in pluginDefsList)
+                        await LoadPluginOnBoot(logPrefix, pluginDef, token).ConfigureAwait(false);
+                },
+                token).ConfigureAwait(false);
+
+            Log.Information($"============= LoadPluginsAsyncOrdered({logPrefix}) END =============");
+        }
+
         // Initialize the startup load tracker for all LoadSync plugins
         {
             this.StartupLoadTracking = new();
@@ -629,8 +644,15 @@ internal class PluginManager : IInternalDisposableService
             }
         }
 
-        var syncPlugins = pluginDefs.Where(def => def.Manifest?.LoadSync == true).ToList();
-        var asyncPlugins = pluginDefs.Where(def => def.Manifest?.LoadSync != true).ToList();
+        // Respect the original load flavor for ordered plugins.
+        var (orderedSyncPluginDefs, orderedAsyncPluginDefs) = this.GetOrderedPluginDefsByLoadFlavor(pluginDefs);
+        var orderedSet = new HashSet<string>(
+            orderedSyncPluginDefs.Select(def => def.Manifest.InternalName)
+                                 .Concat(orderedAsyncPluginDefs.Select(def => def.Manifest.InternalName)),
+            StringComparer.OrdinalIgnoreCase);
+
+        var syncPlugins = pluginDefs.Where(def => def.Manifest?.LoadSync == true && !orderedSet.Contains(def.Manifest.InternalName)).ToList();
+        var asyncPlugins = pluginDefs.Where(def => def.Manifest?.LoadSync != true && !orderedSet.Contains(def.Manifest.InternalName)).ToList();
         var loadTasks = new List<Task>();
 
         var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
@@ -638,8 +660,13 @@ internal class PluginManager : IInternalDisposableService
         // Load plugins that can be loaded anytime
         await LoadPluginsSync(
             "AnytimeSync",
-            syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 2),
+            orderedSyncPluginDefs.Where(def => def.Manifest?.LoadRequiredState == 2)
+                                 .Concat(syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 2)),
             tokenSource.Token);
+        loadTasks.Add(LoadPluginsAsyncOrdered(
+                          "AnytimeOrderedAsync",
+                          orderedAsyncPluginDefs.Where(def => def.Manifest?.LoadRequiredState == 2),
+                          tokenSource.Token));
         loadTasks.Add(LoadPluginsAsync(
                           "AnytimeAsync",
                           asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 2),
@@ -656,11 +683,16 @@ internal class PluginManager : IInternalDisposableService
                 await framework.RunOnTick(
                     () => LoadPluginsSync(
                         "FrameworkTickSync",
-                        syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1),
+                        orderedSyncPluginDefs.Where(def => def.Manifest?.LoadRequiredState == 1)
+                                             .Concat(syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1)),
                         tokenSource.Token),
                     cancellationToken: tokenSource.Token).ConfigureAwait(false);
                 Log.Verbose("Loaded FrameworkTickSync plugins (LoadRequiredState == 1)");
 
+                loadTasks.Add(LoadPluginsAsyncOrdered(
+                                  "FrameworkTickOrderedAsync",
+                                  orderedAsyncPluginDefs.Where(def => def.Manifest?.LoadRequiredState == 1),
+                                  tokenSource.Token));
                 loadTasks.Add(LoadPluginsAsync(
                                   "FrameworkTickAsync",
                                   asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1),
@@ -673,11 +705,16 @@ internal class PluginManager : IInternalDisposableService
                 await framework.RunOnTick(
                     () => LoadPluginsSync(
                         "DrawAvailableSync",
-                        syncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null),
+                        orderedSyncPluginDefs.Where(def => def.Manifest?.LoadRequiredState is 0 or null)
+                                             .Concat(syncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null)),
                         tokenSource.Token),
                     cancellationToken: tokenSource.Token);
                 Log.Verbose("Loaded DrawAvailableSync plugins (LoadRequiredState == 0 or null)");
 
+                loadTasks.Add(LoadPluginsAsyncOrdered(
+                                  "DrawAvailableOrderedAsync",
+                                  orderedAsyncPluginDefs.Where(def => def.Manifest?.LoadRequiredState is 0 or null),
+                                  tokenSource.Token));
                 loadTasks.Add(LoadPluginsAsync(
                                   "DrawAvailableAsync",
                                   asyncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null),
@@ -1360,6 +1397,45 @@ internal class PluginManager : IInternalDisposableService
             ServiceManager.Log.Verbose("PluginManager MUST depend on {Type}", serviceType.FullName!);
             yield return serviceType;
         }
+    }
+
+    private (List<PluginDef> Sync, List<PluginDef> Async) GetOrderedPluginDefsByLoadFlavor(List<PluginDef> pluginDefs)
+    {
+        var configuredOrder = this.configuration.PluginLoadOrder;
+        if (configuredOrder == null || configuredOrder.Count == 0)
+            return (new List<PluginDef>(), new List<PluginDef>());
+
+        var pluginLookup = pluginDefs.ToDictionary(def => def.Manifest.InternalName, StringComparer.OrdinalIgnoreCase);
+        var overrides = this.configuration.PluginLoadOrderOverrides;
+        var orderedSync = new List<PluginDef>(configuredOrder.Count);
+        var orderedAsync = new List<PluginDef>(configuredOrder.Count);
+
+        foreach (var internalName in configuredOrder)
+        {
+            if (internalName.IsNullOrEmpty())
+                continue;
+
+            if (!pluginLookup.TryGetValue(internalName, out var pluginDef))
+                continue;
+
+            var mode = PluginLoadOrderMode.Default;
+            if (overrides != null && overrides.TryGetValue(internalName, out var overrideMode))
+                mode = overrideMode;
+
+            var isSync = mode switch
+            {
+                PluginLoadOrderMode.ForceSync => true,
+                PluginLoadOrderMode.ForceAsync => false,
+                _ => pluginDef.Manifest.LoadSync,
+            };
+
+            if (isSync)
+                orderedSync.Add(pluginDef);
+            else
+                orderedAsync.Add(pluginDef);
+        }
+
+        return (orderedSync, orderedAsync);
     }
 
     /// <summary>

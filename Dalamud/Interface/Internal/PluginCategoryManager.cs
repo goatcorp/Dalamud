@@ -25,6 +25,7 @@ internal class PluginCategoryManager
         new(CategoryKind.AvailableForTesting, "special.availableForTesting", () => Locs.Category_AvailableForTesting, CategoryInfo.AppearCondition.DoPluginTest),
         new(CategoryKind.Hidden, "special.hidden", () => Locs.Category_Hidden, CategoryInfo.AppearCondition.AnyHiddenPlugins),
         new(CategoryKind.DevInstalled, "special.devInstalled", () => Locs.Category_DevInstalled),
+        new(CategoryKind.PluginLoadOrder, "special.pluginLoadOrder", () => Locs.Category_PluginLoadOrder),
         new(CategoryKind.IconTester, "special.devIconTester", () => Locs.Category_IconTester),
         new(CategoryKind.DalamudChangelogs, "special.dalamud", () => Locs.Category_Dalamud),
         new(CategoryKind.PluginChangelogs, "special.plugins", () => Locs.Category_Plugins),
@@ -46,7 +47,7 @@ internal class PluginCategoryManager
 
     private GroupInfo[] groupList =
     [
-        new(GroupKind.DevTools, () => Locs.Group_DevTools, CategoryKind.DevInstalled, CategoryKind.IconTester),
+        new(GroupKind.DevTools, () => Locs.Group_DevTools, CategoryKind.DevInstalled, CategoryKind.PluginLoadOrder, CategoryKind.IconTester),
         new(GroupKind.Installed, () => Locs.Group_Installed, CategoryKind.All, CategoryKind.IsTesting, CategoryKind.UpdateablePlugins, CategoryKind.PluginProfiles),
         new(GroupKind.Available, () => Locs.Group_Available, CategoryKind.All),
         new(GroupKind.Changelog, () => Locs.Group_Changelog, CategoryKind.All, CategoryKind.DalamudChangelogs, CategoryKind.PluginChangelogs)
@@ -141,6 +142,11 @@ internal class PluginCategoryManager
         /// Updateable plugins.
         /// </summary>
         UpdateablePlugins = 15,
+
+        /// <summary>
+        /// Customize plugin load order.
+        /// </summary>
+        PluginLoadOrder = 16,
         
         /// <summary>
         /// Plugins tagged as "other".
@@ -549,6 +555,8 @@ internal class PluginCategoryManager
         public static string Category_Hidden => Loc.Localize("InstallerCategoryHidden", "Hidden");
         
         public static string Category_DevInstalled => Loc.Localize("InstallerInstalledDevPlugins", "Installed Dev Plugins");
+
+        public static string Category_PluginLoadOrder => Loc.Localize("InstallerCategoryPluginLoadOrder", "Plugin Load Order");
 
         public static string Category_IconTester => "Image/Icon Tester";
 
