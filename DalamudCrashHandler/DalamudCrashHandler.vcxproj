@@ -25,7 +25,7 @@
   <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <LinkIncremental>false</LinkIncremental>
     <CharacterSet>Unicode</CharacterSet>
     <OutDir>..\bin\$(Configuration)\</OutDir>
