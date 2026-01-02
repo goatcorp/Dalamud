@@ -114,7 +114,7 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
                     Task.FromResult(
                         Service<TextureManager>.Get().CreateTextureFromSeString(
                             ReadOnlySeString.FromText(this.icons[i].ToIconString()),
-                            new() { Font = ImGui.GetFont(), FontSize = ImGui.GetFontSize() })));
+                            new() { Font = ImGui.GetFont(), FontSize = ImGui.GetFontSize(), ScreenOffset = Vector2.Zero })));
             }
 
             ImGui.PopFont();
