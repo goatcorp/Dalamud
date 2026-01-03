@@ -11,6 +11,7 @@ using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Internal;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -27,7 +28,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 {
-    private static readonly string[] ThemeNames = ["Dark", "Light", "Classic FF", "Clear Blue"];
+    private static readonly string[] ThemeNames = ["Dark", "Light", "Classic FF", "Clear Blue", "Clear White", "Clear Green"];
     private ImVectorWrapper<byte> testStringBuffer;
     private string testString = string.Empty;
     private ReadOnlySeString? logkind;
@@ -117,9 +118,11 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         ImGui.SameLine();
         var t4 = this.style.ThemeIndex ?? AtkStage.Instance()->AtkUIColorHolder->ActiveColorThemeType;
-        ImGui.PushItemWidth(ImGui.CalcTextSize("WWWWWWWWWWWWWW"u8).X);
-        if (ImGui.Combo("##theme", ref t4, ThemeNames))
-            this.style.ThemeIndex = t4;
+        using (ImRaii.ItemWidth(ImGui.CalcTextSize("WWWWWWWWWWWWWW"u8).X))
+        {
+            if (ImGui.Combo("##theme", ref t4, ThemeNames))
+                this.style.ThemeIndex = t4;
+        }
 
         ImGui.SameLine();
         t = this.style.LinkUnderlineThickness > 0f;
@@ -190,22 +193,19 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
             dl.PushClipRect(clipMin, clipMax);
             ImGuiHelpers.CompileSeStringWrapped(
                 "<icon(1)>Test test<icon(1)>",
-                new SeStringDrawParams
-                    { Color = 0xFFFFFFFF, WrapWidth = float.MaxValue, TargetDrawList = dl });
+                new SeStringDrawParams { Color = 0xFFFFFFFF, WrapWidth = float.MaxValue, TargetDrawList = dl });
             dl.PopClipRect();
         }
 
         if (ImGui.CollapsingHeader("Addon Table"u8))
         {
-            if (ImGui.BeginTable("Addon Sheet"u8, 3))
+            using var table = ImRaii.Table("Addon Sheet"u8, 3);
+            if (table.Success)
             {
                 ImGui.TableSetupScrollFreeze(0, 1);
                 ImGui.TableSetupColumn("Row ID"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("0000000"u8).X);
                 ImGui.TableSetupColumn("Text"u8, ImGuiTableColumnFlags.WidthStretch);
-                ImGui.TableSetupColumn(
-                    "Misc"u8,
-                    ImGuiTableColumnFlags.WidthFixed,
-                    ImGui.CalcTextSize("AAAAAAAAAAAAAAAAA"u8).X);
+                ImGui.TableSetupColumn("Misc"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("AAAAAAAAAAAAAAAAA"u8).X);
                 ImGui.TableHeadersRow();
 
                 var addon = Service<DataManager>.GetNullable()?.GetExcelSheet<Addon>() ??
@@ -220,7 +220,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                         var row = addon.GetRowAt(i);
 
                         ImGui.TableNextRow();
-                        ImGui.PushID(i);
+                        using var pushedId = ImRaii.PushId(i);
 
                         ImGui.TableNextColumn();
                         ImGui.AlignTextToFramePadding();
@@ -232,14 +232,11 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
                         ImGui.TableNextColumn();
                         if (ImGui.Button("Print to Chat"u8))
-                            Service<ChatGui>.Get().Print(row.Text.ToDalamudString());
-
-                        ImGui.PopID();
+                            Service<ChatGui>.Get().Print(row.Text);
                     }
                 }
 
                 clipper.Destroy();
-                ImGui.EndTable();
             }
         }
 
@@ -256,9 +253,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         if (ImGui.Button("Print to Chat Log"u8))
         {
-            Service<ChatGui>.Get().Print(
-                Game.Text.SeStringHandling.SeString.Parse(
-                    Service<SeStringRenderer>.Get().CompileAndCache(this.testString).Data.Span));
+            Service<ChatGui>.Get().Print(Service<SeStringRenderer>.Get().CompileAndCache(this.testString));
         }
 
         ImGui.SameLine();
@@ -313,6 +308,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                 var len = this.testStringBuffer.StorageSpan.IndexOf((byte)0);
                 if (len + 4 >= this.testStringBuffer.Capacity)
                     this.testStringBuffer.EnsureCapacityExponential(len + 4);
+
                 if (len < this.testStringBuffer.Capacity)
                 {
                     this.testStringBuffer.LengthUnsafe = len;
