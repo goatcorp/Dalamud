@@ -22,3 +22,6 @@
 [submodule "lib/Lumina.Excel"]
 	path = lib/Lumina.Excel
 	url = https://github.com/NotAdam/Lumina.Excel.git
+[submodule "lib/ImAnim"]
+	path = lib/ImAnim
+	url = https://github.com/goatcorp/gc-ImAnim.git
