@@ -126,7 +126,27 @@ internal class PluginInstallerWindow : Window, IDisposable
     private string filterText = Locs.SortBy_Alphabetical;
     private bool adaptiveSort = true;
 
-    private OperationStatus installStatus = OperationStatus.Idle;
+    private string? selectedRepoUrl = null; // null = All Repositories
+    private string selectedRepoUrlNormalized = string.Empty;
+    private int repoFilterCacheKey = 0;
+
+    private readonly List<string> cachedRepoUrls = new();
+    private readonly HashSet<string> cachedRepoUrlsNormalized = new(StringComparer.OrdinalIgnoreCase);
+    private const string XivLauncherRepoKey = "XIVLauncher";
+
+    private void SetSelectedRepo(string? repoUrl)
+    {
+        if (this.selectedRepoUrl == repoUrl)
+            return;
+
+        this.selectedRepoUrl = repoUrl;
+        this.selectedRepoUrlNormalized = NormalizeRepoUrl(repoUrl);
+
+        this.UpdateCategoriesOnPluginsChange();
+        this.openPluginCollapsibles.Clear();
+    }
+
+private OperationStatus installStatus = OperationStatus.Idle;
     private OperationStatus updateStatus = OperationStatus.Idle;
 
     private OperationStatus enableDisableStatus = OperationStatus.Idle;
@@ -235,6 +255,9 @@ internal class PluginInstallerWindow : Window, IDisposable
         Testing,
         Updateable,
         Dev,
+        Enabled,
+        Disabled,
+        Incompatible,
     }
 
     private bool AnyOperationInProgress => this.installStatus == OperationStatus.InProgress ||
@@ -786,7 +809,58 @@ internal class PluginInstallerWindow : Window, IDisposable
                 ImGui.EndCombo();
             }
         }
-    }
+
+        // Repository filter (overarching filter for repositories)
+        this.RefreshRepoFilterList();
+
+        // Disabled for changelog views or profile editor (plugin collections).
+        var disableRepoFilter = this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Changelog || isProfileManager;
+
+        using (ImRaii.Disabled(disableRepoFilter))
+        {
+            ImGuiHelpers.ScaledDummy(5);
+
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextUnformatted("Repository Filter");
+            ImGui.SameLine();
+
+            // Fill remaining width of the header row
+            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+
+            var repoPreview = this.selectedRepoUrl ?? "All Repositories";
+            if (ImGui.BeginCombo("##RepoFilterCombo", repoPreview))
+            {
+                if (ImGui.Selectable("All Repositories", this.selectedRepoUrl == null))
+                {
+                    this.SetSelectedRepo(null);
+}
+
+                if (ImGui.Selectable("XIVLauncher", this.selectedRepoUrl == XivLauncherRepoKey))
+                {
+                    this.SetSelectedRepo(XivLauncherRepoKey);
+}
+
+                ImGui.Separator();
+
+                for (var i = 0; i < this.cachedRepoUrls.Count; i++)
+                {
+                    var repoUrl = this.cachedRepoUrls[i];
+                    var selected = this.selectedRepoUrl == repoUrl;
+
+                    // Use stable unique IDs to avoid ImGui collisions with long/duplicate URLs.
+                    if (ImGui.Selectable($"{repoUrl}##repo_{i}", selected))
+                    {
+                        this.SetSelectedRepo(repoUrl);
+}
+                }
+
+                ImGui.EndCombo();
+            }
+
+            ImGuiHelpers.ScaledDummy(10);
+        }
+
+}
 
     private void DrawFooter()
     {
@@ -1303,6 +1377,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var filteredAvailableManifests = availableManifests
                                          .Where(rm => !this.IsManifestFiltered(rm))
+                                         .Where(this.PassesRepoFilter)
                                          .ToList();
 
         if (filteredAvailableManifests.Count == 0)
@@ -1315,7 +1390,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             var plugin = this.pluginListInstalled
                              .FirstOrDefault(plugin => plugin.Manifest.InternalName == availableManifest.InternalName &&
-                                                       plugin.Manifest.RepoUrl == availableManifest.RepoUrl &&
+                                                       RepoUrlMatches(GetRepoFilterUrl(plugin), GetRepoFilterUrl(availableManifest)) &&
                                                        !plugin.IsDev);
 
             // We "consumed" this plugin from the pile and remove it.
@@ -1334,6 +1409,9 @@ internal class PluginInstallerWindow : Window, IDisposable
         foreach (var installedPlugin in installedPlugins)
         {
             if (this.IsManifestFiltered(installedPlugin.Manifest))
+                continue;
+
+            if (!this.PassesRepoFilter(GetRepoFilterUrl(installedPlugin)))
                 continue;
 
             // TODO: We should also check categories here, for good measure
@@ -1438,6 +1516,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var filteredList = pluginList
                            .Where(plugin => !this.IsManifestFiltered(plugin.Manifest))
+                           .Where(plugin => this.PassesRepoFilter(!string.IsNullOrWhiteSpace(plugin.Manifest.InstalledFromUrl) ? plugin.Manifest.InstalledFromUrl : plugin.Manifest.RepoUrl))
                            .ToList();
 
         if (filteredList.Count == 0)
@@ -1453,6 +1532,15 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (filter == InstalledPluginListFilter.Testing && !manager.HasTestingOptIn(plugin.Manifest))
                 continue;
 
+            if (filter == InstalledPluginListFilter.Enabled && (!plugin.IsWantedByAnyProfile || plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned || plugin.IsDecommissioned))
+                continue;
+
+            if (filter == InstalledPluginListFilter.Disabled && (plugin.IsWantedByAnyProfile || plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned || plugin.IsDecommissioned))
+                continue;
+
+            if (filter == InstalledPluginListFilter.Incompatible && !(plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned || plugin.IsDecommissioned))
+                continue;
+
             // Find applicable update and manifest, if we have them
             AvailablePluginUpdate? update = null;
             RemotePluginManifest? remoteManifest = null;
@@ -1466,7 +1554,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 // Find the applicable remote manifest
                 remoteManifest = this.pluginListAvailable
                                          .FirstOrDefault(rm => rm.InternalName == plugin.Manifest.InternalName &&
-                                                               rm.RepoUrl == plugin.Manifest.RepoUrl);
+                                                               RepoUrlMatches(rm.RepoUrl, plugin.Manifest.RepoUrl));
             }
             else if (!plugin.IsDev)
             {
@@ -1485,6 +1573,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                 InstalledPluginListFilter.Testing => Locs.TabBody_NoPluginsTesting,
                 InstalledPluginListFilter.Updateable => Locs.TabBody_NoPluginsUpdateable,
                 InstalledPluginListFilter.Dev => Locs.TabBody_NoPluginsDev,
+                InstalledPluginListFilter.Enabled => Locs.TabBody_NoPluginsEnabled,
+                InstalledPluginListFilter.Disabled => Locs.TabBody_NoPluginsDisabled,
+                InstalledPluginListFilter.Incompatible => Locs.TabBody_NoPluginsIncompatible,
                 _ => throw new ArgumentException(null, nameof(filter)),
             };
 
@@ -1723,6 +1814,18 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                     case PluginCategoryManager.CategoryKind.UpdateablePlugins:
                         this.DrawInstalledPluginList(InstalledPluginListFilter.Updateable);
+                        break;
+
+                    case PluginCategoryManager.CategoryKind.EnabledPlugins:
+                        this.DrawInstalledPluginList(InstalledPluginListFilter.Enabled);
+                        break;
+
+                    case PluginCategoryManager.CategoryKind.DisabledPlugins:
+                        this.DrawInstalledPluginList(InstalledPluginListFilter.Disabled);
+                        break;
+
+                    case PluginCategoryManager.CategoryKind.IncompatiblePlugins:
+                        this.DrawInstalledPluginList(InstalledPluginListFilter.Incompatible);
                         break;
 
                     case PluginCategoryManager.CategoryKind.PluginProfiles:
@@ -3949,12 +4052,12 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
         else
         {
-            var pluginsMatchingSearch = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
+            var pluginsMatchingSearch = this.pluginListAvailable.Where(rm => this.PassesRepoFilter(rm) && !this.IsManifestFiltered(rm)).ToArray();
 
             // Check if the search results are different, and clear the open collapsibles if they are
             if (previousSearchText != null)
             {
-                var previousSearchResults = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
+                var previousSearchResults = this.pluginListAvailable.Where(rm => this.PassesRepoFilter(rm) && !this.IsManifestFiltered(rm)).ToArray();
                 if (!previousSearchResults.SequenceEqual(pluginsMatchingSearch))
                     this.openPluginCollapsibles.Clear();
             }
@@ -3965,11 +4068,142 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void UpdateCategoriesOnPluginsChange()
     {
-        this.categoryManager.BuildCategories(this.pluginListAvailable);
+        this.categoryManager.BuildCategories(this.pluginListAvailable.Where(this.PassesRepoFilter).ToList());
         this.UpdateCategoriesOnSearchChange(null);
     }
 
-    private void DrawFontawesomeIconOutlined(FontAwesomeIcon icon, Vector4 outline, Vector4 iconColor)
+    private void RefreshRepoFilterList()
+    {
+        var config = Service<DalamudConfiguration>.Get();
+
+        // Avoid rebuilding every frame unless the repo list actually changed.
+        var newKey = 17;
+        unchecked
+        {
+            foreach (var repo in config.ThirdRepoList)
+            {
+                if (string.IsNullOrWhiteSpace(repo.Url))
+                    continue;
+
+                newKey = (newKey * 31) + StringComparer.OrdinalIgnoreCase.GetHashCode(repo.Url.Trim());
+            }
+        }
+
+        if (newKey == this.repoFilterCacheKey)
+            return;
+
+        this.repoFilterCacheKey = newKey;
+
+this.cachedRepoUrls.Clear();
+        this.cachedRepoUrlsNormalized.Clear();
+
+        // Main repo is represented by the "XIVLauncher" entry; here we only list third-party repos.
+        var seenDisplay = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var repo in config.ThirdRepoList)
+        {
+            if (string.IsNullOrWhiteSpace(repo.Url))
+                continue;
+
+            var trimmed = repo.Url.Trim();
+            if (!seenDisplay.Add(trimmed))
+                continue;
+
+            this.cachedRepoUrls.Add(trimmed);
+
+            var normalized = NormalizeRepoUrl(trimmed);
+            if (!string.IsNullOrEmpty(normalized))
+                this.cachedRepoUrlsNormalized.Add(normalized);
+        }
+    }
+
+    
+    private static string NormalizeRepoUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+
+        url = url.Trim();
+
+        // Best-effort URI normalization: ignore query/fragment; compare by path.
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            var left = uri.GetLeftPart(UriPartial.Path);
+            return left.TrimEnd('/');
+        }
+
+        return url.TrimEnd('/');
+    }
+
+    private static bool RepoUrlMatches(string? a, string? b)
+    {
+        var na = NormalizeRepoUrl(a);
+        var nb = NormalizeRepoUrl(b);
+
+        if (string.IsNullOrEmpty(na) || string.IsNullOrEmpty(nb))
+            return false;
+
+        if (string.Equals(na, nb, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        // Allow prefix matches to handle minor formatting differences (e.g. /api/6 suffix).
+        // Ensure the prefix boundary is a path separator.
+        if (na.Length < nb.Length && nb.StartsWith(na, StringComparison.OrdinalIgnoreCase))
+            return nb[na.Length] == '/';
+
+        if (nb.Length < na.Length && na.StartsWith(nb, StringComparison.OrdinalIgnoreCase))
+            return na[nb.Length] == '/';
+
+        return false;
+    }
+
+
+private static string? GetRepoFilterUrl(RemotePluginManifest manifest)
+{
+    // For available manifests, RepoUrl is often the plugin's project URL (or null).
+    // The repository identity we care about is the *source repo* (pluginmaster URL) vs XIVLauncher (main repo).
+    if (manifest.SourceRepo != null && manifest.SourceRepo.IsThirdParty)
+        return manifest.SourceRepo.PluginMasterUrl;
+
+    return PluginRepository.MainRepoUrl;
+}
+
+private static string? GetRepoFilterUrl(LocalPlugin plugin)
+{
+    // Installed third-party plugins store their origin in InstalledFromUrl.
+    if (plugin.IsThirdParty)
+        return plugin.Manifest.InstalledFromUrl;
+
+    return PluginRepository.MainRepoUrl;
+}
+
+    private bool PassesRepoFilter(string? repoUrl)
+    {
+        // null => All Repositories
+        if (this.selectedRepoUrl == null)
+            return true;
+
+        // Anything not from the user's third-party repo list
+        if (this.selectedRepoUrl == XivLauncherRepoKey)
+        {
+            // Treat empty and the known main repo URL as "XIVLauncher"
+            if (string.IsNullOrWhiteSpace(repoUrl) || RepoUrlMatches(repoUrl, PluginRepository.MainRepoUrl))
+                return true;
+
+            var normalized = NormalizeRepoUrl(repoUrl);
+            if (string.IsNullOrEmpty(normalized))
+                return true;
+
+            // Anything not matching the configured third-party repos is considered "XIVLauncher".
+            return !this.cachedRepoUrlsNormalized.Contains(normalized);
+        }
+
+        return RepoUrlMatches(repoUrl, this.selectedRepoUrlNormalized);
+    }
+
+    private bool PassesRepoFilter(RemotePluginManifest manifest) => this.PassesRepoFilter(GetRepoFilterUrl(manifest));
+
+private void DrawFontawesomeIconOutlined(FontAwesomeIcon icon, Vector4 outline, Vector4 iconColor)
     {
         var positionOffset = ImGuiHelpers.ScaledVector2(0.0f, 1.0f);
         var cursorStart = ImGui.GetCursorPos() + positionOffset;
@@ -4096,6 +4330,12 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string TabBody_NoPluginsUpdateable => Loc.Localize("InstallerNoPluginsUpdate", "No plugins have updates available at the moment.");
 
         public static string TabBody_NoPluginsDev => Loc.Localize("InstallerNoPluginsDev", "You don't have any dev plugins. Add them from the settings.");
+
+        public static string TabBody_NoPluginsEnabled => Loc.Localize("InstallerNoPluginsEnabled", "You don't have any enabled plugins.");
+
+        public static string TabBody_NoPluginsDisabled => Loc.Localize("InstallerNoPluginsDisabled", "You don't have any disabled plugins.");
+
+        public static string TabBody_NoPluginsIncompatible => Loc.Localize("InstallerNoPluginsIncompatible", "You don't have any incompatible plugins.");
 
         #endregion
 

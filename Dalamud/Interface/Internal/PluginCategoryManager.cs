@@ -30,6 +30,9 @@ internal class PluginCategoryManager
         new(CategoryKind.PluginChangelogs, "special.plugins", () => Locs.Category_Plugins),
         new(CategoryKind.PluginProfiles, "special.profiles", () => Locs.Category_PluginProfiles),
         new(CategoryKind.UpdateablePlugins, "special.updateable", () => Locs.Category_UpdateablePlugins),
+        new(CategoryKind.EnabledPlugins, "special.enabled", () => Locs.Category_EnabledPlugins),
+        new(CategoryKind.DisabledPlugins, "special.disabled", () => Locs.Category_DisabledPlugins),
+        new(CategoryKind.IncompatiblePlugins, "special.incompatible", () => Locs.Category_IncompatiblePlugins),
 
         // Tag-driven categories
         new(CategoryKind.Other, "other", () => Locs.Category_Other),
@@ -47,7 +50,7 @@ internal class PluginCategoryManager
     private GroupInfo[] groupList =
     [
         new(GroupKind.DevTools, () => Locs.Group_DevTools, CategoryKind.DevInstalled, CategoryKind.IconTester),
-        new(GroupKind.Installed, () => Locs.Group_Installed, CategoryKind.All, CategoryKind.IsTesting, CategoryKind.UpdateablePlugins, CategoryKind.PluginProfiles),
+        new(GroupKind.Installed, () => Locs.Group_Installed, CategoryKind.All, CategoryKind.IsTesting, CategoryKind.UpdateablePlugins, CategoryKind.PluginProfiles, CategoryKind.EnabledPlugins, CategoryKind.DisabledPlugins, CategoryKind.IncompatiblePlugins),
         new(GroupKind.Available, () => Locs.Group_Available, CategoryKind.All),
         new(GroupKind.Changelog, () => Locs.Group_Changelog, CategoryKind.All, CategoryKind.DalamudChangelogs, CategoryKind.PluginChangelogs)
 
@@ -142,6 +145,21 @@ internal class PluginCategoryManager
         /// </summary>
         UpdateablePlugins = 15,
         
+        /// <summary>
+        /// Enabled plugins.
+        /// </summary>
+        EnabledPlugins = 16,
+
+        /// <summary>
+        /// Disabled plugins.
+        /// </summary>
+        DisabledPlugins = 17,
+
+        /// <summary>
+        /// Incompatible plugins.
+        /// </summary>
+        IncompatiblePlugins = 18,
+
         /// <summary>
         /// Plugins tagged as "other".
         /// </summary>
@@ -555,6 +573,12 @@ internal class PluginCategoryManager
         public static string Category_PluginProfiles => Loc.Localize("InstallerCategoryPluginProfiles", "Plugin Collections");
 
         public static string Category_UpdateablePlugins => Loc.Localize("InstallerCategoryCanBeUpdated", "Can be updated");
+
+        public static string Category_EnabledPlugins => Loc.Localize("InstallerCategoryEnabledPlugins", "Enabled");
+
+        public static string Category_DisabledPlugins => Loc.Localize("InstallerCategoryDisabledPlugins", "Disabled");
+
+        public static string Category_IncompatiblePlugins => Loc.Localize("InstallerCategoryIncompatiblePlugins", "Incompatible");
         
         public static string Category_Other => Loc.Localize("InstallerCategoryOther", "Other");
 
