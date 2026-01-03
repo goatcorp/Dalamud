@@ -1,9 +1,12 @@
 using Dalamud.Bindings.ImGui;
+using Dalamud.Data;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.SelfTest;
+
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -15,10 +18,10 @@ internal class ChatSelfTestStep : ISelfTestStep
     private int step = 0;
     private bool subscribedChatMessage = false;
     private bool subscribedLogMessage = false;
-    private bool hasPassed = false;
-    private bool hasTeleportGil = false;
-    private bool hasTeleportTicket = false;
-    private int teleportCount = 0;
+    private bool hasSeenEchoMessage = false;
+    private bool hasSeenMountMessage = false;
+    private string mountName = "";
+    private string mountUser = "";
 
     /// <inheritdoc/>
     public string Name => "Test Chat";
@@ -45,7 +48,7 @@ internal class ChatSelfTestStep : ISelfTestStep
                     chatGui.ChatMessage += this.ChatOnOnChatMessage;
                 }
 
-                if (this.hasPassed)
+                if (this.hasSeenEchoMessage)
                 {
                     chatGui.ChatMessage -= this.ChatOnOnChatMessage;
                     this.subscribedChatMessage = false;
@@ -55,7 +58,7 @@ internal class ChatSelfTestStep : ISelfTestStep
                 break;
 
             case 2:
-                ImGui.Text("Teleport somewhere...");
+                ImGui.Text("Use any mount...");
 
                 if (!this.subscribedLogMessage)
                 {
@@ -63,18 +66,11 @@ internal class ChatSelfTestStep : ISelfTestStep
                     chatGui.LogMessage += this.ChatOnLogMessage;
                 }
 
-                if (this.hasTeleportGil)
+                if (this.hasSeenMountMessage)
                 {
-                    ImGui.Text($"You spent {this.teleportCount} gil to teleport.");
-                }
-                if (this.hasTeleportTicket)
-                {
-                    ImGui.Text($"You used a ticket to teleport and have {this.teleportCount} remaining.");
-                }
-
-                if (this.hasTeleportGil || this.hasTeleportTicket)
-                {
-                    ImGui.Text("Is this correct?");
+                    ImGui.Text($"{this.mountUser} mounted {this.mountName}.");
+                
+                    ImGui.Text("Is this correct? It is correct if this triggers on other players around you.");
 
                     if (ImGui.Button("Yes"))
                     {
@@ -117,23 +113,25 @@ internal class ChatSelfTestStep : ISelfTestStep
     {
         if (type == XivChatType.Echo && message.TextValue == "DALAMUD")
         {
-            this.hasPassed = true;
+            this.hasSeenEchoMessage = true;
         }
     }
 
     private void ChatOnLogMessage(ILogMessage message)
     {
-        if (message.LogMessageId == 4590 && message.TryGetIntParameter(0, out var value))
+        if (message.LogMessageId == 646 && message.TryGetIntParameter(0, out var value))
         {
-            this.hasTeleportGil = true;
-            this.hasTeleportTicket = false;
-            this.teleportCount = value;
-        }
-        if (message.LogMessageId == 4591 && message.TryGetIntParameter(0, out var item) && item == 7569 && message.TryGetIntParameter(1, out var remaining))
-        {
-            this.hasTeleportGil = false;
-            this.hasTeleportTicket = true;
-            this.teleportCount = remaining;
+            this.hasSeenMountMessage = true;
+            this.mountUser = message.SourceEntity?.Name.ExtractText() ?? "<incorrect>";
+            try
+            {
+                this.mountName = Service<DataManager>.Get().GetExcelSheet<Mount>().GetRow((uint)value).Singular.ExtractText();
+            }
+            catch
+            {
+                // ignore any errors with retrieving the mount name, they are probably not related to this test
+                this.mountName = $"Mount ID: {value} (failed to retrieve mount name)";
+            }
         }
     }
 }
