@@ -1,4 +1,4 @@
-﻿using Dalamud.Storage.Assets;
+using Dalamud.Storage.Assets;
 
 using TerraFX.Interop.DirectX;
 
@@ -125,6 +125,13 @@ public enum DalamudAsset
     TitleScreenMenuShade = 1013,
 
     /// <summary>
+    /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK Medium.
+    /// </summary>
+    [DalamudAsset(DalamudAssetPurpose.Font)]
+    [DalamudAssetPath("UIRes", "NotoSansCJK-Medium.ttc")]
+    NotoSansCJKMedium = 2000,
+
+    /// <summary>
     /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: Atlas containing badges.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
@@ -134,17 +141,24 @@ public enum DalamudAsset
     /// <summary>
     /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK JP Medium.
     /// </summary>
+    [Obsolete("Use NotoSansCJKMedium instead.")]
     [DalamudAsset(DalamudAssetPurpose.Font)]
-    [DalamudAssetPath("UIRes", "NotoSansCJKjp-Regular.otf")]
-    [DalamudAssetPath("UIRes", "NotoSansCJKjp-Medium.otf")]
+    [DalamudAssetPath("UIRes", "NotoSansCJK-Medium.ttc")]
     NotoSansJpMedium = 2000,
+
+    /// <summary>
+    /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK Regular.
+    /// </summary>
+    [DalamudAsset(DalamudAssetPurpose.Font)]
+    [DalamudAssetPath("UIRes", "NotoSansCJK-Regular.ttc")]
+    NotoSansCJKRegular = 2001,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK KR Regular.
     /// </summary>
+    [Obsolete("Use NotoSansCJKRegular instead.")]
     [DalamudAsset(DalamudAssetPurpose.Font)]
-    [DalamudAssetPath("UIRes", "NotoSansCJKkr-Regular.otf")]
-    [DalamudAssetPath("UIRes", "NotoSansKR-Regular.otf")]
+    [DalamudAssetPath("UIRes", "NotoSansCJK-Regular.ttc")]
     NotoSansKrRegular = 2001,
 
     /// <summary>
