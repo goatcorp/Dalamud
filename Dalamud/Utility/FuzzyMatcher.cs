@@ -1,184 +1,138 @@
 ﻿#define BORDER_MATCHING
 
-using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.CompilerServices;
+
+using Dalamud.Configuration.Internal;
 
 namespace Dalamud.Utility;
 
-#pragma warning disable SA1600
-#pragma warning disable SA1602
-
-internal enum MatchMode
+/// <summary>
+/// Matches a string in a fuzzy way.
+/// </summary>
+internal static class FuzzyMatcher
 {
-    Simple,
-    Fuzzy,
-    FuzzyParts,
-}
-
-internal readonly ref struct FuzzyMatcher
-{
-    private static readonly (int, int)[] EmptySegArray = Array.Empty<(int, int)>();
-
-    private readonly string needleString = string.Empty;
-    private readonly ReadOnlySpan<char> needleSpan = ReadOnlySpan<char>.Empty;
-    private readonly int needleFinalPosition = -1;
-    private readonly (int Start, int End)[] needleSegments = EmptySegArray;
-    private readonly MatchMode mode = MatchMode.Simple;
-
-    public FuzzyMatcher(string term, MatchMode matchMode)
+    /// <summary>
+    /// Scores how well <paramref name="needle"/> can be found in <paramref name="haystack"/> in a fuzzy way.
+    /// </summary>
+    /// <param name="haystack">The string to search in.</param>
+    /// <param name="needle">The substring to search for.</param>
+    /// <param name="mode">Fuzzy match mode.</param>
+    /// <param name="cultureInfo">Culture info for case-insensitive matching. Defaults to the culture corresponding to Dalamud language.</param>
+    /// <returns>The score. 0 means that the string did not match. The scores are meaningful only across matches using the same <paramref name="needle"/> value.</returns>
+    public static int FuzzyScore(
+        this ReadOnlySpan<char> haystack,
+        ReadOnlySpan<char> needle,
+        FuzzyMatcherMode mode = FuzzyMatcherMode.Simple,
+        CultureInfo? cultureInfo = null)
     {
-        this.needleString = term;
-        this.needleSpan = this.needleString.AsSpan();
-        this.needleFinalPosition = this.needleSpan.Length - 1;
-        this.mode = matchMode;
+        cultureInfo ??=
+            Service<DalamudConfiguration>.GetNullable().EffectiveLanguage is { } effectiveLanguage
+                ? Localization.GetCultureInfoFromLangCode(effectiveLanguage)
+                : CultureInfo.CurrentCulture;
 
-        switch (matchMode)
+        switch (mode)
         {
-            case MatchMode.FuzzyParts:
-                this.needleSegments = FindNeedleSegments(this.needleSpan);
-                break;
-            case MatchMode.Fuzzy:
-            case MatchMode.Simple:
-                this.needleSegments = EmptySegArray;
-                break;
+            case var _ when needle.Length == 0:
+                return 0;
+
+            case FuzzyMatcherMode.Simple:
+                return cultureInfo.CompareInfo.IndexOf(haystack, needle, CompareOptions.IgnoreCase) != -1 ? 1 : 0;
+
+            case FuzzyMatcherMode.Fuzzy:
+                return GetRawScore(haystack, needle, cultureInfo);
+
+            case FuzzyMatcherMode.FuzzyParts:
+                var score = 0;
+                foreach (var needleSegment in new WordEnumerator(needle))
+                {
+                    var cur = GetRawScore(haystack, needleSegment, cultureInfo);
+                    if (cur == 0)
+                        return 0;
+
+                    score += cur;
+                }
+
+                return score;
+
             default:
-                throw new ArgumentOutOfRangeException(nameof(matchMode), matchMode, null);
+                throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
         }
     }
 
-    private static (int Start, int End)[] FindNeedleSegments(ReadOnlySpan<char> span)
+    /// <inheritdoc cref="FuzzyScore(ReadOnlySpan{char},ReadOnlySpan{char},FuzzyMatcherMode,CultureInfo?)"/>
+    public static int FuzzyScore(
+        this string? haystack,
+        ReadOnlySpan<char> needle,
+        FuzzyMatcherMode mode = FuzzyMatcherMode.Simple,
+        CultureInfo? cultureInfo = null) => haystack.AsSpan().FuzzyScore(needle, mode, cultureInfo);
+
+    /// <summary>
+    /// Determines if <paramref name="needle"/> can be found in <paramref name="haystack"/> in a fuzzy way.
+    /// </summary>
+    /// <param name="haystack">The string to search from.</param>
+    /// <param name="needle">The substring to search for.</param>
+    /// <param name="mode">Fuzzy match mode.</param>
+    /// <param name="cultureInfo">Culture info for case-insensitive matching. Defaults to the culture corresponding to Dalamud language.</param>
+    /// <returns><c>true</c> if matches.</returns>
+    public static bool FuzzyMatches(
+        this ReadOnlySpan<char> haystack,
+        ReadOnlySpan<char> needle,
+        FuzzyMatcherMode mode = FuzzyMatcherMode.Simple,
+        CultureInfo? cultureInfo = null) => haystack.FuzzyScore(needle, mode, cultureInfo) > 0;
+
+    /// <summary>
+    /// Determines if <paramref name="needle"/> can be found in <paramref name="haystack"/> in a fuzzy way.
+    /// </summary>
+    /// <param name="haystack">The string to search from.</param>
+    /// <param name="needle">The substring to search for.</param>
+    /// <param name="mode">Fuzzy match mode.</param>
+    /// <param name="cultureInfo">Culture info for case-insensitive matching. Defaults to the culture corresponding to Dalamud language.</param>
+    /// <returns><c>true</c> if matches.</returns>
+    public static bool FuzzyMatches(
+        this string? haystack,
+        ReadOnlySpan<char> needle,
+        FuzzyMatcherMode mode = FuzzyMatcherMode.Simple,
+        CultureInfo? cultureInfo = null) => haystack.FuzzyScore(needle, mode, cultureInfo) > 0;
+
+    private static int GetRawScore(ReadOnlySpan<char> haystack, ReadOnlySpan<char> needle, CultureInfo cultureInfo)
     {
-        var segments = new List<(int, int)>();
-        var wordStart = -1;
-
-        for (var i = 0; i < span.Length; i++)
-        {
-            if (span[i] is not ' ' and not '\u3000')
-            {
-                if (wordStart < 0)
-                {
-                    wordStart = i;
-                }
-            }
-            else if (wordStart >= 0)
-            {
-                segments.Add((wordStart, i - 1));
-                wordStart = -1;
-            }
-        }
-
-        if (wordStart >= 0)
-        {
-            segments.Add((wordStart, span.Length - 1));
-        }
-
-        return segments.ToArray();
-    }
-
-#pragma warning disable SA1202
-    public int Matches(string value)
-#pragma warning restore SA1202
-    {
-        if (this.needleFinalPosition < 0)
-        {
-            return 0;
-        }
-
-        if (this.mode == MatchMode.Simple)
-        {
-            return value.Contains(this.needleString) ? 1 : 0;
-        }
-
-        var haystack = value.AsSpan();
-
-        if (this.mode == MatchMode.Fuzzy)
-        {
-            return this.GetRawScore(haystack, 0, this.needleFinalPosition);
-        }
-
-        if (this.mode == MatchMode.FuzzyParts)
-        {
-            if (this.needleSegments.Length < 2)
-            {
-                return this.GetRawScore(haystack, 0, this.needleFinalPosition);
-            }
-
-            var total = 0;
-            for (var i = 0; i < this.needleSegments.Length; i++)
-            {
-                var (start, end) = this.needleSegments[i];
-                var cur = this.GetRawScore(haystack, start, end);
-                if (cur == 0)
-                {
-                    return 0;
-                }
-
-                total += cur;
-            }
-
-            return total;
-        }
-
-        return 8;
-    }
-
-    public int MatchesAny(params string[] values)
-    {
-        var max = 0;
-        for (var i = 0; i < values.Length; i++)
-        {
-            var cur = this.Matches(values[i]);
-            if (cur > max)
-            {
-                max = cur;
-            }
-        }
-
-        return max;
-    }
-
-    private int GetRawScore(ReadOnlySpan<char> haystack, int needleStart, int needleEnd)
-    {
-        var (startPos, gaps, consecutive, borderMatches, endPos) = this.FindForward(haystack, needleStart, needleEnd);
+        var (startPos, gaps, consecutive, borderMatches, endPos) = FindForward(haystack, needle, cultureInfo);
         if (startPos < 0)
-        {
             return 0;
-        }
 
-        var needleSize = needleEnd - needleStart + 1;
-
-        var score = CalculateRawScore(needleSize, startPos, gaps, consecutive, borderMatches);
+        var score = CalculateRawScore(needle.Length, startPos, gaps, consecutive, borderMatches);
         // PluginLog.Debug(
-        //     $"['{needleString.Substring(needleStart, needleEnd - needleStart + 1)}' in '{haystack}'] fwd: needleSize={needleSize} startPos={startPos} gaps={gaps} consecutive={consecutive} borderMatches={borderMatches} score={score}");
+        //     $"['{needle.Substring(needleStart, needleEnd - needleStart + 1)}' in '{haystack}'] fwd: needleSize={needleSize} startPos={startPos} gaps={gaps} consecutive={consecutive} borderMatches={borderMatches} score={score}");
 
-        (startPos, gaps, consecutive, borderMatches) = this.FindReverse(haystack, endPos, needleStart, needleEnd);
-        var revScore = CalculateRawScore(needleSize, startPos, gaps, consecutive, borderMatches);
+        (startPos, gaps, consecutive, borderMatches) = FindReverse(haystack[..(endPos + 1)], needle, cultureInfo);
+        var revScore = CalculateRawScore(needle.Length, startPos, gaps, consecutive, borderMatches);
         // PluginLog.Debug(
-        //     $"['{needleString.Substring(needleStart, needleEnd - needleStart + 1)}' in '{haystack}'] rev: needleSize={needleSize} startPos={startPos} gaps={gaps} consecutive={consecutive} borderMatches={borderMatches} score={revScore}");
+        //     $"['{needle.Substring(needleStart, needleEnd - needleStart + 1)}' in '{haystack}'] rev: needleSize={needleSize} startPos={startPos} gaps={gaps} consecutive={consecutive} borderMatches={borderMatches} score={revScore}");
 
         return int.Max(score, revScore);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#pragma warning disable SA1204
     private static int CalculateRawScore(int needleSize, int startPos, int gaps, int consecutive, int borderMatches)
-#pragma warning restore SA1204
     {
-        var score = 100
-                    + needleSize * 3
-                    + borderMatches * 3
-                    + consecutive * 5
-                    - startPos
-                    - gaps * 2;
+        var score = 100;
+        score += needleSize * 3;
+        score += borderMatches * 3;
+        score += consecutive * 5;
+        score -= startPos;
+        score -= gaps * 2;
         if (startPos == 0)
             score += 5;
         return score < 1 ? 1 : score;
     }
 
-    private (int StartPos, int Gaps, int Consecutive, int BorderMatches, int HaystackIndex) FindForward(
-        ReadOnlySpan<char> haystack, int needleStart, int needleEnd)
+    private static (int StartPos, int Gaps, int Consecutive, int BorderMatches, int HaystackIndex) FindForward(
+        ReadOnlySpan<char> haystack,
+        ReadOnlySpan<char> needle,
+        CultureInfo cultureInfo)
     {
-        var needleIndex = needleStart;
+        var needleIndex = 0;
         var lastMatchIndex = -10;
 
         var startPos = 0;
@@ -188,83 +142,69 @@ internal readonly ref struct FuzzyMatcher
 
         for (var haystackIndex = 0; haystackIndex < haystack.Length; haystackIndex++)
         {
-            if (haystack[haystackIndex] == this.needleSpan[needleIndex])
+            if (char.ToLower(haystack[haystackIndex], cultureInfo) == char.ToLower(needle[needleIndex], cultureInfo))
             {
 #if BORDER_MATCHING
                 if (haystackIndex > 0)
                 {
                     if (!char.IsLetterOrDigit(haystack[haystackIndex - 1]))
-                    {
                         borderMatches++;
-                    }
                 }
 #endif
 
                 needleIndex++;
 
                 if (haystackIndex == lastMatchIndex + 1)
-                {
                     consecutive++;
-                }
 
-                if (needleIndex > needleEnd)
-                {
+                if (needleIndex >= needle.Length)
                     return (startPos, gaps, consecutive, borderMatches, haystackIndex);
-                }
 
                 lastMatchIndex = haystackIndex;
             }
             else
             {
-                if (needleIndex > needleStart)
-                {
+                if (needleIndex > 0)
                     gaps++;
-                }
                 else
-                {
                     startPos++;
-                }
             }
         }
 
         return (-1, 0, 0, 0, 0);
     }
 
-    private (int StartPos, int Gaps, int Consecutive, int BorderMatches) FindReverse(
-        ReadOnlySpan<char> haystack, int haystackLastMatchIndex, int needleStart, int needleEnd)
+    private static (int StartPos, int Gaps, int Consecutive, int BorderMatches) FindReverse(
+        ReadOnlySpan<char> haystack,
+        ReadOnlySpan<char> needle,
+        CultureInfo cultureInfo)
     {
-        var needleIndex = needleEnd;
+        var needleIndex = needle.Length - 1;
         var revLastMatchIndex = haystack.Length + 10;
 
         var gaps = 0;
         var consecutive = 0;
         var borderMatches = 0;
 
-        for (var haystackIndex = haystackLastMatchIndex; haystackIndex >= 0; haystackIndex--)
+        for (var haystackIndex = haystack.Length - 1; haystackIndex >= 0; haystackIndex--)
         {
-            if (haystack[haystackIndex] == this.needleSpan[needleIndex])
+            if (char.ToLower(haystack[haystackIndex], cultureInfo) == char.ToLower(needle[needleIndex], cultureInfo))
             {
 #if BORDER_MATCHING
                 if (haystackIndex > 0)
                 {
                     if (!char.IsLetterOrDigit(haystack[haystackIndex - 1]))
-                    {
                         borderMatches++;
-                    }
                 }
 #endif
 
                 needleIndex--;
 
                 if (haystackIndex == revLastMatchIndex - 1)
-                {
                     consecutive++;
-                }
 
-                if (needleIndex < needleStart)
-                {
+                if (needleIndex < 0)
                     return (haystackIndex, gaps, consecutive, borderMatches);
-                }
 
                 revLastMatchIndex = haystackIndex;
             }
@@ -276,7 +216,39 @@ internal readonly ref struct FuzzyMatcher
 
         return (-1, 0, 0, 0);
     }
-}
 
-#pragma warning restore SA1600
-#pragma warning restore SA1602
+    private ref struct WordEnumerator(ReadOnlySpan<char> fullNeedle)
+    {
+        private readonly ReadOnlySpan<char> fullNeedle = fullNeedle;
+        private int start = -1;
+        private int end = 0;
+
+        public ReadOnlySpan<char> Current
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => this.fullNeedle[this.start..this.end];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool MoveNext()
+        {
+            if (this.start >= this.fullNeedle.Length - 1)
+                return false;
+
+            this.start = this.end;
+
+            // Skip the spaces
+            while (this.start < this.fullNeedle.Length && char.IsWhiteSpace(this.fullNeedle[this.start]))
+                this.start++;
+
+            this.end = this.start;
+            while (this.end < this.fullNeedle.Length && !char.IsWhiteSpace(this.fullNeedle[this.end]))
+                this.end++;
+
+            return this.start != this.end;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public WordEnumerator GetEnumerator() => this;
+    }
+}
