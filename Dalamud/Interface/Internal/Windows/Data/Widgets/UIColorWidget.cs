@@ -7,6 +7,8 @@ using Dalamud.Data;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
+using Dalamud.Interface.Utility.Raii;
+
 using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -32,7 +34,7 @@ internal class UiColorWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public unsafe void Draw()
+    public void Draw()
     {
         var colors = Service<DataManager>.GetNullable()?.GetExcelSheet<UIColor>()
             ?? throw new InvalidOperationException("UIColor sheet not loaded.");
@@ -44,7 +46,9 @@ internal class UiColorWidget : IDataWindowWidget
             "<edgecolor(0xEEEEFF)><color(0x0000FF)>BB<color(stackcolor)><edgecolor(stackcolor)>.<br>" +
             "· Click on a color to copy the color code.<br>" +
             "· Hover on a color to preview the text with edge, when the next color has been used together.");
-        if (!ImGui.BeginTable("UIColor"u8, 7))
+
+        using var table = ImRaii.Table("UIColor"u8, 7);
+        if (!table.Success)
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
@@ -93,61 +97,61 @@ internal class UiColorWidget : IDataWindowWidget
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.PushID($"row{id}_dark");
-                if (this.DrawColorColumn(row.Dark) &&
-                    adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.Dark, adjacentRow.Value.Dark);
-                ImGui.PopID();
+                using (ImRaii.PushId($"row{id}_dark"))
+                {
+                    if (this.DrawColorColumn(row.Dark) && adjacentRow.HasValue)
+                        DrawEdgePreview(id, row.Dark, adjacentRow.Value.Dark);
+                }
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.PushID($"row{id}_light");
-                if (this.DrawColorColumn(row.Light) &&
-                    adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.Light, adjacentRow.Value.Light);
-                ImGui.PopID();
+                using (ImRaii.PushId($"row{id}_light"))
+                {
+                    if (this.DrawColorColumn(row.Light) && adjacentRow.HasValue)
+                        DrawEdgePreview(id, row.Light, adjacentRow.Value.Light);
+                }
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.PushID($"row{id}_classic");
-                if (this.DrawColorColumn(row.ClassicFF) &&
-                    adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.ClassicFF, adjacentRow.Value.ClassicFF);
-                ImGui.PopID();
+                using (ImRaii.PushId($"row{id}_classic"))
+                {
+                    if (this.DrawColorColumn(row.ClassicFF) && adjacentRow.HasValue)
+                        DrawEdgePreview(id, row.ClassicFF, adjacentRow.Value.ClassicFF);
+                }
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.PushID($"row{id}_blue");
-                if (this.DrawColorColumn(row.ClearBlue) &&
-                    adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.ClearBlue, adjacentRow.Value.ClearBlue);
-                ImGui.PopID();
+                using (ImRaii.PushId($"row{id}_blue"))
+                {
+                    if (this.DrawColorColumn(row.ClearBlue) && adjacentRow.HasValue)
+                        DrawEdgePreview(id, row.ClearBlue, adjacentRow.Value.ClearBlue);
+                }
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.PushID($"row{id}_white");
-                if (this.DrawColorColumn(row.ClearWhite) &&
-                    adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.ClearWhite, adjacentRow.Value.ClearWhite);
-                ImGui.PopID();
+                using (ImRaii.PushId($"row{id}_white"))
+                {
+                    if (this.DrawColorColumn(row.ClearWhite) && adjacentRow.HasValue)
+                        DrawEdgePreview(id, row.ClearWhite, adjacentRow.Value.ClearWhite);
+                }
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.PushID($"row{id}_green");
-                if (this.DrawColorColumn(row.ClearGreen) &&
-                    adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.ClearGreen, adjacentRow.Value.ClearGreen);
-                ImGui.PopID();
+                using (ImRaii.PushId($"row{id}_green"))
+                {
+                    if (this.DrawColorColumn(row.ClearGreen) && adjacentRow.HasValue)
+                        DrawEdgePreview(id, row.ClearGreen, adjacentRow.Value.ClearGreen);
+                }
             }
         }
 
         clipper.Destroy();
-        ImGui.EndTable();
     }
 
     private static void DrawEdgePreview(uint id, uint sheetColor, uint sheetColor2)
     {
-        ImGui.BeginTooltip();
+        using var tooltip = ImRaii.Tooltip();
+
         Span<byte> buf = stackalloc byte[256];
         var ptr = 0;
         ptr += Encoding.UTF8.GetBytes("<colortype(", buf[ptr..]);
@@ -184,7 +188,6 @@ internal class UiColorWidget : IDataWindowWidget
                 EdgeColor = BinaryPrimitives.ReverseEndianness(sheetColor) | 0xFF000000u,
                 WrapWidth = float.PositiveInfinity,
             });
-        ImGui.EndTooltip();
     }
 
     private bool DrawColorColumn(uint sheetColor)
