@@ -689,6 +689,62 @@ void restart_game_using_injector(int nRadioButton, const std::vector<std::wstrin
     }
 }
 
+void get_cpu_info(wchar_t *vendor, wchar_t *brand)
+{
+    // Gotten and reformatted to not include all data as listed at https://learn.microsoft.com/en-us/cpp/intrinsics/cpuid-cpuidex?view=msvc-170#example
+    
+    // int cpuInfo[4] = {-1};
+    std::array<int, 4> cpui;
+    int nIds_;
+    int nExIds_;
+    std::string vendor_;
+    std::string brand_;
+    std::vector<std::array<int, 4>> data_;
+    std::vector<std::array<int, 4>> extdata_;
+    size_t convertedChars = 0;
+
+    // Calling __cpuid with 0x0 as the function_id argument
+    // gets the number of the highest valid function ID.
+    __cpuid(cpui.data(), 0);
+    nIds_ = cpui[0];
+
+    for (int i = 0; i <= nIds_; ++i)
+    {
+        __cpuidex(cpui.data(), i, 0);
+        data_.push_back(cpui);
+    }
+
+    // Capture vendor string
+    char vendorA[0x20];
+    memset(vendorA, 0, sizeof(vendorA));
+    *reinterpret_cast<int *>(vendorA) = data_[0][1];
+    *reinterpret_cast<int *>(vendorA + 4) = data_[0][3];
+    *reinterpret_cast<int *>(vendorA + 8) = data_[0][2];
+    mbstowcs_s(&convertedChars, vendor, 0x20, vendorA, _TRUNCATE);
+
+    // Calling __cpuid with 0x80000000 as the function_id argument
+    // gets the number of the highest valid extended ID.
+    __cpuid(cpui.data(), 0x80000000);
+    nExIds_ = cpui[0];
+
+    for (int i = 0x80000000; i <= nExIds_; ++i)
+    {
+        __cpuidex(cpui.data(), i, 0);
+        extdata_.push_back(cpui);
+    }
+
+    // Interpret CPU brand string if reported
+    if (nExIds_ >= 0x80000004)
+    {
+        char brandA[0x40];
+        memset(brandA, 0, sizeof(brandA));
+        memcpy(brandA, extdata_[2].data(), sizeof(cpui));
+        memcpy(brandA + 16, extdata_[3].data(), sizeof(cpui));
+        memcpy(brandA + 32, extdata_[4].data(), sizeof(cpui));
+        mbstowcs_s(&convertedChars, brand, 0x40, brandA, _TRUNCATE);
+    }
+}
+
 int main() {
     enum crash_handler_special_exit_codes {
         UnknownError = -99,
@@ -941,6 +997,9 @@ int main() {
         const bool is_external_event = exinfo.ExceptionRecord.ExceptionCode == CUSTOM_EXCEPTION_EXTERNAL_EVENT;
 
         std::wostringstream log;
+        wchar_t vendor[0x20];
+        wchar_t brand[0x40];
+        get_cpu_info(vendor, brand);
 
         if (!is_external_event)
         {
@@ -962,6 +1021,8 @@ int main() {
         else
             log << std::format(L"Dump error: {}", dumpError) << std::endl;
         log << std::format(L"System Time: {0:%F} {0:%T} {0:%Ez}", std::chrono::system_clock::now()) << std::endl;
+        log << std::format(L"CPU Vendor: {}", vendor) << std::endl;
+        log << std::format(L"CPU Brand: {}", brand) << std::endl;
         log << L"\n" << stackTrace << std::endl;
 
         if (pProgressDialog)
