@@ -698,8 +698,6 @@ void get_cpu_info(wchar_t *vendor, wchar_t *brand)
     std::array<int, 4> cpui;
     int nIds_;
     int nExIds_;
-    std::string vendor_;
-    std::string brand_;
     std::vector<std::array<int, 4>> data_;
     std::vector<std::array<int, 4>> extdata_;
     size_t convertedChars = 0;
