@@ -31,6 +31,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     private readonly Framework framework = Service<Framework>.Get();
 
     private Hook<AtkUnitBase.Delegates.Initialize>? onInitializeAddonHook;
+    private bool isInvokingListeners = false;
 
     [ServiceManager.ServiceConstructor]
     private AddonLifecycle()
@@ -61,7 +62,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AddonLifecycleEventListener listener)
     {
-        this.framework.RunOnFrameworkThread(() =>
+        this.framework.RunOnTick(() =>
         {
             if (!this.EventListeners.ContainsKey(listener.EventType))
             {
@@ -77,7 +78,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
             }
 
             this.EventListeners[listener.EventType][listener.AddonName].Add(listener);
-        });
+        }, delayTicks: this.isInvokingListeners ? 1 : 0);
     }
 
     /// <summary>
@@ -86,7 +87,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
-        this.framework.RunOnFrameworkThread(() =>
+        this.framework.RunOnTick(() =>
         {
             if (this.EventListeners.TryGetValue(listener.EventType, out var addonListeners))
             {
@@ -95,7 +96,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
                     addonListener.Remove(listener);
                 }
             }
-        });
+        }, delayTicks: this.isInvokingListeners ? 1 : 0);
     }
 
     /// <summary>
@@ -106,6 +107,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="blame">What to blame on errors.</param>
     internal void InvokeListenersSafely(AddonEvent eventType, AddonArgs args, [CallerMemberName] string blame = "")
     {
+        this.isInvokingListeners = true;
+
         // Early return if we don't have any listeners of this type
         if (!this.EventListeners.TryGetValue(eventType, out var addonListeners)) return;
 
@@ -140,6 +143,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
                 }
             }
         }
+
+        this.isInvokingListeners = false;
     }
 
     /// <summary>
