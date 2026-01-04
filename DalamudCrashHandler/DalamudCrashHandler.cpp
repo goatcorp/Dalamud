@@ -19,6 +19,7 @@
 #include <comdef.h>
 #include <CommCtrl.h>
 #include <DbgHelp.h>
+#include <intrin.h>
 #include <minidumpapiset.h>
 #include <PathCch.h>
 #include <Psapi.h>
