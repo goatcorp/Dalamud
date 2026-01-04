@@ -51,7 +51,6 @@ public interface IChatGui : IDalamudService
     /// <param name="message">The message sent.</param>
     public delegate void OnMessageUnhandledDelegate(XivChatType type, int timestamp, SeString sender, SeString message);
 
-
     /// <summary>
     /// A delegate type used with the <see cref="IChatGui.LogMessage"/> event.
     /// </summary>

@@ -17,8 +17,8 @@ internal class ChatSelfTestStep : ISelfTestStep
     private bool subscribedLogMessage = false;
     private bool hasSeenEchoMessage = false;
     private bool hasSeenActionMessage = false;
-    private string actionName = "";
-    private string actionUser = "";
+    private string actionName = string.Empty;
+    private string actionUser = string.Empty;
 
     /// <inheritdoc/>
     public string Name => "Test Chat";

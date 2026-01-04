@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Dalamud.Data;
 using Dalamud.Utility;
 
@@ -9,8 +11,6 @@ using FFXIVClientStructs.Interop;
 
 using Lumina.Excel;
 using Lumina.Text.ReadOnly;
-
-using System.Diagnostics.CodeAnalysis;
 
 namespace Dalamud.Game.Chat;
 
@@ -88,11 +88,8 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
     /// <inheritdoc/>
     public RowRef<Lumina.Excel.Sheets.LogMessage> GameData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.LogMessage>(ptr->LogMessageId);
 
-    public LogMessageEntity SourceEntity => new LogMessageEntity(ptr, true);
     /// <inheritdoc/>
     ILogMessageEntity? ILogMessage.SourceEntity => ptr->SourceKind == EntityRelationKind.None ? null : this.SourceEntity;
-
-    public LogMessageEntity TargetEntity => new LogMessageEntity(ptr, false);
 
     /// <inheritdoc/>
     ILogMessageEntity? ILogMessage.TargetEntity => ptr->TargetKind == EntityRelationKind.None ? null : this.TargetEntity;
@@ -100,18 +97,32 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
     /// <inheritdoc/>
     public int ParameterCount => ptr->Parameters.Count;
 
-    public bool TryGetParameter(int index, out TextParameter value)
-    {
-        if (index < 0 || index >= ptr->Parameters.Count)
-        {
-            value = default;
-            return false;
-        }
+    private LogMessageEntity SourceEntity => new(ptr, true);
 
-        value = ptr->Parameters[index];
-        return true;
+    private LogMessageEntity TargetEntity => new(ptr, false);
+
+    public static bool operator ==(LogMessage x, LogMessage y) => x.Equals(y);
+
+    public static bool operator !=(LogMessage x, LogMessage y) => !(x == y);
+
+    /// <inheritdoc/>
+    public bool Equals(ILogMessage? other)
+    {
+        return other is LogMessage logMessage && this.Equals(logMessage);
     }
 
+    /// <inheritdoc/>
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        return obj is LogMessage logMessage && this.Equals(logMessage);
+    }
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(this.LogMessageId, this.SourceEntity, this.TargetEntity);
+    }
+    
     /// <inheritdoc/>
     public bool TryGetIntParameter(int index, out int value)
     {
@@ -132,6 +143,7 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
             value = new(parameter.StringValue.AsSpan());
             return true;
         }
+
         if (parameter.Type == TextParameterType.ReferencedUtf8String)
         {
             value = new(parameter.ReferencedUtf8StringValue->Utf8String.AsSpan());
@@ -157,7 +169,7 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
 
         return new ReadOnlySeString(utf8.AsSpan());
 
-        void SetName(RaptureLogModule* self, LogMessageEntity item)
+        static void SetName(RaptureLogModule* self, LogMessageEntity item)
         {
             var name = item.NameSpan.GetPointer(0);
 
@@ -190,31 +202,20 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
         }
     }
 
+    private bool TryGetParameter(int index, out TextParameter value)
+    {
+        if (index < 0 || index >= ptr->Parameters.Count)
+        {
+            value = default;
+            return false;
+        }
 
-    public static bool operator ==(LogMessage x, LogMessage y) => x.Equals(y);
+        value = ptr->Parameters[index];
+        return true;
+    }
 
-    public static bool operator !=(LogMessage x, LogMessage y) => !(x == y);
-
-    public bool Equals(LogMessage other)
+    private bool Equals(LogMessage other)
     {
         return this.LogMessageId == other.LogMessageId && this.SourceEntity == other.SourceEntity && this.TargetEntity == other.TargetEntity;
-    }
-
-    /// <inheritdoc/>
-    public bool Equals(ILogMessage? other)
-    {
-        return other is LogMessage logMessage && this.Equals(logMessage);
-    }
-
-    /// <inheritdoc/>
-    public override bool Equals([NotNullWhen(true)] object? obj)
-    {
-        return obj is LogMessage logMessage && this.Equals(logMessage);
-    }
-
-    /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(this.LogMessageId, this.SourceEntity, this.TargetEntity);
     }
 }

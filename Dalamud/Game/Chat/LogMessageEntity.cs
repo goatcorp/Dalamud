@@ -37,45 +37,56 @@ public interface ILogMessageEntity : IEquatable<ILogMessageEntity>
     uint ObjStrId { get; }
 
     /// <summary>
-    /// Gets a boolean indicating if this entity is a player.
+    /// Gets a value indicating whether this entity is a player.
     /// </summary>
     bool IsPlayer { get; }
 }
-
 
 /// <summary>
 /// This struct represents an entity related to a log message.
 /// </summary>
 /// <param name="ptr">A pointer to the log message item.</param>
-/// <param name="source">If <see langword="true"/> represents the source entity of the log message, otherwise represents the target entity</param>
+/// <param name="source">If <see langword="true"/> represents the source entity of the log message, otherwise represents the target entity.</param>
 internal unsafe readonly struct LogMessageEntity(LogMessageQueueItem* ptr, bool source) : ILogMessageEntity
 {
-    public Span<byte> NameSpan => source ? ptr->SourceName : ptr->TargetName;
+    /// <inheritdoc/>
+    public ReadOnlySeString Name => new(this.NameSpan[..this.NameSpan.IndexOf((byte)0)]);
 
-    public ReadOnlySeString Name => new ReadOnlySeString(this.NameSpan[..this.NameSpan.IndexOf((byte)0)]);
-
+    /// <inheritdoc/>
     public ushort HomeWorldId => source ? ptr->SourceHomeWorld : ptr->TargetHomeWorld;
 
+    /// <inheritdoc/>
     public RowRef<World> HomeWorld => LuminaUtils.CreateRef<World>(this.HomeWorldId);
 
+    /// <inheritdoc/>
     public uint ObjStrId => source ? ptr->SourceObjStrId : ptr->TargetObjStrId;
 
-    public byte Kind => source ? (byte)ptr->SourceKind : (byte)ptr->TargetKind;
-
-    public byte Sex => source ? ptr->SourceSex : ptr->TargetSex;
-
+    /// <inheritdoc/>
     public bool IsPlayer => source ? ptr->SourceIsPlayer : ptr->TargetIsPlayer;
 
-    public bool IsSourceEntity => source;
+    /// <summary>
+    /// Gets the Span containing the raw name of this entity.
+    /// </summary>
+    internal Span<byte> NameSpan => source ? ptr->SourceName : ptr->TargetName;
+
+    /// <summary>
+    /// Gets the kind of the entity.
+    /// </summary>
+    internal byte Kind => source ? (byte)ptr->SourceKind : (byte)ptr->TargetKind;
+
+    /// <summary>
+    /// Gets the Sex of this entity.
+    /// </summary>
+    internal byte Sex => source ? ptr->SourceSex : ptr->TargetSex;
+
+    /// <summary>
+    /// Gets a value indicating whether this entity is the source entity of a log message.
+    /// </summary>
+    internal bool IsSourceEntity => source;
 
     public static bool operator ==(LogMessageEntity x, LogMessageEntity y) => x.Equals(y);
 
     public static bool operator !=(LogMessageEntity x, LogMessageEntity y) => !(x == y);
-
-    public bool Equals(LogMessageEntity other)
-    {
-        return this.Name == other.Name && this.HomeWorldId == other.HomeWorldId && this.ObjStrId == other.ObjStrId && this.Kind == other.Kind && this.Sex == other.Sex && this.IsPlayer == other.IsPlayer;
-    }
 
     /// <inheritdoc/>
     public bool Equals(ILogMessageEntity other)
@@ -93,5 +104,10 @@ internal unsafe readonly struct LogMessageEntity(LogMessageQueueItem* ptr, bool 
     public override int GetHashCode()
     {
         return HashCode.Combine(this.Name, this.HomeWorldId, this.ObjStrId, this.Sex, this.IsPlayer);
+    }
+
+    private bool Equals(LogMessageEntity other)
+    {
+        return this.Name == other.Name && this.HomeWorldId == other.HomeWorldId && this.ObjStrId == other.ObjStrId && this.Kind == other.Kind && this.Sex == other.Sex && this.IsPlayer == other.IsPlayer;
     }
 }
