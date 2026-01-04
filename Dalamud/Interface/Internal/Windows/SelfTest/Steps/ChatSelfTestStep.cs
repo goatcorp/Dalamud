@@ -1,12 +1,9 @@
 using Dalamud.Bindings.ImGui;
-using Dalamud.Data;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.SelfTest;
-
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -19,9 +16,9 @@ internal class ChatSelfTestStep : ISelfTestStep
     private bool subscribedChatMessage = false;
     private bool subscribedLogMessage = false;
     private bool hasSeenEchoMessage = false;
-    private bool hasSeenMountMessage = false;
-    private string mountName = "";
-    private string mountUser = "";
+    private bool hasSeenActionMessage = false;
+    private string actionName = "";
+    private string actionUser = "";
 
     /// <inheritdoc/>
     public string Name => "Test Chat";
@@ -58,7 +55,7 @@ internal class ChatSelfTestStep : ISelfTestStep
                 break;
 
             case 2:
-                ImGui.Text("Use any mount...");
+                ImGui.Text("Use any action (for example Sprint) or be near a player using an action.");
 
                 if (!this.subscribedLogMessage)
                 {
@@ -66,11 +63,10 @@ internal class ChatSelfTestStep : ISelfTestStep
                     chatGui.LogMessage += this.ChatOnLogMessage;
                 }
 
-                if (this.hasSeenMountMessage)
+                if (this.hasSeenActionMessage)
                 {
-                    ImGui.Text($"{this.mountUser} mounted {this.mountName}.");
-                
-                    ImGui.Text("Is this correct? It is correct if this triggers on other players around you.");
+                    ImGui.Text($"{this.actionUser} used {this.actionName}.");
+                    ImGui.Text("Is this correct?");
 
                     if (ImGui.Button("Yes"))
                     {
@@ -119,19 +115,11 @@ internal class ChatSelfTestStep : ISelfTestStep
 
     private void ChatOnLogMessage(ILogMessage message)
     {
-        if (message.LogMessageId == 646 && message.TryGetIntParameter(0, out var value))
+        if (message.LogMessageId == 533 && message.TryGetStringParameter(0, out var value))
         {
-            this.hasSeenMountMessage = true;
-            this.mountUser = message.SourceEntity?.Name.ExtractText() ?? "<incorrect>";
-            try
-            {
-                this.mountName = Service<DataManager>.Get().GetExcelSheet<Mount>().GetRow((uint)value).Singular.ExtractText();
-            }
-            catch
-            {
-                // ignore any errors with retrieving the mount name, they are probably not related to this test
-                this.mountName = $"Mount ID: {value} (failed to retrieve mount name)";
-            }
+            this.hasSeenActionMessage = true;
+            this.actionUser = message.SourceEntity?.Name.ExtractText() ?? "<incorrect>";
+            this.actionName = value.ExtractText();
         }
     }
 }
