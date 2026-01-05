@@ -23,16 +23,16 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
     private int selectedExtendArray;
 
     private string searchTerm = string.Empty;
-    private bool hideUnsetStringArrayEntries = false;
-    private bool hideUnsetExtendArrayEntries = false;
-    private bool showTextAddress = false;
-    private bool showMacroString = false;
+    private bool hideUnsetStringArrayEntries;
+    private bool hideUnsetExtendArrayEntries;
+    private bool showTextAddress;
+    private bool showMacroString;
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "atkarray" };
+    public string[]? CommandShortcuts { get; init; } = ["atkarray"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Atk Array Data";
@@ -153,17 +153,14 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
             if (ImGui.IsItemHovered())
             {
                 using var tooltip = ImRaii.Tooltip();
-                if (tooltip)
+
+                var raptureAtkUnitManager = RaptureAtkUnitManager.Instance();
+                for (var j = 0; j < array->SubscribedAddonsCount; j++)
                 {
-                    var raptureAtkUnitManager = RaptureAtkUnitManager.Instance();
+                    if (array->SubscribedAddons[j] == 0)
+                        continue;
 
-                    for (var j = 0; j < array->SubscribedAddonsCount; j++)
-                    {
-                        if (array->SubscribedAddons[j] == 0)
-                            continue;
-
-                        ImGui.Text(raptureAtkUnitManager->GetAddonById(array->SubscribedAddons[j])->NameString);
-                    }
+                    ImGui.Text(raptureAtkUnitManager->GetAddonById(array->SubscribedAddons[j])->NameString);
                 }
             }
         }
@@ -242,9 +239,9 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
 
         var atkArrayDataHolder = RaptureAtkModule.Instance()->AtkArrayDataHolder;
 
-        using (var sidebarchild = ImRaii.Child("StringArraySidebar"u8, new Vector2(300, -1), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoSavedSettings))
+        using (var sidebarChild = ImRaii.Child("StringArraySidebar"u8, new Vector2(300, -1), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoSavedSettings))
         {
-            if (sidebarchild)
+            if (sidebarChild)
             {
                 ImGui.SetNextItemWidth(-1);
                 ImGui.InputTextWithHint("##TextSearch"u8, "Search..."u8, ref this.searchTerm, 256, ImGuiInputTextFlags.AutoSelectAll);
