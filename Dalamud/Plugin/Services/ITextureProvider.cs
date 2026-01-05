@@ -322,7 +322,7 @@ public interface ITextureProvider : IDalamudService
     /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
     /// <see cref="Task{TResult}"/> completes.</param>
     /// <returns>Address of the new <see cref="FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture"/>.</returns>
-    /// <example>See <c>PrintTextureInfo</c> in <see cref="Interface.Internal.UiDebug.PrintSimpleNode"/> for an example
+    /// <example>See <c>PrintTextureInfo</c> in <see cref="Interface.Internal.UiDebug2.Browsing.ImageNodeTree"/> for an example
     /// of replacing the texture of an image node.</example>
     /// <remarks>
     /// <para>If the returned kernel texture is to be destroyed, call the fourth function in its vtable, by calling
