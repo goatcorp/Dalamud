@@ -12,7 +12,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class GaugeWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "gauge", "jobgauge", "job" };
+    public string[]? CommandShortcuts { get; init; } = ["gauge", "jobgauge", "job"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Job Gauge";
@@ -39,8 +39,7 @@ internal class GaugeWidget : IDataWindowWidget
             return;
         }
 
-        var jobID = player.ClassJob.RowId;
-        JobGaugeBase? gauge = jobID switch
+        JobGaugeBase? gauge = player.ClassJob.RowId switch
         {
             19 => jobGauges.Get<PLDGauge>(),
             20 => jobGauges.Get<MNKGauge>(),
@@ -63,7 +62,7 @@ internal class GaugeWidget : IDataWindowWidget
             40 => jobGauges.Get<SGEGauge>(),
             41 => jobGauges.Get<VPRGauge>(),
             42 => jobGauges.Get<PCTGauge>(),
-            _ => null,
+            _ => null
         };
 
         if (gauge == null)

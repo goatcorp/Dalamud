@@ -13,7 +13,7 @@ internal class ConditionWidget : IDataWindowWidget
     public bool Ready { get; set; }
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "condition" };
+    public string[]? CommandShortcuts { get; init; } = ["condition"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Condition";

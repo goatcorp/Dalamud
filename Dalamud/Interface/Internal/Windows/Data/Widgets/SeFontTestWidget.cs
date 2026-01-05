@@ -11,7 +11,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class SeFontTestWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "sefont", "sefonttest" };
+    public string[]? CommandShortcuts { get; init; } = ["sefont", "sefonttest"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "SeFont Test";

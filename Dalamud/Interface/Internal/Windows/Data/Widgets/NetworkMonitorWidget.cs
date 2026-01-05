@@ -42,7 +42,7 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "network", "netmon", "networkmonitor" };
+    public string[]? CommandShortcuts { get; init; } = ["network", "netmon", "networkmonitor"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Network Monitor";
@@ -209,7 +209,7 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     private readonly record struct NetworkPacketData(ushort OpCode, NetworkMessageDirection Direction, uint SourceActorId, uint TargetActorId)
 #pragma warning restore SA1313
     {
-        public readonly IReadOnlyList<byte> Data = Array.Empty<byte>();
+        public readonly IReadOnlyList<byte> Data = [];
 
         public NetworkPacketData(NetworkMonitorWidget widget, ushort opCode, NetworkMessageDirection direction, uint sourceActorId, uint targetActorId, nint dataPtr)
             : this(opCode, direction, sourceActorId, targetActorId)

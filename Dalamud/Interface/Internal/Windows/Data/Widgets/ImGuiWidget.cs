@@ -19,11 +19,11 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class ImGuiWidget : IDataWindowWidget
 {
-    private readonly HashSet<IActiveNotification> notifications = new();
+    private readonly HashSet<IActiveNotification> notifications = [];
     private NotificationTemplate notificationTemplate;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "imgui" };
+    public string[]? CommandShortcuts { get; init; } = ["imgui"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "ImGui";
@@ -54,8 +54,7 @@ internal class ImGuiWidget : IDataWindowWidget
 
         ImGui.Separator();
 
-        ImGui.Text(
-            $"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
+        ImGui.Text($"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
 
         ImGui.Separator();
 
@@ -79,45 +78,24 @@ internal class ImGuiWidget : IDataWindowWidget
         switch (this.notificationTemplate.IconInt)
         {
             case 1 or 2:
-                ImGui.InputText(
-                    "Icon Text##iconText"u8,
-                    ref this.notificationTemplate.IconText,
-                    255);
+                ImGui.InputText("Icon Text##iconText"u8, ref this.notificationTemplate.IconText, 255);
                 break;
             case 5 or 6:
-                ImGui.Combo(
-                    "Asset##iconAssetCombo",
-                    ref this.notificationTemplate.IconAssetInt,
-                    NotificationTemplate.AssetSources);
+                ImGui.Combo("Asset##iconAssetCombo", ref this.notificationTemplate.IconAssetInt, NotificationTemplate.AssetSources);
                 break;
             case 3 or 7:
-                ImGui.InputText(
-                    "Game Path##iconText"u8,
-                    ref this.notificationTemplate.IconText,
-                    255);
+                ImGui.InputText("Game Path##iconText"u8, ref this.notificationTemplate.IconText, 255);
                 break;
             case 4 or 8:
-                ImGui.InputText(
-                    "File Path##iconText"u8,
-                    ref this.notificationTemplate.IconText,
-                    255);
+                ImGui.InputText("File Path##iconText"u8, ref this.notificationTemplate.IconText, 255);
                 break;
         }
 
-        ImGui.Combo(
-            "Initial Duration",
-            ref this.notificationTemplate.InitialDurationInt,
-            NotificationTemplate.InitialDurationTitles);
+        ImGui.Combo("Initial Duration", ref this.notificationTemplate.InitialDurationInt, NotificationTemplate.InitialDurationTitles);
 
-        ImGui.Combo(
-            "Extension Duration",
-            ref this.notificationTemplate.HoverExtendDurationInt,
-            NotificationTemplate.HoverExtendDurationTitles);
+        ImGui.Combo("Extension Duration", ref this.notificationTemplate.HoverExtendDurationInt, NotificationTemplate.HoverExtendDurationTitles);
 
-        ImGui.Combo(
-            "Progress",
-            ref this.notificationTemplate.ProgressMode,
-            NotificationTemplate.ProgressModeTitles);
+        ImGui.Combo("Progress", ref this.notificationTemplate.ProgressMode, NotificationTemplate.ProgressModeTitles);
 
         ImGui.Checkbox("Respect UI Hidden"u8, ref this.notificationTemplate.RespectUiHidden);
 
@@ -127,14 +105,11 @@ internal class ImGuiWidget : IDataWindowWidget
 
         ImGui.Checkbox("User Dismissable"u8, ref this.notificationTemplate.UserDismissable);
 
-        ImGui.Checkbox(
-            "Action Bar (always on if not user dismissable for the example)"u8,
-            ref this.notificationTemplate.ActionBar);
+        ImGui.Checkbox("Action Bar (always on if not user dismissable for the example)"u8, ref this.notificationTemplate.ActionBar);
 
         if (ImGui.Button("Add notification"u8))
         {
-            var text =
-                "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
+            var text = "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
 
             NewRandom(out var title, out var type, out var progress);
             if (this.notificationTemplate.ManualTitle)
@@ -334,7 +309,7 @@ internal class ImGuiWidget : IDataWindowWidget
     private struct NotificationTemplate
     {
         public static readonly string[] IconTitles =
-        {
+        [
             "None (use Type)",
             "SeIconChar",
             "FontAwesomeIcon",
@@ -343,8 +318,8 @@ internal class ImGuiWidget : IDataWindowWidget
             "TextureWrap from DalamudAssets",
             "TextureWrap from DalamudAssets(Async)",
             "TextureWrap from GamePath",
-            "TextureWrap from FilePath",
-        };
+            "TextureWrap from FilePath"
+        ];
 
         public static readonly string[] AssetSources =
             Enum.GetValues<DalamudAsset>()
@@ -353,46 +328,46 @@ internal class ImGuiWidget : IDataWindowWidget
                 .ToArray();
 
         public static readonly string[] ProgressModeTitles =
-        {
+        [
             "Default",
             "Random",
             "Increasing",
             "Increasing & Auto Dismiss",
-            "Indeterminate",
-        };
+            "Indeterminate"
+        ];
 
         public static readonly string[] TypeTitles =
-        {
+        [
             nameof(NotificationType.None),
             nameof(NotificationType.Success),
             nameof(NotificationType.Warning),
             nameof(NotificationType.Error),
-            nameof(NotificationType.Info),
-        };
+            nameof(NotificationType.Info)
+        ];
 
         public static readonly string[] InitialDurationTitles =
-        {
+        [
             "Infinite",
             "1 seconds",
             "3 seconds (default)",
-            "10 seconds",
-        };
+            "10 seconds"
+        ];
 
         public static readonly string[] HoverExtendDurationTitles =
-        {
+        [
             "Disable",
             "1 seconds",
             "3 seconds (default)",
-            "10 seconds",
-        };
+            "10 seconds"
+        ];
 
         public static readonly TimeSpan[] Durations =
-        {
+        [
             TimeSpan.Zero,
             TimeSpan.FromSeconds(1),
             NotificationConstants.DefaultDuration,
-            TimeSpan.FromSeconds(10),
-        };
+            TimeSpan.FromSeconds(10)
+        ];
 
         public bool ManualContent;
         public string Content;

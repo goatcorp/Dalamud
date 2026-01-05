@@ -12,7 +12,7 @@ internal class PartyListWidget : IDataWindowWidget
     private bool resolveGameData;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "partylist", "party" };
+    public string[]? CommandShortcuts { get; init; } = ["partylist", "party"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Party List";
@@ -33,9 +33,9 @@ internal class PartyListWidget : IDataWindowWidget
 
         ImGui.Checkbox("Resolve GameData"u8, ref this.resolveGameData);
 
-        ImGui.Text($"GroupManager: {partyList.GroupManagerAddress.ToInt64():X}");
-        ImGui.Text($"GroupList: {partyList.GroupListAddress.ToInt64():X}");
-        ImGui.Text($"AllianceList: {partyList.AllianceListAddress.ToInt64():X}");
+        ImGui.Text($"GroupManager: {partyList.GroupManagerAddress:X}");
+        ImGui.Text($"GroupList: {partyList.GroupListAddress:X}");
+        ImGui.Text($"AllianceList: {partyList.AllianceListAddress:X}");
 
         ImGui.Text($"{partyList.Length} Members");
 
@@ -48,7 +48,7 @@ internal class PartyListWidget : IDataWindowWidget
                 continue;
             }
 
-            ImGui.Text($"[{i}] {member.Address.ToInt64():X} - {member.Name} - {member.GameObject?.GameObjectId}");
+            ImGui.Text($"[{i}] {member.Address:X} - {member.Name} - {member.GameObject?.GameObjectId ?? 0}");
             if (this.resolveGameData)
             {
                 var actor = member.GameObject;

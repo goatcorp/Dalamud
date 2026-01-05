@@ -10,7 +10,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class GamepadWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "gamepad", "controller" };
+    public string[]? CommandShortcuts { get; init; } = ["gamepad", "controller"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Gamepad";
@@ -39,22 +39,10 @@ internal class GamepadWidget : IDataWindowWidget
             ImGui.SetClipboardText($"{Util.DescribeAddress(gamepadState.GamepadInputAddress)}");
 #endif
 
-        this.DrawHelper(
-            "Buttons Raw",
-            (uint)gamepadState.ButtonsRaw,
-            gamepadState.Raw);
-        this.DrawHelper(
-            "Buttons Pressed",
-            (uint)gamepadState.ButtonsPressed,
-            gamepadState.Pressed);
-        this.DrawHelper(
-            "Buttons Repeat",
-            (uint)gamepadState.ButtonsRepeat,
-            gamepadState.Repeat);
-        this.DrawHelper(
-            "Buttons Released",
-            (uint)gamepadState.ButtonsReleased,
-            gamepadState.Released);
+        this.DrawHelper("Buttons Raw", (uint)gamepadState.ButtonsRaw, gamepadState.Raw);
+        this.DrawHelper("Buttons Pressed", (uint)gamepadState.ButtonsPressed, gamepadState.Pressed);
+        this.DrawHelper("Buttons Repeat", (uint)gamepadState.ButtonsRepeat, gamepadState.Repeat);
+        this.DrawHelper("Buttons Released", (uint)gamepadState.ButtonsReleased, gamepadState.Released);
         ImGui.Text($"LeftStick {gamepadState.LeftStick}");
         ImGui.Text($"RightStick {gamepadState.RightStick}");
     }

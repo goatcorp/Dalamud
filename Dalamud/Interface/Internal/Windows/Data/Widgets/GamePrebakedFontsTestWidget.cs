@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,6 +13,7 @@ using Dalamud.Interface.ImGuiFontChooserDialog;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 using Serilog;
 
@@ -25,11 +25,11 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
 {
     private static readonly string[] FontScaleModes =
-    {
+    [
         nameof(FontScaleMode.Default),
         nameof(FontScaleMode.SkipHandling),
-        nameof(FontScaleMode.UndoGlobalScale),
-    };
+        nameof(FontScaleMode.UndoGlobalScale)
+    ];
 
     private ImVectorWrapper<byte> testStringBuffer;
     private IFontAtlas? privateAtlas;
@@ -248,7 +248,8 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
             {
                 ImGui.Text($"{gfs.SizePt}pt");
                 ImGui.SameLine(offsetX);
-                ImGui.PushTextWrapPos(this.useWordWrap ? 0f : -1f);
+
+                using var pushedWrap = ImRaii.TextWrapPos(this.useWordWrap ? 0f : -1f);
                 try
                 {
                     if (handle.Value.LoadException is { } exc)
@@ -263,6 +264,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                     {
                         if (!this.atlasScaleMode)
                             ImGui.SetWindowFontScale(1 / ImGuiHelpers.GlobalScale);
+
                         if (counter++ % 2 == 0)
                         {
                             using var pushPop = handle.Value.Push();
@@ -279,7 +281,6 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                 finally
                 {
                     ImGui.SetWindowFontScale(1);
-                    ImGui.PopTextWrapPos();
                 }
             }
         }

@@ -20,6 +20,11 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class InventoryWidget : IDataWindowWidget
 {
+    private const ImGuiTableFlags TableFlags = ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders |
+                                               ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings;
+
+    private const ImGuiTableFlags InnerTableFlags = ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings;
+
     private DataManager dataManager;
     private TextureManager textureManager;
     private GameInventoryType? selectedInventoryType = GameInventoryType.Inventory1;
@@ -62,7 +67,7 @@ internal class InventoryWidget : IDataWindowWidget
 
     private unsafe void DrawInventoryTypeList()
     {
-        using var table = ImRaii.Table("InventoryTypeTable"u8, 2, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings, new Vector2(300, -1));
+        using var table = ImRaii.Table("InventoryTypeTable"u8, 2, TableFlags, new Vector2(300, -1));
         if (!table) return;
 
         ImGui.TableSetupColumn("Type"u8);
@@ -105,7 +110,7 @@ internal class InventoryWidget : IDataWindowWidget
         }
     }
 
-    private unsafe void DrawInventoryType(GameInventoryType inventoryType)
+    private void DrawInventoryType(GameInventoryType inventoryType)
     {
         var items = GameInventoryItem.GetReadOnlySpanOfInventory(inventoryType);
         if (items.IsEmpty)
@@ -114,8 +119,9 @@ internal class InventoryWidget : IDataWindowWidget
             return;
         }
 
-        using var itemTable = ImRaii.Table("InventoryItemTable"u8, 4, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings);
+        using var itemTable = ImRaii.Table("InventoryItemTable"u8, 4, TableFlags);
         if (!itemTable) return;
+
         ImGui.TableSetupColumn("Slot"u8, ImGuiTableColumnFlags.WidthFixed, 40);
         ImGui.TableSetupColumn("ItemId"u8, ImGuiTableColumnFlags.WidthFixed, 70);
         ImGui.TableSetupColumn("Quantity"u8, ImGuiTableColumnFlags.WidthFixed, 70);
@@ -127,7 +133,7 @@ internal class InventoryWidget : IDataWindowWidget
         {
             var item = items[slotIndex];
 
-            using var disableditem = ImRaii.Disabled(item.ItemId == 0);
+            using var disabledItem = ImRaii.Disabled(item.ItemId == 0);
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); // Slot
@@ -152,11 +158,11 @@ internal class InventoryWidget : IDataWindowWidget
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-                        ImGui.BeginTooltip();
+
+                        using var tooltip = ImRaii.Tooltip();
                         ImGui.Text("Click to copy IconId"u8);
                         ImGui.Text($"ID: {iconId} – Size: {texture.Width}x{texture.Height}");
                         ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
-                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.IsItemClicked())
@@ -167,7 +173,7 @@ internal class InventoryWidget : IDataWindowWidget
 
                 using var itemNameColor = ImRaii.PushColor(ImGuiCol.Text, this.GetItemRarityColor(item.ItemId));
                 using var node = ImRaii.TreeNode($"{itemName}###{inventoryType}_{slotIndex}", ImGuiTreeNodeFlags.SpanAvailWidth);
-                itemNameColor.Dispose();
+                itemNameColor.Pop();
 
                 using (var contextMenu = ImRaii.ContextPopupItem($"{inventoryType}_{slotIndex}_ContextMenu"))
                 {
@@ -182,7 +188,7 @@ internal class InventoryWidget : IDataWindowWidget
 
                 if (!node) continue;
 
-                using var itemInfoTable = ImRaii.Table($"{inventoryType}_{slotIndex}_Table", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings);
+                using var itemInfoTable = ImRaii.Table($"{inventoryType}_{slotIndex}_Table", 2, InnerTableFlags);
                 if (!itemInfoTable) continue;
 
                 ImGui.TableSetupColumn("Name"u8, ImGuiTableColumnFlags.WidthFixed, 150);
@@ -264,7 +270,7 @@ internal class InventoryWidget : IDataWindowWidget
                         ImGui.Text("Stains"u8);
                         ImGui.TableNextColumn();
 
-                        using var stainTable = ImRaii.Table($"{inventoryType}_{slotIndex}_StainTable", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings);
+                        using var stainTable = ImRaii.Table($"{inventoryType}_{slotIndex}_StainTable", 2, InnerTableFlags);
                         if (!stainTable) continue;
 
                         ImGui.TableSetupColumn("Stain Id"u8, ImGuiTableColumnFlags.WidthFixed, 80);
@@ -285,7 +291,7 @@ internal class InventoryWidget : IDataWindowWidget
                         ImGui.Text("Materia"u8);
                         ImGui.TableNextColumn();
 
-                        using var materiaTable = ImRaii.Table($"{inventoryType}_{slotIndex}_MateriaTable", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings);
+                        using var materiaTable = ImRaii.Table($"{inventoryType}_{slotIndex}_MateriaTable", 2, InnerTableFlags);
                         if (!materiaTable) continue;
 
                         ImGui.TableSetupColumn("Materia Id"u8, ImGuiTableColumnFlags.WidthFixed, 80);
@@ -311,10 +317,12 @@ internal class InventoryWidget : IDataWindowWidget
 
     private uint GetItemRarityColor(uint itemId, bool isEdgeColor = false)
     {
-        if (ItemUtil.IsEventItem(itemId))
+        var normalized = ItemUtil.GetBaseId(itemId);
+
+        if (normalized.Kind == ItemKind.EventItem)
             return isEdgeColor ? 0xFF000000 : 0xFFFFFFFF;
 
-        if (!this.dataManager.Excel.GetSheet<Item>().TryGetRow(ItemUtil.GetBaseId(itemId).ItemId, out var item))
+        if (!this.dataManager.Excel.GetSheet<Item>().TryGetRow(normalized.ItemId, out var item))
             return isEdgeColor ? 0xFF000000 : 0xFFFFFFFF;
 
         var rowId = ItemUtil.GetItemRarityColorType(item.RowId, isEdgeColor);
@@ -325,18 +333,12 @@ internal class InventoryWidget : IDataWindowWidget
 
     private uint GetItemIconId(uint itemId)
     {
+        var normalized = ItemUtil.GetBaseId(itemId);
+
         // EventItem
-        if (ItemUtil.IsEventItem(itemId))
+        if (normalized.Kind == ItemKind.EventItem)
             return this.dataManager.Excel.GetSheet<EventItem>().TryGetRow(itemId, out var eventItem) ? eventItem.Icon : 0u;
 
-        // HighQuality
-        if (ItemUtil.IsHighQuality(itemId))
-            itemId -= 1_000_000;
-
-        // Collectible
-        if (ItemUtil.IsCollectible(itemId))
-            itemId -= 500_000;
-
-        return this.dataManager.Excel.GetSheet<Item>().TryGetRow(itemId, out var item) ? item.Icon : 0u;
+        return this.dataManager.Excel.GetSheet<Item>().TryGetRow(normalized.ItemId, out var item) ? item.Icon : 0u;
     }
 }

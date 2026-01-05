@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -20,21 +19,17 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// <summary>
 /// Widget for displaying plugin data share modules.
 /// </summary>
-[SuppressMessage(
-    "StyleCop.CSharp.LayoutRules",
-    "SA1519:Braces should not be omitted from multi-line child statement",
-    Justification = "Multiple fixed blocks")]
 internal class DataShareWidget : IDataWindowWidget
 {
-    private const ImGuiTabItemFlags NoCloseButton = (ImGuiTabItemFlags)(1 << 20);
+    private const ImGuiTabItemFlags NoCloseButton = (ImGuiTabItemFlags)ImGuiTabItemFlagsPrivate.NoCloseButton;
 
-    private readonly List<(string Name, byte[]? Data)> dataView = new();
+    private readonly List<(string Name, byte[]? Data)> dataView = [];
     private int nextTab = -1;
     private IReadOnlyDictionary<string, CallGateChannel>? gates;
     private List<CallGateChannel>? gatesSorted;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "datashare" };
+    public string[]? CommandShortcuts { get; init; } = ["datashare"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Data Share & Call Gate";
@@ -49,42 +44,37 @@ internal class DataShareWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public unsafe void Draw()
+    public void Draw()
     {
         using var tabbar = ImRaii.TabBar("##tabbar"u8);
         if (!tabbar.Success)
             return;
 
         var d = true;
-        using (var tabitem = ImRaii.TabItem(
-                   "Data Share##tabbar-datashare"u8,
-                   ref d,
-                   NoCloseButton | (this.nextTab == 0 ? ImGuiTabItemFlags.SetSelected : 0)))
+        using (var tabItem = ImRaii.TabItem("Data Share##tabbar-datashare"u8, ref d, NoCloseButton | (this.nextTab == 0 ? ImGuiTabItemFlags.SetSelected : 0)))
         {
-            if (tabitem.Success)
+            if (tabItem.Success)
                 this.DrawDataShare();
         }
 
-        using (var tabitem = ImRaii.TabItem(
-                   "Call Gate##tabbar-callgate"u8,
-                   ref d,
-                   NoCloseButton | (this.nextTab == 1 ? ImGuiTabItemFlags.SetSelected : 0)))
+        using (var tabItem = ImRaii.TabItem("Call Gate##tabbar-callgate"u8, ref d, NoCloseButton | (this.nextTab == 1 ? ImGuiTabItemFlags.SetSelected : 0)))
         {
-            if (tabitem.Success)
+            if (tabItem.Success)
                 this.DrawCallGate();
         }
 
         for (var i = 0; i < this.dataView.Count; i++)
         {
             using var idpush = ImRaii.PushId($"##tabbar-data-{i}");
+
             var (name, data) = this.dataView[i];
             d = true;
-            using var tabitem = ImRaii.TabItem(
-                name,
-                ref d,
-                this.nextTab == 2 + i ? ImGuiTabItemFlags.SetSelected : 0);
+
+            using var tabitem = ImRaii.TabItem(name, ref d, this.nextTab == 2 + i ? ImGuiTabItemFlags.SetSelected : 0);
+
             if (!d)
                 this.dataView.RemoveAt(i--);
+
             if (!tabitem.Success)
                 continue;
 
@@ -122,11 +112,7 @@ internal class DataShareWidget : IDataWindowWidget
             if (ImGui.Button("Copy"u8))
                 ImGui.SetClipboardText(data);
 
-            ImGui.InputTextMultiline(
-                "text"u8,
-                data,
-                ImGui.GetContentRegionAvail(),
-                ImGuiInputTextFlags.ReadOnly);
+            ImGui.InputTextMultiline("text"u8, data, ImGui.GetContentRegionAvail(), ImGuiInputTextFlags.ReadOnly);
         }
 
         this.nextTab = -1;
@@ -141,8 +127,10 @@ internal class DataShareWidget : IDataWindowWidget
         sb.Append(ReprType(mi.DeclaringType))
           .Append("::")
           .Append(mi.Name);
+
         if (!withParams)
             return sb.ToString();
+
         sb.Append('(');
         var parfirst = true;
         foreach (var par in mi.GetParameters())
@@ -151,6 +139,7 @@ internal class DataShareWidget : IDataWindowWidget
                 sb.Append(", ");
             else
                 parfirst = false;
+
             sb.AppendLine()
               .Append('\t')
               .Append(ReprType(par.ParameterType))
@@ -160,9 +149,11 @@ internal class DataShareWidget : IDataWindowWidget
 
         if (!parfirst)
             sb.AppendLine();
+
         sb.Append(')');
         if (mi.ReturnType != typeof(void))
             sb.Append(" -> ").Append(ReprType(mi.ReturnType));
+
         return sb.ToString();
 
         static string WithoutGeneric(string s)
@@ -171,8 +162,7 @@ internal class DataShareWidget : IDataWindowWidget
             return i != -1 ? s[..i] : s;
         }
 
-        static string ReprType(Type? t) =>
-            t switch
+        static string ReprType(Type? t) => t switch
             {
                 null => "null",
                 _ when t == typeof(string) => "string",
@@ -214,18 +204,19 @@ internal class DataShareWidget : IDataWindowWidget
         var offset = ImGui.GetCursorScreenPos() + new Vector2(0, framepad ? ImGui.GetStyle().FramePadding.Y : 0);
         if (framepad)
             ImGui.AlignTextToFramePadding();
+
         ImGui.Text(s);
         if (ImGui.IsItemHovered())
         {
             ImGui.SetNextWindowPos(offset - ImGui.GetStyle().WindowPadding);
             var vp = ImGui.GetWindowViewport();
             var wrx = (vp.WorkPos.X + vp.WorkSize.X) - offset.X;
+
             ImGui.SetNextWindowSizeConstraints(Vector2.One, new(wrx, float.MaxValue));
             using (ImRaii.Tooltip())
             {
-                ImGui.PushTextWrapPos(wrx);
+                using var pushedWrap = ImRaii.TextWrapPos(wrx);
                 ImGui.TextWrapped(tooltip?.Invoke() ?? s);
-                ImGui.PopTextWrapPos();
             }
         }
 
@@ -246,6 +237,9 @@ internal class DataShareWidget : IDataWindowWidget
             callGate.PurgeEmptyGates();
 
         using var table = ImRaii.Table("##callgate-table"u8, 5);
+        if (!table.Success)
+            return;
+
         ImGui.TableSetupColumn("Name"u8, ImGuiTableColumnFlags.DefaultSort);
         ImGui.TableSetupColumn("Action"u8);
         ImGui.TableSetupColumn("Func"u8);
@@ -267,12 +261,8 @@ internal class DataShareWidget : IDataWindowWidget
             {
                 ImGui.TableNextRow();
                 this.DrawTextCell(item.Name);
-                this.DrawTextCell(
-                    ReprMethod(item.Action?.Method, false),
-                    () => ReprMethod(item.Action?.Method, true));
-                this.DrawTextCell(
-                    ReprMethod(item.Func?.Method, false),
-                    () => ReprMethod(item.Func?.Method, true));
+                this.DrawTextCell(ReprMethod(item.Action?.Method, false), () => ReprMethod(item.Action?.Method, true));
+                this.DrawTextCell(ReprMethod(item.Func?.Method, false), () => ReprMethod(item.Func?.Method, true));
                 if (subs.Count == 0)
                 {
                     this.DrawTextCell("0");
@@ -287,47 +277,43 @@ internal class DataShareWidget : IDataWindowWidget
 
     private void DrawDataShare()
     {
-        if (!ImGui.BeginTable("###DataShareTable"u8, 5, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg))
+        using var table = ImRaii.Table("###DataShareTable"u8, 5, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg);
+        if (!table.Success)
             return;
 
-        try
+        ImGui.TableSetupColumn("Shared Tag"u8);
+        ImGui.TableSetupColumn("Show"u8);
+        ImGui.TableSetupColumn("Creator Assembly"u8);
+        ImGui.TableSetupColumn("#"u8, ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("Consumers"u8);
+        ImGui.TableHeadersRow();
+
+        foreach (var share in Service<DataShare>.Get().GetAllShares())
         {
-            ImGui.TableSetupColumn("Shared Tag"u8);
-            ImGui.TableSetupColumn("Show"u8);
-            ImGui.TableSetupColumn("Creator Assembly"u8);
-            ImGui.TableSetupColumn("#"u8, ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("Consumers"u8);
-            ImGui.TableHeadersRow();
-            foreach (var share in Service<DataShare>.Get().GetAllShares())
+            ImGui.TableNextRow();
+            this.DrawTextCell(share.Tag, null, true);
+
+            ImGui.TableNextColumn();
+            if (ImGui.Button($"Show##datasharetable-show-{share.Tag}"))
             {
-                ImGui.TableNextRow();
-                this.DrawTextCell(share.Tag, null, true);
-
-                ImGui.TableNextColumn();
-                if (ImGui.Button($"Show##datasharetable-show-{share.Tag}"))
+                var index = 0;
+                for (; index < this.dataView.Count; index++)
                 {
-                    var index = 0;
-                    for (; index < this.dataView.Count; index++)
-                    {
-                        if (this.dataView[index].Name == share.Tag)
-                            break;
-                    }
-
-                    if (index == this.dataView.Count)
-                        this.dataView.Add((share.Tag, null));
-                    else
-                        this.dataView[index] = (share.Tag, null);
-                    this.nextTab = 2 + index;
+                    if (this.dataView[index].Name == share.Tag)
+                        break;
                 }
 
-                this.DrawTextCell(share.CreatorAssembly, null, true);
-                this.DrawTextCell(share.Users.Length.ToString(), null, true);
-                this.DrawTextCell(string.Join(", ", share.Users), null, true);
+                if (index == this.dataView.Count)
+                    this.dataView.Add((share.Tag, null));
+                else
+                    this.dataView[index] = (share.Tag, null);
+
+                this.nextTab = 2 + index;
             }
-        }
-        finally
-        {
-            ImGui.EndTable();
+
+            this.DrawTextCell(share.CreatorAssembly, null, true);
+            this.DrawTextCell(share.Users.Length.ToString(), null, true);
+            this.DrawTextCell(string.Join(", ", share.Users), null, true);
         }
     }
 }
