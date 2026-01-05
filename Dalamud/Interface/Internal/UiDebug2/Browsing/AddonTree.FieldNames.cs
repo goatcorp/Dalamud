@@ -41,7 +41,7 @@ public unsafe partial class AddonTree
             {
                 foreach (var t in from t in ClientStructsAssembly.GetTypes()
                                   where t.IsPublic
-                                  let xivAddonAttr = (AddonAttribute?)t.GetCustomAttribute(typeof(AddonAttribute), false)
+                                  let xivAddonAttr = t.GetCustomAttribute<AddonAttribute>(false)
                                   where xivAddonAttr != null
                                   where xivAddonAttr.AddonIdentifiers.Contains(this.AddonName)
                                   select t)

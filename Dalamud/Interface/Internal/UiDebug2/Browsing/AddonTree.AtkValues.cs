@@ -2,9 +2,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Memory;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -28,7 +26,6 @@ public unsafe partial class AddonTree
             if (tree.Success)
             {
                 using var tbl = ImRaii.Table("atkUnitBase_atkValueTable"u8, 3, ImGuiTableFlags.Borders | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg);
-
                 if (tbl.Success)
                 {
                     ImGui.TableSetupColumn("Index"u8);

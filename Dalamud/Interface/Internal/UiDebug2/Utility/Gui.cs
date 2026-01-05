@@ -104,12 +104,8 @@ internal static class Gui
 
         var index = (int)Math.Floor(prog * tooltips.Length);
 
-        using var tt = ImRaii.Tooltip();
-
-        if (tt.Success)
-        {
-            ImGui.Text(tooltips[index]);
-        }
+        using var tooltip = ImRaii.Tooltip();
+        ImGui.Text(tooltips[index]);
 
         return true;
     }
@@ -123,13 +119,14 @@ internal static class Gui
     {
         if ((mask & 0b10) > 0)
         {
-            ImGui.Dummy(new(padding * ImGui.GetIO().FontGlobalScale));
+            ImGuiHelpers.ScaledDummy(padding);
         }
 
         ImGui.Separator();
+
         if ((mask & 0b01) > 0)
         {
-            ImGui.Dummy(new(padding * ImGui.GetIO().FontGlobalScale));
+            ImGuiHelpers.ScaledDummy(padding);
         }
     }
 }

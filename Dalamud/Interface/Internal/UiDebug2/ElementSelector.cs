@@ -159,65 +159,61 @@ internal unsafe class ElementSelector : IDisposable
             if (ch.Success)
             {
                 using var gr = ImRaii.Group();
-                if (gr.Success)
+                Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
+                ImGui.Spacing();
+                ImGui.Text("RESULTS:\n"u8);
+
+                var i = 0;
+                foreach (var a in addonResults)
                 {
-                    Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
-                    ImGui.Spacing();
-                    ImGui.Text("RESULTS:\n"u8);
+                    var name = a.Addon->NameString;
+                    ImGui.Text($"[Addon] {name}");
 
-                    var i = 0;
-                    foreach (var a in addonResults)
+                    using var indent = ImRaii.PushIndent(15.0f);
+                    foreach (var n in a.Nodes)
                     {
-                        var name = a.Addon->NameString;
-                        ImGui.Text($"[Addon] {name}");
-                        ImGui.Indent(15);
-                        foreach (var n in a.Nodes)
+                        var nSelected = i++ == this.index;
+
+                        PrintNodeHeaderOnly(n.Node, nSelected, a.Addon);
+
+                        if (nSelected && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                         {
-                            var nSelected = i++ == this.index;
+                            this.Active = false;
 
-                            PrintNodeHeaderOnly(n.Node, nSelected, a.Addon);
+                            this.uiDebug2.SelectedAddonName = a.Addon->NameString;
 
-                            if (nSelected && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                            var ptrList = new List<nint> { (nint)n.Node };
+
+                            var nextNode = n.Node->ParentNode;
+                            while (nextNode != null)
                             {
-                                this.Active = false;
-
-                                this.uiDebug2.SelectedAddonName = a.Addon->NameString;
-
-                                var ptrList = new List<nint> { (nint)n.Node };
-
-                                var nextNode = n.Node->ParentNode;
-                                while (nextNode != null)
-                                {
-                                    ptrList.Add((nint)nextNode);
-                                    nextNode = nextNode->ParentNode;
-                                }
-
-                                SearchResults = [.. ptrList];
-                                Countdown = 100;
-                                Scrolled = false;
+                                ptrList.Add((nint)nextNode);
+                                nextNode = nextNode->ParentNode;
                             }
 
-                            if (nSelected)
-                            {
-                                n.NodeBounds.DrawFilled(new(1, 1, 0.2f, 1));
-                            }
+                            SearchResults = [.. ptrList];
+                            Countdown = 100;
+                            Scrolled = false;
                         }
 
-                        ImGui.Indent(-15);
+                        if (nSelected)
+                        {
+                            n.NodeBounds.DrawFilled(new(1, 1, 0.2f, 1));
+                        }
+                    }
+                }
+
+                if (i != 0)
+                {
+                    this.index -= (int)ImGui.GetIO().MouseWheel;
+                    while (this.index < 0)
+                    {
+                        this.index += i;
                     }
 
-                    if (i != 0)
+                    while (this.index >= i)
                     {
-                        this.index -= (int)ImGui.GetIO().MouseWheel;
-                        while (this.index < 0)
-                        {
-                            this.index += i;
-                        }
-
-                        while (this.index >= i)
-                        {
-                            this.index -= i;
-                        }
+                        this.index -= i;
                     }
                 }
             }
