@@ -32,6 +32,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
@@ -501,6 +502,34 @@ internal partial class InterfaceManager : IInternalDisposableService
     }
 
     /// <summary>
+    /// Applies immersive dark mode to the game window based on the current system theme setting.
+    /// </summary>
+    internal void SetImmersiveModeFromSystemTheme()
+    {
+        bool useDark = this.IsSystemInDarkMode();
+        this.SetImmersiveMode(useDark);
+    }
+
+    /// <summary>
+    /// Checks whether the system use dark mode.
+    /// </summary>
+    /// <returns>Returns true if dark mode is preferred.</returns>
+    internal bool IsSystemInDarkMode()
+    {
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+            var value = key?.GetValue("AppsUseLightTheme") as int?;
+            return value != 1;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Toggle Windows 11 immersive mode on the game window.
     /// </summary>
     /// <param name="enabled">Value.</param>
@@ -744,6 +773,18 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
     {
+        if (args.Message == WM.WM_SETTINGCHANGE)
+        {
+            if (this.dalamudConfiguration.WindowIsImmersive)
+            {
+                if (MemoryHelper.EqualsZeroTerminatedWideString("ImmersiveColorSet", args.LParam) ||
+                    MemoryHelper.EqualsZeroTerminatedWideString("VisualStyleChanged", args.LParam))
+                {
+                    this.SetImmersiveModeFromSystemTheme();
+                }
+            }
+        }
+
         var r = this.backend?.ProcessWndProcW(args.Hwnd, args.Message, args.WParam, args.LParam);
         if (r is not null)
             args.SuppressWithValue(r.Value);
@@ -858,7 +899,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         {
             // Requires that game window to be there, which will be the case once game swap chain is initialized.
             if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
-                this.SetImmersiveMode(true);
+                this.SetImmersiveModeFromSystemTheme();
         }
         catch (Exception ex)
         {

@@ -65,7 +65,14 @@ internal sealed class SettingsTabLook : SettingsTab
             {
                 try
                 {
-                    Service<InterfaceManager>.GetNullable()?.SetImmersiveMode(b);
+                    if (b)
+                    {
+                        Service<InterfaceManager>.GetNullable()?.SetImmersiveModeFromSystemTheme();
+                    }
+                    else
+                    {
+                        Service<InterfaceManager>.GetNullable()?.SetImmersiveMode(false);
+                    }
                 }
                 catch (Exception ex)
                 {
