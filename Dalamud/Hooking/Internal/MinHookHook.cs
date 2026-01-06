@@ -24,7 +24,7 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
             var unhooker = HookManager.RegisterUnhooker(this.Address);
 
             if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
-                indexList = HookManager.MultiHookTracker[this.Address] = new();
+                indexList = HookManager.MultiHookTracker[this.Address] = [];
 
             var index = (ulong)indexList.Count;
 

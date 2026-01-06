@@ -4,6 +4,7 @@ using System.IO;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Storage;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -17,7 +18,7 @@ internal class VfsWidget : IDataWindowWidget
     private int reps = 1;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "vfs" };
+    public string[]? CommandShortcuts { get; init; } = ["vfs"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "VFS Performance";

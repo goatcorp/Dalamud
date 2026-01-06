@@ -342,7 +342,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
             {
                 var mi = this.configs.GetType().GetMethod("LoadForType");
                 var fn = mi.MakeGenericMethod(type);
-                return (IPluginConfiguration)fn.Invoke(this.configs, new object[] { this.plugin.InternalName });
+                return (IPluginConfiguration)fn.Invoke(this.configs, [this.plugin.InternalName]);
             }
         }
 

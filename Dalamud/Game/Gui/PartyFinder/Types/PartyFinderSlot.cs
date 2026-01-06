@@ -23,23 +23,7 @@ public class PartyFinderSlot
     /// <summary>
     /// Gets a list of jobs that this slot is accepting.
     /// </summary>
-    public IReadOnlyCollection<JobFlags> Accepting
-    {
-        get
-        {
-            if (this.listAccepting != null)
-            {
-                return this.listAccepting;
-            }
-
-            this.listAccepting = Enum.GetValues(typeof(JobFlags))
-                                     .Cast<JobFlags>()
-                                     .Where(flag => this[flag])
-                                     .ToArray();
-
-            return this.listAccepting;
-        }
-    }
+    public IReadOnlyCollection<JobFlags> Accepting => this.listAccepting ??= Enum.GetValues<JobFlags>().Where(flag => this[flag]).ToArray();
 
     /// <summary>
     /// Tests if this slot is accepting a job.

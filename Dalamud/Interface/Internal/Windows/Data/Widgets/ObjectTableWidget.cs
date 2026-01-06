@@ -19,7 +19,7 @@ internal class ObjectTableWidget : IDataWindowWidget
     private float maxCharaDrawDistance = 20.0f;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "ot", "objecttable" };
+    public string[]? CommandShortcuts { get; init; } = ["ot", "objecttable"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Object Table";

@@ -17,6 +17,7 @@ using Dalamud.Interface.Utility.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using TerraFX.Interop.DirectX;
 
 using TextureManager = Dalamud.Interface.Textures.Internal.TextureManager;
@@ -43,7 +44,7 @@ internal class TexWidget : IDataWindowWidget
         [DrawBlameTableColumnUserId.NativeAddress] = static x => x.ResourceAddress,
     };
 
-    private readonly List<TextureEntry> addedTextures = new();
+    private readonly List<TextureEntry> addedTextures = [];
 
     private string allLoadedTexturesTableName = "##table";
     private string iconId = "18";
@@ -83,7 +84,7 @@ internal class TexWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "tex", "texture" };
+    public string[]? CommandShortcuts { get; init; } = ["tex", "texture"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Tex";
@@ -137,9 +138,9 @@ internal class TexWidget : IDataWindowWidget
             conf.QueueSave();
         }
 
-        var allBlames = this.textureManager.BlameTracker;
-        lock (allBlames)
+        lock (this.textureManager.BlameTracker)
         {
+            var allBlames = this.textureManager.BlameTracker;
             ImGui.PushID("blames"u8);
             var sizeSum = allBlames.Sum(static x => Math.Max(0, x.RawSpecs.EstimatedBytes));
             if (ImGui.CollapsingHeader(
@@ -609,7 +610,7 @@ internal class TexWidget : IDataWindowWidget
 
                     ImGui.SameLine();
                     if (ImGuiComponents.IconButton(FontAwesomeIcon.Sync))
-                        this.textureManager.InvalidatePaths(new[] { texture.SourcePathForDebug });
+                        this.textureManager.InvalidatePaths([texture.SourcePathForDebug]);
                     if (ImGui.IsItemHovered())
                         ImGui.SetTooltip($"Call {nameof(ITextureSubstitutionProvider.InvalidatePaths)}.");
 

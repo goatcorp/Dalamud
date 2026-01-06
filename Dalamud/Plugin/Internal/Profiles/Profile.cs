@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +14,7 @@ namespace Dalamud.Plugin.Internal.Profiles;
 /// </summary>
 internal class Profile
 {
-    private static readonly ModuleLog Log = new("PROFILE");
+    private static readonly ModuleLog Log = ModuleLog.Create<Profile>();
 
     private readonly ProfileManager manager;
     private readonly ProfileModelV1 modelV1;

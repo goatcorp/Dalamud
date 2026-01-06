@@ -8,6 +8,7 @@ using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data;
@@ -18,7 +19,7 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class DataWindow : Window, IDisposable
 {
     private readonly IDataWindowWidget[] modules =
-    {
+    [
         new AddonInspectorWidget(),
         new AddonInspectorWidget2(),
         new AddonLifecycleWidget(),
@@ -63,7 +64,7 @@ internal class DataWindow : Window, IDisposable
         new UiColorWidget(),
         new UldWidget(),
         new VfsWidget(),
-    };
+    ];
 
     private readonly IOrderedEnumerable<IDataWindowWidget> orderedModules;
 

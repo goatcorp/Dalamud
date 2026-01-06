@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
@@ -15,7 +15,7 @@ internal class AddressesWidget : IDataWindowWidget
     private nint sigResult = nint.Zero;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "address" };
+    public string[]? CommandShortcuts { get; init; } = ["address"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Addresses";

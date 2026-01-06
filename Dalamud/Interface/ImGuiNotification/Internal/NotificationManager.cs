@@ -26,8 +26,8 @@ internal class NotificationManager : INotificationManager, IInternalDisposableSe
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
-    private readonly List<ActiveNotification> notifications = new();
-    private readonly ConcurrentBag<ActiveNotification> pendingNotifications = new();
+    private readonly List<ActiveNotification> notifications = [];
+    private readonly ConcurrentBag<ActiveNotification> pendingNotifications = [];
 
     private NotificationPositionChooser? positionChooser;
 

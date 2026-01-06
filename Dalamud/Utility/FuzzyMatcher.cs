@@ -1,4 +1,4 @@
-﻿#define BORDER_MATCHING
+#define BORDER_MATCHING
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -32,18 +32,12 @@ internal readonly ref struct FuzzyMatcher
         this.needleFinalPosition = this.needleSpan.Length - 1;
         this.mode = matchMode;
 
-        switch (matchMode)
+        this.needleSegments = matchMode switch
         {
-            case MatchMode.FuzzyParts:
-                this.needleSegments = FindNeedleSegments(this.needleSpan);
-                break;
-            case MatchMode.Fuzzy:
-            case MatchMode.Simple:
-                this.needleSegments = EmptySegArray;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(matchMode), matchMode, null);
-        }
+            MatchMode.FuzzyParts => FindNeedleSegments(this.needleSpan),
+            MatchMode.Fuzzy or MatchMode.Simple => EmptySegArray,
+            _ => throw new ArgumentOutOfRangeException(nameof(matchMode), matchMode, null),
+        };
     }
 
     private static (int Start, int End)[] FindNeedleSegments(ReadOnlySpan<char> span)

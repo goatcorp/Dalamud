@@ -34,7 +34,7 @@ internal sealed partial class TextureManager
       ITextureSubstitutionProvider,
       ITextureReadbackProvider
 {
-    private static readonly ModuleLog Log = new(nameof(TextureManager));
+    private static readonly ModuleLog Log = ModuleLog.Create<TextureManager>();
 
     [ServiceManager.ServiceDependency]
     private readonly Dalamud dalamud = Service<Dalamud>.Get();
@@ -382,10 +382,10 @@ internal sealed partial class TextureManager
         var tf = new TexFile();
         typeof(TexFile).GetProperty(nameof(tf.Data))!.GetSetMethod(true)!.Invoke(
             tf,
-            new object?[] { bytesArray });
+            [bytesArray]);
         typeof(TexFile).GetProperty(nameof(tf.Reader))!.GetSetMethod(true)!.Invoke(
             tf,
-            new object?[] { new LuminaBinaryReader(bytesArray) });
+            [new LuminaBinaryReader(bytesArray)]);
         // Note: FileInfo and FilePath are not used from TexFile; skip it.
 
         var wrap = this.NoThrottleCreateFromTexFile(tf);
