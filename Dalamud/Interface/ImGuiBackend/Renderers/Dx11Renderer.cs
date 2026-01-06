@@ -15,6 +15,7 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
+
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
@@ -30,7 +31,7 @@ namespace Dalamud.Interface.ImGuiBackend.Renderers;
     Justification = "Multiple fixed/using scopes")]
 internal unsafe partial class Dx11Renderer : IImGuiRenderer
 {
-    private readonly List<IDalamudTextureWrap> fontTextures = new();
+    private readonly List<IDalamudTextureWrap> fontTextures = [];
     private readonly D3D_FEATURE_LEVEL featureLevel;
     private readonly ViewportHandler viewportHandler;
     private readonly nint renderNamePtr;
@@ -398,10 +399,9 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     /// </summary>
     private void CreateFontsTexture()
     {
-        if (this.device.IsEmpty())
-            throw new ObjectDisposedException(nameof(Dx11Renderer));
+        ObjectDisposedException.ThrowIf(this.device.IsEmpty(), this);
 
-        if (this.fontTextures.Any())
+        if (this.fontTextures.Count != 0)
             return;
 
         var io = ImGui.GetIO();
@@ -479,8 +479,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     /// </summary>
     private void EnsureDeviceObjects()
     {
-        if (this.device.IsEmpty())
-            throw new ObjectDisposedException(nameof(Dx11Renderer));
+        ObjectDisposedException.ThrowIf(this.device.IsEmpty(), this);
 
         var assembly = Assembly.GetExecutingAssembly();
 

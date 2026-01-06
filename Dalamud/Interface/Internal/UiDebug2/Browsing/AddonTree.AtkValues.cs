@@ -2,10 +2,9 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Memory;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;

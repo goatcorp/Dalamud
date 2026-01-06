@@ -40,7 +40,7 @@ internal readonly struct DataCache
     {
         this.Tag = tag;
         this.CreatorAssemblyName = creatorAssemblyName;
-        this.UserAssemblyNames = new();
+        this.UserAssemblyNames = [];
         this.Data = data;
         this.Type = type;
     }

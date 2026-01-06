@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Utility;
 
@@ -10,7 +10,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class GamepadWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "gamepad", "controller" };
+    public string[]? CommandShortcuts { get; init; } = ["gamepad", "controller"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Gamepad";

@@ -85,7 +85,7 @@ internal class NounProcessor : IServiceType
     private const int PronounColumnIdx = 6;
     private const int ArticleColumnIdx = 7;
 
-    private static readonly ModuleLog Log = new("NounProcessor");
+    private static readonly ModuleLog Log = ModuleLog.Create<NounProcessor>();
 
     [ServiceManager.ServiceDependency]
     private readonly DataManager dataManager = Service<DataManager>.Get();

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -22,7 +22,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     /// </summary>
     internal const uint TextureSize = 64;
 
-    private readonly List<TitleScreenMenuEntry> entries = new();
+    private readonly List<TitleScreenMenuEntry> entries = [];
     private TitleScreenMenuEntry[]? entriesView;
 
     [ServiceManager.ServiceConstructor]
@@ -42,7 +42,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         {
             lock (this.entries)
             {
-                if (!this.entries.Any())
+                if (this.entries.Count == 0)
                     return Array.Empty<TitleScreenMenuEntry>();
 
                 return this.entriesView ??= this.entries.OrderByDescending(x => x.IsInternal).ToArray();
@@ -59,7 +59,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         {
             lock (this.entries)
             {
-                if (!this.entries.Any())
+                if (this.entries.Count == 0)
                     return Array.Empty<TitleScreenMenuEntry>();
 
                 return this.entriesView ??= this.entries.OrderByDescending(x => x.IsInternal).ToArray();
@@ -81,7 +81,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         lock (this.entries)
         {
             var entriesOfAssembly = this.entries.Where(x => x.CallingAssembly == Assembly.GetCallingAssembly()).ToList();
-            var priority = entriesOfAssembly.Any()
+            var priority = entriesOfAssembly.Count != 0
                                ? unchecked(entriesOfAssembly.Select(x => x.Priority).Max() + 1)
                                : 0;
             entry = new(Assembly.GetCallingAssembly(), priority, text, texture, onTriggered);
@@ -191,7 +191,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         lock (this.entries)
         {
             var entriesOfAssembly = this.entries.Where(x => x.CallingAssembly == null).ToList();
-            var priority = entriesOfAssembly.Any()
+            var priority = entriesOfAssembly.Count != 0
                                ? unchecked(entriesOfAssembly.Select(x => x.Priority).Max() + 1)
                                : 0;
             entry = new(null, priority, text, texture, onTriggered, showConditionKeys)
@@ -220,7 +220,7 @@ internal class TitleScreenMenuPluginScoped : IInternalDisposableService, ITitleS
     [ServiceManager.ServiceDependency]
     private readonly TitleScreenMenu titleScreenMenuService = Service<TitleScreenMenu>.Get();
 
-    private readonly List<IReadOnlyTitleScreenMenuEntry> pluginEntries = new();
+    private readonly List<IReadOnlyTitleScreenMenuEntry> pluginEntries = [];
 
     /// <inheritdoc/>
     public IReadOnlyList<IReadOnlyTitleScreenMenuEntry>? Entries => this.titleScreenMenuService.Entries;

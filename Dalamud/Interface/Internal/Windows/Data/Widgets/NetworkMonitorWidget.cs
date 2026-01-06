@@ -42,7 +42,7 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "network", "netmon", "networkmonitor" };
+    public string[]? CommandShortcuts { get; init; } = ["network", "netmon", "networkmonitor"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Network Monitor";

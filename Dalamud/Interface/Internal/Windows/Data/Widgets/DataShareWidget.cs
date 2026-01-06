@@ -11,6 +11,7 @@ using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Ipc.Internal;
+
 using Newtonsoft.Json;
 
 using Formatting = Newtonsoft.Json.Formatting;
@@ -28,13 +29,13 @@ internal class DataShareWidget : IDataWindowWidget
 {
     private const ImGuiTabItemFlags NoCloseButton = (ImGuiTabItemFlags)(1 << 20);
 
-    private readonly List<(string Name, byte[]? Data)> dataView = new();
+    private readonly List<(string Name, byte[]? Data)> dataView = [];
     private int nextTab = -1;
     private IReadOnlyDictionary<string, CallGateChannel>? gates;
     private List<CallGateChannel>? gatesSorted;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "datashare" };
+    public string[]? CommandShortcuts { get; init; } = ["datashare"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Data Share & Call Gate";

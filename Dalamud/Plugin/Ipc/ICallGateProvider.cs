@@ -1,5 +1,4 @@
 using Dalamud.Plugin.Ipc.Internal;
-using Dalamud.Utility;
 
 #pragma warning disable SA1402 // File may only contain a single type
 
