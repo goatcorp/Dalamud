@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
@@ -15,6 +16,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
@@ -403,7 +405,7 @@ internal class ProfileManagerWidget
         ImGui.Text(Locs.StartupBehavior);
         if (ImGui.BeginCombo("##startupBehaviorPicker"u8, Locs.PolicyToLocalisedName(profile.StartupPolicy)))
         {
-            foreach (var policy in Enum.GetValues(typeof(ProfileModelV1.ProfileStartupPolicy)).Cast<ProfileModelV1.ProfileStartupPolicy>())
+            foreach (var policy in Enum.GetValues<ProfileModelV1.ProfileStartupPolicy>())
             {
                 var name = Locs.PolicyToLocalisedName(policy);
                 if (ImGui.Selectable(name, profile.StartupPolicy == policy))

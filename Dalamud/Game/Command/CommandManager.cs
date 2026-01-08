@@ -24,7 +24,7 @@ namespace Dalamud.Game.Command;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class CommandManager : IInternalDisposableService, ICommandManager
 {
-    private static readonly ModuleLog Log = new("Command");
+    private static readonly ModuleLog Log = ModuleLog.Create<CommandManager>();
 
     private readonly ConcurrentDictionary<string, IReadOnlyCommandInfo> commandMap = new();
     private readonly ConcurrentDictionary<(string, IReadOnlyCommandInfo), string> commandAssemblyNameMap = new();
@@ -71,7 +71,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             if (separatorPosition + 1 >= content.Length)
             {
                 // Remove the trailing space
-                command = content.Substring(0, separatorPosition);
+                command = content[..separatorPosition];
             }
             else
             {
@@ -262,12 +262,12 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 #pragma warning restore SA1015
 internal class CommandManagerPluginScoped : IInternalDisposableService, ICommandManager
 {
-    private static readonly ModuleLog Log = new("Command");
+    private static readonly ModuleLog Log = ModuleLog.Create<CommandManager>();
 
     [ServiceManager.ServiceDependency]
     private readonly CommandManager commandManagerService = Service<CommandManager>.Get();
 
-    private readonly List<string> pluginRegisteredCommands = new();
+    private readonly List<string> pluginRegisteredCommands = [];
     private readonly LocalPlugin pluginInfo;
 
     /// <summary>

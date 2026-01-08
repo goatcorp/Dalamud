@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
@@ -41,7 +42,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 /// </summary>
 internal class PluginInstallerWindow : Window, IDisposable
 {
-    private static readonly ModuleLog Log = new("PLUGINW");
+    private static readonly ModuleLog Log = ModuleLog.Create<PluginInstallerWindow>();
 
     private readonly Vector4 changelogBgColor = new(0.114f, 0.584f, 0.192f, 0.678f);
     private readonly Vector4 changelogTextColor = new(0.812f, 1.000f, 0.816f, 1.000f);
@@ -49,7 +50,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private readonly PluginImageCache imageCache;
     private readonly PluginCategoryManager categoryManager = new();
 
-    private readonly List<int> openPluginCollapsibles = new();
+    private readonly List<int> openPluginCollapsibles = [];
 
     private readonly DateTime timeLoaded;
 
@@ -113,9 +114,9 @@ internal class PluginInstallerWindow : Window, IDisposable
     private List<PluginUpdateStatus>? updatedPlugins;
 
     [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Makes sense like this")]
-    private List<RemotePluginManifest> pluginListAvailable = new();
-    private List<LocalPlugin> pluginListInstalled = new();
-    private List<AvailablePluginUpdate> pluginListUpdatable = new();
+    private List<RemotePluginManifest> pluginListAvailable = [];
+    private List<LocalPlugin> pluginListInstalled = [];
+    private List<AvailablePluginUpdate> pluginListUpdatable = [];
     private bool hasDevPlugins = false;
     private bool hasHiddenPlugins = false;
 
@@ -2463,7 +2464,7 @@ private OperationStatus installStatus = OperationStatus.Idle;
             else if (!string.IsNullOrWhiteSpace(manifest.Description))
             {
                 const int punchlineLen = 200;
-                var firstLine = manifest.Description.Split(new[] { '\r', '\n' })[0];
+                var firstLine = manifest.Description.Split(['\r', '\n'])[0];
 
                 ImGui.TextWrapped(firstLine.Length < punchlineLen
                                                  ? firstLine

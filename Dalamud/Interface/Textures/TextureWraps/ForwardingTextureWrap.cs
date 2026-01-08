@@ -3,7 +3,6 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 
 using TerraFX.Interop.Windows;

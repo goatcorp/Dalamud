@@ -8,6 +8,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.Text.Noun;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Interface.Utility.Raii;
+
 using Lumina.Data;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -60,7 +61,7 @@ internal class NounProcessorWidget : IDataWindowWidget
     private int amount = 1;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "noun" };
+    public string[]? CommandShortcuts { get; init; } = ["noun"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Noun Processor";

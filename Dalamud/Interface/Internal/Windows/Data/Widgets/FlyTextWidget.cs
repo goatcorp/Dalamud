@@ -22,7 +22,7 @@ internal class FlyTextWidget : IDataWindowWidget
     private Vector4 flyColor = new(1, 0, 0, 1);
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "flytext" };
+    public string[]? CommandShortcuts { get; init; } = ["flytext"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Fly Text";

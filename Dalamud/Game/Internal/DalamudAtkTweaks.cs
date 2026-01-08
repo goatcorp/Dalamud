@@ -22,7 +22,7 @@ namespace Dalamud.Game.Internal;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 {
-    private static readonly ModuleLog Log = new("DalamudAtkTweaks");
+    private static readonly ModuleLog Log = ModuleLog.Create<DalamudAtkTweaks>();
 
     private readonly Hook<AgentHUD.Delegates.OpenSystemMenu> hookAgentHudOpenSystemMenu;
 

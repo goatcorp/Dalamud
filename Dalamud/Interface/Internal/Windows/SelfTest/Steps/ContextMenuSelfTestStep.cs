@@ -9,8 +9,10 @@ using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.SelfTest;
+
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;

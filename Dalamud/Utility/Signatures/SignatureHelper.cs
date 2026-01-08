@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Game;
 using Dalamud.Hooking;
-using Dalamud.Logging;
 using Dalamud.Utility.Signatures.Wrappers;
+
 using Serilog;
 
 namespace Dalamud.Utility.Signatures;
@@ -72,9 +72,8 @@ internal static class SignatureHelper
                 }
             }
 
-            IntPtr ptr;
             var success = sig.ScanType == ScanType.Text
-                              ? scanner.TryScanText(sig.Signature, out ptr)
+                              ? scanner.TryScanText(sig.Signature, out var ptr)
                               : scanner.TryGetStaticAddressFromSig(sig.Signature, out ptr);
             if (!success)
             {
@@ -159,7 +158,7 @@ internal static class SignatureHelper
                         continue;
                     }
 
-                    var hook = creator.Invoke(null, new object?[] { ptr, detour, false }) as IDalamudHook;
+                    var hook = creator.Invoke(null, [ptr, detour, false]) as IDalamudHook;
                     info.SetValue(self, hook);
                     createdHooks.Add(hook);
 

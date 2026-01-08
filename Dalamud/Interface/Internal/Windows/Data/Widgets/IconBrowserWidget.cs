@@ -33,7 +33,7 @@ public class IconBrowserWidget : IDataWindowWidget
     private Vector2 lastWindowSize = Vector2.Zero;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "icon", "icons" };
+    public string[]? CommandShortcuts { get; init; } = ["icon", "icons"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Icon Browser";
@@ -269,7 +269,7 @@ public class IconBrowserWidget : IDataWindowWidget
         if (this.valueRange is not null)
             return;
 
-        this.valueRange = new();
+        this.valueRange = [];
         foreach (var (id, _) in this.iconIdsTask!.Result)
         {
             if (this.startRange <= id && id < this.stopRange)

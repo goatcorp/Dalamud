@@ -367,7 +367,7 @@ public static partial class Util
     /// <returns>Human readable version.</returns>
     public static string FormatBytes(long bytes)
     {
-        string[] suffix = { "B", "KB", "MB", "GB", "TB" };
+        string[] suffix = ["B", "KB", "MB", "GB", "TB"];
         int i;
         double dblSByte = bytes;
         for (i = 0; i < suffix.Length && bytes >= 1024; i++, bytes /= 1024)
@@ -823,7 +823,7 @@ public static partial class Util
             MethodAttributes.Public | MethodAttributes.Static,
             CallingConventions.Standard,
             null,
-            new[] { typeof(object), typeof(IList<string>), typeof(ulong) },
+            [typeof(object), typeof(IList<string>), typeof(ulong)],
             obj.GetType(),
             true);
 
@@ -850,7 +850,7 @@ public static partial class Util
         ilg.Emit(OpCodes.Call, mm);
         ilg.Emit(OpCodes.Ret);
 
-        dm.Invoke(null, new[] { obj, path, addr });
+        dm.Invoke(null, [obj, path, addr]);
     }
 
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
@@ -1029,8 +1029,8 @@ public static partial class Util
                 foreach (var f in obj.GetType()
                                      .GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
                 {
-                    var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
-                    var offset = (FieldOffsetAttribute)f.GetCustomAttribute(typeof(FieldOffsetAttribute));
+                    var fixedBuffer = f.GetCustomAttribute<FixedBufferAttribute>();
+                    var offset = f.GetCustomAttribute<FieldOffsetAttribute>();
 
                     if (fixedBuffer != null)
                     {

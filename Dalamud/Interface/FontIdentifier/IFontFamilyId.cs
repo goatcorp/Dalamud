@@ -36,26 +36,25 @@ public interface IFontFamilyId : IObjectWithLocalizableName
     /// </summary>
     /// <returns>The list of fonts.</returns>
     public static List<IFontFamilyId> ListDalamudFonts() =>
-        new()
-        {
+        [
             new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium),
             new DalamudAssetFontAndFamilyId(DalamudAsset.InconsolataRegular),
             new DalamudAssetFontAndFamilyId(DalamudAsset.FontAwesomeFreeSolid),
-        };
+        ];
 
     /// <summary>
     /// Gets the list of Game-provided fonts.
     /// </summary>
     /// <returns>The list of fonts.</returns>
-    public static List<IFontFamilyId> ListGameFonts() => new()
-    {
+    public static List<IFontFamilyId> ListGameFonts() =>
+    [
         new GameFontAndFamilyId(GameFontFamily.Axis),
         new GameFontAndFamilyId(GameFontFamily.Jupiter),
         new GameFontAndFamilyId(GameFontFamily.JupiterNumeric),
         new GameFontAndFamilyId(GameFontFamily.Meidinger),
         new GameFontAndFamilyId(GameFontFamily.MiedingerMid),
         new GameFontAndFamilyId(GameFontFamily.TrumpGothic),
-    };
+    ];
 
     /// <summary>
     /// Gets the list of System-provided fonts.

@@ -4,6 +4,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal.UiDebug2.Browsing;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using static Dalamud.Interface.Internal.UiDebug2.UiDebug2;

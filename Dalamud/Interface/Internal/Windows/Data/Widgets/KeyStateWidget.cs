@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
 
@@ -10,7 +10,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class KeyStateWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "keystate" };
+    public string[]? CommandShortcuts { get; init; } = ["keystate"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "KeyState";

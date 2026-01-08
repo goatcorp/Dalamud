@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -9,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
@@ -35,7 +35,9 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using JetBrains.Annotations;
+
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
@@ -76,10 +78,10 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// </summary>
     public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
-    private static readonly ModuleLog Log = new("INTERFACE");
+    private static readonly ModuleLog Log = ModuleLog.Create<InterfaceManager>();
 
-    private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = new();
-    private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = new();
+    private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = [];
+    private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = [];
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
@@ -678,8 +680,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             if (configuration.SavedStyles == null ||
                 configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
             {
-                configuration.SavedStyles = new List<StyleModel>
-                    { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
+                configuration.SavedStyles = [StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic];
                 configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
             }
             else if (configuration.SavedStyles.Count == 1)

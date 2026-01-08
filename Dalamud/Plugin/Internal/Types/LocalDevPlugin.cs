@@ -17,7 +17,7 @@ namespace Dalamud.Plugin.Internal.Types;
 /// </summary>
 internal sealed class LocalDevPlugin : LocalPlugin
 {
-    private static readonly ModuleLog Log = new("PLUGIN");
+    private static readonly ModuleLog Log = ModuleLog.Create<LocalDevPlugin>();
 
     // Ref to Dalamud.Configuration.DevPluginSettings
     private readonly DevPluginSettings devSettings;
