@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading;
 
 using Dalamud.Bindings.ImGui;
@@ -21,7 +21,7 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
     private CancellationTokenSource? loadTestThreadCt;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "dtr", "dtrbar" };
+    public string[]? CommandShortcuts { get; init; } = ["dtr", "dtrbar"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "DTR Bar";

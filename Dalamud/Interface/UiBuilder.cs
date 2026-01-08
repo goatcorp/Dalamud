@@ -15,6 +15,7 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface;
@@ -601,7 +602,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// <summary>
     /// Gets or sets a history of the last draw times, used to calculate an average.
     /// </summary>
-    internal List<long> DrawTimeHistory { get; set; } = new List<long>();
+    internal List<long> DrawTimeHistory { get; set; } = [];
 
     private InterfaceManager? InterfaceManagerWithScene =>
         Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable()?.Manager;

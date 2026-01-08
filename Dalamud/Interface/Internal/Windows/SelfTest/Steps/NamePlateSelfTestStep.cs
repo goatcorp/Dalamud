@@ -36,7 +36,7 @@ internal class NamePlateSelfTestStep : ISelfTestStep
                 namePlateGui.OnNamePlateUpdate += this.OnNamePlateUpdate;
                 namePlateGui.OnDataUpdate += this.OnDataUpdate;
                 namePlateGui.RequestRedraw();
-                this.updateCount = new Dictionary<ulong, int>();
+                this.updateCount = [];
                 this.currentSubStep++;
                 break;
 

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using CheapLoc;
+
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 
@@ -61,8 +62,8 @@ internal class PluginCategoryManager
     private CategoryKind currentCategoryKind = CategoryKind.All;
     private bool isContentDirty;
 
-    private Dictionary<PluginManifest, CategoryKind[]> mapPluginCategories = new();
-    private List<CategoryKind> highlightedCategoryKinds = new();
+    private Dictionary<PluginManifest, CategoryKind[]> mapPluginCategories = [];
+    private List<CategoryKind> highlightedCategoryKinds = [];
 
     /// <summary>
     /// Type of category group.
@@ -531,8 +532,7 @@ internal class PluginCategoryManager
             this.GroupKind = groupKind;
             this.nameFunc = nameFunc;
 
-            this.Categories = new();
-            this.Categories.AddRange(categories);
+            this.Categories = [.. categories];
         }
 
         /// <summary>

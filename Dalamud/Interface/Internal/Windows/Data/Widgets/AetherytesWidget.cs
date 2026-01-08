@@ -12,7 +12,7 @@ internal class AetherytesWidget : IDataWindowWidget
     public bool Ready { get; set; }
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "aetherytes" };
+    public string[]? CommandShortcuts { get; init; } = ["aetherytes"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Aetherytes";
