@@ -29,11 +29,9 @@ public static class Events
         }
 
         using var tree = ImRaii.TreeNode($"Events##{(nint)node:X}eventTree");
-
         if (tree.Success)
         {
             using var tbl = ImRaii.Table($"##{(nint)node:X}eventTable", 7, Resizable | SizingFixedFit | Borders | RowBg);
-
             if (tbl.Success)
             {
                 ImGui.TableSetupColumn("#"u8, WidthFixed);
@@ -51,18 +49,25 @@ public static class Events
                 {
                     ImGui.TableNextColumn();
                     ImGui.Text($"{i++}");
+
                     ImGui.TableNextColumn();
                     ImGui.Text($"{evt->State.EventType}");
+
                     ImGui.TableNextColumn();
                     ImGui.Text($"{evt->Param}");
+
                     ImGui.TableNextColumn();
                     ImGui.Text($"{evt->State.StateFlags}");
+
                     ImGui.TableNextColumn();
                     ImGui.Text($"{evt->State.ReturnFlags}");
+
                     ImGui.TableNextColumn();
                     ImGuiHelpers.ClickToCopyText($"{(nint)evt->Target:X}", default, new Vector4(0.6f, 0.6f, 0.6f, 1));
+
                     ImGui.TableNextColumn();
                     ImGuiHelpers.ClickToCopyText($"{(nint)evt->Listener:X}", default, new Vector4(0.6f, 0.6f, 0.6f, 1));
+
                     evt = evt->NextEvent;
                 }
             }

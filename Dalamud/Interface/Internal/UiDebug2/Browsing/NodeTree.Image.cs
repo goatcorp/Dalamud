@@ -64,7 +64,6 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
         }
 
         using var tree = ImRaii.TreeNode($"Texture##texture{(nint)this.TexData.Texture->D3D11ShaderResourceView:X}", SpanFullWidth);
-
         if (tree.Success)
         {
             PrintFieldValuePairs(
