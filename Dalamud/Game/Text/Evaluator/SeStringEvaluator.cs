@@ -845,7 +845,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         using var rssb = new RentedSeStringBuilder();
         var sb = rssb.Builder;
 
-        sb.Append(this.EvaluateFromAddon(6, [rarity], context.Language));
+        sb.Append(this.EvaluateFromAddon(6, [rarity], context.Language)); // appends colortype and edgecolortype
 
         if (!skipLink)
             sb.PushLink(LinkMacroPayloadType.Item, itemId, rarity, 0u); // arg3 = some LogMessage flag based on LogKind RowId? => "89 5C 24 20 E8 ?? ?? ?? ?? 48 8B 1F"
@@ -867,6 +867,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         if (!skipLink)
             sb.PopLink();
+
+        sb.PopEdgeColorType();
+        sb.PopColorType();
 
         text = sb.ToReadOnlySeString();
     }
