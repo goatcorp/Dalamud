@@ -9,7 +9,7 @@ namespace Dalamud.Plugin.Ipc.Internal;
 [ServiceManager.EarlyLoadedService]
 internal class CallGate : IServiceType
 {
-    private readonly Dictionary<string, CallGateChannel> gates = new();
+    private readonly Dictionary<string, CallGateChannel> gates = [];
 
     private ImmutableDictionary<string, CallGateChannel>? gatesCopy;
 

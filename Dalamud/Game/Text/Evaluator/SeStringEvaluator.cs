@@ -48,7 +48,7 @@ namespace Dalamud.Game.Text.Evaluator;
 [ResolveVia<ISeStringEvaluator>]
 internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 {
-    private static readonly ModuleLog Log = new("SeStringEvaluator");
+    private static readonly ModuleLog Log = ModuleLog.Create<SeStringEvaluator>();
 
     [ServiceManager.ServiceDependency]
     private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();
@@ -244,154 +244,67 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         // if (context.HandlePayload(payload, in context))
         //    return true;
 
-        switch (payload.MacroCode)
+        return payload.MacroCode switch
         {
-            case MacroCode.SetResetTime:
-                return this.TryResolveSetResetTime(in context, payload);
-
-            case MacroCode.SetTime:
-                return this.TryResolveSetTime(in context, payload);
-
-            case MacroCode.If:
-                return this.TryResolveIf(in context, payload);
-
-            case MacroCode.Switch:
-                return this.TryResolveSwitch(in context, payload);
-
-            case MacroCode.SwitchPlatform:
-                return this.TryResolveSwitchPlatform(in context, payload);
-
-            case MacroCode.PcName:
-                return this.TryResolvePcName(in context, payload);
-
-            case MacroCode.IfPcGender:
-                return this.TryResolveIfPcGender(in context, payload);
-
-            case MacroCode.IfPcName:
-                return this.TryResolveIfPcName(in context, payload);
-
-            // case MacroCode.Josa:
-            // case MacroCode.Josaro:
-
-            case MacroCode.IfSelf:
-                return this.TryResolveIfSelf(in context, payload);
-
-            // case MacroCode.NewLine: // pass through
-            // case MacroCode.Wait: // pass through
-            // case MacroCode.Icon: // pass through
-
-            case MacroCode.Color:
-                return this.TryResolveColor(in context, payload);
-
-            case MacroCode.EdgeColor:
-                return this.TryResolveEdgeColor(in context, payload);
-
-            case MacroCode.ShadowColor:
-                return this.TryResolveShadowColor(in context, payload);
-
-            // case MacroCode.SoftHyphen: // pass through
-            // case MacroCode.Key:
-            // case MacroCode.Scale:
-
-            case MacroCode.Bold:
-                return this.TryResolveBold(in context, payload);
-
-            case MacroCode.Italic:
-                return this.TryResolveItalic(in context, payload);
-
-            // case MacroCode.Edge:
-            // case MacroCode.Shadow:
-            // case MacroCode.NonBreakingSpace: // pass through
-            // case MacroCode.Icon2: // pass through
-            // case MacroCode.Hyphen: // pass through
-
-            case MacroCode.Num:
-                return this.TryResolveNum(in context, payload);
-
-            case MacroCode.Hex:
-                return this.TryResolveHex(in context, payload);
-
-            case MacroCode.Kilo:
-                return this.TryResolveKilo(in context, payload);
-
-            // case MacroCode.Byte:
-
-            case MacroCode.Sec:
-                return this.TryResolveSec(in context, payload);
-
-            // case MacroCode.Time:
-
-            case MacroCode.Float:
-                return this.TryResolveFloat(in context, payload);
-
-            // case MacroCode.Link: // pass through
-
-            case MacroCode.Sheet:
-                return this.TryResolveSheet(in context, payload);
-
-            case MacroCode.SheetSub:
-                return this.TryResolveSheetSub(in context, payload);
-
-            case MacroCode.String:
-                return this.TryResolveString(in context, payload);
-
-            case MacroCode.Caps:
-                return this.TryResolveCaps(in context, payload);
-
-            case MacroCode.Head:
-                return this.TryResolveHead(in context, payload);
-
-            case MacroCode.Split:
-                return this.TryResolveSplit(in context, payload);
-
-            case MacroCode.HeadAll:
-                return this.TryResolveHeadAll(in context, payload);
-
-            case MacroCode.Fixed:
-                return this.TryResolveFixed(in context, payload);
-
-            case MacroCode.Lower:
-                return this.TryResolveLower(in context, payload);
-
-            case MacroCode.JaNoun:
-                return this.TryResolveNoun(ClientLanguage.Japanese, in context, payload);
-
-            case MacroCode.EnNoun:
-                return this.TryResolveNoun(ClientLanguage.English, in context, payload);
-
-            case MacroCode.DeNoun:
-                return this.TryResolveNoun(ClientLanguage.German, in context, payload);
-
-            case MacroCode.FrNoun:
-                return this.TryResolveNoun(ClientLanguage.French, in context, payload);
-
-            // case MacroCode.ChNoun:
-
-            case MacroCode.LowerHead:
-                return this.TryResolveLowerHead(in context, payload);
-
-            case MacroCode.ColorType:
-                return this.TryResolveColorType(in context, payload);
-
-            case MacroCode.EdgeColorType:
-                return this.TryResolveEdgeColorType(in context, payload);
-
-            // case MacroCode.Ruby:
-
-            case MacroCode.Digit:
-                return this.TryResolveDigit(in context, payload);
-
-            case MacroCode.Ordinal:
-                return this.TryResolveOrdinal(in context, payload);
-
-            // case MacroCode.Sound: // pass through
-
-            case MacroCode.LevelPos:
-                return this.TryResolveLevelPos(in context, payload);
-
-            default:
-                return false;
-        }
+            MacroCode.SetResetTime => this.TryResolveSetResetTime(in context, payload),
+            MacroCode.SetTime => this.TryResolveSetTime(in context, payload),
+            MacroCode.If => this.TryResolveIf(in context, payload),
+            MacroCode.Switch => this.TryResolveSwitch(in context, payload),
+            MacroCode.SwitchPlatform => this.TryResolveSwitchPlatform(in context, payload),
+            MacroCode.PcName => this.TryResolvePcName(in context, payload),
+            MacroCode.IfPcGender => this.TryResolveIfPcGender(in context, payload),
+            MacroCode.IfPcName => this.TryResolveIfPcName(in context, payload),
+            // MacroCode.Josa
+            // MacroCode.Josaro
+            MacroCode.IfSelf => this.TryResolveIfSelf(in context, payload),
+            // MacroCode.NewLine (pass through)
+            // MacroCode.Wait (pass through)
+            // MacroCode.Icon (pass through)
+            MacroCode.Color => this.TryResolveColor(in context, payload),
+            MacroCode.EdgeColor => this.TryResolveEdgeColor(in context, payload),
+            MacroCode.ShadowColor => this.TryResolveShadowColor(in context, payload),
+            // MacroCode.SoftHyphen (pass through)
+            // MacroCode.Key
+            // MacroCode.Scale
+            MacroCode.Bold => this.TryResolveBold(in context, payload),
+            MacroCode.Italic => this.TryResolveItalic(in context, payload),
+            // MacroCode.Edge
+            // MacroCode.Shadow
+            // MacroCode.NonBreakingSpace (pass through)
+            // MacroCode.Icon2 (pass through)
+            // MacroCode.Hyphen (pass through)
+            MacroCode.Num => this.TryResolveNum(in context, payload),
+            MacroCode.Hex => this.TryResolveHex(in context, payload),
+            MacroCode.Kilo => this.TryResolveKilo(in context, payload),
+            // MacroCode.Byte
+            MacroCode.Sec => this.TryResolveSec(in context, payload),
+            // MacroCode.Time
+            MacroCode.Float => this.TryResolveFloat(in context, payload),
+            // MacroCode.Link (pass through)
+            MacroCode.Sheet => this.TryResolveSheet(in context, payload),
+            MacroCode.SheetSub => this.TryResolveSheetSub(in context, payload),
+            MacroCode.String => this.TryResolveString(in context, payload),
+            MacroCode.Caps => this.TryResolveCaps(in context, payload),
+            MacroCode.Head => this.TryResolveHead(in context, payload),
+            MacroCode.Split => this.TryResolveSplit(in context, payload),
+            MacroCode.HeadAll => this.TryResolveHeadAll(in context, payload),
+            MacroCode.Fixed => this.TryResolveFixed(in context, payload),
+            MacroCode.Lower => this.TryResolveLower(in context, payload),
+            MacroCode.JaNoun => this.TryResolveNoun(ClientLanguage.Japanese, in context, payload),
+            MacroCode.EnNoun => this.TryResolveNoun(ClientLanguage.English, in context, payload),
+            MacroCode.DeNoun => this.TryResolveNoun(ClientLanguage.German, in context, payload),
+            MacroCode.FrNoun => this.TryResolveNoun(ClientLanguage.French, in context, payload),
+            // MacroCode.ChNoun
+            MacroCode.LowerHead => this.TryResolveLowerHead(in context, payload),
+            MacroCode.ColorType => this.TryResolveColorType(in context, payload),
+            MacroCode.EdgeColorType => this.TryResolveEdgeColorType(in context, payload),
+            // MacroCode.Ruby
+            MacroCode.Digit => this.TryResolveDigit(in context, payload),
+            MacroCode.Ordinal => this.TryResolveOrdinal(in context, payload),
+            // MacroCode.Sound (pass through)
+            MacroCode.LevelPos => this.TryResolveLevelPos(in context, payload),
+            _ => false,
+        };
     }
 
     private unsafe bool TryResolveSetResetTime(in SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -932,7 +845,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         using var rssb = new RentedSeStringBuilder();
         var sb = rssb.Builder;
 
-        sb.Append(this.EvaluateFromAddon(6, [rarity], context.Language));
+        sb.Append(this.EvaluateFromAddon(6, [rarity], context.Language)); // appends colortype and edgecolortype
 
         if (!skipLink)
             sb.PushLink(LinkMacroPayloadType.Item, itemId, rarity, 0u); // arg3 = some LogMessage flag based on LogKind RowId? => "89 5C 24 20 E8 ?? ?? ?? ?? 48 8B 1F"
@@ -954,6 +867,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         if (!skipLink)
             sb.PopLink();
+
+        sb.PopEdgeColorType();
+        sb.PopColorType();
 
         text = sb.ToReadOnlySeString();
     }

@@ -14,7 +14,9 @@ using Dalamud.Interface.Utility.Internal;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.Parse;

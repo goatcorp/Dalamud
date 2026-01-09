@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
@@ -32,7 +33,7 @@ namespace Dalamud.Plugin.Internal.AutoUpdate;
 [ServiceManager.EarlyLoadedService]
 internal class AutoUpdateManager : IServiceType
 {
-    private static readonly ModuleLog Log = new("AUTOUPDATE");
+    private static readonly ModuleLog Log = ModuleLog.Create<AutoUpdateManager>();
 
     /// <summary>
     /// Time we should wait after login to update.
@@ -376,7 +377,7 @@ internal class AutoUpdateManager : IServiceType
         }
     }
 
-    private void NotifyUpdatesAreAvailable(ICollection<AvailablePluginUpdate> updatablePlugins)
+    private void NotifyUpdatesAreAvailable(List<AvailablePluginUpdate> updatablePlugins)
     {
         if (updatablePlugins.Count == 0)
             return;

@@ -16,6 +16,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

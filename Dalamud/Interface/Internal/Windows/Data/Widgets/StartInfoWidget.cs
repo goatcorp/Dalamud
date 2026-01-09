@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

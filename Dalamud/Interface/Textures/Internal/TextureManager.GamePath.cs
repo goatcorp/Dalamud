@@ -113,8 +113,8 @@ internal sealed partial class TextureManager
         var format = highResolution ? HighResolutionIconFileFormat : IconFileFormat;
 
         type ??= string.Empty;
-        if (type.Length > 0 && !type.EndsWith("/"))
-            type += "/";
+        if (type.Length > 0 && !type.EndsWith('/'))
+            type += '/';
 
         return string.Format(format, iconId / 1000, type, iconId);
     }

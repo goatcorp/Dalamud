@@ -7,7 +7,6 @@ using Dalamud.Data;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
-using Dalamud.Interface.Utility.Raii;
 
 using Lumina.Excel.Sheets;
 

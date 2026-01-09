@@ -427,8 +427,8 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     /// <inheritdoc/>
     public int VisibilityFlags
     {
-        get => ObjectData->VisibilityFlags;
-        set => ObjectData->VisibilityFlags = value;
+        get => this.ObjectData->VisibilityFlags;
+        set => this.ObjectData->VisibilityFlags = value;
     }
 
     /// <inheritdoc/>

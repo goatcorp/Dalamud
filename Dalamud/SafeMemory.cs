@@ -193,7 +193,7 @@ public static class SafeMemory
             return null;
         var data = encoding.GetString(buffer);
         var eosPos = data.IndexOf('\0');
-        return eosPos == -1 ? data : data.Substring(0, eosPos);
+        return eosPos == -1 ? data : data[..eosPos];
     }
 
     /// <summary>
@@ -303,7 +303,7 @@ public static class SafeMemory
             return bytes;
         }
 
-        public T Read<T>(int offset = 0) => (T)Marshal.PtrToStructure(this.hGlobal + offset, typeof(T));
+        public T Read<T>(int offset = 0) => Marshal.PtrToStructure<T>(this.hGlobal + offset);
 
         public object? Read(Type type, int offset = 0) => Marshal.PtrToStructure(this.hGlobal + offset, type);
 

@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Utility;
 
@@ -12,7 +12,7 @@ internal class PartyListWidget : IDataWindowWidget
     private bool resolveGameData;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "partylist", "party" };
+    public string[]? CommandShortcuts { get; init; } = ["partylist", "party"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Party List";

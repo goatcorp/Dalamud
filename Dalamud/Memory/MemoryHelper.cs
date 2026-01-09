@@ -6,11 +6,15 @@ using System.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory.Exceptions;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.String;
+
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
+
 using Microsoft.Extensions.ObjectPool;
+
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Memory;
 

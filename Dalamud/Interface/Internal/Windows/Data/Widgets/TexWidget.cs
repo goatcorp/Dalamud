@@ -18,6 +18,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using TerraFX.Interop.DirectX;
 
 using TextureManager = Dalamud.Interface.Textures.Internal.TextureManager;
@@ -142,10 +143,10 @@ internal class TexWidget : IDataWindowWidget
             conf.QueueSave();
         }
 
-        var allBlames = this.textureManager.BlameTracker;
-        lock (allBlames)
+        lock (this.textureManager.BlameTracker)
         {
             using var pushedId = ImRaii.PushId("blames"u8);
+            var allBlames = this.textureManager.BlameTracker;
             var sizeSum = allBlames.Sum(static x => Math.Max(0, x.RawSpecs.EstimatedBytes));
             if (ImGui.CollapsingHeader($"All Loaded Textures: {allBlames.Count:n0} ({Util.FormatBytes(sizeSum)})###header"))
                 this.DrawBlame(allBlames);

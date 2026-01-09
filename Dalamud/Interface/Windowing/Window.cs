@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
@@ -33,7 +35,7 @@ public abstract class Window
     private const float FadeInOutTime = 0.072f;
     private const string AdditionsPopupName = "WindowSystemContextActions";
 
-    private static readonly ModuleLog Log = new("WindowSystem");
+    private static readonly ModuleLog Log = ModuleLog.Create<WindowSystem>();
 
     private static bool wasEscPressedLastFrame = false;
 
@@ -261,7 +263,7 @@ public abstract class Window
     /// disabled globally by the user, an internal title bar button to manage these is added when drawing, but it will
     /// not appear in this collection. If you wish to remove this button, set both of these values to false.
     /// </summary>
-    public List<TitleBarButton> TitleBarButtons { get; set; } = new();
+    public List<TitleBarButton> TitleBarButtons { get; set; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether this window will stay open.

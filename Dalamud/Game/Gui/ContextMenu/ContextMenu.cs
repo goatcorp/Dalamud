@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -28,7 +29,7 @@ namespace Dalamud.Game.Gui.ContextMenu;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextMenu
 {
-    private static readonly ModuleLog Log = new("ContextMenu");
+    private static readonly ModuleLog Log = ModuleLog.Create<ContextMenu>();
 
     private readonly Hook<AtkModuleVf22OpenAddonByAgentDelegate> atkModuleVf22OpenAddonByAgentHook;
     private readonly Hook<AddonContextMenu.Delegates.OnMenuSelected> addonContextMenuOnMenuSelectedHook;
@@ -53,7 +54,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
     private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = [];
 
-    private object MenuItemsLock { get; } = new();
+    private Lock MenuItemsLock { get; } = new();
 
     private AgentInterface* SelectedAgent { get; set; }
 
