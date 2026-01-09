@@ -1,4 +1,6 @@
-﻿namespace Dalamud.Game.Agent.AgentArgTypes;
+﻿using Dalamud.Game.NativeWrapper;
+
+namespace Dalamud.Game.Agent.AgentArgTypes;
 
 /// <summary>
 /// Base class for AgentLifecycle AgentArgTypes.
@@ -15,7 +17,7 @@ public unsafe class AgentArgs
     /// <summary>
     /// Gets the pointer to the Agents AgentInterface*.
     /// </summary>
-    public nint Agent { get; internal set; }
+    public AgentInterfacePtr Agent { get; internal set; }
 
     /// <summary>
     /// Gets the agent id.
@@ -33,5 +35,5 @@ public unsafe class AgentArgs
     /// <typeparam name="T">AgentInterface.</typeparam>
     /// <returns>Typed pointer to contained Agents AgentInterface.</returns>
     public T* GetAgentPointer<T>() where T : unmanaged
-        => (T*)this.Agent;
+        => (T*)this.Agent.Address;
 }
