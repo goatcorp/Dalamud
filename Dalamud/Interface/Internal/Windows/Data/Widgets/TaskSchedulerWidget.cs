@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +16,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -35,7 +35,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
     private CancellationTokenSource taskSchedulerCancelSource = new();
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "tasksched", "taskscheduler" };
+    public string[]? CommandShortcuts { get; init; } = ["tasksched", "taskscheduler"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Task Scheduler";

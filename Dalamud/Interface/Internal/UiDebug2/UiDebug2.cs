@@ -7,6 +7,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using static Dalamud.Bindings.ImGui.ImGuiWindowFlags;
@@ -21,6 +22,9 @@ namespace Dalamud.Interface.Internal.UiDebug2;
 /// </summary>
 internal partial class UiDebug2 : IDisposable
 {
+    /// <inheritdoc cref="ModuleLog"/>
+    internal static readonly ModuleLog Log = ModuleLog.Create<UiDebug2>();
+
     private readonly ElementSelector elementSelector;
 
     /// <summary>
@@ -30,9 +34,6 @@ internal partial class UiDebug2 : IDisposable
     {
         this.elementSelector = new(this);
     }
-
-    /// <inheritdoc cref="ModuleLog"/>
-    internal static ModuleLog Log { get; set; } = new("UiDebug2");
 
     /// <inheritdoc cref="IGameGui"/>
     internal static IGameGui GameGui { get; set; } = Service<GameGui>.Get();

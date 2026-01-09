@@ -20,10 +20,10 @@ namespace Dalamud.IoC.Internal;
 [ServiceManager.ProvidedService]
 internal class ServiceContainer : IServiceType
 {
-    private static readonly ModuleLog Log = new("SERVICECONTAINER");
+    private static readonly ModuleLog Log = ModuleLog.Create<ServiceContainer>();
 
-    private readonly Dictionary<Type, ObjectInstance> instances = new();
-    private readonly Dictionary<Type, Type> interfaceToTypeMap = new();
+    private readonly Dictionary<Type, ObjectInstance> instances = [];
+    private readonly Dictionary<Type, Type> interfaceToTypeMap = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ServiceContainer"/> class.

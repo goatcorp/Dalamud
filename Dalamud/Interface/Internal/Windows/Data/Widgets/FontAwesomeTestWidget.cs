@@ -27,7 +27,7 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
     private bool useFixedWidth = false;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "fa", "fatest", "fontawesome" };
+    public string[]? CommandShortcuts { get; init; } = ["fa", "fatest", "fontawesome"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Font Awesome Test";
@@ -114,7 +114,7 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
                     Task.FromResult(
                         Service<TextureManager>.Get().CreateTextureFromSeString(
                             ReadOnlySeString.FromText(this.icons[i].ToIconString()),
-                            new() { Font = ImGui.GetFont(), FontSize = ImGui.GetFontSize() })));
+                            new() { Font = ImGui.GetFont(), FontSize = ImGui.GetFontSize(), ScreenOffset = Vector2.Zero })));
             }
 
             ImGui.PopFont();

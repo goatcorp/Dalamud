@@ -25,7 +25,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// </summary>
     public static readonly List<AddonVirtualTable> AllocatedTables = [];
 
-    private static readonly ModuleLog Log = new("AddonLifecycle");
+    private static readonly ModuleLog Log = ModuleLog.Create<AddonLifecycle>();
 
     private Hook<AtkUnitBase.Delegates.Initialize>? onInitializeAddonHook;
 

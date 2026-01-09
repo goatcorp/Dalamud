@@ -1,9 +1,6 @@
-using System.Runtime.CompilerServices;
-
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Memory;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
