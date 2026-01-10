@@ -27,7 +27,6 @@ public unsafe partial class AddonTree
             if (tree.Success)
             {
                 using var tbl = ImRaii.Table("atkUnitBase_atkValueTable"u8, 3, ImGuiTableFlags.Borders | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg);
-
                 if (tbl.Success)
                 {
                     ImGui.TableSetupColumn("Index"u8);

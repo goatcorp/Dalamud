@@ -58,7 +58,6 @@ public readonly unsafe partial struct TimelineTree
         if (animationCount > 0)
         {
             using var tree = ImRaii.TreeNode($"Timeline##{(nint)this.node:X}timeline", SpanFullWidth);
-
             if (tree.Success)
             {
                 PrintFieldValuePair("Timeline", $"{(nint)this.NodeTimeline:X}");
@@ -90,7 +89,6 @@ public readonly unsafe partial struct TimelineTree
         if (labelSetCount > 0 && this.Resource->LabelSets is not null)
         {
             using var tree = ImRaii.TreeNode($"Timeline Label Sets##{(nint)this.node:X}LabelSets", SpanFullWidth);
-
             if (tree.Success)
             {
                 this.DrawLabelSets();
@@ -325,7 +323,6 @@ public readonly unsafe partial struct TimelineTree
         using (ImRaii.PushColor(ImGuiCol.Text, new Vector4(1, 0.65F, 0.4F, 1), isActive))
         {
             using var tree = ImRaii.TreeNode($"[#{a}] [Frames {animation.StartFrameIdx}-{animation.EndFrameIdx}] {(isActive ? " (Active)" : string.Empty)}###{(nint)this.node}animTree{a}");
-
             if (tree.Success)
             {
                 PrintFieldValuePair("Animation", $"{address:X}");
@@ -335,7 +332,6 @@ public readonly unsafe partial struct TimelineTree
                 if (columns.Count > 0)
                 {
                     using var tbl = ImRaii.Table($"##{(nint)this.node}animTable{a}", columns.Count, Borders | SizingFixedFit | RowBg | NoHostExtendX);
-
                     if (tbl.Success)
                     {
                         foreach (var c in columns)
