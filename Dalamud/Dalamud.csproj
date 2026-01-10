@@ -89,6 +89,15 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\generators\Dalamud.EnumGenerator\Dalamud.EnumGenerator\Dalamud.EnumGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="EnumCloneMap.txt"/>
+        <AdditionalFiles Include="EnumCloneMap.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
         <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\imgui-frag.hlsl.bytes">
           <LogicalName>imgui-frag.hlsl.bytes</LogicalName>
         </EmbeddedResource>

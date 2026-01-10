@@ -1,0 +1,4 @@
+# Format: Target.Full.TypeName = Source.Full.EnumTypeName
+# Example: Generate a local enum MyGeneratedEnum in namespace Sample.Gen mapped to SourceEnums.SampleSourceEnum
+Dalamud.EnumGenerator.Sample.Gen.MyGeneratedEnum = Dalamud.EnumGenerator.Sample.SourceEnums.SampleSourceEnum
+
