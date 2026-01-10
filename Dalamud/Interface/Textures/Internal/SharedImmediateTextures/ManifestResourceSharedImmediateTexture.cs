@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
@@ -36,10 +35,7 @@ internal sealed class ManifestResourceSharedImmediateTexture : SharedImmediateTe
     /// <inheritdoc/>
     protected override async Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
     {
-        await using var stream = this.assembly.GetManifestResourceStream(this.name);
-        if (stream is null)
-            throw new FileNotFoundException("The resource file could not be found.");
-
+        await using var stream = this.assembly.GetManifestResourceStream(this.name) ?? throw new FileNotFoundException("The resource file could not be found.");
         var tm = await Service<TextureManager>.GetAsync();
         var ms = new MemoryStream(stream.CanSeek ? checked((int)stream.Length) : 0);
         await stream.CopyToAsync(ms, cancellationToken);

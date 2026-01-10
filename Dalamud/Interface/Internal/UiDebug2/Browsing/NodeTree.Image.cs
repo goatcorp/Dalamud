@@ -2,8 +2,8 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -64,7 +64,6 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
         }
 
         using var tree = ImRaii.TreeNode($"Texture##texture{(nint)this.TexData.Texture->D3D11ShaderResourceView:X}", SpanFullWidth);
-
         if (tree.Success)
         {
             PrintFieldValuePairs(

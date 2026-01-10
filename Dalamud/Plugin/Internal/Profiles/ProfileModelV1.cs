@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Newtonsoft.Json;
 
@@ -63,7 +63,7 @@ public class ProfileModelV1 : ProfileModel
     /// <summary>
     /// Gets or sets the list of plugins in this profile.
     /// </summary>
-    public List<ProfileModelV1Plugin> Plugins { get; set; } = new();
+    public List<ProfileModelV1Plugin> Plugins { get; set; } = [];
 
     /// <summary>
     /// Class representing a single plugin in a profile.

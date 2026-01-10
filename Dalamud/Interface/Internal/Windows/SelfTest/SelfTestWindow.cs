@@ -10,6 +10,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
+
 using Dalamud.Plugin.SelfTest;
 using Dalamud.Plugin.SelfTest.Internal;
 using Dalamud.Utility;
@@ -21,11 +22,11 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest;
 /// </summary>
 internal class SelfTestWindow : Window
 {
-    private static readonly ModuleLog Log = new("AGING");
+    private static readonly ModuleLog Log = ModuleLog.Create<SelfTestWindow>();
 
     private readonly SelfTestRegistry selfTestRegistry;
 
-    private List<SelfTestWithResults> visibleSteps = new();
+    private List<SelfTestWithResults> visibleSteps = [];
 
     private bool selfTestRunning = false;
     private SelfTestGroup? currentTestGroup = null;
@@ -138,7 +139,7 @@ internal class SelfTestWindow : Window
         ImGui.SameLine();
 
         var stepNumber = this.currentStep != null ? this.visibleSteps.IndexOf(this.currentStep) : 0;
-        ImGui.Text($"Step: {stepNumber} / {this.visibleSteps.Count}"); 
+        ImGui.Text($"Step: {stepNumber} / {this.visibleSteps.Count}");
 
         ImGui.Spacing();
 

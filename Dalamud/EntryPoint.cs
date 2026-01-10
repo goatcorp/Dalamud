@@ -1,8 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,10 +14,13 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Support;
 using Dalamud.Utility;
+
 using Newtonsoft.Json;
+
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 

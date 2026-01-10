@@ -5,7 +5,9 @@ using System.Linq;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Utility;
+
 using Newtonsoft.Json;
+
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 

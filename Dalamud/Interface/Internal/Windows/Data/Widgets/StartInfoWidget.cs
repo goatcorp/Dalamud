@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -9,7 +10,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class StartInfoWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "startinfo" };
+    public string[]? CommandShortcuts { get; init; } = ["startinfo"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Start Info";
