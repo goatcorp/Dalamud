@@ -33,8 +33,8 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     private readonly Stopwatch updateStopwatch = new();
     private readonly HitchDetector hitchDetector;
 
-    private readonly Hook<CSFramework.Delegates.Tick> updateHook;
-    private readonly Hook<CSFramework.Delegates.Destroy> destroyHook;
+    private readonly Hook<CSFramework.Delegates.Tick>? updateHook;
+    private readonly Hook<CSFramework.Delegates.Destroy>? destroyHook;
 
     [ServiceManager.ServiceDependency]
     private readonly GameLifecycle lifecycle = Service<GameLifecycle>.Get();
@@ -66,8 +66,8 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         this.updateHook = Hook<CSFramework.Delegates.Tick>.FromAddress((nint)CSFramework.StaticVirtualTablePointer->Tick, this.HandleFrameworkUpdate);
         this.destroyHook = Hook<CSFramework.Delegates.Destroy>.FromAddress((nint)CSFramework.StaticVirtualTablePointer->Destroy, this.HandleFrameworkDestroy);
 
-        this.updateHook.Enable();
-        this.destroyHook.Enable();
+        this.updateHook?.Enable();
+        this.destroyHook?.Enable();
     }
 
     /// <inheritdoc/>
@@ -308,14 +308,14 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         this.RunOnFrameworkThread(() =>
         {
             // ReSharper disable once AccessToDisposedClosure
-            this.updateHook.Disable();
+            this.updateHook?.Disable();
 
             // ReSharper disable once AccessToDisposedClosure
-            this.destroyHook.Disable();
+            this.destroyHook?.Disable();
         }).Wait();
 
-        this.updateHook.Dispose();
-        this.destroyHook.Dispose();
+        this.updateHook?.Dispose();
+        this.destroyHook?.Dispose();
 
         this.updateStopwatch.Reset();
         StatsStopwatch.Reset();
@@ -461,7 +461,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         this.hitchDetector.Stop();
 
     original:
-        return this.updateHook.OriginalDisposeSafe(thisPtr);
+        return this.updateHook?.OriginalDisposeSafe(thisPtr) ?? false;
     }
 
     private unsafe bool HandleFrameworkDestroy(CSFramework* thisPtr)
