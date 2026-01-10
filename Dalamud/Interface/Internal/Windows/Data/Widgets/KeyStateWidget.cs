@@ -1,6 +1,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility.Raii;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -29,6 +30,7 @@ internal class KeyStateWidget : IDataWindowWidget
     {
         var keyState = Service<KeyState>.Get();
 
+        // TODO: Use table instead of columns
         ImGui.Columns(4);
 
         var i = 0;
@@ -37,11 +39,10 @@ internal class KeyStateWidget : IDataWindowWidget
             var code = (int)vkCode;
             var value = keyState[code];
 
-            ImGui.PushStyleColor(ImGuiCol.Text, value ? ImGuiColors.HealerGreen : ImGuiColors.DPSRed);
-
-            ImGui.Text($"{vkCode} ({code})");
-
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, value ? ImGuiColors.HealerGreen : ImGuiColors.DPSRed))
+            {
+                ImGui.Text($"{vkCode} ({code})");
+            }
 
             i++;
             if (i % 24 == 0)

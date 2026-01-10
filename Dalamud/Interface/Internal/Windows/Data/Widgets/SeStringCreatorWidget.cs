@@ -38,6 +38,11 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 {
     private const LinkMacroPayloadType DalamudLinkType = (LinkMacroPayloadType)Payload.EmbeddedInfoType.DalamudLink - 1;
 
+    private const ImGuiTableFlags TableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg |
+                                               ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings;
+
+    private static readonly string[] TextEntryTypeOptions = ["String", "Macro", "Fixed"];
+
     private readonly Dictionary<MacroCode, string[]> expressionNames = new()
     {
         { MacroCode.SetResetTime, ["Hour", "WeekDay"] },
@@ -191,7 +196,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         if (contentWidth != this.lastContentWidth)
         {
             var originalWidth = this.lastContentWidth != 0 ? this.lastContentWidth : contentWidth;
-            this.inputsWidth = this.inputsWidth / originalWidth * contentWidth;
+            this.inputsWidth = (this.inputsWidth / originalWidth) * contentWidth;
             this.lastContentWidth = contentWidth;
         }
 
@@ -258,7 +263,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         using var tab = ImRaii.TabItem("Global Parameters"u8);
         if (!tab) return;
 
-        using var table = ImRaii.Table("GlobalParametersTable"u8, 5, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings);
+        using var table = ImRaii.Table("GlobalParametersTable"u8, 5, TableFlags);
         if (!table) return;
 
         ImGui.TableSetupColumn("Id"u8, ImGuiTableColumnFlags.WidthFixed, 40);
@@ -541,18 +546,16 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         ImGui.SameLine();
         ImGui.SetNextItemWidth(90 * ImGuiHelpers.GlobalScale);
-        using (var dropdown = ImRaii.Combo("##Language"u8, this.language.ToString() ?? "Language..."))
+        using var dropdown = ImRaii.Combo("##Language"u8, this.language.ToString() ?? "Language...");
+        if (dropdown)
         {
-            if (dropdown)
+            var values = Enum.GetValues<ClientLanguage>().OrderBy(lang => lang.ToString());
+            foreach (var value in values)
             {
-                var values = Enum.GetValues<ClientLanguage>().OrderBy((ClientLanguage lang) => lang.ToString());
-                foreach (var value in values)
+                if (ImGui.Selectable(Enum.GetName(value), value == this.language))
                 {
-                    if (ImGui.Selectable(Enum.GetName(value), value == this.language))
-                    {
-                        this.language = value;
-                        this.UpdateInputString();
-                    }
+                    this.language = value;
+                    this.UpdateInputString();
                 }
             }
         }
@@ -572,7 +575,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 try
                 {
                     var headerFile = dataManager.GameData.GetFile<ExcelHeaderFile>($"exd/{sheetName}.exh");
-                    if (headerFile.Header.Variant != ExcelVariant.Default)
+                    if (headerFile == null || headerFile.Header.Variant != ExcelVariant.Default)
                         return false;
 
                     var sheet = dataManager.Excel.GetSheet<RawRow>(Language.English, sheetName);
@@ -668,11 +671,10 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         catch (Exception e)
         {
             ImGui.Text(e.Message);
-            return;
         }
     }
 
-    private unsafe void DrawInputs()
+    private void DrawInputs()
     {
         using var child = ImRaii.Child("Inputs"u8, new Vector2(this.inputsWidth, -1));
         if (!child) return;
@@ -688,8 +690,6 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         var arrowUpButtonSize = this.GetIconButtonSize(FontAwesomeIcon.ArrowUp);
         var arrowDownButtonSize = this.GetIconButtonSize(FontAwesomeIcon.ArrowDown);
-        var trashButtonSize = this.GetIconButtonSize(FontAwesomeIcon.Trash);
-        var terminalButtonSize = this.GetIconButtonSize(FontAwesomeIcon.Terminal);
 
         var entryToRemove = -1;
         var entryToMoveUp = -1;
@@ -706,7 +706,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             ImGui.TableNextColumn(); // Type
             var type = (int)entry.Type;
             ImGui.SetNextItemWidth(-1);
-            if (ImGui.Combo($"##Type{i}", ref type, ["String", "Macro", "Fixed"]))
+            if (ImGui.Combo($"##Type{i}", ref type, TextEntryTypeOptions))
             {
                 entry.Type = (TextEntryType)type;
                 updateString |= true;
@@ -798,7 +798,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         }
     }
 
-    private unsafe void UpdateInputString(bool resetLocalParameters = true)
+    private void UpdateInputString(bool resetLocalParameters = true)
     {
         using var rssb = new RentedSeStringBuilder();
 
@@ -1022,14 +1022,14 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
             if (macroCode is MacroCode.JaNoun or MacroCode.EnNoun or MacroCode.DeNoun or MacroCode.FrNoun && exprIdx == 1)
             {
-                var language = macroCode switch
+                var macroLanguage = macroCode switch
                 {
                     MacroCode.JaNoun => ClientLanguage.Japanese,
                     MacroCode.DeNoun => ClientLanguage.German,
                     MacroCode.FrNoun => ClientLanguage.French,
                     _ => ClientLanguage.English,
                 };
-                var articleTypeEnumType = language switch
+                var articleTypeEnumType = macroLanguage switch
                 {
                     ClientLanguage.Japanese => typeof(JapaneseArticleType),
                     ClientLanguage.German => typeof(GermanArticleType),
@@ -1208,12 +1208,10 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 if (expressionType == (int)ExpressionType.LocalNumber)
                 {
                     parameters[index] = new SeStringParameter(0);
-                    return;
                 }
                 else if (expressionType == (int)ExpressionType.LocalString)
                 {
                     parameters[index] = new SeStringParameter(string.Empty);
-                    return;
                 }
             }
         }

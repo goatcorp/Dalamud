@@ -55,8 +55,8 @@ internal class NounProcessorWidget : IDataWindowWidget
     private ClientLanguage[] languages = [];
     private string[] languageNames = [];
 
-    private int selectedSheetNameIndex = 0;
-    private int selectedLanguageIndex = 0;
+    private int selectedSheetNameIndex;
+    private int selectedLanguageIndex;
     private int rowId = 1;
     private int amount = 1;
 
@@ -84,7 +84,6 @@ internal class NounProcessorWidget : IDataWindowWidget
     {
         var nounProcessor = Service<NounProcessor>.Get();
         var dataManager = Service<DataManager>.Get();
-        var clientState = Service<ClientState>.Get();
 
         var sheetType = NounSheets.ElementAt(this.selectedSheetNameIndex);
         var language = this.languages[this.selectedLanguageIndex];
