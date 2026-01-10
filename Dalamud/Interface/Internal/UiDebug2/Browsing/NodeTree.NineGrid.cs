@@ -60,10 +60,10 @@ internal unsafe partial class NineGridNodeTree : ImageNodeTree
 
             var ngCol = RgbaVector4ToUint(col with { W = 0.75f * col.W });
 
-            ImGui.GetWindowDrawList()
-                 .AddRect(partBegin, partEnd, RgbaVector4ToUint(col));
-            ImGui.GetWindowDrawList().AddRect(ngBegin1, ngEnd1, ngCol);
-            ImGui.GetWindowDrawList().AddRect(ngBegin2, ngEnd2, ngCol);
+            var windowDrawList = ImGui.GetWindowDrawList();
+            windowDrawList.AddRect(partBegin, partEnd, RgbaVector4ToUint(col));
+            windowDrawList.AddRect(ngBegin1, ngEnd1, ngCol);
+            windowDrawList.AddRect(ngBegin2, ngEnd2, ngCol);
 
             ImGui.SetCursorPos(cursorLocalPos + uv + new Vector2(0, -20));
             ImGui.TextColored(col, $"[#{partId}]\t{part.U}, {part.V}\t{part.Width}x{part.Height}");

@@ -138,7 +138,6 @@ internal unsafe partial class ResNodeTree : IDisposable
             PrintNodeList(nodeList, count, addonTree);
 
             var lineEnd = lineStart with { Y = ImGui.GetCursorScreenPos().Y - 7 };
-
             if (lineStart.Y < lineEnd.Y)
             {
                 ImGui.GetWindowDrawList().AddLine(lineStart, lineEnd, RgbaVector4ToUint(color), 1);
