@@ -76,6 +76,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lumina.Excel", "lib\Lumina.Excel\src\Lumina.Excel\Lumina.Excel.csproj", "{88FB719B-EB41-73C5-8D25-C03E0C69904F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source Generators", "Source Generators", "{50BEC23B-FFFD-427B-A95D-27E1D1958FFF}"
+	ProjectSection(SolutionItems) = preProject
+		generators\Directory.Build.props = generators\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.EnumGenerator", "generators\Dalamud.EnumGenerator\Dalamud.EnumGenerator\Dalamud.EnumGenerator.csproj", "{27AA9F87-D2AA-41D9-A559-0F1EBA38C5F8}"
 EndProject
