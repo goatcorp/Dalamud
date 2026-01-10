@@ -51,7 +51,7 @@ internal class PluginCategoryManager
     private GroupInfo[] groupList =
     [
         new(GroupKind.DevTools, () => Locs.Group_DevTools, CategoryKind.DevInstalled, CategoryKind.IconTester),
-        new(GroupKind.Installed, () => Locs.Group_Installed, CategoryKind.All, CategoryKind.IsTesting, CategoryKind.UpdateablePlugins, CategoryKind.PluginProfiles, CategoryKind.EnabledPlugins, CategoryKind.DisabledPlugins, CategoryKind.IncompatiblePlugins),
+        new(GroupKind.Installed, () => Locs.Group_Installed, CategoryKind.All, CategoryKind.IsTesting, CategoryKind.UpdateablePlugins, CategoryKind.EnabledPlugins, CategoryKind.DisabledPlugins, CategoryKind.IncompatiblePlugins, CategoryKind.PluginProfiles),
         new(GroupKind.Available, () => Locs.Group_Available, CategoryKind.All),
         new(GroupKind.Changelog, () => Locs.Group_Changelog, CategoryKind.All, CategoryKind.DalamudChangelogs, CategoryKind.PluginChangelogs)
 

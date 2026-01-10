@@ -814,8 +814,12 @@ private OperationStatus installStatus = OperationStatus.Idle;
         // Repository filter (overarching filter for repositories)
         this.RefreshRepoFilterList();
 
-        // Disabled for changelog views or profile editor (plugin collections).
-        var disableRepoFilter = this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Changelog || isProfileManager;
+        // Disabled for dev plugin list, changelog views, or profile editor (plugin collections).
+        var disableRepoFilter =
+            isProfileManager ||
+            this.categoryManager.CurrentGroupKind is
+                PluginCategoryManager.GroupKind.Changelog or
+                PluginCategoryManager.GroupKind.DevTools;
 
         using (ImRaii.Disabled(disableRepoFilter))
         {
