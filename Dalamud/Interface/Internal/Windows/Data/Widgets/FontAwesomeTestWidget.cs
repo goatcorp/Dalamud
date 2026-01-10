@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Internal;
+using Dalamud.Interface.Utility.Raii;
 
 using Lumina.Text.ReadOnly;
 
@@ -18,13 +20,15 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class FontAwesomeTestWidget : IDataWindowWidget
 {
+    private static readonly string[] First = ["(Show All)", "(Undefined)"];
+
     private List<FontAwesomeIcon>? icons;
     private List<string>? iconNames;
     private string[]? iconCategories;
     private int selectedIconCategory;
     private string iconSearchInput = string.Empty;
     private bool iconSearchChanged = true;
-    private bool useFixedWidth = false;
+    private bool useFixedWidth;
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = ["fa", "fatest", "fontawesome"];
@@ -44,11 +48,9 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
+        using var pushedStyle = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
 
-        this.iconCategories ??= new[] { "(Show All)", "(Undefined)" }
-                                .Concat(FontAwesomeHelpers.GetCategories().Skip(1))
-                                .ToArray();
+        this.iconCategories ??= First.Concat(FontAwesomeHelpers.GetCategories().Skip(1)).ToArray();
 
         if (this.iconSearchChanged)
         {
@@ -101,7 +103,8 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
             ImGuiHelpers.ScaledRelativeSameLine(50f);
             ImGui.Text($"{this.iconNames?[i]}");
             ImGuiHelpers.ScaledRelativeSameLine(280f);
-            ImGui.PushFont(this.useFixedWidth ? InterfaceManager.IconFontFixedWidth : InterfaceManager.IconFont);
+
+            using var pushedFont = ImRaii.PushFont(this.useFixedWidth ? InterfaceManager.IconFontFixedWidth : InterfaceManager.IconFont);
             ImGui.Text(this.icons[i].ToIconString());
             ImGuiHelpers.ScaledRelativeSameLine(320f);
             if (this.useFixedWidth
@@ -114,13 +117,10 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
                     Task.FromResult(
                         Service<TextureManager>.Get().CreateTextureFromSeString(
                             ReadOnlySeString.FromText(this.icons[i].ToIconString()),
-                            new() { Font = ImGui.GetFont(), FontSize = ImGui.GetFontSize(), ScreenOffset = Vector2.Zero })));
+                            new SeStringDrawParams { Font = ImGui.GetFont(), FontSize = ImGui.GetFontSize(), ScreenOffset = Vector2.Zero })));
             }
 
-            ImGui.PopFont();
             ImGuiHelpers.ScaledDummy(2f);
         }
-
-        ImGui.PopStyleVar();
     }
 }
