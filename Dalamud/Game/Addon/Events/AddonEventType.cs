@@ -62,6 +62,11 @@ public enum AddonEventType : byte
     InputBaseInputReceived = 15,
 
     /// <summary>
+    /// Fired at the very beginning of AtkInputManager.HandleInput on AtkStage.ViewportEventManager. Used in LovmMiniMap.
+    /// </summary>
+    RawInputData = 16,
+
+    /// <summary>
     /// Focus Start.
     /// </summary>
     FocusStart = 18,
@@ -107,7 +112,12 @@ public enum AddonEventType : byte
     SliderReleased = 30,
 
     /// <summary>
-    /// AtkComponentList RollOver.
+    /// AtkComponentList Button Press.
+    /// </summary>
+    ListButtonPress = 31,
+
+    /// <summary>
+    /// AtkComponentList Roll Over.
     /// </summary>
     ListItemRollOver = 33,
 
@@ -127,9 +137,29 @@ public enum AddonEventType : byte
     ListItemDoubleClick = 36,
 
     /// <summary>
+    /// AtkComponentList Highlight.
+    /// </summary>
+    ListItemHighlight = 37,
+
+    /// <summary>
     /// AtkComponentList Select.
     /// </summary>
     ListItemSelect = 38,
+
+    /// <summary>
+    /// AtkComponentList Pad Drag Drop Begin.
+    /// </summary>
+    ListItemPadDragDropBegin = 40,
+
+    /// <summary>
+    /// AtkComponentList Pad Drag Drop End.
+    /// </summary>
+    ListItemPadDragDropEnd = 41,
+
+    /// <summary>
+    /// AtkComponentList Pad Drag Drop Insert.
+    /// </summary>
+    ListItemPadDragDropInsert = 42,
 
     /// <summary>
     /// AtkComponentDragDrop Begin.
@@ -143,10 +173,20 @@ public enum AddonEventType : byte
     DragDropEnd = 51,
 
     /// <summary>
+    /// AtkComponentDragDrop Insert Attempt.
+    /// </summary>
+    DragDropInsertAttempt = 52,
+
+    /// <summary>
     /// AtkComponentDragDrop Insert.
     /// Sent when dropping an icon into a hotbar/inventory slot or similar.
     /// </summary>
     DragDropInsert = 53,
+
+    /// <summary>
+    /// AtkComponentDragDrop Can Accept Check.
+    /// </summary>
+    DragDropCanAcceptCheck = 54,
 
     /// <summary>
     /// AtkComponentDragDrop Roll Over.
@@ -165,22 +205,17 @@ public enum AddonEventType : byte
     DragDropDiscard = 57,
 
     /// <summary>
-    /// Drag Drop Unknown.
+    /// AtkComponentDragDrop Click.
+    /// Sent on MouseUp if the cursor has not moved since DragDropBegin, OR on MouseDown over a locked icon.
     /// </summary>
-    [Obsolete("Use DragDropDiscard", true)]
-    DragDropUnk54 = 54,
+    DragDropClick = 58,
 
     /// <summary>
     /// AtkComponentDragDrop Cancel.
     /// Sent on MouseUp if the cursor has not moved since DragDropBegin, OR on MouseDown over a locked icon.
     /// </summary>
+    [Obsolete("Renamed to DragDropClick")]
     DragDropCancel = 58,
-
-    /// <summary>
-    /// Drag Drop Unknown.
-    /// </summary>
-    [Obsolete("Use DragDropCancel", true)]
-    DragDropUnk55 = 55,
 
     /// <summary>
     /// AtkComponentIconText Roll Over.
@@ -218,6 +253,11 @@ public enum AddonEventType : byte
     TimerEnd = 65,
 
     /// <summary>
+    /// AtkTimer Start.
+    /// </summary>
+    TimerStart = 66,
+
+    /// <summary>
     /// AtkSimpleTween Progress.
     /// </summary>
     TweenProgress = 67,
@@ -246,6 +286,11 @@ public enum AddonEventType : byte
     /// AtkComponentWindow Change Scale.
     /// </summary>
     WindowChangeScale = 72,
+
+    /// <summary>
+    /// AtkTimeline Active Label Changed.
+    /// </summary>
+    TimelineActiveLabelChanged = 75,
 
     /// <summary>
     /// AtkTextNode Link Mouse Click.

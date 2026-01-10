@@ -39,7 +39,7 @@ internal unsafe class NodePopoutWindow : Window, IDisposable
         this.PositionCondition = ImGuiCond.Once;
         this.SizeCondition = ImGuiCond.Once;
         this.Size = new(700, 200);
-        this.SizeConstraints = new() { MinimumSize = new(100, 100) };
+        this.SizeConstraints = new() { MinimumSize = new Vector2(100, 100) };
     }
 
     private AddonTree AddonTree => this.resNodeTree.AddonTree;
@@ -51,7 +51,7 @@ internal unsafe class NodePopoutWindow : Window, IDisposable
     {
         if (this.Node != null && this.AddonTree.ContainsNode(this.Node))
         {
-            using var ch = ImRaii.Child($"{(nint)this.Node:X}popoutChild", new(-1, -1), true);
+            using var ch = ImRaii.Child($"{(nint)this.Node:X}popoutChild", Vector2.Zero, true);
             if (ch.Success)
             {
                 ResNodeTree.GetOrCreate(this.Node, this.AddonTree).Print(null, this.firstDraw);

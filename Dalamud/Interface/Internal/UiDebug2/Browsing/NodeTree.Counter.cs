@@ -1,5 +1,7 @@
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
+using Lumina.Text.ReadOnly;
+
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
 using static Dalamud.Utility.Util;
 
@@ -30,7 +32,7 @@ internal unsafe partial class CounterNodeTree : ResNodeTree
     {
         if (!isEditorOpen)
         {
-            PrintFieldValuePairs(("Text", ((AtkCounterNode*)this.Node)->NodeText.ToString()));
+            PrintFieldValuePairs(("Text", new ReadOnlySeStringSpan(((AtkCounterNode*)this.Node)->NodeText.AsSpan()).ToMacroString()));
         }
     }
 }
