@@ -13,7 +13,7 @@ public class AgentLifecycleEventListener
     /// <param name="eventType">Event type to listen for.</param>
     /// <param name="agentId">Agent id to listen for.</param>
     /// <param name="functionDelegate">Delegate to invoke.</param>
-    internal AgentLifecycleEventListener(AgentEvent eventType, uint agentId, IAgentLifecycle.AgentEventDelegate functionDelegate)
+    internal AgentLifecycleEventListener(AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate functionDelegate)
     {
         this.EventType = eventType;
         this.AgentId = agentId;
@@ -24,7 +24,7 @@ public class AgentLifecycleEventListener
     /// Gets the agentId of the agent this listener is looking for.
     /// uint.MaxValue if it wants to be called for any agent.
     /// </summary>
-    public uint AgentId { get; init; }
+    public AgentId AgentId { get; init; }
 
     /// <summary>
     /// Gets the event type this listener is looking for.

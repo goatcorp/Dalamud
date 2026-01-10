@@ -27,7 +27,7 @@ internal unsafe class AgentVirtualTable : IDisposable
 
     private readonly AgentLifecycle lifecycleService;
 
-    private readonly uint agentId;
+    private readonly AgentId agentId;
 
     // Each agent gets its own set of args that are used to mutate the original call when used in pre-calls
     private readonly AgentReceiveEventArgs receiveEventArgs = new();
@@ -58,9 +58,9 @@ internal unsafe class AgentVirtualTable : IDisposable
     /// <param name="agent">AgentInterface* for the agent to replace the table of.</param>
     /// <param name="agentId">Agent ID.</param>
     /// <param name="lifecycleService">Reference to AgentLifecycle service to callback and invoke listeners.</param>
-    internal AgentVirtualTable(AgentInterface* agent, uint agentId, AgentLifecycle lifecycleService)
+    internal AgentVirtualTable(AgentInterface* agent, AgentId agentId, AgentLifecycle lifecycleService)
     {
-        Log.Debug($"Initializing AgentVirtualTable for {(AgentId)agentId}, Address: {(nint)agent:X}");
+        Log.Debug($"Initializing AgentVirtualTable for {agentId}, Address: {(nint)agent:X}");
 
         this.agentInterface = agent;
         this.agentId = agentId;
@@ -384,10 +384,10 @@ internal unsafe class AgentVirtualTable : IDisposable
         if (loggingEnabled)
         {
             // Manually disable the really spammy log events, you can comment this out if you need to debug them.
-            if (caller is "OnAgentUpdate" || (AgentId)this.agentId is AgentId.PadMouseMode)
+            if (caller is "OnAgentUpdate" || this.agentId is AgentId.PadMouseMode)
                 return;
 
-            Log.Debug($"[{caller}]: {(AgentId)this.agentId}");
+            Log.Debug($"[{caller}]: {this.agentId}");
         }
     }
 }

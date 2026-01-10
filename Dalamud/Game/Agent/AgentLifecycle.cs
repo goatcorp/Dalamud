@@ -57,7 +57,7 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     /// Gets a list of all AgentLifecycle Event Listeners.
     /// </summary> <br/>
     /// Mapping is: EventType -> ListenerList
-    internal Dictionary<AgentEvent, Dictionary<uint, HashSet<AgentLifecycleEventListener>>> EventListeners { get; } = [];
+    internal Dictionary<AgentEvent, Dictionary<AgentId, HashSet<AgentLifecycleEventListener>>> EventListeners { get; } = [];
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -128,7 +128,7 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         if (!this.EventListeners.TryGetValue(eventType, out var agentListeners)) return;
 
         // Handle listeners for this event type that don't care which agent is triggering it
-        if (agentListeners.TryGetValue(uint.MaxValue, out var globalListeners))
+        if (agentListeners.TryGetValue((AgentId)uint.MaxValue, out var globalListeners))
         {
             foreach (var listener in globalListeners)
             {
@@ -154,7 +154,7 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, $"Exception in {blame} during {eventType} invoke, for specific agent {(AgentId)args.AgentId}.");
+                    Log.Error(e, $"Exception in {blame} during {eventType} invoke, for specific agent {args.AgentId}.");
                 }
             }
         }
@@ -208,7 +208,7 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
                 }
 
                 // AgentVirtualTable class handles creating the virtual table, and overriding each of the tracked virtual functions
-                AllocatedTables.Add(new AgentVirtualTable(agentPointer->Value, index, this));
+                AllocatedTables.Add(new AgentVirtualTable(agentPointer->Value, (AgentId)index, this));
             }
             catch (Exception e)
             {
@@ -243,7 +243,7 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     }
 
     /// <inheritdoc/>
-    public void RegisterListener(AgentEvent eventType, IEnumerable<uint> agentIds, IAgentLifecycle.AgentEventDelegate handler)
+    public void RegisterListener(AgentEvent eventType, IEnumerable<AgentId> agentIds, IAgentLifecycle.AgentEventDelegate handler)
     {
         foreach (var agentId in agentIds)
         {
@@ -252,7 +252,7 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     }
 
     /// <inheritdoc/>
-    public void RegisterListener(AgentEvent eventType, uint agentId, IAgentLifecycle.AgentEventDelegate handler)
+    public void RegisterListener(AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate handler)
     {
         var listener = new AgentLifecycleEventListener(eventType, agentId, handler);
         this.eventListeners.Add(listener);
@@ -262,11 +262,11 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     /// <inheritdoc/>
     public void RegisterListener(AgentEvent eventType, IAgentLifecycle.AgentEventDelegate handler)
     {
-        this.RegisterListener(eventType, uint.MaxValue, handler);
+        this.RegisterListener(eventType, (AgentId)uint.MaxValue, handler);
     }
 
     /// <inheritdoc/>
-    public void UnregisterListener(AgentEvent eventType, IEnumerable<uint> agentIds, IAgentLifecycle.AgentEventDelegate? handler = null)
+    public void UnregisterListener(AgentEvent eventType, IEnumerable<AgentId> agentIds, IAgentLifecycle.AgentEventDelegate? handler = null)
     {
         foreach (var agentId in agentIds)
         {
@@ -275,7 +275,7 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     }
 
     /// <inheritdoc/>
-    public void UnregisterListener(AgentEvent eventType, uint agentId, IAgentLifecycle.AgentEventDelegate? handler = null)
+    public void UnregisterListener(AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate? handler = null)
     {
         this.eventListeners.RemoveAll(entry =>
         {
@@ -291,7 +291,7 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     /// <inheritdoc/>
     public void UnregisterListener(AgentEvent eventType, IAgentLifecycle.AgentEventDelegate? handler = null)
     {
-        this.UnregisterListener(eventType, uint.MaxValue, handler);
+        this.UnregisterListener(eventType, (AgentId)uint.MaxValue, handler);
     }
 
     /// <inheritdoc/>

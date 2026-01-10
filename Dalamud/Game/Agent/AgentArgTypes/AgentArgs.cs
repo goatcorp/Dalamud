@@ -22,7 +22,7 @@ public unsafe class AgentArgs
     /// <summary>
     /// Gets the agent id.
     /// </summary>
-    public uint AgentId { get; internal set; }
+    public AgentId AgentId { get; internal set; }
 
     /// <summary>
     /// Gets the type of these args.

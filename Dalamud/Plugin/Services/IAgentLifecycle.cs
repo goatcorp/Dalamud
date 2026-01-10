@@ -24,7 +24,7 @@ public interface IAgentLifecycle : IDalamudService
     /// <param name="eventType">Event type to trigger on.</param>
     /// <param name="agentIds">Agent IDs that will trigger the handler to be invoked.</param>
     /// <param name="handler">The handler to invoke.</param>
-    void RegisterListener(AgentEvent eventType, IEnumerable<uint> agentIds, AgentEventDelegate handler);
+    void RegisterListener(AgentEvent eventType, IEnumerable<AgentId> agentIds, AgentEventDelegate handler);
 
     /// <summary>
     /// Register a listener that will trigger on the specified event only for the specified agent.
@@ -32,7 +32,7 @@ public interface IAgentLifecycle : IDalamudService
     /// <param name="eventType">Event type to trigger on.</param>
     /// <param name="agentId">The agent ID that will trigger the handler to be invoked.</param>
     /// <param name="handler">The handler to invoke.</param>
-    void RegisterListener(AgentEvent eventType, uint agentId, AgentEventDelegate handler);
+    void RegisterListener(AgentEvent eventType, AgentId agentId, AgentEventDelegate handler);
 
     /// <summary>
     /// Register a listener that will trigger on the specified event for any agent.
@@ -50,7 +50,7 @@ public interface IAgentLifecycle : IDalamudService
     /// <param name="eventType">Event type to deregister.</param>
     /// <param name="agentIds">Agent IDs to deregister.</param>
     /// <param name="handler">Optional specific handler to remove.</param>
-    void UnregisterListener(AgentEvent eventType, IEnumerable<uint> agentIds, [Optional] AgentEventDelegate handler);
+    void UnregisterListener(AgentEvent eventType, IEnumerable<AgentId> agentIds, [Optional] AgentEventDelegate handler);
 
     /// <summary>
     /// Unregister all listeners for the specified event type and agent ID.
@@ -61,7 +61,7 @@ public interface IAgentLifecycle : IDalamudService
     /// <param name="eventType">Event type to deregister.</param>
     /// <param name="agentId">Agent id to deregister.</param>
     /// <param name="handler">Optional specific handler to remove.</param>
-    void UnregisterListener(AgentEvent eventType, uint agentId, [Optional] AgentEventDelegate handler);
+    void UnregisterListener(AgentEvent eventType, AgentId agentId, [Optional] AgentEventDelegate handler);
 
     /// <summary>
     /// Unregister an event type handler.<br/>This will only remove a handler that is added via <see cref="RegisterListener(AgentEvent, AgentEventDelegate)"/>.
