@@ -3,7 +3,6 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
-using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Data;
 

@@ -15,6 +15,7 @@ using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -28,7 +29,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
     [
         nameof(FontScaleMode.Default),
         nameof(FontScaleMode.SkipHandling),
-        nameof(FontScaleMode.UndoGlobalScale)
+        nameof(FontScaleMode.UndoGlobalScale),
     ];
 
     private ImVectorWrapper<byte> testStringBuffer;
@@ -339,7 +340,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
 
         return;
 
-        void TestSingle(ImFontPtr fontPtr, IFontHandle handle)
+        static void TestSingle(ImFontPtr fontPtr, IFontHandle handle)
         {
             var dim = ImGui.CalcTextSizeA(fontPtr, fontPtr.FontSize, float.MaxValue, 0f, "Test string"u8, out _);
             Log.Information($"{nameof(GamePrebakedFontsTestWidget)}: {handle} => {dim}");

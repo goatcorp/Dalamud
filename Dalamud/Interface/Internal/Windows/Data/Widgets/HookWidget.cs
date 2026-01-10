@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +8,9 @@ using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using Serilog;
+
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -16,8 +16,9 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class ServicesWidget : IDataWindowWidget
 {
-    private readonly Dictionary<ServiceDependencyNode, Vector4> nodeRects = new();
+    private readonly Dictionary<ServiceDependencyNode, Vector4> nodeRects = [];
     private readonly HashSet<Type> selectedNodes = [];
+    private readonly HashSet<Type> tempRelatedNodes = [];
 
     private bool includeUnloadDependencies;
     private List<List<ServiceDependencyNode>>? dependencyNodes;
@@ -363,7 +364,7 @@ internal class ServicesWidget : IDataWindowWidget
             foreach (var n in CreateTree(includeUnloadDependencies))
             {
                 while (res.Count <= n.Level)
-                    res.Add(new());
+                    res.Add([]);
                 res[n.Level].Add(n);
             }
 

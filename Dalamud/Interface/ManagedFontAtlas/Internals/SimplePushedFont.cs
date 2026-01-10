@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Utility;
 
 using Microsoft.Extensions.ObjectPool;
 

@@ -1,7 +1,10 @@
 using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using Lumina.Text.ReadOnly;
 
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
 using static Dalamud.Utility.Util;
@@ -89,14 +92,14 @@ internal unsafe class ComponentNodeTree : ResNodeTree
         {
             case TextInput:
                 var textInputComponent = (AtkComponentTextInput*)this.Component;
-                ImGui.Text($"InputBase Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.EvaluatedString.StringPtr))}");
-                ImGui.Text($"InputBase Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.RawString.StringPtr))}");
+                ImGui.Text($"InputBase Text1 (Lumina): {new ReadOnlySeStringSpan(textInputComponent->AtkComponentInputBase.EvaluatedString.AsSpan()).ToMacroString()}");
+                ImGui.Text($"InputBase Text2 (Lumina): {new ReadOnlySeStringSpan(textInputComponent->AtkComponentInputBase.RawString.AsSpan()).ToMacroString()}");
                 // TODO: Reenable when unknowns have been unprivated / named
-                // ImGui.Text($"Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText01.StringPtr))}");
-                // ImGui.Text($"Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText02.StringPtr))}");
-                ImGui.Text($"AvailableLines: {Marshal.PtrToStringAnsi(new(textInputComponent->AvailableLines.StringPtr))}");
-                ImGui.Text($"HighlightedAutoTranslateOptionColorPrefix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorPrefix.StringPtr))}");
-                ImGui.Text($"HighlightedAutoTranslateOptionColorSuffix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorSuffix.StringPtr))}");
+                // ImGui.Text($"Text1: {new ReadOnlySeStringSpan(textInputComponent->UnkText01.AsSpan()).ToMacroString()}");
+                // ImGui.Text($"Text2: {new ReadOnlySeStringSpan(textInputComponent->UnkText02.AsSpan()).ToMacroString()}");
+                ImGui.Text($"AvailableLines: {new ReadOnlySeStringSpan(textInputComponent->AvailableLines.AsSpan()).ToMacroString()}");
+                ImGui.Text($"HighlightedAutoTranslateOptionColorPrefix: {new ReadOnlySeStringSpan(textInputComponent->HighlightedAutoTranslateOptionColorPrefix.AsSpan()).ToMacroString()}");
+                ImGui.Text($"HighlightedAutoTranslateOptionColorSuffix: {new ReadOnlySeStringSpan(textInputComponent->HighlightedAutoTranslateOptionColorSuffix.AsSpan()).ToMacroString()}");
                 break;
             case List:
             case TreeList:

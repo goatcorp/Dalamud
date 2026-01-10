@@ -318,7 +318,7 @@ internal class ImGuiWidget : IDataWindowWidget
             "TextureWrap from DalamudAssets",
             "TextureWrap from DalamudAssets(Async)",
             "TextureWrap from GamePath",
-            "TextureWrap from FilePath"
+            "TextureWrap from FilePath",
         ];
 
         public static readonly string[] AssetSources =
@@ -333,7 +333,7 @@ internal class ImGuiWidget : IDataWindowWidget
             "Random",
             "Increasing",
             "Increasing & Auto Dismiss",
-            "Indeterminate"
+            "Indeterminate",
         ];
 
         public static readonly string[] TypeTitles =
@@ -342,7 +342,7 @@ internal class ImGuiWidget : IDataWindowWidget
             nameof(NotificationType.Success),
             nameof(NotificationType.Warning),
             nameof(NotificationType.Error),
-            nameof(NotificationType.Info)
+            nameof(NotificationType.Info),
         ];
 
         public static readonly string[] InitialDurationTitles =
@@ -350,7 +350,7 @@ internal class ImGuiWidget : IDataWindowWidget
             "Infinite",
             "1 seconds",
             "3 seconds (default)",
-            "10 seconds"
+            "10 seconds",
         ];
 
         public static readonly string[] HoverExtendDurationTitles =
@@ -358,7 +358,7 @@ internal class ImGuiWidget : IDataWindowWidget
             "Disable",
             "1 seconds",
             "3 seconds (default)",
-            "10 seconds"
+            "10 seconds",
         ];
 
         public static readonly TimeSpan[] Durations =
@@ -366,7 +366,7 @@ internal class ImGuiWidget : IDataWindowWidget
             TimeSpan.Zero,
             TimeSpan.FromSeconds(1),
             NotificationConstants.DefaultDuration,
-            TimeSpan.FromSeconds(10)
+            TimeSpan.FromSeconds(10),
         ];
 
         public bool ManualContent;

@@ -32,7 +32,7 @@ namespace Dalamud.Game.Gui;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 {
-    private static readonly ModuleLog Log = new("GameGui");
+    private static readonly ModuleLog Log = ModuleLog.Create<GameGui>();
 
     private readonly GameGuiAddressResolver address;
 

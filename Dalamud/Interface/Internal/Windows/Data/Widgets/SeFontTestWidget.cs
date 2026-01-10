@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text;

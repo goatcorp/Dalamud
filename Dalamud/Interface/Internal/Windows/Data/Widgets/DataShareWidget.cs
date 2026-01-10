@@ -10,6 +10,7 @@ using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Ipc.Internal;
+
 using Newtonsoft.Json;
 
 using Formatting = Newtonsoft.Json.Formatting;

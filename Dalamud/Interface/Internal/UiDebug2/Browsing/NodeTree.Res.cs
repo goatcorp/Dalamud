@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using static Dalamud.Bindings.ImGui.ImGuiCol;
@@ -138,7 +138,6 @@ internal unsafe partial class ResNodeTree : IDisposable
             PrintNodeList(nodeList, count, addonTree);
 
             var lineEnd = lineStart with { Y = ImGui.GetCursorScreenPos().Y - 7 };
-
             if (lineStart.Y < lineEnd.Y)
             {
                 ImGui.GetWindowDrawList().AddLine(lineStart, lineEnd, RgbaVector4ToUint(color), 1);

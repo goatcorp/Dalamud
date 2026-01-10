@@ -4,6 +4,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using static System.MathF;
@@ -61,10 +62,11 @@ public unsafe struct NodeBounds
             return;
         }
 
+        var backgroundDrawList = ImGui.GetBackgroundDrawList();
         if (this.Points.Count == 1)
         {
-            ImGui.GetBackgroundDrawList().AddCircle(this.Points[0], 10, RgbaVector4ToUint(col with { W = col.W / 2 }), 12, thickness);
-            ImGui.GetBackgroundDrawList().AddCircle(this.Points[0], thickness, RgbaVector4ToUint(col), 12, thickness + 1);
+            backgroundDrawList.AddCircle(this.Points[0], 10, RgbaVector4ToUint(col with { W = col.W / 2 }), 12, thickness);
+            backgroundDrawList.AddCircle(this.Points[0], thickness, RgbaVector4ToUint(col), 12, thickness + 1);
         }
         else
         {
@@ -74,8 +76,7 @@ public unsafe struct NodeBounds
                 path.Add(p);
             }
 
-            ImGui.GetBackgroundDrawList()
-                 .AddPolyline(ref path[0], path.Length, RgbaVector4ToUint(col), ImDrawFlags.Closed, thickness);
+            backgroundDrawList.AddPolyline(ref path[0], path.Length, RgbaVector4ToUint(col), ImDrawFlags.Closed, thickness);
 
             path.Dispose();
         }
@@ -93,11 +94,11 @@ public unsafe struct NodeBounds
             return;
         }
 
+        var backgroundDrawList = ImGui.GetBackgroundDrawList();
         if (this.Points.Count == 1)
         {
-            ImGui.GetBackgroundDrawList()
-                 .AddCircleFilled(this.Points[0], 10, RgbaVector4ToUint(col with { W = col.W / 2 }), 12);
-            ImGui.GetBackgroundDrawList().AddCircle(this.Points[0], 10, RgbaVector4ToUint(col), 12, thickness);
+            backgroundDrawList.AddCircleFilled(this.Points[0], 10, RgbaVector4ToUint(col with { W = col.W / 2 }), 12);
+            backgroundDrawList.AddCircle(this.Points[0], 10, RgbaVector4ToUint(col), 12, thickness);
         }
         else
         {
@@ -107,10 +108,8 @@ public unsafe struct NodeBounds
                 path.Add(p);
             }
 
-            ImGui.GetBackgroundDrawList()
-                 .AddConvexPolyFilled(ref path[0], path.Length, RgbaVector4ToUint(col with { W = col.W / 2 }));
-            ImGui.GetBackgroundDrawList()
-                 .AddPolyline(ref path[0], path.Length, RgbaVector4ToUint(col), ImDrawFlags.Closed, thickness);
+            backgroundDrawList.AddConvexPolyFilled(ref path[0], path.Length, RgbaVector4ToUint(col with { W = col.W / 2 }));
+            backgroundDrawList.AddPolyline(ref path[0], path.Length, RgbaVector4ToUint(col), ImDrawFlags.Closed, thickness);
 
             path.Dispose();
         }

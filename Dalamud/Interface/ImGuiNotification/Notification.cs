@@ -1,9 +1,5 @@
-using System.Threading.Tasks;
-
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Textures;
-using Dalamud.Interface.Textures.TextureWraps;
-using Serilog;
 
 namespace Dalamud.Interface.ImGuiNotification;
 /// <summary>Represents a blueprint for a notification.</summary>

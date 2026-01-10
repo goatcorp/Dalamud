@@ -9,6 +9,7 @@ using Dalamud.Interface.Textures.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 

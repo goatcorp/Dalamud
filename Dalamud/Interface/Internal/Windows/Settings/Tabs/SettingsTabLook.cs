@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Text;
 
 using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
@@ -65,7 +66,14 @@ internal sealed class SettingsTabLook : SettingsTab
             {
                 try
                 {
-                    Service<InterfaceManager>.GetNullable()?.SetImmersiveMode(b);
+                    if (b)
+                    {
+                        Service<InterfaceManager>.GetNullable()?.SetImmersiveModeFromSystemTheme();
+                    }
+                    else
+                    {
+                        Service<InterfaceManager>.GetNullable()?.SetImmersiveMode(false);
+                    }
                 }
                 catch (Exception ex)
                 {

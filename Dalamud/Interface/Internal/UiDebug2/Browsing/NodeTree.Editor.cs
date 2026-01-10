@@ -5,7 +5,10 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
 using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using Lumina.Text.ReadOnly;
 
 using static Dalamud.Bindings.ImGui.ImGuiColorEditFlags;
 using static Dalamud.Bindings.ImGui.ImGuiInputTextFlags;
@@ -27,10 +30,10 @@ internal unsafe partial class ResNodeTree
     private protected void DrawNodeEditorTable()
     {
         using var tbl = ImRaii.Table($"###Editor{(nint)this.Node}", 2, SizingStretchProp | NoHostExtendX);
-        if (tbl.Success)
-        {
-            this.DrawEditorRows();
-        }
+        if (!tbl.Success)
+            return;
+
+        this.DrawEditorRows();
     }
 
     /// <summary>
@@ -59,7 +62,7 @@ internal unsafe partial class ResNodeTree
 
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
-        if (ImGui.DragFloat2($"##{(nint)this.Node:X}position", ref pos, 1, default, default, "%.0f"))
+        if (ImGui.DragFloat2($"##{(nint)this.Node:X}position", ref pos, 1, 0, 0, "%.0f"))
         {
             this.Node->X = pos.X;
             this.Node->Y = pos.Y;
@@ -73,7 +76,7 @@ internal unsafe partial class ResNodeTree
         ImGui.Text("Size:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
-        if (ImGui.DragFloat2($"##{(nint)this.Node:X}size", ref size, 1, 0, default, "%.0f"))
+        if (ImGui.DragFloat2($"##{(nint)this.Node:X}size", ref size, 1, 0, 0, "%.0f"))
         {
             this.Node->Width = (ushort)Math.Max(size.X, 0);
             this.Node->Height = (ushort)Math.Max(size.Y, 0);
@@ -101,7 +104,7 @@ internal unsafe partial class ResNodeTree
         ImGui.Text("Origin:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
-        if (ImGui.DragFloat2($"##{(nint)this.Node:X}origin", ref origin, 1, default, default, "%.0f"))
+        if (ImGui.DragFloat2($"##{(nint)this.Node:X}origin", ref origin, 1, 0, 0, "%.0f"))
         {
             this.Node->OriginX = origin.X;
             this.Node->OriginY = origin.Y;
@@ -120,7 +123,7 @@ internal unsafe partial class ResNodeTree
             angle -= 360;
         }
 
-        if (ImGui.DragFloat($"##{(nint)this.Node:X}rotation", ref angle, 0.05f, default, default, "%.2f°"))
+        if (ImGui.DragFloat($"##{(nint)this.Node:X}rotation", ref angle, 0.05f, 0, 0, "%.2f°"))
         {
             this.Node->Rotation = (float)(angle / (180 / Math.PI));
             this.Node->DrawFlags |= 0xD;
@@ -168,7 +171,6 @@ internal unsafe partial class ResNodeTree
         ImGui.Text("Add:"u8);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(124);
-
         if (ImGui.DragFloat3($"##{(nint)this.Node:X}addRGB", ref add, 1, -255, 255, "%.0f"))
         {
             this.Node->AddRed = (short)add.X;
@@ -199,7 +201,7 @@ internal unsafe partial class CounterNodeTree
     {
         base.DrawEditorRows();
 
-        var str = this.CntNode->NodeText.ToString();
+        var str = new ReadOnlySeStringSpan(this.CntNode->NodeText.AsSpan()).ToMacroString();
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
@@ -299,7 +301,7 @@ internal unsafe partial class TextNodeTree
     {
         base.DrawEditorRows();
 
-        var text = this.TxtNode->NodeText.ToString();
+        var text = new ReadOnlySeStringSpan(this.TxtNode->NodeText.AsSpan()).ToMacroString();
         var fontIndex = FontList.IndexOf(this.TxtNode->FontType);
         int fontSize = this.TxtNode->FontSize;
         var alignment = this.TxtNode->AlignmentType;

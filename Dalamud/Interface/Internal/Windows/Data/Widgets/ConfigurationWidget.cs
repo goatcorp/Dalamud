@@ -1,4 +1,4 @@
-﻿using Dalamud.Configuration.Internal;
+using Dalamud.Configuration.Internal;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

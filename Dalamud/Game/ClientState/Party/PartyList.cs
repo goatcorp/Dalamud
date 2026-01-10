@@ -47,7 +47,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     public unsafe nint GroupManagerAddress => (nint)CSGroupManager.Instance();
 
     /// <inheritdoc/>
-    public nint GroupListAddress => (nint)Unsafe.AsPointer(ref GroupManagerStruct->MainGroup.PartyMembers[0]);
+    public nint GroupListAddress => (nint)Unsafe.AsPointer(ref this.GroupManagerStruct->MainGroup.PartyMembers[0]);
 
     /// <inheritdoc/>
     public nint AllianceListAddress => (nint)Unsafe.AsPointer(ref this.GroupManagerStruct->MainGroup.AllianceMembers[0]);

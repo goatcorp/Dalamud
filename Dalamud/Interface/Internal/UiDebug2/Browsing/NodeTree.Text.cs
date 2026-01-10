@@ -2,14 +2,14 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.ImGuiSeStringRenderer;
-using Dalamud.Interface.Internal.UiDebug2.Utility;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using Lumina.Text.ReadOnly;
 
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
@@ -64,7 +64,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
         }
         catch
         {
-            ImGui.Text(Marshal.PtrToStringAnsi(new(this.NodeText.StringPtr)) ?? string.Empty);
+            ImGui.Text(new ReadOnlySeStringSpan(this.NodeText.AsSpan()).ToMacroString());
         }
 
         PrintFieldValuePairs(
@@ -82,36 +82,24 @@ internal unsafe partial class TextNodeTree : ResNodeTree
     private void PrintPayloads()
     {
         using var tree = ImRaii.TreeNode($"Text Payloads##{(nint)this.Node:X}");
-
         if (tree.Success)
         {
-            var utf8String = this.NodeText;
-            var seStringBytes = new byte[utf8String.BufUsed];
-            for (var i = 0L; i < utf8String.BufUsed; i++)
+            var idx = 0;
+            foreach (var payload in new ReadOnlySeString(this.NodeText.AsSpan()))
             {
-                seStringBytes[i] = utf8String.StringPtr.Value[i];
-            }
-
-            var seString = SeString.Parse(seStringBytes);
-            for (var i = 0; i < seString.Payloads.Count; i++)
-            {
-                var payload = seString.Payloads[i];
-                ImGui.Text($"[{i}]");
+                ImGui.Text($"[{idx}]");
                 ImGui.SameLine();
                 switch (payload.Type)
                 {
-                    case PayloadType.RawText when payload is TextPayload tp:
-                    {
-                        Gui.PrintFieldValuePair("Raw Text", tp.Text ?? string.Empty);
+                    case ReadOnlySePayloadType.Text:
+                        PrintFieldValuePair("Raw Text", payload.ToString());
                         break;
-                    }
-
                     default:
-                    {
                         ImGui.Text(payload.ToString());
                         break;
-                    }
                 }
+
+                idx++;
             }
         }
     }
