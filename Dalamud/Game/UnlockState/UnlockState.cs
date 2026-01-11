@@ -377,6 +377,15 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
+    public bool IsQuestCompleted(Quest row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return QuestManager.IsQuestComplete(row.RowId);
+    }
+
+    /// <inheritdoc/>
     public bool IsRecipeUnlocked(Recipe row)
     {
         return this.recipeData.IsRecipeUnlocked(row);
@@ -536,6 +545,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<PublicContentSheet>(out var publicContentRow))
             return this.IsPublicContentUnlocked(publicContentRow);
 
+        if (rowRef.TryGetValue<Quest>(out var questRow))
+            return this.IsQuestCompleted(questRow);
+
         if (rowRef.TryGetValue<Recipe>(out var recipeRow))
             return this.IsRecipeUnlocked(recipeRow);
 
@@ -629,6 +641,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.UpdateUnlocksForSheet<Ornament>();
         this.UpdateUnlocksForSheet<Perform>();
         this.UpdateUnlocksForSheet<PublicContentSheet>();
+        this.UpdateUnlocksForSheet<Quest>();
         this.UpdateUnlocksForSheet<Recipe>();
         this.UpdateUnlocksForSheet<SecretRecipeBook>();
         this.UpdateUnlocksForSheet<Trait>();
@@ -821,6 +834,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsPublicContentUnlocked(PublicContentSheet row) => this.unlockStateService.IsPublicContentUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsQuestCompleted(Quest row) => this.unlockStateService.IsQuestCompleted(row);
 
     /// <inheritdoc/>
     public bool IsRecipeUnlocked(Recipe row) => this.unlockStateService.IsRecipeUnlocked(row);

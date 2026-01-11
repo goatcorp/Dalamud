@@ -269,6 +269,13 @@ public interface IUnlockState : IDalamudService
     bool IsPublicContentUnlocked(PublicContent row);
 
     /// <summary>
+    /// Determines whether the specified Quest is completed.
+    /// </summary>
+    /// <param name="row">The Quest row to check.</param>
+    /// <returns><see langword="true"/> if completed; otherwise, <see langword="false"/>.</returns>
+    bool IsQuestCompleted(Quest row);
+
+    /// <summary>
     /// Determines whether the specified Recipe is unlocked.
     /// </summary>
     /// <param name="row">The Recipe row to check.</param>
