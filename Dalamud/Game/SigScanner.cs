@@ -287,21 +287,25 @@ public class SigScanner : IDisposable, ISigScanner
         }
 
         var scanRet = Scan(this.TextSectionBase, this.TextSectionSize, signature);
-
-        if (this.IsCopy)
-            scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
-
+        
         var insnByte = Marshal.ReadByte(scanRet);
+
+        var baseAddress = this.IsCopy ? this.moduleCopyOffset + this.Module.BaseAddress : this.Module.BaseAddress;
 
         if (insnByte == 0xE8 || insnByte == 0xE9)
         {
             scanRet = ReadJmpCallSig(scanRet);
-            var rel = scanRet - this.Module.BaseAddress;
+            var rel = scanRet - baseAddress;
             if (rel < 0 || rel >= this.TextSectionSize)
             {
                 throw new KeyNotFoundException(
                     $"Signature \"{signature}\" resolved to 0x{rel:X} which is outside .text section. Possible signature conflicts?");
             }
+        }
+
+        if (this.IsCopy)
+        {
+            scanRet = scanRet - this.moduleCopyOffset;
         }
 
         // If this is below the module, there's bound to be a problem with the sig/resolution... Let's not save it
