@@ -311,12 +311,6 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
-    public bool IsMcGuffinUnlocked(McGuffin row)
-    {
-        return PlayerState.Instance()->IsMcGuffinUnlocked(row.RowId);
-    }
-
-    /// <inheritdoc/>
     public bool IsMJILandmarkUnlocked(MJILandmark row)
     {
         return this.IsUnlockLinkUnlocked(row.UnlockLink);
@@ -326,6 +320,15 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     public bool IsMKDLoreUnlocked(MKDLore row)
     {
         return this.IsUnlockLinkUnlocked(row.UnlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsMcGuffinUnlocked(McGuffin row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return PlayerState.Instance()->IsMcGuffinUnlocked(row.RowId);
     }
 
     /// <inheritdoc/>
@@ -388,6 +391,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     /// <inheritdoc/>
     public bool IsRecipeUnlocked(Recipe row)
     {
+        if (!this.IsLoaded)
+            return false;
+
         return this.recipeData.IsRecipeUnlocked(row);
     }
 
@@ -809,13 +815,13 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
     public bool IsItemUnlocked(Item row) => this.unlockStateService.IsItemUnlocked(row);
 
     /// <inheritdoc/>
-    public bool IsMcGuffinUnlocked(McGuffin row) => this.unlockStateService.IsMcGuffinUnlocked(row);
-
-    /// <inheritdoc/>
     public bool IsMJILandmarkUnlocked(MJILandmark row) => this.unlockStateService.IsMJILandmarkUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsMKDLoreUnlocked(MKDLore row) => this.unlockStateService.IsMKDLoreUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsMcGuffinUnlocked(McGuffin row) => this.unlockStateService.IsMcGuffinUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsMountUnlocked(Mount row) => this.unlockStateService.IsMountUnlocked(row);
