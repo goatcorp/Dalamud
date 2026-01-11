@@ -10,7 +10,6 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Interface for determining unlock state of various content in the game.
 /// </summary>
-[Experimental("Dalamud001")]
 public interface IUnlockState : IDalamudService
 {
     /// <summary>
