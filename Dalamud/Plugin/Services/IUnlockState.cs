@@ -206,6 +206,13 @@ public interface IUnlockState : IDalamudService
     bool IsItemUnlocked(Item row);
 
     /// <summary>
+    /// Determines whether the specified Leve is completed.
+    /// </summary>
+    /// <param name="row">The Leve row to check.</param>
+    /// <returns><see langword="true"/> if completed; otherwise, <see langword="false"/>.</returns>
+    bool IsLeveCompleted(Leve row);
+
+    /// <summary>
     /// Determines whether the specified McGuffin is unlocked.
     /// </summary>
     /// <param name="row">The McGuffin row to check.</param>

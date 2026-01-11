@@ -311,6 +311,15 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
+    public bool IsLeveCompleted(Leve row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return QuestManager.Instance()->IsLevequestComplete((ushort)row.RowId);
+    }
+
+    /// <inheritdoc/>
     public bool IsMJILandmarkUnlocked(MJILandmark row)
     {
         return this.IsUnlockLinkUnlocked(row.UnlockLink);
@@ -524,6 +533,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<Item>(out var itemRow))
             return this.IsItemUnlocked(itemRow);
 
+        if (rowRef.TryGetValue<Leve>(out var leveRow))
+            return this.IsLeveCompleted(leveRow);
+
         if (rowRef.TryGetValue<MJILandmark>(out var mjiLandmarkRow))
             return this.IsMJILandmarkUnlocked(mjiLandmarkRow);
 
@@ -656,6 +668,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         // Not implemented:
         // - DescriptionPage: quite complex
         // - QuestAcceptAdditionCondition: ignored
+        // - Leve: AgentUpdateFlag.UnlocksUpdate is not set and the completed status can be unset again!
 
         // For some other day:
         // - FishingSpot
@@ -813,6 +826,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsItemUnlocked(Item row) => this.unlockStateService.IsItemUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsLeveCompleted(Leve row) => this.unlockStateService.IsLeveCompleted(row);
 
     /// <inheritdoc/>
     public bool IsMJILandmarkUnlocked(MJILandmark row) => this.unlockStateService.IsMJILandmarkUnlocked(row);
