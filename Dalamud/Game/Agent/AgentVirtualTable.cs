@@ -21,7 +21,7 @@ internal unsafe class AgentVirtualTable : IDisposable
     // Copying extra entries is not problematic, and is considered safe.
     private const int VirtualTableEntryCount = 60;
 
-    private const bool EnableLogging = true;
+    private const bool EnableLogging = false;
 
     private static readonly ModuleLog Log = new("AgentVT");
 
@@ -60,8 +60,6 @@ internal unsafe class AgentVirtualTable : IDisposable
     /// <param name="lifecycleService">Reference to AgentLifecycle service to callback and invoke listeners.</param>
     internal AgentVirtualTable(AgentInterface* agent, AgentId agentId, AgentLifecycle lifecycleService)
     {
-        Log.Debug($"Initializing AgentVirtualTable for {agentId}, Address: {(nint)agent:X}");
-
         this.agentInterface = agent;
         this.agentId = agentId;
         this.lifecycleService = lifecycleService;
