@@ -77,6 +77,11 @@ public interface IDtrBarEntry : IReadOnlyDtrBarEntry
     public new bool Shown { get; set; }
 
     /// <summary>
+    /// Gets or sets a value specifying the requested minimum width to make this entry.
+    /// </summary>
+    public new ushort MinimumWidth { get; set; }
+
+    /// <summary>
     /// Gets or sets an action to be invoked when the user clicks on the dtr entry.
     /// </summary>
     public new Action<DtrInteractionEvent>? OnClick { get; set; }
@@ -127,6 +132,25 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
 
     /// <inheritdoc cref="IDtrBarEntry.Tooltip" />
     public SeString? Tooltip { get; set; }
+
+    /// <inheritdoc/>
+    public ushort MinimumWidth
+    {
+        get;
+        set
+        {
+            field = value;
+            if (this.TextNode is not null)
+            {
+                if (this.TextNode->GetWidth() < value)
+                {
+                    this.TextNode->SetWidth(value);
+                }
+            }
+
+            this.Dirty = true;
+        }
+    }
 
     /// <inheritdoc/>
     public Action<DtrInteractionEvent>? OnClick { get; set; }
