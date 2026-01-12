@@ -70,29 +70,32 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     }
 
     /// <summary>
+    /// Resolves a virtual table address to the original virtual table address.
+    /// </summary>
+    /// <param name="tableAddress">The modified address to resolve.</param>
+    /// <returns>The original address.</returns>
+    internal static AgentInterface.AgentInterfaceVirtualTable* GetOriginalVirtualTable(AgentInterface.AgentInterfaceVirtualTable* tableAddress)
+    {
+        var matchedTable = AllocatedTables.FirstOrDefault(table => table.ModifiedVirtualTable == tableAddress);
+        if (matchedTable == null) return null;
+
+        return matchedTable.OriginalVirtualTable;
+    }
+
+    /// <summary>
     /// Register a listener for the target event and agent.
     /// </summary>
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AgentLifecycleEventListener listener)
     {
-        this.framework.RunOnTick(() =>
+        if (this.isInvokingListeners)
         {
-            if (!this.EventListeners.ContainsKey(listener.EventType))
-            {
-                if (!this.EventListeners.TryAdd(listener.EventType, []))
-                    return;
-            }
-
-            // Note: uint.MaxValue is a valid agent id, as that will trigger on any agent for this event type
-            if (!this.EventListeners[listener.EventType].ContainsKey(listener.AgentId))
-            {
-                if (!this.EventListeners[listener.EventType].TryAdd(listener.AgentId, []))
-                    return;
-            }
-
-            this.EventListeners[listener.EventType][listener.AgentId].Add(listener);
-        },
-        delayTicks: this.isInvokingListeners ? 1 : 0);
+            this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
+        }
+        else
+        {
+            this.framework.RunOnFrameworkThread(() => this.RegisterListenerMethod(listener));
+        }
     }
 
     /// <summary>
@@ -101,17 +104,14 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AgentLifecycleEventListener listener)
     {
-        this.framework.RunOnTick(() =>
+        if (this.isInvokingListeners)
         {
-            if (this.EventListeners.TryGetValue(listener.EventType, out var agentListeners))
-            {
-                if (agentListeners.TryGetValue(listener.AgentId, out var agentListener))
-                {
-                    agentListener.Remove(listener);
-                }
-            }
-        },
-        delayTicks: this.isInvokingListeners ? 1 : 0);
+            this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
+        }
+        else
+        {
+            this.framework.RunOnFrameworkThread(() => this.UnregisterListenerMethod(listener));
+        }
     }
 
     /// <summary>
@@ -162,19 +162,6 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         this.isInvokingListeners = false;
     }
 
-    /// <summary>
-    /// Resolves a virtual table address to the original virtual table address.
-    /// </summary>
-    /// <param name="tableAddress">The modified address to resolve.</param>
-    /// <returns>The original address.</returns>
-    internal AgentInterface.AgentInterfaceVirtualTable* GetOriginalVirtualTable(AgentInterface.AgentInterfaceVirtualTable* tableAddress)
-    {
-        var matchedTable = AllocatedTables.FirstOrDefault(table => table.ModifiedVirtualTable == tableAddress);
-        if (matchedTable == null) return null;
-
-        return matchedTable.OriginalVirtualTable;
-    }
-
     private void OnAgentModuleInitialize(AgentModule* thisPtr, UIModule* uiModule)
     {
         this.onInitializeAgentsHook!.Original(thisPtr, uiModule);
@@ -190,6 +177,35 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         catch (Exception e)
         {
             Log.Error(e, "Exception in AgentLifecycle during AgentModule Ctor.");
+        }
+    }
+
+    private void RegisterListenerMethod(AgentLifecycleEventListener listener)
+    {
+        if (!this.EventListeners.ContainsKey(listener.EventType))
+        {
+            if (!this.EventListeners.TryAdd(listener.EventType, []))
+                return;
+        }
+
+        // Note: uint.MaxValue is a valid agent id, as that will trigger on any agent for this event type
+        if (!this.EventListeners[listener.EventType].ContainsKey(listener.AgentId))
+        {
+            if (!this.EventListeners[listener.EventType].TryAdd(listener.AgentId, []))
+                return;
+        }
+
+        this.EventListeners[listener.EventType][listener.AgentId].Add(listener);
+    }
+
+    private void UnregisterListenerMethod(AgentLifecycleEventListener listener)
+    {
+        if (this.EventListeners.TryGetValue(listener.EventType, out var agentListeners))
+        {
+            if (agentListeners.TryGetValue(listener.AgentId, out var agentListener))
+            {
+                agentListener.Remove(listener);
+            }
         }
     }
 
@@ -311,5 +327,5 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
 
     /// <inheritdoc/>
     public unsafe nint GetOriginalVirtualTable(nint virtualTableAddress)
-        => (nint)this.agentLifecycleService.GetOriginalVirtualTable((AgentInterface.AgentInterfaceVirtualTable*)virtualTableAddress);
+        => (nint)AgentLifecycle.GetOriginalVirtualTable((AgentInterface.AgentInterfaceVirtualTable*)virtualTableAddress);
 }
