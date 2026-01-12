@@ -42,7 +42,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
     private readonly Queue<XivChatEntry> chatQueue = new();
     private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = [];
-    private readonly List<nint> seenLogMessageObjects = [];
+    private readonly HashSet<nint> seenLogMessageObjects = [];
 
     private readonly Hook<PrintMessageDelegate> printMessageHook;
     private readonly Hook<InventoryItem.Delegates.Copy> inventoryItemCopyHook;
