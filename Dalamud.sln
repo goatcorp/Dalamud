@@ -75,6 +75,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lumina.Excel.Generator", "l
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lumina.Excel", "lib\Lumina.Excel\src\Lumina.Excel\Lumina.Excel.csproj", "{88FB719B-EB41-73C5-8D25-C03E0C69904F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source Generators", "Source Generators", "{50BEC23B-FFFD-427B-A95D-27E1D1958FFF}"
+	ProjectSection(SolutionItems) = preProject
+		generators\Directory.Build.props = generators\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.EnumGenerator", "generators\Dalamud.EnumGenerator\Dalamud.EnumGenerator\Dalamud.EnumGenerator.csproj", "{27AA9F87-D2AA-41D9-A559-0F1EBA38C5F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.EnumGenerator.Sample", "generators\Dalamud.EnumGenerator\Dalamud.EnumGenerator.Sample\Dalamud.EnumGenerator.Sample.csproj", "{8CDAEB2D-5022-450A-A97F-181C6270185F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.EnumGenerator.Tests", "generators\Dalamud.EnumGenerator\Dalamud.EnumGenerator.Tests\Dalamud.EnumGenerator.Tests.csproj", "{F5D92D2D-D36F-4471-B657-8B9AA6C98AD6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -173,6 +184,18 @@ Global
 		{88FB719B-EB41-73C5-8D25-C03E0C69904F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88FB719B-EB41-73C5-8D25-C03E0C69904F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88FB719B-EB41-73C5-8D25-C03E0C69904F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27AA9F87-D2AA-41D9-A559-0F1EBA38C5F8}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{27AA9F87-D2AA-41D9-A559-0F1EBA38C5F8}.Debug|Any CPU.Build.0 = Debug|x64
+		{27AA9F87-D2AA-41D9-A559-0F1EBA38C5F8}.Release|Any CPU.ActiveCfg = Release|x64
+		{27AA9F87-D2AA-41D9-A559-0F1EBA38C5F8}.Release|Any CPU.Build.0 = Release|x64
+		{8CDAEB2D-5022-450A-A97F-181C6270185F}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{8CDAEB2D-5022-450A-A97F-181C6270185F}.Debug|Any CPU.Build.0 = Debug|x64
+		{8CDAEB2D-5022-450A-A97F-181C6270185F}.Release|Any CPU.ActiveCfg = Release|x64
+		{8CDAEB2D-5022-450A-A97F-181C6270185F}.Release|Any CPU.Build.0 = Release|x64
+		{F5D92D2D-D36F-4471-B657-8B9AA6C98AD6}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{F5D92D2D-D36F-4471-B657-8B9AA6C98AD6}.Debug|Any CPU.Build.0 = Debug|x64
+		{F5D92D2D-D36F-4471-B657-8B9AA6C98AD6}.Release|Any CPU.ActiveCfg = Release|x64
+		{F5D92D2D-D36F-4471-B657-8B9AA6C98AD6}.Release|Any CPU.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -197,6 +220,9 @@ Global
 		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {E15BDA6D-E881-4482-94BA-BE5527E917FF}
 		{5A44DF0C-C9DA-940F-4D6B-4A11D13AEA3D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{88FB719B-EB41-73C5-8D25-C03E0C69904F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{27AA9F87-D2AA-41D9-A559-0F1EBA38C5F8} = {50BEC23B-FFFD-427B-A95D-27E1D1958FFF}
+		{8CDAEB2D-5022-450A-A97F-181C6270185F} = {50BEC23B-FFFD-427B-A95D-27E1D1958FFF}
+		{F5D92D2D-D36F-4471-B657-8B9AA6C98AD6} = {50BEC23B-FFFD-427B-A95D-27E1D1958FFF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {79B65AC9-C940-410E-AB61-7EA7E12C7599}
