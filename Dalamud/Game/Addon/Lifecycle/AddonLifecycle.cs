@@ -64,7 +64,10 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     internal static AtkUnitBase.AtkUnitBaseVirtualTable* GetOriginalVirtualTable(AtkUnitBase.AtkUnitBaseVirtualTable* tableAddress)
     {
         var matchedTable = AllocatedTables.FirstOrDefault(table => table.ModifiedVirtualTable == tableAddress);
-        if (matchedTable == null) return null;
+        if (matchedTable == null)
+        {
+            return null;
+        }
 
         return matchedTable.OriginalVirtualTable;
     }
@@ -153,13 +156,19 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     {
         if (!this.EventListeners.ContainsKey(listener.EventType))
         {
-            if (!this.EventListeners.TryAdd(listener.EventType, [])) return;
+            if (!this.EventListeners.TryAdd(listener.EventType, []))
+            {
+                return;
+            }
         }
 
         // Note: string.Empty is a valid addon name, as that will trigger on any addon for this event type
         if (!this.EventListeners[listener.EventType].ContainsKey(listener.AddonName))
         {
-            if (!this.EventListeners[listener.EventType].TryAdd(listener.AddonName, [])) return;
+            if (!this.EventListeners[listener.EventType].TryAdd(listener.AddonName, []))
+            {
+                return;
+            }
         }
 
         this.EventListeners[listener.EventType][listener.AddonName].Add(listener);

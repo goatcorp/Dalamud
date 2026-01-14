@@ -77,7 +77,10 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     internal static AgentInterface.AgentInterfaceVirtualTable* GetOriginalVirtualTable(AgentInterface.AgentInterfaceVirtualTable* tableAddress)
     {
         var matchedTable = AllocatedTables.FirstOrDefault(table => table.ModifiedVirtualTable == tableAddress);
-        if (matchedTable == null) return null;
+        if (matchedTable == null)
+        {
+            return null;
+        }
 
         return matchedTable.OriginalVirtualTable;
     }
@@ -185,14 +188,18 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         if (!this.EventListeners.ContainsKey(listener.EventType))
         {
             if (!this.EventListeners.TryAdd(listener.EventType, []))
+            {
                 return;
+            }
         }
 
         // Note: uint.MaxValue is a valid agent id, as that will trigger on any agent for this event type
         if (!this.EventListeners[listener.EventType].ContainsKey(listener.AgentId))
         {
             if (!this.EventListeners[listener.EventType].TryAdd(listener.AgentId, []))
+            {
                 return;
+            }
         }
 
         this.EventListeners[listener.EventType][listener.AgentId].Add(listener);
