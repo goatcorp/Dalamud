@@ -626,6 +626,8 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return;
 
+        Log.Verbose("Checking for new unlocks...");
+
         this.UpdateUnlocksForSheet<ActionSheet>();
         this.UpdateUnlocksForSheet<AetherCurrent>();
         this.UpdateUnlocksForSheet<AetherCurrentCompFlgSet>();
@@ -708,7 +710,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
             unlockedRowIds.Add(row.RowId);
 
-            Log.Verbose($"Unlock detected: {typeof(T).Name}#{row.RowId}");
+            // Log.Verbose($"Unlock detected: {typeof(T).Name}#{row.RowId}");
 
             foreach (var action in Delegate.EnumerateInvocationList(this.Unlock))
             {
