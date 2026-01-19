@@ -16,6 +16,26 @@ namespace Dalamud.Game.Network;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class GameNetwork : IInternalDisposableService
 {
+    /// <summary>
+    /// Offset from the data pointer to the start of the packet header.
+    /// </summary>
+    private const int PacketHeaderOffset = 0x10;
+
+    /// <summary>
+    /// Offset from the packet header to where the opcode is located.
+    /// </summary>
+    private const int OpCodeOffset = 0x12;
+
+    /// <summary>
+    /// Offset from the packet header to where the packet data begins.
+    /// </summary>
+    private const int PacketDataOffset = 0x20;
+
+    /// <summary>
+    /// Size of the packet header for validation and logging purposes.
+    /// </summary>
+    private const int PacketHeaderSize = 0x20;
+
     private readonly GameNetworkAddressResolver address;
     private readonly Hook<PacketDispatcher.Delegates.OnReceivePacket> processZonePacketDownHook;
     private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
@@ -77,16 +97,33 @@ internal sealed unsafe class GameNetwork : IInternalDisposableService
     {
         this.hitchDetectorDown.Start();
 
-        // Go back 0x10 to get back to the start of the packet header
-        dataPtr -= 0x10;
+        // Go back to the start of the packet header
+        dataPtr -= PacketHeaderOffset;
+
+        // Validate the adjusted pointer (after moving to packet header start)
+        // We need PacketHeaderSize bytes for the full header + data offset
+        if (!NetworkPointerValidator.IsValidPacketPointer(dataPtr, PacketHeaderSize))
+        {
+            Log.Warning("ProcessZonePacketDown received invalid pointer: {Ptr:X}", dataPtr + PacketHeaderOffset);
+            this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + PacketHeaderOffset);
+            this.hitchDetectorDown.Stop();
+            return;
+        }
 
         foreach (var d in Delegate.EnumerateInvocationList(this.NetworkMessage))
         {
             try
             {
+                // Extract opcode with bounds awareness
+                if (!NetworkPointerValidator.TrySafeRead<ushort>(dataPtr, OpCodeOffset, PacketHeaderSize, out var opCode))
+                {
+                    Log.Warning("Failed to read packet opcode at offset {Offset}", OpCodeOffset);
+                    continue;
+                }
+
                 d.Invoke(
-                    dataPtr + 0x20,
-                    (ushort)Marshal.ReadInt16(dataPtr, 0x12),
+                    dataPtr + PacketDataOffset,
+                    opCode,
                     0,
                     targetId,
                     NetworkMessageDirection.ZoneDown);
@@ -96,8 +133,8 @@ internal sealed unsafe class GameNetwork : IInternalDisposableService
                 string header;
                 try
                 {
-                    var data = new byte[32];
-                    Marshal.Copy(dataPtr, data, 0, 32);
+                    var data = new byte[PacketHeaderSize];
+                    Marshal.Copy(dataPtr, data, 0, PacketHeaderSize);
                     header = BitConverter.ToString(data);
                 }
                 catch (Exception)
@@ -109,7 +146,7 @@ internal sealed unsafe class GameNetwork : IInternalDisposableService
             }
         }
 
-        this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + 0x10);
+        this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + PacketHeaderOffset);
         this.hitchDetectorDown.Stop();
     }
 
@@ -117,19 +154,37 @@ internal sealed unsafe class GameNetwork : IInternalDisposableService
     {
         this.hitchDetectorUp.Start();
 
+        // Validate the incoming pointer before use
+        if (!NetworkPointerValidator.IsValidPacketPointer(dataPtr, PacketHeaderSize))
+        {
+            Log.Warning("ProcessZonePacketUp received invalid pointer: {Ptr:X}", dataPtr);
+            this.hitchDetectorUp.Stop();
+            return this.processZonePacketUpHook.Original(a1, dataPtr, a3, a4);
+        }
+
         try
         {
-            // Call events
-            // TODO: Implement actor IDs
-            this.NetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr), 0x0, 0x0, NetworkMessageDirection.ZoneUp);
+            // Extract opcode with bounds awareness
+            // Note: Upstream packets have a different structure - opcode is at offset 0, not OpCodeOffset
+            // This is intentional as upstream packet format differs from downstream
+            if (NetworkPointerValidator.TrySafeRead<ushort>(dataPtr, 0, PacketHeaderSize, out var opCode))
+            {
+                // Call events
+                // TODO: Implement actor IDs
+                this.NetworkMessage?.Invoke(dataPtr + PacketDataOffset, opCode, 0x0, 0x0, NetworkMessageDirection.ZoneUp);
+            }
+            else
+            {
+                Log.Warning("Failed to read packet opcode for upstream packet");
+            }
         }
         catch (Exception ex)
         {
             string header;
             try
             {
-                var data = new byte[32];
-                Marshal.Copy(dataPtr, data, 0, 32);
+                var data = new byte[PacketHeaderSize];
+                Marshal.Copy(dataPtr, data, 0, PacketHeaderSize);
                 header = BitConverter.ToString(data);
             }
             catch (Exception)
