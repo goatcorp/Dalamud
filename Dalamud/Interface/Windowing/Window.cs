@@ -11,6 +11,7 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.Windows.StyleEditor;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
@@ -461,7 +462,7 @@ public abstract class Window
             ImGuiHelpers.ForceNextWindowMainViewport();
 
         var wasFocused = this.IsFocused;
-        if (wasFocused)
+        if (wasFocused && this is not StyleEditorWindow)
         {
             var style = ImGui.GetStyle();
             var focusedHeaderColor = style.Colors[(int)ImGuiCol.TitleBgActive];
@@ -616,7 +617,7 @@ public abstract class Window
             this.DrawTitleBarButtons();
         }
 
-        if (wasFocused)
+        if (wasFocused && this is not StyleEditorWindow)
         {
             ImGui.PopStyleColor();
         }
