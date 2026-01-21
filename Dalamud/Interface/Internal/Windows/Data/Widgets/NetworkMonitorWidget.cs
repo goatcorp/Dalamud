@@ -1,27 +1,32 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.Network;
+using Dalamud.Game;
+using Dalamud.Hooking;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Memory;
 
-using ImGuiTable = Dalamud.Interface.Utility.ImGuiTable;
+using FFXIVClientStructs.FFXIV.Application.Network;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.Network;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget to display the current packets.
 /// </summary>
-internal class NetworkMonitorWidget : IDataWindowWidget
+internal unsafe class NetworkMonitorWidget : IDataWindowWidget
 {
     private readonly ConcurrentQueue<NetworkPacketData> packets = new();
 
+    private Hook<PacketDispatcher.Delegates.OnReceivePacket>? hookDown;
+    private Hook<ZoneClientSendPacketDelegate>? hookUp;
+
     private bool trackNetwork;
-    private int trackedPackets;
+    private int trackedPackets = 20;
     private Regex? trackedOpCodes;
     private string filterString = string.Empty;
     private Regex? untrackedOpCodes;
@@ -30,15 +35,16 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     /// <summary> Finalizes an instance of the <see cref="NetworkMonitorWidget"/> class. </summary>
     ~NetworkMonitorWidget()
     {
-        if (this.trackNetwork)
-        {
-            this.trackNetwork = false;
-            var network = Service<GameNetwork>.GetNullable();
-            if (network != null)
-            {
-                network.NetworkMessage -= this.OnNetworkMessage;
-            }
-        }
+        this.hookDown?.Dispose();
+        this.hookUp?.Dispose();
+    }
+
+    private delegate byte ZoneClientSendPacketDelegate(ZoneClient* thisPtr, nint packet, uint a3, uint a4, byte a5);
+
+    private enum NetworkMessageDirection
+    {
+        ZoneDown,
+        ZoneUp,
     }
 
     /// <inheritdoc/>
@@ -53,27 +59,31 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Load()
     {
-        this.trackNetwork = false;
-        this.trackedPackets = 20;
-        this.trackedOpCodes = null;
-        this.filterString = string.Empty;
-        this.packets.Clear();
+        this.hookDown = Hook<PacketDispatcher.Delegates.OnReceivePacket>.FromAddress(
+            (nint)PacketDispatcher.StaticVirtualTablePointer->OnReceivePacket,
+            this.OnReceivePacketDetour);
+
+        // TODO: switch to ZoneClient.SendPacket from CS
+        if (Service<TargetSigScanner>.Get().TryScanText("E8 ?? ?? ?? ?? 4C 8B 44 24 ?? E9", out var address))
+            this.hookUp = Hook<ZoneClientSendPacketDelegate>.FromAddress(address, this.SendPacketDetour);
+
         this.Ready = true;
     }
 
     /// <inheritdoc/>
     public void Draw()
     {
-        var network = Service<GameNetwork>.Get();
         if (ImGui.Checkbox("Track Network Packets"u8, ref this.trackNetwork))
         {
             if (this.trackNetwork)
             {
-                network.NetworkMessage += this.OnNetworkMessage;
+                this.hookDown?.Enable();
+                this.hookUp?.Enable();
             }
             else
             {
-                network.NetworkMessage -= this.OnNetworkMessage;
+                this.hookDown?.Disable();
+                this.hookUp?.Disable();
             }
         }
 
@@ -88,131 +98,122 @@ internal class NetworkMonitorWidget : IDataWindowWidget
             this.packets.Clear();
         }
 
-        this.DrawFilterInput();
-        this.DrawNegativeFilterInput();
+        DrawFilterInput("##Filter"u8, "Regex Filter OpCodes..."u8, ref this.filterString, ref this.trackedOpCodes);
+        DrawFilterInput("##NegativeFilter"u8, "Regex Filter Against OpCodes..."u8, ref this.negativeFilterString, ref this.untrackedOpCodes);
 
-        ImGuiTable.DrawTable(string.Empty, this.packets, this.DrawNetworkPacket, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Direction", "OpCode", "Hex", "Target", "Source", "Data");
+        using var table = ImRaii.Table("NetworkMonitorTableV2"u8, 5, ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable | ImGuiTableFlags.NoSavedSettings);
+        if (!table) return;
+
+        ImGui.TableSetupColumn("Time"u8, ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Direction"u8, ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("OpCode"u8, ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("OpCode (Hex)"u8, ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Target EntityId"u8, ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupScrollFreeze(0, 1);
+        ImGui.TableHeadersRow();
+
+        foreach (var packet in this.packets.Reverse())
+        {
+            ImGui.TableNextColumn();
+            ImGui.Text(packet.Time.ToLongTimeString());
+
+            ImGui.TableNextColumn();
+            ImGui.Text(packet.Direction.ToString());
+
+            ImGui.TableNextColumn();
+            WidgetUtil.DrawCopyableText(packet.OpCode.ToString());
+
+            ImGui.TableNextColumn();
+            WidgetUtil.DrawCopyableText($"0x{packet.OpCode:X4}");
+
+            ImGui.TableNextColumn();
+            if (packet.TargetActorId > 0)
+            {
+                WidgetUtil.DrawCopyableText($"{packet.TargetActorId:X}");
+
+                if (packet.TargetActorId == PlayerState.Instance()->EntityId)
+                {
+                    ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
+                    ImGui.Text("(Local Player)");
+                }
+                else
+                {
+                    var obj = GameObjectManager.Instance()->Objects.GetObjectByEntityId(packet.TargetActorId);
+                    if (obj != null)
+                    {
+                        ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
+                        ImGui.Text($"({obj->NameString})");
+                    }
+                }
+            }
+        }
     }
 
-    private void DrawNetworkPacket(NetworkPacketData data)
+    private static void DrawFilterInput(ReadOnlySpan<byte> label, ReadOnlySpan<byte> hint, ref string filterString, ref Regex? regex)
     {
-        ImGui.TableNextColumn();
-        ImGui.Text(data.Direction.ToString());
+        var invalidRegEx = filterString.Length > 0 && regex == null;
 
-        ImGui.TableNextColumn();
-        ImGui.Text(data.OpCode.ToString());
-
-        ImGui.TableNextColumn();
-        ImGui.Text($"0x{data.OpCode:X4}");
-
-        ImGui.TableNextColumn();
-        ImGui.Text(data.TargetActorId > 0 ? $"0x{data.TargetActorId:X}" : string.Empty);
-
-        ImGui.TableNextColumn();
-        ImGui.Text(data.SourceActorId > 0 ? $"0x{data.SourceActorId:X}" : string.Empty);
-
-        ImGui.TableNextColumn();
-        if (data.Data.Count > 0)
-        {
-            ImGui.Text(string.Join(" ", data.Data.Select(b => b.ToString("X2"))));
-        }
-        else
-        {
-            ImGui.Dummy(ImGui.GetContentRegionAvail() with { Y = 0 });
-        }
-    }
-
-    private void DrawFilterInput()
-    {
-        var invalidRegEx = this.filterString.Length > 0 && this.trackedOpCodes == null;
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameBorderSize, 2 * ImGuiHelpers.GlobalScale, invalidRegEx);
         using var color = ImRaii.PushColor(ImGuiCol.Border, 0xFF0000FF, invalidRegEx);
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-        if (!ImGui.InputTextWithHint("##Filter"u8, "Regex Filter OpCodes..."u8, ref this.filterString, 1024))
+
+        ImGui.SetNextItemWidth(-1);
+        if (!ImGui.InputTextWithHint(label, hint, ref filterString, 1024))
+            return;
+
+        if (filterString.Length == 0)
         {
+            regex = null;
             return;
         }
 
-        if (this.filterString.Length == 0)
+        try
         {
-            this.trackedOpCodes = null;
+            regex = new Regex(filterString, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
         }
-        else
+        catch
         {
-            try
-            {
-                this.trackedOpCodes = new Regex(this.filterString, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-            }
-            catch
-            {
-                this.trackedOpCodes = null;
-            }
+            regex = null;
         }
     }
 
-    private void DrawNegativeFilterInput()
+    private void OnReceivePacketDetour(PacketDispatcher* thisPtr, uint targetId, nint packet)
     {
-        var invalidRegEx = this.negativeFilterString.Length > 0 && this.untrackedOpCodes == null;
-        using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameBorderSize, 2 * ImGuiHelpers.GlobalScale, invalidRegEx);
-        using var color = ImRaii.PushColor(ImGuiCol.Border, 0xFF0000FF, invalidRegEx);
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-        if (!ImGui.InputTextWithHint("##NegativeFilter"u8, "Regex Filter Against OpCodes..."u8, ref this.negativeFilterString, 1024))
-        {
+        var opCode = *(ushort*)(packet + 2);
+        this.RecordPacket(new NetworkPacketData(DateTime.Now, opCode, NetworkMessageDirection.ZoneDown, targetId));
+        this.hookDown.OriginalDisposeSafe(thisPtr, targetId, packet);
+    }
+
+    private byte SendPacketDetour(ZoneClient* thisPtr, nint packet, uint a3, uint a4, byte a5)
+    {
+        var opCode = *(ushort*)packet;
+        this.RecordPacket(new NetworkPacketData(DateTime.Now, opCode, NetworkMessageDirection.ZoneUp, 0));
+        return this.hookUp.OriginalDisposeSafe(thisPtr, packet, a3, a4, a5);
+    }
+
+    private bool ShouldTrackPacket(ushort opCode)
+    {
+        return (this.trackedOpCodes == null || this.trackedOpCodes.IsMatch(this.OpCodeToString(opCode)))
+            && (this.untrackedOpCodes == null || !this.untrackedOpCodes.IsMatch(this.OpCodeToString(opCode)));
+    }
+
+    private void RecordPacket(NetworkPacketData packet)
+    {
+        if (!this.ShouldTrackPacket(packet.OpCode))
             return;
-        }
 
-        if (this.negativeFilterString.Length == 0)
+        this.packets.Enqueue(packet);
+
+        while (this.packets.Count > this.trackedPackets)
         {
-            this.untrackedOpCodes = null;
-        }
-        else
-        {
-            try
-            {
-                this.untrackedOpCodes = new Regex(this.negativeFilterString, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-            }
-            catch
-            {
-                this.untrackedOpCodes = null;
-            }
+            this.packets.TryDequeue(out _);
         }
     }
-
-    private void OnNetworkMessage(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
-    {
-        if ((this.trackedOpCodes == null || this.trackedOpCodes.IsMatch(this.OpCodeToString(opCode)))
-            && (this.untrackedOpCodes == null || !this.untrackedOpCodes.IsMatch(this.OpCodeToString(opCode))))
-        {
-            this.packets.Enqueue(new NetworkPacketData(this, opCode, direction, sourceActorId, targetActorId, dataPtr));
-            while (this.packets.Count > this.trackedPackets)
-            {
-                this.packets.TryDequeue(out _);
-            }
-        }
-    }
-
-    private int GetSizeFromOpCode(ushort opCode)
-        => 0;
-
-    /// <remarks> Add known packet-name -> packet struct size associations here to copy the byte data for such packets. </remarks>>
-    private int GetSizeFromName(string name)
-        => name switch
-        {
-            _ => 0,
-        };
 
     /// <remarks> The filter should find opCodes by number (decimal and hex) and name, if existing. </remarks>
     private string OpCodeToString(ushort opCode)
         => $"{opCode}\0{opCode:X}";
 
 #pragma warning disable SA1313
-    private readonly record struct NetworkPacketData(ushort OpCode, NetworkMessageDirection Direction, uint SourceActorId, uint TargetActorId)
+    private readonly record struct NetworkPacketData(DateTime Time, ushort OpCode, NetworkMessageDirection Direction, uint TargetActorId);
 #pragma warning restore SA1313
-    {
-        public readonly IReadOnlyList<byte> Data = [];
-
-        public NetworkPacketData(NetworkMonitorWidget widget, ushort opCode, NetworkMessageDirection direction, uint sourceActorId, uint targetActorId, nint dataPtr)
-            : this(opCode, direction, sourceActorId, targetActorId)
-            => this.Data = MemoryHelper.Read<byte>(dataPtr, widget.GetSizeFromOpCode(opCode), false);
-    }
 }
