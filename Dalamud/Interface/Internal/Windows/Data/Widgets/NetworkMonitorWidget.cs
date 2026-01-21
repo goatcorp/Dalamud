@@ -1,14 +1,14 @@
 using System.Collections.Concurrent;
-using System.Linq;
-using System.Text.RegularExpressions;
+using System.Threading;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Hooking;
-using Dalamud.Interface.Utility;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Application.Network;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.Network;
@@ -27,10 +27,11 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
 
     private bool trackNetwork;
     private int trackedPackets = 20;
-    private Regex? trackedOpCodes;
+    private ulong nextPacketIndex;
     private string filterString = string.Empty;
-    private Regex? untrackedOpCodes;
-    private string negativeFilterString = string.Empty;
+    private bool filterRecording = true;
+    private bool autoScroll = true;
+    private bool autoScrollPending;
 
     /// <summary> Finalizes an instance of the <see cref="NetworkMonitorWidget"/> class. </summary>
     ~NetworkMonitorWidget()
@@ -77,6 +78,7 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
         {
             if (this.trackNetwork)
             {
+                this.nextPacketIndex = 0;
                 this.hookDown?.Enable();
                 this.hookUp?.Enable();
             }
@@ -87,7 +89,7 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
             }
         }
 
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X / 2);
+        ImGui.SetNextItemWidth(-1);
         if (ImGui.DragInt("Stored Number of Packets"u8, ref this.trackedPackets, 0.1f, 1, 512))
         {
             this.trackedPackets = Math.Clamp(this.trackedPackets, 1, 512);
@@ -98,12 +100,22 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
             this.packets.Clear();
         }
 
-        DrawFilterInput("##Filter"u8, "Regex Filter OpCodes..."u8, ref this.filterString, ref this.trackedOpCodes);
-        DrawFilterInput("##NegativeFilter"u8, "Regex Filter Against OpCodes..."u8, ref this.negativeFilterString, ref this.untrackedOpCodes);
+        ImGui.SameLine();
+        ImGui.Checkbox("Auto-Scroll"u8, ref this.autoScroll);
 
-        using var table = ImRaii.Table("NetworkMonitorTableV2"u8, 5, ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable | ImGuiTableFlags.NoSavedSettings);
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - (ImGui.GetStyle().ItemInnerSpacing.X + ImGui.GetFrameHeight()) * 2);
+        ImGui.InputTextWithHint("##Filter"u8, "Filter OpCodes..."u8, ref this.filterString, 1024, ImGuiInputTextFlags.AutoSelectAll);
+        ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
+        ImGui.Checkbox("##FilterRecording"u8, ref this.filterRecording);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Apply filter to incoming packets.\nUncheck to record all packets and filter the table instead."u8);
+        ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
+        ImGuiComponents.HelpMarker("Enter OpCodes in a comma-separated list.\nRanges are supported. Exclude OpCodes with exclamation mark.\nExample: -400,!50-100,650,700-980,!941");
+
+        using var table = ImRaii.Table("NetworkMonitorTableV2"u8, 6, ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.NoSavedSettings);
         if (!table) return;
 
+        ImGui.TableSetupColumn("Index"u8, ImGuiTableColumnFlags.WidthFixed, 50);
         ImGui.TableSetupColumn("Time"u8, ImGuiTableColumnFlags.WidthFixed, 100);
         ImGui.TableSetupColumn("Direction"u8, ImGuiTableColumnFlags.WidthFixed, 100);
         ImGui.TableSetupColumn("OpCode"u8, ImGuiTableColumnFlags.WidthFixed, 100);
@@ -112,8 +124,16 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableHeadersRow();
 
-        foreach (var packet in this.packets.Reverse())
+        var autoScrollDisabled = false;
+
+        foreach (var packet in this.packets)
         {
+            if (!this.filterRecording && !this.IsFiltered(packet.OpCode))
+                continue;
+
+            ImGui.TableNextColumn();
+            ImGui.Text(packet.Index.ToString());
+
             ImGui.TableNextColumn();
             ImGui.Text(packet.Time.ToLongTimeString());
 
@@ -121,84 +141,88 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
             ImGui.Text(packet.Direction.ToString());
 
             ImGui.TableNextColumn();
-            WidgetUtil.DrawCopyableText(packet.OpCode.ToString());
-
-            ImGui.TableNextColumn();
-            WidgetUtil.DrawCopyableText($"0x{packet.OpCode:X4}");
-
-            ImGui.TableNextColumn();
-            if (packet.TargetActorId > 0)
+            using (ImRaii.PushId(packet.Index.ToString()))
             {
-                WidgetUtil.DrawCopyableText($"{packet.TargetActorId:X}");
+                if (ImGui.SmallButton("X"))
+                {
+                    if (!string.IsNullOrEmpty(this.filterString))
+                        this.filterString += ",";
 
-                if (packet.TargetActorId == PlayerState.Instance()->EntityId)
+                    this.filterString += $"!{packet.OpCode}";
+                }
+            }
+
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Filter OpCode"u8);
+
+            autoScrollDisabled |= ImGui.IsItemHovered();
+
+            ImGui.SameLine();
+            WidgetUtil.DrawCopyableText(packet.OpCode.ToString());
+            autoScrollDisabled |= ImGui.IsItemHovered();
+
+            ImGui.TableNextColumn();
+            WidgetUtil.DrawCopyableText($"0x{packet.OpCode:X3}");
+            autoScrollDisabled |= ImGui.IsItemHovered();
+
+            ImGui.TableNextColumn();
+            if (packet.TargetEntityId > 0)
+            {
+                WidgetUtil.DrawCopyableText($"{packet.TargetEntityId:X}");
+
+                var name = !string.IsNullOrEmpty(packet.TargetName)
+                    ? packet.TargetName
+                    : GetTargetName(packet.TargetEntityId);
+
+                if (!string.IsNullOrEmpty(name))
                 {
                     ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
-                    ImGui.Text("(Local Player)");
-                }
-                else
-                {
-                    var obj = GameObjectManager.Instance()->Objects.GetObjectByEntityId(packet.TargetActorId);
-                    if (obj != null)
-                    {
-                        ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
-                        ImGui.Text($"({obj->NameString})");
-                    }
+                    ImGui.Text($"({name})");
                 }
             }
         }
+
+        if (this.autoScroll && this.autoScrollPending && !autoScrollDisabled)
+        {
+            ImGui.SetScrollHereY();
+            this.autoScrollPending = false;
+        }
     }
 
-    private static void DrawFilterInput(ReadOnlySpan<byte> label, ReadOnlySpan<byte> hint, ref string filterString, ref Regex? regex)
+    private static string GetTargetName(uint targetId)
     {
-        var invalidRegEx = filterString.Length > 0 && regex == null;
+        if (targetId == PlayerState.Instance()->EntityId)
+            return "Local Player";
 
-        using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameBorderSize, 2 * ImGuiHelpers.GlobalScale, invalidRegEx);
-        using var color = ImRaii.PushColor(ImGuiCol.Border, 0xFF0000FF, invalidRegEx);
+        var cachedName = NameCache.Instance()->GetNameByEntityId(targetId);
+        if (cachedName.HasValue)
+            return cachedName.ToString();
 
-        ImGui.SetNextItemWidth(-1);
-        if (!ImGui.InputTextWithHint(label, hint, ref filterString, 1024))
-            return;
+        var obj = GameObjectManager.Instance()->Objects.GetObjectByEntityId(targetId);
+        if (obj != null)
+            return obj->NameString;
 
-        if (filterString.Length == 0)
-        {
-            regex = null;
-            return;
-        }
-
-        try
-        {
-            regex = new Regex(filterString, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-        }
-        catch
-        {
-            regex = null;
-        }
+        return string.Empty;
     }
 
     private void OnReceivePacketDetour(PacketDispatcher* thisPtr, uint targetId, nint packet)
     {
         var opCode = *(ushort*)(packet + 2);
-        this.RecordPacket(new NetworkPacketData(DateTime.Now, opCode, NetworkMessageDirection.ZoneDown, targetId));
+        var targetName = GetTargetName(targetId);
+        this.RecordPacket(new NetworkPacketData(Interlocked.Increment(ref this.nextPacketIndex), DateTime.Now, opCode, NetworkMessageDirection.ZoneDown, targetId, targetName));
         this.hookDown.OriginalDisposeSafe(thisPtr, targetId, packet);
     }
 
     private byte SendPacketDetour(ZoneClient* thisPtr, nint packet, uint a3, uint a4, byte a5)
     {
         var opCode = *(ushort*)packet;
-        this.RecordPacket(new NetworkPacketData(DateTime.Now, opCode, NetworkMessageDirection.ZoneUp, 0));
+        this.RecordPacket(new NetworkPacketData(Interlocked.Increment(ref this.nextPacketIndex), DateTime.Now, opCode, NetworkMessageDirection.ZoneUp, 0, string.Empty));
         return this.hookUp.OriginalDisposeSafe(thisPtr, packet, a3, a4, a5);
-    }
-
-    private bool ShouldTrackPacket(ushort opCode)
-    {
-        return (this.trackedOpCodes == null || this.trackedOpCodes.IsMatch(this.OpCodeToString(opCode)))
-            && (this.untrackedOpCodes == null || !this.untrackedOpCodes.IsMatch(this.OpCodeToString(opCode)));
     }
 
     private void RecordPacket(NetworkPacketData packet)
     {
-        if (!this.ShouldTrackPacket(packet.OpCode))
+        if (this.filterRecording && !this.IsFiltered(packet.OpCode))
             return;
 
         this.packets.Enqueue(packet);
@@ -207,13 +231,69 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
         {
             this.packets.TryDequeue(out _);
         }
+
+        this.autoScrollPending = true;
     }
 
-    /// <remarks> The filter should find opCodes by number (decimal and hex) and name, if existing. </remarks>
-    private string OpCodeToString(ushort opCode)
-        => $"{opCode}\0{opCode:X}";
+    private bool IsFiltered(ushort opcode)
+    {
+        var filterString = this.filterString.Replace(" ", string.Empty);
+
+        if (filterString.Length == 0)
+            return true;
+
+        try
+        {
+            var offset = 0;
+            var included = false;
+            var hasInclude = false;
+
+            while (filterString.Length - offset > 0)
+            {
+                var remaining = filterString[offset..];
+
+                // find the end of the current entry
+                var entryEnd = remaining.IndexOf(',');
+                if (entryEnd == -1)
+                    entryEnd = remaining.Length;
+
+                var entry = filterString[offset..(offset + entryEnd)];
+                var dash = entry.IndexOf('-');
+                var isExcluded = entry.StartsWith('!');
+                var startOffset = isExcluded ? 1 : 0;
+
+                var entryMatch = dash == -1
+                    ? ushort.Parse(entry[startOffset..]) == opcode
+                    : ((dash - startOffset == 0 || opcode >= ushort.Parse(entry[startOffset..dash]))
+                    && (entry[(dash + 1)..].Length == 0 || opcode <= ushort.Parse(entry[(dash + 1)..])));
+
+                if (isExcluded)
+                {
+                    if (entryMatch)
+                        return false;
+                }
+                else
+                {
+                    hasInclude = true;
+                    included |= entryMatch;
+                }
+
+                if (entryEnd == filterString.Length)
+                    break;
+
+                offset += entryEnd + 1;
+            }
+
+            return !hasInclude || included;
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Invalid filter string");
+            return false;
+        }
+    }
 
 #pragma warning disable SA1313
-    private readonly record struct NetworkPacketData(DateTime Time, ushort OpCode, NetworkMessageDirection Direction, uint TargetActorId);
+    private readonly record struct NetworkPacketData(ulong Index, DateTime Time, ushort OpCode, NetworkMessageDirection Direction, uint TargetEntityId, string TargetName);
 #pragma warning restore SA1313
 }
