@@ -1,5 +1,5 @@
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Internal.UiDebug.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -9,7 +9,7 @@ using static Dalamud.Utility.Util;
 using Vector2 = System.Numerics.Vector2;
 using Vector4 = System.Numerics.Vector4;
 
-namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
+namespace Dalamud.Interface.Internal.UiDebug.Browsing;
 
 /// <summary>
 /// A tree for an <see cref="AtkNineGridNode"/> that can be printed and browsed via ImGui.

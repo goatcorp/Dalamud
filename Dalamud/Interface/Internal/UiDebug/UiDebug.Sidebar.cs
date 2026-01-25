@@ -12,10 +12,10 @@ using static System.StringComparison;
 
 using static Dalamud.Interface.FontAwesomeIcon;
 
-namespace Dalamud.Interface.Internal.UiDebug2;
+namespace Dalamud.Interface.Internal.UiDebug;
 
-/// <inheritdoc cref="UiDebug2"/>
-internal unsafe partial class UiDebug2
+/// <inheritdoc cref="UiDebug"/>
+internal unsafe partial class UiDebug
 {
     /// <summary>
     /// All unit lists to check for addons.

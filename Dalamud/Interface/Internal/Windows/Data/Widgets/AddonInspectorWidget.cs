@@ -3,15 +3,15 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// <summary>
 /// Widget for displaying addon inspector.
 /// </summary>
-internal class AddonInspectorWidget2 : IDataWindowWidget
+internal class AddonInspectorWidget : IDataWindowWidget
 {
-    private UiDebug2.UiDebug2? addonInspector2;
+    private UiDebug.UiDebug? addonInspector;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = ["ai2", "addoninspector2"];
+    public string[]? CommandShortcuts { get; init; } = ["ai", "addoninspector"];
 
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Addon Inspector v2 (Testing)";
+    public string DisplayName { get; init; } = "Addon Inspector";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -19,9 +19,9 @@ internal class AddonInspectorWidget2 : IDataWindowWidget
     /// <inheritdoc/>
     public void Load()
     {
-        this.addonInspector2 = new UiDebug2.UiDebug2();
+        this.addonInspector = new UiDebug.UiDebug();
 
-        if (this.addonInspector2 is not null)
+        if (this.addonInspector is not null)
         {
             this.Ready = true;
         }
@@ -30,6 +30,6 @@ internal class AddonInspectorWidget2 : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        this.addonInspector2?.Draw();
+        this.addonInspector?.Draw();
     }
 }

@@ -20,7 +20,7 @@ internal class DataWindow : Window, IDisposable
 {
     private readonly IDataWindowWidget[] modules =
     [
-        new AddonInspectorWidget2(),
+        new AddonInspectorWidget(),
         new AddonLifecycleWidget(),
         new AddonWidget(),
         new AddressesWidget(),
