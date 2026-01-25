@@ -206,6 +206,13 @@ public interface IUnlockState : IDalamudService
     bool IsItemUnlocked(Item row);
 
     /// <summary>
+    /// Determines whether the specified Leve is completed.
+    /// </summary>
+    /// <param name="row">The Leve row to check.</param>
+    /// <returns><see langword="true"/> if completed; otherwise, <see langword="false"/>.</returns>
+    bool IsLeveCompleted(Leve row);
+
+    /// <summary>
     /// Determines whether the specified McGuffin is unlocked.
     /// </summary>
     /// <param name="row">The McGuffin row to check.</param>
@@ -267,6 +274,13 @@ public interface IUnlockState : IDalamudService
     /// <param name="row">The PublicContent row to check.</param>
     /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
     bool IsPublicContentUnlocked(PublicContent row);
+
+    /// <summary>
+    /// Determines whether the specified Quest is completed.
+    /// </summary>
+    /// <param name="row">The Quest row to check.</param>
+    /// <returns><see langword="true"/> if completed; otherwise, <see langword="false"/>.</returns>
+    bool IsQuestCompleted(Quest row);
 
     /// <summary>
     /// Determines whether the specified Recipe is unlocked.
