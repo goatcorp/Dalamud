@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -85,6 +86,13 @@ public static class Troubleshooting
 
             var encodedPayload = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)));
             Log.Information($"TROUBLESHOOTING:{encodedPayload}");
+
+            File.WriteAllText(
+                Path.Join(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "XIVLauncher",
+                    "dalamud.troubleshooting.json"),
+                JsonConvert.SerializeObject(payload, Formatting.Indented));
         }
         catch (Exception ex)
         {
