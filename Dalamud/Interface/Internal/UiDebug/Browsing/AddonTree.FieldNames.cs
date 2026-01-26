@@ -7,9 +7,9 @@ using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using static System.Reflection.BindingFlags;
-using static Dalamud.Interface.Internal.UiDebug2.UiDebug2;
+using static Dalamud.Interface.Internal.UiDebug.UiDebug;
 
-namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
+namespace Dalamud.Interface.Internal.UiDebug.Browsing;
 
 /// <inheritdoc cref="AddonTree"/>
 public unsafe partial class AddonTree

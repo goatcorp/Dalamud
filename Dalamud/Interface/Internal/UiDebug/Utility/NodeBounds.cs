@@ -11,7 +11,7 @@ using static System.MathF;
 
 using static Dalamud.Interface.ColorHelpers;
 
-namespace Dalamud.Interface.Internal.UiDebug2.Utility;
+namespace Dalamud.Interface.Internal.UiDebug.Utility;
 
 /// <summary>
 /// A struct representing the perimeter of an <see cref="AtkResNode"/>, accounting for all transformations.
