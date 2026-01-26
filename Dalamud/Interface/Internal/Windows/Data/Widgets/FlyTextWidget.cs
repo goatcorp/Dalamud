@@ -3,6 +3,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.FlyText;
+using Dalamud.Interface.Utility.Raii;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -39,18 +40,18 @@ internal class FlyTextWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        if (ImGui.BeginCombo("Kind"u8, $"{this.flyKind} ({(int)this.flyKind})"))
+        using (var combo = ImRaii.Combo("Kind"u8, $"{this.flyKind} ({(int)this.flyKind})"))
         {
-            var values = Enum.GetValues<FlyTextKind>().Distinct();
-            foreach (var value in values)
+            if (combo.Success)
             {
-                if (ImGui.Selectable($"{value} ({(int)value})"))
+                foreach (var value in Enum.GetValues<FlyTextKind>().Distinct())
                 {
-                    this.flyKind = value;
+                    if (ImGui.Selectable($"{value} ({(int)value})"))
+                    {
+                        this.flyKind = value;
+                    }
                 }
             }
-
-            ImGui.EndCombo();
         }
 
         ImGui.InputText("Text1"u8, ref this.flyText1, 200);
