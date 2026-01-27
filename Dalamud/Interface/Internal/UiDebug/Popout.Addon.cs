@@ -1,11 +1,11 @@
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Internal.UiDebug2.Browsing;
+using Dalamud.Interface.Internal.UiDebug.Browsing;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 
-namespace Dalamud.Interface.Internal.UiDebug2;
+namespace Dalamud.Interface.Internal.UiDebug;
 
 /// <summary>
 /// A popout window for an <see cref="AddonTree"/>.

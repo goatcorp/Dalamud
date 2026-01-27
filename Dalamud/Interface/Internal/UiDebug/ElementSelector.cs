@@ -5,8 +5,8 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.Internal.UiDebug2.Browsing;
-using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Internal.UiDebug.Browsing;
+using Dalamud.Interface.Internal.UiDebug.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -16,7 +16,7 @@ using static System.Globalization.NumberFormatInfo;
 using static Dalamud.Bindings.ImGui.ImGuiCol;
 using static Dalamud.Bindings.ImGui.ImGuiWindowFlags;
 using static Dalamud.Interface.FontAwesomeIcon;
-using static Dalamud.Interface.Internal.UiDebug2.UiDebug2;
+using static Dalamud.Interface.Internal.UiDebug.UiDebug;
 using static Dalamud.Interface.UiBuilder;
 using static Dalamud.Interface.Utility.ImGuiHelpers;
 using static FFXIVClientStructs.FFXIV.Component.GUI.NodeFlags;
@@ -25,7 +25,7 @@ using static FFXIVClientStructs.FFXIV.Component.GUI.NodeFlags;
 
 #pragma warning disable CS0659
 
-namespace Dalamud.Interface.Internal.UiDebug2;
+namespace Dalamud.Interface.Internal.UiDebug;
 
 /// <summary>
 /// A tool that enables the user to select UI elements within the inspector by mousing over them onscreen.
@@ -34,7 +34,7 @@ internal unsafe class ElementSelector : IDisposable
 {
     private const int UnitListCount = 18;
 
-    private readonly UiDebug2 uiDebug2;
+    private readonly UiDebug uiDebug;
 
     private string addressSearchInput = string.Empty;
 
@@ -43,10 +43,10 @@ internal unsafe class ElementSelector : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="ElementSelector"/> class.
     /// </summary>
-    /// <param name="uiDebug2">The instance of <see cref="UiDebug2"/> this Element Selector belongs to.</param>
-    internal ElementSelector(UiDebug2 uiDebug2)
+    /// <param name="uiDebug">The instance of <see cref="UiDebug"/> this Element Selector belongs to.</param>
+    internal ElementSelector(UiDebug uiDebug)
     {
-        this.uiDebug2 = uiDebug2;
+        this.uiDebug = uiDebug;
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ internal unsafe class ElementSelector : IDisposable
                         {
                             this.Active = false;
 
-                            this.uiDebug2.SelectedAddonName = a.Addon->NameString;
+                            this.uiDebug.SelectedAddonName = a.Addon->NameString;
 
                             var ptrList = new List<nint> { (nint)n.Node };
 
@@ -420,7 +420,7 @@ internal unsafe class ElementSelector : IDisposable
                 var addon = unitManager->Entries[j].Value;
                 if ((nint)addon == address || FindByAddress(addon, address))
                 {
-                    this.uiDebug2.SelectedAddonName = addon->NameString;
+                    this.uiDebug.SelectedAddonName = addon->NameString;
                     return;
                 }
             }

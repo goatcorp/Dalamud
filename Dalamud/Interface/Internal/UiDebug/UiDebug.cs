@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui;
-using Dalamud.Interface.Internal.UiDebug2.Browsing;
+using Dalamud.Interface.Internal.UiDebug.Browsing;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
@@ -12,7 +12,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using static Dalamud.Bindings.ImGui.ImGuiWindowFlags;
 
-namespace Dalamud.Interface.Internal.UiDebug2;
+namespace Dalamud.Interface.Internal.UiDebug;
 
 // Original version by aers https://github.com/aers/FFXIVUIDebug
 // Also incorporates features from Caraxi's fork https://github.com/Caraxi/SimpleTweaksPlugin/blob/main/Debugging/UIDebug.cs
@@ -20,17 +20,17 @@ namespace Dalamud.Interface.Internal.UiDebug2;
 /// <summary>
 /// A tool for browsing the contents and structure of UI elements.
 /// </summary>
-internal partial class UiDebug2 : IDisposable
+internal partial class UiDebug : IDisposable
 {
     /// <inheritdoc cref="ModuleLog"/>
-    internal static readonly ModuleLog Log = ModuleLog.Create<UiDebug2>();
+    internal static readonly ModuleLog Log = ModuleLog.Create<UiDebug>();
 
     private readonly ElementSelector elementSelector;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UiDebug2"/> class.
+    /// Initializes a new instance of the <see cref="UiDebug"/> class.
     /// </summary>
-    internal UiDebug2()
+    internal UiDebug()
     {
         this.elementSelector = new(this);
     }

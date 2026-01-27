@@ -65,7 +65,6 @@
         <PackageReference Include="CheapLoc" />
         <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all" />
         <PackageReference Include="goatcorp.Reloaded.Hooks" />
-        <PackageReference Include="goatcorp.Reloaded.Assembler" />
         <PackageReference Include="JetBrains.Annotations" />
         <PackageReference Include="Lumina" />
         <PackageReference Include="Microsoft.Extensions.ObjectPool" />
