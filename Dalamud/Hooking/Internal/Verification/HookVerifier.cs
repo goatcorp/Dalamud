@@ -106,7 +106,7 @@ internal static class HookVerifier
         }
     }
 
-    private bool CheckParam(Type paramLeft, Type paramRight)
+    private static bool CheckParam(Type paramLeft, Type paramRight)
     {
         var sameType = paramLeft == paramRight;
         return sameType || SizeOf(paramLeft) == SizeOf(paramRight);
