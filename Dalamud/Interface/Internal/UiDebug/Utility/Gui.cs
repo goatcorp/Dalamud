@@ -9,10 +9,10 @@ using FFXIVClientStructs.FFXIV.Client.Graphics;
 using static Dalamud.Bindings.ImGui.ImGuiCol;
 using static Dalamud.Interface.ColorHelpers;
 
-namespace Dalamud.Interface.Internal.UiDebug2.Utility;
+namespace Dalamud.Interface.Internal.UiDebug.Utility;
 
 /// <summary>
-/// Miscellaneous ImGui tools used by <see cref="UiDebug2"/>.
+/// Miscellaneous ImGui tools used by <see cref="UiDebug"/>.
 /// </summary>
 internal static class Gui
 {

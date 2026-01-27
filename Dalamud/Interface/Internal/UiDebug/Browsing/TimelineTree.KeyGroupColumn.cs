@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 using Dalamud.Bindings.ImGui;
 
-namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
+namespace Dalamud.Interface.Internal.UiDebug.Browsing;
 
 /// <inheritdoc cref="TimelineTree"/>
 public readonly partial struct TimelineTree

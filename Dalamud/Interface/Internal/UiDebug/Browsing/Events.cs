@@ -9,7 +9,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using static Dalamud.Bindings.ImGui.ImGuiTableColumnFlags;
 using static Dalamud.Bindings.ImGui.ImGuiTableFlags;
 
-namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
+namespace Dalamud.Interface.Internal.UiDebug.Browsing;
 
 /// <summary>
 /// Class that prints the events table for a node, where applicable.
