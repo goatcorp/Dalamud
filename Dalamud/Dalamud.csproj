@@ -6,7 +6,7 @@
 
     <PropertyGroup Label="Feature">
         <Description>XIV Launcher addon framework</Description>
-        <DalamudVersion>14.0.1.0</DalamudVersion>
+        <DalamudVersion>14.0.2.0</DalamudVersion>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
