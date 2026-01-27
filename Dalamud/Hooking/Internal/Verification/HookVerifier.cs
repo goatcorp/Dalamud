@@ -32,7 +32,6 @@ internal static class HookVerifier
 
     private delegate void ActorControlSelfDelegate(uint category, uint eventId, uint param1, uint param2, uint param3, uint param4, uint param5, uint param6, uint param7, uint param8, ulong targetId, byte param9); // TODO: change this to CS delegate
 
-
     /// <summary>
     /// Initializes a new instance of the <see cref="HookVerifier"/> class.
     /// </summary>
@@ -114,7 +113,8 @@ internal static class HookVerifier
         return sameType || SizeOf(paramLeft) == SizeOf(paramRight);
     }
 
-    private static int SizeOf(Type type) {
+    private static int SizeOf(Type type) 
+    {
         return type switch {
             _ when type == typeof(sbyte) || type == typeof(byte) || type == typeof(bool) => 1,
             _ when type == typeof(char) || type == typeof(short) || type == typeof(ushort) || type == typeof(Half) => 2,
@@ -125,19 +125,24 @@ internal static class HookVerifier
             _ when IsStruct(type) && !type.IsGenericType && (type.StructLayoutAttribute?.Value ?? LayoutKind.Sequential) != LayoutKind.Sequential => type.StructLayoutAttribute?.Size ?? (int?)typeof(Unsafe).GetMethod("SizeOf")?.MakeGenericMethod(type).Invoke(null, null) ?? 0,
             _ when type.IsEnum => SizeOf(Enum.GetUnderlyingType(type)),
             _ when type.IsGenericType => Marshal.SizeOf(Activator.CreateInstance(type)!),
-            _ => GetSizeOf(type)
+            _ => GetSizeOf(type),
         };
     }
 
-    private static int GetSizeOf(Type type) {
-        try {
+    private static int GetSizeOf(Type type) 
+    {
+        try 
+        {
             return Marshal.SizeOf(Activator.CreateInstance(type)!);
-        } catch {
+        } 
+        catch 
+        {
             return 0;
         }
     }
 
-    private static bool IsStruct(Type type) {
+    private static bool IsStruct(Type type) 
+    {
         return type != typeof(decimal) && type is { IsValueType: true, IsPrimitive: false, IsEnum: false };
     }
 
