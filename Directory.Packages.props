@@ -41,8 +41,7 @@
     <PackageVersion Include="HexaGen.Runtime" Version="1.1.20" />
 
     <!-- Reloaded -->
-    <PackageVersion Include="goatcorp.Reloaded.Hooks" Version="4.2.0-goatcorp7" />
-    <PackageVersion Include="goatcorp.Reloaded.Assembler" Version="1.0.14-goatcorp5" />
+    <PackageVersion Include="goatcorp.Reloaded.Hooks" Version="4.2.0-goatcorp8" />
     <PackageVersion Include="Reloaded.Memory" Version="7.0.0" />
     <PackageVersion Include="Reloaded.Memory.Buffers" Version="2.0.0" />
 
