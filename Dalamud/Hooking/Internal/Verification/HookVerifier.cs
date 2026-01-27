@@ -77,7 +77,7 @@ internal static class HookVerifier
         var enforcedInvoke = entry.TargetDelegateType.GetMethod("Invoke")!;
 
         // Compare Return Type
-        var mismatch = passedInvoke.ReturnType != enforcedInvoke.ReturnType;
+        var mismatch = !CheckParam(passedInvoke.ReturnType, enforcedInvoke.ReturnType);
 
         // Compare Parameter Count
         var passedParams = passedInvoke.GetParameters();
