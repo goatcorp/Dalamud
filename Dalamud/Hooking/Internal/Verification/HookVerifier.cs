@@ -1,5 +1,7 @@
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using Dalamud.Game;
 using Dalamud.Logging.Internal;
@@ -110,29 +112,33 @@ internal static class HookVerifier
     {
         var sameType = paramLeft == paramRight;
         return sameType || SizeOf(paramLeft) == SizeOf(paramRight);
+    }
 
-        int SizeOf(Type type) {
-            return type switch {
-                _ when type == typeof(sbyte) || type == typeof(byte) || type == typeof(bool) => 1,
-                _ when type == typeof(char) || type == typeof(short) || type == typeof(ushort) || type == typeof(Half) => 2,
-                _ when type == typeof(int) || type == typeof(uint) || type == typeof(float) => 4,
-                _ when type == typeof(long) || type == typeof(ulong) || type == typeof(double) || type.IsPointer || type.IsFunctionPointer || type.IsUnmanagedFunctionPointer || (type.Name == "Pointer`1" && type.Namespace.AsSpan().SequenceEqual(ClientStructsInteropNamespacePrefix)) || type == typeof(CStringPointer) => 8,
-                _ when type.Name.StartsWith("FixedSizeArray") => type.GetGenericArguments()[0].SizeOf() * int.Parse(type.Name[14..type.Name.IndexOf('`')]),
-                _ when type.GetCustomAttribute<InlineArrayAttribute>() is { Length: var length } => type.GetGenericArguments()[0].SizeOf() * length,
-                _ when type.IsStruct() && !type.IsGenericType && (type.StructLayoutAttribute?.Value ?? LayoutKind.Sequential) != LayoutKind.Sequential => type.StructLayoutAttribute?.Size ?? (int?)typeof(Unsafe).GetMethod("SizeOf")?.MakeGenericMethod(type).Invoke(null, null) ?? 0,
-                _ when type.IsEnum => Enum.GetUnderlyingType(type).SizeOf(),
-                _ when type.IsGenericType => Marshal.SizeOf(Activator.CreateInstance(type)!),
-                _ => GetSizeOf(type)
-            };
+    private static int SizeOf(Type type) {
+        return type switch {
+            _ when type == typeof(sbyte) || type == typeof(byte) || type == typeof(bool) => 1,
+            _ when type == typeof(char) || type == typeof(short) || type == typeof(ushort) || type == typeof(Half) => 2,
+            _ when type == typeof(int) || type == typeof(uint) || type == typeof(float) => 4,
+            _ when type == typeof(long) || type == typeof(ulong) || type == typeof(double) || type.IsPointer || type.IsFunctionPointer || type.IsUnmanagedFunctionPointer || (type.Name == "Pointer`1" && type.Namespace.AsSpan().SequenceEqual(ClientStructsInteropNamespacePrefix)) || type == typeof(CStringPointer) => 8,
+            _ when type.Name.StartsWith("FixedSizeArray") => type.GetGenericArguments()[0].SizeOf() * int.Parse(type.Name[14..type.Name.IndexOf('`')]),
+            _ when type.GetCustomAttribute<InlineArrayAttribute>() is { Length: var length } => type.GetGenericArguments()[0].SizeOf() * length,
+            _ when type.IsStruct() && !type.IsGenericType && (type.StructLayoutAttribute?.Value ?? LayoutKind.Sequential) != LayoutKind.Sequential => type.StructLayoutAttribute?.Size ?? (int?)typeof(Unsafe).GetMethod("SizeOf")?.MakeGenericMethod(type).Invoke(null, null) ?? 0,
+            _ when type.IsEnum => Enum.GetUnderlyingType(type).SizeOf(),
+            _ when type.IsGenericType => Marshal.SizeOf(Activator.CreateInstance(type)!),
+            _ => GetSizeOf(type)
+        };
+    }
+
+    private static int GetSizeOf(Type type) {
+        try {
+            return Marshal.SizeOf(Activator.CreateInstance(type)!);
+        } catch {
+            return 0;
         }
-    
-        int GetSizeOf(Type type) {
-            try {
-                return Marshal.SizeOf(Activator.CreateInstance(type)!);
-            } catch {
-                return 0;
-            }
-        }
+    }
+
+    private static bool IsStruct(this Type type) {
+        return type != typeof(decimal) && type is { IsValueType: true, IsPrimitive: false, IsEnum: false };
     }
 
     private record VerificationEntry(string Name, string Signature, Type TargetDelegateType, string Message)
