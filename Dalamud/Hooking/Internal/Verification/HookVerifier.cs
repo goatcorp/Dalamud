@@ -92,7 +92,7 @@ internal static class HookVerifier
             // Compare Parameter Types
             for (var i = 0; i < passedParams.Length; i++)
             {
-                if (CheckParam(passedParams[i].ParameterType, enforcedParams[i].ParameterType))
+                if (!CheckParam(passedParams[i].ParameterType, enforcedParams[i].ParameterType))
                 {
                     mismatch = true;
                     break;
