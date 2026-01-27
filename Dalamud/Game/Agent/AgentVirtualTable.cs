@@ -44,7 +44,7 @@ internal unsafe class AgentVirtualTable : IDisposable
     // Pinned Function Delegates, as these functions get assigned to an unmanaged virtual table,
     // the CLR needs to know they are in use, or it will invalidate them causing random crashing.
     private readonly AgentInterface.Delegates.ReceiveEvent receiveEventFunction;
-    private readonly AgentInterface.Delegates.ReceiveEvent2 receiveEventWithResultFunction;
+    private readonly AgentInterface.Delegates.ReceiveEventWithResult receiveEventWithResultFunction;
     private readonly AgentInterface.Delegates.Show showFunction;
     private readonly AgentInterface.Delegates.Hide hideFunction;
     private readonly AgentInterface.Delegates.Update updateFunction;
@@ -88,7 +88,7 @@ internal unsafe class AgentVirtualTable : IDisposable
 
         // Overwrite specific virtual table entries
         this.ModifiedVirtualTable->ReceiveEvent = (delegate* unmanaged<AgentInterface*, AtkValue*, AtkValue*, uint, ulong, AtkValue*>)Marshal.GetFunctionPointerForDelegate(this.receiveEventFunction);
-        this.ModifiedVirtualTable->ReceiveEvent2 = (delegate* unmanaged<AgentInterface*, AtkValue*, AtkValue*, uint, ulong, AtkValue*>)Marshal.GetFunctionPointerForDelegate(this.receiveEventWithResultFunction);
+        this.ModifiedVirtualTable->ReceiveEventWithResult = (delegate* unmanaged<AgentInterface*, AtkValue*, AtkValue*, uint, ulong, AtkValue*>)Marshal.GetFunctionPointerForDelegate(this.receiveEventWithResultFunction);
         this.ModifiedVirtualTable->Show = (delegate* unmanaged<AgentInterface*, void>)Marshal.GetFunctionPointerForDelegate(this.showFunction);
         this.ModifiedVirtualTable->Hide = (delegate* unmanaged<AgentInterface*, void>)Marshal.GetFunctionPointerForDelegate(this.hideFunction);
         this.ModifiedVirtualTable->Update = (delegate* unmanaged<AgentInterface*, uint, void>)Marshal.GetFunctionPointerForDelegate(this.updateFunction);
@@ -180,7 +180,7 @@ internal unsafe class AgentVirtualTable : IDisposable
 
             try
             {
-                result = this.OriginalVirtualTable->ReceiveEvent2(thisPtr, returnValue, values, valueCount, eventKind);
+                result = this.OriginalVirtualTable->ReceiveEventWithResult(thisPtr, returnValue, values, valueCount, eventKind);
             }
             catch (Exception e)
             {
