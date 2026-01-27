@@ -2,14 +2,16 @@ using System.Linq;
 using System.Text;
 
 using Dalamud.Data;
-
+using Dalamud.Utility;
 using Lumina.Excel.Sheets;
+using Serilog;
 
 namespace Dalamud.Game.ClientState;
 
 /// <summary>
 /// Provides event data for when the game should initialize a zone.
 /// </summary>
+[Api15ToDo("Replace all direct references with Lumina RowRef instead.")]
 public class ZoneInitEventArgs : EventArgs
 {
     /// <summary>
@@ -54,10 +56,31 @@ public class ZoneInitEventArgs : EventArgs
 
         var flags = *(byte*)(packet + 0x12);
 
-        eventArgs.TerritoryType = dataManager.GetExcelSheet<TerritoryType>().GetRow(*(ushort*)(packet + 0x02));
+        var territoryKey = *(ushort*)(packet + 0x02);
+        if (!dataManager.GetExcelSheet<TerritoryType>().TryGetRow(territoryKey, out var territoryRow))
+        {
+            Log.Error($"Failed to get TerritoryType row with ID {territoryKey}. Corrupted packet?");
+            return new ZoneInitEventArgs();
+        }
+        eventArgs.TerritoryType = territoryRow;
+
+        var contentFinderKey = *(ushort*)(packet + 0x06);
+        if (!dataManager.GetExcelSheet<ContentFinderCondition>().TryGetRow(contentFinderKey, out var contentFinderRow))
+        {
+            Log.Error($"Failed to get ContentFinderCondition row with ID {contentFinderKey}. Corrupted packet?");
+            return new ZoneInitEventArgs();
+        }
+        eventArgs.ContentFinderCondition = contentFinderRow;
+
+        var weatherKey = *(byte*)(packet + 0x10);
+        if (!dataManager.GetExcelSheet<Weather>().TryGetRow(weatherKey, out var weatherRow))
+        {
+            Log.Error($"Failed to get Weather row with ID {weatherKey}. Corrupted packet?");
+            return new ZoneInitEventArgs();
+        }
+        eventArgs.Weather = weatherRow;
+
         eventArgs.Instance = flags >= 0 ? (ushort)0 : *(ushort*)(packet + 0x04);
-        eventArgs.ContentFinderCondition = dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(*(ushort*)(packet + 0x06));
-        eventArgs.Weather = dataManager.GetExcelSheet<Weather>().GetRow(*(byte*)(packet + 0x10));
 
         const int NumFestivals = 8;
         eventArgs.ActiveFestivals = new Festival[NumFestivals];
@@ -67,7 +90,13 @@ public class ZoneInitEventArgs : EventArgs
         // but it's unclear why they exist as separate entries and why they would be different.
         for (var i = 0; i < NumFestivals; i++)
         {
-            eventArgs.ActiveFestivals[i] = dataManager.GetExcelSheet<Festival>().GetRow(*(ushort*)(packet + 0x26 + (i * 2)));
+            var festivalKey = *(ushort*)(packet + 0x26 + (i * 2));
+            if (!dataManager.GetExcelSheet<Festival>().TryGetRow(festivalKey, out var festivalRow))
+            {
+                Log.Error($"Failed to get Festival row with ID {festivalKey}. Corrupted packet?");
+                return new ZoneInitEventArgs();
+            }
+            eventArgs.ActiveFestivals[i] = festivalRow;
             eventArgs.ActiveFestivalPhases[i] = *(ushort*)(packet + 0x36 + (i * 2));
         }
 
