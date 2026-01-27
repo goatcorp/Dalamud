@@ -3,7 +3,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Internal.UiDebug.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -16,10 +16,10 @@ using static Dalamud.Bindings.ImGui.ImGuiTableColumnFlags;
 using static Dalamud.Bindings.ImGui.ImGuiTableFlags;
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Interface.FontAwesomeIcon;
-using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
+using static Dalamud.Interface.Internal.UiDebug.Utility.Gui;
 using static Dalamud.Interface.Utility.ImGuiHelpers;
 
-namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
+namespace Dalamud.Interface.Internal.UiDebug.Browsing;
 
 /// <inheritdoc cref="ResNodeTree"/>
 internal unsafe partial class ResNodeTree

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Internal.UiDebug.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -13,14 +13,14 @@ using static Dalamud.Bindings.ImGui.ImGuiCol;
 using static Dalamud.Bindings.ImGui.ImGuiTreeNodeFlags;
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Interface.FontAwesomeIcon;
-using static Dalamud.Interface.Internal.UiDebug2.Browsing.Events;
-using static Dalamud.Interface.Internal.UiDebug2.ElementSelector;
-using static Dalamud.Interface.Internal.UiDebug2.UiDebug2;
-using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
+using static Dalamud.Interface.Internal.UiDebug.Browsing.Events;
+using static Dalamud.Interface.Internal.UiDebug.ElementSelector;
+using static Dalamud.Interface.Internal.UiDebug.UiDebug;
+using static Dalamud.Interface.Internal.UiDebug.Utility.Gui;
 using static Dalamud.Utility.Util;
 using static FFXIVClientStructs.FFXIV.Component.GUI.NodeFlags;
 
-namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
+namespace Dalamud.Interface.Internal.UiDebug.Browsing;
 
 /// <summary>
 /// A tree for an <see cref="AtkResNode"/> that can be printed and browsed via ImGui.

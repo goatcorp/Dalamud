@@ -6,11 +6,11 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using Lumina.Text.ReadOnly;
 
-using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
+using static Dalamud.Interface.Internal.UiDebug.Utility.Gui;
 using static Dalamud.Utility.Util;
 using static FFXIVClientStructs.FFXIV.Component.GUI.ComponentType;
 
-namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
+namespace Dalamud.Interface.Internal.UiDebug.Browsing;
 
 /// <summary>
 /// A tree for an <see cref="AtkComponentNode"/> that can be printed and browsed via ImGui.

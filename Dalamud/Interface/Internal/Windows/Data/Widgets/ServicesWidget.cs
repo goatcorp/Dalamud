@@ -66,11 +66,10 @@ internal class ServicesWidget : IDataWindowWidget
             var margin = ImGui.CalcTextSize("W\nW\nW"u8);
             var rowHeight = cellPad.Y * 3;
             var width = ImGui.GetContentRegionAvail().X;
-            if (ImGui.BeginChild(
-                    "dependency-graph"u8,
-                    new(width, (this.dependencyNodes.Count * (rowHeight + margin.Y)) + cellPad.Y),
-                    false,
-                    ImGuiWindowFlags.HorizontalScrollbar))
+            var childSize = new Vector2(width, (this.dependencyNodes.Count * (rowHeight + margin.Y)) + cellPad.Y);
+
+            using var child = ImRaii.Child("dependency-graph"u8, childSize, false, ImGuiWindowFlags.HorizontalScrollbar);
+            if (child.Success)
             {
                 const uint rectBaseBorderColor = 0xFFFFFFFF;
                 const uint rectHoverFillColor = 0xFF404040;
@@ -118,10 +117,8 @@ internal class ServicesWidget : IDataWindowWidget
                             hoveredNode = node;
                             if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                             {
-                                if (this.selectedNodes.Contains(node.Type))
+                                if (!this.selectedNodes.Add(node.Type))
                                     this.selectedNodes.Remove(node.Type);
-                                else
-                                    this.selectedNodes.Add(node.Type);
                             }
                         }
 
@@ -195,13 +192,11 @@ internal class ServicesWidget : IDataWindowWidget
                             ImGui.SetTooltip(node.BlockingReason);
 
                         ImGui.SetCursorPos((new Vector2(rc.X, rc.Y) - pos) + ((cellSize - textSize) / 2));
-                        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
+                        using var pushedStyle = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
                         ImGui.Text(node.DisplayedName);
                         ImGui.SameLine();
-                        ImGui.PushStyleColor(ImGuiCol.Text, node.TypeSuffixColor);
+                        using var pushedColor = ImRaii.PushColor(ImGuiCol.Text, node.TypeSuffixColor);
                         ImGui.Text(node.TypeSuffix);
-                        ImGui.PopStyleVar();
-                        ImGui.PopStyleColor();
                     }
                 }
 
@@ -233,7 +228,6 @@ internal class ServicesWidget : IDataWindowWidget
 
                 ImGui.SetCursorPos(default);
                 ImGui.Dummy(new(maxRowWidth, this.dependencyNodes.Count * rowHeight));
-                ImGui.EndChild();
             }
         }
 

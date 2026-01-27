@@ -8,12 +8,12 @@ using Dalamud.Interface.Components;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using static Dalamud.Interface.FontAwesomeIcon;
-using static Dalamud.Interface.Internal.UiDebug2.ElementSelector;
-using static Dalamud.Interface.Internal.UiDebug2.UiDebug2;
-using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
+using static Dalamud.Interface.Internal.UiDebug.ElementSelector;
+using static Dalamud.Interface.Internal.UiDebug.UiDebug;
+using static Dalamud.Interface.Internal.UiDebug.Utility.Gui;
 using static Dalamud.Utility.Util;
 
-namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
+namespace Dalamud.Interface.Internal.UiDebug.Browsing;
 
 /// <summary>
 /// A class representing an <see cref="AtkUnitBase"/>, allowing it to be browsed within an ImGui window.

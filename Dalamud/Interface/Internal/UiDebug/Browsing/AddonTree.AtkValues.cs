@@ -1,7 +1,7 @@
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Internal.UiDebug.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 
@@ -9,7 +9,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
-namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
+namespace Dalamud.Interface.Internal.UiDebug.Browsing;
 
 /// <inheritdoc cref="AddonTree"/>
 public unsafe partial class AddonTree
