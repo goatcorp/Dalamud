@@ -62,7 +62,7 @@ internal class GaugeWidget : IDataWindowWidget
             40 => jobGauges.Get<SGEGauge>(),
             41 => jobGauges.Get<VPRGauge>(),
             42 => jobGauges.Get<PCTGauge>(),
-            _ => null
+            _ => null,
         };
 
         if (gauge == null)
