@@ -128,10 +128,10 @@ internal static class HookVerifier
             _ when type == typeof(char) || type == typeof(short) || type == typeof(ushort) || type == typeof(Half) => 2,
             _ when type == typeof(int) || type == typeof(uint) || type == typeof(float) || (type == typeof(bool) && isMarshaled) => 4,
             _ when type == typeof(long) || type == typeof(ulong) || type == typeof(double) || type.IsPointer || type.IsFunctionPointer || type.IsUnmanagedFunctionPointer || (type.Name == "Pointer`1" && type.Namespace.AsSpan().SequenceEqual(ClientStructsInteropNamespacePrefix)) || type == typeof(CStringPointer) => 8,
-            _ when type.Name.StartsWith("FixedSizeArray") => SizeOf(type.GetGenericArguments()[0]) * int.Parse(type.Name[14..type.Name.IndexOf('`')]),
-            _ when type.GetCustomAttribute<InlineArrayAttribute>() is { Length: var length } => SizeOf(type.GetGenericArguments()[0]) * length,
+            _ when type.Name.StartsWith("FixedSizeArray") => SizeOf(type.GetGenericArguments()[0], isMarshaled) * int.Parse(type.Name[14..type.Name.IndexOf('`')]),
+            _ when type.GetCustomAttribute<InlineArrayAttribute>() is { Length: var length } => SizeOf(type.GetGenericArguments()[0], isMarshaled) * length,
             _ when IsStruct(type) && !type.IsGenericType && (type.StructLayoutAttribute?.Value ?? LayoutKind.Sequential) != LayoutKind.Sequential => type.StructLayoutAttribute?.Size ?? (int?)typeof(Unsafe).GetMethod("SizeOf")?.MakeGenericMethod(type).Invoke(null, null) ?? 0,
-            _ when type.IsEnum => SizeOf(Enum.GetUnderlyingType(type)),
+            _ when type.IsEnum => SizeOf(Enum.GetUnderlyingType(type), isMarshaled),
             _ when type.IsGenericType => Marshal.SizeOf(Activator.CreateInstance(type)!),
             _ => GetSizeOf(type),
         };
