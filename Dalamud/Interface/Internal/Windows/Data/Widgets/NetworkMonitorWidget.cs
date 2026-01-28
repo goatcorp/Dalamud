@@ -55,22 +55,19 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
     public bool Ready { get; set; }
 
     /// <inheritdoc/>
-    public void Load()
-    {
-        this.hookDown = Hook<PacketDispatcher.Delegates.OnReceivePacket>.FromAddress(
-            (nint)PacketDispatcher.StaticVirtualTablePointer->OnReceivePacket,
-            this.OnReceivePacketDetour);
-
-        this.hookUp = Hook<ZoneClient.Delegates.SendPacket>.FromAddress(
-            (nint)ZoneClient.MemberFunctionPointers.SendPacket,
-            this.SendPacketDetour);
-
-        this.Ready = true;
-    }
+    public void Load() => this.Ready = true;
 
     /// <inheritdoc/>
     public void Draw()
     {
+        this.hookDown ??= Hook<PacketDispatcher.Delegates.OnReceivePacket>.FromAddress(
+            (nint)PacketDispatcher.StaticVirtualTablePointer->OnReceivePacket,
+            this.OnReceivePacketDetour);
+
+        this.hookUp ??= Hook<ZoneClient.Delegates.SendPacket>.FromAddress(
+            (nint)ZoneClient.MemberFunctionPointers.SendPacket,
+            this.SendPacketDetour);
+
         if (ImGui.Checkbox("Track Network Packets"u8, ref this.trackNetwork))
         {
             if (this.trackNetwork)
