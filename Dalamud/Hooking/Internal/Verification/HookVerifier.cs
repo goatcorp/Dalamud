@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Logging.Internal;
 
+using FFXIVClientStructs.FFXIV.Application.Network;
+
 using InteropGenerator.Runtime;
 
 namespace Dalamud.Hooking.Internal.Verification;
@@ -25,7 +27,12 @@ internal static class HookVerifier
             "ActorControlSelf",
             "E8 ?? ?? ?? ?? 0F B7 0B 83 E9 64",
             typeof(ActorControlSelfDelegate), // TODO: change this to CS delegate
-            "Signature changed in Patch 7.4") // 7.4 (new parameters)
+            "Signature changed in Patch 7.4"), // 7.4 (new parameters)
+        new(
+            "SendPacket",
+            ZoneClient.Addresses.SendPacket.String,
+            typeof(ZoneClient.Delegates.SendPacket),
+            "Force marshaling context") // If people hook with 4 byte return this locks people out from logging in
     ];
 
     private static readonly string ClientStructsInteropNamespacePrefix = string.Join(".", nameof(FFXIVClientStructs), nameof(FFXIVClientStructs.Interop));
