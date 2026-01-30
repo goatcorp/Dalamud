@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
@@ -22,6 +20,19 @@ public interface IUnlockState : IDalamudService
     /// Event triggered when something was unlocked.
     /// </summary>
     event UnlockDelegate? Unlock;
+
+    /// <summary>
+    /// Gets a value indicating whether the full Achievements list was received.
+    /// </summary>
+    bool IsAchievementListLoaded { get; }
+
+    /// <summary>
+    /// Determines whether the specified Achievement is completed.<br/>
+    /// Requires that the player requested the Achievements list (can be chcked with <see cref="IsAchievementListLoaded"/>).
+    /// </summary>
+    /// <param name="row">The Achievement row to check.</param>
+    /// <returns><see langword="true"/> if completed; otherwise, <see langword="false"/>.</returns>
+    bool IsAchievementComplete(Achievement row);
 
     /// <summary>
     /// Determines whether the specified Action is unlocked.
