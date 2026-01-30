@@ -47,6 +47,13 @@ public interface IUnlockState : IDalamudService
     bool IsActionUnlocked(Lumina.Excel.Sheets.Action row);
 
     /// <summary>
+    /// Determines whether the specified Adventure is completed.
+    /// </summary>
+    /// <param name="row">The Adventure row to check.</param>
+    /// <returns><see langword="true"/> if completed; otherwise, <see langword="false"/>.</returns>
+    public bool IsAdventureComplete(Adventure row);
+
+    /// <summary>
     /// Determines whether the specified AetherCurrentCompFlgSet is unlocked.
     /// </summary>
     /// <param name="row">The AetherCurrentCompFlgSet row to check.</param>
