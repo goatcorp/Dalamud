@@ -116,6 +116,15 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
+    public bool IsAdventureComplete(Adventure row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return PlayerState.Instance()->IsAdventureComplete(row.RowId - 0x210000);
+    }
+
+    /// <inheritdoc/>
     public bool IsAetherCurrentUnlocked(AetherCurrent row)
     {
         if (!this.IsLoaded)
@@ -527,6 +536,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<ActionSheet>(out var actionRow))
             return this.IsActionUnlocked(actionRow);
 
+        if (rowRef.TryGetValue<Adventure>(out var adventureRow))
+            return this.IsAdventureComplete(adventureRow);
+
         if (rowRef.TryGetValue<AetherCurrent>(out var aetherCurrentRow))
             return this.IsAetherCurrentUnlocked(aetherCurrentRow);
 
@@ -710,10 +722,11 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             return;
 
         Log.Verbose("Checking for new unlocks...");
-        
+
         // Do not check for Achievements or Titles here!
 
         this.UpdateUnlocksForSheet<ActionSheet>();
+        this.UpdateUnlocksForSheet<Adventure>();
         this.UpdateUnlocksForSheet<AetherCurrent>();
         this.UpdateUnlocksForSheet<AetherCurrentCompFlgSet>();
         this.UpdateUnlocksForSheet<AozAction>();
@@ -760,7 +773,6 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         // For some other day:
         // - FishingSpot
         // - Spearfishing
-        // - Adventure (Sightseeing)
         // - MinerFolkloreTome
         // - BotanistFolkloreTome
         // - FishingFolkloreTome
@@ -850,6 +862,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsActionUnlocked(ActionSheet row) => this.unlockStateService.IsActionUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsAdventureComplete(Adventure row) => this.unlockStateService.IsAdventureComplete(row);
 
     /// <inheritdoc/>
     public bool IsAetherCurrentCompFlgSetUnlocked(AetherCurrentCompFlgSet row) => this.unlockStateService.IsAetherCurrentCompFlgSetUnlocked(row);
