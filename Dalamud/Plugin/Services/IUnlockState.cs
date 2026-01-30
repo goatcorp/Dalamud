@@ -27,6 +27,11 @@ public interface IUnlockState : IDalamudService
     bool IsAchievementListLoaded { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the full Titles list was received.
+    /// </summary>
+    bool IsTitleListLoaded { get; }
+
+    /// <summary>
     /// Determines whether the specified Achievement is completed.<br/>
     /// Requires that the player requested the Achievements list (can be chcked with <see cref="IsAchievementListLoaded"/>).
     /// </summary>
@@ -321,6 +326,14 @@ public interface IUnlockState : IDalamudService
     /// <param name="row">The SecretRecipeBook row to check.</param>
     /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
     bool IsSecretRecipeBookUnlocked(SecretRecipeBook row);
+
+    /// <summary>
+    /// Determines whether the specified Title is unlocked.<br/>
+    /// Requires that the player requested the Titles list (can be chcked with <see cref="IsTitleListLoaded"/>).
+    /// </summary>
+    /// <param name="row">The Title row to check.</param>
+    /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
+    bool IsTitleUnlocked(Title row);
 
     /// <summary>
     /// Determines whether the specified Trait is unlocked.

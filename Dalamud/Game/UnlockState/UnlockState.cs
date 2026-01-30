@@ -50,6 +50,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
     private readonly ConcurrentDictionary<Type, HashSet<uint>> cachedUnlockedRowIds = [];
     private readonly Hook<SetAchievementCompletedDelegate> setAchievementCompletedHook;
+    private readonly Hook<SetTitleUnlockedDelegate> setTitleUnlockedHook;
 
     [ServiceManager.ServiceConstructor]
     private UnlockState()
@@ -62,16 +63,26 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             this.sigScanner.ScanText("81 FA ?? ?? ?? ?? 0F 87 ?? ?? ?? ?? 53"),
             this.SetAchievementCompletedDetour);
 
+        this.setTitleUnlockedHook = Hook<SetTitleUnlockedDelegate>.FromAddress(
+            this.sigScanner.ScanText("B8 ?? ?? ?? ?? 66 3B D0 73 ?? 44 0F B7 C2 49 C1 E8 ?? 4C 03 C1 0F B7 C2 83 E0 ?? 41 0F B6 48 ?? 0F AB C1"),
+            this.SetTitleUnlockedDetour);
+
         this.setAchievementCompletedHook.Enable();
+        this.setTitleUnlockedHook.Enable();
     }
 
     private delegate void SetAchievementCompletedDelegate(CSAchievement* thisPtr, uint id);
+
+    private delegate void SetTitleUnlockedDelegate(TitleList* thisPtr, ushort id);
 
     /// <inheritdoc/>
     public event IUnlockState.UnlockDelegate Unlock;
 
     /// <inheritdoc/>
     public bool IsAchievementListLoaded => CSAchievement.Instance()->IsLoaded();
+
+    /// <inheritdoc/>
+    public bool IsTitleListLoaded => UIState.Instance()->TitleList.DataReceived;
 
     private bool IsLoaded => PlayerState.Instance()->IsLoaded;
 
@@ -449,6 +460,19 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
+    public bool IsTitleUnlocked(Title row)
+    {
+        // Only check for login state here as individual Titles
+        // may be flagged as complete when you unlock them, regardless
+        // of whether the full Titles list was loaded or not.
+
+        if (!this.IsLoaded)
+            return false;
+
+        return UIState.Instance()->TitleList.IsTitleUnlocked((ushort)row.RowId);
+    }
+
+    /// <inheritdoc/>
     public bool IsTraitUnlocked(Trait row)
     {
         return this.IsUnlockLinkUnlocked(row.Quest.RowId);
@@ -608,6 +632,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<SecretRecipeBook>(out var secretRecipeBookRow))
             return this.IsSecretRecipeBookUnlocked(secretRecipeBookRow);
 
+        if (rowRef.TryGetValue<Title>(out var titleRow))
+            return this.IsTitleUnlocked(titleRow);
+
         if (rowRef.TryGetValue<Trait>(out var traitRow))
             return this.IsTraitUnlocked(traitRow);
 
@@ -667,14 +694,24 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<AchievementSheet>(id));
     }
 
+    private void SetTitleUnlockedDetour(TitleList* thisPtr, ushort id)
+    {
+        this.setTitleUnlockedHook.Original(thisPtr, id);
+
+        if (!this.IsLoaded)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<Title>(id));
+    }
+
     private void Update()
     {
         if (!this.IsLoaded)
             return;
 
         Log.Verbose("Checking for new unlocks...");
-
-        // Do not check for Achievements here!
+        
+        // Do not check for Achievements or Titles here!
 
         this.UpdateUnlocksForSheet<ActionSheet>();
         this.UpdateUnlocksForSheet<AetherCurrent>();
@@ -736,7 +773,6 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         // - EmjCostume
 
         // Probably not happening, because it requires fetching data from server:
-        // - Titles
         // - Bozjan Field Notes
         // - Support/Phantom Jobs, which require to be in Occult Crescent, because it checks the jobs level for != 0
     }
@@ -805,6 +841,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsAchievementListLoaded => this.unlockStateService.IsAchievementListLoaded;
+
+    /// <inheritdoc/>
+    public bool IsTitleListLoaded => this.unlockStateService.IsTitleListLoaded;
 
     /// <inheritdoc/>
     public bool IsAchievementComplete(AchievementSheet row) => this.unlockStateService.IsAchievementComplete(row);
@@ -931,6 +970,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsSecretRecipeBookUnlocked(SecretRecipeBook row) => this.unlockStateService.IsSecretRecipeBookUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsTitleUnlocked(Title row) => this.unlockStateService.IsTitleUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsTraitUnlocked(Trait row) => this.unlockStateService.IsTraitUnlocked(row);
