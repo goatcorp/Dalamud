@@ -336,7 +336,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             this.MenuCallbackIds.Clear();
             this.SelectedAgent = agent;
             var unitManager = RaptureAtkUnitManager.Instance();
-            this.SelectedParentAddon = unitManager->GetAddonById(unitManager->GetAddonByName(addonName)->ContextMenuParentId);
+            this.SelectedParentAddon = unitManager->GetAddonById(unitManager->GetAddonByName(addonName)->BlockedParentId);
             this.SelectedEventInterfaces.Clear();
             if (this.SelectedAgent == AgentInventoryContext.Instance())
             {

@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Threading;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
@@ -23,7 +22,7 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
     private readonly ConcurrentQueue<NetworkPacketData> packets = new();
 
     private Hook<PacketDispatcher.Delegates.OnReceivePacket>? hookDown;
-    private Hook<ZoneClientSendPacketDelegate>? hookUp;
+    private Hook<ZoneClient.Delegates.SendPacket>? hookUp;
 
     private bool trackNetwork;
     private int trackedPackets = 20;
@@ -39,8 +38,6 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
         this.hookDown?.Dispose();
         this.hookUp?.Dispose();
     }
-
-    private delegate byte ZoneClientSendPacketDelegate(ZoneClient* thisPtr, nint packet, uint a3, uint a4, byte a5);
 
     private enum NetworkMessageDirection
     {
@@ -58,22 +55,19 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
     public bool Ready { get; set; }
 
     /// <inheritdoc/>
-    public void Load()
-    {
-        this.hookDown = Hook<PacketDispatcher.Delegates.OnReceivePacket>.FromAddress(
-            (nint)PacketDispatcher.StaticVirtualTablePointer->OnReceivePacket,
-            this.OnReceivePacketDetour);
-
-        // TODO: switch to ZoneClient.SendPacket from CS
-        if (Service<TargetSigScanner>.Get().TryScanText("E8 ?? ?? ?? ?? 4C 8B 44 24 ?? E9", out var address))
-            this.hookUp = Hook<ZoneClientSendPacketDelegate>.FromAddress(address, this.SendPacketDetour);
-
-        this.Ready = true;
-    }
+    public void Load() => this.Ready = true;
 
     /// <inheritdoc/>
     public void Draw()
     {
+        this.hookDown ??= Hook<PacketDispatcher.Delegates.OnReceivePacket>.FromAddress(
+            (nint)PacketDispatcher.StaticVirtualTablePointer->OnReceivePacket,
+            this.OnReceivePacketDetour);
+
+        this.hookUp ??= Hook<ZoneClient.Delegates.SendPacket>.FromAddress(
+            (nint)ZoneClient.MemberFunctionPointers.SendPacket,
+            this.SendPacketDetour);
+
         if (ImGui.Checkbox("Track Network Packets"u8, ref this.trackNetwork))
         {
             if (this.trackNetwork)
@@ -213,7 +207,7 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
         this.hookDown.OriginalDisposeSafe(thisPtr, targetId, packet);
     }
 
-    private byte SendPacketDetour(ZoneClient* thisPtr, nint packet, uint a3, uint a4, byte a5)
+    private bool SendPacketDetour(ZoneClient* thisPtr, nint packet, uint a3, uint a4, bool a5)
     {
         var opCode = *(ushort*)packet;
         this.RecordPacket(new NetworkPacketData(Interlocked.Increment(ref this.nextPacketIndex), DateTime.Now, opCode, NetworkMessageDirection.ZoneUp, 0, string.Empty));
