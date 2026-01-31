@@ -18,12 +18,12 @@ public enum AgentEvent
     /// <summary>
     /// An event that is fired before the agent processes its Filtered Receive Event Function.
     /// </summary>
-    PreReceiveFilteredEvent,
+    PreReceiveEventWithResult,
 
     /// <summary>
     /// An event that is fired after the agent has processed its Filtered Receive Event Function.
     /// </summary>
-    PostReceiveFilteredEvent,
+    PostReceiveEventWithResult,
 
     /// <summary>
     /// An event that is fired before the agent processes its Show Function.

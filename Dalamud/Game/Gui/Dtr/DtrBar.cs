@@ -397,7 +397,15 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
                     ushort w = 0, h = 0;
                     node->GetTextDrawSize(&w, &h, node->NodeText.StringPtr);
-                    node->SetWidth(w);
+
+                    if (data.MinimumWidth > 0)
+                    {
+                        node->SetWidth(Math.Max(data.MinimumWidth, w));
+                    }
+                    else
+                    {
+                        node->SetWidth(w);
+                    }
                 }
 
                 var elementWidth = data.TextNode->Width + this.configuration.DtrSpacing;
