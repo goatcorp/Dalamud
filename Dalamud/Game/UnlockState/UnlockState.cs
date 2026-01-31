@@ -34,9 +34,6 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     private static readonly ModuleLog Log = new(nameof(UnlockState));
 
     [ServiceManager.ServiceDependency]
-    private readonly TargetSigScanner sigScanner = Service<TargetSigScanner>.Get();
-
-    [ServiceManager.ServiceDependency]
     private readonly DataManager dataManager = Service<DataManager>.Get();
 
     [ServiceManager.ServiceDependency]
@@ -49,8 +46,8 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     private readonly RecipeData recipeData = Service<RecipeData>.Get();
 
     private readonly ConcurrentDictionary<Type, HashSet<uint>> cachedUnlockedRowIds = [];
-    private readonly Hook<SetAchievementCompletedDelegate> setAchievementCompletedHook;
-    private readonly Hook<SetTitleUnlockedDelegate> setTitleUnlockedHook;
+    private readonly Hook<CSAchievement.Delegates.SetAchievementCompleted> setAchievementCompletedHook;
+    private readonly Hook<TitleList.Delegates.SetTitleUnlocked> setTitleUnlockedHook;
 
     [ServiceManager.ServiceConstructor]
     private UnlockState()
@@ -59,21 +56,17 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.clientState.Logout += this.OnLogout;
         this.gameGui.AgentUpdate += this.OnAgentUpdate;
 
-        this.setAchievementCompletedHook = Hook<SetAchievementCompletedDelegate>.FromAddress(
-            this.sigScanner.ScanText("81 FA ?? ?? ?? ?? 0F 87 ?? ?? ?? ?? 53"),
+        this.setAchievementCompletedHook = Hook<CSAchievement.Delegates.SetAchievementCompleted>.FromAddress(
+            (nint)CSAchievement.MemberFunctionPointers.SetAchievementCompleted,
             this.SetAchievementCompletedDetour);
 
-        this.setTitleUnlockedHook = Hook<SetTitleUnlockedDelegate>.FromAddress(
-            this.sigScanner.ScanText("B8 ?? ?? ?? ?? 66 3B D0 73 ?? 44 0F B7 C2 49 C1 E8 ?? 4C 03 C1 0F B7 C2 83 E0 ?? 41 0F B6 48 ?? 0F AB C1"),
+        this.setTitleUnlockedHook = Hook<TitleList.Delegates.SetTitleUnlocked>.FromAddress(
+            (nint)TitleList.MemberFunctionPointers.SetTitleUnlocked,
             this.SetTitleUnlockedDetour);
 
         this.setAchievementCompletedHook.Enable();
         this.setTitleUnlockedHook.Enable();
     }
-
-    private delegate void SetAchievementCompletedDelegate(CSAchievement* thisPtr, uint id);
-
-    private delegate void SetTitleUnlockedDelegate(TitleList* thisPtr, ushort id);
 
     /// <inheritdoc/>
     public event IUnlockState.UnlockDelegate Unlock;
