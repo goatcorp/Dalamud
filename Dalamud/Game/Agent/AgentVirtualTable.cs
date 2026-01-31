@@ -21,7 +21,7 @@ internal unsafe class AgentVirtualTable : IDisposable
     // Copying extra entries is not problematic, and is considered safe.
     private const int VirtualTableEntryCount = 60;
 
-    private const bool EnableLogging = true;
+    private const bool EnableLogging = false;
 
     private static readonly ModuleLog Log = new("AgentVT");
 
@@ -44,7 +44,7 @@ internal unsafe class AgentVirtualTable : IDisposable
     // Pinned Function Delegates, as these functions get assigned to an unmanaged virtual table,
     // the CLR needs to know they are in use, or it will invalidate them causing random crashing.
     private readonly AgentInterface.Delegates.ReceiveEvent receiveEventFunction;
-    private readonly AgentInterface.Delegates.ReceiveEvent2 filteredReceiveEventFunction;
+    private readonly AgentInterface.Delegates.ReceiveEventWithResult receiveEventWithResultFunction;
     private readonly AgentInterface.Delegates.Show showFunction;
     private readonly AgentInterface.Delegates.Hide hideFunction;
     private readonly AgentInterface.Delegates.Update updateFunction;
@@ -60,8 +60,6 @@ internal unsafe class AgentVirtualTable : IDisposable
     /// <param name="lifecycleService">Reference to AgentLifecycle service to callback and invoke listeners.</param>
     internal AgentVirtualTable(AgentInterface* agent, AgentId agentId, AgentLifecycle lifecycleService)
     {
-        Log.Debug($"Initializing AgentVirtualTable for {agentId}, Address: {(nint)agent:X}");
-
         this.agentInterface = agent;
         this.agentId = agentId;
         this.lifecycleService = lifecycleService;
@@ -80,7 +78,7 @@ internal unsafe class AgentVirtualTable : IDisposable
 
         // Pin each of our listener functions
         this.receiveEventFunction = this.OnAgentReceiveEvent;
-        this.filteredReceiveEventFunction = this.OnAgentFilteredReceiveEvent;
+        this.receiveEventWithResultFunction = this.OnAgentReceiveEventWithResult;
         this.showFunction = this.OnAgentShow;
         this.hideFunction = this.OnAgentHide;
         this.updateFunction = this.OnAgentUpdate;
@@ -90,7 +88,7 @@ internal unsafe class AgentVirtualTable : IDisposable
 
         // Overwrite specific virtual table entries
         this.ModifiedVirtualTable->ReceiveEvent = (delegate* unmanaged<AgentInterface*, AtkValue*, AtkValue*, uint, ulong, AtkValue*>)Marshal.GetFunctionPointerForDelegate(this.receiveEventFunction);
-        this.ModifiedVirtualTable->ReceiveEvent2 = (delegate* unmanaged<AgentInterface*, AtkValue*, AtkValue*, uint, ulong, AtkValue*>)Marshal.GetFunctionPointerForDelegate(this.filteredReceiveEventFunction);
+        this.ModifiedVirtualTable->ReceiveEventWithResult = (delegate* unmanaged<AgentInterface*, AtkValue*, AtkValue*, uint, ulong, AtkValue*>)Marshal.GetFunctionPointerForDelegate(this.receiveEventWithResultFunction);
         this.ModifiedVirtualTable->Show = (delegate* unmanaged<AgentInterface*, void>)Marshal.GetFunctionPointerForDelegate(this.showFunction);
         this.ModifiedVirtualTable->Hide = (delegate* unmanaged<AgentInterface*, void>)Marshal.GetFunctionPointerForDelegate(this.hideFunction);
         this.ModifiedVirtualTable->Update = (delegate* unmanaged<AgentInterface*, uint, void>)Marshal.GetFunctionPointerForDelegate(this.updateFunction);
@@ -158,7 +156,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         return result;
     }
 
-    private AtkValue* OnAgentFilteredReceiveEvent(AgentInterface* thisPtr, AtkValue* returnValue, AtkValue* values, uint valueCount, ulong eventKind)
+    private AtkValue* OnAgentReceiveEventWithResult(AgentInterface* thisPtr, AtkValue* returnValue, AtkValue* values, uint valueCount, ulong eventKind)
     {
         AtkValue* result = null;
 
@@ -173,7 +171,7 @@ internal unsafe class AgentVirtualTable : IDisposable
             this.filteredReceiveEventArgs.ValueCount = valueCount;
             this.filteredReceiveEventArgs.EventKind = eventKind;
 
-            this.lifecycleService.InvokeListenersSafely(AgentEvent.PreReceiveFilteredEvent, this.filteredReceiveEventArgs);
+            this.lifecycleService.InvokeListenersSafely(AgentEvent.PreReceiveEventWithResult, this.filteredReceiveEventArgs);
 
             returnValue = (AtkValue*)this.filteredReceiveEventArgs.ReturnValue;
             values = (AtkValue*)this.filteredReceiveEventArgs.AtkValues;
@@ -182,18 +180,18 @@ internal unsafe class AgentVirtualTable : IDisposable
 
             try
             {
-                result = this.OriginalVirtualTable->ReceiveEvent2(thisPtr, returnValue, values, valueCount, eventKind);
+                result = this.OriginalVirtualTable->ReceiveEventWithResult(thisPtr, returnValue, values, valueCount, eventKind);
             }
             catch (Exception e)
             {
                 Log.Error(e, "Caught exception when calling original Agent FilteredReceiveEvent. This may be a bug in the game or another plugin hooking this method.");
             }
 
-            this.lifecycleService.InvokeListenersSafely(AgentEvent.PostReceiveFilteredEvent, this.filteredReceiveEventArgs);
+            this.lifecycleService.InvokeListenersSafely(AgentEvent.PostReceiveEventWithResult, this.filteredReceiveEventArgs);
         }
         catch (Exception e)
         {
-            Log.Error(e, "Caught exception from Dalamud when attempting to process OnAgentFilteredReceiveEvent.");
+            Log.Error(e, "Caught exception from Dalamud when attempting to process OnAgentReceiveEventWithResult.");
         }
 
         return result;

@@ -1,7 +1,12 @@
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using Dalamud.Game;
 using Dalamud.Logging.Internal;
+
+using InteropGenerator.Runtime;
 
 namespace Dalamud.Hooking.Internal.Verification;
 
@@ -19,11 +24,13 @@ internal static class HookVerifier
         new(
             "ActorControlSelf",
             "E8 ?? ?? ?? ?? 0F B7 0B 83 E9 64",
-            typeof(ActorControlSelfDelegate),
+            typeof(ActorControlSelfDelegate), // TODO: change this to CS delegate
             "Signature changed in Patch 7.4") // 7.4 (new parameters)
     ];
 
-    private delegate void ActorControlSelfDelegate(uint category, uint eventId, uint param1, uint param2, uint param3, uint param4, uint param5, uint param6, uint param7, uint param8, ulong targetId, byte param9);
+    private static readonly string ClientStructsInteropNamespacePrefix = string.Join(".", nameof(FFXIVClientStructs), nameof(FFXIVClientStructs.Interop));
+
+    private delegate void ActorControlSelfDelegate(uint category, uint eventId, uint param1, uint param2, uint param3, uint param4, uint param5, uint param6, uint param7, uint param8, ulong targetId, byte param9); // TODO: change this to CS delegate
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HookVerifier"/> class.
@@ -71,7 +78,7 @@ internal static class HookVerifier
         var enforcedInvoke = entry.TargetDelegateType.GetMethod("Invoke")!;
 
         // Compare Return Type
-        var mismatch = passedInvoke.ReturnType != enforcedInvoke.ReturnType;
+        var mismatch = !CheckParam(passedInvoke.ReturnType, enforcedInvoke.ReturnType);
 
         // Compare Parameter Count
         var passedParams = passedInvoke.GetParameters();
@@ -86,7 +93,7 @@ internal static class HookVerifier
             // Compare Parameter Types
             for (var i = 0; i < passedParams.Length; i++)
             {
-                if (passedParams[i].ParameterType != enforcedParams[i].ParameterType)
+                if (!CheckParam(passedParams[i].ParameterType, enforcedParams[i].ParameterType))
                 {
                     mismatch = true;
                     break;
@@ -98,6 +105,45 @@ internal static class HookVerifier
         {
             throw HookVerificationException.Create(address, passedType, entry.TargetDelegateType, entry.Message);
         }
+    }
+
+    private static bool CheckParam(Type paramLeft, Type paramRight)
+    {
+        var sameType = paramLeft == paramRight;
+        return sameType || SizeOf(paramLeft) == SizeOf(paramRight);
+    }
+
+    private static int SizeOf(Type type) 
+    {
+        return type switch {
+            _ when type == typeof(sbyte) || type == typeof(byte) || type == typeof(bool) => 1,
+            _ when type == typeof(char) || type == typeof(short) || type == typeof(ushort) || type == typeof(Half) => 2,
+            _ when type == typeof(int) || type == typeof(uint) || type == typeof(float) => 4,
+            _ when type == typeof(long) || type == typeof(ulong) || type == typeof(double) || type.IsPointer || type.IsFunctionPointer || type.IsUnmanagedFunctionPointer || (type.Name == "Pointer`1" && type.Namespace.AsSpan().SequenceEqual(ClientStructsInteropNamespacePrefix)) || type == typeof(CStringPointer) => 8,
+            _ when type.Name.StartsWith("FixedSizeArray") => SizeOf(type.GetGenericArguments()[0]) * int.Parse(type.Name[14..type.Name.IndexOf('`')]),
+            _ when type.GetCustomAttribute<InlineArrayAttribute>() is { Length: var length } => SizeOf(type.GetGenericArguments()[0]) * length,
+            _ when IsStruct(type) && !type.IsGenericType && (type.StructLayoutAttribute?.Value ?? LayoutKind.Sequential) != LayoutKind.Sequential => type.StructLayoutAttribute?.Size ?? (int?)typeof(Unsafe).GetMethod("SizeOf")?.MakeGenericMethod(type).Invoke(null, null) ?? 0,
+            _ when type.IsEnum => SizeOf(Enum.GetUnderlyingType(type)),
+            _ when type.IsGenericType => Marshal.SizeOf(Activator.CreateInstance(type)!),
+            _ => GetSizeOf(type),
+        };
+    }
+
+    private static int GetSizeOf(Type type) 
+    {
+        try 
+        {
+            return Marshal.SizeOf(Activator.CreateInstance(type)!);
+        } 
+        catch 
+        {
+            return 0;
+        }
+    }
+
+    private static bool IsStruct(Type type) 
+    {
+        return type != typeof(decimal) && type is { IsValueType: true, IsPrimitive: false, IsEnum: false };
     }
 
     private record VerificationEntry(string Name, string Signature, Type TargetDelegateType, string Message)

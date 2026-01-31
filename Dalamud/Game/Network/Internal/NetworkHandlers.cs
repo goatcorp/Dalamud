@@ -55,10 +55,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private bool disposing;
 
     [ServiceManager.ServiceConstructor]
-    private NetworkHandlers(
-        GameNetwork gameNetwork,
-        TargetSigScanner sigScanner,
-        HappyHttpClient happyHttpClient)
+    private NetworkHandlers(TargetSigScanner sigScanner, HappyHttpClient happyHttpClient)
     {
         this.uploader = new UniversalisMarketBoardUploader(happyHttpClient);
 
