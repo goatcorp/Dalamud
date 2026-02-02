@@ -227,19 +227,19 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     /// <inheritdoc/>
     public T GetOrCreateData<T>(string tag, Func<T> dataGenerator) where T : class
-        => Service<DataShare>.Get().GetOrCreateData(tag, dataGenerator);
+        => Service<DataShare>.Get().GetOrCreateData(tag, this.plugin.InternalName, dataGenerator);
 
     /// <inheritdoc/>
     public void RelinquishData(string tag)
-        => Service<DataShare>.Get().RelinquishData(tag);
+        => Service<DataShare>.Get().RelinquishData(tag, this.plugin.InternalName);
 
     /// <inheritdoc/>
     public bool TryGetData<T>(string tag, [NotNullWhen(true)] out T? data) where T : class
-        => Service<DataShare>.Get().TryGetData(tag, out data);
+        => Service<DataShare>.Get().TryGetData(tag, this.plugin.InternalName, out data);
 
     /// <inheritdoc/>
     public T? GetData<T>(string tag) where T : class
-        => Service<DataShare>.Get().GetData<T>(tag);
+        => Service<DataShare>.Get().GetData<T>(tag, this.plugin.InternalName);
 
     /// <inheritdoc/>
     public ICallGateProvider<TRet> GetIpcProvider<TRet>(string name)

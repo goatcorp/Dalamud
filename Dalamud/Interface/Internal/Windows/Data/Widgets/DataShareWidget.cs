@@ -87,7 +87,7 @@ internal class DataShareWidget : IDataWindowWidget
                 try
                 {
                     var dataShare = Service<DataShare>.Get();
-                    var data2 = dataShare.GetData<object>(name);
+                    var data2 = dataShare.GetData<object>(name, "DataShareWidget");
                     try
                     {
                         data = Encoding.UTF8.GetBytes(
@@ -98,7 +98,7 @@ internal class DataShareWidget : IDataWindowWidget
                     }
                     finally
                     {
-                        dataShare.RelinquishData(name);
+                        dataShare.RelinquishData(name, "DataShareWidget");
                     }
                 }
                 catch (Exception e)
