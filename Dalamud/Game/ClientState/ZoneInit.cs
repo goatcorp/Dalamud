@@ -62,6 +62,7 @@ public class ZoneInitEventArgs : EventArgs
             Log.Error($"Failed to get TerritoryType row with ID {territoryKey}. Corrupted packet?");
             return new ZoneInitEventArgs();
         }
+        
         eventArgs.TerritoryType = territoryRow;
 
         var contentFinderKey = *(ushort*)(packet + 0x06);
@@ -70,6 +71,7 @@ public class ZoneInitEventArgs : EventArgs
             Log.Error($"Failed to get ContentFinderCondition row with ID {contentFinderKey}. Corrupted packet?");
             return new ZoneInitEventArgs();
         }
+        
         eventArgs.ContentFinderCondition = contentFinderRow;
 
         var weatherKey = *(byte*)(packet + 0x10);
@@ -78,6 +80,7 @@ public class ZoneInitEventArgs : EventArgs
             Log.Error($"Failed to get Weather row with ID {weatherKey}. Corrupted packet?");
             return new ZoneInitEventArgs();
         }
+        
         eventArgs.Weather = weatherRow;
 
         eventArgs.Instance = flags >= 0 ? (ushort)0 : *(ushort*)(packet + 0x04);
@@ -96,6 +99,7 @@ public class ZoneInitEventArgs : EventArgs
                 Log.Error($"Failed to get Festival row with ID {festivalKey}. Corrupted packet?");
                 return new ZoneInitEventArgs();
             }
+            
             eventArgs.ActiveFestivals[i] = festivalRow;
             eventArgs.ActiveFestivalPhases[i] = *(ushort*)(packet + 0x36 + (i * 2));
         }
