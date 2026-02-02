@@ -284,7 +284,7 @@ internal class DataShareWidget : IDataWindowWidget
 
         ImGui.TableSetupColumn("Shared Tag"u8);
         ImGui.TableSetupColumn("Show"u8);
-        ImGui.TableSetupColumn("Creator Assembly"u8);
+        ImGui.TableSetupColumn("Creator Internal Name"u8);
         ImGui.TableSetupColumn("#"u8, ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("Consumers"u8);
         ImGui.TableHeadersRow();
