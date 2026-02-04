@@ -1,0 +1,5 @@
+<Project>
+    <ItemGroup Label="Code Analysis">
+        <PackageReference Remove="Microsoft.CodeAnalysis.BannedApiAnalyzers" />
+    </ItemGroup>
+</Project>

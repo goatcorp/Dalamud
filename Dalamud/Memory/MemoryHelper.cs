@@ -269,6 +269,31 @@ public static unsafe class MemoryHelper
     }
 
     /// <summary>
+    /// Compares a UTF-16 character span with a null-terminated UTF-16 string at <paramref name="memoryAddress"/>.
+    /// </summary>
+    /// <param name="charSpan">UTF-16 character span (e.g., from a string literal).</param>
+    /// <param name="memoryAddress">Address of null-terminated UTF-16 (wide) string, as used by Windows APIs.</param>
+    /// <returns><see langword="true"/> if equal; otherwise, <see langword="false"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe bool EqualsZeroTerminatedWideString(
+        scoped ReadOnlySpan<char> charSpan,
+        nint memoryAddress)
+    {
+        if (memoryAddress == 0)
+            return charSpan.Length == 0;
+
+        char* p = (char*)memoryAddress;
+
+        foreach (char c in charSpan)
+        {
+            if (*p++ != c)
+                return false;
+        }
+
+        return *p == '\0';
+    }
+
+    /// <summary>
     /// Read a UTF-8 encoded string from a specified memory address.
     /// </summary>
     /// <remarks>

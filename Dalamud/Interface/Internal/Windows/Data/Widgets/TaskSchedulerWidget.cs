@@ -266,8 +266,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
             ImGui.Text($"{this.downloadState.Downloaded:##,###}/{this.downloadState.Total:##,###} ({this.downloadState.Percentage:0.00}%)");
 
-            using var disabled =
-                ImRaii.Disabled(this.downloadTask?.IsCompleted is false || this.localPath[0] == 0);
+            using var disabled = ImRaii.Disabled(this.downloadTask?.IsCompleted is false || this.localPath[0] == 0);
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Download"u8);
             ImGui.SameLine();
@@ -388,27 +387,19 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             if (task.Task == null)
                 subTime = task.FinishTime;
 
-            switch (task.Status)
+            using var pushedColor = task.Status switch
             {
-                case TaskStatus.Created:
-                case TaskStatus.WaitingForActivation:
-                case TaskStatus.WaitingToRun:
-                    ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.DalamudGrey);
-                    break;
-                case TaskStatus.Running:
-                case TaskStatus.WaitingForChildrenToComplete:
-                    ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.ParsedBlue);
-                    break;
-                case TaskStatus.RanToCompletion:
-                    ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.ParsedGreen);
-                    break;
-                case TaskStatus.Canceled:
-                case TaskStatus.Faulted:
-                    ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.DalamudRed);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                TaskStatus.Created or TaskStatus.WaitingForActivation or TaskStatus.WaitingToRun
+                    => ImRaii.PushColor(ImGuiCol.Header, ImGuiColors.DalamudGrey),
+                TaskStatus.Running or TaskStatus.WaitingForChildrenToComplete
+                    => ImRaii.PushColor(ImGuiCol.Header, ImGuiColors.ParsedBlue),
+                TaskStatus.RanToCompletion
+                    => ImRaii.PushColor(ImGuiCol.Header, ImGuiColors.ParsedGreen),
+                TaskStatus.Canceled or TaskStatus.Faulted
+                    => ImRaii.PushColor(ImGuiCol.Header, ImGuiColors.DalamudRed),
+
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
             if (ImGui.CollapsingHeader($"#{task.Id} - {task.Status} {(subTime - task.StartTime).TotalMilliseconds}ms###task{i}"))
             {
@@ -418,8 +409,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                 {
                     try
                     {
-                        var cancelFunc =
-                            typeof(Task).GetMethod("InternalCancel", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var cancelFunc = typeof(Task).GetMethod("InternalCancel", BindingFlags.NonPublic | BindingFlags.Instance);
                         cancelFunc?.Invoke(task, null);
                     }
                     catch (Exception ex)
@@ -430,7 +420,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
                 ImGuiHelpers.ScaledDummy(10);
 
-                ImGui.Text(task.StackTrace?.ToString());
+                ImGui.Text(task.StackTrace?.ToString() ?? "Null StackTrace");
 
                 if (task.Exception != null)
                 {
@@ -443,8 +433,6 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             {
                 task.IsBeingViewed = false;
             }
-
-            ImGui.PopStyleColor(1);
         }
 
         this.fileDialogManager.Draw();

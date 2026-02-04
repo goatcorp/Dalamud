@@ -22,8 +22,6 @@ using PublicContentSheet = Lumina.Excel.Sheets.PublicContent;
 
 namespace Dalamud.Game.UnlockState;
 
-#pragma warning disable Dalamud001
-
 /// <summary>
 /// This class provides unlock state of various content in the game.
 /// </summary>
@@ -313,9 +311,12 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
-    public bool IsMcGuffinUnlocked(McGuffin row)
+    public bool IsLeveCompleted(Leve row)
     {
-        return PlayerState.Instance()->IsMcGuffinUnlocked(row.RowId);
+        if (!this.IsLoaded)
+            return false;
+
+        return QuestManager.Instance()->IsLevequestComplete((ushort)row.RowId);
     }
 
     /// <inheritdoc/>
@@ -328,6 +329,15 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     public bool IsMKDLoreUnlocked(MKDLore row)
     {
         return this.IsUnlockLinkUnlocked(row.UnlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsMcGuffinUnlocked(McGuffin row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return PlayerState.Instance()->IsMcGuffinUnlocked(row.RowId);
     }
 
     /// <inheritdoc/>
@@ -379,8 +389,20 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
+    public bool IsQuestCompleted(Quest row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return QuestManager.IsQuestComplete(row.RowId);
+    }
+
+    /// <inheritdoc/>
     public bool IsRecipeUnlocked(Recipe row)
     {
+        if (!this.IsLoaded)
+            return false;
+
         return this.recipeData.IsRecipeUnlocked(row);
     }
 
@@ -511,6 +533,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<Item>(out var itemRow))
             return this.IsItemUnlocked(itemRow);
 
+        if (rowRef.TryGetValue<Leve>(out var leveRow))
+            return this.IsLeveCompleted(leveRow);
+
         if (rowRef.TryGetValue<MJILandmark>(out var mjiLandmarkRow))
             return this.IsMJILandmarkUnlocked(mjiLandmarkRow);
 
@@ -537,6 +562,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
         if (rowRef.TryGetValue<PublicContentSheet>(out var publicContentRow))
             return this.IsPublicContentUnlocked(publicContentRow);
+
+        if (rowRef.TryGetValue<Quest>(out var questRow))
+            return this.IsQuestCompleted(questRow);
 
         if (rowRef.TryGetValue<Recipe>(out var recipeRow))
             return this.IsRecipeUnlocked(recipeRow);
@@ -598,6 +626,8 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return;
 
+        Log.Verbose("Checking for new unlocks...");
+
         this.UpdateUnlocksForSheet<ActionSheet>();
         this.UpdateUnlocksForSheet<AetherCurrent>();
         this.UpdateUnlocksForSheet<AetherCurrentCompFlgSet>();
@@ -631,6 +661,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.UpdateUnlocksForSheet<Ornament>();
         this.UpdateUnlocksForSheet<Perform>();
         this.UpdateUnlocksForSheet<PublicContentSheet>();
+        this.UpdateUnlocksForSheet<Quest>();
         this.UpdateUnlocksForSheet<Recipe>();
         this.UpdateUnlocksForSheet<SecretRecipeBook>();
         this.UpdateUnlocksForSheet<Trait>();
@@ -639,6 +670,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         // Not implemented:
         // - DescriptionPage: quite complex
         // - QuestAcceptAdditionCondition: ignored
+        // - Leve: AgentUpdateFlag.UnlocksUpdate is not set and the completed status can be unset again!
 
         // For some other day:
         // - FishingSpot
@@ -678,7 +710,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
             unlockedRowIds.Add(row.RowId);
 
-            Log.Verbose($"Unlock detected: {typeof(T).Name}#{row.RowId}");
+            // Log.Verbose($"Unlock detected: {typeof(T).Name}#{row.RowId}");
 
             foreach (var action in Delegate.EnumerateInvocationList(this.Unlock))
             {
@@ -798,13 +830,16 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
     public bool IsItemUnlocked(Item row) => this.unlockStateService.IsItemUnlocked(row);
 
     /// <inheritdoc/>
-    public bool IsMcGuffinUnlocked(McGuffin row) => this.unlockStateService.IsMcGuffinUnlocked(row);
+    public bool IsLeveCompleted(Leve row) => this.unlockStateService.IsLeveCompleted(row);
 
     /// <inheritdoc/>
     public bool IsMJILandmarkUnlocked(MJILandmark row) => this.unlockStateService.IsMJILandmarkUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsMKDLoreUnlocked(MKDLore row) => this.unlockStateService.IsMKDLoreUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsMcGuffinUnlocked(McGuffin row) => this.unlockStateService.IsMcGuffinUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsMountUnlocked(Mount row) => this.unlockStateService.IsMountUnlocked(row);
@@ -823,6 +858,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsPublicContentUnlocked(PublicContentSheet row) => this.unlockStateService.IsPublicContentUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsQuestCompleted(Quest row) => this.unlockStateService.IsQuestCompleted(row);
 
     /// <inheritdoc/>
     public bool IsRecipeUnlocked(Recipe row) => this.unlockStateService.IsRecipeUnlocked(row);
