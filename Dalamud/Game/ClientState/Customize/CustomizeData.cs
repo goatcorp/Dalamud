@@ -9,7 +9,7 @@ public interface ICustomizeData
 {
     /// <summary>
     /// Gets the current race.
-    /// E.g., Miqo'te, Aura
+    /// E.g., Miqo'te, Aura.
     /// </summary>
     public byte Race { get; }
 
@@ -31,13 +31,13 @@ public interface ICustomizeData
 
     /// <summary>
     /// Gets the current tribe.
-    /// E.g., Seeker of the Sun, Keeper of the Moon
+    /// E.g., Seeker of the Sun, Keeper of the Moon.
     /// </summary>
     public byte Tribe { get; }
 
     /// <summary>
     /// Gets the current face.
-    /// 1 to 4
+    /// 1 to 4.
     /// </summary>
     public byte Face { get; }
 
@@ -108,7 +108,7 @@ public interface ICustomizeData
 
     /// <summary>
     /// Gets the current bust size.
-    /// 0 to 100
+    /// 0 to 100.
     /// </summary>
     public byte BustSize { get; }
 
