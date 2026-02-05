@@ -24,8 +24,7 @@ public interface ICustomizeData
     public byte BodyType { get; }
 
     /// <summary>
-    /// Gets the current height.
-    /// 0 to 100
+    /// Gets the current height (0 to 100).
     /// </summary>
     public byte Height { get; }
 
@@ -36,8 +35,7 @@ public interface ICustomizeData
     public byte Tribe { get; }
 
     /// <summary>
-    /// Gets the current face.
-    /// 1 to 4.
+    /// Gets the current face (1 to 4).
     /// </summary>
     public byte Face { get; }
 
@@ -102,13 +100,12 @@ public interface ICustomizeData
     public byte MuscleMass { get; }
 
     /// <summary>
-    /// Gets the current tail type.
+    /// Gets the current tail type (1 to 4).
     /// </summary>
     public byte TailShape { get; }
 
     /// <summary>
-    /// Gets the current bust size.
-    /// 0 to 100.
+    /// Gets the current bust size (0 to 100).
     /// </summary>
     public byte BustSize { get; }
 
