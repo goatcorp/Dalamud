@@ -330,4 +330,9 @@ public interface ITextureProvider : IDalamudService
     /// <c>((delegate* unmanaged&lt;nint, void&gt;)(*(nint**)ptr)[3](ptr)</c>.</para>
     /// </remarks>
     nint ConvertToKernelTexture(IDalamudTextureWrap wrap, bool leaveWrapOpen = false);
+
+    /// <summary>Tries to get a files thumbnail from the Win32 API</summary>
+    /// <param name="filePath">Path to file you want to preview.</param>
+    /// <returns>A <see cref="IDalamudTextureWrap"/> TextureWrap or null.</returns>
+    IDalamudTextureWrap? TryGetFileThumbnail(string filePath);
 }

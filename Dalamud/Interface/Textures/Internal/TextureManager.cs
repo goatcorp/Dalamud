@@ -1,5 +1,7 @@
+using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,12 +19,20 @@ using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using Dalamud.Utility.TerraFxCom;
-
 using Lumina.Data;
 using Lumina.Data.Files;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
+
+using static TerraFX.Interop.Windows.COINIT;
+using static TerraFX.Interop.Windows.SIIGBF;
+using static TerraFX.Interop.Windows.Windows;
+
+using BitmapData = System.Drawing.Imaging.BitmapData;
+using HBITMAP = TerraFX.Interop.Windows.HBITMAP;
+using ImageLockMode = System.Drawing.Imaging.ImageLockMode;
+using IShellItemImageFactory = TerraFX.Interop.Windows.IShellItemImageFactory;
+using SIZE = TerraFX.Interop.Windows.SIZE;
 
 namespace Dalamud.Interface.Textures.Internal;
 
@@ -301,6 +311,42 @@ internal sealed partial class TextureManager
 
         const D3D11_FORMAT_SUPPORT required = D3D11_FORMAT_SUPPORT.D3D11_FORMAT_SUPPORT_TEXTURE2D;
         return (supported & required) == required;
+    }
+
+    /// <inheritdoc/>
+    public unsafe IDalamudTextureWrap? TryGetFileThumbnail(string path)
+    {
+        const int size = 256;
+        HRESULT hr = CoInitializeEx(null, (uint)(COINIT_DISABLE_OLE1DDE | COINIT_MULTITHREADED));
+        if (hr.FAILED)
+            return null;
+
+        IShellItemImageFactory* imageFact;
+        fixed (char* pstr = path)
+        {
+            hr = SHCreateItemFromParsingName(pstr, null, __uuidof<IShellItemImageFactory>(), (void**)&imageFact);
+        }
+
+        if (hr.FAILED)
+            return null;
+
+        HBITMAP hbmp;
+        imageFact->GetImage(new SIZE(cx: size, cy: size), (int)SIIGBF_BIGGERSIZEOK, &hbmp);
+        var image = Image.FromHbitmap(hbmp);
+        BitmapData bd = image.LockBits(new(Point.Empty, image.Size), ImageLockMode.ReadOnly, image.PixelFormat);
+        var rowSize = bd.Stride < 0 ? -bd.Stride : bd.Stride;
+        var pixels = new byte[bd.Height * rowSize];
+        var iptr = bd.Scan0;
+
+        for (int y = 0; y < bd.Height; y++)
+        {
+            Marshal.Copy(IntPtr.Add(iptr, y * bd.Stride),
+                         pixels, y * rowSize,
+                         rowSize);
+        }
+
+        image.UnlockBits(bd);
+        return this.CreateFromRaw(new RawImageSpecification(bd.Width, bd.Height, (int)DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM), pixels.AsSpan());
     }
 
     /// <inheritdoc cref="ITextureProvider.CreateFromRaw"/>
