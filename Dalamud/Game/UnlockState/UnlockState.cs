@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Dalamud.Data;
 using Dalamud.Game.Gui;
+using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
@@ -16,7 +17,9 @@ using FFXIVClientStructs.FFXIV.Component.Exd;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
+using AchievementSheet = Lumina.Excel.Sheets.Achievement;
 using ActionSheet = Lumina.Excel.Sheets.Action;
+using CSAchievement = FFXIVClientStructs.FFXIV.Client.Game.UI.Achievement;
 using InstanceContentSheet = Lumina.Excel.Sheets.InstanceContent;
 using PublicContentSheet = Lumina.Excel.Sheets.PublicContent;
 
@@ -30,8 +33,6 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 {
     private static readonly ModuleLog Log = new(nameof(UnlockState));
 
-    private readonly ConcurrentDictionary<Type, HashSet<uint>> cachedUnlockedRowIds = [];
-
     [ServiceManager.ServiceDependency]
     private readonly DataManager dataManager = Service<DataManager>.Get();
 
@@ -44,16 +45,37 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     [ServiceManager.ServiceDependency]
     private readonly RecipeData recipeData = Service<RecipeData>.Get();
 
+    private readonly ConcurrentDictionary<Type, HashSet<uint>> cachedUnlockedRowIds = [];
+    private readonly Hook<CSAchievement.Delegates.SetAchievementCompleted> setAchievementCompletedHook;
+    private readonly Hook<TitleList.Delegates.SetTitleUnlocked> setTitleUnlockedHook;
+
     [ServiceManager.ServiceConstructor]
     private UnlockState()
     {
         this.clientState.Login += this.OnLogin;
         this.clientState.Logout += this.OnLogout;
         this.gameGui.AgentUpdate += this.OnAgentUpdate;
+
+        this.setAchievementCompletedHook = Hook<CSAchievement.Delegates.SetAchievementCompleted>.FromAddress(
+            (nint)CSAchievement.MemberFunctionPointers.SetAchievementCompleted,
+            this.SetAchievementCompletedDetour);
+
+        this.setTitleUnlockedHook = Hook<TitleList.Delegates.SetTitleUnlocked>.FromAddress(
+            (nint)TitleList.MemberFunctionPointers.SetTitleUnlocked,
+            this.SetTitleUnlockedDetour);
+
+        this.setAchievementCompletedHook.Enable();
+        this.setTitleUnlockedHook.Enable();
     }
 
     /// <inheritdoc/>
     public event IUnlockState.UnlockDelegate Unlock;
+
+    /// <inheritdoc/>
+    public bool IsAchievementListLoaded => CSAchievement.Instance()->IsLoaded();
+
+    /// <inheritdoc/>
+    public bool IsTitleListLoaded => UIState.Instance()->TitleList.DataReceived;
 
     private bool IsLoaded => PlayerState.Instance()->IsLoaded;
 
@@ -63,12 +85,36 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.clientState.Login -= this.OnLogin;
         this.clientState.Logout -= this.OnLogout;
         this.gameGui.AgentUpdate -= this.OnAgentUpdate;
+
+        this.setAchievementCompletedHook.Dispose();
+    }
+
+    /// <inheritdoc/>
+    public bool IsAchievementComplete(AchievementSheet row)
+    {
+        // Only check for login state here as individual Achievements
+        // may be flagged as complete when you unlock them, regardless
+        // of whether the full Achievements list was loaded or not.
+
+        if (!this.IsLoaded)
+            return false;
+
+        return CSAchievement.Instance()->IsComplete((int)row.RowId);
     }
 
     /// <inheritdoc/>
     public bool IsActionUnlocked(ActionSheet row)
     {
         return this.IsUnlockLinkUnlocked(row.UnlockLink.RowId);
+    }
+
+    /// <inheritdoc/>
+    public bool IsAdventureComplete(Adventure row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return PlayerState.Instance()->IsAdventureComplete(row.RowId - 0x210000);
     }
 
     /// <inheritdoc/>
@@ -416,6 +462,19 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
+    public bool IsTitleUnlocked(Title row)
+    {
+        // Only check for login state here as individual Titles
+        // may be flagged as complete when you unlock them, regardless
+        // of whether the full Titles list was loaded or not.
+
+        if (!this.IsLoaded)
+            return false;
+
+        return UIState.Instance()->TitleList.IsTitleUnlocked((ushort)row.RowId);
+    }
+
+    /// <inheritdoc/>
     public bool IsTraitUnlocked(Trait row)
     {
         return this.IsUnlockLinkUnlocked(row.Quest.RowId);
@@ -464,8 +523,14 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded || rowRef.IsUntyped)
             return false;
 
+        if (rowRef.TryGetValue<AchievementSheet>(out var achievementRow))
+            return this.IsAchievementComplete(achievementRow);
+
         if (rowRef.TryGetValue<ActionSheet>(out var actionRow))
             return this.IsActionUnlocked(actionRow);
+
+        if (rowRef.TryGetValue<Adventure>(out var adventureRow))
+            return this.IsAdventureComplete(adventureRow);
 
         if (rowRef.TryGetValue<AetherCurrent>(out var aetherCurrentRow))
             return this.IsAetherCurrentUnlocked(aetherCurrentRow);
@@ -572,6 +637,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<SecretRecipeBook>(out var secretRecipeBookRow))
             return this.IsSecretRecipeBookUnlocked(secretRecipeBookRow);
 
+        if (rowRef.TryGetValue<Title>(out var titleRow))
+            return this.IsTitleUnlocked(titleRow);
+
         if (rowRef.TryGetValue<Trait>(out var traitRow))
             return this.IsTraitUnlocked(traitRow);
 
@@ -621,6 +689,26 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             this.Update();
     }
 
+    private void SetAchievementCompletedDetour(CSAchievement* thisPtr, uint id)
+    {
+        this.setAchievementCompletedHook.Original(thisPtr, id);
+
+        if (!this.IsLoaded)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<AchievementSheet>(id));
+    }
+
+    private void SetTitleUnlockedDetour(TitleList* thisPtr, ushort id)
+    {
+        this.setTitleUnlockedHook.Original(thisPtr, id);
+
+        if (!this.IsLoaded)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<Title>(id));
+    }
+
     private void Update()
     {
         if (!this.IsLoaded)
@@ -628,7 +716,10 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
         Log.Verbose("Checking for new unlocks...");
 
+        // Do not check for Achievements or Titles here!
+
         this.UpdateUnlocksForSheet<ActionSheet>();
+        this.UpdateUnlocksForSheet<Adventure>();
         this.UpdateUnlocksForSheet<AetherCurrent>();
         this.UpdateUnlocksForSheet<AetherCurrentCompFlgSet>();
         this.UpdateUnlocksForSheet<AozAction>();
@@ -675,7 +766,6 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         // For some other day:
         // - FishingSpot
         // - Spearfishing
-        // - Adventure (Sightseeing)
         // - MinerFolkloreTome
         // - BotanistFolkloreTome
         // - FishingFolkloreTome
@@ -688,8 +778,6 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         // - EmjCostume
 
         // Probably not happening, because it requires fetching data from server:
-        // - Achievements
-        // - Titles
         // - Bozjan Field Notes
         // - Support/Phantom Jobs, which require to be in Occult Crescent, because it checks the jobs level for != 0
     }
@@ -712,16 +800,21 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
             // Log.Verbose($"Unlock detected: {typeof(T).Name}#{row.RowId}");
 
-            foreach (var action in Delegate.EnumerateInvocationList(this.Unlock))
+            this.RaiseUnlockSafely((RowRef)rowRef);
+        }
+    }
+
+    private void RaiseUnlockSafely(RowRef rowRef)
+    {
+        foreach (var action in Delegate.EnumerateInvocationList(this.Unlock))
+        {
+            try
             {
-                try
-                {
-                    action((RowRef)rowRef);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                }
+                action(rowRef);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
             }
         }
     }
@@ -752,7 +845,19 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
     public event IUnlockState.UnlockDelegate? Unlock;
 
     /// <inheritdoc/>
+    public bool IsAchievementListLoaded => this.unlockStateService.IsAchievementListLoaded;
+
+    /// <inheritdoc/>
+    public bool IsTitleListLoaded => this.unlockStateService.IsTitleListLoaded;
+
+    /// <inheritdoc/>
+    public bool IsAchievementComplete(AchievementSheet row) => this.unlockStateService.IsAchievementComplete(row);
+
+    /// <inheritdoc/>
     public bool IsActionUnlocked(ActionSheet row) => this.unlockStateService.IsActionUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsAdventureComplete(Adventure row) => this.unlockStateService.IsAdventureComplete(row);
 
     /// <inheritdoc/>
     public bool IsAetherCurrentCompFlgSetUnlocked(AetherCurrentCompFlgSet row) => this.unlockStateService.IsAetherCurrentCompFlgSetUnlocked(row);
@@ -873,6 +978,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsSecretRecipeBookUnlocked(SecretRecipeBook row) => this.unlockStateService.IsSecretRecipeBookUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsTitleUnlocked(Title row) => this.unlockStateService.IsTitleUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsTraitUnlocked(Trait row) => this.unlockStateService.IsTraitUnlocked(row);
