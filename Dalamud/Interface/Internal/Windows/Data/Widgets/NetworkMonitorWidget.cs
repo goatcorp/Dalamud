@@ -21,10 +21,11 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
 {
     private readonly ConcurrentQueue<NetworkPacketData> packets = new();
 
-    private Hook<PacketDispatcher.Delegates.OnReceivePacket>? hookDown;
-    private Hook<ZoneClient.Delegates.SendPacket>? hookUp;
+    private Hook<PacketDispatcher.Delegates.OnReceivePacket>? hookZoneDown;
+    private Hook<ZoneClient.Delegates.SendPacket>? hookZoneUp;
 
-    private bool trackNetwork;
+    private bool trackZoneUp;
+    private bool trackZoneDown;
     private int trackedPackets = 20;
     private ulong nextPacketIndex;
     private string filterString = string.Empty;
@@ -35,8 +36,8 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
     /// <summary> Finalizes an instance of the <see cref="NetworkMonitorWidget"/> class. </summary>
     ~NetworkMonitorWidget()
     {
-        this.hookDown?.Dispose();
-        this.hookUp?.Dispose();
+        this.hookZoneDown?.Dispose();
+        this.hookZoneUp?.Dispose();
     }
 
     private enum NetworkMessageDirection
@@ -60,26 +61,41 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        this.hookDown ??= Hook<PacketDispatcher.Delegates.OnReceivePacket>.FromAddress(
+        this.hookZoneDown ??= Hook<PacketDispatcher.Delegates.OnReceivePacket>.FromAddress(
             (nint)PacketDispatcher.StaticVirtualTablePointer->OnReceivePacket,
             this.OnReceivePacketDetour);
 
-        this.hookUp ??= Hook<ZoneClient.Delegates.SendPacket>.FromAddress(
+        this.hookZoneUp ??= Hook<ZoneClient.Delegates.SendPacket>.FromAddress(
             (nint)ZoneClient.MemberFunctionPointers.SendPacket,
             this.SendPacketDetour);
 
-        if (ImGui.Checkbox("Track Network Packets"u8, ref this.trackNetwork))
+        if (ImGui.Checkbox("Track ZoneUp"u8, ref this.trackZoneUp))
         {
-            if (this.trackNetwork)
+            if (this.trackZoneUp)
             {
-                this.nextPacketIndex = 0;
-                this.hookDown?.Enable();
-                this.hookUp?.Enable();
+                if (!this.trackZoneDown)
+                    this.nextPacketIndex = 0;
+
+                this.hookZoneUp?.Enable();
             }
             else
             {
-                this.hookDown?.Disable();
-                this.hookUp?.Disable();
+                this.hookZoneUp?.Disable();
+            }
+        }
+
+        if (ImGui.Checkbox("Track ZoneDown"u8, ref this.trackZoneDown))
+        {
+            if (this.trackZoneDown)
+            {
+                if (!this.trackZoneUp)
+                    this.nextPacketIndex = 0;
+
+                this.hookZoneDown?.Enable();
+            }
+            else
+            {
+                this.hookZoneDown?.Disable();
             }
         }
 
@@ -92,6 +108,7 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
         if (ImGui.Button("Clear Stored Packets"u8))
         {
             this.packets.Clear();
+            this.nextPacketIndex = 0;
         }
 
         ImGui.SameLine();
@@ -102,7 +119,7 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
         ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
         ImGui.Checkbox("##FilterRecording"u8, ref this.filterRecording);
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Apply filter to incoming packets.\nUncheck to record all packets and filter the table instead."u8);
+            ImGui.SetTooltip("When enabled, packets are filtered before being recorded.\nWhen disabled, all packets are recorded and filtering only affects packets displayed in the table."u8);
         ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
         ImGuiComponents.HelpMarker("Enter OpCodes in a comma-separated list.\nRanges are supported. Exclude OpCodes with exclamation mark.\nExample: -400,!50-100,650,700-980,!941");
 
@@ -204,14 +221,14 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
         var opCode = *(ushort*)(packet + 2);
         var targetName = GetTargetName(targetId);
         this.RecordPacket(new NetworkPacketData(Interlocked.Increment(ref this.nextPacketIndex), DateTime.Now, opCode, NetworkMessageDirection.ZoneDown, targetId, targetName));
-        this.hookDown.OriginalDisposeSafe(thisPtr, targetId, packet);
+        this.hookZoneDown.OriginalDisposeSafe(thisPtr, targetId, packet);
     }
 
     private bool SendPacketDetour(ZoneClient* thisPtr, nint packet, uint a3, uint a4, bool a5)
     {
         var opCode = *(ushort*)packet;
         this.RecordPacket(new NetworkPacketData(Interlocked.Increment(ref this.nextPacketIndex), DateTime.Now, opCode, NetworkMessageDirection.ZoneUp, 0, string.Empty));
-        return this.hookUp.OriginalDisposeSafe(thisPtr, packet, a3, a4, a5);
+        return this.hookZoneUp.OriginalDisposeSafe(thisPtr, packet, a3, a4, a5);
     }
 
     private void RecordPacket(NetworkPacketData packet)
