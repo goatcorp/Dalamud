@@ -476,6 +476,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         "launcher.log", // XIVLauncher.Core for [mostly] Linux
         "patcher.log",
         "dalamud.log",
+        "dalamud.troubleshooting.json",
         "dalamud.injector.log",
         "dalamud.boot.log",
         "aria.log",
@@ -693,7 +694,7 @@ void restart_game_using_injector(int nRadioButton, const std::vector<std::wstrin
 void get_cpu_info(wchar_t *vendor, wchar_t *brand)
 {
     // Gotten and reformatted to not include all data as listed at https://learn.microsoft.com/en-us/cpp/intrinsics/cpuid-cpuidex?view=msvc-170#example
-    
+
     // int cpuInfo[4] = {-1};
     std::array<int, 4> cpui;
     int nIds_;
