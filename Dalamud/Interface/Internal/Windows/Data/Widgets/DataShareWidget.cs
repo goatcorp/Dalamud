@@ -87,7 +87,7 @@ internal class DataShareWidget : IDataWindowWidget
                 try
                 {
                     var dataShare = Service<DataShare>.Get();
-                    var data2 = dataShare.GetData<object>(name);
+                    var data2 = dataShare.GetData<object>(name, "DataShareWidget");
                     try
                     {
                         data = Encoding.UTF8.GetBytes(
@@ -98,7 +98,7 @@ internal class DataShareWidget : IDataWindowWidget
                     }
                     finally
                     {
-                        dataShare.RelinquishData(name);
+                        dataShare.RelinquishData(name, "DataShareWidget");
                     }
                 }
                 catch (Exception e)
@@ -284,7 +284,7 @@ internal class DataShareWidget : IDataWindowWidget
 
         ImGui.TableSetupColumn("Shared Tag"u8);
         ImGui.TableSetupColumn("Show"u8);
-        ImGui.TableSetupColumn("Creator Assembly"u8);
+        ImGui.TableSetupColumn("Creator Internal Name"u8);
         ImGui.TableSetupColumn("#"u8, ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("Consumers"u8);
         ImGui.TableHeadersRow();
