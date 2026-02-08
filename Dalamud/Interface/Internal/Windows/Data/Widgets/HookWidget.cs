@@ -50,7 +50,7 @@ internal unsafe class HookWidget : IDataWindowWidget
     {
         MessageBoxW,
         AddonFinalize,
-        Random
+        Random,
     }
 
     /// <inheritdoc/>
