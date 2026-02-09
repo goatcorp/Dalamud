@@ -30,6 +30,10 @@ public class FileDialogManager
     private Action<bool, List<string>>? multiCallback;
     private string savedPath = ".";
 
+    /// <summary>
+    /// Event fires when a new file is selected by the user
+    /// </summary>
+    /// <returns>Returns the path of the file as a string</returns>
     public event EventHandler<string>? SelectionChanged;
 
     /// <summary>
@@ -208,7 +212,6 @@ public class FileDialogManager
         }
 
         this.dialog = new FileDialog(id, title, filters, path, defaultFileName, defaultExtension, selectionCountMax, isModal, flags);
-
         if (this.GetDefaultSortOrder is not null)
         {
             try
