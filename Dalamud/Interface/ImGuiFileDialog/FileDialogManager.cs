@@ -27,12 +27,13 @@ public class FileDialogManager
 #pragma warning restore SA1401
 #pragma warning restore SA1201
 
-    public event EventHandler<string>? SelectionChanged;
+
     private FileDialog? dialog;
     private Action<bool, string>? callback;
     private Action<bool, List<string>>? multiCallback;
     private string savedPath = ".";
 
+    public event EventHandler<string>? SelectionChanged;
 
     /// <summary>
     /// Create a dialog which selects an already existing folder.
@@ -184,7 +185,7 @@ public class FileDialogManager
         return this.dialog?.GetCurrentPath();
     }
 
-    private void OnSelectionChange(object sender, string path) => this.SelectionChanged(sender, path);
+    private void OnSelectionChange(object sender, string path) => this.SelectionChanged?.Invoke(sender, path);
 
     private void SetDialog(
         string id,
