@@ -2,8 +2,6 @@ using System.Collections.Generic;
 
 using Dalamud.Bindings.ImGui;
 
-using FFXIVClientStructs;
-
 namespace Dalamud.Interface.ImGuiFileDialog;
 
 /// <summary>
@@ -26,7 +24,6 @@ public class FileDialogManager
     public ImGuiWindowFlags AddedWindowFlags = ImGuiWindowFlags.None;
 #pragma warning restore SA1401
 #pragma warning restore SA1201
-
 
     private FileDialog? dialog;
     private Action<bool, string>? callback;
@@ -178,11 +175,6 @@ public class FileDialogManager
         this.dialog = null;
         this.callback = null;
         this.multiCallback = null;
-    }
-
-    public string? GetCurrentPath()
-    {
-        return this.dialog?.GetCurrentPath();
     }
 
     private void OnSelectionChange(object sender, string path) => this.SelectionChanged?.Invoke(sender, path);
