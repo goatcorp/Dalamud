@@ -648,6 +648,7 @@ public partial class FileDialog
     private void AddFileNameInSelection(string name, bool setLastSelection)
     {
         this.selectedFileNames.Add(name);
+        this.SelectionChanged(this, this.GetFilePathName());
         if (this.selectedFileNames.Count == 1)
         {
             this.fileNameBuffer = name;

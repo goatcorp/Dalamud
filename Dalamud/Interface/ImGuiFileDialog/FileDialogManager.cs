@@ -2,6 +2,8 @@ using System.Collections.Generic;
 
 using Dalamud.Bindings.ImGui;
 
+using FFXIVClientStructs;
+
 namespace Dalamud.Interface.ImGuiFileDialog;
 
 /// <summary>
@@ -25,10 +27,12 @@ public class FileDialogManager
 #pragma warning restore SA1401
 #pragma warning restore SA1201
 
+    public event EventHandler<string>? SelectionChanged;
     private FileDialog? dialog;
     private Action<bool, string>? callback;
     private Action<bool, List<string>>? multiCallback;
     private string savedPath = ".";
+
 
     /// <summary>
     /// Create a dialog which selects an already existing folder.
@@ -175,6 +179,13 @@ public class FileDialogManager
         this.multiCallback = null;
     }
 
+    public string? GetCurrentPath()
+    {
+        return this.dialog?.GetCurrentPath();
+    }
+
+    private void OnSelectionChange(object sender, string path) => this.SelectionChanged(sender, path);
+
     private void SetDialog(
         string id,
         string title,
@@ -200,9 +211,11 @@ public class FileDialogManager
         if (this.dialog is not null)
         {
             this.dialog.SortOrderChanged -= this.OnSortOrderChange;
+            this.dialog.SelectionChanged -= this.OnSelectionChange;
         }
 
         this.dialog = new FileDialog(id, title, filters, path, defaultFileName, defaultExtension, selectionCountMax, isModal, flags);
+
         if (this.GetDefaultSortOrder is not null)
         {
             try
@@ -217,6 +230,7 @@ public class FileDialogManager
         }
 
         this.dialog.SortOrderChanged += this.OnSortOrderChange;
+        this.dialog.SelectionChanged += this.OnSelectionChange;
         this.dialog.WindowFlags |= this.AddedWindowFlags;
         foreach (var (name, location, icon, position) in this.CustomSideBarItems)
             this.dialog.SetQuickAccess(name, location, icon, position);
