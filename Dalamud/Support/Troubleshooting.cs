@@ -90,8 +90,7 @@ public static class Troubleshooting
 
             File.WriteAllText(
                 Path.Join(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "XIVLauncher",
+                    startInfo.LogPath,
                     "dalamud.troubleshooting.json"),
                 JsonConvert.SerializeObject(payload, Formatting.Indented));
         }
