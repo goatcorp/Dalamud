@@ -50,6 +50,6 @@ internal sealed class BitmapCodecInfo : IBitmapCodecInfo
         _ = readFuncPtr(codecInfo, 0, null, &cch);
         var buf = stackalloc char[(int)cch + 1];
         Marshal.ThrowExceptionForHR(readFuncPtr(codecInfo, cch + 1, buf, &cch));
-        return new(buf, 0, (int)cch);
+        return new string(buf, 0, (int)cch).Trim('\0');
     }
 }
