@@ -491,7 +491,6 @@ std::vector<IDXGIAdapter1*> enum_dxgi_adapters()
         vAdapters.push_back(pAdapter);
     }
 
-
     if (pFactory)
     {
         pFactory->Release();
@@ -1055,7 +1054,7 @@ int main() {
 
         for (IDXGIAdapter1* adapter : enum_dxgi_adapters()) {
             DXGI_ADAPTER_DESC1 adapterDescription{};
-            myAdapter->GetDesc1(&adapterDescription);
+            adapter->GetDesc1(&adapterDescription);
             log << std::format(L"GPU Desc: {}", adapterDescription.Description) << std::endl;
         }
 
