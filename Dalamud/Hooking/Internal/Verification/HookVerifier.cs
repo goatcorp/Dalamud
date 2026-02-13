@@ -74,7 +74,7 @@ internal static class HookVerifier
         }
 
         var passedType = typeof(T);
-        var isAssemblyMarshaled = passedType.Assembly.GetCustomAttribute<DisableRuntimeMarshallingAttribute>() is not null;
+        var isAssemblyMarshaled = passedType.Assembly.GetCustomAttribute<DisableRuntimeMarshallingAttribute>() is null;
 
         // Directly compare delegates
         if (passedType == entry.TargetDelegateType)
