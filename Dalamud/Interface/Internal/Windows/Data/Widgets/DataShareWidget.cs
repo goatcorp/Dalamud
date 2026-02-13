@@ -87,7 +87,7 @@ internal class DataShareWidget : IDataWindowWidget
                 try
                 {
                     var dataShare = Service<DataShare>.Get();
-                    var data2 = dataShare.GetData<object>(name, "DataShareWidget");
+                    var data2 = dataShare.GetData<object>(name, new DataCachePluginId("DataShareWidget", Guid.Empty));
                     try
                     {
                         data = Encoding.UTF8.GetBytes(
@@ -98,7 +98,7 @@ internal class DataShareWidget : IDataWindowWidget
                     }
                     finally
                     {
-                        dataShare.RelinquishData(name, "DataShareWidget");
+                        dataShare.RelinquishData(name, new DataCachePluginId("DataShareWidget", Guid.Empty));
                     }
                 }
                 catch (Exception e)
@@ -284,7 +284,7 @@ internal class DataShareWidget : IDataWindowWidget
 
         ImGui.TableSetupColumn("Shared Tag"u8);
         ImGui.TableSetupColumn("Show"u8);
-        ImGui.TableSetupColumn("Creator Internal Name"u8);
+        ImGui.TableSetupColumn("Creator"u8);
         ImGui.TableSetupColumn("#"u8, ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("Consumers"u8);
         ImGui.TableHeadersRow();
@@ -312,9 +312,9 @@ internal class DataShareWidget : IDataWindowWidget
                 this.nextTab = 2 + index;
             }
 
-            this.DrawTextCell(share.CreatorAssembly, null, true);
-            this.DrawTextCell(share.Users.Length.ToString(), null, true);
-            this.DrawTextCell(string.Join(", ", share.Users), null, true);
+            this.DrawTextCell(share.CreatorPluginId.InternalName, () => share.CreatorPluginId.EffectiveWorkingId.ToString(), true);
+            this.DrawTextCell(share.UserPluginIds.Length.ToString(), null, true);
+            this.DrawTextCell(string.Join(", ", share.UserPluginIds.Select(c => c.InternalName)), () => string.Join("\n", share.UserPluginIds.Select(c => $"{c.InternalName} ({c.EffectiveWorkingId.ToString()}")), true);
         }
     }
 }
