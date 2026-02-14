@@ -7,60 +7,62 @@ using Dalamud.Bindings.ImPlot;
 
 namespace Dalamud.Interface.Utility.Raii;
 
+// TODO Convert to new syntax
+
 // All previous files, but only for ImPlot specific functions.
 public static partial class ImRaii
 {
     #region EndObjects
 
-    public static IEndObject Plot(string titleId, Vector2 size, ImPlotFlags flags)
+    public static EndConditionally Plot(string titleId, Vector2 size, ImPlotFlags flags)
         => new EndConditionally(ImPlot.EndPlot, ImPlot.BeginPlot(titleId, size, flags));
 
-    public static IEndObject Plot(ReadOnlySpan<byte> titleId, Vector2 size, ImPlotFlags flags)
+    public static EndConditionally Plot(ReadOnlySpan<byte> titleId, Vector2 size, ImPlotFlags flags)
         => new EndConditionally(ImPlot.EndPlot, ImPlot.BeginPlot(titleId, size, flags));
 
-    public static IEndObject AlignedPlots(string groupId, bool vertical = true)
+    public static EndConditionally AlignedPlots(string groupId, bool vertical = true)
         => new EndConditionally(ImPlot.EndAlignedPlots, ImPlot.BeginAlignedPlots(groupId, vertical));
 
-    public static IEndObject AlignedPlots(ReadOnlySpan<byte> groupId, bool vertical = true)
+    public static EndConditionally AlignedPlots(ReadOnlySpan<byte> groupId, bool vertical = true)
         => new EndConditionally(ImPlot.EndAlignedPlots, ImPlot.BeginAlignedPlots(groupId, vertical));
 
-    public static IEndObject LegendPopup(string labelId, ImGuiMouseButton mouseButton = ImGuiMouseButton.Right)
+    public static EndConditionally LegendPopup(string labelId, ImGuiMouseButton mouseButton = ImGuiMouseButton.Right)
         => new EndConditionally(ImPlot.EndLegendPopup, ImPlot.BeginLegendPopup(labelId, mouseButton));
 
-    public static IEndObject LegendPopup(ReadOnlySpan<byte> labelId, ImGuiMouseButton mouseButton = ImGuiMouseButton.Right)
+    public static EndConditionally LegendPopup(ReadOnlySpan<byte> labelId, ImGuiMouseButton mouseButton = ImGuiMouseButton.Right)
         => new EndConditionally(ImPlot.EndLegendPopup, ImPlot.BeginLegendPopup(labelId, mouseButton));
 
-    public static IEndObject Subplots(string titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags = ImPlotSubplotFlags.None)
+    public static EndConditionally Subplots(string titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags = ImPlotSubplotFlags.None)
         => new EndConditionally(ImPlot.EndSubplots, ImPlot.BeginSubplots(titleId, rows, cols, size, flags));
 
-    public static IEndObject Subplots(ReadOnlySpan<byte> titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags = ImPlotSubplotFlags.None)
+    public static EndConditionally Subplots(ReadOnlySpan<byte> titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags = ImPlotSubplotFlags.None)
         => new EndConditionally(ImPlot.EndSubplots, ImPlot.BeginSubplots(titleId, rows, cols, size, flags));
 
-    public static IEndObject Subplots(string titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags, ref float rowRatios, ref float colRatios)
+    public static EndConditionally Subplots(string titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags, ref float rowRatios, ref float colRatios)
         => new EndConditionally(ImPlot.EndSubplots, ImPlot.BeginSubplots(titleId, rows, cols, size, flags, ref rowRatios, ref colRatios));
 
-    public static IEndObject Subplots(ReadOnlySpan<byte> titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags, ref float rowRatios, ref float colRatios)
+    public static EndConditionally Subplots(ReadOnlySpan<byte> titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags, ref float rowRatios, ref float colRatios)
         => new EndConditionally(ImPlot.EndSubplots, ImPlot.BeginSubplots(titleId, rows, cols, size, flags, ref rowRatios, ref colRatios));
 
-    public static IEndObject DragDropSourceAxis(ImAxis axis, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
+    public static EndConditionally DragDropSourceAxis(ImAxis axis, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
         => new EndConditionally(ImPlot.EndDragDropSource, ImPlot.BeginDragDropSourceAxis(axis, flags));
 
-    public static IEndObject DragDropSourceItem(string labelId, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
+    public static EndConditionally DragDropSourceItem(string labelId, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
         => new EndConditionally(ImPlot.EndDragDropSource, ImPlot.BeginDragDropSourceItem(labelId, flags));
 
-    public static IEndObject DragDropSourceItem(ReadOnlySpan<byte> labelId, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
+    public static EndConditionally DragDropSourceItem(ReadOnlySpan<byte> labelId, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
         => new EndConditionally(ImPlot.EndDragDropSource, ImPlot.BeginDragDropSourceItem(labelId, flags));
 
-    public static IEndObject DragDropSourcePlot(ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
+    public static EndConditionally DragDropSourcePlot(ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
         => new EndConditionally(ImPlot.EndDragDropSource, ImPlot.BeginDragDropSourcePlot(flags));
 
-    public static IEndObject DragDropTargetAxis(ImAxis axis)
+    public static EndConditionally DragDropTargetAxis(ImAxis axis)
         => new EndConditionally(ImPlot.EndDragDropTarget, ImPlot.BeginDragDropTargetAxis(axis));
 
-    public static IEndObject DragDropTargetLegend()
+    public static EndConditionally DragDropTargetLegend()
         => new EndConditionally(ImPlot.EndDragDropTarget, ImPlot.BeginDragDropTargetLegend());
 
-    public static IEndObject DragDropTargetPlot()
+    public static EndConditionally DragDropTargetPlot()
         => new EndConditionally(ImPlot.EndDragDropTarget, ImPlot.BeginDragDropTargetPlot());
 
     #endregion EndObjects

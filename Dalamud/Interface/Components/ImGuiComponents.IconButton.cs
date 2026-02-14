@@ -123,7 +123,7 @@ public static partial class ImGuiComponents
     /// <returns>Indicator if button is clicked.</returns>
     public static bool IconButton(string iconText, Vector4? defaultColor, Vector4? activeColor = null, Vector4? hoveredColor = null, Vector2? size = null)
     {
-        using var col = new ImRaii.Color();
+        using var col = new ImRaii.ColorDisposable();
 
         if (defaultColor.HasValue)
         {
@@ -203,7 +203,7 @@ public static partial class ImGuiComponents
     /// <returns>Indicator if button is clicked.</returns>
     public static bool IconButtonWithText(FontAwesomeIcon icon, string text, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null, Vector2? size = null)
     {
-        using var col = new ImRaii.Color();
+        using var col = new ImRaii.ColorDisposable();
 
         if (defaultColor.HasValue)
         {

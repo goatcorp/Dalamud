@@ -24,7 +24,7 @@ public static partial class ImGuiComponents
     /// <param name="color">The color of the icon.</param>
     public static void HelpMarker(string helpText, FontAwesomeIcon icon, Vector4? color = null)
     {
-        using var col = new ImRaii.Color();
+        using var col = new ImRaii.ColorDisposable();
 
         if (color.HasValue)
         {

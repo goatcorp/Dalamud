@@ -172,7 +172,7 @@ public static partial class ImGuiHelpers
     /// <param name="color">The color of the text.</param>
     public static void ClickToCopyText(ImU8String text, ImU8String textCopy = default, Vector4? color = null)
     {
-        using (var col = new ImRaii.Color())
+        using (var col = new ImRaii.ColorDisposable())
         {
             if (color.HasValue)
             {

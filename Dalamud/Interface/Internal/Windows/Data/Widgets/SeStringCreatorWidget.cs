@@ -893,8 +893,8 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             return;
         }
 
-        using var node = asTreeNode ? this.SeStringTreeNode(id, rosss) : null;
-        if (asTreeNode && !node!) return;
+        using var node = asTreeNode ? this.SeStringTreeNode(id, rosss) : default;
+        if (asTreeNode && !node) return;
 
         if (!asTreeNode && renderSeString)
         {
@@ -1237,7 +1237,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         return parameters.OrderBy(x => x.Key).Select(x => x.Value).ToArray();
     }
 
-    private ImRaii.IEndObject SeStringTreeNode(string id, ReadOnlySeStringSpan previewText, uint color = 0xFF00FFFF, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.None)
+    private ImRaii.TreeNodeDisposable SeStringTreeNode(string id, ReadOnlySeStringSpan previewText, uint color = 0xFF00FFFF, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.None)
     {
         using var titleColor = ImRaii.PushColor(ImGuiCol.Text, color);
         var node = ImRaii.TreeNode("##" + id, flags);

@@ -45,7 +45,7 @@ public static partial class ImGuiComponents
     /// <returns>Indicator if button is clicked.</returns>
     public static bool DisabledButton(string labelWithId, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null, float alphaMult = .5f)
     {
-        using var col = new ImRaii.Color();
+        using var col = new ImRaii.ColorDisposable();
 
         if (defaultColor.HasValue)
         {
