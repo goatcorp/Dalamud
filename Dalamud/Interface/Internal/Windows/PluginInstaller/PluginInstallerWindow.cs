@@ -3831,7 +3831,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (!manifest.Punchline.IsNullOrEmpty())
             scores.Add(matcher.Matches(manifest.Punchline.ToLowerInvariant()) * 100);
         if (manifest.Tags != null)
-            scores.Add(matcher.MatchesAny(manifest.Tags.ToArray()) * 100);
+            scores.Add(matcher.MatchesAny(manifest.Tags.Select(tag => tag.ToLowerInvariant()).ToArray()) * 100);
 
         return scores.Max();
     }

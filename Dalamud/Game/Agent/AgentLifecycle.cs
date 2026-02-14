@@ -107,6 +107,8 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AgentLifecycleEventListener listener)
     {
+        listener.IsRequestedToClear = true;
+        
         if (this.isInvokingListeners)
         {
             this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
@@ -135,6 +137,8 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         {
             foreach (var listener in globalListeners)
             {
+                if (listener.IsRequestedToClear) continue;
+                
                 try
                 {
                     listener.FunctionDelegate.Invoke(eventType, args);
@@ -151,6 +155,8 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         {
             foreach (var listener in agentListener)
             {
+                if (listener.IsRequestedToClear) continue;
+                
                 try
                 {
                     listener.FunctionDelegate.Invoke(eventType, args);
