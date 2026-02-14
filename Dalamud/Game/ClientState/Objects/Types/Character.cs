@@ -1,6 +1,8 @@
 using Dalamud.Data;
+using Dalamud.Game.ClientState.Customize;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Utility;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -13,68 +15,73 @@ namespace Dalamud.Game.ClientState.Objects.Types;
 public interface ICharacter : IGameObject
 {
     /// <summary>
-    /// Gets the current HP of this Chara.
+    /// Gets the current HP of this character.
     /// </summary>
     public uint CurrentHp { get; }
 
     /// <summary>
-    /// Gets the maximum HP of this Chara.
+    /// Gets the maximum HP of this character.
     /// </summary>
     public uint MaxHp { get; }
 
     /// <summary>
-    /// Gets the current MP of this Chara.
+    /// Gets the current MP of this character.
     /// </summary>
     public uint CurrentMp { get; }
 
     /// <summary>
-    /// Gets the maximum MP of this Chara.
+    /// Gets the maximum MP of this character.
     /// </summary>
     public uint MaxMp { get; }
 
     /// <summary>
-    /// Gets the current GP of this Chara.
+    /// Gets the current GP of this character.
     /// </summary>
     public uint CurrentGp { get; }
 
     /// <summary>
-    /// Gets the maximum GP of this Chara.
+    /// Gets the maximum GP of this character.
     /// </summary>
     public uint MaxGp { get; }
 
     /// <summary>
-    /// Gets the current CP of this Chara.
+    /// Gets the current CP of this character.
     /// </summary>
     public uint CurrentCp { get; }
 
     /// <summary>
-    /// Gets the maximum CP of this Chara.
+    /// Gets the maximum CP of this character.
     /// </summary>
     public uint MaxCp { get; }
 
     /// <summary>
-    /// Gets the shield percentage of this Chara.
+    /// Gets the shield percentage of this character.
     /// </summary>
     public byte ShieldPercentage { get; }
 
     /// <summary>
-    /// Gets the ClassJob of this Chara.
+    /// Gets the ClassJob of this character.
     /// </summary>
     public RowRef<ClassJob> ClassJob { get; }
 
     /// <summary>
-    /// Gets the level of this Chara.
+    /// Gets the level of this character.
     /// </summary>
     public byte Level { get; }
 
     /// <summary>
-    /// Gets a byte array describing the visual appearance of this Chara.
+    /// Gets a byte array describing the visual appearance of this character.
     /// Indexed by <see cref="CustomizeIndex"/>.
     /// </summary>
     public byte[] Customize { get; }
 
     /// <summary>
-    /// Gets the Free Company tag of this chara.
+    /// Gets the underlying CustomizeData struct for this character.
+    /// </summary>
+    public ICustomizeData CustomizeData { get; }
+
+    /// <summary>
+    /// Gets the Free Company tag of this character.
     /// </summary>
     public SeString CompanyTag { get; }
 
@@ -92,12 +99,12 @@ public interface ICharacter : IGameObject
     /// Gets the status flags.
     /// </summary>
     public StatusFlags StatusFlags { get; }
-    
+
     /// <summary>
     /// Gets the current mount for this character. Will be <c>null</c> if the character doesn't have a mount.
     /// </summary>
     public RowRef<Mount>? CurrentMount { get; }
-    
+
     /// <summary>
     /// Gets the current minion summoned for this character. Will be <c>null</c> if the character doesn't have a minion.
     /// This method *will* return information about a spawned (but invisible) minion, e.g. if the character is riding a
@@ -116,7 +123,7 @@ internal unsafe class Character : GameObject, ICharacter
     /// This represents a non-static entity.
     /// </summary>
     /// <param name="address">The address of this character in memory.</param>
-    internal Character(IntPtr address)
+    internal Character(nint address)
         : base(address)
     {
     }
@@ -155,7 +162,11 @@ internal unsafe class Character : GameObject, ICharacter
     public byte Level => this.Struct->CharacterData.Level;
 
     /// <inheritdoc/>
+    [Api15ToDo("Do not allocate on each call, use the CS Span and let consumers do allocation if necessary")]
     public byte[] Customize => this.Struct->DrawData.CustomizeData.Data.ToArray();
+
+    /// <inheritdoc/>
+    public ICustomizeData CustomizeData => new CustomizeData((nint)(&this.Struct->DrawData.CustomizeData));
 
     /// <inheritdoc/>
     public SeString CompanyTag => SeString.Parse(this.Struct->FreeCompanyTag);
@@ -183,14 +194,14 @@ internal unsafe class Character : GameObject, ICharacter
         (this.Struct->IsAllianceMember ? StatusFlags.AllianceMember : StatusFlags.None) |
         (this.Struct->IsFriend ? StatusFlags.Friend : StatusFlags.None) |
         (this.Struct->IsCasting ? StatusFlags.IsCasting : StatusFlags.None);
-    
+
     /// <inheritdoc />
     public RowRef<Mount>? CurrentMount
     {
         get
         {
             if (this.Struct->IsNotMounted()) return null; // just for safety.
-            
+
             var mountId = this.Struct->Mount.MountId;
             return mountId == 0 ? null : LuminaUtils.CreateRef<Mount>(mountId);
         }
@@ -201,7 +212,7 @@ internal unsafe class Character : GameObject, ICharacter
     {
         get
         {
-            if (this.Struct->CompanionObject != null) 
+            if (this.Struct->CompanionObject != null)
                 return LuminaUtils.CreateRef<Companion>(this.Struct->CompanionObject->BaseId);
 
             // this is only present if a minion is summoned but hidden (e.g. the player's on a mount).

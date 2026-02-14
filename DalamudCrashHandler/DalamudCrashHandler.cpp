@@ -28,6 +28,9 @@
 #include <ShObjIdl.h>
 #include <shlobj_core.h>
 
+#include <dxgi.h>
+#pragma comment(lib, "dxgi.lib")
+
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
@@ -470,12 +473,39 @@ void open_folder_and_select_items(HWND hwndOpener, const std::wstring& path) {
         ILFree(piid);
 }
 
+std::vector<IDXGIAdapter1*> enum_dxgi_adapters()
+{
+    std::vector<IDXGIAdapter1*> vAdapters;
+
+    IDXGIFactory1* pFactory = NULL;
+    if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory)))
+    {
+        return vAdapters;
+    }
+
+    IDXGIAdapter1* pAdapter;
+    for (UINT i = 0;
+        pFactory->EnumAdapters1(i, &pAdapter) != DXGI_ERROR_NOT_FOUND;
+        ++i)
+    {
+        vAdapters.push_back(pAdapter);
+    }
+
+    if (pFactory)
+    {
+        pFactory->Release();
+    }
+
+    return vAdapters;
+}
+
 void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const std::string& crashLog, const std::string& troubleshootingPackData) {
     static const char* SourceLogFiles[] = {
         "output.log", // XIVLauncher for Windows
         "launcher.log", // XIVLauncher.Core for [mostly] Linux
         "patcher.log",
         "dalamud.log",
+        "dalamud.troubleshooting.json",
         "dalamud.injector.log",
         "dalamud.boot.log",
         "aria.log",
@@ -693,7 +723,7 @@ void restart_game_using_injector(int nRadioButton, const std::vector<std::wstrin
 void get_cpu_info(wchar_t *vendor, wchar_t *brand)
 {
     // Gotten and reformatted to not include all data as listed at https://learn.microsoft.com/en-us/cpp/intrinsics/cpuid-cpuidex?view=msvc-170#example
-    
+
     // int cpuInfo[4] = {-1};
     std::array<int, 4> cpui;
     int nIds_;
@@ -1022,6 +1052,13 @@ int main() {
         log << std::format(L"System Time: {0:%F} {0:%T} {0:%Ez}", std::chrono::system_clock::now()) << std::endl;
         log << std::format(L"CPU Vendor: {}", vendor) << std::endl;
         log << std::format(L"CPU Brand: {}", brand) << std::endl;
+
+        for (IDXGIAdapter1* adapter : enum_dxgi_adapters()) {
+            DXGI_ADAPTER_DESC1 adapterDescription{};
+            adapter->GetDesc1(&adapterDescription);
+            log << std::format(L"GPU Desc: {}", adapterDescription.Description) << std::endl;
+        }
+
         log << L"\n" << stackTrace << std::endl;
 
         if (pProgressDialog)
