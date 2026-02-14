@@ -123,22 +123,9 @@ public static partial class ImGuiComponents
     /// <returns>Indicator if button is clicked.</returns>
     public static bool IconButton(string iconText, Vector4? defaultColor, Vector4? activeColor = null, Vector4? hoveredColor = null, Vector2? size = null)
     {
-        using var col = new ImRaii.ColorDisposable();
-
-        if (defaultColor.HasValue)
-        {
-            col.Push(ImGuiCol.Button, defaultColor.Value);
-        }
-
-        if (activeColor.HasValue)
-        {
-            col.Push(ImGuiCol.ButtonActive, activeColor.Value);
-        }
-
-        if (hoveredColor.HasValue)
-        {
-            col.Push(ImGuiCol.ButtonHovered, hoveredColor.Value);
-        }
+        using var col = ImRaii.PushColor(ImGuiCol.Button, defaultColor)
+                              .Push(ImGuiCol.ButtonActive, activeColor)
+                              .Push(ImGuiCol.ButtonHovered, hoveredColor);
 
         if (size.HasValue)
         {
@@ -203,22 +190,9 @@ public static partial class ImGuiComponents
     /// <returns>Indicator if button is clicked.</returns>
     public static bool IconButtonWithText(FontAwesomeIcon icon, string text, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null, Vector2? size = null)
     {
-        using var col = new ImRaii.ColorDisposable();
-
-        if (defaultColor.HasValue)
-        {
-            col.Push(ImGuiCol.Button, defaultColor.Value);
-        }
-
-        if (activeColor.HasValue)
-        {
-            col.Push(ImGuiCol.ButtonActive, activeColor.Value);
-        }
-
-        if (hoveredColor.HasValue)
-        {
-            col.Push(ImGuiCol.ButtonHovered, hoveredColor.Value);
-        }
+        using var col = ImRaii.PushColor(ImGuiCol.Button, defaultColor)
+                              .Push(ImGuiCol.ButtonActive, activeColor)
+                              .Push(ImGuiCol.ButtonHovered, hoveredColor);
 
         if (size.HasValue)
         {

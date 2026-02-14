@@ -26,6 +26,9 @@ public static partial class ImRaii
     public static ColorDisposable PushColor(ImGuiCol idx, Vector4 color, bool condition = true)
         => new ColorDisposable().Push(idx, color, condition);
 
+    public static ColorDisposable PushColor(ImGuiCol idx, Vector4? color, bool condition = true)
+        => new ColorDisposable().Push(idx, color, condition);
+
     public static ColorDisposable DefaultColors()
         => ColorDisposable.DefaultColors();
 
