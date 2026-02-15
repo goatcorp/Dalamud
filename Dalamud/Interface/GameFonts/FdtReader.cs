@@ -43,12 +43,12 @@ public class FdtReader
     /// <summary>
     /// Gets all the glyphs defined in this file.
     /// </summary>
-    public List<FontTableEntry> Glyphs { get; init; } = new();
+    public List<FontTableEntry> Glyphs { get; init; } = [];
 
     /// <summary>
     /// Gets all the kerning entries defined in this file.
     /// </summary>
-    public List<KerningTableEntry> Distances { get; init; } = new();
+    public List<KerningTableEntry> Distances { get; init; } = [];
 
     /// <summary>
     /// Finds the glyph index for the corresponding codepoint.
@@ -269,7 +269,7 @@ public class FdtReader
         /// <summary>
         /// Mapping of texture channel index to byte index.
         /// </summary>
-        public static readonly int[] TextureChannelOrder = { 2, 1, 0, 3 };
+        public static readonly int[] TextureChannelOrder = [2, 1, 0, 3];
 
         /// <summary>
         /// Integer representation of a Unicode character in UTF-8 in reverse order, read in little endian.

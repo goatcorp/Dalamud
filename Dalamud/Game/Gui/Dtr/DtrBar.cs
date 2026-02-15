@@ -30,7 +30,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 {
     private const uint BaseNodeId = 1000;
 
-    private static readonly ModuleLog Log = new("DtrBar");
+    private static readonly ModuleLog Log = ModuleLog.Create<DtrBar>();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
@@ -54,7 +54,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     private readonly ReaderWriterLockSlim entriesLock = new();
     private readonly List<DtrBarEntry> entries = [];
 
-    private readonly Dictionary<uint, List<IAddonEventHandle>> eventHandles = new();
+    private readonly Dictionary<uint, List<IAddonEventHandle>> eventHandles = [];
 
     private ImmutableList<IReadOnlyDtrBarEntry>? entriesReadOnlyCopy;
 
@@ -397,7 +397,15 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
                     ushort w = 0, h = 0;
                     node->GetTextDrawSize(&w, &h, node->NodeText.StringPtr);
-                    node->SetWidth(w);
+
+                    if (data.MinimumWidth > 0)
+                    {
+                        node->SetWidth(Math.Max(data.MinimumWidth, w));
+                    }
+                    else
+                    {
+                        node->SetWidth(w);
+                    }
                 }
 
                 var elementWidth = data.TextNode->Width + this.configuration.DtrSpacing;
@@ -516,7 +524,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         var node = data.TextNode = this.MakeNode(++this.runningNodeIds);
 
-        this.eventHandles.TryAdd(node->NodeId, new List<IAddonEventHandle>());
+        this.eventHandles.TryAdd(node->NodeId, []);
         this.eventHandles[node->NodeId].AddRange(new List<IAddonEventHandle>
         {
             this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, (nint)dtr, (nint)node, AddonEventType.MouseOver, this.DtrEventHandler),

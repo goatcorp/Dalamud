@@ -2,7 +2,6 @@ using System.Linq;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Command;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -12,8 +11,12 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class CommandWidget : IDataWindowWidget
 {
+    private const ImGuiTableFlags TableFlags = ImGuiTableFlags.ScrollY | ImGuiTableFlags.Borders |
+                                               ImGuiTableFlags.SizingStretchProp | ImGuiTableFlags.Sortable |
+                                               ImGuiTableFlags.SortTristate;
+
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "command" };
+    public string[]? CommandShortcuts { get; init; } = ["command"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Command";
@@ -32,9 +35,7 @@ internal class CommandWidget : IDataWindowWidget
     {
         var commandManager = Service<CommandManager>.Get();
 
-        var tableFlags = ImGuiTableFlags.ScrollY | ImGuiTableFlags.Borders | ImGuiTableFlags.SizingStretchProp |
-                         ImGuiTableFlags.Sortable | ImGuiTableFlags.SortTristate;
-        using var table = ImRaii.Table("CommandList"u8, 4, tableFlags);
+        using var table = ImRaii.Table("CommandList"u8, 4, TableFlags);
         if (table)
         {
             ImGui.TableSetupScrollFreeze(0, 1);

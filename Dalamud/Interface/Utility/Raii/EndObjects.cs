@@ -193,8 +193,8 @@ public static partial class ImRaii
         return new EndUnconditionally(Restore, true);
     }
 
-    private static IEndObject DisabledEnd()
-        => new EndUnconditionally(() =>
+    private static EndUnconditionally DisabledEnd()
+        => new(() =>
         {
             --disabledCount;
             ImGui.EndDisabled();

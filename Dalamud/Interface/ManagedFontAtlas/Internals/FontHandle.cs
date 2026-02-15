@@ -10,6 +10,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -20,7 +21,7 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 internal abstract class FontHandle : IFontHandle
 {
     private const int NonMainThreadFontAccessWarningCheckInterval = 10000;
-    private static readonly ConditionalWeakTable<LocalPlugin, object> NonMainThreadFontAccessWarning = new();
+    private static readonly ConditionalWeakTable<LocalPlugin, object> NonMainThreadFontAccessWarning = [];
     private static long nextNonMainThreadFontAccessWarningCheck;
 
     private readonly List<IDisposable> pushedFonts = new(8);

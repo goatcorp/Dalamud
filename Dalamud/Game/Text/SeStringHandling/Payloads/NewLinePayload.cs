@@ -7,7 +7,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class NewLinePayload : Payload, ITextProvider
 {
-    private readonly byte[] bytes = { START_BYTE, (byte)SeStringChunkType.NewLine, 0x01, END_BYTE };
+    private readonly byte[] bytes = [START_BYTE, (byte)SeStringChunkType.NewLine, 0x01, END_BYTE];
 
     /// <summary>
     /// Gets an instance of NewLinePayload.

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using Dalamud.Hooking;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
+
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
+
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Data;
@@ -13,7 +15,7 @@ namespace Dalamud.Data;
 /// </summary>
 internal sealed unsafe class RsvResolver : IDisposable
 {
-    private static readonly ModuleLog Log = new("RsvProvider");
+    private static readonly ModuleLog Log = ModuleLog.Create<RsvResolver>();
 
     private readonly Hook<LayoutWorld.Delegates.AddRsvString> addRsvStringHook;
 

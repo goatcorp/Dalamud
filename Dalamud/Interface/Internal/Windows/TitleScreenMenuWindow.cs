@@ -22,8 +22,11 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using Lumina.Text.ReadOnly;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows;
@@ -47,9 +50,9 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private readonly Lazy<IDalamudTextureWrap> shadeTexture;
     private readonly AddonLifecycleEventListener versionStringListener;
 
-    private readonly Dictionary<Guid, InOutCubic> shadeEasings = new();
-    private readonly Dictionary<Guid, InOutQuint> moveEasings = new();
-    private readonly Dictionary<Guid, InOutCubic> logoEasings = new();
+    private readonly Dictionary<Guid, InOutCubic> shadeEasings = [];
+    private readonly Dictionary<Guid, InOutQuint> moveEasings = [];
+    private readonly Dictionary<Guid, InOutCubic> logoEasings = [];
 
     private readonly IConsoleVariable<bool> showTsm;
 

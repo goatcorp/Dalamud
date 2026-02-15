@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
@@ -34,8 +35,8 @@ internal sealed class DelegateFontHandle : FontHandle
     /// </summary>
     internal sealed class HandleManager : IFontHandleManager
     {
-        private readonly HashSet<DelegateFontHandle> handles = new();
-        private readonly object syncRoot = new();
+        private readonly HashSet<DelegateFontHandle> handles = [];
+        private readonly Lock syncRoot = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HandleManager"/> class.
@@ -95,8 +96,8 @@ internal sealed class DelegateFontHandle : FontHandle
         private static readonly ModuleLog Log = new($"{nameof(DelegateFontHandle)}.{nameof(HandleSubstance)}");
 
         // Owned by this class, but ImFontPtr values still do not belong to this.
-        private readonly Dictionary<DelegateFontHandle, ImFontPtr> fonts = new();
-        private readonly Dictionary<DelegateFontHandle, Exception?> buildExceptions = new();
+        private readonly Dictionary<DelegateFontHandle, ImFontPtr> fonts = [];
+        private readonly Dictionary<DelegateFontHandle, Exception?> buildExceptions = [];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HandleSubstance"/> class.

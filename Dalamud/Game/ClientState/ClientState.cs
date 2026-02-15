@@ -33,7 +33,7 @@ namespace Dalamud.Game.ClientState;
 [ServiceManager.EarlyLoadedService]
 internal sealed class ClientState : IInternalDisposableService, IClientState
 {
-    private static readonly ModuleLog Log = new("ClientState");
+    private static readonly ModuleLog Log = ModuleLog.Create<ClientState>();
 
     private readonly GameLifecycle lifecycle;
     private readonly ClientStateAddressResolver address;

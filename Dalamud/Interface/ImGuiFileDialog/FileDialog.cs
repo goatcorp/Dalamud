@@ -30,7 +30,7 @@ public partial class FileDialog
     private string currentPath;
     private string fileNameBuffer = string.Empty;
 
-    private List<string> pathDecomposition = new();
+    private List<string> pathDecomposition = [];
     private bool pathClicked = true;
     private bool pathInputActivated = false;
     private string pathInputBuffer = string.Empty;
@@ -46,12 +46,12 @@ public partial class FileDialog
     private string searchBuffer = string.Empty;
 
     private string lastSelectedFileName = string.Empty;
-    private List<string> selectedFileNames = new();
+    private List<string> selectedFileNames = [];
 
     private float footerHeight = 0;
 
     private string selectedSideBar = string.Empty;
-    private List<SideBarItem> quickAccess = new();
+    private List<SideBarItem> quickAccess = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileDialog"/> class.
@@ -97,6 +97,8 @@ public partial class FileDialog
         this.SetupSideBar();
     }
 
+    public event EventHandler<string>? SelectionChanged;
+
     /// <summary>
     /// Shows the dialog.
     /// </summary>
@@ -130,12 +132,12 @@ public partial class FileDialog
     {
         if (!this.flags.HasFlag(ImGuiFileDialogFlags.SelectOnly))
         {
-            return new List<string> { this.GetFilePathName() };
+            return [this.GetFilePathName()];
         }
 
         if (this.IsDirectoryMode() && this.selectedFileNames.Count == 0)
         {
-            return new List<string> { this.GetFilePathName() }; // current directory
+            return [this.GetFilePathName()]; // current directory
         }
 
         var fullPaths = this.selectedFileNames.Where(x => !string.IsNullOrEmpty(x)).Select(x => Path.Combine(this.currentPath, x));

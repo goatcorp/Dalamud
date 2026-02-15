@@ -70,7 +70,7 @@ internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        var wrap = tm.NoThrottleCreateFromTexFile(file);
+        var wrap = tm.NoThrottleCreateFromTexFile(file.Header, file.TextureBuffer);
         tm.BlameSetName(wrap, this.ToString());
         return wrap;
     }
