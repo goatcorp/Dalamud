@@ -87,7 +87,7 @@ public readonly unsafe struct AtkValuePtr(nint address) : IEquatable<AtkValuePtr
     /// <returns>
     /// <c>true</c> if the value was successfully extracted and matched <typeparamref name="T"/>; otherwise, <c>false</c>.
     /// </returns>
-    public unsafe bool TryGet<T>([NotNullWhen(true)] out T? result) where T : struct
+    public unsafe bool TryGet<T>(out T result) where T : struct
     {
         var value = this.GetValue();
         if (value is T typed)
