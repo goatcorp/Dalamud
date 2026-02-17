@@ -1,62 +1,20 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup Label="Feature">
-        <RootNamespace>Dalamud.Test</RootNamespace>
-        <AssemblyTitle>Dalamud.Test</AssemblyTitle>
-        <AssemblyName>Dalamud.Test</AssemblyName>
-        <Product>Dalamud.Test</Product>
-        <Description>Unit tests for Dalamud</Description>
-        <Company>goatcorp</Company>
-        <Copyright>Copyright © goatcorp 2021</Copyright>
+
+    <PropertyGroup>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
-    <PropertyGroup Label="Output">
-        <OutputType>Library</OutputType>
-        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    </PropertyGroup>
-
-    <PropertyGroup Label="Configuration">
-        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    </PropertyGroup>
-    <PropertyGroup Label="Configuration" Condition=" '$(Configuration)' == 'Debug' ">
-        <DebugSymbols>true</DebugSymbols>
-        <DebugType>full</DebugType>
-        <Optimize>false</Optimize>
-        <OutputPath>bin\Debug\</OutputPath>
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-    </PropertyGroup>
-    <PropertyGroup Label="Configuration" Condition=" '$(Configuration)' == 'Release' ">
-        <DebugType>pdbonly</DebugType>
-        <Optimize>true</Optimize>
-        <OutputPath>bin\Release\</OutputPath>
-        <DefineConstants>TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="xunit.v3" />
+        <PackageReference Include="xunit.v3.assert" />
+        <PackageReference Include="xunit.runner.visualstudio" />
+    </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Dalamud\Dalamud.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" />
-        <PackageReference Include="xunit" />
-        <PackageReference Include="xunit.abstractions" />
-        <PackageReference Include="xunit.analyzers" />
-        <PackageReference Include="xunit.assert" />
-        <PackageReference Include="xunit.core" />
-        <PackageReference Include="xunit.extensibility.core" />
-        <PackageReference Include="xunit.extensibility.execution" />
-        <PackageReference Include="xunit.runner.console">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="xunit.runner.visualstudio">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-    </ItemGroup>
 </Project>
