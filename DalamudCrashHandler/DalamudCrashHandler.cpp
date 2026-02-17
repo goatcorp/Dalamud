@@ -1078,7 +1078,14 @@ int main() {
             window_log_str = log.str();
 
         print_exception_info_extended(exinfo.ExceptionPointers, exinfo.ContextRecord, log);
-        std::wofstream(logPath) << log.str();
+        if (const auto temp = ws_to_u8(log.str()); !temp.empty()) {
+            std::ofstream(logPath, std::ios::binary).write(temp.data(), temp.size());
+        } else {
+            // for some reason couldn't be converted to UTF-8; write in UTF-16
+            const auto temp2 = log.str();
+            const auto temp3 = std::span(reinterpret_cast<const char*>(temp2.data()), temp2.size() * sizeof(temp2[0]));
+            std::ofstream(logPath, std::ios::binary).write(temp3.data(), temp3.size());
+        }
 
         TASKDIALOGCONFIG config = { 0 };
 
