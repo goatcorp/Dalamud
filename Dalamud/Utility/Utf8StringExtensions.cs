@@ -45,7 +45,7 @@ public static class Utf8StringExtensions
     /// <returns>A new Lumina ReadOnlySeString.</returns>
     public static ReadOnlySeString AsReadOnlySeString(this Utf8String str)
     {
-        return new ReadOnlySeString(str.AsSpan().ToArray());
+        return new ReadOnlySeString(str.AsSpan());
     }
 
     /// <summary>
