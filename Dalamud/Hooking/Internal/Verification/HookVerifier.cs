@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Logging.Internal;
 
@@ -65,6 +66,13 @@ internal static class HookVerifier
     /// <exception cref="HookVerificationException">Exception thrown when we think the hook is not correctly declared.</exception>
     public static void Verify<T>(IntPtr address) where T : Delegate
     {
+        // API15 TODO: Always throw
+        var config = Service<DalamudConfiguration>.GetNullable();
+        if (config != null && config.DevPluginLoadLocations.Count == 0)
+        {
+            return;
+        }
+
         var entry = ToVerify.FirstOrDefault(x => x.Address == address);
 
         // Nothing to verify for this hook?
@@ -121,7 +129,7 @@ internal static class HookVerifier
         return sameType || SizeOf(paramLeft, isMarshaled) == SizeOf(paramRight, false);
     }
 
-    private static int SizeOf(Type type, bool isMarshaled) 
+    private static int SizeOf(Type type, bool isMarshaled)
     {
         return type switch {
             _ when type == typeof(sbyte) || type == typeof(byte) || (type == typeof(bool) && !isMarshaled) => 1,
@@ -137,19 +145,19 @@ internal static class HookVerifier
         };
     }
 
-    private static int GetSizeOf(Type type) 
+    private static int GetSizeOf(Type type)
     {
-        try 
+        try
         {
             return Marshal.SizeOf(Activator.CreateInstance(type)!);
-        } 
-        catch 
+        }
+        catch
         {
             return 0;
         }
     }
 
-    private static bool IsStruct(Type type) 
+    private static bool IsStruct(Type type)
     {
         return type != typeof(decimal) && type is { IsValueType: true, IsPrimitive: false, IsEnum: false };
     }
