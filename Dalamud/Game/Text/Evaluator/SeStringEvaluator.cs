@@ -309,27 +309,59 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     private unsafe bool TryResolveSetResetTime(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        DateTime date;
+        var enu = payload.GetEnumerator();
 
-        if (payload.TryGetExpression(out var eHour, out var eWeekday)
-            && this.TryResolveInt(in context, eHour, out var eHourVal)
-            && this.TryResolveInt(in context, eWeekday, out var eWeekdayVal))
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var eHourVal))
+            return false;
+
+        var eWeekdayVal = 7; // 0-6 = Sunday to Saturday, 7 = special case "daily reset"
+
+        // Parse optional weekday expression
+        if (enu.MoveNext() && !this.TryResolveInt(in context, enu.Current, out eWeekdayVal))
+            return false;
+
+        // Clamp values
+        if (eHourVal > 23) eHourVal = 0;
+        if (eWeekdayVal > 7) eWeekdayVal = 7;
+
+        // Convert JST to UTC
+        int targetUtcHour;
+        var targetUtcWday = eWeekdayVal;
+
+        if (eHourVal >= 9)
         {
-            var t = DateTime.UtcNow.AddDays(((eWeekdayVal - (int)DateTime.UtcNow.DayOfWeek) + 7) % 7);
-            date = new DateTime(t.Year, t.Month, t.Day, eHourVal, 0, 0, DateTimeKind.Utc).ToLocalTime();
-        }
-        else if (payload.TryGetExpression(out eHour)
-                 && this.TryResolveInt(in context, eHour, out eHourVal))
-        {
-            var t = DateTime.UtcNow;
-            date = new DateTime(t.Year, t.Month, t.Day, eHourVal, 0, 0, DateTimeKind.Utc).ToLocalTime();
+            targetUtcHour = eHourVal - 9;
         }
         else
         {
-            return false;
+            targetUtcHour = eHourVal + 15;
+
+            if (eWeekdayVal != 7)
+                targetUtcWday = (eWeekdayVal + 6) % 7;
         }
 
-        MacroDecoder.GetMacroTime()->SetTime(date);
+        // Create a target date
+        var nowUtc = DateTime.UtcNow;
+        var targetDate = new DateTime(nowUtc.Year, nowUtc.Month, nowUtc.Day, targetUtcHour, 0, 0, DateTimeKind.Utc);
+
+        // Move date to next possible reset
+        if (eWeekdayVal == 7)
+        {
+            // Daily Reset: If we already passed it today, move to tomorrow
+            if (nowUtc.Hour >= targetUtcHour)
+                targetDate = targetDate.AddDays(1);
+        }
+        else
+        {
+            // Weekly Reset: If we already passed it today, move to next week
+            var daysToAdd = (targetUtcWday - (int)nowUtc.DayOfWeek + 7) % 7;
+            if (daysToAdd == 0 && nowUtc.Hour >= targetUtcHour)
+                daysToAdd = 7;
+
+            targetDate = targetDate.AddDays(daysToAdd);
+        }
+
+        MacroDecoder.GetMacroTime()->SetTime(targetDate.ToLocalTime());
 
         return true;
     }
