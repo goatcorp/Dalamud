@@ -1,3 +1,5 @@
+using Dalamud.Plugin.Ipc.Internal;
+
 namespace Dalamud.Plugin.Ipc.Exceptions;
 
 /// <summary>
@@ -9,11 +11,11 @@ public class DataCacheTypeMismatchError : IpcError
     /// Initializes a new instance of the <see cref="DataCacheTypeMismatchError"/> class.
     /// </summary>
     /// <param name="tag">Tag of the data cache.</param>
-    /// <param name="creator">Assembly name of the plugin creating the cache.</param>
+    /// <param name="creatorPluginId">The plugin ID of the creating plugin.</param>
     /// <param name="requestedType">The requested type.</param>
     /// <param name="actualType">The stored type.</param>
-    public DataCacheTypeMismatchError(string tag, string creator, Type requestedType, Type actualType)
-        : base($"Data cache {tag} was requested with type {requestedType}, but {creator} created type {actualType}.")
+    public DataCacheTypeMismatchError(string tag, DataCachePluginId creatorPluginId, Type requestedType, Type actualType)
+        : base($"Data cache {tag} was requested with type {requestedType}, but {creatorPluginId.InternalName} ({creatorPluginId.EffectiveWorkingId}) created type {actualType}.")
     {
     }
 }

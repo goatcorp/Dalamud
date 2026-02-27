@@ -6,6 +6,8 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.Internal.Verification;
 
+using TerraFX.Interop.Windows;
+
 namespace Dalamud.Hooking;
 
 /// <summary>
@@ -20,6 +22,8 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     private const ulong IMAGE_ORDINAL_FLAG64 = 0x8000000000000000;
     // ReSharper disable once InconsistentNaming
     private const uint IMAGE_ORDINAL_FLAG32 = 0x80000000;
+    // ReSharper disable once InconsistentNaming
+    private const int IMAGE_DIRECTORY_ENTRY_IMPORT = 1;
 #pragma warning restore SA1310
 
     private readonly IntPtr address;
@@ -124,25 +128,25 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         module ??= Process.GetCurrentProcess().MainModule;
         if (module == null)
             throw new InvalidOperationException("Current module is null?");
-        var pDos = (PeHeader.IMAGE_DOS_HEADER*)module.BaseAddress;
-        var pNt = (PeHeader.IMAGE_FILE_HEADER*)(module.BaseAddress + (int)pDos->e_lfanew + 4);
-        var isPe64 = pNt->SizeOfOptionalHeader == Marshal.SizeOf<PeHeader.IMAGE_OPTIONAL_HEADER64>();
-        PeHeader.IMAGE_DATA_DIRECTORY* pDataDirectory;
+        var pDos = (IMAGE_DOS_HEADER*)module.BaseAddress;
+        var pNt = (IMAGE_FILE_HEADER*)(module.BaseAddress + pDos->e_lfanew + 4);
+        var isPe64 = pNt->SizeOfOptionalHeader == Marshal.SizeOf<IMAGE_OPTIONAL_HEADER64>();
+        IMAGE_DATA_DIRECTORY* pDataDirectory;
         if (isPe64)
         {
-            var pOpt = (PeHeader.IMAGE_OPTIONAL_HEADER64*)(module.BaseAddress + (int)pDos->e_lfanew + 4 + Marshal.SizeOf<PeHeader.IMAGE_FILE_HEADER>());
-            pDataDirectory = &pOpt->ImportTable;
+            var pOpt = (IMAGE_OPTIONAL_HEADER64*)(module.BaseAddress + pDos->e_lfanew + 4 + Marshal.SizeOf<IMAGE_FILE_HEADER>());
+            pDataDirectory = &pOpt->DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
         }
         else
         {
-            var pOpt = (PeHeader.IMAGE_OPTIONAL_HEADER32*)(module.BaseAddress + (int)pDos->e_lfanew + 4 + Marshal.SizeOf<PeHeader.IMAGE_FILE_HEADER>());
-            pDataDirectory = &pOpt->ImportTable;
+            var pOpt = (IMAGE_OPTIONAL_HEADER32*)(module.BaseAddress + pDos->e_lfanew + 4 + Marshal.SizeOf<IMAGE_FILE_HEADER>());
+            pDataDirectory = &pOpt->DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
         }
 
         var moduleNameLowerWithNullTerminator = (moduleName + "\0").ToLowerInvariant();
-        foreach (ref var importDescriptor in new Span<PeHeader.IMAGE_IMPORT_DESCRIPTOR>(
-                     (PeHeader.IMAGE_IMPORT_DESCRIPTOR*)(module.BaseAddress + (int)pDataDirectory->VirtualAddress),
-                     (int)(pDataDirectory->Size / Marshal.SizeOf<PeHeader.IMAGE_IMPORT_DESCRIPTOR>())))
+        foreach (ref var importDescriptor in new Span<IMAGE_IMPORT_DESCRIPTOR>(
+                     (IMAGE_IMPORT_DESCRIPTOR*)(module.BaseAddress + (int)pDataDirectory->VirtualAddress),
+                     (int)(pDataDirectory->Size / Marshal.SizeOf<IMAGE_IMPORT_DESCRIPTOR>())))
         {
             // Having all zero values signals the end of the table. We didn't find anything.
             if (importDescriptor.Characteristics == 0)
@@ -248,7 +252,7 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         ObjectDisposedException.ThrowIf(this.IsDisposed, this);
     }
 
-    private static unsafe IntPtr FromImportHelper32(IntPtr baseAddress, ref PeHeader.IMAGE_IMPORT_DESCRIPTOR desc, ref PeHeader.IMAGE_DATA_DIRECTORY dir, string functionName, uint hintOrOrdinal)
+    private static unsafe IntPtr FromImportHelper32(IntPtr baseAddress, ref IMAGE_IMPORT_DESCRIPTOR desc, ref IMAGE_DATA_DIRECTORY dir, string functionName, uint hintOrOrdinal)
     {
         var importLookupsOversizedSpan = new Span<uint>((uint*)(baseAddress + (int)desc.OriginalFirstThunk), (int)((dir.Size - desc.OriginalFirstThunk) / Marshal.SizeOf<int>()));
         var importAddressesOversizedSpan = new Span<uint>((uint*)(baseAddress + (int)desc.FirstThunk), (int)((dir.Size - desc.FirstThunk) / Marshal.SizeOf<int>()));
@@ -298,7 +302,7 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         throw new MissingMethodException("Specified method not found");
     }
 
-    private static unsafe IntPtr FromImportHelper64(IntPtr baseAddress, ref PeHeader.IMAGE_IMPORT_DESCRIPTOR desc, ref PeHeader.IMAGE_DATA_DIRECTORY dir, string functionName, uint hintOrOrdinal)
+    private static unsafe IntPtr FromImportHelper64(IntPtr baseAddress, ref IMAGE_IMPORT_DESCRIPTOR desc, ref IMAGE_DATA_DIRECTORY dir, string functionName, uint hintOrOrdinal)
     {
         var importLookupsOversizedSpan = new Span<ulong>((ulong*)(baseAddress + (int)desc.OriginalFirstThunk), (int)((dir.Size - desc.OriginalFirstThunk) / Marshal.SizeOf<ulong>()));
         var importAddressesOversizedSpan = new Span<ulong>((ulong*)(baseAddress + (int)desc.FirstThunk), (int)((dir.Size - desc.FirstThunk) / Marshal.SizeOf<ulong>()));

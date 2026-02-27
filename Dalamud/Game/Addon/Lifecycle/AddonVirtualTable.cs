@@ -42,6 +42,7 @@ internal unsafe class AddonVirtualTable : IDisposable
     private readonly AddonArgs onMouseOverArgs = new();
     private readonly AddonArgs onMouseOutArgs = new();
     private readonly AddonArgs focusArgs = new();
+    private readonly AddonFocusChangedArgs focusChangedArgs = new();
 
     private readonly AtkUnitBase* atkUnitBase;
 
@@ -63,6 +64,7 @@ internal unsafe class AddonVirtualTable : IDisposable
     private readonly AtkUnitBase.Delegates.OnMouseOver onMouseOverFunction;
     private readonly AtkUnitBase.Delegates.OnMouseOut onMouseOutFunction;
     private readonly AtkUnitBase.Delegates.Focus focusFunction;
+    private readonly AtkUnitBase.Delegates.OnFocusChange onFocusChangeFunction;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonVirtualTable"/> class.
@@ -103,6 +105,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.onMouseOverFunction = this.OnAddonMouseOver;
         this.onMouseOutFunction = this.OnAddonMouseOut;
         this.focusFunction = this.OnAddonFocus;
+        this.onFocusChangeFunction = this.OnAddonFocusChange;
 
         // Overwrite specific virtual table entries
         this.ModifiedVirtualTable->Dtor = (delegate* unmanaged<AtkUnitBase*, byte, AtkEventListener*>)Marshal.GetFunctionPointerForDelegate(this.destructorFunction);
@@ -121,6 +124,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.ModifiedVirtualTable->OnMouseOver = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMouseOverFunction);
         this.ModifiedVirtualTable->OnMouseOut = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMouseOutFunction);
         this.ModifiedVirtualTable->Focus = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.focusFunction);
+        this.ModifiedVirtualTable->OnFocusChange = (delegate* unmanaged<AtkUnitBase*, bool, void>)Marshal.GetFunctionPointerForDelegate(this.onFocusChangeFunction);
     }
 
     /// <summary>
@@ -627,6 +631,36 @@ internal unsafe class AddonVirtualTable : IDisposable
         catch (Exception e)
         {
             Log.Error(e, "Caught exception from Dalamud when attempting to process OnAddonFocus.");
+        }
+    }
+
+    private void OnAddonFocusChange(AtkUnitBase* thisPtr, bool isFocused)
+    {
+        try
+        {
+            this.LogEvent(EnableLogging);
+
+            this.focusChangedArgs.Addon = thisPtr;
+            this.focusChangedArgs.ShouldFocus = isFocused;
+
+            this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFocusChanged, this.focusChangedArgs);
+
+            isFocused = this.focusChangedArgs.ShouldFocus;
+
+            try
+            {
+                this.OriginalVirtualTable->OnFocusChange(thisPtr, isFocused);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Caught exception when calling original Addon OnFocusChanged. This may be a bug in the game or another plugin hooking this method.");
+            }
+
+            this.lifecycleService.InvokeListenersSafely(AddonEvent.PostFocusChanged, this.focusChangedArgs);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception from Dalamud when attempting to process OnAddonFocusChange.");
         }
     }
 

@@ -31,7 +31,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     private readonly Framework framework = Service<Framework>.Get();
 
     private Hook<AtkUnitBase.Delegates.Initialize>? onInitializeAddonHook;
-    private bool isInvokingListeners = false;
+    private bool isInvokingListeners;
 
     [ServiceManager.ServiceConstructor]
     private AddonLifecycle()
@@ -57,28 +57,35 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     }
 
     /// <summary>
+    /// Resolves a virtual table address to the original virtual table address.
+    /// </summary>
+    /// <param name="tableAddress">The modified address to resolve.</param>
+    /// <returns>The original address.</returns>
+    internal static AtkUnitBase.AtkUnitBaseVirtualTable* GetOriginalVirtualTable(AtkUnitBase.AtkUnitBaseVirtualTable* tableAddress)
+    {
+        var matchedTable = AllocatedTables.FirstOrDefault(table => table.ModifiedVirtualTable == tableAddress);
+        if (matchedTable == null)
+        {
+            return null;
+        }
+
+        return matchedTable.OriginalVirtualTable;
+    }
+
+    /// <summary>
     /// Register a listener for the target event and addon.
     /// </summary>
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AddonLifecycleEventListener listener)
     {
-        this.framework.RunOnTick(() =>
+        if (this.isInvokingListeners)
         {
-            if (!this.EventListeners.ContainsKey(listener.EventType))
-            {
-                if (!this.EventListeners.TryAdd(listener.EventType, []))
-                    return;
-            }
-
-            // Note: string.Empty is a valid addon name, as that will trigger on any addon for this event type
-            if (!this.EventListeners[listener.EventType].ContainsKey(listener.AddonName))
-            {
-                if (!this.EventListeners[listener.EventType].TryAdd(listener.AddonName, []))
-                    return;
-            }
-
-            this.EventListeners[listener.EventType][listener.AddonName].Add(listener);
-        }, delayTicks: this.isInvokingListeners ? 1 : 0);
+            this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
+        }
+        else
+        {
+            this.framework.RunOnFrameworkThread(() => this.RegisterListenerMethod(listener));
+        }
     }
 
     /// <summary>
@@ -87,16 +94,16 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
-        this.framework.RunOnTick(() =>
+        listener.IsRequestedToClear = true;
+        
+        if (this.isInvokingListeners)
         {
-            if (this.EventListeners.TryGetValue(listener.EventType, out var addonListeners))
-            {
-                if (addonListeners.TryGetValue(listener.AddonName, out var addonListener))
-                {
-                    addonListener.Remove(listener);
-                }
-            }
-        }, delayTicks: this.isInvokingListeners ? 1 : 0);
+            this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
+        }
+        else
+        {
+            this.framework.RunOnFrameworkThread(() => this.UnregisterListenerMethod(listener));
+        }
     }
 
     /// <summary>
@@ -117,6 +124,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         {
             foreach (var listener in globalListeners)
             {
+                if (listener.IsRequestedToClear) continue;
+                
                 try
                 {
                     listener.FunctionDelegate.Invoke(eventType, args);
@@ -133,6 +142,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         {
             foreach (var listener in addonListener)
             {
+                if (listener.IsRequestedToClear) continue;
+                
                 try
                 {
                     listener.FunctionDelegate.Invoke(eventType, args);
@@ -147,17 +158,37 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         this.isInvokingListeners = false;
     }
 
-    /// <summary>
-    /// Resolves a virtual table address to the original virtual table address.
-    /// </summary>
-    /// <param name="tableAddress">The modified address to resolve.</param>
-    /// <returns>The original address.</returns>
-    internal AtkUnitBase.AtkUnitBaseVirtualTable* GetOriginalVirtualTable(AtkUnitBase.AtkUnitBaseVirtualTable* tableAddress)
+    private void RegisterListenerMethod(AddonLifecycleEventListener listener)
     {
-        var matchedTable = AllocatedTables.FirstOrDefault(table => table.ModifiedVirtualTable == tableAddress);
-        if (matchedTable == null) return null;
+        if (!this.EventListeners.ContainsKey(listener.EventType))
+        {
+            if (!this.EventListeners.TryAdd(listener.EventType, []))
+            {
+                return;
+            }
+        }
 
-        return matchedTable.OriginalVirtualTable;
+        // Note: string.Empty is a valid addon name, as that will trigger on any addon for this event type
+        if (!this.EventListeners[listener.EventType].ContainsKey(listener.AddonName))
+        {
+            if (!this.EventListeners[listener.EventType].TryAdd(listener.AddonName, []))
+            {
+                return;
+            }
+        }
+
+        this.EventListeners[listener.EventType][listener.AddonName].Add(listener);
+    }
+
+    private void UnregisterListenerMethod(AddonLifecycleEventListener listener)
+    {
+        if (this.EventListeners.TryGetValue(listener.EventType, out var addonListeners))
+        {
+            if (addonListeners.TryGetValue(listener.AddonName, out var addonListener))
+            {
+                addonListener.Remove(listener);
+            }
+        }
     }
 
     private void OnAddonInitialize(AtkUnitBase* addon)
@@ -277,5 +308,5 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
 
     /// <inheritdoc/>
     public unsafe nint GetOriginalVirtualTable(nint virtualTableAddress)
-        => (nint)this.addonLifecycleService.GetOriginalVirtualTable((AtkUnitBase.AtkUnitBaseVirtualTable*)virtualTableAddress);
+        => (nint)AddonLifecycle.GetOriginalVirtualTable((AtkUnitBase.AtkUnitBaseVirtualTable*)virtualTableAddress);
 }

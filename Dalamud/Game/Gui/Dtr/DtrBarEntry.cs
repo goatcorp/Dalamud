@@ -41,6 +41,11 @@ public interface IReadOnlyDtrBarEntry
     public bool Shown { get; }
 
     /// <summary>
+    /// Gets a value indicating this entry's minimum width.
+    /// </summary>
+    public ushort MinimumWidth { get; }
+
+    /// <summary>
     /// Gets a value indicating whether the user has hidden this entry from view through the Dalamud settings.
     /// </summary>
     public bool UserHidden { get; }
@@ -75,6 +80,11 @@ public interface IDtrBarEntry : IReadOnlyDtrBarEntry
     /// Gets or sets a value indicating whether this entry is visible.
     /// </summary>
     public new bool Shown { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value specifying the requested minimum width to make this entry.
+    /// </summary>
+    public new ushort MinimumWidth { get; set; }
 
     /// <summary>
     /// Gets or sets an action to be invoked when the user clicks on the dtr entry.
@@ -127,6 +137,25 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
 
     /// <inheritdoc cref="IDtrBarEntry.Tooltip" />
     public SeString? Tooltip { get; set; }
+
+    /// <inheritdoc cref="MinimumWidth" />
+    public ushort MinimumWidth
+    {
+        get;
+        set
+        {
+            field = value;
+            if (this.TextNode is not null)
+            {
+                if (this.TextNode->GetWidth() < value)
+                {
+                    this.TextNode->SetWidth(value);
+                }
+            }
+
+            this.Dirty = true;
+        }
+    }
 
     /// <inheritdoc/>
     public Action<DtrInteractionEvent>? OnClick { get; set; }
