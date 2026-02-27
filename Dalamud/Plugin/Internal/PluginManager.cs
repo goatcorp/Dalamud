@@ -1510,17 +1510,18 @@ internal class PluginManager : IInternalDisposableService
             var tempDllFile = LocalPluginManifest.GetPluginFile(tempOutputDir, repoManifest);
             var tempManifestFile = LocalPluginManifest.GetManifestFile(tempDllFile);
 
-            // We need to save the repoManifest due to how the repo fills in some fields that authors are not expected to use.
-            FilesystemUtil.WriteAllTextSafe(
-                tempManifestFile.FullName,
-                JsonConvert.SerializeObject(repoManifest, Formatting.Indented));
-
             // Reload as a local manifest, add some attributes, and save again.
             var tempManifest = LocalPluginManifest.Load(tempManifestFile) ?? throw new Exception("Plugin had no valid manifest");
             if (tempManifest.InternalName != repoManifest.InternalName)
             {
                 throw new Exception(
                     $"Distributed internal name does not match repo internal name: {tempManifest.InternalName} - {repoManifest.InternalName}");
+            }
+
+            if (tempManifest.AssemblyVersion != repoManifest.AssemblyVersion)
+            {
+                throw new Exception(
+                    $"Distributed plugin version does not match repo version: {tempManifest.AssemblyVersion} - {repoManifest.AssemblyVersion}");
             }
 
             if (tempManifest.WorkingPluginId != Guid.Empty)
