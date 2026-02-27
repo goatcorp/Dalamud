@@ -17,14 +17,14 @@ namespace Dalamud.Test.Game.Text.SeStringHandling
             
             public SeString Text { get; init; }
 
-            public bool Equals(MockConfig other)
+            public bool Equals(MockConfig? other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;
                 return Version == other.Version && Equals(Text.TextValue, other.Text.TextValue);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return Equals(obj as MockConfig);
             }
