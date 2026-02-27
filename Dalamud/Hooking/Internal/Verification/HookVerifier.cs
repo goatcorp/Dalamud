@@ -3,8 +3,11 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Logging.Internal;
+
+using FFXIVClientStructs.FFXIV.Application.Network;
 
 using InteropGenerator.Runtime;
 
@@ -25,7 +28,12 @@ internal static class HookVerifier
             "ActorControlSelf",
             "E8 ?? ?? ?? ?? 0F B7 0B 83 E9 64",
             typeof(ActorControlSelfDelegate), // TODO: change this to CS delegate
-            "Signature changed in Patch 7.4") // 7.4 (new parameters)
+            "Signature changed in Patch 7.4"), // 7.4 (new parameters)
+        new(
+            "SendPacket",
+            ZoneClient.Addresses.SendPacket.String,
+            typeof(ZoneClient.Delegates.SendPacket),
+            "Force marshaling context") // If people hook with 4 byte return this locks people out from logging in
     ];
 
     private static readonly string ClientStructsInteropNamespacePrefix = string.Join(".", nameof(FFXIVClientStructs), nameof(FFXIVClientStructs.Interop));
@@ -58,6 +66,13 @@ internal static class HookVerifier
     /// <exception cref="HookVerificationException">Exception thrown when we think the hook is not correctly declared.</exception>
     public static void Verify<T>(IntPtr address) where T : Delegate
     {
+        // API15 TODO: Always throw
+        var config = Service<DalamudConfiguration>.GetNullable();
+        if (config != null && config.DevPluginLoadLocations.Count == 0)
+        {
+            return;
+        }
+
         var entry = ToVerify.FirstOrDefault(x => x.Address == address);
 
         // Nothing to verify for this hook?
@@ -67,6 +82,7 @@ internal static class HookVerifier
         }
 
         var passedType = typeof(T);
+        var isAssemblyMarshaled = passedType.Assembly.GetCustomAttribute<DisableRuntimeMarshallingAttribute>() is null;
 
         // Directly compare delegates
         if (passedType == entry.TargetDelegateType)
@@ -78,7 +94,7 @@ internal static class HookVerifier
         var enforcedInvoke = entry.TargetDelegateType.GetMethod("Invoke")!;
 
         // Compare Return Type
-        var mismatch = !CheckParam(passedInvoke.ReturnType, enforcedInvoke.ReturnType);
+        var mismatch = !CheckParam(passedInvoke.ReturnType, enforcedInvoke.ReturnType, isAssemblyMarshaled);
 
         // Compare Parameter Count
         var passedParams = passedInvoke.GetParameters();
@@ -93,7 +109,7 @@ internal static class HookVerifier
             // Compare Parameter Types
             for (var i = 0; i < passedParams.Length; i++)
             {
-                if (!CheckParam(passedParams[i].ParameterType, enforcedParams[i].ParameterType))
+                if (!CheckParam(passedParams[i].ParameterType, enforcedParams[i].ParameterType, isAssemblyMarshaled))
                 {
                     mismatch = true;
                     break;
@@ -107,41 +123,41 @@ internal static class HookVerifier
         }
     }
 
-    private static bool CheckParam(Type paramLeft, Type paramRight)
+    private static bool CheckParam(Type paramLeft, Type paramRight, bool isMarshaled)
     {
         var sameType = paramLeft == paramRight;
-        return sameType || SizeOf(paramLeft) == SizeOf(paramRight);
+        return sameType || SizeOf(paramLeft, isMarshaled) == SizeOf(paramRight, false);
     }
 
-    private static int SizeOf(Type type) 
+    private static int SizeOf(Type type, bool isMarshaled)
     {
         return type switch {
-            _ when type == typeof(sbyte) || type == typeof(byte) || type == typeof(bool) => 1,
+            _ when type == typeof(sbyte) || type == typeof(byte) || (type == typeof(bool) && !isMarshaled) => 1,
             _ when type == typeof(char) || type == typeof(short) || type == typeof(ushort) || type == typeof(Half) => 2,
-            _ when type == typeof(int) || type == typeof(uint) || type == typeof(float) => 4,
+            _ when type == typeof(int) || type == typeof(uint) || type == typeof(float) || (type == typeof(bool) && isMarshaled) => 4,
             _ when type == typeof(long) || type == typeof(ulong) || type == typeof(double) || type.IsPointer || type.IsFunctionPointer || type.IsUnmanagedFunctionPointer || (type.Name == "Pointer`1" && type.Namespace.AsSpan().SequenceEqual(ClientStructsInteropNamespacePrefix)) || type == typeof(CStringPointer) => 8,
-            _ when type.Name.StartsWith("FixedSizeArray") => SizeOf(type.GetGenericArguments()[0]) * int.Parse(type.Name[14..type.Name.IndexOf('`')]),
-            _ when type.GetCustomAttribute<InlineArrayAttribute>() is { Length: var length } => SizeOf(type.GetGenericArguments()[0]) * length,
+            _ when type.Name.StartsWith("FixedSizeArray") => SizeOf(type.GetGenericArguments()[0], isMarshaled) * int.Parse(type.Name[14..type.Name.IndexOf('`')]),
+            _ when type.GetCustomAttribute<InlineArrayAttribute>() is { Length: var length } => SizeOf(type.GetGenericArguments()[0], isMarshaled) * length,
             _ when IsStruct(type) && !type.IsGenericType && (type.StructLayoutAttribute?.Value ?? LayoutKind.Sequential) != LayoutKind.Sequential => type.StructLayoutAttribute?.Size ?? (int?)typeof(Unsafe).GetMethod("SizeOf")?.MakeGenericMethod(type).Invoke(null, null) ?? 0,
-            _ when type.IsEnum => SizeOf(Enum.GetUnderlyingType(type)),
+            _ when type.IsEnum => SizeOf(Enum.GetUnderlyingType(type), isMarshaled),
             _ when type.IsGenericType => Marshal.SizeOf(Activator.CreateInstance(type)!),
             _ => GetSizeOf(type),
         };
     }
 
-    private static int GetSizeOf(Type type) 
+    private static int GetSizeOf(Type type)
     {
-        try 
+        try
         {
             return Marshal.SizeOf(Activator.CreateInstance(type)!);
-        } 
-        catch 
+        }
+        catch
         {
             return 0;
         }
     }
 
-    private static bool IsStruct(Type type) 
+    private static bool IsStruct(Type type)
     {
         return type != typeof(decimal) && type is { IsValueType: true, IsPrimitive: false, IsEnum: false };
     }

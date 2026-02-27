@@ -297,17 +297,11 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
             }
 
             this.TexType = asset->AtkTexture.TextureType;
+            this.Texture = asset->AtkTexture.IsTextureReady() ? asset->AtkTexture.GetKernelTexture() : null;
 
-            if (this.TexType == Resource)
+            if (this.TexType == Resource && asset->AtkTexture.Resource != null && asset->AtkTexture.Resource->TexFileResourceHandle != null)
             {
-                var resource = asset->AtkTexture.Resource;
-                this.Texture = resource->KernelTextureObject;
-                this.Path = Marshal.PtrToStringAnsi(new(resource->TexFileResourceHandle->ResourceHandle.FileName.BufferPtr));
-            }
-            else
-            {
-                this.Texture = this.TexType == KernelTexture ? asset->AtkTexture.KernelTexture : null;
-                this.Path = null;
+                this.Path = asset->AtkTexture.Resource->TexFileResourceHandle->ResourceHandle.FileName.ToString();
             }
 
             this.HiRes = this.Path?.Contains("_hr1") ?? false;

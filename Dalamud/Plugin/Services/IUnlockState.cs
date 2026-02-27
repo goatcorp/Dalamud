@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
@@ -24,11 +22,36 @@ public interface IUnlockState : IDalamudService
     event UnlockDelegate? Unlock;
 
     /// <summary>
+    /// Gets a value indicating whether the full Achievements list was received.
+    /// </summary>
+    bool IsAchievementListLoaded { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the full Titles list was received.
+    /// </summary>
+    bool IsTitleListLoaded { get; }
+
+    /// <summary>
+    /// Determines whether the specified Achievement is completed.<br/>
+    /// Requires that the player requested the Achievements list (can be chcked with <see cref="IsAchievementListLoaded"/>).
+    /// </summary>
+    /// <param name="row">The Achievement row to check.</param>
+    /// <returns><see langword="true"/> if completed; otherwise, <see langword="false"/>.</returns>
+    bool IsAchievementComplete(Achievement row);
+
+    /// <summary>
     /// Determines whether the specified Action is unlocked.
     /// </summary>
     /// <param name="row">The Action row to check.</param>
     /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
     bool IsActionUnlocked(Lumina.Excel.Sheets.Action row);
+
+    /// <summary>
+    /// Determines whether the specified Adventure is completed.
+    /// </summary>
+    /// <param name="row">The Adventure row to check.</param>
+    /// <returns><see langword="true"/> if completed; otherwise, <see langword="false"/>.</returns>
+    public bool IsAdventureComplete(Adventure row);
 
     /// <summary>
     /// Determines whether the specified AetherCurrentCompFlgSet is unlocked.
@@ -310,6 +333,14 @@ public interface IUnlockState : IDalamudService
     /// <param name="row">The SecretRecipeBook row to check.</param>
     /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
     bool IsSecretRecipeBookUnlocked(SecretRecipeBook row);
+
+    /// <summary>
+    /// Determines whether the specified Title is unlocked.<br/>
+    /// Requires that the player requested the Titles list (can be chcked with <see cref="IsTitleListLoaded"/>).
+    /// </summary>
+    /// <param name="row">The Title row to check.</param>
+    /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
+    bool IsTitleUnlocked(Title row);
 
     /// <summary>
     /// Determines whether the specified Trait is unlocked.
