@@ -44,7 +44,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = [];
     private readonly List<nint> seenLogMessageObjects = [];
 
-    private readonly Hook<PrintMessageDelegate> printMessageHook;
+    private readonly Hook<RaptureLogModule.Delegates.PrintMessage> printMessageHook;
     private readonly Hook<InventoryItem.Delegates.Copy> inventoryItemCopyHook;
     private readonly Hook<LogViewer.Delegates.HandleLinkClick> handleLinkClickHook;
     private readonly Hook<RaptureLogModule.Delegates.Update> handleLogModuleUpdate;
@@ -58,7 +58,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     [ServiceManager.ServiceConstructor]
     private ChatGui()
     {
-        this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(RaptureLogModule.Addresses.PrintMessage.Value, this.HandlePrintMessageDetour);
+        this.printMessageHook = Hook<RaptureLogModule.Delegates.PrintMessage>.FromAddress(RaptureLogModule.Addresses.PrintMessage.Value, this.HandlePrintMessageDetour);
         this.inventoryItemCopyHook = Hook<InventoryItem.Delegates.Copy>.FromAddress((nint)InventoryItem.StaticVirtualTablePointer->Copy, this.InventoryItemCopyDetour);
         this.handleLinkClickHook = Hook<LogViewer.Delegates.HandleLinkClick>.FromAddress(LogViewer.Addresses.HandleLinkClick.Value, this.HandleLinkClickDetour);
         this.handleLogModuleUpdate = Hook<RaptureLogModule.Delegates.Update>.FromAddress(RaptureLogModule.Addresses.Update.Value, this.UpdateDetour);
@@ -68,9 +68,6 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         this.handleLinkClickHook.Enable();
         this.handleLogModuleUpdate.Enable();
     }
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate uint PrintMessageDelegate(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, byte silent);
 
     /// <inheritdoc/>
     public event IChatGui.OnMessageDelegate? ChatMessage;
@@ -249,11 +246,11 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
             this.HandlePrintMessageDetour(
                 RaptureLogModule.Instance(),
-                targetChannel,
+                (ushort)targetChannel,
                 &sender,
                 &message,
                 chat.Timestamp,
-                (byte)(chat.Silent ? 1 : 0));
+                chat.Silent);
         }
     }
 
@@ -373,7 +370,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         }
     }
 
-    private uint HandlePrintMessageDetour(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, byte silent)
+    private uint HandlePrintMessageDetour(RaptureLogModule* manager, ushort logInfo, Utf8String* sender, Utf8String* message, int timestamp, bool silent)
     {
         var messageId = 0u;
 
@@ -385,6 +382,10 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             var terminatedSender = parsedSender.EncodeWithNullTerminator();
             var terminatedMessage = parsedMessage.EncodeWithNullTerminator();
 
+            var logKind = (XivChatType)(logInfo & 0x7F);
+            var sourceKind = (XivChatRelationKind)((logInfo >> 11) & 0xF);
+            var targetKind = (XivChatRelationKind)((logInfo >> 7) & 0xF);
+
             // Call events
             var isHandled = false;
 
@@ -392,7 +393,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             {
                 try
                 {
-                    action(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
+                    action(logKind, sourceKind, targetKind, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
                 }
                 catch (Exception e)
                 {
@@ -406,7 +407,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 {
                     try
                     {
-                        action(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
+                        action(logKind, sourceKind, targetKind, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
                     }
                     catch (Exception e)
                     {
@@ -434,19 +435,19 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             if (isHandled)
             {
                 foreach (var d in Delegate.EnumerateInvocationList(this.ChatMessageHandled))
-                    d(chatType, timestamp, parsedSender, parsedMessage);
+                    d(logKind, sourceKind, targetKind, timestamp, parsedSender, parsedMessage);
             }
             else
             {
-                messageId = this.printMessageHook.Original(manager, chatType, sender, message, timestamp, silent);
+                messageId = this.printMessageHook.Original(manager, logInfo, sender, message, timestamp, silent);
                 foreach (var d in Delegate.EnumerateInvocationList(this.ChatMessageUnhandled))
-                    d(chatType, timestamp, parsedSender, parsedMessage);
+                    d(logKind, sourceKind, targetKind, timestamp, parsedSender, parsedMessage);
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Exception on OnChatMessage hook.");
-            messageId = this.printMessageHook.Original(manager, chatType, sender, message, timestamp, silent);
+            messageId = this.printMessageHook.Original(manager, logInfo, sender, message, timestamp, silent);
         }
 
         return messageId;
@@ -653,17 +654,17 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     public void PrintError(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.PrintError(message, messageTag, tagColor);
 
-    private void OnMessageForward(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
-        => this.ChatMessage?.Invoke(type, timestamp, ref sender, ref message, ref isHandled);
+    private void OnMessageForward(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+        => this.ChatMessage?.Invoke(type, sourceKind, targetKind, timestamp, ref sender, ref message, ref isHandled);
 
-    private void OnCheckMessageForward(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
-        => this.CheckMessageHandled?.Invoke(type, timestamp, ref sender, ref message, ref isHandled);
+    private void OnCheckMessageForward(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+        => this.CheckMessageHandled?.Invoke(type, sourceKind, targetKind, timestamp, ref sender, ref message, ref isHandled);
 
-    private void OnMessageHandledForward(XivChatType type, int timestamp, SeString sender, SeString message)
-        => this.ChatMessageHandled?.Invoke(type, timestamp, sender, message);
+    private void OnMessageHandledForward(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, SeString sender, SeString message)
+        => this.ChatMessageHandled?.Invoke(type, sourceKind, targetKind, timestamp, sender, message);
 
-    private void OnMessageUnhandledForward(XivChatType type, int timestamp, SeString sender, SeString message)
-        => this.ChatMessageUnhandled?.Invoke(type, timestamp, sender, message);
+    private void OnMessageUnhandledForward(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, SeString sender, SeString message)
+        => this.ChatMessageUnhandled?.Invoke(type, sourceKind, targetKind, timestamp, sender, message);
 
     private void OnLogMessageForward(Chat.ILogMessage message)
         => this.LogMessage?.Invoke(message);
