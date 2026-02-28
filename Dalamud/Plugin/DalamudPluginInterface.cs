@@ -227,19 +227,19 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     /// <inheritdoc/>
     public T GetOrCreateData<T>(string tag, Func<T> dataGenerator) where T : class
-        => Service<DataShare>.Get().GetOrCreateData(tag, dataGenerator);
+        => Service<DataShare>.Get().GetOrCreateData(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId), dataGenerator);
 
     /// <inheritdoc/>
     public void RelinquishData(string tag)
-        => Service<DataShare>.Get().RelinquishData(tag);
+        => Service<DataShare>.Get().RelinquishData(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId));
 
     /// <inheritdoc/>
     public bool TryGetData<T>(string tag, [NotNullWhen(true)] out T? data) where T : class
-        => Service<DataShare>.Get().TryGetData(tag, out data);
+        => Service<DataShare>.Get().TryGetData(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId), out data);
 
     /// <inheritdoc/>
     public T? GetData<T>(string tag) where T : class
-        => Service<DataShare>.Get().GetData<T>(tag);
+        => Service<DataShare>.Get().GetData<T>(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId));
 
     /// <inheritdoc/>
     public ICallGateProvider<TRet> GetIpcProvider<TRet>(string name)
@@ -342,7 +342,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
             {
                 var mi = this.configs.GetType().GetMethod("LoadForType");
                 var fn = mi.MakeGenericMethod(type);
-                return (IPluginConfiguration)fn.Invoke(this.configs, new object[] { this.plugin.InternalName });
+                return (IPluginConfiguration)fn.Invoke(this.configs, [this.plugin.InternalName]);
             }
         }
 

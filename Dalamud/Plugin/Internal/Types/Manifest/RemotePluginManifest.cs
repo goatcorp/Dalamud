@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal.Types.Manifest;

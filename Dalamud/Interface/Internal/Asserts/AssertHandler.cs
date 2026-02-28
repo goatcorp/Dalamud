@@ -21,7 +21,7 @@ internal class AssertHandler : IDisposable
     private const int HidePrintEvery = 500;
 
     private readonly HashSet<string> ignoredAsserts = [];
-    private readonly Dictionary<string, uint> assertCounts = new();
+    private readonly Dictionary<string, uint> assertCounts = [];
 
     // Store callback to avoid it from being GC'd
     private readonly AssertCallbackDelegate callback;

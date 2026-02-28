@@ -110,7 +110,7 @@ internal static unsafe class ImGuiInputTextStatePtrExtensions
 
         var text = new Span<char>(self.TextW.Data, self.TextW.Size);
         if (pos != textLen)
-            text.Slice(pos, textLen - pos).CopyTo(text[(pos + newText.Length)..]);
+            text[pos..textLen].CopyTo(text[(pos + newText.Length)..]);
         newText.CopyTo(text[pos..]);
 
         self.Edited = true;

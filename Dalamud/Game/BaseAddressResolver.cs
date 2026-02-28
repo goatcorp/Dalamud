@@ -14,7 +14,7 @@ public abstract class BaseAddressResolver
     /// <summary>
     /// Gets a list of memory addresses that were found, to list in /xldata.
     /// </summary>
-    public static Dictionary<string, List<(string ClassName, IntPtr Address)>> DebugScannedValues { get; } = new();
+    public static Dictionary<string, List<(string ClassName, IntPtr Address)>> DebugScannedValues { get; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether the resolver has successfully run <see cref="Setup32Bit(ISigScanner)"/> or <see cref="Setup64Bit(ISigScanner)"/>.

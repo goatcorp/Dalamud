@@ -31,5 +31,5 @@ internal sealed class DevPluginSettings
     /// <summary>
     /// Gets or sets a list of validation problems that have been dismissed by the user.
     /// </summary>
-    public List<string> DismissedValidationProblems { get; set; } = new();
+    public List<string> DismissedValidationProblems { get; set; } = [];
 }

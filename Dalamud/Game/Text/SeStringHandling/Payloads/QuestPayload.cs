@@ -5,6 +5,7 @@ using Dalamud.Data;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -62,7 +63,7 @@ public class QuestPayload : Payload
         };
 
         bytes.AddRange(idBytes);
-        bytes.AddRange(new byte[] { 0x01, 0x01, END_BYTE });
+        bytes.AddRange([0x01, 0x01, END_BYTE]);
         return bytes.ToArray();
     }
 

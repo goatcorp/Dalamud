@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
@@ -15,12 +16,12 @@ namespace Dalamud.Plugin.Internal.Profiles;
 /// Class responsible for managing plugin profiles.
 /// </summary>
 [ServiceManager.BlockingEarlyLoadedService($"Data provider for {nameof(PluginManager)}.")]
-internal class ProfileManager : IServiceType
+internal partial class ProfileManager : IServiceType
 {
-    private static readonly ModuleLog Log = new("PROFMAN");
+    private static readonly ModuleLog Log = ModuleLog.Create<ProfileManager>();
     private readonly DalamudConfiguration config;
 
-    private readonly List<Profile> profiles = new();
+    private readonly List<Profile> profiles = [];
 
     private volatile bool isBusy = false;
 
@@ -151,11 +152,7 @@ internal class ProfileManager : IServiceType
     /// <returns>The newly cloned profile.</returns>
     public Profile CloneProfile(Profile toClone)
     {
-        var newProfile = this.ImportProfile(toClone.Model.SerializeForShare());
-        if (newProfile == null)
-            throw new Exception("New profile was null while cloning");
-
-        return newProfile;
+        return this.ImportProfile(toClone.Model.SerializeForShare()) ?? throw new Exception("New profile was null while cloning");
     }
 
     /// <summary>
@@ -338,12 +335,15 @@ internal class ProfileManager : IServiceType
         }
     }
 
+    [GeneratedRegex(@" \(.* Mix\)")]
+    private static partial Regex MixRegex();
+
     private string GenerateUniqueProfileName(string startingWith)
     {
         if (this.profiles.All(x => x.Name != startingWith))
             return startingWith;
 
-        startingWith = Regex.Replace(startingWith, @" \(.* Mix\)", string.Empty);
+        startingWith = MixRegex().Replace(startingWith, string.Empty);
 
         while (true)
         {
@@ -359,7 +359,7 @@ internal class ProfileManager : IServiceType
         this.config.DefaultProfile ??= new ProfileModelV1();
         this.profiles.Add(new Profile(this, this.config.DefaultProfile, true, true));
 
-        this.config.SavedProfiles ??= new List<ProfileModel>();
+        this.config.SavedProfiles ??= [];
         foreach (var profileModel in this.config.SavedProfiles)
         {
             this.profiles.Add(new Profile(this, profileModel, false, true));

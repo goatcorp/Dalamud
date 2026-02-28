@@ -19,6 +19,7 @@
 #include <comdef.h>
 #include <CommCtrl.h>
 #include <DbgHelp.h>
+#include <intrin.h>
 #include <minidumpapiset.h>
 #include <PathCch.h>
 #include <Psapi.h>
@@ -26,6 +27,9 @@
 #include <ShlGuid.h>
 #include <ShObjIdl.h>
 #include <shlobj_core.h>
+
+#include <dxgi.h>
+#pragma comment(lib, "dxgi.lib")
 
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
@@ -469,12 +473,39 @@ void open_folder_and_select_items(HWND hwndOpener, const std::wstring& path) {
         ILFree(piid);
 }
 
+std::vector<IDXGIAdapter1*> enum_dxgi_adapters()
+{
+    std::vector<IDXGIAdapter1*> vAdapters;
+
+    IDXGIFactory1* pFactory = NULL;
+    if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory)))
+    {
+        return vAdapters;
+    }
+
+    IDXGIAdapter1* pAdapter;
+    for (UINT i = 0;
+        pFactory->EnumAdapters1(i, &pAdapter) != DXGI_ERROR_NOT_FOUND;
+        ++i)
+    {
+        vAdapters.push_back(pAdapter);
+    }
+
+    if (pFactory)
+    {
+        pFactory->Release();
+    }
+
+    return vAdapters;
+}
+
 void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const std::string& crashLog, const std::string& troubleshootingPackData) {
     static const char* SourceLogFiles[] = {
         "output.log", // XIVLauncher for Windows
         "launcher.log", // XIVLauncher.Core for [mostly] Linux
         "patcher.log",
         "dalamud.log",
+        "dalamud.troubleshooting.json",
         "dalamud.injector.log",
         "dalamud.boot.log",
         "aria.log",
@@ -686,6 +717,60 @@ void restart_game_using_injector(int nRadioButton, const std::vector<std::wstrin
         CloseHandle(pi.hThread);
     } else {
         MessageBoxW(nullptr, std::format(L"Failed to restart: 0x{:x}", GetLastError()).c_str(), L"Dalamud Boot", MB_ICONERROR | MB_OK);
+    }
+}
+
+void get_cpu_info(wchar_t *vendor, wchar_t *brand)
+{
+    // Gotten and reformatted to not include all data as listed at https://learn.microsoft.com/en-us/cpp/intrinsics/cpuid-cpuidex?view=msvc-170#example
+
+    // int cpuInfo[4] = {-1};
+    std::array<int, 4> cpui;
+    int nIds_;
+    int nExIds_;
+    std::vector<std::array<int, 4>> data_;
+    std::vector<std::array<int, 4>> extdata_;
+    size_t convertedChars = 0;
+
+    // Calling __cpuid with 0x0 as the function_id argument
+    // gets the number of the highest valid function ID.
+    __cpuid(cpui.data(), 0);
+    nIds_ = cpui[0];
+
+    for (int i = 0; i <= nIds_; ++i)
+    {
+        __cpuidex(cpui.data(), i, 0);
+        data_.push_back(cpui);
+    }
+
+    // Capture vendor string
+    char vendorA[0x20];
+    memset(vendorA, 0, sizeof(vendorA));
+    *reinterpret_cast<int *>(vendorA) = data_[0][1];
+    *reinterpret_cast<int *>(vendorA + 4) = data_[0][3];
+    *reinterpret_cast<int *>(vendorA + 8) = data_[0][2];
+    mbstowcs_s(&convertedChars, vendor, 0x20, vendorA, _TRUNCATE);
+
+    // Calling __cpuid with 0x80000000 as the function_id argument
+    // gets the number of the highest valid extended ID.
+    __cpuid(cpui.data(), 0x80000000);
+    nExIds_ = cpui[0];
+
+    for (int i = 0x80000000; i <= nExIds_; ++i)
+    {
+        __cpuidex(cpui.data(), i, 0);
+        extdata_.push_back(cpui);
+    }
+
+    // Interpret CPU brand string if reported
+    if (nExIds_ >= 0x80000004)
+    {
+        char brandA[0x40];
+        memset(brandA, 0, sizeof(brandA));
+        memcpy(brandA, extdata_[2].data(), sizeof(cpui));
+        memcpy(brandA + 16, extdata_[3].data(), sizeof(cpui));
+        memcpy(brandA + 32, extdata_[4].data(), sizeof(cpui));
+        mbstowcs_s(&convertedChars, brand, 0x40, brandA, _TRUNCATE);
     }
 }
 
@@ -941,6 +1026,9 @@ int main() {
         const bool is_external_event = exinfo.ExceptionRecord.ExceptionCode == CUSTOM_EXCEPTION_EXTERNAL_EVENT;
 
         std::wostringstream log;
+        wchar_t vendor[0x20];
+        wchar_t brand[0x40];
+        get_cpu_info(vendor, brand);
 
         if (!is_external_event)
         {
@@ -962,6 +1050,15 @@ int main() {
         else
             log << std::format(L"Dump error: {}", dumpError) << std::endl;
         log << std::format(L"System Time: {0:%F} {0:%T} {0:%Ez}", std::chrono::system_clock::now()) << std::endl;
+        log << std::format(L"CPU Vendor: {}", vendor) << std::endl;
+        log << std::format(L"CPU Brand: {}", brand) << std::endl;
+
+        for (IDXGIAdapter1* adapter : enum_dxgi_adapters()) {
+            DXGI_ADAPTER_DESC1 adapterDescription{};
+            adapter->GetDesc1(&adapterDescription);
+            log << std::format(L"GPU Desc: {}", adapterDescription.Description) << std::endl;
+        }
+
         log << L"\n" << stackTrace << std::endl;
 
         if (pProgressDialog)

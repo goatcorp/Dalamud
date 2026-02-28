@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 
 using CheapLoc;
@@ -23,7 +22,7 @@ namespace Dalamud.Game;
 [ServiceManager.EarlyLoadedService]
 internal partial class ChatHandlers : IServiceType
 {
-    private static readonly ModuleLog Log = new("ChatHandlers");
+    private static readonly ModuleLog Log = ModuleLog.Create<ChatHandlers>();
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -50,7 +49,7 @@ internal partial class ChatHandlers : IServiceType
     [GeneratedRegex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", RegexOptions.Compiled)]
     private static partial Regex CompiledUrlRegex();
 
-    private void OnCheckMessageHandled(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnCheckMessageHandled(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         var textVal = message.TextValue;
 
@@ -64,7 +63,7 @@ internal partial class ChatHandlers : IServiceType
         }
     }
 
-    private void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnChatMessage(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         var clientState = Service<ClientState.ClientState>.GetNullable();
         if (clientState == null)

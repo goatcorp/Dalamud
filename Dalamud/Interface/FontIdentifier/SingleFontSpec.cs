@@ -6,6 +6,7 @@ using System.Text;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.FontIdentifier;

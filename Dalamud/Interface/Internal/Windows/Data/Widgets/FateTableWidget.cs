@@ -1,7 +1,6 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Fates;
 using Dalamud.Interface.Textures.Internal;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -11,8 +10,11 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class FateTableWidget : IDataWindowWidget
 {
+    private const ImGuiTableFlags TableFlags = ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg |
+                                               ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings;
+
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "fate", "fatetable" };
+    public string[]? CommandShortcuts { get; init; } = ["fate", "fatetable"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Fate Table";
@@ -38,7 +40,7 @@ internal class FateTableWidget : IDataWindowWidget
             return;
         }
 
-        using var table = ImRaii.Table("FateTable"u8, 13, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
+        using var table = ImRaii.Table("FateTable"u8, 13, TableFlags);
         if (!table) return;
 
         ImGui.TableSetupColumn("Index"u8, ImGuiTableColumnFlags.WidthFixed, 40);
@@ -98,11 +100,11 @@ internal class FateTableWidget : IDataWindowWidget
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-                        ImGui.BeginTooltip();
+
+                        using var tooltip = ImRaii.Tooltip();
                         ImGui.Text("Click to copy IconId"u8);
                         ImGui.Text($"ID: {fate.IconId} – Size: {texture.Width}x{texture.Height}");
                         ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
-                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.IsItemClicked())
@@ -123,11 +125,11 @@ internal class FateTableWidget : IDataWindowWidget
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-                        ImGui.BeginTooltip();
+
+                        using var tooltip = ImRaii.Tooltip();
                         ImGui.Text("Click to copy MapIconId"u8);
                         ImGui.Text($"ID: {fate.MapIconId} – Size: {texture.Width}x{texture.Height}");
                         ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
-                        ImGui.EndTooltip();
                     }
 
                     if (ImGui.IsItemClicked())

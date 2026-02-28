@@ -1,10 +1,9 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Globalization;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.MarketBoard;
 using Dalamud.Game.Network.Structures;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using ImGuiTable = Dalamud.Interface.Utility.ImGuiTable;
@@ -16,6 +15,8 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class MarketBoardWidget : IDataWindowWidget
 {
+    private const ImGuiTableFlags TableFlags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg;
+
     private readonly ConcurrentQueue<(IMarketBoardHistory MarketBoardHistory, IMarketBoardHistoryListing Listing)> marketBoardHistoryQueue = new();
     private readonly ConcurrentQueue<(IMarketBoardCurrentOfferings MarketBoardCurrentOfferings, IMarketBoardItemListing Listing)> marketBoardCurrentOfferingsQueue = new();
     private readonly ConcurrentQueue<IMarketBoardPurchase> marketBoardPurchasesQueue = new();
@@ -44,7 +45,7 @@ internal class MarketBoardWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "marketboard" };
+    public string[]? CommandShortcuts { get; init; } = ["marketboard"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Market Board";
@@ -100,49 +101,47 @@ internal class MarketBoardWidget : IDataWindowWidget
             this.marketBoardHistoryQueue.Clear();
         }
 
-        using (var tabBar = ImRaii.TabBar("marketTabs"u8))
+        using var tabBar = ImRaii.TabBar("marketTabs"u8);
+        if (!tabBar.Success)
+            return;
+
+        using (var tabItem = ImRaii.TabItem("History"u8))
         {
-            if (tabBar)
+            if (tabItem)
             {
-                using (var tabItem = ImRaii.TabItem("History"u8))
-                {
-                    if (tabItem)
-                    {
-                        ImGuiTable.DrawTable(string.Empty, this.marketBoardHistoryQueue, this.DrawMarketBoardHistory, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Item ID", "Quantity", "Is HQ?", "Sale Price", "Buyer Name", "Purchase Time");
-                    }
-                }
+                ImGuiTable.DrawTable("history-table", this.marketBoardHistoryQueue, this.DrawMarketBoardHistory, TableFlags, "Item ID", "Quantity", "Is HQ?", "Sale Price", "Buyer Name", "Purchase Time");
+            }
+        }
 
-                using (var tabItem = ImRaii.TabItem("Offerings"u8))
-                {
-                    if (tabItem)
-                    {
-                        ImGuiTable.DrawTable(string.Empty, this.marketBoardCurrentOfferingsQueue, this.DrawMarketBoardCurrentOfferings, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Item ID", "Quantity", "Is HQ?", "Price Per Unit", "Retainer Name");
-                    }
-                }
+        using (var tabItem = ImRaii.TabItem("Offerings"u8))
+        {
+            if (tabItem)
+            {
+                ImGuiTable.DrawTable("offerings-table", this.marketBoardCurrentOfferingsQueue, this.DrawMarketBoardCurrentOfferings, TableFlags, "Item ID", "Quantity", "Is HQ?", "Price Per Unit", "Retainer Name");
+            }
+        }
 
-                using (var tabItem = ImRaii.TabItem("Purchases"u8))
-                {
-                    if (tabItem)
-                    {
-                        ImGuiTable.DrawTable(string.Empty, this.marketBoardPurchasesQueue, this.DrawMarketBoardPurchases, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Item ID", "Quantity");
-                    }
-                }
+        using (var tabItem = ImRaii.TabItem("Purchases"u8))
+        {
+            if (tabItem)
+            {
+                ImGuiTable.DrawTable("purchases-table", this.marketBoardPurchasesQueue, this.DrawMarketBoardPurchases, TableFlags, "Item ID", "Quantity");
+            }
+        }
 
-                using (var tabItem = ImRaii.TabItem("Purchase Requests"u8))
-                {
-                    if (tabItem)
-                    {
-                        ImGuiTable.DrawTable(string.Empty, this.marketBoardPurchaseRequestsQueue, this.DrawMarketBoardPurchaseRequests, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Item ID", "Is HQ?", "Quantity", "Price Per Unit", "Total Tax", "City ID", "Listing ID", "Retainer ID");
-                    }
-                }
+        using (var tabItem = ImRaii.TabItem("Purchase Requests"u8))
+        {
+            if (tabItem)
+            {
+                ImGuiTable.DrawTable("requests-table", this.marketBoardPurchaseRequestsQueue, this.DrawMarketBoardPurchaseRequests, TableFlags, "Item ID", "Is HQ?", "Quantity", "Price Per Unit", "Total Tax", "City ID", "Listing ID", "Retainer ID");
+            }
+        }
 
-                using (var tabItem = ImRaii.TabItem("Taxes"u8))
-                {
-                    if (tabItem)
-                    {
-                        ImGuiTable.DrawTable(string.Empty, this.marketTaxRatesQueue, this.DrawMarketTaxRates, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Uldah", "Limsa Lominsa", "Gridania", "Ishgard", "Kugane", "Crystarium", "Sharlayan", "Tuliyollal", "Valid Until");
-                    }
-                }
+        using (var tabItem = ImRaii.TabItem("Taxes"u8))
+        {
+            if (tabItem)
+            {
+                ImGuiTable.DrawTable("taxes-table", this.marketTaxRatesQueue, this.DrawMarketTaxRates, TableFlags, "Uldah", "Limsa Lominsa", "Gridania", "Ishgard", "Kugane", "Crystarium", "Sharlayan", "Tuliyollal", "Valid Until");
             }
         }
     }

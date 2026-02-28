@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -16,39 +17,53 @@ public interface IChatGui : IDalamudService
     /// A delegate type used with the <see cref="ChatGui.ChatMessage"/> event.
     /// </summary>
     /// <param name="type">The type of chat.</param>
+    /// <param name="sourceKind">The relationship of the entity sending the message or performing the action.</param>
+    /// <param name="targetKind">The relationship of the entity receiving the message or being targeted by the action.</param>
     /// <param name="timestamp">The timestamp of when the message was sent.</param>
     /// <param name="sender">The sender name.</param>
     /// <param name="message">The message sent.</param>
     /// <param name="isHandled">A value indicating whether the message was handled or should be propagated.</param>
-    public delegate void OnMessageDelegate(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled);
+    public delegate void OnMessageDelegate(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled);
 
     /// <summary>
     /// A delegate type used with the <see cref="ChatGui.CheckMessageHandled"/> event.
     /// </summary>
     /// <param name="type">The type of chat.</param>
+    /// <param name="sourceKind">The relationship of the entity sending the message or performing the action.</param>
+    /// <param name="targetKind">The relationship of the entity receiving the message or being targeted by the action.</param>
     /// <param name="timestamp">The timestamp of when the message was sent.</param>
     /// <param name="sender">The sender name.</param>
     /// <param name="message">The message sent.</param>
     /// <param name="isHandled">A value indicating whether the message was handled or should be propagated.</param>
-    public delegate void OnCheckMessageHandledDelegate(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled);
+    public delegate void OnCheckMessageHandledDelegate(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled);
 
     /// <summary>
     /// A delegate type used with the <see cref="ChatGui.ChatMessageHandled"/> event.
     /// </summary>
     /// <param name="type">The type of chat.</param>
+    /// <param name="sourceKind">The relationship of the entity sending the message or performing the action.</param>
+    /// <param name="targetKind">The relationship of the entity receiving the message or being targeted by the action.</param>
     /// <param name="timestamp">The timestamp of when the message was sent.</param>
     /// <param name="sender">The sender name.</param>
     /// <param name="message">The message sent.</param>
-    public delegate void OnMessageHandledDelegate(XivChatType type, int timestamp, SeString sender, SeString message);
+    public delegate void OnMessageHandledDelegate(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, SeString sender, SeString message);
 
     /// <summary>
     /// A delegate type used with the <see cref="ChatGui.ChatMessageUnhandled"/> event.
     /// </summary>
     /// <param name="type">The type of chat.</param>
+    /// <param name="sourceKind">The relationship of the entity sending the message or performing the action.</param>
+    /// <param name="targetKind">The relationship of the entity receiving the message or being targeted by the action.</param>
     /// <param name="timestamp">The timestamp of when the message was sent.</param>
     /// <param name="sender">The sender name.</param>
     /// <param name="message">The message sent.</param>
-    public delegate void OnMessageUnhandledDelegate(XivChatType type, int timestamp, SeString sender, SeString message);
+    public delegate void OnMessageUnhandledDelegate(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, SeString sender, SeString message);
+
+    /// <summary>
+    /// A delegate type used with the <see cref="IChatGui.LogMessage"/> event.
+    /// </summary>
+    /// <param name="message">The message sent.</param>
+    public delegate void OnLogMessageDelegate(ILogMessage message);
 
     /// <summary>
     /// Event that will be fired when a chat message is sent to chat by the game.
@@ -69,6 +84,11 @@ public interface IChatGui : IDalamudService
     /// Event that will be fired when a chat message is not handled by Dalamud or a Plugin.
     /// </summary>
     public event OnMessageUnhandledDelegate ChatMessageUnhandled;
+
+    /// <summary>
+    /// Event that will be fired when a log message, that is a chat message based on entries in the LogMessage sheet, is sent.
+    /// </summary>
+    public event OnLogMessageDelegate LogMessage;
 
     /// <summary>
     /// Gets the ID of the last linked item.

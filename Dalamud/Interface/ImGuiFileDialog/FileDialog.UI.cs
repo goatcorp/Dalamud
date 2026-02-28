@@ -54,7 +54,7 @@ public partial class FileDialog
             windowVisible = ImGui.Begin(name, ref this.visible, this.WindowFlags);
         }
 
-        bool wasClosed = false;
+        var wasClosed = false;
         if (windowVisible)
         {
             if (!this.visible)
@@ -122,15 +122,15 @@ public partial class FileDialog
     {
         if (iconMap == null)
         {
-            iconMap = new();
-            AddToIconMap(new[] { "mp4", "gif", "mov", "avi" }, FontAwesomeIcon.FileVideo, miscTextColor);
-            AddToIconMap(new[] { "pdf" }, FontAwesomeIcon.FilePdf, miscTextColor);
-            AddToIconMap(new[] { "png", "jpg", "jpeg", "tiff" }, FontAwesomeIcon.FileImage, imageTextColor);
-            AddToIconMap(new[] { "cs", "json", "cpp", "h", "py", "xml", "yaml", "js", "html", "css", "ts", "java" }, FontAwesomeIcon.FileCode, codeTextColor);
-            AddToIconMap(new[] { "txt", "md" }, FontAwesomeIcon.FileAlt, standardTextColor);
-            AddToIconMap(new[] { "zip", "7z", "gz", "tar" }, FontAwesomeIcon.FileArchive, miscTextColor);
-            AddToIconMap(new[] { "mp3", "m4a", "ogg", "wav" }, FontAwesomeIcon.FileAudio, miscTextColor);
-            AddToIconMap(new[] { "csv" }, FontAwesomeIcon.FileCsv, miscTextColor);
+            iconMap = [];
+            AddToIconMap(["mp4", "gif", "mov", "avi"], FontAwesomeIcon.FileVideo, miscTextColor);
+            AddToIconMap(["pdf"], FontAwesomeIcon.FilePdf, miscTextColor);
+            AddToIconMap(["png", "jpg", "jpeg", "tiff"], FontAwesomeIcon.FileImage, imageTextColor);
+            AddToIconMap(["cs", "json", "cpp", "h", "py", "xml", "yaml", "js", "html", "css", "ts", "java"], FontAwesomeIcon.FileCode, codeTextColor);
+            AddToIconMap(["txt", "md"], FontAwesomeIcon.FileAlt, standardTextColor);
+            AddToIconMap(["zip", "7z", "gz", "tar"], FontAwesomeIcon.FileArchive, miscTextColor);
+            AddToIconMap(["mp3", "m4a", "ogg", "wav"], FontAwesomeIcon.FileAudio, miscTextColor);
+            AddToIconMap(["csv"], FontAwesomeIcon.FileCsv, miscTextColor);
         }
 
         return iconMap.TryGetValue(ext.ToLowerInvariant(), out var icon) ? icon : new IconColorItem
@@ -657,6 +657,7 @@ public partial class FileDialog
             this.fileNameBuffer = $"{this.selectedFileNames.Count} files Selected";
         }
 
+        this.SelectionChanged(this, this.GetFilePathName());
         if (setLastSelection)
         {
             this.lastSelectedFileName = name;
