@@ -44,6 +44,9 @@ internal class PluginInstallerWindow : Window, IDisposable
 {
     private static readonly ModuleLog Log = ModuleLog.Create<PluginInstallerWindow>();
 
+
+    private const string XivLauncherRepoKey = "XIVLauncher";
+
     private readonly Vector4 changelogBgColor = new(0.114f, 0.584f, 0.192f, 0.678f);
     private readonly Vector4 changelogTextColor = new(0.812f, 1.000f, 0.816f, 1.000f);
 
@@ -126,9 +129,6 @@ internal class PluginInstallerWindow : Window, IDisposable
     private PluginSortKind sortKind = PluginSortKind.Alphabetical;
     private string filterText = Locs.SortBy_Alphabetical;
     private bool adaptiveSort = true;
-
-    private const string XivLauncherRepoKey = "XIVLauncher";
-
     private string? selectedRepoUrl = null; // null = All Repositories
     private string selectedRepoUrlNormalized = string.Empty;
     private int repoFilterCacheKey = 0;
@@ -223,6 +223,65 @@ internal class PluginInstallerWindow : Window, IDisposable
         ProfileOrNot,
         SearchScore,
     }
+
+    private static bool RepoUrlMatches(string? a, string? b)
+    {
+        var na = NormalizeRepoUrl(a);
+        var nb = NormalizeRepoUrl(b);
+
+        if (string.IsNullOrEmpty(na) || string.IsNullOrEmpty(nb))
+            return false;
+
+        if (string.Equals(na, nb, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        // Allow prefix matches to handle minor formatting differences (e.g. /api/6 suffix).
+        // Ensure the prefix boundary is a path separator.
+        if (na.Length < nb.Length && nb.StartsWith(na, StringComparison.OrdinalIgnoreCase))
+            return nb[na.Length] == '/';
+
+        if (nb.Length < na.Length && na.StartsWith(nb, StringComparison.OrdinalIgnoreCase))
+            return na[nb.Length] == '/';
+
+        return false;
+    }
+
+    private static string NormalizeRepoUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+
+        url = url.Trim();
+
+        // Best-effort URI normalization: ignore query/fragment; compare by path.
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            var left = uri.GetLeftPart(UriPartial.Path);
+            return left.TrimEnd('/');
+        }
+
+        return url.TrimEnd('/');
+    }
+
+    private static string? GetRepoFilterUrl(RemotePluginManifest manifest)
+    {
+        // For available manifests, RepoUrl is often the plugin's project URL (or null).
+        // The repository identity we care about is the *source repo* (pluginmaster URL) vs XIVLauncher (main repo).
+        if (manifest.SourceRepo != null && manifest.SourceRepo.IsThirdParty)
+            return manifest.SourceRepo.PluginMasterUrl;
+
+        return PluginRepository.MainRepoUrl;
+    }
+
+    private static string? GetRepoFilterUrl(LocalPlugin plugin)
+    {
+        // Installed third-party plugins store their origin in InstalledFromUrl.
+        if (plugin.IsThirdParty)
+            return plugin.Manifest.InstalledFromUrl;
+
+        return PluginRepository.MainRepoUrl;
+    }
+
 
     [Flags]
     private enum PluginHeaderFlags
@@ -344,55 +403,6 @@ internal class PluginInstallerWindow : Window, IDisposable
     }
 
     /// <inheritdoc/>
-
-    private static string NormalizeRepoUrl(string? url)
-    {
-        if (string.IsNullOrWhiteSpace(url))
-            return string.Empty;
-
-        url = url.Trim();
-
-        // Best-effort URI normalization: ignore query/fragment; compare by path.
-        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
-        {
-            var left = uri.GetLeftPart(UriPartial.Path);
-            return left.TrimEnd('/');
-        }
-
-        return url.TrimEnd('/');
-    }
-
-    private static string? GetRepoFilterUrl(RemotePluginManifest manifest)
-    {
-        // For available manifests, RepoUrl is often the plugin's project URL (or null).
-        // The repository identity we care about is the *source repo* (pluginmaster URL) vs XIVLauncher (main repo).
-        if (manifest.SourceRepo != null && manifest.SourceRepo.IsThirdParty)
-            return manifest.SourceRepo.PluginMasterUrl;
-
-        return PluginRepository.MainRepoUrl;
-    }
-
-    private static string? GetRepoFilterUrl(LocalPlugin plugin)
-    {
-        // Installed third-party plugins store their origin in InstalledFromUrl.
-        if (plugin.IsThirdParty)
-            return plugin.Manifest.InstalledFromUrl;
-
-        return PluginRepository.MainRepoUrl;
-    }
-
-    private void SetSelectedRepo(string? repoUrl)
-    {
-        if (this.selectedRepoUrl == repoUrl)
-            return;
-
-        this.selectedRepoUrl = repoUrl;
-        this.selectedRepoUrlNormalized = NormalizeRepoUrl(repoUrl);
-
-        this.UpdateCategoriesOnPluginsChange();
-        this.openPluginCollapsibles.Clear();
-    }
-
     public override void Draw()
     {
         lock (this.listLock)
@@ -4159,28 +4169,16 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-
-
-    private static bool RepoUrlMatches(string? a, string? b)
+    private void SetSelectedRepo(string? repoUrl)
     {
-        var na = NormalizeRepoUrl(a);
-        var nb = NormalizeRepoUrl(b);
+        if (this.selectedRepoUrl == repoUrl)
+            return;
 
-        if (string.IsNullOrEmpty(na) || string.IsNullOrEmpty(nb))
-            return false;
+        this.selectedRepoUrl = repoUrl;
+        this.selectedRepoUrlNormalized = NormalizeRepoUrl(repoUrl);
 
-        if (string.Equals(na, nb, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        // Allow prefix matches to handle minor formatting differences (e.g. /api/6 suffix).
-        // Ensure the prefix boundary is a path separator.
-        if (na.Length < nb.Length && nb.StartsWith(na, StringComparison.OrdinalIgnoreCase))
-            return nb[na.Length] == '/';
-
-        if (nb.Length < na.Length && na.StartsWith(nb, StringComparison.OrdinalIgnoreCase))
-            return na[nb.Length] == '/';
-
-        return false;
+        this.UpdateCategoriesOnPluginsChange();
+        this.openPluginCollapsibles.Clear();
     }
 
     private bool PassesRepoFilter(string? repoUrl)
