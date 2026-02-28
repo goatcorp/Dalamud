@@ -13,7 +13,7 @@ public class WindowSystem : IWindowSystem
 {
     private static DateTimeOffset lastAnyFocus;
 
-    private readonly List<WindowHost> windows = new();
+    private readonly List<WindowHost> windows = [];
 
     private string lastFocusedWindowName = string.Empty;
 
