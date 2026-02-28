@@ -35,9 +35,9 @@ public class AgentLifecycleEventListener
     /// Gets the delegate this listener invokes.
     /// </summary>
     public IAgentLifecycle.AgentEventDelegate FunctionDelegate { get; init; }
-    
+
     /// <summary>
-    /// Gets or sets if the listener is requested to be cleared.
+    /// Gets or sets a value indicating whether the listener is requested to be cleared.
     /// </summary>
     internal bool IsRequestedToClear { get; set; }
 }

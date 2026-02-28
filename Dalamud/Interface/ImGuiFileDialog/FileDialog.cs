@@ -97,6 +97,10 @@ public partial class FileDialog
         this.SetupSideBar();
     }
 
+    /// <summary>
+    /// Event which is fired when the user changes the selection of files or folders.
+    /// The string parameter is the currently active path, which may be a file or a directory depending on the current selection and mode.
+    /// </summary>
     public event EventHandler<string>? SelectionChanged;
 
     /// <summary>

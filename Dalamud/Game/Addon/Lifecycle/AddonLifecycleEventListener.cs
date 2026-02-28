@@ -37,7 +37,7 @@ internal class AddonLifecycleEventListener
     public IAddonLifecycle.AddonEventDelegate FunctionDelegate { get; init; }
 
     /// <summary>
-    /// Gets or sets if the listener is requested to be cleared.
+    /// Gets or sets a value indicating whether the listener is requested to be cleared.
     /// </summary>
     internal bool IsRequestedToClear { get; set; }
 }
