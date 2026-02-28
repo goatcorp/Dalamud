@@ -36,17 +36,6 @@ public static partial class ImRaii
             this.Alive   = true;
         }
 
-        // /// <summary> Begin a combo popup and end it on leaving scope. </summary>
-        // /// <param name="id"> The combos popup ID as provided by <see cref="Im.Combo.DrawPreview"/>. </param>
-        // /// <param name="boundingBox"> The combo preview's bounding box as provided by <see cref="Im.Combo.DrawPreview"/>. </param>
-        // /// <param name="flags"> Additional flags to control the combo's behaviour. </param>
-        // /// <returns> A disposable object that evaluates to true if the begun combo popup is currently open. Use with using. </returns>
-        // internal ComboDisposable(ImGuiId id, in Rectangle boundingBox, ImGuiComboFlags flags)
-        // {
-        //     Success = ImGui.Combo(id, boundingBox, flags);
-        //     Alive   = true;
-        // }
-
         /// <summary> Conversion to bool. </summary>
         public static implicit operator bool(ComboDisposable value)
             => value.Success;

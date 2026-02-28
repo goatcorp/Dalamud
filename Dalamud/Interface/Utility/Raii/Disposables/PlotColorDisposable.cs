@@ -28,7 +28,7 @@ public static partial class ImRaii
         /// <summary> Push a color to the color stack. </summary>
         /// <param name="type"> The type of color to change. </param>
         /// <param name="color"> The color to change it to. </param>
-        /// /// <param name="condition"> If this is false, the color is not pushed. </param>
+        /// <param name="condition"> If this is false, the color is not pushed. </param>
         /// <returns> A disposable object that can be used to push further colors and pops those colors after leaving scope. Use with using. </returns>
         /// <remarks> If you need to keep colors pushed longer than the current scope, use without using and use <seealso cref="PopUnsafe"/>. </remarks>
         public PlotColorDisposable Push(ImPlotCol type, Vector4 color, bool condition = true)
@@ -37,7 +37,7 @@ public static partial class ImRaii
         /// <summary> Push a color to the color stack. </summary>
         /// <param name="type"> The type of color to change. </param>
         /// <param name="color"> The color to change it to. If this is null, no color will be set. </param>
-        /// /// <param name="condition"> If this is false, the color is not pushed. </param>
+        /// <param name="condition"> If this is false, the color is not pushed. </param>
         /// <returns> A disposable object that can be used to push further colors and pops those colors after leaving scope. Use with using. </returns>
         /// <remarks> If you need to keep colors pushed longer than the current scope, use without using and use <seealso cref="PopUnsafe"/>. </remarks>
         public PlotColorDisposable Push(ImPlotCol type, Vector4? color, bool condition = true)

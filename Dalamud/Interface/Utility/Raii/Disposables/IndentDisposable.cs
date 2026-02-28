@@ -13,6 +13,7 @@ public static partial class ImRaii
 
         /// <summary> Add to the current indentation. </summary>
         /// <param name="indent"> The value to change the indentation by. </param>
+        /// <param name="scaled"> if this is true, applies global scale. </param>
         /// <param name="condition"> If this is false, the current indent is not changed. </param>
         /// <returns> A disposable object that can be used to change the indentation more and reverts to the prior indentation after leaving scope. Use with using. </returns>
         /// <remarks> If you need to keep indentation for longer than the current scope, use without using. </remarks>

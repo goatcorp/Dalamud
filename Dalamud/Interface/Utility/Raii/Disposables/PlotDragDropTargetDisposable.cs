@@ -18,19 +18,16 @@ public static partial class ImRaii
 
         /// <summary> Initialize a new instance of the <see cref="PlotDragDropTargetDisposable"/> struct with SourceAxis. </summary>
         /// <param name="axis"> The axis to drag. </param>
-        /// <param name="flags"> Additional flags to control the drag and drop behaviour. </param>
         /// <returns> A disposable object that indicates whether the source is active. Use with using. </returns>
         internal static PlotDragDropTargetDisposable AxisPlot(ImAxis axis)
             => new(ImPlot.BeginDragDropTargetAxis(axis));
 
         /// <summary> Initialize a new instance of the <see cref="PlotDragDropTargetDisposable"/> struct with SourcePlot. </summary>
-        /// <param name="flags"> Additional flags to control the drag and drop behaviour. </param>
         /// <returns> A disposable object that indicates whether the source is active. Use with using. </returns>
         internal static PlotDragDropTargetDisposable LegendPlot()
             => new(ImPlot.BeginDragDropTargetLegend());
 
         /// <summary> Initialize a new instance of the <see cref="PlotDragDropTargetDisposable"/> struct with SourcePlot. </summary>
-        /// <param name="flags"> Additional flags to control the drag and drop behaviour. </param>
         /// <returns> A disposable object that indicates whether the source is active. Use with using. </returns>
         internal static PlotDragDropTargetDisposable SourcePlot()
             => new(ImPlot.BeginDragDropTargetPlot());
