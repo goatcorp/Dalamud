@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -51,8 +51,8 @@ public struct SafeFontConfig
     /// Gets or sets the font face index within a TrueType Collection (TTC) file.
     /// </summary>
     /// <remarks>
-    /// This property only applies to <see cref="DalamudAsset.NotoSansCJKRegular"/> and
-    /// <see cref="DalamudAsset.NotoSansCJKMedium"/>, which are TTC fonts bundling
+    /// This property only applies to <see cref="DalamudAsset.NotoSansCjkRegular"/> and
+    /// <see cref="DalamudAsset.NotoSansCjkMedium"/>, which are TTC fonts bundling
     /// multiple language-specific CJK glyph sets (Japanese, Traditional Chinese,
     /// Simplified Chinese, Korean) into a single file.
     /// 

@@ -584,7 +584,7 @@ internal sealed partial class FontAtlasFactory
             if (langTag != null)
             {
                 this.AddDalamudAssetFont(
-                    DalamudAsset.NotoSansCJKRegular,
+                    DalamudAsset.NotoSansCjkRegular,
                     fontConfig with
                     {
                         FontNo = fontNo,
@@ -632,7 +632,7 @@ internal sealed partial class FontAtlasFactory
             if (this.data.ConfigData.Length == 0)
             {
                 this.AddDalamudAssetFont(
-                    DalamudAsset.NotoSansCJKRegular,
+                    DalamudAsset.NotoSansCjkRegular,
                     new() { GlyphRanges = [' ', ' ', '\0'], SizePx = 1 });
             }
 
