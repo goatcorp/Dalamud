@@ -10,6 +10,7 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.Windows.StyleEditor;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
@@ -29,7 +30,7 @@ public class WindowHost
 {
     private const float FadeInOutTime = 0.072f;
 
-    private static readonly ModuleLog Log = new("WindowSystem");
+    private static readonly ModuleLog Log = ModuleLog.Create<WindowSystem>();
 
     private static bool wasEscPressedLastFrame = false;
 
@@ -179,7 +180,7 @@ public class WindowHost
             ImGuiHelpers.ForceNextWindowMainViewport();
 
         var wasFocused = this.Window.IsFocused;
-        if (wasFocused)
+        if (wasFocused && this.Window is not StyleEditorWindow)
         {
             var style = ImGui.GetStyle();
             var focusedHeaderColor = style.Colors[(int)ImGuiCol.TitleBgActive];
@@ -369,7 +370,7 @@ public class WindowHost
             }
         }
 
-        if (wasFocused)
+        if (wasFocused && this.Window is not StyleEditorWindow)
         {
             ImGui.PopStyleColor();
         }
