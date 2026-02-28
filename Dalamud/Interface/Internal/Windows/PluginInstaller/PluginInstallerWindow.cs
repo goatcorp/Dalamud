@@ -42,9 +42,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 /// </summary>
 internal class PluginInstallerWindow : Window, IDisposable
 {
-    private static readonly ModuleLog Log = ModuleLog.Create<PluginInstallerWindow>();
-
     private const string XivLauncherRepoKey = "XIVLauncher";
+
+    private static readonly ModuleLog Log = ModuleLog.Create<PluginInstallerWindow>();
 
     private readonly Vector4 changelogBgColor = new(0.114f, 0.584f, 0.192f, 0.678f);
     private readonly Vector4 changelogTextColor = new(0.812f, 1.000f, 0.816f, 1.000f);
@@ -344,6 +344,21 @@ internal class PluginInstallerWindow : Window, IDisposable
     }
 
     /// <inheritdoc/>
+    public override void Draw()
+    {
+        lock (this.listLock)
+        {
+            this.DrawHeader();
+            this.DrawPluginCategories();
+            this.DrawFooter();
+            this.DrawErrorModal();
+            this.DrawUpdateModal();
+            this.DrawTestingWarningModal();
+            this.DrawDeletePluginConfigWarningModal();
+            this.DrawFeedbackModal();
+            this.DrawProgressOverlay();
+        }
+    }
 
     private static string NormalizeRepoUrl(string? url)
     {
@@ -360,6 +375,28 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         return url.TrimEnd('/');
+    }
+
+    private static bool RepoUrlMatches(string? a, string? b)
+    {
+        var na = NormalizeRepoUrl(a);
+        var nb = NormalizeRepoUrl(b);
+
+        if (string.IsNullOrEmpty(na) || string.IsNullOrEmpty(nb))
+            return false;
+
+        if (string.Equals(na, nb, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        // Allow prefix matches to handle minor formatting differences (e.g. /api/6 suffix).
+        // Ensure the prefix boundary is a path separator.
+        if (na.Length < nb.Length && nb.StartsWith(na, StringComparison.OrdinalIgnoreCase))
+            return nb[na.Length] == '/';
+
+        if (nb.Length < na.Length && na.StartsWith(nb, StringComparison.OrdinalIgnoreCase))
+            return na[nb.Length] == '/';
+
+        return false;
     }
 
     private static string? GetRepoFilterUrl(RemotePluginManifest manifest)
@@ -391,22 +428,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         this.UpdateCategoriesOnPluginsChange();
         this.openPluginCollapsibles.Clear();
-    }
-
-    public override void Draw()
-    {
-        lock (this.listLock)
-        {
-            this.DrawHeader();
-            this.DrawPluginCategories();
-            this.DrawFooter();
-            this.DrawErrorModal();
-            this.DrawUpdateModal();
-            this.DrawTestingWarningModal();
-            this.DrawDeletePluginConfigWarningModal();
-            this.DrawFeedbackModal();
-            this.DrawProgressOverlay();
-        }
     }
 
     /// <summary>
@@ -4157,28 +4178,6 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (!string.IsNullOrEmpty(normalized))
                 this.cachedRepoUrlsNormalized.Add(normalized);
         }
-    }
-
-    private static bool RepoUrlMatches(string? a, string? b)
-    {
-        var na = NormalizeRepoUrl(a);
-        var nb = NormalizeRepoUrl(b);
-
-        if (string.IsNullOrEmpty(na) || string.IsNullOrEmpty(nb))
-            return false;
-
-        if (string.Equals(na, nb, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        // Allow prefix matches to handle minor formatting differences (e.g. /api/6 suffix).
-        // Ensure the prefix boundary is a path separator.
-        if (na.Length < nb.Length && nb.StartsWith(na, StringComparison.OrdinalIgnoreCase))
-            return nb[na.Length] == '/';
-
-        if (nb.Length < na.Length && na.StartsWith(nb, StringComparison.OrdinalIgnoreCase))
-            return na[nb.Length] == '/';
-
-        return false;
     }
 
     private bool PassesRepoFilter(string? repoUrl)
