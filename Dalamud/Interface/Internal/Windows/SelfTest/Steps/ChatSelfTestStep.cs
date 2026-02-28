@@ -105,7 +105,7 @@ internal class ChatSelfTestStep : ISelfTestStep
     }
 
     private void ChatOnOnChatMessage(
-        XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool ishandled)
+        XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, ref SeString sender, ref SeString message, ref bool ishandled)
     {
         if (type == XivChatType.Echo && message.TextValue == "DALAMUD")
         {

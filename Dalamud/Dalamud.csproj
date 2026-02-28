@@ -6,7 +6,7 @@
 
     <PropertyGroup Label="Feature">
         <Description>XIV Launcher addon framework</Description>
-        <DalamudVersion>14.0.1.0</DalamudVersion>
+        <DalamudVersion>14.0.2.2</DalamudVersion>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
@@ -65,7 +65,6 @@
         <PackageReference Include="CheapLoc" />
         <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all" />
         <PackageReference Include="goatcorp.Reloaded.Hooks" />
-        <PackageReference Include="goatcorp.Reloaded.Assembler" />
         <PackageReference Include="JetBrains.Annotations" />
         <PackageReference Include="Lumina" />
         <PackageReference Include="Microsoft.Extensions.ObjectPool" />

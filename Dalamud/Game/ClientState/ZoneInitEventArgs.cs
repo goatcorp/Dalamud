@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -6,8 +7,6 @@ using Dalamud.Data;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
-using Serilog;
-
 namespace Dalamud.Game.ClientState;
 
 /// <summary>
@@ -15,6 +14,8 @@ namespace Dalamud.Game.ClientState;
 /// </summary>
 public class ZoneInitEventArgs : EventArgs
 {
+    private const int NumFestivals = 8;
+
     /// <summary>
     /// Gets the territory type of the zone being entered.
     /// </summary>
@@ -38,12 +39,7 @@ public class ZoneInitEventArgs : EventArgs
     /// <summary>
     /// Gets the set of active festivals in the zone.
     /// </summary>
-    public RowRef<Festival>[] ActiveFestivals { get; private set; } = [];
-
-    /// <summary>
-    /// Gets the phases corresponding to the active festivals.
-    /// </summary>
-    public ushort[] ActiveFestivalPhases { get; private set; } = [];
+    public IReadOnlyList<FestivalEntry> ActiveFestivals { get; private set; }
 
     /// <summary>
     /// Reads raw zone initialization data from a network packet and constructs the event arguments.
@@ -52,29 +48,31 @@ public class ZoneInitEventArgs : EventArgs
     /// <returns>A <see cref="ZoneInitEventArgs"/> populated from the packet.</returns>
     public static unsafe ZoneInitEventArgs Read(nint packet)
     {
-        var dataManager = Service<DataManager>.Get();
-        var eventArgs = new ZoneInitEventArgs();
-
+        var territoryTypeId = *(ushort*)(packet + 0x02);
+        var contentFinderConditionId = *(ushort*)(packet + 0x06);
+        var weatherId = *(byte*)(packet + 0x10);
         var flags = *(byte*)(packet + 0x12);
+        var instance = flags >= 0 ? (ushort)0 : *(ushort*)(packet + 0x04);
 
-        eventArgs.TerritoryType = LuminaUtils.CreateRef<TerritoryType>(*(ushort*)(packet + 0x02));
-        eventArgs.Instance = flags >= 0 ? (ushort)0 : *(ushort*)(packet + 0x04);
-        eventArgs.ContentFinderCondition = LuminaUtils.CreateRef<ContentFinderCondition>(*(ushort*)(packet + 0x06));
-        eventArgs.Weather = LuminaUtils.CreateRef<Weather>(*(byte*)(packet + 0x10));
-
-        const int NumFestivals = 8;
-        eventArgs.ActiveFestivals = new RowRef<Festival>[NumFestivals];
-        eventArgs.ActiveFestivalPhases = new ushort[NumFestivals];
-
-        // There are also 4 festival ids and phases for PlayerState at +0x3E and +0x46 respectively,
+        // There are also festival ids and phases for PlayerState in this packet,
         // but it's unclear why they exist as separate entries and why they would be different.
+        var festivals = new FestivalEntry[NumFestivals];
+
         for (var i = 0; i < NumFestivals; i++)
         {
-            eventArgs.ActiveFestivals[i] = LuminaUtils.CreateRef<Festival>(*(ushort*)(packet + 0x26 + (i * 2)));
-            eventArgs.ActiveFestivalPhases[i] = *(ushort*)(packet + 0x36 + (i * 2));
+            var festivalId = *(ushort*)(packet + 0x26 + (i * 2));
+            var festivalPhase = *(ushort*)(packet + 0x36 + (i * 2));
+            festivals[i] = new FestivalEntry(LuminaUtils.CreateRef<Festival>(festivalId), festivalPhase);
         }
 
-        return eventArgs;
+        return new ZoneInitEventArgs()
+        {
+            TerritoryType = LuminaUtils.CreateRef<TerritoryType>(territoryTypeId),
+            Instance = instance,
+            ContentFinderCondition = LuminaUtils.CreateRef<ContentFinderCondition>(contentFinderConditionId),
+            Weather = LuminaUtils.CreateRef<Weather>(weatherId),
+            ActiveFestivals = festivals,
+        };
     }
 
     /// <inheritdoc/>
@@ -85,9 +83,15 @@ public class ZoneInitEventArgs : EventArgs
         sb.Append($"Instance = {this.Instance}, ");
         sb.Append($"ContentFinderCondition = {this.ContentFinderCondition.RowId}, ");
         sb.Append($"Weather = {this.Weather.RowId}, ");
-        sb.Append($"ActiveFestivals = [{string.Join(", ", this.ActiveFestivals.Select(f => f.RowId))}], ");
-        sb.Append($"ActiveFestivalPhases = [{string.Join(", ", this.ActiveFestivalPhases)}]");
+        sb.Append($"ActiveFestivals = [{string.Join(", ", this.ActiveFestivals.Select(f => $"{f.Festival.RowId}|{f.FestivalPhase}"))}], ");
         sb.Append(" }");
         return sb.ToString();
     }
+
+    /// <summary>
+    /// Represents an active Festival.
+    /// </summary>
+    /// <param name="Festival">A RowRef to the Festival sheet.</param>
+    /// <param name="FestivalPhase">The phase of the Festival.</param>
+    public readonly record struct FestivalEntry(RowRef<Festival> Festival, ushort FestivalPhase);
 }

@@ -121,9 +121,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default)
     {
-        if (this.frameworkDestroy.IsCancellationRequested)
+        if (this.frameworkDestroy.IsCancellationRequested) // Going away
             return Task.FromCanceled(this.frameworkDestroy.Token);
-        if (numTicks <= 0)
+        if (numTicks <= 0 || this.frameworkThreadTaskScheduler.BoundThread == null) // Nonsense or before first tick
             return Task.CompletedTask;
 
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
