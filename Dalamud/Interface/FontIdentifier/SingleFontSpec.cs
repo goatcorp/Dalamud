@@ -67,6 +67,10 @@ public record SingleFontSpec : IFontSpec
     public ushort[]? GlyphRanges { get; init; }
 
     /// <inheritdoc/>
+    [JsonProperty]
+    public int FontNo { get; init; }
+
+    /// <inheritdoc/>
     public string ToLocalizedString(string localeCode)
     {
         var sb = new StringBuilder();
@@ -100,6 +104,7 @@ public record SingleFontSpec : IFontSpec
             tk,
             new()
             {
+                FontNo = this.FontNo,
                 SizePx = this.SizePx,
                 GlyphRanges = this.GlyphRanges,
                 MergeFont = mergeFont,

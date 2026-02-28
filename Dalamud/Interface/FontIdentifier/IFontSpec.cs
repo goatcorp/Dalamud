@@ -25,6 +25,29 @@ public interface IFontSpec
     float LineHeightPx { get; }
 
     /// <summary>
+    /// Gets the font face index within a TrueType Collection (TTC) file.
+    /// </summary>
+    /// <remarks>
+    /// This property only applies to <see cref="DalamudAsset.NotoSansCJKRegular"/> and
+    /// <see cref="DalamudAsset.NotoSansCJKMedium"/>, which are TTC fonts bundling
+    /// multiple language-specific CJK glyph sets (Japanese, Traditional Chinese,
+    /// Simplified Chinese, Korean) into a single file.
+    /// 
+    /// The index corresponds to the font face order in the TTC:
+    /// <list type="bullet">
+    ///   <item><description>0 = Japanese</description></item>
+    ///   <item><description>1 = Traditional Chinese</description></item>
+    ///   <item><description>2 = Simplified Chinese</description></item>
+    ///   <item><description>3 = Korean</description></item>
+    /// </list>
+    /// 
+    /// This value is ignored for all other <see cref="DalamudAsset"/> entries.
+    /// Only one glyph set can be active at a time. In most cases, you can omit this—
+    /// Dalamud automatically selects the appropriate face based on the UI language.
+    /// </remarks>
+    int FontNo { get; }
+
+    /// <summary>
     /// Creates a font handle corresponding to this font specification.
     /// </summary>
     /// <param name="atlas">The atlas to bind this font handle to.</param>
