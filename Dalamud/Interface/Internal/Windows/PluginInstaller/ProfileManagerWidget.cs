@@ -6,6 +6,8 @@ using CheapLoc;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.Player;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.ImGuiNotification;
@@ -364,7 +366,7 @@ internal class ProfileManagerWidget
             Task.Run(async () =>
                 {
                     await profman.DeleteProfileAsync(profile);
-                    await profman.ApplyAllWantStatesAsync();
+                    await profman.ApplyAllWantStatesAsync("Delete profile");
                 })
                 .ContinueWith(t =>
                 {
@@ -418,6 +420,112 @@ internal class ProfileManagerWidget
         }
 
         ImGuiHelpers.ScaledDummy(5);
+
+        // If the profile is configured to enable by specific characters, show the character list and controls
+        if (profile.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.EnableForCharacters && ImGui.CollapsingHeader(Loc.Localize("ProfileManagerCharacters", "Characters") + "###charactersCollapsingHeader"))
+        {
+            ImGui.Text(Loc.Localize("ProfileManagerCharacters", "Characters"));
+
+            var model = (ProfileModelV1)profile.Model;
+
+            using (var child = ImRaii.Child("###profileCharacters"u8, new Vector2(-1, 120 * ImGuiHelpers.GlobalScale)))
+            {
+                if (child)
+                {
+                    ulong? wantRemoveContentId = null;
+
+                    foreach (var entry in model.PolicyCharacters.ToArray())
+                    {
+                        string characterDisplay;
+                        if (!string.IsNullOrEmpty(entry.DisplayName) && !string.IsNullOrEmpty(entry.ServerName))
+                        {
+                            characterDisplay = $"{entry.DisplayName} <icon({(int)BitmapFontIcon.CrossWorld})> {entry.ServerName}";
+                        }
+                        else
+                        {
+                            characterDisplay = entry.ContentId.ToString();
+                        }
+
+                        ImGuiHelpers.CompileSeStringWrapped(characterDisplay);
+
+                        ImGui.SameLine();
+                        ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
+                        if (ImGuiComponents.IconButton($"###removeChar{entry.ContentId}", FontAwesomeIcon.Trash))
+                        {
+                            wantRemoveContentId = entry.ContentId;
+                        }
+
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip(Loc.Localize("ProfileManagerRemoveCharacter", "Remove character"));
+
+                        if (entry != model.PolicyCharacters.LastOrDefault())
+                        {
+                            ImGui.PushStyleColor(ImGuiCol.Border, ImGuiColors.DalamudGrey.WithAlpha(0.2f));
+                            ImGui.Separator();
+                            ImGui.PopStyleColor();
+                        }
+                    }
+
+                    if (wantRemoveContentId != null)
+                    {
+                        var toRem = model.PolicyCharacters.FirstOrDefault(x => x.ContentId == wantRemoveContentId.Value);
+                        if (toRem != null)
+                        {
+                            model.PolicyCharacters.Remove(toRem);
+                            Service<DalamudConfiguration>.Get().QueueSave();
+                        }
+
+                        // Profile might now no longer want active
+                        Task.Run(async () =>
+                            {
+                                await profman.ApplyAllWantStatesAsync("Remove character");
+                            })
+                            .ContinueWith(t =>
+                            {
+                                this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
+                            });
+                    }
+                }
+            }
+
+            ImGuiHelpers.ScaledDummy(5);
+
+            var player = Service<PlayerState>.Get();
+            if (player.IsLoaded)
+            {
+                ImGuiHelpers.CenterCursorFor((int)(ImGui.CalcTextSize(player.CharacterName).X + 30 * ImGuiHelpers.GlobalScale));
+                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Add current character: {player.CharacterName}"))
+                {
+                    var exists = model.PolicyCharacters.Any(x => x.ContentId == player.ContentId);
+                    if (!exists)
+                    {
+                        var serverName = player.HomeWorld.Value.Name.ExtractText();
+                        model.PolicyCharacters.Add(new ProfileModelV1.ProfileModelV1Character(player.CharacterName, player.ContentId, serverName));
+                        Service<DalamudConfiguration>.Get().QueueSave();
+
+                        // Profile might now want active
+                        Task.Run(async () =>
+                            {
+                                await profman.ApplyAllWantStatesAsync("Add character");
+                            })
+                            .ContinueWith(t =>
+                            {
+                                this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
+                            });
+                    }
+                    else
+                    {
+                        Service<NotificationManager>.Get().AddNotification(Loc.Localize("ProfileManagerCharacterExists", "Character already in list"), type: NotificationType.Info);
+                    }
+                }
+            }
+            else
+            {
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("ProfileManagerCharacterNotLoaded", "You must be logged in to add your current character"));
+            }
+
+            ImGuiHelpers.ScaledDummy(5);
+        }
 
         ImGui.Separator();
         var wantPluginAddPopup = false;
@@ -490,7 +598,7 @@ internal class ProfileManagerWidget
                             profileEntry.WorkingPluginId = firstAvailableInstalled.EffectiveWorkingPluginId;
                             Task.Run(async () =>
                                 {
-                                    await profman.ApplyAllWantStatesAsync();
+                                    await profman.ApplyAllWantStatesAsync("Match plugin");
                                 })
                                 .ContinueWith(t =>
                                 {
@@ -695,6 +803,9 @@ internal class ProfileManagerWidget
                 ProfileModelV1.ProfileStartupPolicy.AlwaysDisable => Loc.Localize(
                     "ProfileManagerAlwaysDisableAtBoot",
                     "Always disable at boot"),
+                ProfileModelV1.ProfileStartupPolicy.EnableForCharacters => Loc.Localize(
+                    "ProfileManagerEnableForCharacters",
+                    "Enable for specific characters"),
                 _ => throw new ArgumentOutOfRangeException(nameof(policy), policy, null),
             };
         }

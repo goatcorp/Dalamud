@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.Player;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
@@ -33,18 +34,6 @@ internal class Profile
         this.modelV1 = model as ProfileModelV1 ??
                        throw new ArgumentException("Model was null or unhandled version");
 
-        // Migrate "policy"
-        if (this.modelV1.StartupPolicy == null)
-        {
-#pragma warning disable CS0618
-            this.modelV1.StartupPolicy = this.modelV1.AlwaysEnableOnBoot
-                                             ? ProfileModelV1.ProfileStartupPolicy.AlwaysEnable
-                                             : ProfileModelV1.ProfileStartupPolicy.RememberState;
-#pragma warning restore CS0618
-
-            Service<DalamudConfiguration>.Get().QueueSave();
-        }
-
         // We don't actually enable plugins here, PM will do it on bootup
         if (isDefaultProfile)
         {
@@ -68,6 +57,10 @@ internal class Profile
             {
                 this.IsEnabled = this.modelV1.IsEnabled;
                 Log.Verbose("{Guid} set enabled because remember", this.modelV1.Guid);
+            }
+            else if (this.modelV1.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.EnableForCharacters)
+            {
+                // Ignored, handled through CheckWantsActiveFromGameState()
             }
             else
             {
@@ -167,7 +160,7 @@ internal class Profile
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            await this.manager.ApplyAllWantStatesAsync();
+            await this.manager.ApplyAllWantStatesAsync("SetStateAsync");
     }
 
     /// <summary>
@@ -227,7 +220,7 @@ internal class Profile
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            await this.manager.ApplyAllWantStatesAsync();
+            await this.manager.ApplyAllWantStatesAsync("AddOrUpdateAsync");
     }
 
     /// <summary>
@@ -273,7 +266,24 @@ internal class Profile
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            await this.manager.ApplyAllWantStatesAsync();
+            await this.manager.ApplyAllWantStatesAsync("RemoveAsync");
+    }
+
+    /// <summary>
+    /// Check if this profile wants to be active based on the current game state and its policy.
+    /// Separate from <see cref="IsEnabled"/> - a profile may be enabled, but not want to be active in the current game state.
+    /// </summary>
+    /// <returns>Whether the profile wants to be active.</returns>
+    public bool CheckWantsActiveFromGameState()
+    {
+        if (this.modelV1.StartupPolicy != ProfileModelV1.ProfileStartupPolicy.EnableForCharacters)
+            return true;
+
+        var activeContentId = Service<PlayerState>.GetNullable()?.ContentId;
+        if (activeContentId == null)
+            return false;
+
+        return this.modelV1.PolicyCharacters?.Any(x => x.ContentId == activeContentId) == true;
     }
 
     /// <summary>

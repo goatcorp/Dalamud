@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CheapLoc;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.ClientState;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
@@ -35,6 +36,12 @@ internal partial class ProfileManager : IServiceType
         this.config = config;
 
         this.LoadProfilesFromConfigInitially();
+
+        // ProfileManager is BlockingEarlyLoaded
+        Service<ClientState>.GetAsync().ContinueWith(t =>
+        {
+            t.Result.Login += () => Task.Run(() => this.ApplyAllWantStatesAsync("On Login"));
+        });
     }
 
     /// <summary>
@@ -133,7 +140,7 @@ internal partial class ProfileManager : IServiceType
         {
             Guid = Guid.NewGuid(),
             Name = this.GenerateUniqueProfileName(Loc.Localize("PluginProfilesNewProfile", "New Collection")),
-            IsEnabled = false,
+            IsEnabled = true,
         };
 
         this.config.SavedProfiles!.Add(model);
@@ -208,20 +215,21 @@ internal partial class ProfileManager : IServiceType
     /// Go through all profiles and plugins, and enable/disable plugins they want active.
     /// This will block until all plugins have been loaded/reloaded.
     /// </summary>
+    /// <param name="reason">The reason for why we are applying states.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task ApplyAllWantStatesAsync()
+    public async Task ApplyAllWantStatesAsync(string reason)
     {
         if (this.isBusy)
             throw new Exception("Already busy, this must not run in parallel. Check before starting another apply!");
 
         this.isBusy = true;
-        Log.Information("Getting want states...");
+        Log.Information("Getting want states... (reason={Reason})", reason);
 
         List<ProfilePluginEntry> wantActive;
         lock (this.profiles)
         {
             wantActive = this.profiles
-                             .Where(x => x.IsEnabled)
+                             .Where(x => x.IsEnabled && x.CheckWantsActiveFromGameState())
                              .SelectMany(profile => profile.Plugins.Where(plugin => plugin.IsEnabled))
                              .Distinct().ToList();
         }
@@ -231,7 +239,7 @@ internal partial class ProfileManager : IServiceType
             Log.Information("\t=> Want {Name}({WorkingPluginId})", profilePluginEntry.InternalName, profilePluginEntry.WorkingPluginId);
         }
 
-        Log.Information("Applying want states...");
+        Log.Information("Applying want states... (reason={Reason})", reason);
 
         var tasks = new List<Task>();
 
@@ -270,7 +278,7 @@ internal partial class ProfileManager : IServiceType
             Log.Error(e, "Couldn't apply state for one or more plugins");
         }
 
-        Log.Information("Applied!");
+        Log.Information("Applied! (reason={Reason})", reason);
         this.isBusy = false;
     }
 
