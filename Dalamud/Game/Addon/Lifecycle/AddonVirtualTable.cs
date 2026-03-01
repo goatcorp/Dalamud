@@ -193,7 +193,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->OnSetup(addon, valueCount, values);
+                if (!this.setupArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnSetup(addon, valueCount, values);
+                }
             }
             catch (Exception e)
             {
@@ -220,7 +223,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Finalizer(thisPtr);
+                if (!this.finalizeArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Finalizer(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -245,7 +251,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Draw(addon);
+                if (!this.drawArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Draw(addon);
+                }
             }
             catch (Exception e)
             {
@@ -276,7 +285,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Update(addon,  delta);
+                if (!this.updateArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Update(addon, delta);
+                }
             }
             catch (Exception e)
             {
@@ -310,7 +322,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                result = this.OriginalVirtualTable->OnRefresh(addon, valueCount, values);
+                if (!this.refreshArgs.PreventOriginalRequested)
+                {
+                    result = this.OriginalVirtualTable->OnRefresh(addon, valueCount, values);
+                }
             }
             catch (Exception e)
             {
@@ -344,7 +359,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->OnRequestedUpdate(addon, numberArrayData, stringArrayData);
+                if (!this.requestedUpdateArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnRequestedUpdate(addon, numberArrayData, stringArrayData);
+                }
             }
             catch (Exception e)
             {
@@ -380,7 +398,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->ReceiveEvent(addon, eventType, eventParam, atkEvent, atkEventData);
+                if (!this.receiveEventArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->ReceiveEvent(addon, eventType, eventParam, atkEvent, atkEventData);
+                }
             }
             catch (Exception e)
             {
@@ -409,7 +430,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                result = this.OriginalVirtualTable->Open(thisPtr, depthLayer);
+                if (!this.openArgs.PreventOriginalRequested)
+                {
+                    result = this.OriginalVirtualTable->Open(thisPtr, depthLayer);
+                }
             }
             catch (Exception e)
             {
@@ -443,7 +467,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                result = this.OriginalVirtualTable->Close(thisPtr, fireCallback);
+                if (!this.closeArgs.PreventOriginalRequested)
+                {
+                    result = this.OriginalVirtualTable->Close(thisPtr, fireCallback);
+                }
             }
             catch (Exception e)
             {
@@ -477,7 +504,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Show(thisPtr, silenceOpenSoundEffect, unsetShowHideFlags);
+                if (!this.showArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Show(thisPtr, silenceOpenSoundEffect, unsetShowHideFlags);
+                }
             }
             catch (Exception e)
             {
@@ -511,7 +541,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Hide(thisPtr, unkBool, callHideCallback, setShowHideFlags);
+                if (!this.hideArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Hide(thisPtr, unkBool, callHideCallback, setShowHideFlags);
+                }
             }
             catch (Exception e)
             {
@@ -538,7 +571,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->OnMove(thisPtr);
+                if (!this.onMoveArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnMove(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -565,7 +601,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->OnMouseOver(thisPtr);
+                if (!this.onMouseOverArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnMouseOver(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -592,7 +631,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->OnMouseOut(thisPtr);
+                if (!this.onMouseOutArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnMouseOut(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -619,7 +661,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Focus(thisPtr);
+                if (!this.focusArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Focus(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -649,7 +694,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->OnFocusChange(thisPtr, isFocused);
+                if (!this.focusChangedArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnFocusChange(thisPtr, isFocused);
+                }
             }
             catch (Exception e)
             {
