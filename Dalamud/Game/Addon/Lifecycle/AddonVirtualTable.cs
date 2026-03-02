@@ -182,6 +182,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.setupArgs.PreventOriginalRequested = false;
             this.setupArgs.Addon = addon;
             this.setupArgs.AtkValueCount = valueCount;
             this.setupArgs.AtkValues = (nint)values;
@@ -217,6 +218,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.finalizeArgs.PreventOriginalRequested = false;
             this.finalizeArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFinalize, this.finalizeArgs);
@@ -245,6 +247,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.drawArgs.PreventOriginalRequested = false;
             this.drawArgs.Addon = addon;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreDraw, this.drawArgs);
@@ -275,6 +278,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.updateArgs.PreventOriginalRequested = false;
             this.updateArgs.Addon = addon;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreUpdate, this.updateArgs);
@@ -311,6 +315,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.refreshArgs.PreventOriginalRequested = false;
             this.refreshArgs.Addon = addon;
             this.refreshArgs.AtkValueCount = valueCount;
             this.refreshArgs.AtkValues = (nint)values;
@@ -348,6 +353,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.requestedUpdateArgs.PreventOriginalRequested = false;
             this.requestedUpdateArgs.Addon = addon;
             this.requestedUpdateArgs.NumberArrayData = (nint)numberArrayData;
             this.requestedUpdateArgs.StringArrayData = (nint)stringArrayData;
@@ -383,6 +389,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.receiveEventArgs.PreventOriginalRequested = false;
             this.receiveEventArgs.Addon = (nint)addon;
             this.receiveEventArgs.AtkEventType = (byte)eventType;
             this.receiveEventArgs.EventParam = eventParam;
@@ -424,6 +431,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.openArgs.PreventOriginalRequested = false;
             this.openArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreOpen, this.openArgs);
@@ -458,6 +466,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.closeArgs.PreventOriginalRequested = false;
             this.closeArgs.Addon = thisPtr;
             this.closeArgs.FireCallback = fireCallback;
 
@@ -493,6 +502,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.showArgs.PreventOriginalRequested = false;
             this.showArgs.Addon = thisPtr;
             this.showArgs.SilenceOpenSoundEffect = silenceOpenSoundEffect;
             this.showArgs.UnsetShowHideFlags = unsetShowHideFlags;
@@ -528,6 +538,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.hideArgs.PreventOriginalRequested = false;
             this.hideArgs.Addon = thisPtr;
             this.hideArgs.UnknownBool = unkBool;
             this.hideArgs.CallHideCallback = callHideCallback;
@@ -565,6 +576,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.onMoveArgs.PreventOriginalRequested = false;
             this.onMoveArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreMove, this.onMoveArgs);
@@ -595,6 +607,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.onMouseOverArgs.PreventOriginalRequested = false;
             this.onMouseOverArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreMouseOver, this.onMouseOverArgs);
@@ -625,6 +638,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.onMouseOutArgs.PreventOriginalRequested = false;
             this.onMouseOutArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreMouseOut, this.onMouseOutArgs);
@@ -655,6 +669,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.focusArgs.PreventOriginalRequested = false;
             this.focusArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFocus, this.focusArgs);
@@ -685,6 +700,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.focusChangedArgs.PreventOriginalRequested = false;
             this.focusChangedArgs.Addon = thisPtr;
             this.focusChangedArgs.ShouldFocus = isFocused;
 
