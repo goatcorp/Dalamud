@@ -1,10 +1,12 @@
-using System.Runtime.InteropServices;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.Agent;
+using Dalamud.Game.Agent.AgentArgTypes;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -38,24 +40,25 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 
     private readonly Hook<AtkUnitBase.Delegates.ReceiveGlobalEvent> hookAtkUnitBaseReceiveGlobalEvent;
 
-    private readonly Hook<AgentLobby.Delegates.ReceiveEvent> agentLobbyReceiveEventHook;
-
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly AgentLifecycle agentLifecycle = Service<AgentLifecycle>.Get();
 
     // [ServiceManager.ServiceDependency]
     // private readonly ContextMenu contextMenu = Service<ContextMenu>.Get();
 
-    private readonly GCHandle dummyAtkValueHandle = GCHandle.Alloc(new AtkValue { Type = ValueType.Undefined, Int = 69420 }, GCHandleType.Pinned);
-    private readonly GCHandle startLoginAtkValueHandle = GCHandle.Alloc(new AtkValue { Type = ValueType.Int, Int = 0 }, GCHandleType.Pinned);
-
     private readonly string locDalamudPlugins;
     private readonly string locDalamudSettings;
+
+    private readonly AgentLifecycleEventListener agentLobbyPreEventListener;
+    private Task lobbyProfileApplyTask = Task.CompletedTask;
 
     private bool disposed = false;
 
     [ServiceManager.ServiceConstructor]
-    private DalamudAtkTweaks(TargetSigScanner sigScanner, Framework framework)
+    private DalamudAtkTweaks(TargetSigScanner sigScanner)
     {
         this.hookAgentHudOpenSystemMenu = Hook<AgentHUD.Delegates.OpenSystemMenu>.FromAddress(AgentHUD.Addresses.OpenSystemMenu.Value, this.AgentHudOpenSystemMenuDetour);
         this.hookUiModuleExecuteMainCommand = Hook<UIModule.Delegates.ExecuteMainCommand>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ExecuteMainCommand, this.UiModuleExecuteMainCommandDetour);
@@ -66,14 +69,13 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 
         // this.contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
 
-        this.agentLobbyReceiveEventHook = Hook<AgentLobby.Delegates.ReceiveEvent>.FromAddress(
-            (nint)AgentLobby.StaticVirtualTablePointer->ReceiveEvent,
-            this.AgentLobbyReceiveEventDetour);
+        this.agentLobbyPreEventListener = new AgentLifecycleEventListener(AgentEvent.PreReceiveEvent, Agent.AgentId.Lobby, this.AgentLobbyPreReceiveEvent);
+
+        this.agentLifecycle.RegisterListener(this.agentLobbyPreEventListener);
 
         this.hookAgentHudOpenSystemMenu.Enable();
         this.hookUiModuleExecuteMainCommand.Enable();
         this.hookAtkUnitBaseReceiveGlobalEvent.Enable();
-        this.agentLobbyReceiveEventHook.Enable();
     }
 
     /// <summary>Finalizes an instance of the <see cref="DalamudAtkTweaks"/> class.</summary>
@@ -91,10 +93,11 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 
         if (disposing)
         {
+            this.agentLifecycle.UnregisterListener(this.agentLobbyPreEventListener);
+
             this.hookAgentHudOpenSystemMenu.Dispose();
             this.hookUiModuleExecuteMainCommand.Dispose();
             this.hookAtkUnitBaseReceiveGlobalEvent.Dispose();
-            this.agentLobbyReceiveEventHook.Dispose();
 
             // this.contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
         }
@@ -128,47 +131,78 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
     }
     */
 
-    private AtkValue* AgentLobbyReceiveEventDetour(AgentLobby* thisPtr, AtkValue* returnValue, AtkValue* values, uint valueCount, ulong eventKind)
+    private void AgentLobbyPreReceiveEvent(AgentEvent type, AgentArgs args)
     {
-        if (valueCount == 0 || eventKind != 0x03 || returnValue == (AtkValue*)this.dummyAtkValueHandle.AddrOfPinnedObject())
-            return this.agentLobbyReceiveEventHook.Original(thisPtr, returnValue, values, valueCount, eventKind);
+        const int loginEventKind = 0x03;
+        const int recursionSentinel = 69420;
 
-        var addonSelectYesno = Service<GameGui>.Get().GetAddonByName<AddonSelectYesno>("SelectYesno");
-        var text = new SeStringBuilder()
-                   .AddUiForeground($"{SeIconChar.BoxedLetterD.ToIconString()} ", 539)
-                   .Append("Loading plugins for this character...")
-                   .Build();
+        if (args is not AgentReceiveEventArgs receiveEventArgs) return;
 
-        addonSelectYesno->PromptText->SetText(text.Encode());
-        addonSelectYesno->YesButton->SetEnabledState(false);
-        addonSelectYesno->NoButton->SetEnabledState(false);
-        addonSelectYesno->DisableUserClose = true;
+        if (receiveEventArgs.EventKind is not loginEventKind) return;
+        if (!receiveEventArgs.AtkValueEnumerable.ElementAt(0).TryGet(out int? eventValue)) return;
 
-        var cts = new CancellationTokenSource();
-        cts.CancelAfter(60000);
-        var delayTask = Task.Delay(30000, cts.Token); // just in case something goes wrong, we dont want to leave the player stuck on this screen forever
-        var applyTask = Task.Run(() => Service<ProfileManager>.Get().ApplyAllWantStatesAsync("Login start", AgentLobby.Instance()->HoveredCharacterContentId), cts.Token);
-
-        Task.WhenAny(delayTask, applyTask).ContinueWith(_ =>
+        // Prevent recursion from our own injected event
+        if (receiveEventArgs.AtkValueEnumerable.Count() == 2 &&
+            receiveEventArgs.AtkValueEnumerable.ElementAt(1).TryGet(out int? eventValue2) && eventValue2 == recursionSentinel)
         {
-            Service<Framework>.Get().Run(() =>
+            Log.Verbose("Prevent recursion (eventValue {EventValue})", eventValue);
+            return;
+        }
+
+        var waitingForProfileLoad = !this.lobbyProfileApplyTask.IsCompleted;
+
+        if (!waitingForProfileLoad && eventValue != 0)
+        {
+            Log.Verbose("Dismissing login prompt (eventValue {EventValue})", eventValue);
+            return;
+        }
+
+        args.PreventOriginal();
+
+        if (!waitingForProfileLoad && eventValue == 0)
+        {
+            var addonSelectYesno = Service<GameGui>.Get().GetAddonByName<AddonSelectYesno>("SelectYesno");
+
+            var text = new SeStringBuilder()
+                       .AddUiForeground($"{SeIconChar.BoxedLetterD.ToIconString()} ", 539)
+                       .Append("Loading plugins for this character...")
+                       .Build();
+
+            addonSelectYesno->PromptText->SetText(text.Encode());
+            addonSelectYesno->YesButton->SetEnabledState(false);
+            addonSelectYesno->NoButton->SetEnabledState(false);
+            addonSelectYesno->DisableUserClose = true;
+
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(60000);
+            var delayTask = Task.Delay(30000, cts.Token); // Just in case something goes wrong, we don't want to leave the player stuck on this screen forever
+            var applyTask = Task.Run(() => Service<ProfileManager>.Get().ApplyAllWantStatesAsync("Login start", AgentLobby.Instance()->HoveredCharacterContentId), cts.Token);
+
+            this.lobbyProfileApplyTask = Task.WhenAny(delayTask, applyTask).ContinueWith(_ =>
             {
-                addonSelectYesno->DisableUserClose = false;
-                addonSelectYesno->YesButton->SetEnabledState(true);
-                addonSelectYesno->NoButton->SetEnabledState(true);
-                addonSelectYesno->Close(true);
+                Service<Framework>.Get().Run(() =>
+                {
+                    addonSelectYesno->DisableUserClose = false;
+                    addonSelectYesno->YesButton->SetEnabledState(true);
+                    addonSelectYesno->NoButton->SetEnabledState(true);
+                    addonSelectYesno->Close(true);
 
-                AgentLobby.Instance()->ReceiveEvent(
-                    (AtkValue*)this.dummyAtkValueHandle.AddrOfPinnedObject(),
-                    (AtkValue*)this.startLoginAtkValueHandle.AddrOfPinnedObject(),
-                    1,
-                    0x03);
-            });
-        }, cts.Token);
+                    var dummyRet = stackalloc AtkValue[1];
+                    dummyRet->Type = ValueType.Undefined;
+                    dummyRet->Int = recursionSentinel;
 
-        return returnValue;
-        //return this.agentLobbyReceiveEventHook.Original(thisPtr, returnValue, values, valueCount, eventKind);
-        //return (AtkValue*)this.dummyAtkValueHandle.AddrOfPinnedObject();
+                    var okAtkValue = stackalloc AtkValue[2];
+                    okAtkValue[0].SetInt(0);
+                    okAtkValue[1].SetInt(recursionSentinel);
+
+                    AgentLobby.Instance()->ReceiveEvent(
+                        dummyRet,
+                        okAtkValue,
+                        2,
+                        loginEventKind);
+                });
+            }, cts.Token);
+        }
     }
 
     private void AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, AtkEventType eventType, int eventParam, AtkEvent* atkEvent, AtkEventData* atkEventData)
