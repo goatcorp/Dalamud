@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.IoC.Internal;
 
@@ -76,6 +77,7 @@ internal class ServiceContainer : IServiceType
 
             Debug.Assert(!this.interfaceToTypeMap.ContainsKey(resolvableType), "A service already implements this interface, this is not allowed");
             Debug.Assert(type.IsAssignableTo(resolvableType), "Service does not inherit from indicated ResolveVia type");
+            Debug.Assert(resolvableType.IsAssignableTo(typeof(IDalamudService)), "Indicated ResolveVia type does not inherit from IDalamudService");
 
             this.interfaceToTypeMap[resolvableType] = type;
         }
