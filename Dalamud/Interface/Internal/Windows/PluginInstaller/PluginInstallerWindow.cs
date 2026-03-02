@@ -15,6 +15,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game.Command;
+using Dalamud.Game.Player;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -3190,7 +3191,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var inSingleNonDefaultProfileWhichIsDisabled =
             isInSingleProfile && !profilesThatWantThisPlugin.First().IsEnabled;
         var inSingleNonDefaultProfileWhichDoesNotWantActive =
-            isInSingleProfile && !profilesThatWantThisPlugin.First().CheckWantsActiveFromGameState();
+            isInSingleProfile && !profilesThatWantThisPlugin.First().CheckWantsActiveFromGameState(Service<PlayerState>.Get().ContentId);
 
         if (plugin.State is PluginState.UnloadError or PluginState.LoadError or PluginState.DependencyResolutionFailed && !plugin.IsDev && !plugin.IsOutdated)
         {

@@ -8,6 +8,7 @@ using CheapLoc;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.Player;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
@@ -216,8 +217,9 @@ internal partial class ProfileManager : IServiceType
     /// This will block until all plugins have been loaded/reloaded.
     /// </summary>
     /// <param name="reason">The reason for why we are applying states.</param>
+    /// <param name="currentCharacterContentId">The content ID of the character to check profiles for. Uses playerstate ID if null.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task ApplyAllWantStatesAsync(string reason)
+    public async Task ApplyAllWantStatesAsync(string reason, ulong? currentCharacterContentId = null)
     {
         if (this.isBusy)
             throw new Exception("Already busy, this must not run in parallel. Check before starting another apply!");
@@ -225,11 +227,13 @@ internal partial class ProfileManager : IServiceType
         this.isBusy = true;
         Log.Information("Getting want states... (reason={Reason})", reason);
 
+        currentCharacterContentId ??= Service<PlayerState>.GetNullable()?.ContentId;
+
         List<ProfilePluginEntry> wantActive;
         lock (this.profiles)
         {
             wantActive = this.profiles
-                             .Where(x => x.IsEnabled && x.CheckWantsActiveFromGameState())
+                             .Where(x => x.IsEnabled && x.CheckWantsActiveFromGameState(currentCharacterContentId ?? 0))
                              .SelectMany(profile => profile.Plugins.Where(plugin => plugin.IsEnabled))
                              .Distinct().ToList();
         }

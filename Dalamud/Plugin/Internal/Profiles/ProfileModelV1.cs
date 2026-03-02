@@ -28,11 +28,6 @@ public class ProfileModelV1 : ProfileModel
         /// Always disable the profile.
         /// </summary>
         AlwaysDisable,
-
-        /// <summary>
-        /// Enable this profile when logging into specific characters.
-        /// </summary>
-        EnableForCharacters,
     }
 
     /// <summary>
@@ -47,10 +42,16 @@ public class ProfileModelV1 : ProfileModel
     public ProfileStartupPolicy? StartupPolicy { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether this profile should be enabled for specific characters.
+    /// </summary>
+    [JsonProperty("e4c")]
+    public bool EnableForCharacters { get; set; }
+
+    /// <summary>
     /// Gets or sets the list of characters in this profile. Only used for the EnableForCharacters startup policy.
     /// </summary>
     [JsonProperty("pc")]
-    public List<ProfileModelV1Character> PolicyCharacters { get; set; } = [];
+    public List<ProfileModelV1Character> EnabledCharacters { get; set; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether this profile is currently enabled.

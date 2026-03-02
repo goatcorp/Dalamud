@@ -56,7 +56,7 @@ public abstract class ProfileModel
 
         // HACK: Just filter the ID for now, we should split the sharing + saving model
         var serialized = JsonConvert.SerializeObject(this, new JsonSerializerSettings()
-                                                         { ContractResolver = new IgnorePropertiesResolver(["WorkingPluginId", "StartupPolicy", "PolicyCharacters"]) });
+                                                         { ContractResolver = new IgnorePropertiesResolver(["WorkingPluginId", "StartupPolicy", "EnableForCharacters", "EnabledCharacters"]) });
 
         return prefix + Convert.ToBase64String(Util.CompressString(serialized));
     }

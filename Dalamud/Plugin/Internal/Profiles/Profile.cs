@@ -58,10 +58,6 @@ internal class Profile
                 this.IsEnabled = this.modelV1.IsEnabled;
                 Log.Verbose("{Guid} set enabled because remember", this.modelV1.Guid);
             }
-            else if (this.modelV1.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.EnableForCharacters)
-            {
-                // Ignored, handled through CheckWantsActiveFromGameState()
-            }
             else
             {
                 throw new ArgumentOutOfRangeException(nameof(this.modelV1.StartupPolicy));
@@ -274,16 +270,12 @@ internal class Profile
     /// Separate from <see cref="IsEnabled"/> - a profile may be enabled, but not want to be active in the current game state.
     /// </summary>
     /// <returns>Whether the profile wants to be active.</returns>
-    public bool CheckWantsActiveFromGameState()
+    public bool CheckWantsActiveFromGameState(ulong currentCharacterContentId)
     {
-        if (this.modelV1.StartupPolicy != ProfileModelV1.ProfileStartupPolicy.EnableForCharacters)
+        if (!this.modelV1.EnableForCharacters)
             return true;
 
-        var activeContentId = Service<PlayerState>.GetNullable()?.ContentId;
-        if (activeContentId == null)
-            return false;
-
-        return this.modelV1.PolicyCharacters?.Any(x => x.ContentId == activeContentId) == true;
+        return this.modelV1.EnabledCharacters?.Any(x => x.ContentId == currentCharacterContentId) == true;
     }
 
     /// <summary>

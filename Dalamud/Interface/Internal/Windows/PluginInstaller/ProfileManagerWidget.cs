@@ -421,12 +421,34 @@ internal class ProfileManagerWidget
 
         ImGuiHelpers.ScaledDummy(5);
 
+        var model = (ProfileModelV1)profile.Model;
+
+        var enableForCharacters = model.EnableForCharacters;
+        ImGui.Checkbox(
+            Loc.Localize(
+                "ProfileManagerEnableForCharacters",
+                "Enable for specific characters"),
+            ref enableForCharacters);
+        if (enableForCharacters != model.EnableForCharacters)
+        {
+            model.EnableForCharacters = enableForCharacters;
+            Service<DalamudConfiguration>.Get().QueueSave();
+
+            // Profile might now no longer want active
+            Task.Run(async () =>
+                {
+                    await profman.ApplyAllWantStatesAsync("Toggle enable for characters");
+                })
+                .ContinueWith(t =>
+                {
+                    this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
+                });
+        }
+
         // If the profile is configured to enable by specific characters, show the character list and controls
-        if (profile.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.EnableForCharacters && ImGui.CollapsingHeader(Loc.Localize("ProfileManagerCharacters", "Characters") + "###charactersCollapsingHeader"))
+        if (model.EnableForCharacters && ImGui.CollapsingHeader(Loc.Localize("ProfileManagerCharacters", "Characters") + "###charactersCollapsingHeader"))
         {
             ImGui.Text(Loc.Localize("ProfileManagerCharacters", "Characters"));
-
-            var model = (ProfileModelV1)profile.Model;
 
             using (var child = ImRaii.Child("###profileCharacters"u8, new Vector2(-1, 120 * ImGuiHelpers.GlobalScale)))
             {
@@ -434,7 +456,7 @@ internal class ProfileManagerWidget
                 {
                     ulong? wantRemoveContentId = null;
 
-                    foreach (var entry in model.PolicyCharacters.ToArray())
+                    foreach (var entry in model.EnabledCharacters.ToArray())
                     {
                         string characterDisplay;
                         if (!string.IsNullOrEmpty(entry.DisplayName) && !string.IsNullOrEmpty(entry.ServerName))
@@ -458,7 +480,7 @@ internal class ProfileManagerWidget
                         if (ImGui.IsItemHovered())
                             ImGui.SetTooltip(Loc.Localize("ProfileManagerRemoveCharacter", "Remove character"));
 
-                        if (entry != model.PolicyCharacters.LastOrDefault())
+                        if (entry != model.EnabledCharacters.LastOrDefault())
                         {
                             ImGui.PushStyleColor(ImGuiCol.Border, ImGuiColors.DalamudGrey.WithAlpha(0.2f));
                             ImGui.Separator();
@@ -468,10 +490,10 @@ internal class ProfileManagerWidget
 
                     if (wantRemoveContentId != null)
                     {
-                        var toRem = model.PolicyCharacters.FirstOrDefault(x => x.ContentId == wantRemoveContentId.Value);
+                        var toRem = model.EnabledCharacters.FirstOrDefault(x => x.ContentId == wantRemoveContentId.Value);
                         if (toRem != null)
                         {
-                            model.PolicyCharacters.Remove(toRem);
+                            model.EnabledCharacters.Remove(toRem);
                             Service<DalamudConfiguration>.Get().QueueSave();
                         }
 
@@ -496,11 +518,11 @@ internal class ProfileManagerWidget
                 ImGuiHelpers.CenterCursorFor((int)(ImGui.CalcTextSize(player.CharacterName).X + 30 * ImGuiHelpers.GlobalScale));
                 if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Add current character: {player.CharacterName}"))
                 {
-                    var exists = model.PolicyCharacters.Any(x => x.ContentId == player.ContentId);
+                    var exists = model.EnabledCharacters.Any(x => x.ContentId == player.ContentId);
                     if (!exists)
                     {
                         var serverName = player.HomeWorld.Value.Name.ExtractText();
-                        model.PolicyCharacters.Add(new ProfileModelV1.ProfileModelV1Character(player.CharacterName, player.ContentId, serverName));
+                        model.EnabledCharacters.Add(new ProfileModelV1.ProfileModelV1Character(player.CharacterName, player.ContentId, serverName));
                         Service<DalamudConfiguration>.Get().QueueSave();
 
                         // Profile might now want active
@@ -803,9 +825,6 @@ internal class ProfileManagerWidget
                 ProfileModelV1.ProfileStartupPolicy.AlwaysDisable => Loc.Localize(
                     "ProfileManagerAlwaysDisableAtBoot",
                     "Always disable at boot"),
-                ProfileModelV1.ProfileStartupPolicy.EnableForCharacters => Loc.Localize(
-                    "ProfileManagerEnableForCharacters",
-                    "Enable for specific characters"),
                 _ => throw new ArgumentOutOfRangeException(nameof(policy), policy, null),
             };
         }
