@@ -1,9 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Storage.Assets;
 
@@ -16,7 +17,7 @@ namespace Dalamud.Storage.Assets;
 /// Think of C++ [[nodiscard]]. Also, like the intended meaning of the attribute, such methods will not have
 /// externally visible state changes.
 /// </summary>
-public interface IDalamudAssetManager
+public interface IDalamudAssetManager : IDalamudService
 {
     /// <summary>
     /// Gets the shared texture wrap for <see cref="DalamudAsset.Empty4X4"/>.
