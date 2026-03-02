@@ -123,6 +123,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.receiveEventArgs.PreventOriginalRequested = false;
             this.receiveEventArgs.Agent = thisPtr;
             this.receiveEventArgs.AgentId = this.agentId;
             this.receiveEventArgs.ReturnValue = (nint)returnValue;
@@ -171,6 +172,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.receiveEventWithResultArgs.PreventOriginalRequested = false;
             this.receiveEventWithResultArgs.Agent = thisPtr;
             this.receiveEventWithResultArgs.AgentId = this.agentId;
             this.receiveEventWithResultArgs.ReturnValue = (nint)returnValue;
@@ -217,6 +219,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.showArgs.PreventOriginalRequested = false;
             this.showArgs.Agent = thisPtr;
             this.showArgs.AgentId = this.agentId;
 
@@ -248,6 +251,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.hideArgs.PreventOriginalRequested = false;
             this.hideArgs.Agent = thisPtr;
             this.hideArgs.AgentId = this.agentId;
 
@@ -279,6 +283,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.updateArgs.PreventOriginalRequested = false;
             this.updateArgs.Agent = thisPtr;
             this.updateArgs.AgentId = this.agentId;
 
@@ -310,6 +315,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.gameEventArgs.PreventOriginalRequested = false;
             this.gameEventArgs.Agent = thisPtr;
             this.gameEventArgs.AgentId = this.agentId;
             this.gameEventArgs.GameEvent = (int)gameEvent;
@@ -344,6 +350,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.levelChangeArgs.PreventOriginalRequested = false;
             this.levelChangeArgs.Agent = thisPtr;
             this.levelChangeArgs.AgentId = this.agentId;
             this.levelChangeArgs.ClassJobId = classJobId;
@@ -380,6 +387,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.classJobChangeArgs.PreventOriginalRequested = false;
             this.classJobChangeArgs.Agent = thisPtr;
             this.classJobChangeArgs.AgentId = this.agentId;
             this.classJobChangeArgs.ClassJobId = classJobId;
