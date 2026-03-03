@@ -124,6 +124,8 @@ internal class ProfileManagerWidget
                     ImGuiHelpers.ScaledDummy(5);
                     ImGui.TextWrapped(Locs.TutorialParagraphFour);
                     ImGuiHelpers.ScaledDummy(5);
+                    ImGui.TextWrapped(Locs.TutorialParagraphFive);
+                    ImGuiHelpers.ScaledDummy(5);
                     ImGui.TextWrapped(Locs.TutorialCommands);
 
                     ImGui.Bullet();
@@ -205,11 +207,10 @@ internal class ProfileManagerWidget
         ImGui.Separator();
         ImGuiHelpers.ScaledDummy(5);
 
-        var windowSize = ImGui.GetWindowSize();
-
         using var profileChooserChild = ImRaii.Child("###profileChooserScrolling"u8);
         if (profileChooserChild)
         {
+            var contentRegionMaxX = ImGui.GetWindowContentRegionMax().X;
             Guid? toCloneGuid = null;
 
             using var syncScope = profman.GetSyncScope();
@@ -235,7 +236,7 @@ internal class ProfileManagerWidget
                 ImGui.Text(profile.Name);
 
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
+                ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30));
 
                 if (ImGuiComponents.IconButton($"###editButton{profile.Guid}", FontAwesomeIcon.PencilAlt))
                 {
@@ -248,7 +249,7 @@ internal class ProfileManagerWidget
                     ImGui.SetTooltip(Locs.EditProfileHint);
 
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 2) - 5);
+                ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30 * 2) - 5);
 
                 if (ImGuiComponents.IconButton($"###cloneButton{profile.Guid}", FontAwesomeIcon.Copy))
                     toCloneGuid = profile.Guid;
@@ -257,7 +258,7 @@ internal class ProfileManagerWidget
                     ImGui.SetTooltip(Locs.CloneProfileHint);
 
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 3) - 5);
+                ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30 * 3) - 5);
 
                 if (ImGuiComponents.IconButton($"###exportButton{profile.Guid}", FontAwesomeIcon.FileExport))
                 {
@@ -577,6 +578,7 @@ internal class ProfileManagerWidget
         using var pluginListChild = ImRaii.Child("###profileEditorPluginList"u8);
         if (pluginListChild)
         {
+            var contentRegionMaxX = ImGui.GetWindowContentRegionMax().X;
             var pluginLineHeight = 32 * ImGuiHelpers.GlobalScale;
             Guid? wantRemovePluginGuid = null;
 
@@ -654,7 +656,7 @@ internal class ProfileManagerWidget
                     else if (installable != null)
                     {
                         ImGui.SameLine();
-                        ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 2) - 2);
+                        ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30 * 2) - 2);
                         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
                         btnOffset = 3;
 
@@ -671,7 +673,7 @@ internal class ProfileManagerWidget
                 }
 
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
+                ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30));
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
 
                 var enabled = profileEntry.IsEnabled;
@@ -682,7 +684,7 @@ internal class ProfileManagerWidget
                 }
 
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * btnOffset) - 5);
+                ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30 * btnOffset) - 5);
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
 
                 if (ImGuiComponents.IconButton($"###removePlugin{profileEntry.InternalName}", FontAwesomeIcon.Trash))
@@ -807,6 +809,9 @@ internal class ProfileManagerWidget
 
         public static string TutorialParagraphFour =>
             Loc.Localize("ProfileManagerTutorialParagraphFour", "Individual plugins inside a collection also have a checkbox next to them. This indicates if a plugin is active within that collection - if the checkbox is not ticked, the plugin will not be enabled if that collection is active. Mind that it will still be enabled if the plugin is an active part of any other collection.");
+
+        public static string TutorialParagraphFive =>
+            Loc.Localize("ProfileManagerTutorialParagraphFive", "When ticking the {0} checkbox, the collection will only be active for specific characters. You can add characters to the list by clicking the plus button and selecting a character, or by clicking the button with the person icon to add your current character. This is useful if you want different collections active on different characters.");
 
         public static string TutorialCommands =>
             Loc.Localize("ProfileManagerTutorialCommands", "You can use the following commands in chat or in macros to manage active collections:");
