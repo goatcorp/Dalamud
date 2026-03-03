@@ -4,19 +4,16 @@ using System.Linq;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Windowing.Persistence;
-
 using Serilog;
 
 namespace Dalamud.Interface.Windowing;
 
-/// <summary>
-/// Class running a WindowSystem using <see cref="Window"/> implementations to simplify ImGui windowing.
-/// </summary>
-public class WindowSystem
+/// <inheritdoc/>
+public class WindowSystem : IWindowSystem
 {
     private static DateTimeOffset lastAnyFocus;
 
-    private readonly List<Window> windows = [];
+    private readonly List<WindowHost> windows = [];
 
     private string lastFocusedWindowName = string.Empty;
 
@@ -30,7 +27,7 @@ public class WindowSystem
     }
 
     /// <summary>
-    /// Gets a value indicating whether any <see cref="WindowSystem"/> contains any <see cref="Window"/>
+    /// Gets a value indicating whether any <see cref="WindowSystem"/> contains any <see cref="IWindow"/>
     /// that has focus and is not marked to be excluded from consideration.
     /// </summary>
     public static bool HasAnyWindowSystemFocus { get; internal set; } = false;
@@ -45,20 +42,13 @@ public class WindowSystem
     /// </summary>
     public static TimeSpan TimeSinceLastAnyFocus => DateTimeOffset.Now - lastAnyFocus;
 
-    /// <summary>
-    /// Gets a read-only list of all <see cref="Window"/>s in this <see cref="WindowSystem"/>.
-    /// </summary>
-    public IReadOnlyList<Window> Windows => this.windows;
+    /// <inheritdoc/>
+    public IReadOnlyList<IWindow> Windows => this.windows.Select(c => c.Window).ToList();
 
-    /// <summary>
-    /// Gets a value indicating whether any window in this <see cref="WindowSystem"/> has focus and is
-    /// not marked to be excluded from consideration.
-    /// </summary>
+    /// <inheritdoc/>
     public bool HasAnyFocus { get; private set; }
 
-    /// <summary>
-    /// Gets or sets the name/ID-space of this <see cref="WindowSystem"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public string? Namespace { get; set; }
 
     /// <summary>
@@ -67,42 +57,28 @@ public class WindowSystem
     /// </summary>
     internal static bool ShouldInhibitAtkCloseEvents { get; set; }
 
-    /// <summary>
-    /// Add a window to this <see cref="WindowSystem"/>.
-    /// The window system doesn't own your window, it just renders it
-    /// You need to store a reference to it to use it later.
-    /// </summary>
-    /// <param name="window">The window to add.</param>
-    public void AddWindow(Window window)
+    /// <inheritdoc/>
+    public void AddWindow(IWindow window)
     {
-        if (this.windows.Any(x => x.WindowName == window.WindowName))
+        if (this.windows.Any(x => x.Window.WindowName == window.WindowName))
             throw new ArgumentException("A window with this name/ID already exists.");
 
-        this.windows.Add(window);
+        this.windows.Add(new WindowHost(window));
     }
 
-    /// <summary>
-    /// Remove a window from this <see cref="WindowSystem"/>.
-    /// Will not dispose your window, if it is disposable.
-    /// </summary>
-    /// <param name="window">The window to remove.</param>
-    public void RemoveWindow(Window window)
+    /// <inheritdoc/>
+    public void RemoveWindow(IWindow window)
     {
-        if (!this.windows.Contains(window))
+        if (this.windows.All(c => c.Window != window))
             throw new ArgumentException("This window is not registered on this WindowSystem.");
 
-        this.windows.Remove(window);
+        this.windows.RemoveAll(c => c.Window == window);
     }
 
-    /// <summary>
-    /// Remove all windows from this <see cref="WindowSystem"/>.
-    /// Will not dispose your windows, if they are disposable.
-    /// </summary>
+    /// <inheritdoc/>
     public void RemoveAllWindows() => this.windows.Clear();
 
-    /// <summary>
-    /// Draw all registered windows using ImGui.
-    /// </summary>
+    /// <inheritdoc/>
     public void Draw()
     {
         var hasNamespace = !string.IsNullOrEmpty(this.Namespace);
@@ -114,19 +90,19 @@ public class WindowSystem
         var config = Service<DalamudConfiguration>.GetNullable();
         var persistence = Service<WindowSystemPersistence>.GetNullable();
 
-        var flags = Window.WindowDrawFlags.None;
+        var flags = WindowHost.WindowDrawFlags.None;
 
         if (config?.EnablePluginUISoundEffects ?? false)
-            flags |= Window.WindowDrawFlags.UseSoundEffects;
+            flags |= WindowHost.WindowDrawFlags.UseSoundEffects;
 
         if (config?.EnablePluginUiAdditionalOptions ?? false)
-            flags |= Window.WindowDrawFlags.UseAdditionalOptions;
+            flags |= WindowHost.WindowDrawFlags.UseAdditionalOptions;
 
         if (config?.IsFocusManagementEnabled ?? false)
-            flags |= Window.WindowDrawFlags.UseFocusManagement;
+            flags |= WindowHost.WindowDrawFlags.UseFocusManagement;
 
         if (config?.ReduceMotions ?? false)
-            flags |= Window.WindowDrawFlags.IsReducedMotion;
+            flags |= WindowHost.WindowDrawFlags.IsReducedMotion;
 
         // Shallow clone the list of windows so that we can edit it without modifying it while the loop is iterating
         foreach (var window in this.windows.ToArray())
@@ -137,15 +113,15 @@ public class WindowSystem
             window.DrawInternal(flags, persistence);
         }
 
-        var focusedWindow = this.windows.FirstOrDefault(window => window.IsFocused);
+        var focusedWindow = this.windows.FirstOrDefault(window => window.Window.IsFocused);
         this.HasAnyFocus = focusedWindow != default;
 
         if (this.HasAnyFocus)
         {
-            if (this.lastFocusedWindowName != focusedWindow.WindowName)
+            if (this.lastFocusedWindowName != focusedWindow.Window.WindowName)
             {
-                Log.Verbose($"WindowSystem \"{this.Namespace}\" Window \"{focusedWindow.WindowName}\" has focus now");
-                this.lastFocusedWindowName = focusedWindow.WindowName;
+                Log.Verbose($"WindowSystem \"{this.Namespace}\" Window \"{focusedWindow.Window.WindowName}\" has focus now");
+                this.lastFocusedWindowName = focusedWindow.Window.WindowName;
             }
 
             HasAnyWindowSystemFocus = true;
@@ -162,10 +138,10 @@ public class WindowSystem
             }
         }
 
-        ShouldInhibitAtkCloseEvents |= this.windows.Any(w => w.IsFocused &&
-                                                            w.RespectCloseHotkey &&
-                                                            !w.IsPinned &&
-                                                            !w.IsClickthrough);
+        ShouldInhibitAtkCloseEvents |= this.windows.Any(w => w.Window.IsFocused &&
+                                                            w.Window.RespectCloseHotkey &&
+                                                            !w.Window.IsPinned &&
+                                                            !w.Window.IsClickthrough);
 
         if (hasNamespace)
             ImGui.PopID();
