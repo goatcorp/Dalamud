@@ -43,24 +43,24 @@ internal class Profile
         }
         else if (isBoot)
         {
-            if (this.modelV1.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysEnable)
+            if (this.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysEnable)
             {
                 this.IsEnabled = true;
                 Log.Verbose("{Guid} set enabled because always enable", this.modelV1.Guid);
             }
-            else if (this.modelV1.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysDisable)
+            else if (this.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysDisable)
             {
                 this.IsEnabled = false;
                 Log.Verbose("{Guid} set disabled because always disable", this.modelV1.Guid);
             }
-            else if (this.modelV1.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.RememberState)
+            else if (this.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.RememberState)
             {
                 this.IsEnabled = this.modelV1.IsEnabled;
                 Log.Verbose("{Guid} set enabled because remember", this.modelV1.Guid);
             }
             else
             {
-                throw new ArgumentOutOfRangeException(nameof(this.modelV1.StartupPolicy));
+                throw new ArgumentOutOfRangeException(nameof(this.StartupPolicy));
             }
         }
         else
@@ -68,13 +68,15 @@ internal class Profile
             Log.Verbose("{Guid} not enabled", this.modelV1.Guid);
         }
 
-        Log.Verbose("Init profile {Guid} ({Name}) enabled:{Enabled} policy:{Policy} plugins:{NumPlugins} will be enabled:{Status}",
+        Log.Verbose("Init profile {Guid} ({Name}) enabled:{Enabled} policy:{Policy} plugins:{NumPlugins} wants enable:{Status} with character filter:{EnableForCharacters} enabled characters:{NumEnabledCharacters}",
                     this.modelV1.Guid,
                     this.modelV1.Name,
                     this.modelV1.IsEnabled,
                     this.modelV1.StartupPolicy,
                     this.modelV1.Plugins.Count,
-                    this.IsEnabled);
+                    this.IsEnabled,
+                    this.modelV1.EnableForCharacters,
+                    this.modelV1.EnabledCharacters?.Count ?? 0);
     }
 
     /// <summary>

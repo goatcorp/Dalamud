@@ -323,7 +323,7 @@ internal class ProfileManagerWidget
             ref this.pickerSearch,
             plugin =>
             {
-                Task.Run(() => profile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true, false))
+                Task.Run(() => profile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true))
                     .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
             },
             plugin => !plugin.Manifest.SupportsProfiles ||
@@ -427,7 +427,7 @@ internal class ProfileManagerWidget
         ImGui.Checkbox(
             Loc.Localize(
                 "ProfileManagerEnableForCharacters",
-                "Enable for specific characters"),
+                "Only enable for specific characters"),
             ref enableForCharacters);
         if (enableForCharacters != model.EnableForCharacters)
         {
@@ -446,68 +446,68 @@ internal class ProfileManagerWidget
         }
 
         // If the profile is configured to enable by specific characters, show the character list and controls
-        if (model.EnableForCharacters && ImGui.CollapsingHeader(Loc.Localize("ProfileManagerCharacters", "Characters") + "###charactersCollapsingHeader"))
+        if (model.EnableForCharacters)
         {
-            ImGui.Text(Loc.Localize("ProfileManagerCharacters", "Characters"));
+            ulong? wantRemoveContentId = null;
 
-            using (var child = ImRaii.Child("###profileCharacters"u8, new Vector2(-1, 120 * ImGuiHelpers.GlobalScale)))
+            foreach (var entry in model.EnabledCharacters.ToArray())
             {
-                if (child)
+                if (ImGuiComponents.IconButton($"###removeChar{entry.ContentId}", FontAwesomeIcon.Trash))
                 {
-                    ulong? wantRemoveContentId = null;
-
-                    foreach (var entry in model.EnabledCharacters.ToArray())
-                    {
-                        string characterDisplay;
-                        if (!string.IsNullOrEmpty(entry.DisplayName) && !string.IsNullOrEmpty(entry.ServerName))
-                        {
-                            characterDisplay = $"{entry.DisplayName} <icon({(int)BitmapFontIcon.CrossWorld})> {entry.ServerName}";
-                        }
-                        else
-                        {
-                            characterDisplay = entry.ContentId.ToString();
-                        }
-
-                        ImGuiHelpers.CompileSeStringWrapped(characterDisplay);
-
-                        ImGui.SameLine();
-                        ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
-                        if (ImGuiComponents.IconButton($"###removeChar{entry.ContentId}", FontAwesomeIcon.Trash))
-                        {
-                            wantRemoveContentId = entry.ContentId;
-                        }
-
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip(Loc.Localize("ProfileManagerRemoveCharacter", "Remove character"));
-
-                        if (entry != model.EnabledCharacters.LastOrDefault())
-                        {
-                            ImGui.PushStyleColor(ImGuiCol.Border, ImGuiColors.DalamudGrey.WithAlpha(0.2f));
-                            ImGui.Separator();
-                            ImGui.PopStyleColor();
-                        }
-                    }
-
-                    if (wantRemoveContentId != null)
-                    {
-                        var toRem = model.EnabledCharacters.FirstOrDefault(x => x.ContentId == wantRemoveContentId.Value);
-                        if (toRem != null)
-                        {
-                            model.EnabledCharacters.Remove(toRem);
-                            Service<DalamudConfiguration>.Get().QueueSave();
-                        }
-
-                        // Profile might now no longer want active
-                        Task.Run(async () =>
-                            {
-                                await profman.ApplyAllWantStatesAsync("Remove character");
-                            })
-                            .ContinueWith(t =>
-                            {
-                                this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
-                            });
-                    }
+                    wantRemoveContentId = entry.ContentId;
                 }
+
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(Loc.Localize("ProfileManagerRemoveCharacter", "Remove character"));
+
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (5 * ImGuiHelpers.GlobalScale));
+
+                string characterDisplay;
+                if (!string.IsNullOrEmpty(entry.DisplayName) && !string.IsNullOrEmpty(entry.ServerName))
+                {
+                    characterDisplay =
+                        $"{entry.DisplayName} <icon({(int)BitmapFontIcon.CrossWorld})> {entry.ServerName}";
+                }
+                else
+                {
+                    characterDisplay = entry.ContentId.ToString();
+                }
+
+                ImGuiHelpers.CompileSeStringWrapped(characterDisplay);
+
+                if (entry != model.EnabledCharacters.LastOrDefault())
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Border, ImGuiColors.DalamudGrey.WithAlpha(0.2f));
+                    ImGui.Separator();
+                    ImGui.PopStyleColor();
+                }
+            }
+
+            if (model.EnabledCharacters.Count == 0)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
+                ImGui.TextColoredWrapped(
+                    ImGuiColors.DalamudGrey,
+                    Loc.Localize(
+                        "ProfileManagerNoCharactersAdded",
+                        "This collection will not be active for any characters until you add some with the button below."));
+                ImGui.PopStyleColor();
+            }
+
+            if (wantRemoveContentId != null)
+            {
+                var toRem =
+                    model.EnabledCharacters.FirstOrDefault(x => x.ContentId == wantRemoveContentId.Value);
+                if (toRem != null)
+                {
+                    model.EnabledCharacters.Remove(toRem);
+                    Service<DalamudConfiguration>.Get().QueueSave();
+                }
+
+                // Profile might now no longer want active
+                Task.Run(async () => { await profman.ApplyAllWantStatesAsync("Remove character"); })
+                    .ContinueWith(t => { this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState); });
             }
 
             ImGuiHelpers.ScaledDummy(5);
@@ -515,35 +515,27 @@ internal class ProfileManagerWidget
             var player = Service<PlayerState>.Get();
             if (player.IsLoaded)
             {
-                ImGuiHelpers.CenterCursorFor((int)(ImGui.CalcTextSize(player.CharacterName).X + 30 * ImGuiHelpers.GlobalScale));
+                using var disabled = ImRaii.Disabled(model.EnabledCharacters.Any(x => x.ContentId == player.ContentId));
                 if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Add current character: {player.CharacterName}"))
                 {
-                    var exists = model.EnabledCharacters.Any(x => x.ContentId == player.ContentId);
-                    if (!exists)
-                    {
-                        var serverName = player.HomeWorld.Value.Name.ExtractText();
-                        model.EnabledCharacters.Add(new ProfileModelV1.ProfileModelV1Character(player.CharacterName, player.ContentId, serverName));
-                        Service<DalamudConfiguration>.Get().QueueSave();
+                    var serverName = player.HomeWorld.Value.Name.ExtractText();
+                    model.EnabledCharacters.Add(new ProfileModelV1.ProfileModelV1Character(player.CharacterName, player.ContentId, serverName));
+                    Service<DalamudConfiguration>.Get().QueueSave();
 
-                        // Profile might now want active
-                        Task.Run(async () =>
-                            {
-                                await profman.ApplyAllWantStatesAsync("Add character");
-                            })
-                            .ContinueWith(t =>
-                            {
-                                this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
-                            });
-                    }
-                    else
-                    {
-                        Service<NotificationManager>.Get().AddNotification(Loc.Localize("ProfileManagerCharacterExists", "Character already in list"), type: NotificationType.Info);
-                    }
+                    // Profile might now want active
+                    Task.Run(async () =>
+                        {
+                            await profman.ApplyAllWantStatesAsync("Add character");
+                        })
+                        .ContinueWith(t =>
+                        {
+                            this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
+                        });
                 }
             }
             else
             {
-                ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("ProfileManagerCharacterNotLoaded", "You must be logged in to add your current character"));
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("ProfileManagerCharacterNotLoaded", "You must be logged in to add your current character."));
             }
 
             ImGuiHelpers.ScaledDummy(5);
@@ -582,6 +574,7 @@ internal class ProfileManagerWidget
                     }
 
                     ImGui.SameLine();
+                    ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (5 * ImGuiHelpers.GlobalScale));
 
                     var text = $"{pmPlugin.Name}{(pmPlugin.IsDev ? " (dev plugin" : string.Empty)}";
                     var textHeight = ImGui.CalcTextSize(text);

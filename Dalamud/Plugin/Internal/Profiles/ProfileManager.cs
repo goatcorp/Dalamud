@@ -91,10 +91,13 @@ internal partial class ProfileManager : IServiceType
         {
             foreach (var profile in this.profiles)
             {
-                var state = profile.WantsPlugin(workingPluginId);
-                if (state.HasValue)
+                var profileWantsActive
+                    = profile.IsEnabled && profile.CheckWantsActiveFromGameState(Service<PlayerState>.GetNullable()?.ContentId ?? 0);
+
+                var pluginStateInProfile = profile.WantsPlugin(workingPluginId);
+                if (pluginStateInProfile.HasValue)
                 {
-                    want = want || (profile.IsEnabled && state.Value);
+                    want = want || (profileWantsActive && pluginStateInProfile.Value);
                     wasInAnyProfile = true;
                 }
             }
