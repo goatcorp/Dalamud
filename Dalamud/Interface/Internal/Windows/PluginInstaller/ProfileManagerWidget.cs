@@ -31,6 +31,7 @@ internal class ProfileManagerWidget
     private readonly PluginInstallerWindow installer;
     private Mode mode = Mode.Overview;
     private Guid? editingProfileGuid;
+    private bool lastWasPickingPlugin;
 
     private string pickerSearch = string.Empty;
     private string profileNameEdit = string.Empty;
@@ -323,11 +324,36 @@ internal class ProfileManagerWidget
             ref this.pickerSearch,
             plugin =>
             {
-                Task.Run(() => profile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true))
+                Task.Run(() => profile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true, false))
                     .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
             },
             plugin => !plugin.Manifest.SupportsProfiles ||
                       profile.Plugins.Any(x => x.WorkingPluginId == plugin.EffectiveWorkingPluginId));
+
+        // Reapply states when closing plugin picker, as we might have changed want states for some plugins. Only do this when closing, to avoid doing it multiple times while picking.
+        var isPickingPlugin = ImGui.IsPopupOpen("###addPluginToProfilePicker");
+        switch (isPickingPlugin)
+        {
+            case false when this.lastWasPickingPlugin:
+                // Clear search after closing
+                this.pickerSearch = string.Empty;
+
+                Task.Run(async () =>
+                    {
+                        await profman.ApplyAllWantStatesAsync("Finish adding plugins");
+                    })
+                    .ContinueWith(t =>
+                    {
+                        this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
+                    });
+
+                this.lastWasPickingPlugin = false;
+                break;
+
+            case true:
+                this.lastWasPickingPlugin = true;
+                break;
+        }
 
         var didAny = false;
 
@@ -450,6 +476,8 @@ internal class ProfileManagerWidget
         {
             ulong? wantRemoveContentId = null;
 
+            ImGui.Indent();
+
             foreach (var entry in model.EnabledCharacters.ToArray())
             {
                 if (ImGuiComponents.IconButton($"###removeChar{entry.ContentId}", FontAwesomeIcon.Trash))
@@ -494,6 +522,8 @@ internal class ProfileManagerWidget
                         "This collection will not be active for any characters until you add some with the button below."));
                 ImGui.PopStyleColor();
             }
+
+            ImGui.Unindent();
 
             if (wantRemoveContentId != null)
             {
@@ -676,7 +706,7 @@ internal class ProfileManagerWidget
             if (wantRemovePluginGuid != null)
             {
                 // TODO: handle error
-                Task.Run(() => profile.RemoveAsync(wantRemovePluginGuid.Value, false))
+                Task.Run(() => profile.RemoveAsync(wantRemovePluginGuid.Value))
                                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotRemove);
             }
 
