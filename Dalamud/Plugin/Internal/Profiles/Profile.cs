@@ -271,6 +271,7 @@ internal class Profile
     /// Check if this profile wants to be active based on the current game state and its policy.
     /// Separate from <see cref="IsEnabled"/> - a profile may be enabled, but not want to be active in the current game state.
     /// </summary>
+    /// <param name="currentCharacterContentId">The content ID of the character we are logged in with, or about to log in with.</param>
     /// <returns>Whether the profile wants to be active.</returns>
     public bool CheckWantsActiveFromGameState(ulong currentCharacterContentId)
     {
