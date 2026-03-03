@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using CheapLoc;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.ClientState;
 using Dalamud.Game.Player;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
@@ -37,12 +36,6 @@ internal partial class ProfileManager : IServiceType
         this.config = config;
 
         this.LoadProfilesFromConfigInitially();
-
-        // ProfileManager is BlockingEarlyLoaded
-        Service<ClientState>.GetAsync().ContinueWith(t =>
-        {
-            t.Result.Login += () => Task.Run(() => this.ApplyAllWantStatesAsync("On Login"));
-        });
     }
 
     /// <summary>
