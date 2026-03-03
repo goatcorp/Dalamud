@@ -149,6 +149,9 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         if (receiveEventArgs.EventKind is not loginEventKind)
             return;
 
+        if (!receiveEventArgs.AtkValueEnumerable.Any())
+            return;
+
         if (!receiveEventArgs.AtkValueEnumerable.ElementAt(0).TryGet(out int? eventValue))
             return;
 
@@ -177,9 +180,10 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
             var text = new SeStringBuilder()
                        .AddUiForeground($"{SeIconChar.BoxedLetterD.ToIconString()} ", 539)
                        .Append("Loading plugins for this character...")
-                       .Build();
+                       .Build()
+                       .EncodeWithNullTerminator();
 
-            addonSelectYesno->PromptText->SetText(text.Encode());
+            addonSelectYesno->PromptText->SetText(text);
             addonSelectYesno->YesButton->SetEnabledState(false);
             addonSelectYesno->NoButton->SetEnabledState(false);
             addonSelectYesno->DisableUserClose = true;
@@ -196,7 +200,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
                     addonSelectYesno->DisableUserClose = false;
                     addonSelectYesno->YesButton->SetEnabledState(true);
                     addonSelectYesno->NoButton->SetEnabledState(true);
-                    addonSelectYesno->Close(true);
+                    addonSelectYesno->Close(false);
 
                     var dummyRet = stackalloc AtkValue[1];
                     dummyRet->Type = ValueType.Undefined;
