@@ -133,13 +133,24 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 
     private void AgentLobbyPreReceiveEvent(AgentEvent type, AgentArgs args)
     {
+        var profileManager = Service<ProfileManager>.Get();
+
+        // Don't do anything if no profiles have character-specific plugin enabling, since in that case we won't be
+        // doing any loading on login and thus don't need to delay the login prompt
+        if (profileManager.Profiles.All(x => x.Model is ProfileModelV1 { EnableForCharacters: false }))
+            return;
+
         const int loginEventKind = 0x03;
         const int recursionSentinel = 69420;
 
-        if (args is not AgentReceiveEventArgs receiveEventArgs) return;
+        if (args is not AgentReceiveEventArgs receiveEventArgs)
+            return;
 
-        if (receiveEventArgs.EventKind is not loginEventKind) return;
-        if (!receiveEventArgs.AtkValueEnumerable.ElementAt(0).TryGet(out int? eventValue)) return;
+        if (receiveEventArgs.EventKind is not loginEventKind)
+            return;
+
+        if (!receiveEventArgs.AtkValueEnumerable.ElementAt(0).TryGet(out int? eventValue))
+            return;
 
         // Prevent recursion from our own injected event
         if (receiveEventArgs.AtkValueEnumerable.Count() == 2 &&
@@ -176,7 +187,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
             var cts = new CancellationTokenSource();
             cts.CancelAfter(60000);
             var delayTask = Task.Delay(30000, cts.Token); // Just in case something goes wrong, we don't want to leave the player stuck on this screen forever
-            var applyTask = Task.Run(() => Service<ProfileManager>.Get().ApplyAllWantStatesAsync("Login start", AgentLobby.Instance()->HoveredCharacterContentId), cts.Token);
+            var applyTask = Task.Run(() => profileManager.ApplyAllWantStatesAsync("Login start", AgentLobby.Instance()->HoveredCharacterContentId), cts.Token);
 
             this.lobbyProfileApplyTask = Task.WhenAny(delayTask, applyTask).ContinueWith(_ =>
             {
