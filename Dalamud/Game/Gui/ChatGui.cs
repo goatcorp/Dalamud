@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.Chat;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -70,16 +70,16 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     }
 
     /// <inheritdoc/>
-    public event IChatGui.OnMessageDelegate? ChatMessage;
+    public event IChatGui.OnHandleableChatMessageDelegate? ChatMessage;
 
     /// <inheritdoc/>
-    public event IChatGui.OnCheckMessageHandledDelegate? CheckMessageHandled;
+    public event IChatGui.OnHandleableChatMessageDelegate? CheckMessageHandled;
 
     /// <inheritdoc/>
-    public event IChatGui.OnMessageHandledDelegate? ChatMessageHandled;
+    public event IChatGui.OnChatMessageDelegate? ChatMessageHandled;
 
     /// <inheritdoc/>
-    public event IChatGui.OnMessageUnhandledDelegate? ChatMessageUnhandled;
+    public event IChatGui.OnChatMessageDelegate? ChatMessageUnhandled;
 
     /// <inheritdoc/>
     public event IChatGui.OnLogMessageDelegate? LogMessage;
@@ -376,72 +376,80 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
         try
         {
-            var parsedSender = SeString.Parse(sender->AsSpan());
-            var parsedMessage = SeString.Parse(message->AsSpan());
-
-            var terminatedSender = parsedSender.EncodeWithNullTerminator();
-            var terminatedMessage = parsedMessage.EncodeWithNullTerminator();
-
             var logKind = (XivChatType)(logInfo & 0x7F);
             var sourceKind = (XivChatRelationKind)((logInfo >> 11) & 0xF);
             var targetKind = (XivChatRelationKind)((logInfo >> 7) & 0xF);
 
-            // Call events
-            var isHandled = false;
+            var lSender = sender->AsReadOnlySeString();
+            var lMessage = message->AsReadOnlySeString();
 
-            foreach (var action in Delegate.EnumerateInvocationList(this.CheckMessageHandled))
+            var chatMessage = new ChatMessage(logKind, sourceKind, targetKind, lSender, lMessage, timestamp);
+
+            // First pass
+            foreach (var action in Delegate.EnumerateInvocationList(this.ChatMessage))
             {
                 try
                 {
-                    action(logKind, sourceKind, targetKind, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
+                    action(chatMessage);
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, "Could not invoke registered OnCheckMessageHandledDelegate for {Name}", action.Method);
+                    Log.Error(e, "Could not invoke registered OnHandleableChatMessageDelegate for {Name}", action.Method);
                 }
             }
 
-            if (!isHandled)
+            // Second pass
+            if (!chatMessage.IsHandled)
             {
-                foreach (var action in Delegate.EnumerateInvocationList(this.ChatMessage))
+                foreach (var action in Delegate.EnumerateInvocationList(this.CheckMessageHandled))
                 {
                     try
                     {
-                        action(logKind, sourceKind, targetKind, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
+                        action(chatMessage);
                     }
                     catch (Exception e)
                     {
-                        Log.Error(e, "Could not invoke registered OnMessageDelegate for {Name}", action.Method);
+                        Log.Error(e, "Could not invoke registered OnHandleableChatMessageDelegate for {Name}", action.Method);
                     }
                 }
             }
 
-            var possiblyModifiedSenderData = parsedSender.EncodeWithNullTerminator();
-            var possiblyModifiedMessageData = parsedMessage.EncodeWithNullTerminator();
-
-            if (!terminatedSender.SequenceEqual(possiblyModifiedSenderData))
+            // Check for modifications
+            if (lSender != chatMessage.Sender)
             {
-                Log.Verbose($"HandlePrintMessageDetour Sender modified: {new ReadOnlySeStringSpan(terminatedSender).ToMacroString()} -> {new ReadOnlySeStringSpan(possiblyModifiedSenderData).ToMacroString()}");
-                sender->SetString(possiblyModifiedSenderData);
+                Log.Verbose($"HandlePrintMessageDetour Sender modified: {lSender.ToMacroString()} -> {chatMessage.Sender.ToMacroString()}");
+                using var rssb = new RentedSeStringBuilder();
+                sender->SetString(rssb.Builder.Append(chatMessage.Sender).GetViewAsSpan());
             }
 
-            if (!terminatedMessage.SequenceEqual(possiblyModifiedMessageData))
+            if (lMessage != chatMessage.Message)
             {
-                Log.Verbose($"HandlePrintMessageDetour Message modified: {new ReadOnlySeStringSpan(terminatedMessage).ToMacroString()} -> {new ReadOnlySeStringSpan(possiblyModifiedMessageData).ToMacroString()}");
-                message->SetString(possiblyModifiedMessageData);
+                Log.Verbose($"HandlePrintMessageDetour Message modified: {lSender.ToMacroString()} -> {chatMessage.Message.ToMacroString()}");
+                using var rssb = new RentedSeStringBuilder();
+                message->SetString(rssb.Builder.Append(chatMessage.Message).GetViewAsSpan());
             }
 
-            // Print the original chat if it's handled.
-            if (isHandled)
-            {
-                foreach (var d in Delegate.EnumerateInvocationList(this.ChatMessageHandled))
-                    d(logKind, sourceKind, targetKind, timestamp, parsedSender, parsedMessage);
-            }
-            else
+            // If not handled by a plugin, let the game handle it (prints it to chat)
+            if (!chatMessage.IsHandled)
             {
                 messageId = this.printMessageHook.Original(manager, logInfo, sender, message, timestamp, silent);
-                foreach (var d in Delegate.EnumerateInvocationList(this.ChatMessageUnhandled))
-                    d(logKind, sourceKind, targetKind, timestamp, parsedSender, parsedMessage);
+            }
+
+            // Third pass
+            var callback = chatMessage.IsHandled
+                ? this.ChatMessageHandled
+                : this.ChatMessageUnhandled;
+
+            foreach (var action in Delegate.EnumerateInvocationList(callback))
+            {
+                try
+                {
+                    action(chatMessage);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Could not invoke registered OnChatMessageDelegate for {Name}", action.Method);
+                }
             }
         }
         catch (Exception ex)
@@ -484,7 +492,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 }
             }
 
-            var seStr = SeString.Parse(rssb.Builder.ToArray());
+            var seStr = SeString.Parse(rssb.Builder.GetViewAsSpan());
             if (seStr.Payloads.Count == 0 || seStr.Payloads[0] is not DalamudLinkPayload link)
                 return;
 
@@ -568,23 +576,22 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     {
         this.plugin = plugin;
         this.chatGuiService.ChatMessage += this.OnMessageForward;
-        this.chatGuiService.CheckMessageHandled += this.OnCheckMessageForward;
         this.chatGuiService.ChatMessageHandled += this.OnMessageHandledForward;
         this.chatGuiService.ChatMessageUnhandled += this.OnMessageUnhandledForward;
         this.chatGuiService.LogMessage += this.OnLogMessageForward;
     }
 
     /// <inheritdoc/>
-    public event IChatGui.OnMessageDelegate? ChatMessage;
+    public event IChatGui.OnHandleableChatMessageDelegate? ChatMessage;
 
     /// <inheritdoc/>
-    public event IChatGui.OnCheckMessageHandledDelegate? CheckMessageHandled;
+    public event IChatGui.OnHandleableChatMessageDelegate? CheckMessageHandled;
 
     /// <inheritdoc/>
-    public event IChatGui.OnMessageHandledDelegate? ChatMessageHandled;
+    public event IChatGui.OnChatMessageDelegate? ChatMessageHandled;
 
     /// <inheritdoc/>
-    public event IChatGui.OnMessageUnhandledDelegate? ChatMessageUnhandled;
+    public event IChatGui.OnChatMessageDelegate? ChatMessageUnhandled;
 
     /// <inheritdoc/>
     public event IChatGui.OnLogMessageDelegate? LogMessage;
@@ -602,13 +609,12 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     void IInternalDisposableService.DisposeService()
     {
         this.chatGuiService.ChatMessage -= this.OnMessageForward;
-        this.chatGuiService.CheckMessageHandled -= this.OnCheckMessageForward;
+        this.chatGuiService.CheckMessageHandled -= this.OnCheckMessageHandledForward;
         this.chatGuiService.ChatMessageHandled -= this.OnMessageHandledForward;
         this.chatGuiService.ChatMessageUnhandled -= this.OnMessageUnhandledForward;
         this.chatGuiService.LogMessage -= this.OnLogMessageForward;
 
         this.ChatMessage = null;
-        this.CheckMessageHandled = null;
         this.ChatMessageHandled = null;
         this.ChatMessageUnhandled = null;
         this.LogMessage = null;
@@ -654,17 +660,17 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     public void PrintError(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.PrintError(message, messageTag, tagColor);
 
-    private void OnMessageForward(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
-        => this.ChatMessage?.Invoke(type, sourceKind, targetKind, timestamp, ref sender, ref message, ref isHandled);
+    private void OnMessageForward(IHandleableChatMessage message)
+        => this.ChatMessage?.Invoke(message);
 
-    private void OnCheckMessageForward(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
-        => this.CheckMessageHandled?.Invoke(type, sourceKind, targetKind, timestamp, ref sender, ref message, ref isHandled);
+    private void OnCheckMessageHandledForward(IHandleableChatMessage message)
+        => this.CheckMessageHandled?.Invoke(message);
 
-    private void OnMessageHandledForward(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, SeString sender, SeString message)
-        => this.ChatMessageHandled?.Invoke(type, sourceKind, targetKind, timestamp, sender, message);
+    private void OnMessageHandledForward(IChatMessage message)
+        => this.ChatMessageHandled?.Invoke(message);
 
-    private void OnMessageUnhandledForward(XivChatType type, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, int timestamp, SeString sender, SeString message)
-        => this.ChatMessageUnhandled?.Invoke(type, sourceKind, targetKind, timestamp, sender, message);
+    private void OnMessageUnhandledForward(IChatMessage message)
+        => this.ChatMessageUnhandled?.Invoke(message);
 
     private void OnLogMessageForward(Chat.ILogMessage message)
         => this.LogMessage?.Invoke(message);
