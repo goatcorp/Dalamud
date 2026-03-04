@@ -452,9 +452,7 @@ internal class ProfileManagerWidget
 
         var enableForCharacters = model.EnableForCharacters;
         ImGui.Checkbox(
-            Loc.Localize(
-                "ProfileManagerEnableForCharacters",
-                "Only enable for specific characters"),
+            Locs.EnableForSpecificCharacters,
             ref enableForCharacters);
         if (enableForCharacters != model.EnableForCharacters)
         {
@@ -746,6 +744,10 @@ internal class ProfileManagerWidget
         public static string StartupBehavior =>
             Loc.Localize("ProfileManagerStartupBehavior", "Startup behavior");
 
+        public static string EnableForSpecificCharacters => Loc.Localize(
+            "ProfileManagerEnableForCharacters",
+            "Only enable for specific characters");
+
         public static string TooltipEnableDisable =>
             Loc.Localize("ProfileManagerEnableDisableHint", "Enable/Disable this collection");
 
@@ -811,7 +813,8 @@ internal class ProfileManagerWidget
             Loc.Localize("ProfileManagerTutorialParagraphFour", "Individual plugins inside a collection also have a checkbox next to them. This indicates if a plugin is active within that collection - if the checkbox is not ticked, the plugin will not be enabled if that collection is active. Mind that it will still be enabled if the plugin is an active part of any other collection.");
 
         public static string TutorialParagraphFive =>
-            Loc.Localize("ProfileManagerTutorialParagraphFive", "When ticking the {0} checkbox, the collection will only be active for specific characters. You can add characters to the list by clicking the plus button and selecting a character, or by clicking the button with the person icon to add your current character. This is useful if you want different collections active on different characters.");
+            Loc.Localize("ProfileManagerTutorialParagraphFive", "When ticking the \"{0}\" checkbox, the collection will only be active for specific characters. You can add characters to the list by clicking the plus button and selecting a character, or by clicking the button with the person icon to add your current character. This is useful if you want different collections active on different characters.")
+               .Format(EnableForSpecificCharacters);
 
         public static string TutorialCommands =>
             Loc.Localize("ProfileManagerTutorialCommands", "You can use the following commands in chat or in macros to manage active collections:");
