@@ -89,6 +89,11 @@ public interface IDalamudPluginInterface : IServiceProvider
     bool IsTesting { get; }
 
     /// <summary>
+    /// Gets a value indicating whether this plugin's load status is controlled by a profile/collection.
+    /// </summary>
+    bool IsInProfile { get; }
+
+    /// <summary>
     /// Gets the time that this plugin was loaded.
     /// </summary>
     DateTime LoadTime { get; }
