@@ -191,7 +191,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
             var cts = new CancellationTokenSource();
             cts.CancelAfter(60000);
             var delayTask = Task.Delay(30000, cts.Token); // Just in case something goes wrong, we don't want to leave the player stuck on this screen forever
-            var applyTask = Task.Run(() => profileManager.ApplyAllWantStatesAsync("Login start", AgentLobby.Instance()->HoveredCharacterContentId), cts.Token);
+            var applyTask = Task.Run(() => profileManager.ApplyAllWantStatesAsync("Login start"), cts.Token);
 
             this.lobbyProfileApplyTask = Task.WhenAny(delayTask, applyTask).ContinueWith(_ =>
             {

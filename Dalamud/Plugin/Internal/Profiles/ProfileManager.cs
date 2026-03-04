@@ -11,6 +11,8 @@ using Dalamud.Game.Player;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+
 namespace Dalamud.Plugin.Internal.Profiles;
 
 /// <summary>
@@ -80,12 +82,14 @@ internal partial class ProfileManager : IServiceType
         var want = false;
         var wasInAnyProfile = false;
 
+        var currentCharacterContentId = FindApplicableContentIdFromGameState() ?? 0;
+
         lock (this.profiles)
         {
             foreach (var profile in this.profiles)
             {
                 var profileWantsActive
-                    = profile.IsEnabled && profile.CheckWantsActiveFromGameState(Service<PlayerState>.GetNullable()?.ContentId ?? 0);
+                    = profile.IsEnabled && profile.CheckWantsActiveFromGameState(currentCharacterContentId);
 
                 var pluginStateInProfile = profile.WantsPlugin(workingPluginId);
                 if (pluginStateInProfile.HasValue)
@@ -213,17 +217,16 @@ internal partial class ProfileManager : IServiceType
     /// This will block until all plugins have been loaded/reloaded.
     /// </summary>
     /// <param name="reason">The reason for why we are applying states.</param>
-    /// <param name="currentCharacterContentId">The content ID of the character to check profiles for. Uses playerstate ID if null.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task ApplyAllWantStatesAsync(string reason, ulong? currentCharacterContentId = null)
+    public async Task ApplyAllWantStatesAsync(string reason)
     {
         if (this.isBusy)
             throw new Exception("Already busy, this must not run in parallel. Check before starting another apply!");
 
-        this.isBusy = true;
-        Log.Information("Getting want states... (reason={Reason})", reason);
+        var currentCharacterContentId = FindApplicableContentIdFromGameState();
 
-        currentCharacterContentId ??= Service<PlayerState>.GetNullable()?.ContentId;
+        this.isBusy = true;
+        Log.Information("Getting want states... (reason={Reason}, cid={ContentId})", reason, currentCharacterContentId);
 
         List<ProfilePluginEntry> wantActive;
         lock (this.profiles)
@@ -341,6 +344,24 @@ internal partial class ProfileManager : IServiceType
                 seenIds.Add(pluginEntry.WorkingPluginId);
             }
         }
+    }
+
+    // Find either the content ID of the currently logged in character, or the content ID of the character that is selected on the lobby screen
+    private static unsafe ulong? FindApplicableContentIdFromGameState()
+    {
+        var cid = Service<PlayerState>.GetNullable()?.ContentId;
+
+        if (cid != null && cid != 0)
+            return cid;
+
+        var agentLobby = AgentLobby.Instance();
+        if (agentLobby == null)
+            return null;
+
+        if (agentLobby->HoveredCharacterContentId != 0)
+            return agentLobby->HoveredCharacterContentId;
+
+        return null;
     }
 
     [GeneratedRegex(@" \(.* Mix\)")]
