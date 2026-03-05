@@ -71,7 +71,7 @@ public interface IHandleableChatMessage : IModifyableChatMessage
     /// <summary>
     /// Marks this message as handled (<see cref="IChatMessage.IsHandled"/> = <see langword="true"/>) and prevents it from being processed by the game any further.
     /// </summary>
-    void PreventDefault();
+    void PreventOriginal();
 }
 
 /// <summary>
@@ -133,7 +133,7 @@ internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, 
     internal bool MessageModified { get; set; }
 
     /// <inheritdoc />
-    public void PreventDefault() => this.IsHandled = true;
+    public void PreventOriginal() => this.IsHandled = true;
 
     /// <inheritdoc />
     public bool Equals(IChatMessage? other)

@@ -59,7 +59,7 @@ internal partial class ChatHandlers : IServiceType
         {
             // This seems to be in the user block list - let's not show it
             Log.Debug("Filtered a message that contained a muted word");
-            message.PreventDefault();
+            message.PreventOriginal();
             return;
         }
     }
