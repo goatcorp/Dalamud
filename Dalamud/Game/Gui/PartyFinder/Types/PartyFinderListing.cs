@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Data;
-using Dalamud.Game.Text.SeStringHandling;
 
 using FFXIVClientStructs.FFXIV.Client.Game.Network;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.PartyFinder.Types;
 
@@ -65,12 +65,12 @@ public interface IPartyFinderListing
     /// <summary>
     /// Gets the name of the player hosting this listing.
     /// </summary>
-    SeString Name { get; }
+    ReadOnlySeString Name { get; }
 
     /// <summary>
     /// Gets the description of this listing as set by the host. May be multiple lines.
     /// </summary>
-    SeString Description { get; }
+    ReadOnlySeString Description { get; }
 
     /// <summary>
     /// Gets the world that this listing was created on.
@@ -220,8 +220,8 @@ internal class PartyFinderListing : IPartyFinderListing
 
         this.Id = listing.ListingId;
         this.ContentId = listing.ContentId;
-        this.Name = SeString.Parse(listing.Name);
-        this.Description = SeString.Parse(listing.Description);
+        this.Name = listing.Name;
+        this.Description = listing.Description;
         this.World = LuminaUtils.CreateRef<World>(listing.WorldId);
         this.HomeWorld = LuminaUtils.CreateRef<World>(listing.HomeWorldId);
         this.CurrentWorld = LuminaUtils.CreateRef<World>(listing.CurrentWorldId);
@@ -249,10 +249,10 @@ internal class PartyFinderListing : IPartyFinderListing
     public ulong ContentId { get; }
 
     /// <inheritdoc/>
-    public SeString Name { get; }
+    public ReadOnlySeString Name { get; }
 
     /// <inheritdoc/>
-    public SeString Description { get; }
+    public ReadOnlySeString Description { get; }
 
     /// <inheritdoc/>
     public RowRef<World> World { get; }

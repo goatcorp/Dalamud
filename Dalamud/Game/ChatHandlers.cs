@@ -7,8 +7,6 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
@@ -52,7 +50,7 @@ internal partial class ChatHandlers : IServiceType
 
     private void OnCheckMessageHandled(IHandleableChatMessage message)
     {
-        var textVal = message.Message.TextValue;
+        var textVal = message.Message.ToString();
 
         if (this.configuration.BadWords != null &&
             this.configuration.BadWords.Any(x => !string.IsNullOrEmpty(x) && textVal.Contains(x)))
@@ -85,7 +83,7 @@ internal partial class ChatHandlers : IServiceType
                 return;
 #endif
 
-        var linkMatch = CompiledUrlRegex().Match(message.Message.TextValue);
+        var linkMatch = CompiledUrlRegex().Match(message.Message.ToString());
         if (linkMatch.Value.Length > 0)
             this.LastLink = linkMatch.Value;
     }
@@ -115,23 +113,24 @@ internal partial class ChatHandlers : IServiceType
 
         if (string.IsNullOrEmpty(this.configuration.LastVersion) || !Versioning.GetAssemblyVersion().StartsWith(this.configuration.LastVersion))
         {
-            var linkPayload = chatGui.AddChatLinkHandler(
-                (_, _) => dalamudInterface.OpenPluginInstallerTo(PluginInstallerOpenKind.Changelogs));
+            var dalamudLinkPayload = chatGui.AddChatLinkHandler(
+                (_) => dalamudInterface.OpenPluginInstallerTo(PluginInstallerOpenKind.Changelogs));
 
-            var updateMessage = new SeStringBuilder()
-                .AddText(Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully!"))
-                .AddUiForeground(500)
-                .AddText("  [ ")
-                .Add(linkPayload)
-                .AddText(Loc.Localize("DalamudClickToViewChangelogs", "Click here to view the changelog."))
-                .Add(RawPayload.LinkTerminator)
-                .AddText(" ]")
-                .AddUiForegroundOff();
+            using var rssb = new RentedSeStringBuilder();
 
             chatGui.Print(new XivChatEntry
             {
-                Message = updateMessage.Build(),
                 Type = XivChatType.Notice,
+                Message = rssb.Builder
+                    .Append(Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully!"))
+                    .PushColorType(500)
+                    .Append("  [ ")
+                    .PushDalamudLink(dalamudLinkPayload)
+                    .Append(Loc.Localize("DalamudClickToViewChangelogs", "Click here to view the changelog."))
+                    .PopLink()
+                    .Append(" ]")
+                    .PopColorType()
+                    .ToReadOnlySeString(),
             });
 
             this.configuration.LastVersion = Versioning.GetAssemblyVersion();

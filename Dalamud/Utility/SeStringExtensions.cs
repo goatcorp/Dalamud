@@ -1,11 +1,4 @@
-using Lumina.Text.Parse;
-
 using Lumina.Text.ReadOnly;
-
-using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
-using DSeStringBuilder = Dalamud.Game.Text.SeStringHandling.SeStringBuilder;
-using LSeString = Lumina.Text.SeString;
-using LSeStringBuilder = Lumina.Text.SeStringBuilder;
 
 namespace Dalamud.Utility;
 
@@ -14,64 +7,6 @@ namespace Dalamud.Utility;
 /// </summary>
 public static class SeStringExtensions
 {
-    /// <summary>
-    /// Convert a Lumina SeString into a Dalamud SeString.
-    /// This conversion re-parses the string.
-    /// </summary>
-    /// <param name="originalString">The original Lumina SeString.</param>
-    /// <returns>The re-parsed Dalamud SeString.</returns>
-    [Obsolete("Switch to using ReadOnlySeString instead of Lumina's SeString.", true)]
-    public static DSeString ToDalamudString(this LSeString originalString) => DSeString.Parse(originalString.RawData);
-
-    /// <summary>
-    /// Convert a Lumina ReadOnlySeString into a Dalamud SeString.
-    /// This conversion re-parses the string.
-    /// </summary>
-    /// <param name="originalString">The original Lumina ReadOnlySeString.</param>
-    /// <returns>The re-parsed Dalamud SeString.</returns>
-    public static DSeString ToDalamudString(this ReadOnlySeString originalString) => DSeString.Parse(originalString.Data.Span);
-
-    /// <summary>
-    /// Convert a Lumina ReadOnlySeStringSpan into a Dalamud SeString.
-    /// This conversion re-parses the string.
-    /// </summary>
-    /// <param name="originalString">The original Lumina ReadOnlySeStringSpan.</param>
-    /// <returns>The re-parsed Dalamud SeString.</returns>
-    public static DSeString ToDalamudString(this ReadOnlySeStringSpan originalString) => DSeString.Parse(originalString.Data);
-
-    /// <summary>Compiles and appends a macro string.</summary>
-    /// <param name="ssb">Target SeString builder.</param>
-    /// <param name="macroString">Macro string in UTF-8 to compile and append to <paramref name="ssb"/>.</param>
-    /// <returns><c>this</c> for method chaining.</returns>
-    public static DSeStringBuilder AppendMacroString(this DSeStringBuilder ssb, ReadOnlySpan<byte> macroString)
-    {
-        using var rssb = new RentedSeStringBuilder();
-        rssb.Builder.AppendMacroString(macroString, new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError });
-        return ssb.Append(DSeString.Parse(rssb.Builder.ToReadOnlySeString().Data.Span));
-    }
-
-    /// <summary>Compiles and appends a macro string.</summary>
-    /// <param name="ssb">Target SeString builder.</param>
-    /// <param name="macroString">Macro string in UTF-16 to compile and append to <paramref name="ssb"/>.</param>
-    /// <returns><c>this</c> for method chaining.</returns>
-    public static DSeStringBuilder AppendMacroString(this DSeStringBuilder ssb, ReadOnlySpan<char> macroString)
-    {
-        using var rssb = new RentedSeStringBuilder();
-        rssb.Builder.AppendMacroString(macroString, new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError });
-        return ssb.Append(DSeString.Parse(rssb.Builder.ToReadOnlySeString().Data.Span));
-    }
-
-    /// <summary>
-    /// Validate if character name is valid.
-    /// Both forename and surname must be between 2 and 15 characters and not total more than 20 characters combined.
-    /// Only letters, hyphens, and apostrophes can be used.
-    /// The first character of either name must be a letter.
-    /// Hyphens cannot be used in succession or placed immediately before or after apostrophes.
-    /// </summary>
-    /// <param name="value">character name to validate.</param>
-    /// <returns>indicator if character is name is valid.</returns>
-    public static bool IsValidCharacterName(this DSeString value) => value.ToString().IsValidCharacterName();
-
     /// <summary>
     /// Determines whether the <see cref="ReadOnlySeString"/> contains only text payloads.
     /// </summary>
@@ -127,96 +62,5 @@ public static class SeStringExtensions
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Determines whether the <see cref="LSeStringBuilder"/> contains the specified text.
-    /// </summary>
-    /// <param name="builder">The builder to search.</param>
-    /// <param name="needle">The text to find.</param>
-    /// <returns><c>true</c> if the text is found; otherwise, <c>false</c>.</returns>
-    public static bool ContainsText(this LSeStringBuilder builder, ReadOnlySpan<byte> needle)
-    {
-        return builder.ToReadOnlySeString().ContainsText(needle);
-    }
-
-    /// <summary>
-    /// Replaces occurrences of a specified text in a <see cref="ReadOnlySeString"/> with another text.
-    /// </summary>
-    /// <param name="ross">The original string.</param>
-    /// <param name="toFind">The text to find.</param>
-    /// <param name="replacement">The replacement text.</param>
-    /// <returns>A new <see cref="ReadOnlySeString"/> with the replacements made.</returns>
-    public static ReadOnlySeString ReplaceText(
-        this ReadOnlySeString ross,
-        ReadOnlySpan<byte> toFind,
-        ReadOnlySpan<byte> replacement)
-    {
-        if (ross.IsEmpty)
-            return ross;
-
-        using var rssb = new RentedSeStringBuilder();
-
-        foreach (var payload in ross)
-        {
-            if (payload.Type == ReadOnlySePayloadType.Invalid)
-                continue;
-
-            if (payload.Type != ReadOnlySePayloadType.Text)
-            {
-                rssb.Builder.Append(payload);
-                continue;
-            }
-
-            var index = payload.Body.Span.IndexOf(toFind);
-            if (index == -1)
-            {
-                rssb.Builder.Append(payload);
-                continue;
-            }
-
-            var lastIndex = 0;
-            while (index != -1)
-            {
-                rssb.Builder.Append(payload.Body.Span[lastIndex..index]);
-
-                if (!replacement.IsEmpty)
-                {
-                    rssb.Builder.Append(replacement);
-                }
-
-                lastIndex = index + toFind.Length;
-                index = payload.Body.Span[lastIndex..].IndexOf(toFind);
-
-                if (index != -1)
-                    index += lastIndex;
-            }
-
-            rssb.Builder.Append(payload.Body.Span[lastIndex..]);
-        }
-
-        return rssb.Builder.ToReadOnlySeString();
-    }
-
-    /// <summary>
-    /// Replaces occurrences of a specified text in an <see cref="LSeStringBuilder"/> with another text.
-    /// </summary>
-    /// <param name="builder">The builder to modify.</param>
-    /// <param name="toFind">The text to find.</param>
-    /// <param name="replacement">The replacement text.</param>
-    public static void ReplaceText(
-        this LSeStringBuilder builder,
-        ReadOnlySpan<byte> toFind,
-        ReadOnlySpan<byte> replacement)
-    {
-        if (toFind.IsEmpty)
-            return;
-
-        var str = builder.ToReadOnlySeString();
-        if (str.IsEmpty)
-            return;
-
-        var replaced = ReplaceText(new ReadOnlySeString(builder.GetViewAsMemory()), toFind, replacement);
-        builder.Clear().Append(replaced);
     }
 }

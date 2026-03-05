@@ -1,15 +1,8 @@
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Utility;
-
-using FFXIVClientStructs.FFXIV.Client.System.String;
 
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Chat;
-
-#pragma warning disable SA1500 // Braces for multi-line statements should not share line
-#pragma warning disable SA1513 // Closing brace should be followed by blank line
 
 /// <summary>
 /// Interface representing a chat message.
@@ -44,12 +37,12 @@ public interface IChatMessage
     /// <summary>
     /// Gets the sender name.
     /// </summary>
-    SeString Sender { get; }
+    ReadOnlySeString Sender { get; }
 
     /// <summary>
     /// Gets the message sent.
     /// </summary>
-    SeString Message { get; }
+    ReadOnlySeString Message { get; }
 
     /// <summary>
     /// Gets the timestamp of when the message was sent.
@@ -70,12 +63,12 @@ public interface IMutableChatMessage : IChatMessage
     /// <summary>
     /// Gets or sets the sender name.
     /// </summary>
-    new SeString Sender { get; set; }
+    new ReadOnlySeString Sender { get; set; }
 
     /// <summary>
     /// Gets or sets the message sent.
     /// </summary>
-    new SeString Message { get; set; }
+    new ReadOnlySeString Message { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether <see cref="Sender"/> was modified by a plugin.
@@ -104,13 +97,6 @@ public interface IHandleableChatMessage : IMutableChatMessage
 /// </summary>
 internal unsafe class ChatMessage : IHandleableChatMessage
 {
-    private Utf8String* senderPointer;
-    private Utf8String* messagePointer;
-    private ReadOnlySeString? cachedOriginalSender;
-    private ReadOnlySeString? cachedOriginalMessage;
-    private SeString? cachedSender;
-    private SeString? cachedMessage;
-
     /// <inheritdoc />
     public XivChatType LogKind { get; private set; }
 
@@ -121,60 +107,22 @@ internal unsafe class ChatMessage : IHandleableChatMessage
     public XivChatRelationKind TargetKind { get; private set; }
 
     /// <inheritdoc />
-    public ReadOnlySeString OriginalSender => this.cachedOriginalSender ??= this.senderPointer->AsReadOnlySeString();
+    public ReadOnlySeString OriginalSender { get; private set; }
 
     /// <inheritdoc />
-    public ReadOnlySeString OriginalMessage => this.cachedOriginalMessage ??= this.messagePointer->AsReadOnlySeString();
+    public ReadOnlySeString OriginalMessage { get; private set; }
 
     /// <inheritdoc />
-    public SeString Sender
-    {
-        get => this.cachedSender ??= this.senderPointer != null ? this.senderPointer->AsDalamudSeString() : new SeString();
-        set => this.cachedSender = value;
-    }
+    public ReadOnlySeString Sender { get; set; }
 
     /// <inheritdoc />
-    public SeString Message
-    {
-        get => this.cachedMessage ??= this.messagePointer != null ? this.messagePointer->AsDalamudSeString() : new SeString();
-        set => this.cachedMessage = value;
-    }
+    public ReadOnlySeString Message { get; set; }
 
     /// <inheritdoc />
-    public bool SenderModified
-    {
-        get
-        {
-            if (this.cachedSender == null)
-                return false;
-
-            if (!field)
-            {
-                var encoded = this.Sender.Encode();
-                field = new ReadOnlySeStringSpan(encoded) != this.senderPointer->AsReadOnlySeStringSpan();
-            }
-            return field;
-        }
-        private set;
-    }
+    public bool SenderModified => this.Sender != this.OriginalSender;
 
     /// <inheritdoc />
-    public bool MessageModified
-    {
-        get
-        {
-            if (this.cachedMessage == null)
-                return false;
-
-            if (!field)
-            {
-                var encoded = this.Message.Encode();
-                return new ReadOnlySeStringSpan(encoded) != this.messagePointer->AsReadOnlySeStringSpan();
-            }
-            return field;
-        }
-        private set;
-    }
+    public bool MessageModified => this.Message != this.OriginalMessage;
 
     /// <inheritdoc />
     public int Timestamp { get; private set; }
@@ -194,18 +142,15 @@ internal unsafe class ChatMessage : IHandleableChatMessage
     /// <param name="sender">The sender name.</param>
     /// <param name="message">The message sent.</param>
     /// <param name="timestamp">The timestamp of when the message was sent.</param>
-    internal void SetData(XivChatType logKind, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, Utf8String* sender, Utf8String* message, int timestamp)
+    internal void SetData(XivChatType logKind, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, ReadOnlySeString sender, ReadOnlySeString message, int timestamp)
     {
-        this.senderPointer = sender;
-        this.messagePointer = message;
-        this.cachedOriginalSender = null;
-        this.cachedOriginalMessage = null;
-        this.cachedSender = null;
-        this.cachedMessage = null;
-
         this.LogKind = logKind;
         this.SourceKind = sourceKind;
         this.TargetKind = targetKind;
+        this.OriginalSender = sender;
+        this.OriginalMessage = message;
+        this.Sender = sender;
+        this.Message = message;
         this.Timestamp = timestamp;
         this.IsHandled = false;
     }
@@ -215,16 +160,13 @@ internal unsafe class ChatMessage : IHandleableChatMessage
     /// </summary>
     internal void Clear()
     {
-        this.senderPointer = null;
-        this.messagePointer = null;
-        this.cachedOriginalSender = null;
-        this.cachedOriginalMessage = null;
-        this.cachedSender = null;
-        this.cachedMessage = null;
-
         this.LogKind = 0;
         this.SourceKind = 0;
         this.TargetKind = 0;
+        this.OriginalSender = default;
+        this.OriginalMessage = default;
+        this.Sender = default;
+        this.Message = default;
         this.Timestamp = 0;
         this.IsHandled = false;
     }

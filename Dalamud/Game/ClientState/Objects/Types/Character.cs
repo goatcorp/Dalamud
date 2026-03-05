@@ -1,7 +1,6 @@
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Customize;
 using Dalamud.Game.ClientState.Objects.Enums;
-using Dalamud.Game.Text.SeStringHandling;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -82,7 +81,7 @@ public interface ICharacter : IGameObject
     /// <summary>
     /// Gets the Free Company tag of this character.
     /// </summary>
-    SeString CompanyTag { get; }
+    string CompanyTag { get; }
 
     /// <summary>
     /// Gets the name ID of the character.
@@ -167,7 +166,7 @@ internal unsafe class Character : GameObject, ICharacter
     public ICustomizeData CustomizeData => new CustomizeData((nint)(&this.Struct->DrawData.CustomizeData));
 
     /// <inheritdoc/>
-    public SeString CompanyTag => SeString.Parse(this.Struct->FreeCompanyTag);
+    public string CompanyTag => this.Struct->FreeCompanyTagString;
 
     /// <summary>
     /// Gets the target object ID of the character.
