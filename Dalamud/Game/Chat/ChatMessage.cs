@@ -27,11 +27,6 @@ public interface IChatMessage : IEquatable<IChatMessage>
     XivChatRelationKind TargetKind { get; }
 
     /// <summary>
-    /// Gets the timestamp of when the message was sent.
-    /// </summary>
-    int Timestamp { get; }
-
-    /// <summary>
     /// Gets the sender name.
     /// </summary>
     SeString Sender { get; }
@@ -42,14 +37,9 @@ public interface IChatMessage : IEquatable<IChatMessage>
     SeString Message { get; }
 
     /// <summary>
-    /// Gets a value indicating whether <see cref="Sender"/> was modified by a plugin.
+    /// Gets the timestamp of when the message was sent.
     /// </summary>
-    bool SenderModified { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether <see cref="Message"/> was modified by a plugin.
-    /// </summary>
-    bool MessageModified { get; }
+    int Timestamp { get; }
 
     /// <summary>
     /// Gets a value indicating whether the message was handled by a plugin.
@@ -60,7 +50,7 @@ public interface IChatMessage : IEquatable<IChatMessage>
 /// <summary>
 /// Interface representing a chat message that can be modified by a plugin.
 /// </summary>
-public interface IModifyableChatMessage : IChatMessage
+public interface IMutableChatMessage : IChatMessage
 {
     /// <summary>
     /// Gets or sets the sender name.
@@ -71,12 +61,22 @@ public interface IModifyableChatMessage : IChatMessage
     /// Gets or sets the message sent.
     /// </summary>
     new SeString Message { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether <see cref="Sender"/> was modified by a plugin.
+    /// </summary>
+    bool SenderModified { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether <see cref="Message"/> was modified by a plugin.
+    /// </summary>
+    bool MessageModified { get; }
 }
 
 /// <summary>
 /// Interface representing a chat message that can be handled by a plugin.
 /// </summary>
-public interface IHandleableChatMessage : IModifyableChatMessage
+public interface IHandleableChatMessage : IMutableChatMessage
 {
     /// <summary>
     /// Marks this message as handled (<see cref="IChatMessage.IsHandled"/> = <see langword="true"/>) and prevents it from being processed by the game any further.
