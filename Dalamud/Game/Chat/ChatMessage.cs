@@ -9,7 +9,7 @@ namespace Dalamud.Game.Chat;
 /// <summary>
 /// Interface representing a chat message.
 /// </summary>
-public interface IChatMessage : IEquatable<IChatMessage>
+public interface IChatMessage
 {
     /// <summary>
     /// Gets the type of chat.
@@ -87,16 +87,16 @@ public interface IHandleableChatMessage : IMutableChatMessage
 /// <summary>
 /// This struct represents an intercepted chat message.
 /// </summary>
-internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, SeString sender, SeString message, int timestamp) : IHandleableChatMessage
+internal class ChatMessage : IHandleableChatMessage
 {
     /// <inheritdoc />
-    public XivChatType LogKind { get; } = logKind;
+    public XivChatType LogKind { get; private set; }
 
     /// <inheritdoc />
-    public XivChatRelationKind SourceKind { get; } = sourceKind;
+    public XivChatRelationKind SourceKind { get; private set; }
 
     /// <inheritdoc />
-    public XivChatRelationKind TargetKind { get; } = targetKind;
+    public XivChatRelationKind TargetKind { get; private set; }
 
     /// <inheritdoc />
     public SeString Sender
@@ -111,7 +111,7 @@ internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, 
 
             field = newValue;
         }
-    } = sender;
+    }
 
     /// <inheritdoc />
     public SeString Message
@@ -126,7 +126,7 @@ internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, 
 
             field = newValue;
         }
-    } = message;
+    }
 
     /// <inheritdoc />
     public bool SenderModified { get; private set; }
@@ -135,7 +135,7 @@ internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, 
     public bool MessageModified { get; private set; }
 
     /// <inheritdoc />
-    public int Timestamp { get; } = timestamp;
+    public int Timestamp { get; private set; }
 
     /// <inheritdoc />
     public bool IsHandled { get; private set; }
@@ -143,16 +143,41 @@ internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, 
     /// <inheritdoc />
     public void PreventOriginal() => this.IsHandled = true;
 
-    /// <inheritdoc />
-    public bool Equals(IChatMessage? other)
+    /// <summary>
+    /// Sets data for a new chat message, allowing the object to be reused.
+    /// </summary>
+    /// <param name="logKind">The type of chat.</param>
+    /// <param name="sourceKind">The relationship of the entity sending the message or performing the action.</param>
+    /// <param name="targetKind">The relationship of the entity receiving the message or being targeted by the action.</param>
+    /// <param name="lSender">The sender name.</param>
+    /// <param name="lMessage">The message sent.</param>
+    /// <param name="timestamp">The timestamp of when the message was sent.</param>
+    internal void SetData(XivChatType logKind, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, SeString lSender, SeString lMessage, int timestamp)
     {
-        return other != null
-            && (ReferenceEquals(this, other)
-            || (this.LogKind == other.LogKind
-                && this.SourceKind == other.SourceKind
-                && this.TargetKind == other.TargetKind
-                && this.Sender == other.Sender
-                && this.Message == other.Message
-                && this.Timestamp == other.Timestamp));
+        this.LogKind = logKind;
+        this.SourceKind = sourceKind;
+        this.TargetKind = targetKind;
+        this.Sender = lSender;
+        this.Message = lMessage;
+        this.SenderModified = false;
+        this.MessageModified = false;
+        this.Timestamp = timestamp;
+        this.IsHandled = false;
+    }
+
+    /// <summary>
+    /// Clears all data of this object.
+    /// </summary>
+    internal void Clear()
+    {
+        this.LogKind = 0;
+        this.SourceKind = 0;
+        this.TargetKind = 0;
+        this.Sender = null;
+        this.Message = null;
+        this.SenderModified = false;
+        this.MessageModified = false;
+        this.Timestamp = 0;
+        this.IsHandled = false;
     }
 }

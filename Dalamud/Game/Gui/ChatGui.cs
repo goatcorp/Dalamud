@@ -54,6 +54,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
     private ImmutableDictionary<(string PluginName, uint CommandId), Action<uint, SeString>>? dalamudLinkHandlersCopy;
     private uint dalamudChatHandlerId = 1000;
+    private ChatMessage currentChatMessage = new();
 
     [ServiceManager.ServiceConstructor]
     private ChatGui()
@@ -383,14 +384,14 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             var lSender = sender->AsDalamudSeString();
             var lMessage = message->AsDalamudSeString();
 
-            var chatMessage = new ChatMessage(logKind, sourceKind, targetKind, lSender, lMessage, timestamp);
+            this.currentChatMessage.SetData(logKind, sourceKind, targetKind, lSender, lMessage, timestamp);
 
             // First pass
             foreach (var action in Delegate.EnumerateInvocationList(this.ChatMessage))
             {
                 try
                 {
-                    action(chatMessage);
+                    action(this.currentChatMessage);
                 }
                 catch (Exception e)
                 {
@@ -399,13 +400,13 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             }
 
             // Second pass
-            if (!chatMessage.IsHandled)
+            if (!this.currentChatMessage.IsHandled)
             {
                 foreach (var action in Delegate.EnumerateInvocationList(this.CheckMessageHandled))
                 {
                     try
                     {
-                        action(chatMessage);
+                        action(this.currentChatMessage);
                     }
                     catch (Exception e)
                     {
@@ -415,28 +416,28 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             }
 
             // Check for modifications
-            if (chatMessage.SenderModified)
+            if (this.currentChatMessage.SenderModified)
             {
-                var encoded = chatMessage.Sender.EncodeWithNullTerminator();
+                var encoded = this.currentChatMessage.Sender.EncodeWithNullTerminator();
                 Log.Verbose($"HandlePrintMessageDetour Sender modified: {sender->AsReadOnlySeStringSpan().ToMacroString()} -> {new ReadOnlySeStringSpan(encoded).ToMacroString()}");
                 sender->SetString(encoded);
             }
 
-            if (chatMessage.MessageModified)
+            if (this.currentChatMessage.MessageModified)
             {
-                var encoded = chatMessage.Message.EncodeWithNullTerminator();
+                var encoded = this.currentChatMessage.Message.EncodeWithNullTerminator();
                 Log.Verbose($"HandlePrintMessageDetour Message modified: {message->AsReadOnlySeStringSpan().ToMacroString()} -> {new ReadOnlySeStringSpan(encoded).ToMacroString()}");
                 message->SetString(encoded);
             }
 
             // If not handled by a plugin, let the game handle it (prints it to chat)
-            if (!chatMessage.IsHandled)
+            if (!this.currentChatMessage.IsHandled)
             {
                 messageId = this.printMessageHook.Original(manager, logInfo, sender, message, timestamp, silent);
             }
 
             // Third pass
-            var callback = chatMessage.IsHandled
+            var callback = this.currentChatMessage.IsHandled
                 ? this.ChatMessageHandled
                 : this.ChatMessageUnhandled;
 
@@ -444,7 +445,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             {
                 try
                 {
-                    action(chatMessage);
+                    action(this.currentChatMessage);
                 }
                 catch (Exception e)
                 {
