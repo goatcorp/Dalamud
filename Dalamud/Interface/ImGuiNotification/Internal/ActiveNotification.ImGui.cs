@@ -199,7 +199,6 @@ internal sealed partial class ActiveNotification
                         this.DismissNow(NotificationDismissReason.Manual);
                     else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                         this.Minimized = !this.Minimized;
-                    
                 }
             }
             else
