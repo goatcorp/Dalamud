@@ -43,7 +43,6 @@ internal sealed class SettingsTabExperimental : SettingsTab
             () =>
             {
                 Service<DalamudConfiguration>.Get().HiddenPluginInternalName.Clear();
-                Service<PluginManager>.Get().RefilterPluginMasters();
             }),
 
         new GapSettingsEntry(5, true),
