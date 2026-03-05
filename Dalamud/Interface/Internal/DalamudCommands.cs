@@ -301,16 +301,22 @@ internal class DalamudCommands : IServiceType
     private void OnVersionInfoCommand(string command, string arguments)
     {
         var chatGui = Service<ChatGui>.Get();
+        using var rssb = new RentedSeStringBuilder();
 
-        chatGui.Print(new SeStringBuilder()
-                      .AddItalics("Dalamud:")
-                      .AddText($" {Versioning.GetScmVersion()}")
-                      .Build());
+        chatGui.Print(rssb.Builder
+            .AppendSetItalic(true)
+            .Append("Dalamud:")
+            .AppendSetItalic(false)
+            .Append($" {Versioning.GetScmVersion()}")
+            .ToReadOnlySeString());
 
-        chatGui.Print(new SeStringBuilder()
-                      .AddItalics("FFXIVCS:")
-                      .AddText($" {Versioning.GetGitHashClientStructs()}")
-                      .Build());
+        chatGui.Print(rssb.Builder
+            .Clear()
+            .AppendSetItalic(true)
+            .Append("FFXIVCS:")
+            .AppendSetItalic(false)
+            .Append($" {Versioning.GetGitHashClientStructs()}")
+            .ToReadOnlySeString());
     }
 
     private void OnOpenInstallerCommand(string command, string arguments)

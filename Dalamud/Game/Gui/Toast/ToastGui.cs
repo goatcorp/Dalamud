@@ -1,17 +1,16 @@
 using System.Collections.Generic;
-using System.Text;
 
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 
 using InteropGenerator.Runtime;
+
+using Lumina.Text.ReadOnly;
 
 using Serilog;
 
@@ -108,25 +107,14 @@ internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
 /// </summary>
 internal sealed partial class ToastGui
 {
-    /// <inheritdoc/>
-    public void ShowNormal(string message, ToastOptions? options = null)
-    {
-        options ??= new ToastOptions();
-        this.normalQueue.Enqueue((Encoding.UTF8.GetBytes(message), options));
-    }
-
-    /// <inheritdoc/>
-    public void ShowNormal(SeString message, ToastOptions? options = null)
-    {
-        options ??= new ToastOptions();
-        this.normalQueue.Enqueue((message.Encode(), options));
-    }
-
-    private unsafe void ShowNormal(byte[] bytes, ToastOptions? options = null)
+    /// <inheritdoc />
+    public unsafe void ShowNormal(ReadOnlySeString message, ToastOptions? options = null)
     {
         options ??= new ToastOptions();
 
-        fixed (byte* ptr = bytes.NullTerminate())
+        using var rssb = new RentedSeStringBuilder();
+
+        fixed (byte* ptr = rssb.Builder.Append(message).GetViewAsSpan())
         {
             this.HandleNormalToastDetour(
                 UIModule.Instance(),
@@ -145,7 +133,7 @@ internal sealed partial class ToastGui
 
         // call events
         var isHandled = false;
-        var str = text.AsDalamudSeString();
+        var str = text.AsReadOnlySeString();
         var options = new ToastOptions
         {
             Position = isTop ? ToastPosition.Top : ToastPosition.Bottom,
@@ -168,7 +156,9 @@ internal sealed partial class ToastGui
         if (isHandled)
             return;
 
-        fixed (byte* ptr = str.EncodeWithNullTerminator())
+        using var rssb = new RentedSeStringBuilder();
+
+        fixed (byte* ptr = rssb.Builder.Append(str).GetViewAsSpan())
         {
             this.showNormalToastHook.Original(
                 thisPtr,
@@ -186,27 +176,16 @@ internal sealed partial class ToastGui
 /// </summary>
 internal sealed partial class ToastGui
 {
-    /// <inheritdoc/>
-    public void ShowQuest(string message, QuestToastOptions? options = null)
-    {
-        options ??= new QuestToastOptions();
-        this.questQueue.Enqueue((Encoding.UTF8.GetBytes(message), options));
-    }
-
-    /// <inheritdoc/>
-    public void ShowQuest(SeString message, QuestToastOptions? options = null)
-    {
-        options ??= new QuestToastOptions();
-        this.questQueue.Enqueue((message.Encode(), options));
-    }
-
-    private unsafe void ShowQuest(byte[] bytes, QuestToastOptions? options = null)
+    /// <inheritdoc />
+    public unsafe void ShowQuest(ReadOnlySeString message, QuestToastOptions? options = null)
     {
         options ??= new QuestToastOptions();
 
         var (ioc1, ioc2) = this.DetermineParameterOrder(options);
 
-        fixed (byte* ptr = bytes.NullTerminate())
+        using var rssb = new RentedSeStringBuilder();
+
+        fixed (byte* ptr = rssb.Builder.Append(message).GetViewAsSpan())
         {
             this.HandleQuestToastDetour(
                 UIModule.Instance(),
@@ -226,7 +205,7 @@ internal sealed partial class ToastGui
 
         // call events
         var isHandled = false;
-        var str = text.AsDalamudSeString();
+        var str = text.AsReadOnlySeString();
         var options = new QuestToastOptions
         {
             Position = (QuestToastPosition)position,
@@ -253,7 +232,9 @@ internal sealed partial class ToastGui
 
         var (ioc1, ioc2) = this.DetermineParameterOrder(options);
 
-        fixed (byte* ptr = str.EncodeWithNullTerminator())
+        using var rssb = new RentedSeStringBuilder();
+
+        fixed (byte* ptr = rssb.Builder.Append(str).GetViewAsSpan())
         {
             this.showQuestToastHook.Original(
                 UIModule.Instance(),
@@ -279,21 +260,12 @@ internal sealed partial class ToastGui
 /// </summary>
 internal sealed partial class ToastGui
 {
-    /// <inheritdoc/>
-    public void ShowError(string message)
+    /// <inheritdoc />
+    public unsafe void ShowError(ReadOnlySeString message)
     {
-        this.errorQueue.Enqueue(Encoding.UTF8.GetBytes(message));
-    }
+        using var rssb = new RentedSeStringBuilder();
 
-    /// <inheritdoc/>
-    public void ShowError(SeString message)
-    {
-        this.errorQueue.Enqueue(message.Encode());
-    }
-
-    private unsafe void ShowError(byte[] bytes)
-    {
-        fixed (byte* ptr = bytes.NullTerminate())
+        fixed (byte* ptr = rssb.Builder.Append(message).GetViewAsSpan())
         {
             this.HandleErrorToastDetour(UIModule.Instance(), ptr, false);
         }
@@ -306,7 +278,7 @@ internal sealed partial class ToastGui
 
         // call events
         var isHandled = false;
-        var str = text.AsDalamudSeString();
+        var str = text.AsReadOnlySeString();
 
         foreach (var d in Delegate.EnumerateInvocationList(this.ErrorToast))
         {
@@ -324,7 +296,9 @@ internal sealed partial class ToastGui
         if (isHandled)
             return;
 
-        fixed (byte* ptr = str.EncodeWithNullTerminator())
+        using var rssb = new RentedSeStringBuilder();
+
+        fixed (byte* ptr = rssb.Builder.Append(str).GetViewAsSpan())
         {
             this.showErrorToastHook.Original(thisPtr, ptr, forceVisible);
         }
@@ -376,29 +350,20 @@ internal class ToastGuiPluginScoped : IInternalDisposableService, IToastGui
     }
 
     /// <inheritdoc/>
-    public void ShowNormal(string message, ToastOptions? options = null) => this.toastGuiService.ShowNormal(message, options);
+    public void ShowNormal(ReadOnlySeString message, ToastOptions? options = null) => this.toastGuiService.ShowNormal(message, options);
 
     /// <inheritdoc/>
-    public void ShowNormal(SeString message, ToastOptions? options = null) => this.toastGuiService.ShowNormal(message, options);
+    public void ShowQuest(ReadOnlySeString message, QuestToastOptions? options = null) => this.toastGuiService.ShowQuest(message, options);
 
     /// <inheritdoc/>
-    public void ShowQuest(string message, QuestToastOptions? options = null) => this.toastGuiService.ShowQuest(message, options);
+    public void ShowError(ReadOnlySeString message) => this.toastGuiService.ShowError(message);
 
-    /// <inheritdoc/>
-    public void ShowQuest(SeString message, QuestToastOptions? options = null) => this.toastGuiService.ShowQuest(message, options);
-
-    /// <inheritdoc/>
-    public void ShowError(string message) => this.toastGuiService.ShowError(message);
-
-    /// <inheritdoc/>
-    public void ShowError(SeString message) => this.toastGuiService.ShowError(message);
-
-    private void ToastForward(ref SeString message, ref ToastOptions options, ref bool isHandled)
+    private void ToastForward(ref ReadOnlySeString message, ref ToastOptions options, ref bool isHandled)
         => this.Toast?.Invoke(ref message, ref options, ref isHandled);
 
-    private void QuestToastForward(ref SeString message, ref QuestToastOptions options, ref bool isHandled)
+    private void QuestToastForward(ref ReadOnlySeString message, ref QuestToastOptions options, ref bool isHandled)
         => this.QuestToast?.Invoke(ref message, ref options, ref isHandled);
 
-    private void ErrorToastForward(ref SeString message, ref bool isHandled)
+    private void ErrorToastForward(ref ReadOnlySeString message, ref bool isHandled)
         => this.ErrorToast?.Invoke(ref message, ref isHandled);
 }

@@ -1,10 +1,11 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Text.Evaluator;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin.SelfTest;
+using Dalamud.Utility;
+
+using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
@@ -65,7 +66,7 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                 }
 
                 var evaluatedPlayerName = seStringEvaluator.Evaluate(ReadOnlySeString.FromMacroString("<pcname(lnum1)>"), [localPlayer.EntityId]).ExtractText();
-                var localPlayerName = localPlayer.Name.TextValue;
+                var localPlayerName = localPlayer.Name.ToString();
 
                 if (evaluatedPlayerName != localPlayerName)
                 {
@@ -83,7 +84,7 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                 break;
 
             case 2:
-                ImGui.Text("Checking AutoTranslatePayload.Text results..."u8);
+                ImGui.Text("Checking auto-translate results..."u8);
 
                 var config = Service<DalamudConfiguration>.Get();
                 var originalLanguageOverride = config.LanguageOverride;
@@ -104,17 +105,26 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
 
                 try
                 {
+                    using var rssb = new RentedSeStringBuilder();
+
                     foreach (var (language, group, key, expectedText) in tests)
                     {
                         config.LanguageOverride = language;
 
-                        var payload = new AutoTranslatePayload(group, key);
+                        var payload = rssb.Builder
+                            .Clear()
+                            .BeginMacro(MacroCode.Fixed)
+                            .AppendUIntExpression(group)
+                            .AppendUIntExpression(key)
+                            .EndMacro()
+                            .ToReadOnlySeString();
 
-                        if (payload.Text != expectedText)
+                        var evaluated = seStringEvaluator.Evaluate(payload);
+                        if (evaluated.ToString() != expectedText)
                         {
                             ImGui.Text($"Test failed for Group {group}, Key {key}");
                             ImGui.Text($"Expected: {expectedText}");
-                            ImGui.Text($"Got: {payload.Text}");
+                            ImGui.Text($"Got: {evaluated.ToString()}");
 
                             if (ImGui.Button("Continue"u8))
                                 return SelfTestStepResult.Fail;

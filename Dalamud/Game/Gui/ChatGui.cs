@@ -7,12 +7,10 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
@@ -27,9 +25,6 @@ using Lumina.Text;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
-using SeString = Dalamud.Game.Text.SeStringHandling.SeString;
-using SeStringBuilder = Dalamud.Game.Text.SeStringHandling.SeStringBuilder;
-
 namespace Dalamud.Game.Gui;
 
 /// <summary>
@@ -41,8 +36,9 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     private static readonly ModuleLog Log = ModuleLog.Create<ChatGui>();
 
     private readonly Queue<XivChatEntry> chatQueue = new();
-    private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = [];
+    private readonly Dictionary<(string PluginName, uint CommandId), Action<DalamudLinkPayload>> dalamudLinkHandlers = [];
     private readonly List<nint> seenLogMessageObjects = [];
+    private readonly ChatMessage currentChatMessage = new();
 
     private readonly Hook<RaptureLogModule.Delegates.PrintMessage> printMessageHook;
     private readonly Hook<InventoryItem.Delegates.Copy> inventoryItemCopyHook;
@@ -55,9 +51,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
-    private ImmutableDictionary<(string PluginName, uint CommandId), Action<uint, SeString>>? dalamudLinkHandlersCopy;
+    private ImmutableDictionary<(string PluginName, uint CommandId), Action<DalamudLinkPayload>>? dalamudLinkHandlersCopy;
     private uint dalamudChatHandlerId = 1000;
-    private ChatMessage currentChatMessage = new();
 
     [ServiceManager.ServiceConstructor]
     private ChatGui()
@@ -97,7 +92,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     public byte LastLinkedItemFlags { get; private set; }
 
     /// <inheritdoc/>
-    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers
+    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<DalamudLinkPayload>> RegisteredLinkHandlers
     {
         get
         {
@@ -126,8 +121,6 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         this.handleLogModuleUpdate.Dispose();
     }
 
-    #region DalamudSeString
-
     /// <inheritdoc/>
     public void Print(XivChatEntry chat)
     {
@@ -135,46 +128,28 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     }
 
     /// <inheritdoc/>
-    public void Print(string message, string? messageTag = null, ushort? tagColor = null)
+    public void Print(ReadOnlySeString message, string? messageTag = null, ushort? tagColor = null)
+    {
+        this.PrintTagged(message.AsSpan(), this.configuration.GeneralChatType, messageTag, tagColor);
+    }
+
+    /// <inheritdoc/>
+    public void Print(ReadOnlySeStringSpan message, string? messageTag = null, ushort? tagColor = null)
     {
         this.PrintTagged(message, this.configuration.GeneralChatType, messageTag, tagColor);
     }
 
     /// <inheritdoc/>
-    public void Print(SeString message, string? messageTag = null, ushort? tagColor = null)
+    public void PrintError(ReadOnlySeString message, string? messageTag = null, ushort? tagColor = null)
     {
-        this.PrintTagged(message, this.configuration.GeneralChatType, messageTag, tagColor);
+        this.PrintTagged(message.AsSpan(), XivChatType.Urgent, messageTag, tagColor);
     }
 
     /// <inheritdoc/>
-    public void PrintError(string message, string? messageTag = null, ushort? tagColor = null)
+    public void PrintError(ReadOnlySeStringSpan message, string? messageTag = null, ushort? tagColor = null)
     {
         this.PrintTagged(message, XivChatType.Urgent, messageTag, tagColor);
     }
-
-    /// <inheritdoc/>
-    public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null)
-    {
-        this.PrintTagged(message, XivChatType.Urgent, messageTag, tagColor);
-    }
-
-    #endregion
-
-    #region LuminaSeString
-
-    /// <inheritdoc/>
-    public void Print(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)
-    {
-        this.PrintTagged(message, this.configuration.GeneralChatType, messageTag, tagColor);
-    }
-
-    /// <inheritdoc/>
-    public void PrintError(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)
-    {
-        this.PrintTagged(message, XivChatType.Urgent, messageTag, tagColor);
-    }
-
-    #endregion
 
     #region Chat Links
 
@@ -184,14 +159,14 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// <remarks>Internal use only.</remarks>
     /// <param name="commandAction">The action to be executed.</param>
     /// <returns>Returns an SeString payload for the link.</returns>
-    public DalamudLinkPayload AddChatLinkHandler(Action<uint, SeString> commandAction)
+    public DalamudLinkPayload AddChatLinkHandler(Action<DalamudLinkPayload> commandAction)
     {
         return this.AddChatLinkHandler("Dalamud", this.dalamudChatHandlerId++, commandAction);
     }
 
     /// <inheritdoc/>
     /// <remarks>Internal use only.</remarks>
-    public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
+    public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<DalamudLinkPayload> commandAction)
     {
         return this.AddChatLinkHandler("Dalamud", commandId, commandAction);
     }
@@ -219,9 +194,10 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// <param name="commandId">The ID of the command to run.</param>
     /// <param name="commandAction">The command action itself.</param>
     /// <returns>A payload for handling.</returns>
-    internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction)
+    internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<DalamudLinkPayload> commandAction)
     {
-        var payload = new DalamudLinkPayload { Plugin = pluginName, CommandId = commandId };
+        var payload = new DalamudLinkPayload(commandId, pluginName);
+
         lock (this.dalamudLinkHandlers)
         {
             this.dalamudLinkHandlers.Add((pluginName, commandId), commandAction);
@@ -272,31 +248,28 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             return;
 
         using var rssb = new RentedSeStringBuilder();
-        Span<byte> namebuf = stackalloc byte[256];
         using var sender = new Utf8String();
         using var message = new Utf8String();
+
         while (this.chatQueue.TryDequeue(out var chat))
         {
+            // set sender
+            sender.SetString(rssb.Builder
+                .Clear()
+                .Append(chat.Name)
+                .GetViewAsSpan());
+
+            // set message
             rssb.Builder.Clear();
-            foreach (var c in UtfEnumerator.From(chat.MessageBytes, UtfEnumeratorFlags.Utf8SeString))
+
+            foreach (var c in Lumina.Text.UtfEnumerator.From(chat.Message, Lumina.Text.UtfEnumeratorFlags.Utf8SeString))
             {
                 if (c.IsSeStringPayload)
-                    rssb.Builder.Append((ReadOnlySeStringSpan)chat.MessageBytes.AsSpan(c.ByteOffset, c.ByteLength));
+                    rssb.Builder.Append((ReadOnlySeStringSpan)chat.Message.Data.Span[c.ByteOffset..(c.ByteOffset + c.ByteLength)]);
                 else if (c.Value.IntValue == 0x202F)
                     rssb.Builder.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
                 else
                     rssb.Builder.Append(c);
-            }
-
-            if (chat.NameBytes.Length + 1 < namebuf.Length)
-            {
-                chat.NameBytes.AsSpan().CopyTo(namebuf);
-                namebuf[chat.NameBytes.Length] = 0;
-                sender.SetString(namebuf);
-            }
-            else
-            {
-                sender.SetString(chat.NameBytes.NullTerminate());
             }
 
             message.SetString(rssb.Builder.GetViewAsSpan());
@@ -313,30 +286,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         }
     }
 
-    private void PrintTagged(SeString message, XivChatType channel, string? tag, ushort? color)
-    {
-        var builder = new SeStringBuilder();
-
-        if (!tag.IsNullOrEmpty())
-        {
-            if (color is not null)
-            {
-                builder.AddUiForeground($"[{tag}] ", color.Value);
-            }
-            else
-            {
-                builder.AddText($"[{tag}] ");
-            }
-        }
-
-        this.Print(new XivChatEntry
-        {
-            Message = builder.Build().Append(message),
-            Type = channel,
-        });
-    }
-
-    private void PrintTagged(ReadOnlySpan<byte> message, XivChatType channel, string? tag, ushort? color)
+    private void PrintTagged(ReadOnlySeStringSpan message, XivChatType channel, string? tag, ushort? color)
     {
         using var rssb = new RentedSeStringBuilder();
 
@@ -357,7 +307,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
         this.Print(new XivChatEntry
         {
-            MessageBytes = rssb.Builder.Append((ReadOnlySeStringSpan)message).ToArray(),
+            Message = rssb.Builder.Append(message).ToReadOnlySeString(),
             Type = channel,
         });
     }
@@ -389,10 +339,10 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             var sourceKind = (XivChatRelationKind)((logInfo >> 11) & 0xF);
             var targetKind = (XivChatRelationKind)((logInfo >> 7) & 0xF);
 
-            var lSender = sender->AsDalamudSeString();
-            var lMessage = message->AsDalamudSeString();
+            var roSender = sender->AsReadOnlySeString();
+            var roMessage = message->AsReadOnlySeString();
 
-            this.currentChatMessage.SetData(logKind, sourceKind, targetKind, lSender, lMessage, timestamp);
+            this.currentChatMessage.SetData(logKind, sourceKind, targetKind, roSender, roMessage, timestamp);
 
             // First pass
             foreach (var action in Delegate.EnumerateInvocationList(this.ChatMessage))
@@ -426,16 +376,16 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             // Check for modifications
             if (this.currentChatMessage.SenderModified)
             {
-                var encoded = this.currentChatMessage.Sender.EncodeWithNullTerminator();
-                Log.Verbose($"HandlePrintMessageDetour Sender modified: {sender->AsReadOnlySeStringSpan().ToMacroString()} -> {new ReadOnlySeStringSpan(encoded).ToMacroString()}");
-                sender->SetString(encoded);
+                Log.Verbose($"HandlePrintMessageDetour Sender modified: {sender->AsReadOnlySeStringSpan().ToMacroString()} -> {this.currentChatMessage.Sender.ToMacroString()}");
+                using var rssb = new RentedSeStringBuilder();
+                sender->SetString(rssb.Builder.Append(this.currentChatMessage.Sender).GetViewAsSpan());
             }
 
             if (this.currentChatMessage.MessageModified)
             {
-                var encoded = this.currentChatMessage.Message.EncodeWithNullTerminator();
-                Log.Verbose($"HandlePrintMessageDetour Message modified: {message->AsReadOnlySeStringSpan().ToMacroString()} -> {new ReadOnlySeStringSpan(encoded).ToMacroString()}");
-                message->SetString(encoded);
+                Log.Verbose($"HandlePrintMessageDetour Message modified: {message->AsReadOnlySeStringSpan().ToMacroString()} -> {this.currentChatMessage.Message.ToMacroString()}");
+                using var rssb = new RentedSeStringBuilder();
+                message->SetString(rssb.Builder.Append(this.currentChatMessage.Message).GetViewAsSpan());
             }
 
             // If not handled by a plugin, let the game handle it (prints it to chat)
@@ -472,47 +422,39 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
     private void HandleLinkClickDetour(LogViewer* thisPtr, LinkData* linkData)
     {
-        if (linkData == null || linkData->Payload == null || (Payload.EmbeddedInfoType)(linkData->LinkType + 1) != Payload.EmbeddedInfoType.DalamudLink)
+        if (linkData == null || linkData->Payload == null || (LinkMacroPayloadType)(linkData->LinkType + 1) != DalamudLinkPayload.LinkType)
         {
             this.handleLinkClickHook.Original(thisPtr, linkData);
             return;
         }
 
-        Log.Verbose($"InteractableLinkClicked: {Payload.EmbeddedInfoType.DalamudLink}");
-
-        using var rssb = new RentedSeStringBuilder();
+        Log.Verbose("InteractableLinkClicked: DalamudLink");
 
         try
         {
             var seStringSpan = new ReadOnlySeStringSpan(linkData->Payload);
 
-            // read until link terminator
             foreach (var payload in seStringSpan)
             {
-                rssb.Builder.Append(payload);
-
-                if (payload.Type == ReadOnlySePayloadType.Macro &&
-                    payload.MacroCode == MacroCode.Link &&
-                    payload.TryGetExpression(out var expr1) &&
-                    expr1.TryGetInt(out var expr1Val) &&
-                    expr1Val == (int)LinkMacroPayloadType.Terminator)
+                // read DalamudLink
+                if (payload.TryParseDalamudLink(out var dalamudLinkPayload))
                 {
+                    if (this.RegisteredLinkHandlers.TryGetValue((dalamudLinkPayload.PluginName, dalamudLinkPayload.CommandId), out var value))
+                    {
+                        Log.Verbose($"Sending DalamudLink to {dalamudLinkPayload.PluginName}: {dalamudLinkPayload.CommandId}");
+                        value.Invoke(dalamudLinkPayload);
+                    }
+                    else
+                    {
+                        Log.Debug($"No DalamudLink registered for {dalamudLinkPayload.PluginName} with ID of {dalamudLinkPayload.CommandId}");
+                    }
+
                     break;
                 }
-            }
 
-            var seStr = SeString.Parse(rssb.Builder.GetViewAsSpan());
-            if (seStr.Payloads.Count == 0 || seStr.Payloads[0] is not DalamudLinkPayload link)
-                return;
-
-            if (this.RegisteredLinkHandlers.TryGetValue((link.Plugin, link.CommandId), out var value))
-            {
-                Log.Verbose($"Sending DalamudLink to {link.Plugin}: {link.CommandId}");
-                value.Invoke(link.CommandId, seStr);
-            }
-            else
-            {
-                Log.Debug($"No DalamudLink registered for {link.Plugin} with ID of {link.CommandId}");
+                // read until link terminator as fallback
+                if (payload.IsLink(LinkMacroPayloadType.Terminator))
+                    break;
             }
         }
         catch (Exception ex)
@@ -631,7 +573,7 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     public byte LastLinkedItemFlags => this.chatGuiService.LastLinkedItemFlags;
 
     /// <inheritdoc/>
-    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers => this.chatGuiService.RegisteredLinkHandlers;
+    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<DalamudLinkPayload>> RegisteredLinkHandlers => this.chatGuiService.RegisteredLinkHandlers;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -649,7 +591,7 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     }
 
     /// <inheritdoc/>
-    public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
+    public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<DalamudLinkPayload> commandAction)
         => this.chatGuiService.AddChatLinkHandler(this.plugin.InternalName, commandId, commandAction);
 
     /// <inheritdoc/>
@@ -665,27 +607,19 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
         => this.chatGuiService.Print(chat);
 
     /// <inheritdoc/>
-    public void Print(string message, string? messageTag = null, ushort? tagColor = null)
+    public void Print(ReadOnlySeString message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.Print(message, messageTag, tagColor);
 
     /// <inheritdoc/>
-    public void Print(SeString message, string? messageTag = null, ushort? tagColor = null)
+    public void Print(ReadOnlySeStringSpan message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.Print(message, messageTag, tagColor);
 
     /// <inheritdoc/>
-    public void PrintError(string message, string? messageTag = null, ushort? tagColor = null)
+    public void PrintError(ReadOnlySeString message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.PrintError(message, messageTag, tagColor);
 
     /// <inheritdoc/>
-    public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null)
-        => this.chatGuiService.PrintError(message, messageTag, tagColor);
-
-    /// <inheritdoc/>
-    public void Print(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)
-        => this.chatGuiService.Print(message, messageTag, tagColor);
-
-    /// <inheritdoc/>
-    public void PrintError(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)
+    public void PrintError(ReadOnlySeStringSpan message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.PrintError(message, messageTag, tagColor);
 
     private void OnMessageForward(IHandleableChatMessage message)

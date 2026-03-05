@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game.Gui;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Textures.Internal;
@@ -331,7 +330,8 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         {
             if (ImGuiHelpers.CompileSeStringWrapped(this.testString, this.style, new("this is an ImGui id")) is
                 {
-                    InteractedPayload: { } payload, InteractedPayloadOffset: var offset,
+                    InteractedPayload: { } payload,
+                    InteractedPayloadOffset: var offset,
                     InteractedPayloadEnvelope: var envelope,
                     Clicked: var clicked
                 })
@@ -340,8 +340,8 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                 if (this.alignToFramePadding)
                     ImGui.AlignTextToFramePadding();
                 ImGui.Text($"Hovered[{offset}]: {new ReadOnlySeStringSpan(envelope).ToString()}; {payload}");
-                if (clicked && payload is DalamudLinkPayload { Plugin: "test" } dlp)
-                    Util.OpenLink(dlp.ExtraString);
+                if (clicked && payload.TryParseDalamudLink(out var dalamudLinkPayload) && dalamudLinkPayload.PluginName == "test")
+                    Util.OpenLink(dalamudLinkPayload.ExtraString);
             }
             else
             {

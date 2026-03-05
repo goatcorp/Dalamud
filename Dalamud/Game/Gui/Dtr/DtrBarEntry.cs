@@ -1,12 +1,13 @@
 using System.Numerics;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.Dtr;
 
@@ -28,12 +29,12 @@ public interface IReadOnlyDtrBarEntry
     /// <summary>
     /// Gets the text of this entry.
     /// </summary>
-    public SeString? Text { get; }
+    public ReadOnlySeString Text { get; }
 
     /// <summary>
     /// Gets a tooltip to be shown when the user mouses over the dtr entry.
     /// </summary>
-    public SeString? Tooltip { get; }
+    public ReadOnlySeString Tooltip { get; }
 
     /// <summary>
     /// Gets a value indicating whether this entry should be shown.
@@ -69,12 +70,12 @@ public interface IDtrBarEntry : IReadOnlyDtrBarEntry
     /// <summary>
     /// Gets or sets the text of this entry.
     /// </summary>
-    public new SeString? Text { get; set; }
+    public new ReadOnlySeString Text { get; set; }
 
     /// <summary>
     /// Gets or sets a tooltip to be shown when the user mouses over the dtr entry.
     /// </summary>
-    public new SeString? Tooltip { get; set; }
+    public new ReadOnlySeString Tooltip { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this entry is visible.
@@ -106,7 +107,6 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     private readonly DalamudConfiguration configuration;
 
     private bool shownBacking = true;
-    private SeString? textBacking;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DtrBarEntry"/> class.
@@ -125,18 +125,18 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     public string Title { get; init; }
 
     /// <inheritdoc cref="IDtrBarEntry.Text" />
-    public SeString? Text
+    public ReadOnlySeString Text
     {
-        get => this.textBacking;
+        get;
         set
         {
-            this.textBacking = value;
+            field = value;
             this.Dirty = true;
         }
     }
 
     /// <inheritdoc cref="IDtrBarEntry.Tooltip" />
-    public SeString? Tooltip { get; set; }
+    public ReadOnlySeString Tooltip { get; set; }
 
     /// <inheritdoc cref="MinimumWidth" />
     public ushort MinimumWidth

@@ -163,4 +163,16 @@ public static class MapUtil
             (uint)agentMap->CurrentMapSizeFactor,
             correctZOffset);
     }
+
+    internal static uint ConvertRawToMapPos(Map map, short offset, float value)
+    {
+        var scale = map.SizeFactor / 100.0f;
+        return (uint)(10 - (int)((((value + offset) * scale) + 1024f) * -0.2f / scale));
+    }
+
+    internal static uint ConvertRawToMapPosX(Map map, float x)
+        => ConvertRawToMapPos(map, map.OffsetX, x);
+
+    internal static uint ConvertRawToMapPosY(Map map, float y)
+        => ConvertRawToMapPos(map, map.OffsetY, y);
 }

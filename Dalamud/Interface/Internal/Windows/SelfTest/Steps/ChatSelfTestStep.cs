@@ -106,7 +106,7 @@ internal class ChatSelfTestStep : ISelfTestStep
 
     private void ChatOnOnChatMessage(IHandleableChatMessage message)
     {
-        if (message.LogKind == XivChatType.Echo && message.Message.TextValue == "DALAMUD")
+        if (message.LogKind == XivChatType.Echo && message.Message.ToString() == "DALAMUD")
         {
             this.hasSeenEchoMessage = true;
         }

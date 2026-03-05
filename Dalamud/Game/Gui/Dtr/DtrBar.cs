@@ -8,17 +8,19 @@ using Dalamud.Game.Addon.Events;
 using Dalamud.Game.Addon.Events.EventDataTypes;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.Dtr;
 
@@ -90,7 +92,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             if (erc is null)
             {
                 this.entriesLock.EnterReadLock();
-                this.entriesReadOnlyCopy = erc = [..this.entries];
+                this.entriesReadOnlyCopy = erc = [.. this.entries];
                 this.entriesLock.ExitReadLock();
             }
 
@@ -107,7 +109,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// <param name="text">The text the entry shows.</param>
     /// <returns>The entry object used to update, hide and remove the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when an entry with the specified title exists.</exception>
-    public IDtrBarEntry Get(LocalPlugin? plugin, string title, SeString? text = null)
+    public IDtrBarEntry Get(LocalPlugin? plugin, string title, ReadOnlySeString text = default)
     {
         this.entriesLock.EnterUpgradeableReadLock();
 
@@ -178,7 +180,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     }
 
     /// <inheritdoc/>
-    public IDtrBarEntry Get(string title, SeString? text = null) => this.Get(null, title, text);
+    public IDtrBarEntry Get(string title, ReadOnlySeString text = default) => this.Get(null, title, text);
 
     /// <summary>
     /// Removes a DTR bar entry from the system.
@@ -385,14 +387,15 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                 if (nodeHidden)
                     node->ToggleVisibility(true);
 
-                if (data is { Added: true, Text: not null, TextNode: not null } && (data.Dirty || nodeHidden))
+                if (data is { Added: true, Text.IsEmpty: false, TextNode: not null } && (data.Dirty || nodeHidden))
                 {
                     if (data.Storage == null)
                     {
                         data.Storage = Utf8String.CreateEmpty();
                     }
 
-                    data.Storage->SetString(data.Text.EncodeWithNullTerminator());
+                    using var rssb = new RentedSeStringBuilder();
+                    data.Storage->SetString(rssb.Builder.Append(data.Text).GetViewAsSpan());
                     node->SetText(data.Storage->StringPtr);
 
                     ushort w = 0, h = 0;
@@ -631,13 +634,16 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         this.entriesLock.ExitReadLock();
 
-        if (dtrBarEntry is { Tooltip: not null })
+        if (dtrBarEntry is { Tooltip.IsEmpty: false })
         {
             switch (atkEventType)
             {
                 case AddonEventType.MouseOver:
-                    AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, node, dtrBarEntry.Tooltip.Encode());
-                    break;
+                    {
+                        using var rssb = new RentedSeStringBuilder();
+                        AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, node, rssb.Builder.Append(dtrBarEntry.Tooltip).GetViewAsSpan());
+                        break;
+                    }
 
                 case AddonEventType.MouseOut:
                     AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
@@ -690,7 +696,7 @@ internal sealed class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
     void IInternalDisposableService.DisposeService() => this.dtrBarService.Remove(this.plugin, null);
 
     /// <inheritdoc/>
-    public IDtrBarEntry Get(string title, SeString? text = null) => this.dtrBarService.Get(this.plugin, title, text);
+    public IDtrBarEntry Get(string title, ReadOnlySeString text = default) => this.dtrBarService.Get(this.plugin, title, text);
 
     /// <inheritdoc/>
     public void Remove(string title) => this.dtrBarService.Remove(this.plugin, title);

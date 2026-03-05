@@ -9,11 +9,8 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.EventArgs;
@@ -24,6 +21,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Internal.AutoUpdate;
 
@@ -101,7 +99,7 @@ internal class AutoUpdateManager : IServiceType
         this.openInstallerWindowLinkTask =
             Service<ChatGui>.GetAsync().ContinueWith(
                 chatGuiTask => chatGuiTask.Result.AddChatLinkHandler(
-                    (_, _) =>
+                    (_) =>
                      {
                          Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins);
                      }));
@@ -430,21 +428,20 @@ internal class AutoUpdateManager : IServiceType
             return;
         }
 
+        using var rssb = new RentedSeStringBuilder();
         chatGui.Print(new XivChatEntry
         {
-            Message = new SeString(new List<Payload>
-            {
-                new TextPayload(Locs.NotificationContentUpdatesAvailableMinimized(updatablePlugins.Count)),
-                new TextPayload("  ["),
-                new UIForegroundPayload(500),
-                this.openInstallerWindowLinkTask.Result,
-                new TextPayload(Loc.Localize("DalamudInstallerHelp", "Open the plugin installer")),
-                RawPayload.LinkTerminator,
-                new UIForegroundPayload(0),
-                new TextPayload("]"),
-            }),
-
             Type = XivChatType.Urgent,
+            Message = rssb.Builder
+                .Append(Locs.NotificationContentUpdatesAvailableMinimized(updatablePlugins.Count))
+                .Append("  [")
+                .PushColorType(500)
+                .PushDalamudLink(this.openInstallerWindowLinkTask.Result)
+                .Append(Loc.Localize("DalamudInstallerHelp", "Open the plugin installer"))
+                .PopLink()
+                .PopColorType()
+                .Append(']')
+                .ToReadOnlySeString(),
         });
     }
 

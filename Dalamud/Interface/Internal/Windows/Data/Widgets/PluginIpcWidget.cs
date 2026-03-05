@@ -83,7 +83,7 @@ internal class PluginIpcWidget : IDataWindowWidget
                 Log.Information(
                     "Data action was called: {Name}" +
                     "\n    Context: {Context}",
-                    go?.Name,
+                    go?.Name.ToString(),
                     this.ipcPubGo.GetContext());
             });
 
@@ -92,7 +92,7 @@ internal class PluginIpcWidget : IDataWindowWidget
                 Log.Information(
                     "Data func was called: {Name}\n" +
                     "    Context: {Context}",
-                    go?.Name,
+                    go?.Name.ToString(),
                     this.ipcPubGo.GetContext());
 
                 return "test";
@@ -102,7 +102,7 @@ internal class PluginIpcWidget : IDataWindowWidget
         if (this.ipcSubGo == null)
         {
             this.ipcSubGo = new CallGatePubSub<ICharacter?, string>("dataDemo2");
-            this.ipcSubGo.Subscribe(go => { Log.Information("GO: {Name}", go.Name); });
+            this.ipcSubGo.Subscribe(go => { Log.Information("GO: {Name}", go.Name.ToString()); });
         }
 
         if (ImGui.Button("PING"u8))

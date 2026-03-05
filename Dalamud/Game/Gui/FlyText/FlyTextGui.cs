@@ -1,16 +1,13 @@
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using Lumina.Text.ReadOnly;
 
 using Serilog;
 
@@ -47,7 +44,7 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
     }
 
     /// <inheritdoc/>
-    public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon, uint damageTypeIcon)
+    public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, ReadOnlySeString text1, ReadOnlySeString text2, uint color, uint icon, uint damageTypeIcon)
     {
         // Known valid flytext region within the atk arrays
         var numOffset = 161u;
@@ -73,8 +70,10 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
         numArray->IntArray[numOffset + 8] = 0; // Unknown
         numArray->IntArray[numOffset + 9] = 0; // Unknown, has something to do with yOffset
 
-        strArray->SetValue((int)strOffset + 0, text1.EncodeWithNullTerminator(), false, true, false);
-        strArray->SetValue((int)strOffset + 1, text2.EncodeWithNullTerminator(), false, true, false);
+        using var rssb = new RentedSeStringBuilder();
+        strArray->SetValue((int)strOffset + 0, rssb.Builder.Append(text1).GetViewAsSpan(), false, true, false);
+        rssb.Builder.Clear();
+        strArray->SetValue((int)strOffset + 1, rssb.Builder.Append(text2).GetViewAsSpan(), false, true, false);
 
         flytext->AddFlyText(actorIndex, 1, numArray, numOffset, 10, strArray, strOffset, 2, 0);
     }
@@ -98,18 +97,18 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 
             var handled = false;
 
+            var originalText1 = new ReadOnlySeStringSpan(text1);
+            var originalText2 = new ReadOnlySeStringSpan(text2);
+
             var tmpKind = (FlyTextKind)kind;
             var tmpVal1 = val1;
             var tmpVal2 = val2;
-            var tmpText1 = text1 == null ? string.Empty : MemoryHelper.ReadSeStringNullTerminated((nint)text1);
-            var tmpText2 = text2 == null ? string.Empty : MemoryHelper.ReadSeStringNullTerminated((nint)text2);
+            var tmpText1 = new ReadOnlySeString(originalText1);
+            var tmpText2 = new ReadOnlySeString(originalText2);
             var tmpColor = color;
             var tmpIcon = icon;
             var tmpDamageTypeIcon = damageTypeIcon;
             var tmpYOffset = yOffset;
-
-            var originalText1 = tmpText1.EncodeWithNullTerminator();
-            var originalText2 = tmpText2.EncodeWithNullTerminator();
 
             Log.Verbose($"[FlyText] Called with addonFlyText({(nint)thisPtr:X}) " +
                         $"kind({kind}) val1({val1}) val2({val2}) damageTypeIcon({damageTypeIcon}) " +
@@ -148,15 +147,12 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
                 return IntPtr.Zero;
             }
 
-            var maybeModifiedText1 = tmpText1.EncodeWithNullTerminator();
-            var maybeModifiedText2 = tmpText2.EncodeWithNullTerminator();
-
             // Check if any values have changed
             var dirty = (int)tmpKind != kind ||
                         tmpVal1 != val1 ||
                         tmpVal2 != val2 ||
-                        !maybeModifiedText1.SequenceEqual(originalText1) ||
-                        !maybeModifiedText2.SequenceEqual(originalText2) ||
+                        tmpText1 != originalText1 ||
+                        tmpText2 != originalText2 ||
                         tmpDamageTypeIcon != damageTypeIcon ||
                         tmpColor != color ||
                         tmpIcon != icon ||
@@ -170,39 +166,28 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
                                                        damageTypeIcon, text1, yOffset);
             }
 
-            var pText1 = Marshal.AllocHGlobal(maybeModifiedText1.Length);
-            var pText2 = Marshal.AllocHGlobal(maybeModifiedText2.Length);
-            Marshal.Copy(maybeModifiedText1, 0, pText1, maybeModifiedText1.Length);
-            Marshal.Copy(maybeModifiedText2, 0, pText2, maybeModifiedText2.Length);
-            Log.Verbose("[FlyText] Allocated and set strings.");
+            using var rssb1 = new RentedSeStringBuilder();
+            using var rssb2 = new RentedSeStringBuilder();
 
-            retVal = this.createFlyTextHook.Original(
-                thisPtr,
-                (int)tmpKind,
-                tmpVal1,
-                tmpVal2,
-                (byte*)pText2,
-                tmpColor,
-                tmpIcon,
-                tmpDamageTypeIcon,
-                (byte*)pText1,
-                tmpYOffset);
-
-            Log.Verbose("[FlyText] Returned from original. Delaying free task.");
-
-            Task.Delay(2000).ContinueWith(_ =>
+            fixed (byte* pText1 = rssb1.Builder.Append(tmpText1).GetViewAsSpan())
             {
-                try
+                fixed (byte* pText2 = rssb1.Builder.Append(tmpText2).GetViewAsSpan())
                 {
-                    Marshal.FreeHGlobal(pText1);
-                    Marshal.FreeHGlobal(pText2);
-                    Log.Verbose("[FlyText] Freed strings.");
+                    retVal = this.createFlyTextHook.Original(
+                        thisPtr,
+                        (int)tmpKind,
+                        tmpVal1,
+                        tmpVal2,
+                        pText2,
+                        tmpColor,
+                        tmpIcon,
+                        tmpDamageTypeIcon,
+                        pText1,
+                        tmpYOffset);
                 }
-                catch (Exception e)
-                {
-                    Log.Verbose(e, "[FlyText] Exception occurred freeing strings in task.");
-                }
-            });
+            }
+
+            Log.Verbose("[FlyText] Returned from original.");
         }
         catch (Exception e)
         {
@@ -246,11 +231,11 @@ internal class FlyTextGuiPluginScoped : IInternalDisposableService, IFlyTextGui
     }
 
     /// <inheritdoc/>
-    public void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon, uint damageTypeIcon)
+    public void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, ReadOnlySeString text1, ReadOnlySeString text2, uint color, uint icon, uint damageTypeIcon)
     {
         this.flyTextGuiService.AddFlyText(kind, actorIndex, val1, val2, text1, text2, color, icon, damageTypeIcon);
     }
 
-    private void FlyTextCreatedForward(ref FlyTextKind kind, ref int val1, ref int val2, ref SeString text1, ref SeString text2, ref uint color, ref uint icon, ref uint damageTypeIcon, ref float yOffset, ref bool handled)
+    private void FlyTextCreatedForward(ref FlyTextKind kind, ref int val1, ref int val2, ref ReadOnlySeString text1, ref ReadOnlySeString text2, ref uint color, ref uint icon, ref uint damageTypeIcon, ref float yOffset, ref bool handled)
         => this.FlyTextCreated?.Invoke(ref kind, ref val1, ref val2, ref text1, ref text2, ref color, ref icon, ref damageTypeIcon, ref yOffset, ref handled);
 }

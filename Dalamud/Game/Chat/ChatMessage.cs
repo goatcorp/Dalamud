@@ -1,10 +1,8 @@
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Chat;
-
-#pragma warning disable SA1500 // Braces for multi-line statements should not share line
-#pragma warning disable SA1513 // Closing brace should be followed by blank line
 
 /// <summary>
 /// Interface representing a chat message.
@@ -29,12 +27,12 @@ public interface IChatMessage
     /// <summary>
     /// Gets the sender name.
     /// </summary>
-    SeString Sender { get; }
+    ReadOnlySeString Sender { get; }
 
     /// <summary>
     /// Gets the message sent.
     /// </summary>
-    SeString Message { get; }
+    ReadOnlySeString Message { get; }
 
     /// <summary>
     /// Gets the timestamp of when the message was sent.
@@ -55,12 +53,12 @@ public interface IMutableChatMessage : IChatMessage
     /// <summary>
     /// Gets or sets the sender name.
     /// </summary>
-    new SeString Sender { get; set; }
+    new ReadOnlySeString Sender { get; set; }
 
     /// <summary>
     /// Gets or sets the message sent.
     /// </summary>
-    new SeString Message { get; set; }
+    new ReadOnlySeString Message { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether <see cref="Sender"/> was modified by a plugin.
@@ -99,32 +97,30 @@ internal class ChatMessage : IHandleableChatMessage
     public XivChatRelationKind TargetKind { get; private set; }
 
     /// <inheritdoc />
-    public SeString Sender
+    public ReadOnlySeString Sender
     {
         get;
         set
         {
-            var newValue = value ?? new SeString();
-
-            if (field == null || !field.Encode().SequenceEqual(newValue.Encode()))
+            if (field != value)
+            {
+                field = value;
                 this.SenderModified = true;
-
-            field = newValue;
+            }
         }
     }
 
     /// <inheritdoc />
-    public SeString Message
+    public ReadOnlySeString Message
     {
         get;
         set
         {
-            var newValue = value ?? new SeString();
-
-            if (field == null || !field.Encode().SequenceEqual(newValue.Encode()))
+            if (field != value)
+            {
+                field = value;
                 this.MessageModified = true;
-
-            field = newValue;
+            }
         }
     }
 
@@ -149,16 +145,16 @@ internal class ChatMessage : IHandleableChatMessage
     /// <param name="logKind">The type of chat.</param>
     /// <param name="sourceKind">The relationship of the entity sending the message or performing the action.</param>
     /// <param name="targetKind">The relationship of the entity receiving the message or being targeted by the action.</param>
-    /// <param name="lSender">The sender name.</param>
-    /// <param name="lMessage">The message sent.</param>
+    /// <param name="sender">The sender name.</param>
+    /// <param name="message">The message sent.</param>
     /// <param name="timestamp">The timestamp of when the message was sent.</param>
-    internal void SetData(XivChatType logKind, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, SeString lSender, SeString lMessage, int timestamp)
+    internal void SetData(XivChatType logKind, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, ReadOnlySeString sender, ReadOnlySeString message, int timestamp)
     {
         this.LogKind = logKind;
         this.SourceKind = sourceKind;
         this.TargetKind = targetKind;
-        this.Sender = lSender;
-        this.Message = lMessage;
+        this.Sender = sender;
+        this.Message = message;
         this.SenderModified = false;
         this.MessageModified = false;
         this.Timestamp = timestamp;
@@ -173,8 +169,8 @@ internal class ChatMessage : IHandleableChatMessage
         this.LogKind = 0;
         this.SourceKind = 0;
         this.TargetKind = 0;
-        this.Sender = null;
-        this.Message = null;
+        this.Sender = default;
+        this.Message = default;
         this.SenderModified = false;
         this.MessageModified = false;
         this.Timestamp = 0;

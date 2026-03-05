@@ -2,7 +2,6 @@ using System.Numerics;
 
 using Dalamud.Game.Gui;
 using Dalamud.Game.NativeWrapper;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 namespace Dalamud.Plugin.Services;
 
@@ -51,9 +50,9 @@ public unsafe interface IGameGui : IDalamudService
     /// <summary>
     /// Opens the in-game map with a flag on the location of the parameter.
     /// </summary>
-    /// <param name="mapLink">Link to the map to be opened.</param>
+    /// <param name="mapString">MapString for the map to be opened.</param>
     /// <returns>True if there were no errors and it could open the map.</returns>
-    public bool OpenMapWithMapLink(MapLinkPayload mapLink);
+    public bool OpenMapWithMapString(string mapString);
 
     /// <summary>
     /// Converts in-world coordinates to screen coordinates (upper left corner origin).

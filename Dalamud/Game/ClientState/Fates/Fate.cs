@@ -2,12 +2,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Data;
-using Dalamud.Game.Player;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Memory;
 using Dalamud.Utility;
 
 using Lumina.Excel;
+using Lumina.Text.ReadOnly;
 
 using CSFateContext = FFXIVClientStructs.FFXIV.Client.Game.Fate.FateContext;
 
@@ -46,17 +44,17 @@ public interface IFate : IEquatable<IFate>
     /// <summary>
     /// Gets the displayname of this <see cref="Fate" />.
     /// </summary>
-    SeString Name { get; }
+    ReadOnlySeStringSpan Name { get; }
 
     /// <summary>
     /// Gets the description of this <see cref="Fate" />.
     /// </summary>
-    SeString Description { get; }
+    ReadOnlySeStringSpan Description { get; }
 
     /// <summary>
     /// Gets the objective of this <see cref="Fate" />.
     /// </summary>
-    SeString Objective { get; }
+    ReadOnlySeStringSpan Objective { get; }
 
     /// <summary>
     /// Gets the state of this <see cref="Fate"/> (Running, Ended, Failed, Preparation, WaitingForEnd).
@@ -144,13 +142,13 @@ internal readonly unsafe struct Fate(CSFateContext* ptr) : IFate
     public long TimeRemaining => this.StartTimeEpoch + this.Duration - DateTimeOffset.Now.ToUnixTimeSeconds();
 
     /// <inheritdoc/>
-    public SeString Name => ptr->Name.AsDalamudSeString();
+    public ReadOnlySeStringSpan Name => ptr->Name.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public SeString Description => ptr->Description.AsDalamudSeString();
+    public ReadOnlySeStringSpan Description => ptr->Description.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public SeString Objective => ptr->Objective.AsDalamudSeString();
+    public ReadOnlySeStringSpan Objective => ptr->Objective.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
     public FateState State => (FateState)ptr->State;

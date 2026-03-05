@@ -179,7 +179,7 @@ internal class DtrBarWidget : IDataWindowWidget, IDisposable
         {
             ImGui.Text(title);
 
-            var text = entry.Text?.TextValue ?? string.Empty;
+            var text = entry.Text.ToString();
             if (ImGui.InputText($"Text###{entry.Title}t", ref text, 255))
                 entry.Text = text;
 

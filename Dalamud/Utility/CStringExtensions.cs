@@ -1,5 +1,3 @@
-﻿using Dalamud.Game.Text.SeStringHandling;
-
 using InteropGenerator.Runtime;
 
 using Lumina.Text.ReadOnly;
@@ -22,16 +20,6 @@ public static class CStringExtensions
     public static ReadOnlySeStringSpan AsReadOnlySeStringSpan(this CStringPointer ptr)
     {
         return ptr.AsSpan();
-    }
-
-    /// <summary>
-    /// Convert a CStringPointer to a Dalamud SeString.
-    /// </summary>
-    /// <param name="ptr">The pointer to convert.</param>
-    /// <returns>A Dalamud-flavored SeString.</returns>
-    public static SeString AsDalamudSeString(this CStringPointer ptr)
-    {
-        return ptr.AsReadOnlySeStringSpan().ToDalamudString();
     }
 
     /// <summary>

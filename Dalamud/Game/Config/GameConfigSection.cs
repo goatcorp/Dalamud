@@ -514,7 +514,7 @@ public class GameConfigSection
         }
 
         var prop = entry->Properties.String;
-        properties = new StringConfigProperties(prop.DefaultValue == null ? null : prop.DefaultValue->AsDalamudSeString());
+        properties = new StringConfigProperties(prop.DefaultValue == null ? default : prop.DefaultValue->AsReadOnlySeString());
         return true;
     }
 

@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Utility;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.NamePlate;
 
@@ -17,31 +19,31 @@ namespace Dalamud.Game.Gui.NamePlate;
 public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany)
 {
     /// <summary>
-    /// Gets or sets the opening and closing SeStrings which will wrap the entire contents, which can be used to apply
+    /// Gets or sets the opening and closing strings which will wrap the entire contents, which can be used to apply
     /// colors or styling to the entire field.
     /// </summary>
-    public (SeString, SeString)? OuterWrap { get; set; }
+    public (ReadOnlySeString, ReadOnlySeString)? OuterWrap { get; set; }
 
     /// <summary>
     /// Gets or sets the opening quote string which appears before the text and opening text-wrap.
     /// </summary>
-    public SeString? LeftQuote { get; set; }
+    public ReadOnlySeString? LeftQuote { get; set; }
 
     /// <summary>
     /// Gets or sets the closing quote string which appears after the text and closing text-wrap.
     /// </summary>
-    public SeString? RightQuote { get; set; }
+    public ReadOnlySeString? RightQuote { get; set; }
 
     /// <summary>
-    /// Gets or sets the opening and closing SeStrings which will wrap the text, which can be used to apply colors or
+    /// Gets or sets the opening and closing strings which will wrap the text, which can be used to apply colors or
     /// styling to the field's text.
     /// </summary>
-    public (SeString, SeString)? TextWrap { get; set; }
+    public (ReadOnlySeString, ReadOnlySeString)? TextWrap { get; set; }
 
     /// <summary>
     /// Gets or sets this field's text.
     /// </summary>
-    public SeString? Text { get; set; }
+    public ReadOnlySeString? Text { get; set; }
 
     /// <summary>
     /// Applies the changes from this builder to the actual field.
@@ -52,15 +54,17 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
         if ((nint)handler.GetFieldAsPointer(field) == NamePlateGui.EmptyStringPointer)
             return;
 
-        var sb = new SeStringBuilder();
+        using var rssb = new RentedSeStringBuilder();
+        var sb = rssb.Builder;
+
         if (this.OuterWrap is { Item1: { } outerLeft })
         {
             sb.Append(outerLeft);
         }
 
-        if (this.LeftQuote is not null)
+        if (this.LeftQuote.HasValue)
         {
-            sb.Append(this.LeftQuote);
+            sb.Append(this.LeftQuote.Value);
         }
         else
         {
@@ -78,9 +82,9 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
             sb.Append(this.Text ?? this.GetStrippedField(handler));
         }
 
-        if (this.RightQuote is not null)
+        if (this.RightQuote.HasValue)
         {
-            sb.Append(this.RightQuote);
+            sb.Append(this.RightQuote.Value);
         }
         else
         {
@@ -92,14 +96,13 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
             sb.Append(outerRight);
         }
 
-        handler.SetField(field, sb.Build());
+        handler.SetField(field, sb.ToReadOnlySeString());
     }
 
-    private SeString GetStrippedField(NamePlateUpdateHandler handler)
+    private ReadOnlySeString GetStrippedField(NamePlateUpdateHandler handler)
     {
-        return SeString.Parse(
-            isFreeCompany
-                ? NamePlateGui.StripFreeCompanyTagQuotes(handler.GetFieldAsSpan(field))
-                : NamePlateGui.StripTitleQuotes(handler.GetFieldAsSpan(field)));
+        return isFreeCompany
+            ? NamePlateGui.StripFreeCompanyTagQuotes(handler.GetFieldAsSpan(field))
+            : NamePlateGui.StripTitleQuotes(handler.GetFieldAsSpan(field));
     }
 }

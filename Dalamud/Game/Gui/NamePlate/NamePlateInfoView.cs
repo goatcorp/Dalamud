@@ -1,8 +1,12 @@
-﻿using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 
+using Lumina.Text.ReadOnly;
+
 namespace Dalamud.Game.Gui.NamePlate;
+
+// TODO: should we use ReadOnlySeStringSpan here?
 
 /// <summary>
 /// Provides a read-only view of the nameplate info object data for a nameplate. Modifications to
@@ -13,36 +17,36 @@ public interface INamePlateInfoView
     /// <summary>
     /// Gets the displayed name for this nameplate according to the nameplate info object.
     /// </summary>
-    SeString Name { get; }
+    ReadOnlySeString Name { get; }
 
     /// <summary>
     /// Gets the displayed free company tag for this nameplate according to the nameplate info object. For this field,
     /// the quote characters which appear on either side of the title are NOT included.
     /// </summary>
-    SeString FreeCompanyTag { get; }
+    ReadOnlySeString FreeCompanyTag { get; }
 
     /// <summary>
     /// Gets the displayed free company tag for this nameplate according to the nameplate info object. For this field,
     /// the quote characters which appear on either side of the title ARE included.
     /// </summary>
-    SeString QuotedFreeCompanyTag { get; }
+    ReadOnlySeString QuotedFreeCompanyTag { get; }
 
     /// <summary>
     /// Gets the displayed title for this nameplate according to the nameplate info object. For this field, the quote
     /// characters which appear on either side of the title are NOT included.
     /// </summary>
-    SeString Title { get; }
+    ReadOnlySeString Title { get; }
 
     /// <summary>
     /// Gets the displayed title for this nameplate according to the nameplate info object. For this field, the quote
     /// characters which appear on either side of the title ARE included.
     /// </summary>
-    SeString QuotedTitle { get; }
+    ReadOnlySeString QuotedTitle { get; }
 
     /// <summary>
     /// Gets the displayed level text for this nameplate according to the nameplate info object.
     /// </summary>
-    SeString LevelText { get; }
+    ReadOnlySeString LevelText { get; }
 
     /// <summary>
     /// Gets the flags for this nameplate according to the nameplate info object.
@@ -68,31 +72,30 @@ public interface INamePlateInfoView
 /// </summary>
 internal unsafe class NamePlateInfoView(RaptureAtkModule.NamePlateInfo* info) : INamePlateInfoView
 {
-    private SeString? name;
-    private SeString? freeCompanyTag;
-    private SeString? quotedFreeCompanyTag;
-    private SeString? title;
-    private SeString? quotedTitle;
-    private SeString? levelText;
+    private ReadOnlySeString? name;
+    private ReadOnlySeString? freeCompanyTag;
+    private ReadOnlySeString? quotedFreeCompanyTag;
+    private ReadOnlySeString? title;
+    private ReadOnlySeString? quotedTitle;
+    private ReadOnlySeString? levelText;
 
     /// <inheritdoc/>
-    public SeString Name => this.name ??= SeString.Parse(info->Name);
+    public ReadOnlySeString Name => this.name ??= info->Name.AsReadOnlySeString();
 
     /// <inheritdoc/>
-    public SeString FreeCompanyTag => this.freeCompanyTag ??=
-                                          SeString.Parse(NamePlateGui.StripFreeCompanyTagQuotes(info->FcName));
+    public ReadOnlySeString FreeCompanyTag => this.freeCompanyTag ??= NamePlateGui.StripFreeCompanyTagQuotes(info->FcName);
 
     /// <inheritdoc/>
-    public SeString QuotedFreeCompanyTag => this.quotedFreeCompanyTag ??= SeString.Parse(info->FcName);
+    public ReadOnlySeString QuotedFreeCompanyTag => this.quotedFreeCompanyTag ??= info->FcName.AsReadOnlySeString();
 
     /// <inheritdoc/>
-    public SeString Title => this.title ??= SeString.Parse(info->Title);
+    public ReadOnlySeString Title => this.title ??= info->Title.AsReadOnlySeString();
 
     /// <inheritdoc/>
-    public SeString QuotedTitle => this.quotedTitle ??= SeString.Parse(info->DisplayTitle);
+    public ReadOnlySeString QuotedTitle => this.quotedTitle ??= info->DisplayTitle.AsReadOnlySeString();
 
     /// <inheritdoc/>
-    public SeString LevelText => this.levelText ??= SeString.Parse(info->LevelText);
+    public ReadOnlySeString LevelText => this.levelText ??= info->LevelText.AsReadOnlySeString();
 
     /// <inheritdoc/>
     public int Flags => info->Flags;

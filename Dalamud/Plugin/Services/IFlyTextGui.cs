@@ -1,5 +1,6 @@
 using Dalamud.Game.Gui.FlyText;
-using Dalamud.Game.Text.SeStringHandling;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Plugin.Services;
 
@@ -26,8 +27,8 @@ public interface IFlyTextGui : IDalamudService
         ref FlyTextKind kind,
         ref int val1,
         ref int val2,
-        ref SeString text1,
-        ref SeString text2,
+        ref ReadOnlySeString text1,
+        ref ReadOnlySeString text2,
         ref uint color,
         ref uint icon,
         ref uint damageTypeIcon,
@@ -51,5 +52,5 @@ public interface IFlyTextGui : IDalamudService
     /// <param name="color">Color passed to the native flytext function. Changes flytext color.</param>
     /// <param name="icon">Icon ID passed to the native flytext function. Only displays with select FlyTextKind.</param>
     /// <param name="damageTypeIcon">Damage Type Icon ID passed to the native flytext function. Displayed next to damage values to denote damage type.</param>
-    public void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon, uint damageTypeIcon);
+    public void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, ReadOnlySeString text1, ReadOnlySeString text2, uint color, uint icon, uint damageTypeIcon);
 }

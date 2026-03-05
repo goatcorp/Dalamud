@@ -8,9 +8,9 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.Text;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.Noun.Enums;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
@@ -36,8 +36,6 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class SeStringCreatorWidget : IDataWindowWidget
 {
-    private const LinkMacroPayloadType DalamudLinkType = (LinkMacroPayloadType)Payload.EmbeddedInfoType.DalamudLink - 1;
-
     private const ImGuiTableFlags TableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg |
                                                ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings;
 
@@ -118,7 +116,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         { LinkMacroPayloadType.Description, ["RowId"] },
         { LinkMacroPayloadType.WKSPioneeringTrail, ["RowId", "SubrowId"] },
         { LinkMacroPayloadType.MKDLore, ["RowId"] },
-        { DalamudLinkType, ["CommandId", "Extra1", "Extra2", "ExtraString"] },
+        { DalamudLinkPayload.LinkType, ["CommandId", "Extra1", "Extra2", "ExtraString"] },
     };
 
     private readonly Dictionary<uint, string[]> fixedExpressionNames = new()
@@ -1009,7 +1007,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
             if (macroCode == MacroCode.Link && exprIdx == 0)
             {
-                var name = subType != null && (LinkMacroPayloadType)subType == DalamudLinkType
+                var name = subType != null && (LinkMacroPayloadType)subType == DalamudLinkPayload.LinkType
                     ? "Dalamud"
                     : Enum.GetName((LinkMacroPayloadType)u32);
 

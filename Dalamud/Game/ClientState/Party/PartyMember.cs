@@ -5,11 +5,11 @@ using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
-using Dalamud.Game.Text.SeStringHandling;
 
 using Dalamud.Utility;
 
 using Lumina.Excel;
+using Lumina.Text.ReadOnly;
 
 using CSPartyMember = FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember;
 
@@ -92,7 +92,7 @@ public interface IPartyMember : IEquatable<IPartyMember>
     /// <summary>
     /// Gets the displayname of this party member.
     /// </summary>
-    SeString Name { get; }
+    ReadOnlySeStringSpan Name { get; }
 
     /// <summary>
     /// Gets the sex of this party member.
@@ -157,7 +157,7 @@ internal unsafe readonly struct PartyMember(CSPartyMember* ptr) : IPartyMember
     public RowRef<Lumina.Excel.Sheets.World> World => LuminaUtils.CreateRef<Lumina.Excel.Sheets.World>(ptr->HomeWorld);
 
     /// <inheritdoc/>
-    public SeString Name => SeString.Parse(ptr->Name);
+    public ReadOnlySeStringSpan Name => ptr->Name;
 
     /// <inheritdoc/>
     public byte Sex => ptr->Sex;

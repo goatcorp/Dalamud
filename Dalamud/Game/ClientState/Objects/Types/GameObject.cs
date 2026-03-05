@@ -2,7 +2,8 @@ using System.Numerics;
 
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Player;
-using Dalamud.Game.Text.SeStringHandling;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
 
@@ -14,7 +15,7 @@ public interface IGameObject : IEquatable<IGameObject>
     /// <summary>
     /// Gets the name of this <see cref="GameObject" />.
     /// </summary>
-    public SeString Name { get; }
+    public ReadOnlySeStringSpan Name { get; }
 
     /// <summary>
     /// Gets the GameObjectID for this GameObject. The Game Object ID is a globally unique identifier that points to
@@ -198,7 +199,7 @@ internal partial class GameObject
 internal unsafe partial class GameObject : IGameObject
 {
     /// <inheritdoc/>
-    public SeString Name => SeString.Parse(this.Struct->Name);
+    public ReadOnlySeStringSpan Name => this.Struct->Name;
 
     /// <inheritdoc/>
     public ulong GameObjectId => this.Struct->GetGameObjectId();
@@ -258,5 +259,5 @@ internal unsafe partial class GameObject : IGameObject
     protected internal FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)this.Address;
 
     /// <inheritdoc/>
-    public override string ToString() => $"{this.GameObjectId:X}({this.Name.TextValue} - {this.ObjectKind}) at {this.Address:X}";
+    public override string ToString() => $"{this.GameObjectId:X}({this.Name.ToString()} - {this.ObjectKind}) at {this.Address:X}";
 }

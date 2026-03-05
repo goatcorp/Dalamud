@@ -2,6 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using Lumina.Text.ReadOnly;
+
 namespace Dalamud.Game.Gui.PartyFinder.Internal;
 
 /// <summary>
@@ -89,24 +91,24 @@ internal unsafe struct PartyFinderPacketListing
         }
     }
 
-    internal byte[] Name
+    internal ReadOnlySeString Name
     {
         get
         {
             fixed (byte* ptr = this.name)
             {
-                return new ReadOnlySpan<byte>(ptr, 32).ToArray();
+                return new ReadOnlySpan<byte>(ptr, 32);
             }
         }
     }
 
-    internal byte[] Description
+    internal ReadOnlySeString Description
     {
         get
         {
             fixed (byte* ptr = this.description)
             {
-                return new ReadOnlySpan<byte>(ptr, 192).ToArray();
+                return new ReadOnlySpan<byte>(ptr, 192);
             }
         }
     }

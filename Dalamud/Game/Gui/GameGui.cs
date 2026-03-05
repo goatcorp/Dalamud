@@ -2,7 +2,6 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.NativeWrapper;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface.Utility;
 using Dalamud.IoC;
@@ -107,8 +106,8 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     public HoveredAction HoveredAction { get; } = new HoveredAction();
 
     /// <inheritdoc/>
-    public bool OpenMapWithMapLink(MapLinkPayload mapLink)
-        => RaptureAtkModule.Instance()->OpenMapWithMapLink(mapLink.DataString);
+    public bool OpenMapWithMapString(string mapString)
+        => RaptureAtkModule.Instance()->OpenMapWithMapLink(mapString);
 
     /// <inheritdoc/>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
@@ -444,8 +443,8 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     }
 
     /// <inheritdoc/>
-    public bool OpenMapWithMapLink(MapLinkPayload mapLink)
-        => this.gameGuiService.OpenMapWithMapLink(mapLink);
+    public bool OpenMapWithMapString(string mapString)
+        => this.gameGuiService.OpenMapWithMapString(mapString);
 
     /// <inheritdoc/>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)

@@ -1,5 +1,3 @@
-﻿using Dalamud.Game.Text.SeStringHandling;
-
 using FFXIVClientStructs.FFXIV.Client.System.String;
 
 using Lumina.Text.ReadOnly;
@@ -22,16 +20,6 @@ public static class Utf8StringExtensions
     public static ReadOnlySeStringSpan AsReadOnlySeStringSpan(this Utf8String str)
     {
         return str.AsSpan();
-    }
-
-    /// <summary>
-    /// Convert a Utf8String to a Dalamud SeString.
-    /// </summary>
-    /// <param name="str">The Utf8String to convert.</param>
-    /// <returns>A Dalamud-flavored SeString.</returns>
-    public static SeString AsDalamudSeString(this Utf8String str)
-    {
-        return str.AsReadOnlySeStringSpan().ToDalamudString();
     }
 
     /// <summary>

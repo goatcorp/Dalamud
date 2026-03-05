@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.Text.SeStringHandling;
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Config;
 
@@ -6,7 +6,7 @@ namespace Dalamud.Game.Config;
 /// Represents a string configuration property.
 /// </summary>
 /// <param name="Default">The default value.</param>
-public record StringConfigProperties(SeString? Default);
+public record StringConfigProperties(ReadOnlySeString Default);
 
 /// <summary>
 /// Represents a uint configuration property.

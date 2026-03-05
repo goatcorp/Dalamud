@@ -4,6 +4,8 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.SelfTest;
 using Dalamud.Utility;
 
+using Lumina.Text.ReadOnly;
+
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
@@ -42,7 +44,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
         const uint collectableItemId = 36299; // Rarefied Annite
         const uint eventItemId = 2003363;     // Speude bradeos figurine
 
-        SeString? toPrint = null;
+        ReadOnlySeString toPrint = default;
 
         ImGui.Text(this.currentSubStep.ToString());
 
@@ -104,7 +106,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 throw new ArgumentOutOfRangeException();
         }
 
-        if (toPrint != null)
+        if (!toPrint.IsEmpty)
             chatGui.Print(toPrint);
 
         return SelfTestStepResult.Waiting;

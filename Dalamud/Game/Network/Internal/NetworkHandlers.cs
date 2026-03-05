@@ -287,18 +287,19 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                 return result;
             }
 
-            var cfcName = cfCondition.Value.Name.ToDalamudString();
-            if (cfcName.Payloads.Count == 0)
+            var cfcName = cfCondition.Value.Name;
+            if (cfcName.IsEmpty)
                 cfcName = "Duty Roulette";
 
             Task.Run(() =>
             {
                 if (this.configuration.DutyFinderChatMessage)
                 {
-                    var b = new SeStringBuilder();
-                    b.Append("Duty pop: ");
-                    b.Append(cfcName);
-                    Service<ChatGui>.GetNullable()?.Print(b.Build());
+                    using var rssb = new RentedSeStringBuilder();
+                    Service<ChatGui>.GetNullable()?.Print(rssb.Builder
+                        .Append("Duty pop: ")
+                        .Append(cfcName)
+                        .ToReadOnlySeString());
                 }
 
                 this.CfPop.InvokeSafely(cfCondition.Value);

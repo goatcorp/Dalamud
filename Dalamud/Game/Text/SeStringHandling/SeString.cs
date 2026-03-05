@@ -1,180 +1,44 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-
 using Dalamud.Data;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text.Evaluator;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+
 using Lumina.Excel.Sheets;
+using Lumina.Text.Payloads;
+using Lumina.Text.ReadOnly;
 
-using Newtonsoft.Json;
-
-using LSeStringBuilder = Lumina.Text.SeStringBuilder;
+using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
+using MapSheet = Lumina.Excel.Sheets.Map;
 
 namespace Dalamud.Game.Text.SeStringHandling;
 
 /// <summary>
 /// This class represents a parsed SeString.
 /// </summary>
-public class SeString
+public static class SeString
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SeString"/> class.
-    /// Creates a new SeString from an ordered list of payloads.
-    /// </summary>
-    public SeString()
-    {
-        this.Payloads = [];
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SeString"/> class.
-    /// Creates a new SeString from an ordered list of payloads.
-    /// </summary>
-    /// <param name="payloads">The Payload objects to make up this string.</param>
-    [JsonConstructor]
-    public SeString(List<Payload> payloads)
-    {
-        this.Payloads = payloads;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SeString"/> class.
-    /// Creates a new SeString from an ordered list of payloads.
-    /// </summary>
-    /// <param name="payloads">The Payload objects to make up this string.</param>
-    public SeString(params Payload[] payloads)
-    {
-        this.Payloads = new List<Payload>(payloads);
-    }
-
-    /// <summary>
-    /// Gets a list of Payloads necessary to display the arrow link marker icon in chat
-    /// with the appropriate glow and coloring.
-    /// </summary>
-    /// <returns>A list of all the payloads required to insert the link marker.</returns>
-    public static IEnumerable<Payload> TextArrowPayloads
-    {
-        get
-        {
-            var clientState = Service<ClientState.ClientState>.Get();
-            var markerSpace = clientState.ClientLanguage switch
-            {
-                ClientLanguage.German => " ",
-                ClientLanguage.French => " ",
-                _ => string.Empty,
-            };
-            return new List<Payload>
-            {
-                new UIForegroundPayload(500),
-                new UIGlowPayload(501),
-                new TextPayload($"{(char)SeIconChar.LinkMarker}{markerSpace}"),
-                UIGlowPayload.UIGlowOff,
-                UIForegroundPayload.UIForegroundOff,
-            };
-        }
-    }
-
-    /// <summary>
-    /// Gets an empty SeString.
-    /// </summary>
-    public static SeString Empty => new();
-
-    /// <summary>
-    /// Gets the ordered list of payloads included in this SeString.
-    /// </summary>
-    public List<Payload> Payloads { get; }
-
-    /// <summary>
-    /// Gets all of the raw text from a message as a single joined string.
-    /// </summary>
-    /// <returns>
-    /// All the raw text from the contained payloads, joined into a single string.
-    /// </returns>
-    public string TextValue
-    {
-        get
-        {
-            return this.Payloads
-                       .Where(p => p is ITextProvider)
-                       .Cast<ITextProvider>()
-                       .Aggregate(new StringBuilder(), (sb, tp) => sb.Append(tp.Text), sb => sb.ToString());
-        }
-    }
-
-    /// <summary>
-    /// Implicitly convert a string into a SeString containing a <see cref="TextPayload"/>.
-    /// </summary>
-    /// <param name="str">string to convert.</param>
-    /// <returns>Equivalent SeString.</returns>
-    public static implicit operator SeString(string str) => new(new TextPayload(str));
-
-    /// <summary>
-    /// Parse a binary game message into an SeString.
-    /// </summary>
-    /// <param name="ptr">Pointer to the string's data in memory.</param>
-    /// <param name="len">Length of the string's data in memory.</param>
-    /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
-    public static unsafe SeString Parse(byte* ptr, int len)
-    {
-        if (ptr == null)
-            return Empty;
-
-        var payloads = new List<Payload>();
-
-        using (var stream = new UnmanagedMemoryStream(ptr, len))
-        using (var reader = new BinaryReader(stream))
-        {
-            while (stream.Position < len)
-            {
-                payloads.Add(Payload.Decode(reader));
-            }
-        }
-
-        return new SeString(payloads);
-    }
-
-    /// <summary>
-    /// Parse a binary game message into an SeString.
-    /// </summary>
-    /// <param name="data">Binary message payload data in SE's internal format.</param>
-    /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
-    public static unsafe SeString Parse(ReadOnlySpan<byte> data)
-    {
-        fixed (byte* ptr = data)
-        {
-            var len = data.IndexOf((byte)0);
-            return Parse(ptr, len == -1 ? data.Length : len);
-        }
-    }
-
-    /// <summary>
-    /// Parse a binary game message into an SeString.
-    /// </summary>
-    /// <param name="bytes">Binary message payload data in SE's internal format.</param>
-    /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
-    public static SeString Parse(byte[] bytes) => Parse(new ReadOnlySpan<byte>(bytes));
-
-    /// <summary>
-    /// Parse a binary game message into an SeString.
-    /// </summary>
-    /// <param name="ptr">Pointer to the string's data in memory. Needs to be null-terminated.</param>
-    /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
-    public static unsafe SeString Parse(byte* ptr) => Parse(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ptr));
-
     /// <summary>
     /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
     /// </summary>
     /// <param name="itemId">The id of the item to link.</param>
     /// <param name="isHq">Whether to link the high-quality variant of the item.</param>
     /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
-    /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
-    public static SeString CreateItemLink(uint itemId, bool isHq, string? displayNameOverride = null) =>
-        CreateItemLink(itemId, isHq ? ItemKind.Hq : ItemKind.Normal, displayNameOverride);
+    /// <returns>An SeString containing all the macros necessary to display an item link in the chat log.</returns>
+    public static ReadOnlySeString CreateItemLink(uint itemId, bool isHq, string? displayNameOverride = null)
+        => CreateItemLink(itemId, isHq ? ItemKind.Hq : ItemKind.Normal, displayNameOverride);
+
+    /// <summary>
+    /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
+    /// </summary>
+    /// <param name="item">The Lumina Item to link.</param>
+    /// <param name="isHq">Whether to link the high-quality variant of the item.</param>
+    /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
+    /// <returns>An SeString containing all the macros necessary to display an item link in the chat log.</returns>
+    public static ReadOnlySeString CreateItemLink(Item item, bool isHq, string? displayNameOverride = null)
+        => CreateItemLink(item.RowId, isHq, displayNameOverride ?? item.Name.ExtractText());
 
     /// <summary>
     /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
@@ -182,11 +46,11 @@ public class SeString
     /// <param name="itemId">The id of the item to link.</param>
     /// <param name="kind">The kind of item to link.</param>
     /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
-    /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
-    public static SeString CreateItemLink(uint itemId, ItemKind kind = ItemKind.Normal, string? displayNameOverride = null)
+    /// <returns>An SeString containing all the macros necessary to display an item link in the chat log.</returns>
+    public static ReadOnlySeString CreateItemLink(uint itemId, ItemKind kind = ItemKind.Normal, string? displayNameOverride = null)
     {
         var clientState = Service<ClientState.ClientState>.Get();
-        var seStringEvaluator = Service<SeStringEvaluator>.Get();
+        var evaluator = Service<SeStringEvaluator>.Get();
 
         var rawId = ItemUtil.GetRawId(itemId, kind);
 
@@ -210,132 +74,101 @@ public class SeString
             .PopColorType()
             .ToReadOnlySeString();
 
-        return SeString.Parse(seStringEvaluator.EvaluateFromAddon(371, [itemLink], clientState.ClientLanguage));
+        return evaluator.EvaluateFromAddon(371, [itemLink], clientState.ClientLanguage);
     }
 
     /// <summary>
-    /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
+    /// Creates an SeString representing an entire payload chain that can be used to link a map position of a GameObject in the chat log.
     /// </summary>
-    /// <param name="item">The Lumina Item to link.</param>
-    /// <param name="isHq">Whether to link the high-quality variant of the item.</param>
-    /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
-    /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
-    public static SeString CreateItemLink(Item item, bool isHq, string? displayNameOverride = null)
+    /// <param name="obj">The GameObject, which position should be used.</param>
+    /// <returns>An SeString containing all of the macros necessary to display a map link in the chat log.</returns>
+    public static unsafe ReadOnlySeString CreateMapLink(IGameObject obj)
     {
-        return CreateItemLink(item.RowId, isHq, displayNameOverride ?? item.Name.ExtractText());
+        var territoryId = GameMain.Instance()->CurrentTerritoryTypeId;
+        if (territoryId == 0)
+            return default;
+
+        var mapId = TerritoryInfo.Instance()->ChatLinkMapIdOverride;
+        if (mapId == 0)
+            mapId = GameMain.Instance()->CurrentMapId;
+        if (mapId == 0)
+            return default;
+
+        var instanceId = CSFramework.Instance()->GetNetworkModuleProxy()->GetCurrentInstance();
+        return CreateMapLink(territoryId, mapId, obj.Position.X, obj.Position.Z, obj.Position.Y, instanceId);
     }
 
     /// <summary>
-    /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
-    /// </summary>
-    /// <param name="territoryId">The id of the TerritoryType for this map link.</param>
-    /// <param name="mapId">The id of the Map for this map link.</param>
-    /// <param name="rawX">The raw x-coordinate for this link.</param>
-    /// <param name="rawY">The raw y-coordinate for this link..</param>
-    /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY) =>
-        CreateMapLinkWithInstance(territoryId, mapId, null, rawX, rawY);
-
-    /// <summary>
-    /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
-    /// </summary>
-    /// <param name="territoryId">The id of the TerritoryType for this map link.</param>
-    /// <param name="mapId">The id of the Map for this map link.</param>
-    /// <param name="instance">An optional area instance number to be included in this link.</param>
-    /// <param name="rawX">The raw x-coordinate for this link.</param>
-    /// <param name="rawY">The raw y-coordinate for this link..</param>
-    /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString CreateMapLinkWithInstance(uint territoryId, uint mapId, int? instance, int rawX, int rawY)
-    {
-        var mapPayload = new MapLinkPayload(territoryId, mapId, rawX, rawY);
-        var nameString = GetMapLinkNameString(mapPayload.PlaceName, instance, mapPayload.CoordinateString);
-
-        return new SeString(new List<Payload>([
-            mapPayload,
-            ..TextArrowPayloads,
-            new TextPayload(nameString),
-            RawPayload.LinkTerminator,
-        ]));
-    }
-
-    /// <summary>
-    /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
+    /// Creates an SeString representing an entire payload chain that can be used to link a map position in the chat log.
     /// </summary>
     /// <param name="territoryId">The id of the TerritoryType for this map link.</param>
     /// <param name="mapId">The id of the Map for this map link.</param>
     /// <param name="xCoord">The human-readable x-coordinate for this link.</param>
     /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
+    /// <param name="zCoord">An optional human-readable z-coordinate for this link.</param>
+    /// <param name="instanceId">An optional area instance number to be included in this link.</param>
     /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
-    /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString CreateMapLink(
-        uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f) =>
-        CreateMapLinkWithInstance(territoryId, mapId, null, xCoord, yCoord, fudgeFactor);
-
-    /// <summary>
-    /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
-    /// </summary>
-    /// <param name="territoryId">The id of the TerritoryType for this map link.</param>
-    /// <param name="mapId">The id of the Map for this map link.</param>
-    /// <param name="instance">An optional area instance number to be included in this link.</param>
-    /// <param name="xCoord">The human-readable x-coordinate for this link.</param>
-    /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
-    /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
-    /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString CreateMapLinkWithInstance(uint territoryId, uint mapId, int? instance, float xCoord, float yCoord, float fudgeFactor = 0.05f)
+    /// <returns>An SeString containing all of the macros necessary to display a map link in the chat log.</returns>
+    public static ReadOnlySeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float zCoord = 0, int instanceId = 0, float fudgeFactor = 0.05f)
     {
-        var mapPayload = new MapLinkPayload(territoryId, mapId, xCoord, yCoord, fudgeFactor);
-        var nameString = GetMapLinkNameString(mapPayload.PlaceName, instance, mapPayload.CoordinateString);
+        if (territoryId == 0)
+            return default;
 
-        return new SeString(new List<Payload>([
-            mapPayload,
-            ..TextArrowPayloads,
-            new TextPayload(nameString),
-            RawPayload.LinkTerminator,
-        ]));
-    }
+        if (mapId == 0)
+            return default;
 
-    /// <summary>
-    /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log, matching a specified zone name.
-    /// Returns null if no corresponding PlaceName was found.
-    /// </summary>
-    /// <param name="placeName">The name of the location for this link.  This should be exactly the name as seen in a displayed map link in-game for the same zone.</param>
-    /// <param name="xCoord">The human-readable x-coordinate for this link.</param>
-    /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
-    /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
-    /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString? CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f) =>
-        CreateMapLinkWithInstance(placeName, null, xCoord, yCoord, fudgeFactor);
+        var dataManager = Service<DataManager>.Get();
 
-    /// <summary>
-    /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log, matching a specified zone name.
-    /// Returns null if no corresponding PlaceName was found.
-    /// </summary>
-    /// <param name="placeName">The name of the location for this link.  This should be exactly the name as seen in a displayed map link in-game for the same zone.</param>
-    /// <param name="instance">An optional area instance number to be included in this link.</param>
-    /// <param name="xCoord">The human-readable x-coordinate for this link.</param>
-    /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
-    /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
-    /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString? CreateMapLinkWithInstance(string placeName, int? instance, float xCoord, float yCoord, float fudgeFactor = 0.05f)
-    {
-        var data = Service<DataManager>.Get();
+        if (!dataManager.GetExcelSheet<TerritoryType>().TryGetRow(territoryId, out var territoryType))
+            return default;
 
-        var mapSheet = data.GetExcelSheet<Map>();
+        if (!dataManager.GetExcelSheet<MapSheet>().TryGetRow(mapId, out var map))
+            return default;
 
-        var matches = data.GetExcelSheet<PlaceName>()
-                          .Where(row => row.Name.ExtractText().Equals(placeName, StringComparison.InvariantCultureIgnoreCase));
+        if (!dataManager.GetExcelSheet<PlaceName>().TryGetRow(territoryType.PlaceName.RowId, out var placeName))
+            return default;
 
-        foreach (var place in matches)
+        var evaluator = Service<SeStringEvaluator>.Get();
+
+        using var rssb = new RentedSeStringBuilder();
+        var sb = rssb.Builder;
+
+        sb.Append(placeName.Name);
+
+        if (instanceId > 0)
+            sb.Append((char)(SeIconChar.Instance1 + (byte)(instanceId - 1)));
+
+        var placeNameWithInstance = sb.ToReadOnlySeString();
+
+        var mapPosX = MapUtil.ConvertRawToMapPosX(map, xCoord);
+        var mapPosY = MapUtil.ConvertRawToMapPosY(map, yCoord);
+
+        ReadOnlySeString linkText;
+        if (!dataManager.GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryId, out var territoryTransient) && territoryTransient.OffsetZ != -10000)
         {
-            var map = mapSheet.Cast<Map?>().FirstOrDefault(row => row!.Value.PlaceName.RowId == place.RowId);
-            if (map.HasValue && map.Value.TerritoryType.RowId != 0)
-            {
-                return CreateMapLinkWithInstance(map.Value.TerritoryType.RowId, map.Value.RowId, instance, xCoord, yCoord, fudgeFactor);
-            }
+            var zFloat = zCoord - territoryTransient.OffsetZ;
+            var z = (uint)(int)zFloat;
+            if (zFloat < 0.0 && zFloat != (int)z)
+                z -= 10;
+            z /= 10;
+
+            linkText = evaluator.EvaluateFromAddon(1636, [placeNameWithInstance, mapPosX, mapPosY, z]);
+        }
+        else
+        {
+            linkText = evaluator.EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY]);
         }
 
-        // TODO: empty? throw?
-        return null;
+        sb.Clear();
+
+        var mapLink = sb
+            .PushLinkMapPosition(territoryId, mapId, (int)(xCoord * 1000f), (int)(yCoord * 1000f))
+            .Append(linkText)
+            .PopLink()
+            .ToReadOnlySeString();
+
+        // Link Marker
+        return evaluator.EvaluateFromAddon(371, [mapLink]);
     }
 
     /// <summary>
@@ -344,152 +177,37 @@ public class SeString
     /// <param name="listingId">The listing ID of the party finder entry.</param>
     /// <param name="recruiterName">The name of the recruiter.</param>
     /// <param name="isCrossWorld">Whether the listing is limited to the current world or not.</param>
-    /// <returns>An SeString containing all the payloads necessary to display a party finder link in the chat log.</returns>
-    public static SeString CreatePartyFinderLink(uint listingId, string recruiterName, bool isCrossWorld = false)
+    /// <returns>An SeString containing all the macros necessary to display a party finder link in the chat log.</returns>
+    public static ReadOnlySeString CreatePartyFinderLink(uint listingId, string recruiterName, bool isCrossWorld = false)
     {
-        var clientState = Service<ClientState.ClientState>.Get();
-        var seStringEvaluator = Service<SeStringEvaluator>.Get();
-
-        return new SeString(new List<Payload>([
-            new PartyFinderPayload(listingId, isCrossWorld ? PartyFinderPayload.PartyFinderLinkType.NotSpecified : PartyFinderPayload.PartyFinderLinkType.LimitedToHomeWorld),
-            ..TextArrowPayloads,
-            ..SeString.Parse(seStringEvaluator.EvaluateFromAddon(2265, [recruiterName, isCrossWorld ? 0 : 1], clientState.ClientLanguage)).Payloads,
-            RawPayload.LinkTerminator
-        ]));
+        using var rssb = new RentedSeStringBuilder();
+        var evaluator = Service<SeStringEvaluator>.Get();
+        return evaluator.Evaluate(rssb.Builder
+            .BeginMacro(MacroCode.Fixed)
+            .AppendIntExpression(200)
+            .AppendIntExpression(11)
+            .AppendUIntExpression(listingId) // Listing Id
+            .AppendUIntExpression(0) // Unknown
+            .AppendUIntExpression(0) // World Id
+            .AppendUIntExpression(isCrossWorld ? 0 : 1u) // Cross World flag (0 = Cross World, 1 = not Cross World)
+            .AppendStringExpression(recruiterName) // Player Name
+            .EndMacro()
+            .ToReadOnlySeString());
     }
 
     /// <summary>
     /// Creates an SeString representing an entire payload chain that can be used to link the party finder search conditions.
     /// </summary>
     /// <param name="message">The text that should be displayed for the link.</param>
-    /// <returns>An SeString containing all the payloads necessary to display a link to the party finder search conditions.</returns>
-    public static SeString CreatePartyFinderSearchConditionsLink(string message)
+    /// <returns>An SeString containing all the macros necessary to display a link to the party finder search conditions.</returns>
+    public static ReadOnlySeString CreatePartyFinderSearchConditionsLink(string message)
     {
-        return new SeString(new List<Payload>([
-            new PartyFinderPayload(),
-            ..TextArrowPayloads,
-            new TextPayload(message),
-            RawPayload.LinkTerminator
-        ]));
-    }
-
-    /// <summary>
-    /// Creates a SeString from a json. (For testing - not recommended for production use.)
-    /// </summary>
-    /// <param name="json">A serialized SeString produced by ToJson() <see cref="ToJson"/>.</param>
-    /// <returns>A SeString initialized with values from the json.</returns>
-    public static SeString? FromJson(string json)
-    {
-        var s = JsonConvert.DeserializeObject<SeString>(json, new JsonSerializerSettings
-        {
-            PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-            TypeNameHandling = TypeNameHandling.Auto,
-            ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
-        });
-
-        return s;
-    }
-
-    /// <summary>
-    /// Serializes the SeString to json.
-    /// </summary>
-    /// <returns>An json representation of this object.</returns>
-    public string ToJson()
-    {
-        return JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings()
-        {
-            PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            TypeNameHandling = TypeNameHandling.Auto,
-        });
-    }
-
-    /// <summary>
-    /// Appends the contents of one SeString to this one.
-    /// </summary>
-    /// <param name="other">The SeString to append to this one.</param>
-    /// <returns>This object.</returns>
-    public SeString Append(SeString other)
-    {
-        this.Payloads.AddRange(other.Payloads);
-        return this;
-    }
-
-    /// <summary>
-    /// Appends a list of payloads to this SeString.
-    /// </summary>
-    /// <param name="payloads">The Payloads to append.</param>
-    /// <returns>This object.</returns>
-    public SeString Append(IEnumerable<Payload> payloads)
-    {
-        this.Payloads.AddRange(payloads);
-        return this;
-    }
-
-    /// <summary>
-    /// Appends a single payload to this SeString.
-    /// </summary>
-    /// <param name="payload">The payload to append.</param>
-    /// <returns>This object.</returns>
-    public SeString Append(Payload payload)
-    {
-        this.Payloads.Add(payload);
-        return this;
-    }
-
-    /// <summary>
-    /// Encodes the Payloads in this SeString into a binary representation
-    /// suitable for use by in-game handlers, such as the chat log.
-    /// </summary>
-    /// <returns>The binary encoded payload data.</returns>
-    public byte[] Encode()
-    {
-        var messageBytes = new List<byte>();
-        foreach (var p in this.Payloads)
-        {
-            messageBytes.AddRange(p.Encode());
-        }
-
-        return messageBytes.ToArray();
-    }
-
-    /// <summary>
-    /// Encodes the Payloads in this SeString into a binary representation
-    /// suitable for use by in-game handlers, such as the chat log.
-    /// Includes a null terminator at the end of the string.
-    /// </summary>
-    /// <returns>The binary encoded payload data.</returns>
-    public byte[] EncodeWithNullTerminator()
-    {
-        var messageBytes = new List<byte>();
-        foreach (var p in this.Payloads)
-        {
-            messageBytes.AddRange(p.Encode());
-        }
-
-        // Add Null Terminator
-        messageBytes.Add(0);
-
-        return messageBytes.ToArray();
-    }
-
-    /// <summary>
-    /// Get the text value of this SeString.
-    /// </summary>
-    /// <returns>The TextValue property.</returns>
-    public override string ToString()
-    {
-        return this.TextValue;
-    }
-
-    private static string GetMapLinkNameString(string placeName, int? instance, string coordinateString)
-    {
-        var instanceString = string.Empty;
-        if (instance is > 0 and < 10)
-        {
-            instanceString = (SeIconChar.Instance1 + instance.Value - 1).ToIconString();
-        }
-
-        return $"{placeName}{instanceString} {coordinateString}";
+        using var rssb = new RentedSeStringBuilder();
+        var evaluator = Service<SeStringEvaluator>.Get();
+        return evaluator.Evaluate(rssb.Builder
+            .PushLinkPartyFinderNotification()
+            .Append(evaluator.EvaluateFromAddon(371, [message]))
+            .PopLink()
+            .ToReadOnlySeString());
     }
 }

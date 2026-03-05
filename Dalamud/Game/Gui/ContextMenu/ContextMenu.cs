@@ -5,12 +5,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -20,6 +18,8 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using InteropGenerator.Runtime;
+
+using Lumina.Text.ReadOnly;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
@@ -136,13 +136,19 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     /// </summary>
     /// <param name="menuItem">The menu item to prefix.</param>
     /// <returns>The prefixed name.</returns>
-    internal SeString GetPrefixedName(IMenuItem menuItem) =>
-        menuItem.Prefix is { } prefix
-            ? new SeStringBuilder()
-              .AddUiForeground($"{prefix.ToIconString()} ", menuItem.PrefixColor)
-              .Append(menuItem.Name)
-              .Build()
-            : menuItem.Name;
+    internal ReadOnlySeString GetPrefixedName(IMenuItem menuItem)
+    {
+        if (menuItem.Prefix is not { } prefix)
+            return menuItem.Name;
+
+        using var rssb = new RentedSeStringBuilder();
+        return rssb.Builder
+            .PushColorType(menuItem.PrefixColor)
+            .Append(prefix.ToIconString())
+            .Append(menuItem.Name)
+            .PopColorType()
+            .ToReadOnlySeString();
+    }
 
     private AtkValue* ExpandContextMenuArray(Span<AtkValue> oldValues, int newSize)
     {
@@ -168,7 +174,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     private void FreeExpandedContextMenuArray(AtkValue* newValues, int newSize) =>
         IMemorySpace.Free((void*)((nint)newValues - 8), (ulong)((newSize * sizeof(AtkValue)) + 8));
 
-    private AtkValue* CreateEmptySubmenuContextMenuArray(SeString name, int x, int y, out int valueCount)
+    private AtkValue* CreateEmptySubmenuContextMenuArray(ReadOnlySeString name, int x, int y, out int valueCount)
     {
         // 0: UInt = ContextItemCount
         // 1: String = Name
@@ -181,10 +187,12 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
         valueCount = 8;
         var values = this.ExpandContextMenuArray([], valueCount);
+        using var rssb = new RentedSeStringBuilder();
+
         values[0].ChangeType(ValueType.UInt);
         values[0].UInt = 0;
         values[1].ChangeType(ValueType.String);
-        values[1].SetManagedString(name.EncodeWithNullTerminator());
+        values[1].SetManagedString(rssb.Builder.Append(name).GetViewAsSpan());
         values[2].ChangeType(ValueType.Int);
         values[2].Int = x;
         values[3].ChangeType(ValueType.Int);
@@ -263,8 +271,9 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             if (item.IsSubmenu)
                 submenuMask |= 1u << i;
 
+            using var rssb = new RentedSeStringBuilder();
             nameData[i].ChangeType(ValueType.String);
-            nameData[i].SetManagedString(this.GetPrefixedName(item).EncodeWithNullTerminator());
+            nameData[i].SetManagedString(rssb.Builder.Append(this.GetPrefixedName(item)).GetViewAsSpan());
         }
 
         for (var i = 0; i < prefixMenuSize; ++i)
@@ -437,7 +446,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         return items;
     }
 
-    private void OpenSubmenu(SeString name, IReadOnlyList<IMenuItem> submenuItems, int posX, int posY)
+    private void OpenSubmenu(ReadOnlySeString name, IReadOnlyList<IMenuItem> submenuItems, int posX, int posY)
     {
         if (submenuItems.Count == 0)
             throw new ArgumentException("Submenu must not be empty", nameof(submenuItems));
@@ -503,7 +512,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                     {
                         short x, y;
                         addon->AtkUnitBase.GetPosition(&x, &y);
-                        this.OpenSubmenu(name ?? item.Name, submenuItems, x, y);
+                        this.OpenSubmenu(name.IsEmpty ? item.Name : name, submenuItems, x, y);
                         openedSubmenu = true;
                     },
                     this.SelectedParentAddon,

@@ -3,15 +3,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory.Exceptions;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
-using FFXIVClientStructs.FFXIV.Client.System.String;
-
-using Lumina.Text.Payloads;
-using Lumina.Text.ReadOnly;
 
 using Microsoft.Extensions.ObjectPool;
 
@@ -385,183 +380,6 @@ public static unsafe class MemoryHelper
         }
     }
 
-    /// <summary>
-    /// Read a null-terminated SeString from a specified memory address.
-    /// </summary>
-    /// <param name="memoryAddress">The memory address to read from.</param>
-    /// <returns>The read in string.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SeString ReadSeStringNullTerminated(nint memoryAddress) =>
-        SeString.Parse(MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)memoryAddress));
-
-    /// <summary>
-    /// Read an SeString from a specified memory address.
-    /// </summary>
-    /// <param name="memoryAddress">The memory address to read from.</param>
-    /// <param name="maxLength">The maximum length of the string.</param>
-    /// <returns>The read in string.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SeString ReadSeString(nint memoryAddress, int maxLength) =>
-        // Note that a valid SeString never contains a null character, other than for the sequence terminator purpose.
-        SeString.Parse(CastNullTerminated<byte>(memoryAddress, maxLength));
-
-    /// <summary>
-    /// Read an SeString from a specified Utf8String structure.
-    /// </summary>
-    /// <param name="utf8String">The memory address to read from.</param>
-    /// <returns>The read in string.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    [Obsolete("Use the extension functions from Utf8StringExtensions instead.")]
-    public static SeString ReadSeString(Utf8String* utf8String) =>
-        utf8String == null ? string.Empty : SeString.Parse(utf8String->AsSpan());
-
-    /// <summary>
-    /// Reads an SeString from a specified memory address, and extracts the outermost string.<br />
-    /// If the SeString is malformed, behavior is undefined.
-    /// </summary>
-    /// <param name="containsNonRepresentedPayload">Whether the SeString contained a non-represented payload.</param>
-    /// <param name="memoryAddress">The memory address to read from.</param>
-    /// <param name="maxLength">The maximum length of the string.</param>
-    /// <param name="stopOnFirstNonRepresentedPayload">Stop reading on encountering the first non-represented payload.
-    /// What payloads are represented via this function may change.</param>
-    /// <param name="nonRepresentedPayloadReplacement">Replacement for non-represented payloads.</param>
-    /// <returns>The read in string.</returns>
-    public static string ReadSeStringAsString(
-        out bool containsNonRepresentedPayload,
-        nint memoryAddress,
-        int maxLength = int.MaxValue,
-        bool stopOnFirstNonRepresentedPayload = false,
-        string nonRepresentedPayloadReplacement = "*")
-    {
-        var sb = StringBuilderPool.Get();
-        sb.EnsureCapacity(maxLength = CastNullTerminated<byte>(memoryAddress, maxLength).Length);
-
-        // 1 utf-8 codepoint can spill up to 2 characters.
-        Span<char> tmp = stackalloc char[2];
-
-        var pin = (byte*)memoryAddress;
-        containsNonRepresentedPayload = false;
-        while (*pin != 0 && maxLength > 0)
-        {
-            if (*pin != ReadOnlySeString.Stx)
-            {
-                var len = *pin switch
-                {
-                    < 0x80 => 1,
-                    >= 0b11000000 and <= 0b11011111 => 2,
-                    >= 0b11100000 and <= 0b11101111 => 3,
-                    >= 0b11110000 and <= 0b11110111 => 4,
-                    _ => 0,
-                };
-                if (len == 0 || len > maxLength)
-                    break;
-
-                var numChars = Encoding.UTF8.GetChars(new(pin, len), tmp);
-                sb.Append(tmp[..numChars]);
-                pin += len;
-                maxLength -= len;
-                continue;
-            }
-
-            // Start byte
-            ++pin;
-            --maxLength;
-
-            // Payload type
-            var payloadType = (MacroCode)(*pin++);
-
-            // Payload length
-            if (!ReadIntExpression(ref pin, ref maxLength, out var expressionLength))
-                break;
-            if (expressionLength > maxLength)
-                break;
-            pin += expressionLength;
-            maxLength -= unchecked((int)expressionLength);
-
-            // End byte
-            if (*pin++ != ReadOnlySeString.Etx)
-                break;
-            --maxLength;
-
-            switch (payloadType)
-            {
-                case MacroCode.NewLine:
-                    sb.AppendLine();
-                    break;
-                case MacroCode.Hyphen:
-                    sb.Append('–');
-                    break;
-                case MacroCode.SoftHyphen:
-                    sb.Append('\u00AD');
-                    break;
-                default:
-                    sb.Append(nonRepresentedPayloadReplacement);
-                    containsNonRepresentedPayload = true;
-                    if (stopOnFirstNonRepresentedPayload)
-                        maxLength = 0;
-                    break;
-            }
-        }
-
-        var res = sb.ToString();
-        StringBuilderPool.Return(sb);
-        return res;
-
-        static bool ReadIntExpression(ref byte* p, ref int maxLength, out uint value)
-        {
-            if (maxLength <= 0)
-            {
-                value = 0;
-                return false;
-            }
-
-            var typeByte = *p++;
-            --maxLength;
-
-            switch (typeByte)
-            {
-                case > 0 and < 0xD0:
-                    value = (uint)typeByte - 1;
-                    return true;
-                case >= 0xF0 and <= 0xFE:
-                    ++typeByte;
-                    value = 0u;
-                    if ((typeByte & 8) != 0)
-                    {
-                        if (maxLength <= 0 || *p == 0)
-                            return false;
-                        value |= (uint)*p++ << 24;
-                    }
-
-                    if ((typeByte & 4) != 0)
-                    {
-                        if (maxLength <= 0 || *p == 0)
-                            return false;
-                        value |= (uint)*p++ << 16;
-                    }
-
-                    if ((typeByte & 2) != 0)
-                    {
-                        if (maxLength <= 0 || *p == 0)
-                            return false;
-                        value |= (uint)*p++ << 8;
-                    }
-
-                    if ((typeByte & 1) != 0)
-                    {
-                        if (maxLength <= 0 || *p == 0)
-                            return false;
-                        value |= *p++;
-                    }
-
-                    return true;
-                default:
-                    value = 0;
-                    return false;
-            }
-        }
-    }
-
     #endregion
 
     #region ReadString(out)
@@ -570,7 +388,7 @@ public static unsafe class MemoryHelper
     /// Read a UTF-8 encoded string from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
+    /// Attention! Do not use this on SeStrings with macros.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="value">The read in string.</param>
@@ -582,7 +400,7 @@ public static unsafe class MemoryHelper
     /// Read a string with the given encoding from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
+    /// Attention! Do not use this on SeStrings with macros.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="encoding">The encoding to use to decode the string.</param>
@@ -595,7 +413,7 @@ public static unsafe class MemoryHelper
     /// Read a UTF-8 encoded string from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
+    /// Attention! Do not use this on SeStrings with macros.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="value">The read in string.</param>
@@ -608,7 +426,7 @@ public static unsafe class MemoryHelper
     /// Read a string with the given encoding from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
+    /// Attention! Do not use this on SeStrings with macros.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="encoding">The encoding to use to decode the string.</param>
@@ -617,35 +435,6 @@ public static unsafe class MemoryHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ReadString(nint memoryAddress, Encoding encoding, int maxLength, out string value)
         => value = ReadString(memoryAddress, encoding, maxLength);
-
-    /// <summary>
-    /// Read a null-terminated SeString from a specified memory address.
-    /// </summary>
-    /// <param name="memoryAddress">The memory address to read from.</param>
-    /// <param name="value">The read in SeString.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ReadSeStringNullTerminated(nint memoryAddress, out SeString value)
-        => value = ReadSeStringNullTerminated(memoryAddress);
-
-    /// <summary>
-    /// Read an SeString from a specified memory address.
-    /// </summary>
-    /// <param name="memoryAddress">The memory address to read from.</param>
-    /// <param name="maxLength">The maximum length of the string.</param>
-    /// <param name="value">The read in SeString.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ReadSeString(nint memoryAddress, int maxLength, out SeString value)
-        => value = ReadSeString(memoryAddress, maxLength);
-
-    /// <summary>
-    /// Read an SeString from a specified Utf8String structure.
-    /// </summary>
-    /// <param name="utf8String">The memory address to read from.</param>
-    /// <param name="value">The read in string.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    [Obsolete("Use the extension functions from Utf8StringExtensions instead.")]
-    public static unsafe void ReadSeString(Utf8String* utf8String, out SeString value)
-        => value = ReadSeString(utf8String);
 
     #endregion
 
@@ -720,9 +509,6 @@ public static unsafe class MemoryHelper
     /// <summary>
     /// Write a UTF-8 encoded string to a specified memory address.
     /// </summary>
-    /// <remarks>
-    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
-    /// </remarks>
     /// <param name="memoryAddress">The memory address to write to.</param>
     /// <param name="value">The string to write.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -732,9 +518,6 @@ public static unsafe class MemoryHelper
     /// <summary>
     /// Write a string with the given encoding to a specified memory address.
     /// </summary>
-    /// <remarks>
-    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
-    /// </remarks>
     /// <param name="memoryAddress">The memory address to write to.</param>
     /// <param name="value">The string to write.</param>
     /// <param name="encoding">The encoding to use.</param>
@@ -744,20 +527,6 @@ public static unsafe class MemoryHelper
         if (value is not null)
             ptr = encoding.GetBytes(value, Cast<byte>(memoryAddress, encoding.GetMaxByteCount(value.Length)));
         encoding.GetBytes("\0", Cast<byte>(memoryAddress + ptr, 4));
-    }
-
-    /// <summary>
-    /// Write an SeString to a specified memory address.
-    /// </summary>
-    /// <param name="memoryAddress">The memory address to write to.</param>
-    /// <param name="value">The SeString to write.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteSeString(nint memoryAddress, SeString? value)
-    {
-        if (value is null)
-            return;
-
-        WriteRaw(memoryAddress, value.Encode());
     }
 
     #endregion
