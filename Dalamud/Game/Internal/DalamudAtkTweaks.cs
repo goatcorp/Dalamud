@@ -81,8 +81,6 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
     /// <summary>Finalizes an instance of the <see cref="DalamudAtkTweaks"/> class.</summary>
     ~DalamudAtkTweaks() => this.Dispose(false);
 
-    private delegate void AgentHudOpenSystemMenuPrototype(AgentHUD* thisPtr, AtkValue* atkValueArgs, uint menuSize);
-
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService() => this.Dispose(true);
 
