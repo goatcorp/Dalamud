@@ -104,11 +104,12 @@ internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, 
         get;
         set
         {
-            if (!field.Encode().SequenceEqual(value.Encode()))
-            {
-                field = value;
+            var newValue = value ?? new SeString();
+
+            if (field == null || !field.Encode().SequenceEqual(newValue.Encode()))
                 this.SenderModified = true;
-            }
+
+            field = newValue;
         }
     } = sender;
 
@@ -118,11 +119,12 @@ internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, 
         get;
         set
         {
-            if (!field.Encode().SequenceEqual(value.Encode()))
-            {
-                field = value;
+            var newValue = value ?? new SeString();
+
+            if (field == null || !field.Encode().SequenceEqual(newValue.Encode()))
                 this.MessageModified = true;
-            }
+
+            field = newValue;
         }
     } = message;
 
