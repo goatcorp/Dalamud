@@ -380,8 +380,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             var sourceKind = (XivChatRelationKind)((logInfo >> 11) & 0xF);
             var targetKind = (XivChatRelationKind)((logInfo >> 7) & 0xF);
 
-            var lSender = sender->AsReadOnlySeString();
-            var lMessage = message->AsReadOnlySeString();
+            var lSender = sender->AsDalamudSeString();
+            var lMessage = message->AsDalamudSeString();
 
             var chatMessage = new ChatMessage(logKind, sourceKind, targetKind, lSender, lMessage, timestamp);
 
@@ -415,18 +415,18 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             }
 
             // Check for modifications
-            if (lSender != chatMessage.Sender)
+            if (chatMessage.SenderModified)
             {
-                Log.Verbose($"HandlePrintMessageDetour Sender modified: {lSender.ToMacroString()} -> {chatMessage.Sender.ToMacroString()}");
-                using var rssb = new RentedSeStringBuilder();
-                sender->SetString(rssb.Builder.Append(chatMessage.Sender).GetViewAsSpan());
+                var encoded = chatMessage.Sender.EncodeWithNullTerminator();
+                Log.Verbose($"HandlePrintMessageDetour Sender modified: {sender->AsReadOnlySeStringSpan().ToMacroString()} -> {new ReadOnlySeStringSpan(encoded).ToMacroString()}");
+                sender->SetString(encoded);
             }
 
-            if (lMessage != chatMessage.Message)
+            if (chatMessage.MessageModified)
             {
-                Log.Verbose($"HandlePrintMessageDetour Message modified: {lSender.ToMacroString()} -> {chatMessage.Message.ToMacroString()}");
-                using var rssb = new RentedSeStringBuilder();
-                message->SetString(rssb.Builder.Append(chatMessage.Message).GetViewAsSpan());
+                var encoded = chatMessage.Message.EncodeWithNullTerminator();
+                Log.Verbose($"HandlePrintMessageDetour Message modified: {message->AsReadOnlySeStringSpan().ToMacroString()} -> {new ReadOnlySeStringSpan(encoded).ToMacroString()}");
+                message->SetString(encoded);
             }
 
             // If not handled by a plugin, let the game handle it (prints it to chat)

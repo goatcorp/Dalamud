@@ -1,8 +1,10 @@
 using Dalamud.Game.Text;
-
-using Lumina.Text.ReadOnly;
+using Dalamud.Game.Text.SeStringHandling;
 
 namespace Dalamud.Game.Chat;
+
+#pragma warning disable SA1500 // Braces for multi-line statements should not share line
+#pragma warning disable SA1513 // Closing brace should be followed by blank line
 
 /// <summary>
 /// Interface representing a chat message.
@@ -32,12 +34,12 @@ public interface IChatMessage : IEquatable<IChatMessage>
     /// <summary>
     /// Gets the sender name.
     /// </summary>
-    ReadOnlySeString Sender { get; }
+    SeString Sender { get; }
 
     /// <summary>
     /// Gets the message sent.
     /// </summary>
-    ReadOnlySeString Message { get; }
+    SeString Message { get; }
 
     /// <summary>
     /// Gets a value indicating whether the message was handled by a plugin.
@@ -53,12 +55,12 @@ public interface IModifyableChatMessage : IChatMessage
     /// <summary>
     /// Gets or sets the sender name.
     /// </summary>
-    new ReadOnlySeString Sender { get; set; }
+    new SeString Sender { get; set; }
 
     /// <summary>
     /// Gets or sets the message sent.
     /// </summary>
-    new ReadOnlySeString Message { get; set; }
+    new SeString Message { get; set; }
 }
 
 /// <summary>
@@ -75,7 +77,7 @@ public interface IHandleableChatMessage : IModifyableChatMessage
 /// <summary>
 /// This struct represents an intercepted chat message.
 /// </summary>
-internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, ReadOnlySeString parsedSender, ReadOnlySeString parsedMessage, int timestamp) : IHandleableChatMessage
+internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, XivChatRelationKind targetKind, SeString sender, SeString message, int timestamp) : IHandleableChatMessage
 {
     /// <inheritdoc />
     public XivChatType LogKind { get; } = logKind;
@@ -87,16 +89,48 @@ internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, 
     public XivChatRelationKind TargetKind { get; } = targetKind;
 
     /// <inheritdoc />
-    public ReadOnlySeString Sender { get; set; } = parsedSender;
+    public SeString Sender
+    {
+        get;
+        set
+        {
+            if (!field.Encode().SequenceEqual(value.Encode()))
+            {
+                field = value;
+                this.SenderModified = true;
+            }
+        }
+    } = sender;
 
     /// <inheritdoc />
-    public ReadOnlySeString Message { get; set; } = parsedMessage;
+    public SeString Message
+    {
+        get;
+        set
+        {
+            if (!field.Encode().SequenceEqual(value.Encode()))
+            {
+                field = value;
+                this.MessageModified = true;
+            }
+        }
+    } = message;
 
     /// <inheritdoc />
     public int Timestamp { get; } = timestamp;
 
     /// <inheritdoc />
     public bool IsHandled { get; private set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether <see cref="Sender"/> was set/modified.
+    /// </summary>
+    internal bool SenderModified { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether <see cref="Message"/> was set/modified.
+    /// </summary>
+    internal bool MessageModified { get; set; }
 
     /// <inheritdoc />
     public void PreventDefault() => this.IsHandled = true;
