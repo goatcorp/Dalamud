@@ -42,6 +42,16 @@ public interface IChatMessage : IEquatable<IChatMessage>
     SeString Message { get; }
 
     /// <summary>
+    /// Gets a value indicating whether <see cref="Sender"/> was modified by a plugin.
+    /// </summary>
+    bool SenderModified { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether <see cref="Message"/> was modified by a plugin.
+    /// </summary>
+    bool MessageModified { get; }
+
+    /// <summary>
     /// Gets a value indicating whether the message was handled by a plugin.
     /// </summary>
     bool IsHandled { get; }
@@ -117,20 +127,16 @@ internal class ChatMessage(XivChatType logKind, XivChatRelationKind sourceKind, 
     } = message;
 
     /// <inheritdoc />
+    public bool SenderModified { get; private set; }
+
+    /// <inheritdoc />
+    public bool MessageModified { get; private set; }
+
+    /// <inheritdoc />
     public int Timestamp { get; } = timestamp;
 
     /// <inheritdoc />
     public bool IsHandled { get; private set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether <see cref="Sender"/> was set/modified.
-    /// </summary>
-    internal bool SenderModified { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether <see cref="Message"/> was set/modified.
-    /// </summary>
-    internal bool MessageModified { get; set; }
 
     /// <inheritdoc />
     public void PreventOriginal() => this.IsHandled = true;
