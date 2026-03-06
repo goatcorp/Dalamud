@@ -8,7 +8,7 @@ using Dalamud.Plugin.SelfTest;
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
-/// Test setup AddonLifecycle Service.
+/// Test setup AgentLifecycle Service.
 /// </summary>
 internal class AgentLifecycleSelfTestStep : ISelfTestStep
 {
