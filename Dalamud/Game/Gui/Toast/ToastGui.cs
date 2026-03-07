@@ -7,8 +7,11 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
+
+using InteropGenerator.Runtime;
 
 using Serilog;
 
@@ -26,9 +29,9 @@ internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
     private readonly Queue<(byte[] Message, QuestToastOptions Options)> questQueue = new();
     private readonly Queue<byte[]> errorQueue = new();
 
-    private readonly Hook<ShowNormalToastDelegate> showNormalToastHook;
-    private readonly Hook<ShowQuestToastDelegate> showQuestToastHook;
-    private readonly Hook<ShowErrorToastDelegate> showErrorToastHook;
+    private readonly Hook<UIModule.Delegates.ShowWideText> showNormalToastHook;
+    private readonly Hook<UIModule.Delegates.ShowText> showQuestToastHook;
+    private readonly Hook<UIModule.Delegates.ShowErrorText> showErrorToastHook;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ToastGui"/> class.
@@ -36,24 +39,14 @@ internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
     [ServiceManager.ServiceConstructor]
     private unsafe ToastGui()
     {
-        this.showNormalToastHook = Hook<ShowNormalToastDelegate>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ShowWideText, this.HandleNormalToastDetour);
-        this.showQuestToastHook = Hook<ShowQuestToastDelegate>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ShowText, this.HandleQuestToastDetour);
-        this.showErrorToastHook = Hook<ShowErrorToastDelegate>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ShowErrorText, this.HandleErrorToastDetour);
+        this.showNormalToastHook = Hook<UIModule.Delegates.ShowWideText>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ShowWideText, this.HandleNormalToastDetour);
+        this.showQuestToastHook = Hook<UIModule.Delegates.ShowText>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ShowText, this.HandleQuestToastDetour);
+        this.showErrorToastHook = Hook<UIModule.Delegates.ShowErrorText>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ShowErrorText, this.HandleErrorToastDetour);
 
         this.showNormalToastHook.Enable();
         this.showQuestToastHook.Enable();
         this.showErrorToastHook.Enable();
     }
-
-    #region Marshal delegates
-
-    private unsafe delegate void ShowNormalToastDelegate(UIModule* thisPtr, byte* text, int layer, byte isTop, byte isFast, uint logMessageId);
-
-    private unsafe delegate void ShowQuestToastDelegate(UIModule* thisPtr, int position, byte* text, uint iconOrCheck1, byte playSound, uint iconOrCheck2, byte alsoPlaySound);
-
-    private unsafe delegate void ShowErrorToastDelegate(UIModule* thisPtr, byte* text, byte respectsHidingMaybe);
-
-    #endregion
 
     #region Events
 
@@ -132,24 +125,24 @@ internal sealed partial class ToastGui
                 UIModule.Instance(),
                 ptr,
                 5,
-                (byte)options.Position,
-                (byte)options.Speed,
+                options.Position == ToastPosition.Top,
+                options.Speed == ToastSpeed.Fast,
                 0);
         }
     }
 
-    private unsafe void HandleNormalToastDetour(UIModule* thisPtr, byte* text, int layer, byte isTop, byte isFast, uint logMessageId)
+    private unsafe void HandleNormalToastDetour(UIModule* thisPtr, CStringPointer text, int layer, bool isTop, bool isFast, uint logMessageId)
     {
         if (text == null)
             return;
 
         // call events
         var isHandled = false;
-        var str = MemoryHelper.ReadSeStringNullTerminated((nint)text);
+        var str = text.AsDalamudSeString();
         var options = new ToastOptions
         {
-            Position = (ToastPosition)isTop,
-            Speed = (ToastSpeed)isFast,
+            Position = isTop ? ToastPosition.Top : ToastPosition.Bottom,
+            Speed = isFast ? ToastSpeed.Fast : ToastSpeed.Slow,
         };
 
         foreach (var d in Delegate.EnumerateInvocationList(this.Toast))
@@ -174,8 +167,8 @@ internal sealed partial class ToastGui
                 thisPtr,
                 ptr,
                 layer,
-                (byte)(options.Position == ToastPosition.Top ? 1 : 0),
-                (byte)(options.Speed == ToastSpeed.Fast ? 1 : 0),
+                options.Position == ToastPosition.Top,
+                options.Speed == ToastSpeed.Fast,
                 logMessageId);
         }
     }
@@ -213,26 +206,26 @@ internal sealed partial class ToastGui
                 (int)options.Position,
                 ptr,
                 ioc1,
-                (byte)(options.PlaySound ? 1 : 0),
+                options.PlaySound,
                 ioc2,
-                0);
+                false);
         }
     }
 
-    private unsafe void HandleQuestToastDetour(UIModule* thisPtr, int position, byte* text, uint iconOrCheck1, byte playSound, uint iconOrCheck2, byte alsoPlaySound)
+    private unsafe void HandleQuestToastDetour(UIModule* thisPtr, int position, CStringPointer text, uint iconOrCheck1, bool playSound, uint iconOrCheck2, bool alsoPlaySound)
     {
         if (text == null)
             return;
 
         // call events
         var isHandled = false;
-        var str = SeString.Parse(text);
+        var str = text.AsDalamudSeString();
         var options = new QuestToastOptions
         {
             Position = (QuestToastPosition)position,
             DisplayCheckmark = iconOrCheck1 == QuestToastCheckmarkMagic,
             IconId = iconOrCheck1 == QuestToastCheckmarkMagic ? iconOrCheck2 : iconOrCheck1,
-            PlaySound = playSound == 1,
+            PlaySound = playSound,
         };
 
         foreach (var d in Delegate.EnumerateInvocationList(this.QuestToast))
@@ -260,9 +253,9 @@ internal sealed partial class ToastGui
                 (int)options.Position,
                 ptr,
                 ioc1,
-                (byte)(options.PlaySound ? 1 : 0),
+                options.PlaySound,
                 ioc2,
-                0);
+                false);
         }
     }
 
@@ -295,18 +288,18 @@ internal sealed partial class ToastGui
     {
         fixed (byte* ptr = bytes.NullTerminate())
         {
-            this.HandleErrorToastDetour(UIModule.Instance(), ptr, 0);
+            this.HandleErrorToastDetour(UIModule.Instance(), ptr, false);
         }
     }
 
-    private unsafe void HandleErrorToastDetour(UIModule* thisPtr, byte* text, byte respectsHidingMaybe)
+    private unsafe void HandleErrorToastDetour(UIModule* thisPtr, CStringPointer text, bool forceVisible)
     {
         if (text == null)
             return;
 
         // call events
         var isHandled = false;
-        var str = SeString.Parse(text);
+        var str = text.AsDalamudSeString();
 
         foreach (var d in Delegate.EnumerateInvocationList(this.ErrorToast))
         {
@@ -326,7 +319,7 @@ internal sealed partial class ToastGui
 
         fixed (byte* ptr = str.EncodeWithNullTerminator())
         {
-            this.showErrorToastHook.Original(thisPtr, ptr, respectsHidingMaybe);
+            this.showErrorToastHook.Original(thisPtr, ptr, forceVisible);
         }
     }
 }

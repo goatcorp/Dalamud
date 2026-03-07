@@ -82,10 +82,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.framework.RunOnTick(this.Setup);
     }
 
-    private unsafe delegate void ProcessPacketPlayerSetupDelegate(nint a1, nint packet);
-
-    private unsafe delegate void HandleZoneInitPacketDelegate(nint a1, uint localPlayerEntityId, nint packet, byte type);
-
     private unsafe delegate void SetCurrentInstanceDelegate(NetworkModuleProxy* thisPtr, short instanceId);
 
     /// <inheritdoc/>

@@ -173,18 +173,8 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         this.cfPopHook.Enable();
     }
 
-    private delegate nint MarketBoardPurchasePacketHandler(nint a1, nint packetRef);
-
-    private delegate nint MarketBoardHistoryPacketHandler(nint self, nint packetData, uint a3, char a4);
-
     private delegate void CustomTalkReceiveResponse(
         nuint a1, ushort eventId, byte responseId, uint* args, byte argCount);
-
-    private delegate nint MarketBoardItemRequestStartPacketHandler(nint a1, nint packetRef);
-
-    private delegate byte InfoProxyItemSearchAddPage(nint self, nint packetRef);
-
-    private delegate byte MarketBoardSendPurchaseRequestPacket(InfoProxyItemSearch* infoProxy);
 
     /// <summary>
     /// Event which gets fired when a duty is ready.
