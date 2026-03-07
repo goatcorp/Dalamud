@@ -20,17 +20,22 @@ public class HookVerificationException : Exception
     /// <param name="enforced">The delegate we think is correct.</param>
     /// <param name="message">Additional context to show to the user.</param>
     /// <returns>The created exception.</returns>
-    internal static HookVerificationException Create(IntPtr address, Type passed, Type enforced, string message)
+    internal static HookVerificationException Create(IntPtr address, Type passed, string enforced, string message)
     {
         return new HookVerificationException(
             $"Hook verification failed for address 0x{address.ToInt64():X}\n\n" +
             $"Why:               {message}\n" +
             $"Passed Delegate:   {GetSignature(passed)}\n" +
-            $"Correct Delegate:  {GetSignature(enforced)}\n\n" +
+            $"Correct Delegate:  {enforced}\n\n" +
             "The hook delegate must exactly match the provided signature to prevent memory corruption and wrong data passed to originals.");
     }
 
-    private static string GetSignature(Type delegateType)
+    /// <summary>
+    /// Formats a delegate type to have return type and parameters as a string.
+    /// </summary>
+    /// <param name="delegateType">The delegate to format a string with.</param>
+    /// <returns>Formated delegate string.</returns>
+    internal static string GetSignature(Type delegateType)
     {
         var method = delegateType.GetMethod("Invoke");
         if (method == null) return delegateType.Name;
