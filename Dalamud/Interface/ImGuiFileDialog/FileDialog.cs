@@ -97,6 +97,9 @@ public partial class FileDialog
         this.SetupSideBar();
     }
 
+    /// <summary>
+    /// An event fired when the selection changed.
+    /// </summary>
     public event EventHandler<string>? SelectionChanged;
 
     /// <summary>
