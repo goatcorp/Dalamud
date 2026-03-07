@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Linq;
 
 namespace Dalamud.Hooking.Internal.Verification;
@@ -23,7 +24,7 @@ public class HookVerificationException : Exception
     internal static HookVerificationException Create(IntPtr address, Type passed, string enforced, string message)
     {
         return new HookVerificationException(
-            $"Hook verification failed for address 0x{address.ToInt64():X}\n\n" +
+            $"Hook verification failed for address 0x{address.ToInt64():X} (relative base: {address - Process.GetCurrentProcess().MainModule!.BaseAddress:X})\n\n" +
             $"Why:               {message}\n" +
             $"Passed Delegate:   {GetSignature(passed)}\n" +
             $"Correct Delegate:  {enforced}\n\n" +
