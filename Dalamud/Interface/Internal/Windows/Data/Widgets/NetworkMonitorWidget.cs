@@ -139,7 +139,7 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
 
         foreach (var packet in this.packets)
         {
-            if (!this.filterRecording && !this.IsFiltered(packet.OpCode))
+            if (!this.filterRecording && !IsFiltered(this.filterString, packet.OpCode))
                 continue;
 
             ImGui.TableNextColumn();
@@ -200,55 +200,15 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
         }
     }
 
-    private static string GetTargetName(uint targetId)
+    /// <summary>
+    /// Determines whether a given opcode passes the filter criteria.
+    /// </summary>
+    /// <param name="filterString">The comma-separated filter string (e.g. "-400,!50-100,650,700-980,!941").</param>
+    /// <param name="opcode">The opcode to test.</param>
+    /// <returns>True if the opcode passes the filter (should be shown/recorded); false otherwise.</returns>
+    internal static bool IsFiltered(string filterString, ushort opcode)
     {
-        if (targetId == PlayerState.Instance()->EntityId)
-            return "Local Player";
-
-        var cachedName = NameCache.Instance()->GetNameByEntityId(targetId);
-        if (cachedName.HasValue)
-            return cachedName.ToString();
-
-        var obj = GameObjectManager.Instance()->Objects.GetObjectByEntityId(targetId);
-        if (obj != null)
-            return obj->NameString;
-
-        return string.Empty;
-    }
-
-    private void OnReceivePacketDetour(PacketDispatcher* thisPtr, uint targetId, nint packet)
-    {
-        var opCode = *(ushort*)(packet + 2);
-        var targetName = GetTargetName(targetId);
-        this.RecordPacket(new NetworkPacketData(Interlocked.Increment(ref this.nextPacketIndex), DateTime.Now, opCode, NetworkMessageDirection.ZoneDown, targetId, targetName));
-        this.hookZoneDown.OriginalDisposeSafe(thisPtr, targetId, packet);
-    }
-
-    private bool SendPacketDetour(ZoneClient* thisPtr, nint packet, uint a3, uint a4, bool a5)
-    {
-        var opCode = *(ushort*)packet;
-        this.RecordPacket(new NetworkPacketData(Interlocked.Increment(ref this.nextPacketIndex), DateTime.Now, opCode, NetworkMessageDirection.ZoneUp, 0, string.Empty));
-        return this.hookZoneUp.OriginalDisposeSafe(thisPtr, packet, a3, a4, a5);
-    }
-
-    private void RecordPacket(NetworkPacketData packet)
-    {
-        if (this.filterRecording && !this.IsFiltered(packet.OpCode))
-            return;
-
-        this.packets.Enqueue(packet);
-
-        while (this.packets.Count > this.trackedPackets)
-        {
-            this.packets.TryDequeue(out _);
-        }
-
-        this.autoScrollPending = true;
-    }
-
-    private bool IsFiltered(ushort opcode)
-    {
-        var filterString = this.filterString.Replace(" ", string.Empty);
+        filterString = filterString.Replace(" ", string.Empty);
 
         if (filterString.Length == 0)
             return true;
@@ -302,6 +262,52 @@ internal unsafe class NetworkMonitorWidget : IDataWindowWidget
             Serilog.Log.Error(ex, "Invalid filter string");
             return false;
         }
+    }
+
+    private static string GetTargetName(uint targetId)
+    {
+        if (targetId == PlayerState.Instance()->EntityId)
+            return "Local Player";
+
+        var cachedName = NameCache.Instance()->GetNameByEntityId(targetId);
+        if (cachedName.HasValue)
+            return cachedName.ToString();
+
+        var obj = GameObjectManager.Instance()->Objects.GetObjectByEntityId(targetId);
+        if (obj != null)
+            return obj->NameString;
+
+        return string.Empty;
+    }
+
+    private void OnReceivePacketDetour(PacketDispatcher* thisPtr, uint targetId, nint packet)
+    {
+        var opCode = *(ushort*)(packet + 2);
+        var targetName = GetTargetName(targetId);
+        this.RecordPacket(new NetworkPacketData(Interlocked.Increment(ref this.nextPacketIndex), DateTime.Now, opCode, NetworkMessageDirection.ZoneDown, targetId, targetName));
+        this.hookZoneDown.OriginalDisposeSafe(thisPtr, targetId, packet);
+    }
+
+    private bool SendPacketDetour(ZoneClient* thisPtr, nint packet, uint a3, uint a4, bool a5)
+    {
+        var opCode = *(ushort*)packet;
+        this.RecordPacket(new NetworkPacketData(Interlocked.Increment(ref this.nextPacketIndex), DateTime.Now, opCode, NetworkMessageDirection.ZoneUp, 0, string.Empty));
+        return this.hookZoneUp.OriginalDisposeSafe(thisPtr, packet, a3, a4, a5);
+    }
+
+    private void RecordPacket(NetworkPacketData packet)
+    {
+        if (this.filterRecording && !IsFiltered(this.filterString, packet.OpCode))
+            return;
+
+        this.packets.Enqueue(packet);
+
+        while (this.packets.Count > this.trackedPackets)
+        {
+            this.packets.TryDequeue(out _);
+        }
+
+        this.autoScrollPending = true;
     }
 
 #pragma warning disable SA1313
