@@ -418,6 +418,18 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     #endregion
 
     /// <inheritdoc/>
+    public async Task<PluginUpdate?> CheckForUpdateAsync()
+    {
+        var pm = Service<PluginManager>.Get();
+        await pm.WaitForReposAsync();
+
+        var update = pm.UpdatablePlugins.FirstOrDefault(x =>
+                                                            x.UpdateManifest.SourceRepo.PluginMasterUrl == this.SourceRepository &&
+                                                            x.UpdateManifest.InternalName == this.plugin.InternalName);
+        return update == null ? null : new PluginUpdate(update.EffectiveVersion, update.UseTesting, update.UpdateManifest.Changelog);
+    }
+
+    /// <inheritdoc/>
     public void Dispose()
     {
         Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
