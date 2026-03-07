@@ -31,7 +31,7 @@ internal unsafe class AgentVirtualTable : IDisposable
 
     // Each agent gets its own set of args that are used to mutate the original call when used in pre-calls
     private readonly AgentReceiveEventArgs receiveEventArgs = new();
-    private readonly AgentReceiveEventArgs filteredReceiveEventArgs = new();
+    private readonly AgentReceiveEventArgs receiveEventWithResultArgs = new();
     private readonly AgentArgs showArgs = new();
     private readonly AgentArgs hideArgs = new();
     private readonly AgentArgs updateArgs = new();
@@ -117,12 +117,13 @@ internal unsafe class AgentVirtualTable : IDisposable
 
     private AtkValue* OnAgentReceiveEvent(AgentInterface* thisPtr, AtkValue* returnValue, AtkValue* values, uint valueCount, ulong eventKind)
     {
-        AtkValue* result = null;
+        var result = returnValue;
 
         try
         {
             this.LogEvent(EnableLogging);
 
+            this.receiveEventArgs.PreventOriginalRequested = false;
             this.receiveEventArgs.Agent = thisPtr;
             this.receiveEventArgs.AgentId = this.agentId;
             this.receiveEventArgs.ReturnValue = (nint)returnValue;
@@ -139,7 +140,14 @@ internal unsafe class AgentVirtualTable : IDisposable
 
             try
             {
-                result = this.OriginalVirtualTable->ReceiveEvent(thisPtr, returnValue, values, valueCount, eventKind);
+                if (!this.receiveEventArgs.PreventOriginalRequested)
+                {
+                    result = this.OriginalVirtualTable->ReceiveEvent(thisPtr, returnValue, values, valueCount, eventKind);
+                }
+                else
+                {
+                    result->SetBool(false);
+                }
             }
             catch (Exception e)
             {
@@ -158,36 +166,44 @@ internal unsafe class AgentVirtualTable : IDisposable
 
     private AtkValue* OnAgentReceiveEventWithResult(AgentInterface* thisPtr, AtkValue* returnValue, AtkValue* values, uint valueCount, ulong eventKind)
     {
-        AtkValue* result = null;
+        var result = returnValue;
 
         try
         {
             this.LogEvent(EnableLogging);
 
-            this.filteredReceiveEventArgs.Agent = thisPtr;
-            this.filteredReceiveEventArgs.AgentId = this.agentId;
-            this.filteredReceiveEventArgs.ReturnValue = (nint)returnValue;
-            this.filteredReceiveEventArgs.AtkValues = (nint)values;
-            this.filteredReceiveEventArgs.ValueCount = valueCount;
-            this.filteredReceiveEventArgs.EventKind = eventKind;
+            this.receiveEventWithResultArgs.PreventOriginalRequested = false;
+            this.receiveEventWithResultArgs.Agent = thisPtr;
+            this.receiveEventWithResultArgs.AgentId = this.agentId;
+            this.receiveEventWithResultArgs.ReturnValue = (nint)returnValue;
+            this.receiveEventWithResultArgs.AtkValues = (nint)values;
+            this.receiveEventWithResultArgs.ValueCount = valueCount;
+            this.receiveEventWithResultArgs.EventKind = eventKind;
 
-            this.lifecycleService.InvokeListenersSafely(AgentEvent.PreReceiveEventWithResult, this.filteredReceiveEventArgs);
+            this.lifecycleService.InvokeListenersSafely(AgentEvent.PreReceiveEventWithResult, this.receiveEventWithResultArgs);
 
-            returnValue = (AtkValue*)this.filteredReceiveEventArgs.ReturnValue;
-            values = (AtkValue*)this.filteredReceiveEventArgs.AtkValues;
-            valueCount = this.filteredReceiveEventArgs.ValueCount;
-            eventKind = this.filteredReceiveEventArgs.EventKind;
+            returnValue = (AtkValue*)this.receiveEventWithResultArgs.ReturnValue;
+            values = (AtkValue*)this.receiveEventWithResultArgs.AtkValues;
+            valueCount = this.receiveEventWithResultArgs.ValueCount;
+            eventKind = this.receiveEventWithResultArgs.EventKind;
 
             try
             {
-                result = this.OriginalVirtualTable->ReceiveEventWithResult(thisPtr, returnValue, values, valueCount, eventKind);
+                if (!this.receiveEventWithResultArgs.PreventOriginalRequested)
+                {
+                    result = this.OriginalVirtualTable->ReceiveEventWithResult(thisPtr, returnValue, values, valueCount, eventKind);
+                }
+                else
+                {
+                    result->SetBool(false);
+                }
             }
             catch (Exception e)
             {
                 Log.Error(e, "Caught exception when calling original Agent FilteredReceiveEvent. This may be a bug in the game or another plugin hooking this method.");
             }
 
-            this.lifecycleService.InvokeListenersSafely(AgentEvent.PostReceiveEventWithResult, this.filteredReceiveEventArgs);
+            this.lifecycleService.InvokeListenersSafely(AgentEvent.PostReceiveEventWithResult, this.receiveEventWithResultArgs);
         }
         catch (Exception e)
         {
@@ -203,6 +219,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.showArgs.PreventOriginalRequested = false;
             this.showArgs.Agent = thisPtr;
             this.showArgs.AgentId = this.agentId;
 
@@ -210,7 +227,10 @@ internal unsafe class AgentVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Show(thisPtr);
+                if (!this.showArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Show(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -231,6 +251,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.hideArgs.PreventOriginalRequested = false;
             this.hideArgs.Agent = thisPtr;
             this.hideArgs.AgentId = this.agentId;
 
@@ -238,7 +259,10 @@ internal unsafe class AgentVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Hide(thisPtr);
+                if (!this.hideArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Hide(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -259,6 +283,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.updateArgs.PreventOriginalRequested = false;
             this.updateArgs.Agent = thisPtr;
             this.updateArgs.AgentId = this.agentId;
 
@@ -266,7 +291,10 @@ internal unsafe class AgentVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Update(thisPtr, frameCount);
+                if (!this.updateArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Update(thisPtr, frameCount);
+                }
             }
             catch (Exception e)
             {
@@ -287,6 +315,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.gameEventArgs.PreventOriginalRequested = false;
             this.gameEventArgs.Agent = thisPtr;
             this.gameEventArgs.AgentId = this.agentId;
             this.gameEventArgs.GameEvent = (int)gameEvent;
@@ -297,7 +326,10 @@ internal unsafe class AgentVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->OnGameEvent(thisPtr, gameEvent);
+                if (!this.gameEventArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnGameEvent(thisPtr, gameEvent);
+                }
             }
             catch (Exception e)
             {
@@ -318,6 +350,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.levelChangeArgs.PreventOriginalRequested = false;
             this.levelChangeArgs.Agent = thisPtr;
             this.levelChangeArgs.AgentId = this.agentId;
             this.levelChangeArgs.ClassJobId = classJobId;
@@ -330,7 +363,10 @@ internal unsafe class AgentVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->OnLevelChange(thisPtr, classJobId, level);
+                if (!this.levelChangeArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnLevelChange(thisPtr, classJobId, level);
+                }
             }
             catch (Exception e)
             {
@@ -351,6 +387,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.classJobChangeArgs.PreventOriginalRequested = false;
             this.classJobChangeArgs.Agent = thisPtr;
             this.classJobChangeArgs.AgentId = this.agentId;
             this.classJobChangeArgs.ClassJobId = classJobId;
@@ -361,7 +398,10 @@ internal unsafe class AgentVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->OnClassJobChange(thisPtr, classJobId);
+                if (!this.classJobChangeArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnClassJobChange(thisPtr, classJobId);
+                }
             }
             catch (Exception e)
             {

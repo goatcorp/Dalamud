@@ -111,6 +111,9 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     public bool IsTesting { get; }
 
     /// <inheritdoc/>
+    public bool IsInProfile => !this.plugin.IsInDefaultProfile;
+
+    /// <inheritdoc/>
     public DateTime LoadTime { get; }
 
     /// <inheritdoc/>

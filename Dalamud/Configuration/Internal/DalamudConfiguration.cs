@@ -330,6 +330,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool ProfilesHasSeenTutorial { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets a value indicating whether the user has enabled character-specific profiles.
+    /// </summary>
+    public bool ProfilesEnableCharacters { get; set; } = false;
+
+    /// <summary>
     /// Gets or sets the default UI preset.
     /// </summary>
     public PresetModel DefaultUiPreset { get; set; } = new();

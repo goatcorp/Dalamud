@@ -35,6 +35,7 @@ internal class DalamudSelfTest : IServiceType
             new LuminaSelfTestStep<Lumina.Excel.Sheets.Action>(true),
             new LuminaSelfTestStep<Quest>(true),
             new LuminaSelfTestStep<TerritoryType>(false),
+            new AgentLifecycleSelfTestStep(),
             new AddonLifecycleSelfTestStep(),
             new PartyFinderSelfTestStep(),
             new HandledExceptionSelfTestStep(),
