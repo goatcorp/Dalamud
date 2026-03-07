@@ -1,4 +1,11 @@
-﻿namespace Dalamud.Game.Agent.AgentArgTypes;
+﻿using System.Collections.Generic;
+
+using Dalamud.Game.NativeWrapper;
+
+using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.Interop;
+
+namespace Dalamud.Game.Agent.AgentArgTypes;
 
 /// <summary>
 /// Agent argument data for ReceiveEvent events.
@@ -34,4 +41,32 @@ public class AgentReceiveEventArgs : AgentArgs
     /// Gets or sets the event kind for this event message.
     /// </summary>
     public ulong EventKind { get; set; }
+
+    /// <summary>
+    /// Gets an enumerable collection of <see cref="AtkValuePtr"/> of the event's AtkValues.
+    /// </summary>
+    /// <returns>
+    /// An <see cref="IEnumerable{T}"/> of <see cref="AtkValuePtr"/> corresponding to the event's AtkValues.
+    /// </returns>
+    public IEnumerable<AtkValuePtr> AtkValueEnumerable
+    {
+        get
+        {
+            for (var i = 0; i < this.ValueCount; i++)
+            {
+                AtkValuePtr ptr;
+                unsafe
+                {
+                    ptr = new AtkValuePtr((nint)this.AtkValueSpan.GetPointer(i));
+                }
+
+                yield return ptr;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the AtkValues in the form of a span.
+    /// </summary>
+    internal unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.ValueCount);
 }
