@@ -5,8 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Logging.Internal;
 
@@ -22,7 +22,7 @@ namespace Dalamud.Hooking.Internal.Verification;
 /// Initialized out-of-band, since Hook is instantiated all over the place without a service, so this cannot be
 /// a service either.
 /// </summary>
-internal static class HookVerifier
+internal static partial class HookVerifier
 {
     private static readonly ModuleLog Log = new("HookVerifier");
 
@@ -32,6 +32,9 @@ internal static class HookVerifier
     private static readonly VerificationEntry[] ToVerify = [];
 
     private static readonly string ClientStructsInteropNamespacePrefix = string.Join(".", nameof(FFXIVClientStructs), nameof(FFXIVClientStructs.Interop));
+
+    [GeneratedRegex($@"^{nameof(FFXIVClientStructs)}\.({nameof(FFXIVClientStructs.FFXIV)}|{nameof(FFXIVClientStructs.Havok)}|{nameof(FFXIVClientStructs.Interop)}|{nameof(FFXIVClientStructs.STD)})\.", RegexOptions.Singleline)]
+    private static partial Regex ClientStructsNamespaceTrim();
 
     private static FrozenDictionary<nint, VerificationEntry> allToVerify;
 
@@ -49,10 +52,12 @@ internal static class HookVerifier
         foreach (var csType in csTypes)
         {
             var methods = csType.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public);
+            var fullName = ClientStructsNamespaceTrim().Replace(csType.FullName!, string.Empty).Replace(".", "::");
 
             foreach (var method in methods)
             {
                 if (method.GetCustomAttribute<ObsoleteAttribute>() is { }) continue;
+                var name = fullName + "." + method.Name;
                 if (method.GetCustomAttribute<MemberFunctionAttribute>() is { } memberFunctionAttribute)
                 {
                     var delegateType = csAssembly.GetType(csType.FullName + "+Delegates");
@@ -61,21 +66,21 @@ internal static class HookVerifier
                         var delegateMember = delegateType.GetMember(method.Name);
                         if (delegateMember.Length != 0)
                         {
-                            verifyContainer.Add(new VerificationEntry(method.Name, memberFunctionAttribute.Signature, memberFunctionAttribute.RelativeFollowOffsets, (Type)delegateMember[0]));
+                            verifyContainer.Add(new VerificationEntry(name, memberFunctionAttribute.Signature, memberFunctionAttribute.RelativeFollowOffsets, (Type)delegateMember[0]));
                         }
                         else
                         {
-                            verifyContainer.Add(new VerificationEntry(method.Name, memberFunctionAttribute.Signature, memberFunctionAttribute.RelativeFollowOffsets, Parameters: method.GetParameters(), ReturnType: method.ReturnType));
+                            verifyContainer.Add(new VerificationEntry(name, memberFunctionAttribute.Signature, memberFunctionAttribute.RelativeFollowOffsets, Parameters: method.GetParameters(), ReturnType: method.ReturnType));
                         }
                     }
                     else
                     {
-                        verifyContainer.Add(new VerificationEntry(method.Name, memberFunctionAttribute.Signature, memberFunctionAttribute.RelativeFollowOffsets, Parameters: method.GetParameters(), ReturnType: method.ReturnType));
+                        verifyContainer.Add(new VerificationEntry(name, memberFunctionAttribute.Signature, memberFunctionAttribute.RelativeFollowOffsets, Parameters: method.GetParameters(), ReturnType: method.ReturnType));
                     }
                 }
                 else if (method.GetCustomAttribute<StaticAddressAttribute>() is { } staticAddressAttribute)
                 {
-                    verifyContainer.Add(new VerificationEntry(method.Name, staticAddressAttribute.Signature, staticAddressAttribute.RelativeFollowOffsets, Parameters: method.GetParameters(), ReturnType: method.ReturnType));
+                    verifyContainer.Add(new VerificationEntry(name, staticAddressAttribute.Signature, staticAddressAttribute.RelativeFollowOffsets, Parameters: method.GetParameters(), ReturnType: method.ReturnType));
                 }
             }
         }
@@ -127,6 +132,7 @@ internal static class HookVerifier
         var passedType = typeof(T);
         var isAssemblyMarshaled = passedType.Assembly.GetCustomAttribute<DisableRuntimeMarshallingAttribute>() is null;
         bool mismatch;
+        string? failContext = null;
 
         var passedInvoke = passedType.GetMethod("Invoke")!;
         var passedParams = passedInvoke.GetParameters();
@@ -161,8 +167,9 @@ internal static class HookVerifier
         if (passedParams.Length != enforcedParams.Length)
         {
             mismatch = true;
+            failContext = "Param count check.";
         }
-        else
+        else if (!mismatch)
         {
             // Compare Parameter Types
             for (var i = 0; i < passedParams.Length; i++)
@@ -170,9 +177,14 @@ internal static class HookVerifier
                 if (!CheckParam(passedParams[i].ParameterType, enforcedParams[i].ParameterType, isAssemblyMarshaled))
                 {
                     mismatch = true;
+                    failContext = "Param type check.";
                     break;
                 }
             }
+        }
+        else
+        {
+            failContext = "Return type check.";
         }
 
         if (mismatch)
@@ -181,7 +193,7 @@ internal static class HookVerifier
                 HookVerificationException.GetSignature(entry.TargetDelegateType) :
                 $"{entry.ReturnType!.Name} ({string.Join(", ", entry.Parameters!.Select(p => p.ParameterType.Name))})";
 
-            throw HookVerificationException.Create(address, passedType, enforcedDelegate, entry.Message);
+            throw HookVerificationException.Create(address, passedType, enforcedDelegate, entry.Message, entry.Name, failContext);
         }
     }
 
@@ -225,7 +237,7 @@ internal static class HookVerifier
         return type != typeof(decimal) && type is { IsValueType: true, IsPrimitive: false, IsEnum: false };
     }
 
-    private record VerificationEntry(string Name, string Signature, ushort[] RelativeFollowOffsets, Type? TargetDelegateType = null, ParameterInfo[]? Parameters = null, Type? ReturnType = null, string Message = "Parameter mismatch with marshaling context")
+    private record VerificationEntry(string Name, string Signature, ushort[] RelativeFollowOffsets, Type? TargetDelegateType = null, ParameterInfo[]? Parameters = null, Type? ReturnType = null, string Message = "Failed match against expected documentation.")
     {
         public nint Address { get; set; }
     }

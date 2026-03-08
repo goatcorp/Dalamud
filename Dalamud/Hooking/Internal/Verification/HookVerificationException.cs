@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace Dalamud.Hooking.Internal.Verification;
@@ -20,12 +21,18 @@ public class HookVerificationException : Exception
     /// <param name="passed">The delegate passed by the user.</param>
     /// <param name="enforced">The delegate we think is correct.</param>
     /// <param name="message">Additional context to show to the user.</param>
+    /// <param name="name">The name of enforced hook location.</param>
+    /// <param name="failContext">The exact check that failed for hook verification.</param>
     /// <returns>The created exception.</returns>
-    internal static HookVerificationException Create(IntPtr address, Type passed, string enforced, string message)
+    internal static HookVerificationException Create(IntPtr address, Type passed, string enforced, string message, string name, string failContext)
     {
+        var mainModule = Process.GetCurrentProcess().MainModule!;
+
         return new HookVerificationException(
-            $"Hook verification failed for address 0x{address.ToInt64():X} (relative base: {address - Process.GetCurrentProcess().MainModule!.BaseAddress:X})\n\n" +
+            $"Hook verification failed for address 0x{address.ToInt64():X} (relative base: {new FileInfo(mainModule.FileName).Name}+0x{address - Process.GetCurrentProcess().MainModule!.BaseAddress:X})\n\n" +
+            $"Name:              {name}\n" +
             $"Why:               {message}\n" +
+            $"Fail Context:      {failContext}\n" +
             $"Passed Delegate:   {GetSignature(passed)}\n" +
             $"Correct Delegate:  {enforced}\n\n" +
             "The hook delegate must exactly match the provided signature to prevent memory corruption and wrong data passed to originals.");
