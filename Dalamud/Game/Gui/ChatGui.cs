@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text;
@@ -376,7 +375,9 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
         try
         {
-            var parsedSender = SeString.Parse(sender->AsSpan());
+            var chatType = (XivChatType)logInfo;
+
+            var parsedSender = SeString.Parse(senderName->AsSpan());
             var parsedMessage = SeString.Parse(message->AsSpan());
 
             var terminatedSender = parsedSender.EncodeWithNullTerminator();
@@ -422,7 +423,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             if (!terminatedSender.SequenceEqual(possiblyModifiedSenderData))
             {
                 Log.Verbose($"HandlePrintMessageDetour Sender modified: {new ReadOnlySeStringSpan(terminatedSender).ToMacroString()} -> {new ReadOnlySeStringSpan(possiblyModifiedSenderData).ToMacroString()}");
-                sender->SetString(possiblyModifiedSenderData);
+                senderName->SetString(possiblyModifiedSenderData);
             }
 
             if (!terminatedMessage.SequenceEqual(possiblyModifiedMessageData))

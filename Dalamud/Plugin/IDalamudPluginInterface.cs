@@ -89,6 +89,11 @@ public interface IDalamudPluginInterface : IServiceProvider
     bool IsTesting { get; }
 
     /// <summary>
+    /// Gets a value indicating whether this plugin's load status is controlled by a profile/collection.
+    /// </summary>
+    bool IsInProfile { get; }
+
+    /// <summary>
     /// Gets the time that this plugin was loaded.
     /// </summary>
     DateTime LoadTime { get; }
@@ -332,4 +337,12 @@ public interface IDalamudPluginInterface : IServiceProvider
     /// <param name="scopedObjects">Objects to inject additionally.</param>
     /// <returns>A <see cref="ValueTask"/> representing the status of the operation.</returns>
     Task InjectAsync(object instance, params object[] scopedObjects);
+
+    /// <summary>
+    /// Check for updates for this plugin, returning information about the latest version if available.
+    /// Does not actually re-request data from the remote repository, but will wait for a pending reload if one is in progress.
+    /// Reloads happen at periodic intervals (10 minutes) so data will stay relatively fresh.
+    /// </summary>
+    /// <returns>A record containing details about the update, or null if no update is available.</returns>
+    Task<PluginUpdate?> CheckForUpdateAsync();
 }
