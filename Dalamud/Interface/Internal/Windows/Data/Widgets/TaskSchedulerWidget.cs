@@ -266,7 +266,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
             ImGui.Text($"{this.downloadState.Downloaded:##,###}/{this.downloadState.Total:##,###} ({this.downloadState.Percentage:0.00}%)");
 
-            using var disabled = ImRaii.Disabled(this.downloadTask?.IsCompleted is false || this.localPath[0] == 0);
+            using var disabled = ImRaii.Disabled(this.downloadTask?.IsCompleted is false || string.IsNullOrEmpty(this.localPath));
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Download"u8);
             ImGui.SameLine();
