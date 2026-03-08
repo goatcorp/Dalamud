@@ -439,17 +439,17 @@ internal class PluginManager : IInternalDisposableService
                            .Select(repo => new PluginRepository(this.happyHttpClient, repo.Url, repo.IsEnabled)));
 
         this.Repos = repos;
-        await this.ReloadReposAsync();
+        await this.ReloadAllReposAsync();
     }
 
     /// <summary>
     /// Reload all plugin repositories. This is called after setting repos from config, but can also be called manually to refresh repos.
     /// </summary>
     /// <returns>Task that will resolve once all repos are reloaded.</returns>
-    public async Task ReloadReposAsync()
+    public async Task ReloadAllReposAsync()
     {
         if (this.repoRefreshTask is null or { IsCompleted: true })
-            this.repoRefreshTask = this.ReloadAllReposAsync();
+            this.repoRefreshTask = this.ReloadAllReposInternalAsync();
 
         await this.repoRefreshTask;
     }
@@ -1789,7 +1789,7 @@ internal class PluginManager : IInternalDisposableService
     /// </summary>
     /// <param name="notify">Whether to notify that available plugins have changed afterward.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    private async Task ReloadAllReposAsync(bool notify = true)
+    private async Task ReloadAllReposInternalAsync(bool notify = true)
     {
         Log.Information("Now reloading all repos...");
 

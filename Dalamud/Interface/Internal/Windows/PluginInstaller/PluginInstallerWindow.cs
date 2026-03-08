@@ -286,7 +286,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         var pluginManager = Service<PluginManager>.Get();
 
-        _ = pluginManager.ReloadReposAsync();
+        _ = pluginManager.ReloadAllReposAsync();
         _ = pluginManager.ScanDevPluginsAsync();
 
         if (!this.isSearchTextPrefilled)
@@ -3055,7 +3055,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     }
 
                     configuration.QueueSave();
-                    _ = pluginManager.ReloadReposAsync();
+                    _ = pluginManager.ReloadAllReposAsync();
                 }
 
                 if (repoManifest?.IsTestingExclusive == true)
