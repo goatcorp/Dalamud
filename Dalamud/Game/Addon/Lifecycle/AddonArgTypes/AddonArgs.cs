@@ -43,4 +43,15 @@ public class AddonArgs
     /// Gets the type of these args.
     /// </summary>
     public virtual AddonArgsType Type => AddonArgsType.Generic;
+
+    /// <summary>
+    /// Gets a value indicating whether original is being requested to be skipped.
+    /// </summary>
+    public bool PreventOriginalRequested { get; internal set; }
+
+    /// <summary>
+    /// Request that the call to original is skipped.
+    /// Only valid to be called from a Pre event listener not a Post event listener.
+    /// </summary>
+    public void PreventOriginal() => this.PreventOriginalRequested = true;
 }

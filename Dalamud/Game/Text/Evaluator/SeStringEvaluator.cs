@@ -942,19 +942,19 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 return;
 
             case "DescriptionString" when eColParamValue > 0:
-                context.Builder.PushLink((LinkMacroPayloadType)11, eRowIdValue, eColParamValue, 0u, text.AsSpan());
+                context.Builder.PushLink(LinkMacroPayloadType.Description, eRowIdValue, eColParamValue, 0u, text.AsSpan());
                 context.Builder.Append(text);
                 context.Builder.PopLink();
                 return;
 
             case "WKSPioneeringTrailString":
-                context.Builder.PushLink((LinkMacroPayloadType)12, eRowIdValue, eColParamValue, 0u, text.AsSpan());
+                context.Builder.PushLink(LinkMacroPayloadType.WKSPioneeringTrail, eRowIdValue, eColParamValue, 0u, text.AsSpan());
                 context.Builder.Append(text);
                 context.Builder.PopLink();
                 return;
 
             case "MKDLore":
-                context.Builder.PushLink((LinkMacroPayloadType)13, eRowIdValue, 0u, 0u, text.AsSpan());
+                context.Builder.PushLink(LinkMacroPayloadType.MKDLore, eRowIdValue, 0u, 0u, text.AsSpan());
                 context.Builder.Append(text);
                 context.Builder.PopLink();
                 return;

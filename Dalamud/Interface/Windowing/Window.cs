@@ -250,12 +250,12 @@ public abstract class Window
     /// <summary>
     /// Gets a value indicating whether this window is pinned.
     /// </summary>
-    public bool IsPinned => this.internalIsPinned;
+    public bool IsPinned => this.internalIsPinned && this.AllowPinning;
 
     /// <summary>
     /// Gets a value indicating whether this window is click-through.
     /// </summary>
-    public bool IsClickthrough => this.internalIsClickthrough;
+    public bool IsClickthrough => this.internalIsClickthrough && this.AllowClickthrough;
 
     /// <summary>
     /// Gets or sets a list of available title bar buttons.
@@ -275,7 +275,7 @@ public abstract class Window
         set => this.internalIsOpen = value;
     }
 
-    private bool CanShowCloseButton => this.ShowCloseButton && !this.internalIsClickthrough;
+    private bool CanShowCloseButton => this.ShowCloseButton && !this.IsClickthrough;
 
     /// <summary>
     /// Toggle window is open state.
@@ -477,12 +477,12 @@ public abstract class Window
 
         var flags = this.Flags;
 
-        if (this.internalIsPinned || this.internalIsClickthrough)
+        if (this.IsPinned || this.IsClickthrough)
         {
             flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
         }
 
-        if (this.internalIsClickthrough)
+        if (this.IsClickthrough)
         {
             flags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs;
         }
@@ -500,7 +500,7 @@ public abstract class Window
             var context = ImGui.GetCurrentContext();
             if (!context.IsNull)
             {
-                ImGuiP.GetCurrentWindow().InheritNoInputs = this.internalIsClickthrough;
+                ImGuiP.GetCurrentWindow().InheritNoInputs = this.IsClickthrough;
             }
 
             if (ImGui.GetWindowViewport().ID != ImGui.GetMainViewport().ID)
@@ -544,12 +544,12 @@ public abstract class Window
 
             if (ImGui.BeginPopup(AdditionsPopupName, ImGuiWindowFlags.NoMove))
             {
-                if (this.internalIsClickthrough)
+                if (this.IsClickthrough)
                     ImGui.BeginDisabled();
 
                 if (this.AllowPinning)
                 {
-                    var showAsPinned = this.internalIsPinned || this.internalIsClickthrough;
+                    var showAsPinned = this.IsPinned || this.IsClickthrough;
                     if (ImGui.Checkbox(Loc.Localize("WindowSystemContextActionPin", "Pin Window"), ref showAsPinned))
                     {
                         this.internalIsPinned = showAsPinned;
@@ -560,7 +560,7 @@ public abstract class Window
                         Loc.Localize("WindowSystemContextActionPinHint", "Pinned windows will not move or resize when you click and drag them, nor will they close when escape is pressed."));
                 }
 
-                if (this.internalIsClickthrough)
+                if (this.IsClickthrough)
                     ImGui.EndDisabled();
 
                 if (this.AllowClickthrough)
@@ -624,7 +624,7 @@ public abstract class Window
 
         this.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
 
-        if (internalDrawFlags.HasFlag(WindowDrawFlags.UseFocusManagement) && !this.internalIsPinned)
+        if (internalDrawFlags.HasFlag(WindowDrawFlags.UseFocusManagement) && !this.IsPinned)
         {
             var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
             if (escapeDown && this.IsFocused && !wasEscPressedLastFrame && this.RespectCloseHotkey)
@@ -819,7 +819,7 @@ public abstract class Window
             var isClipped = !ImGuiP.ItemAdd(bb, id, null, 0);
             bool hovered, held, pressed;
 
-            if (this.internalIsClickthrough)
+            if (this.IsClickthrough)
             {
                 // ButtonBehavior does not function if the window is clickthrough, so we have to do it ourselves
                 var pad = ImGui.GetStyle().TouchExtraPadding;
@@ -855,7 +855,7 @@ public abstract class Window
                 button.ShowTooltip?.Invoke();
 
             // Switch to moving the window after mouse is moved beyond the initial drag threshold
-            if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left) && !this.internalIsClickthrough)
+            if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left) && !this.IsClickthrough)
                 ImGuiP.StartMouseMovingWindow(window);
 
             return pressed;
@@ -863,7 +863,7 @@ public abstract class Window
 
         foreach (var button in this.allButtons)
         {
-            if (this.internalIsClickthrough && !button.AvailableClickthrough)
+            if (this.IsClickthrough && !button.AvailableClickthrough)
                 continue;
 
             Vector2 position = new(titleBarRect.Max.X - padR - buttonSize, titleBarRect.Min.Y + style.FramePadding.Y);

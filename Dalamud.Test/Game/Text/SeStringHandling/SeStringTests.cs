@@ -15,7 +15,7 @@ namespace Dalamud.Test.Game.Text.SeStringHandling
         {
             public int Version { get; set; }
             
-            public SeString Text { get; init; }
+            public required SeString Text { get; init; }
 
             public bool Equals(MockConfig? other)
             {
@@ -65,7 +65,7 @@ namespace Dalamud.Test.Game.Text.SeStringHandling
             // This relies on the type information being maintained, which is why we're using these
             // static methods instead of default serialization/deserialization.
             var configSerialized = PluginConfigurations.SerializeConfig(config);
-            var configDeserialized = (MockConfig)PluginConfigurations.DeserializeConfig(configSerialized);
+            var configDeserialized = (MockConfig?)PluginConfigurations.DeserializeConfig(configSerialized);
             Assert.Equal(config, configDeserialized);
         }
 
@@ -85,7 +85,7 @@ namespace Dalamud.Test.Game.Text.SeStringHandling
             using var reader = new BinaryReader(stream);
             var decodedPayload = Payload.Decode(reader) as AutoTranslatePayload;
 
-            Assert.Equal(group, decodedPayload.Group);
+            Assert.Equal(group, decodedPayload!.Group);
             Assert.Equal(key, decodedPayload.Key);
 
             Assert.Equal(encoded, decodedPayload.Encode());

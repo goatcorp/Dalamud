@@ -43,8 +43,15 @@ internal sealed class SettingsTabExperimental : SettingsTab
             () =>
             {
                 Service<DalamudConfiguration>.Get().HiddenPluginInternalName.Clear();
-                Service<PluginManager>.Get().RefilterPluginMasters();
             }),
+
+        new GapSettingsEntry(5, true),
+
+        new SettingsEntry<bool>(
+            LazyLoc.Localize("DalamudSettingsCharacterProfiles", "Enable per-character plugin collections"),
+            LazyLoc.Localize("DalamudSettingsCharacterProfilesHint", "If enabled, you can set plugin collections to be enabled only for specific characters. This will add a character list to each collection in the collection editor.\nThis setting is not thoroughly tested and considered experimental, as it may cause problems with certain plugins."),
+            c => c.ProfilesEnableCharacters,
+            (v, c) => c.ProfilesEnableCharacters = v),
 
         new GapSettingsEntry(5, true),
 
