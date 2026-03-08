@@ -150,12 +150,12 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         if (!receiveEventArgs.AtkValueEnumerable.Any())
             return;
 
-        if (!receiveEventArgs.AtkValueEnumerable.ElementAt(0).TryGet(out int? eventValue))
+        if (!receiveEventArgs.AtkValueEnumerable.ElementAt(0).TryGet(out int eventValue))
             return;
 
         // Prevent recursion from our own injected event
         if (receiveEventArgs.AtkValueEnumerable.Count() == 2 &&
-            receiveEventArgs.AtkValueEnumerable.ElementAt(1).TryGet(out int? eventValue2) && eventValue2 == recursionSentinel)
+            receiveEventArgs.AtkValueEnumerable.ElementAt(1).TryGet(out int eventValue2) && eventValue2 == recursionSentinel)
         {
             Log.Verbose("Prevent recursion (eventValue {EventValue})", eventValue);
             return;
