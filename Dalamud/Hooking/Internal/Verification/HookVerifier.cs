@@ -33,9 +33,6 @@ internal static partial class HookVerifier
 
     private static readonly string ClientStructsInteropNamespacePrefix = string.Join(".", nameof(FFXIVClientStructs), nameof(FFXIVClientStructs.Interop));
 
-    [GeneratedRegex($@"^{nameof(FFXIVClientStructs)}\.({nameof(FFXIVClientStructs.FFXIV)}|{nameof(FFXIVClientStructs.Havok)}|{nameof(FFXIVClientStructs.Interop)}|{nameof(FFXIVClientStructs.STD)})\.", RegexOptions.Singleline)]
-    private static partial Regex ClientStructsNamespaceTrim();
-
     private static FrozenDictionary<nint, VerificationEntry> allToVerify;
 
     /// <summary>
@@ -196,6 +193,9 @@ internal static partial class HookVerifier
             throw HookVerificationException.Create(address, passedType, enforcedDelegate, entry.Message, entry.Name, failContext);
         }
     }
+
+    [GeneratedRegex($@"^{nameof(FFXIVClientStructs)}\.({nameof(FFXIVClientStructs.FFXIV)}|{nameof(FFXIVClientStructs.Havok)}|{nameof(FFXIVClientStructs.Interop)}|{nameof(FFXIVClientStructs.STD)})\.", RegexOptions.Singleline)]
+    private static partial Regex ClientStructsNamespaceTrim();
 
     private static bool CheckParam(Type paramLeft, Type paramRight, bool isMarshaled)
     {
