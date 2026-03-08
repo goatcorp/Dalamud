@@ -81,7 +81,7 @@ internal static class HookVerifier
         }
 
         verifyContainer.AddRange(ToVerify);
-        
+
         var module = Process.GetCurrentProcess().MainModule!;
 
         var targetSpan = new Span<byte>((void*)module.BaseAddress, module.ModuleMemorySize);
@@ -225,7 +225,7 @@ internal static class HookVerifier
         return type != typeof(decimal) && type is { IsValueType: true, IsPrimitive: false, IsEnum: false };
     }
 
-    private record VerificationEntry(string Name, string Signature, ushort[] RelativeFollowOffsets, Type? TargetDelegateType = null, ParameterInfo[]? Parameters = null, Type? ReturnType = null, string Message = "Parameter miss match with marshaling context")
+    private record VerificationEntry(string Name, string Signature, ushort[] RelativeFollowOffsets, Type? TargetDelegateType = null, ParameterInfo[]? Parameters = null, Type? ReturnType = null, string Message = "Parameter mismatch with marshaling context")
     {
         public nint Address { get; set; }
     }
