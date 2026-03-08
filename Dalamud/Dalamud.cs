@@ -76,13 +76,13 @@ internal sealed unsafe class Dalamud : IServiceType
             scanner,
             Localization.FromAssets(info.AssetDirectory!, configuration.LanguageOverride));
 
+        // Set up FFXIVClientStructs
+        this.SetupClientStructsResolver(cacheDir);
+
         using (Timings.Start("HookVerifier Init"))
         {
             HookVerifier.Initialize(scanner);
         }
-
-        // Set up FFXIVClientStructs
-        this.SetupClientStructsResolver(cacheDir);
 
         void KickoffGameThread()
         {

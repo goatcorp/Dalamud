@@ -6,6 +6,8 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.Internal.Verification;
 
+using Serilog;
+
 using TerraFX.Interop.Windows;
 
 namespace Dalamud.Hooking;
@@ -235,7 +237,15 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
 
-        HookVerifier.Verify<T>(procAddress);
+        // TODO: Only log verification exceptions for now, figure out how to handle this
+        try
+        {
+            HookVerifier.Verify<T>(procAddress);
+        }
+        catch (HookVerificationException ex)
+        {
+            Log.Error(ex, "Hook verification failed - this may cause crashes and subtle bugs");
+        }
 
         procAddress = HookManager.FollowJmp(procAddress);
         if (useMinHook)

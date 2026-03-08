@@ -193,8 +193,13 @@ internal sealed partial class ActiveNotification
         {
             if (this.Click is null)
             {
-                if (this.UserDismissable && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                    this.Minimized = !this.Minimized;
+                if (this.UserDismissable)
+                {
+                    if (ImGui.IsMouseClicked(ImGuiMouseButton.Middle))
+                        this.DismissNow(NotificationDismissReason.Manual);
+                    else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                        this.Minimized = !this.Minimized;
+                }
             }
             else
             {

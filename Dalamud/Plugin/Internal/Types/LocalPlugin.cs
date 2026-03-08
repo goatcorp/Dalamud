@@ -163,6 +163,12 @@ internal class LocalPlugin : IAsyncDisposable
     public bool IsLoaded => this.State == PluginState.Loaded;
 
     /// <summary>
+    /// Gets a value indicating whether this plugin is in the default profile.
+    /// </summary>
+    public bool IsInDefaultProfile =>
+        Service<ProfileManager>.Get().IsInDefaultProfile(this.EffectiveWorkingPluginId);
+
+    /// <summary>
     /// Gets a value indicating whether this plugin is wanted active by any profile.
     /// INCLUDES the default profile.
     /// </summary>
