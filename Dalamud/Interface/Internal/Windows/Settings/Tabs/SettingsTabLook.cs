@@ -162,6 +162,16 @@ internal sealed class SettingsTabLook : SettingsTab
             c => c.ReduceMotions ?? false,
             (v, c) => c.ReduceMotions = v),
 
+        new GapSettingsEntry(5),
+
+        new SettingsEntry<bool>(
+            LazyLoc.Localize("DalamudSettingAllowSeasonalEvent", "Allow Seasonal Events"),
+            LazyLoc.Localize("DalamudSettingAllowSeasonalEventHint", "Allow Dalamud to run certain seasonal events, such as April Fools.\nPlugins may also choose to hide certain content during seasonal events if this setting is disabled, but certain plugins may not respect this setting."),
+            c => c.AllowSeasonalEvents,
+            (v, c) => c.AllowSeasonalEvents = v),
+
+        new GapSettingsEntry(5),
+
         new SettingsEntry<float>(
             LazyLoc.Localize("DalamudSettingImeStateIndicatorOpacity", "IME State Indicator Opacity (CJK only)"),
             LazyLoc.Localize("DalamudSettingImeStateIndicatorOpacityHint", "When any of CJK IMEs is in use, the state of IME will be shown with the opacity specified here."),
