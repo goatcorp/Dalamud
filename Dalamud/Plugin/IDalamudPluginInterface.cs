@@ -144,6 +144,13 @@ public interface IDalamudPluginInterface : IServiceProvider
     bool IsDebugging { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the user wants to allow seasonal events, such as April Fools, to be to run.
+    /// Certain users may not wish to be affected by these and may disable them globally.
+    /// We recommend that plugins check this value before running any seasonal event code, and disable or hide such features if this is false.
+    /// </summary>
+    bool AllowSeasonalEvents { get; }
+
+    /// <summary>
     /// Gets the current UI language in two-letter iso format.
     /// </summary>
     string UiLanguage { get; }

@@ -144,6 +144,9 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     public bool IsDebugging => Debugger.IsAttached;
 
     /// <inheritdoc/>
+    public bool AllowSeasonalEvents => Service<DalamudConfiguration>.Get().AllowSeasonalEvents;
+
+    /// <inheritdoc/>
     public string UiLanguage { get; private set; }
 
     /// <inheritdoc/>

@@ -494,6 +494,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// </summary>
     public Vector2 NotificationAnchorPosition { get; set; } = new(1f, 1f);
 
+    /// <summary>
+    /// Gets or sets a value indicating whether seasonal events, such as April Fools, should be allowed to run.
+    /// </summary>
+    public bool AllowSeasonalEvents { get; set; } = true;
+
 #pragma warning disable SA1600
 #pragma warning disable SA1516
     // XLCore/XoM compatibility until they move it out
