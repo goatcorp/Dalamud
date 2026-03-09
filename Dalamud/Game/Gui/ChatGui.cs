@@ -505,26 +505,45 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     {
         try
         {
+            var sharedLogMessage = Chat.LogMessage.Instance;
+            var sharedParams = Chat.LogMessageParameterList.Instance;
+
             foreach (ref var item in thisPtr->LogMessageQueue)
             {
-                var logMessage = new Chat.LogMessage((LogMessageQueueItem*)Unsafe.AsPointer(ref item));
+                var address = (LogMessageQueueItem*)Unsafe.AsPointer(ref item);
 
                 // skip any entries that survived the previous Update call as the event was already called for them
-                if (this.seenLogMessageObjects.Contains(logMessage.Address))
+                if (this.seenLogMessageObjects.Contains((nint)address))
                     continue;
+
+                sharedLogMessage.Pointer = address;
+                sharedParams.Pointer = &address->Parameters;
 
                 foreach (var action in Delegate.EnumerateInvocationList(this.LogMessage))
                 {
                     try
                     {
-                        action(logMessage);
+                        action(sharedLogMessage);
                     }
                     catch (Exception e)
                     {
                         Log.Error(e, "Could not invoke registered OnLogMessageDelegate for {Name}", action.Method);
                     }
                 }
+
+                if (sharedLogMessage.IsHandled)
+                {
+                    sharedLogMessage.IsHandled = false;
+                    // LogMessage 0 is an empty string that is displayed nowhere
+                    // setting a non-existent row would "properly" skip the entry,
+                    // but the game attempts to read that row for 150 frames before
+                    // continuing with the next item in the queue
+                    item.LogMessageId = 0;
+                }
             }
+
+            sharedLogMessage.Pointer = null;
+            sharedParams.Pointer = null;
 
             this.handleLogModuleUpdate.Original(thisPtr);
 
