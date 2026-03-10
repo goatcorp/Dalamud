@@ -16,7 +16,7 @@ public static partial class ImRaii
         public bool Alive { get; private set; }
 
         /// <summary>Initializes a new instance of the <see cref="PopupDisposable"/> struct. </summary>
-        /// <param name="id"> The ID of the popup as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="id"> The ID of the popup as text. </param>
         /// <param name="flags"> Flags to forward to the popup window creation. </param>
         /// <returns> A disposable object that evaluates to true if the begun popup is currently open. Use with using. </returns>
         internal PopupDisposable(ImU8String id, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
@@ -40,7 +40,7 @@ public static partial class ImRaii
             => new(ImGui.BeginPopupContextWindow(id, flags));
 
         /// <summary> Begin a modal popup and end it on leaving scope. </summary>
-        /// <param name="title"> The title of the popup as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="title"> The title of the popup as text. </param>
         /// <param name="open"> Whether the modal should be kept open or closed. </param>
         /// <param name="flags"> Flags to pass to the popup window creation. </param>
         /// <returns> A disposable object that evaluates to true if the begun popup is currently open. Use with using. </returns>

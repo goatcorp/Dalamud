@@ -17,7 +17,7 @@ public static partial class ImRaii
         public bool Alive { get; private set; }
 
         /// <summary>Initializes a new instance of the <see cref="ListBoxDisposable"/> struct. </summary>
-        /// <param name="label"> The list box label as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The list box label as text. </param>
         /// <returns> A disposable object that evaluates to true if the begun list box is currently visible. Use with using. </returns>
         internal ListBoxDisposable(ImU8String label)
         {
@@ -26,7 +26,7 @@ public static partial class ImRaii
         }
 
         /// <summary>Initializes a new instance of the <see cref="ListBoxDisposable"/> struct. </summary>
-        /// <param name="label"> The list box label as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The list box label as text. </param>
         /// <param name="size">
         /// The size of the box. If these values are greater than 0, use them as pixel counts.
         /// If .X == 0, use the current item width.

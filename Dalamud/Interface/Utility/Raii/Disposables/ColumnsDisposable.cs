@@ -54,11 +54,11 @@ public static partial class ImRaii
         public void SetWidth(int index, float width)
             => ImGui.SetColumnWidth(index, width);
 
-        /// <summary> Create a new column separation. </summary>
+        /// <summary>Initializes a new instance of the <see cref="ColumnsDisposable"/> struct. </summary>
         /// <param name="count"> The number of columns to separate. </param>
-        /// <param name="id"> An ID for the separation. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="id"> An ID for the separation. </param>
         /// <param name="border"> Whether the columns should be separated by borders. </param>
-        /// <remarks> The columns system is outdated. Prefer to use <see cref="Table"/> instead. </remarks>
+        /// <remarks> The columns system is outdated. Prefer to use <see cref="Table(ImU8String,int)"/> instead. </remarks>
         public ColumnsDisposable(int count, ImU8String id, bool border = false)
         {
             this.LastColumns = this.Count;

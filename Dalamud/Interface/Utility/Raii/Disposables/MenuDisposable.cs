@@ -16,7 +16,7 @@ public static partial class ImRaii
         public bool Alive { get; private set; }
 
         /// <summary>Initializes a new instance of the <see cref="MenuDisposable"/> struct. </summary>
-        /// <param name="label"> The label of the menu as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The label of the menu as text. </param>
         /// <returns> A disposable object that evaluates to true if the menu was created. Use with using. </returns>
         /// <remarks> Can create or append to a menu that already exists in a menu bar. </remarks>
         internal MenuDisposable(ImU8String label)
@@ -26,7 +26,7 @@ public static partial class ImRaii
         }
 
         /// <summary>Initializes a new instance of the <see cref="MenuDisposable"/> struct. </summary>
-        /// <param name="label"> The label of the menu as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The label of the menu as text. </param>
         /// <param name="enabled"> Whether the menu is enabled or not. </param>
         /// <returns> A disposable object that evaluates to true if the menu was created. Use with using. </returns>
         /// <remarks> Can create or append to a menu that already exists in a menu bar. </remarks>

@@ -16,7 +16,7 @@ public static partial class ImRaii
         public bool Alive { get; private set; }
 
         /// <summary>Initializes a new instance of the <see cref="HeaderDisposable"/> struct. </summary>
-        /// <param name="label"> The header label and ID as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The header label and ID as text. </param>
         /// <param name="flags"> Additional flags to control the header's behaviour. </param>
         /// <returns> A disposable object that evaluates to true if the collapsing header is currently open. Use with using. </returns>
         internal HeaderDisposable(ImU8String label, ImGuiTreeNodeFlags flags)
@@ -28,7 +28,7 @@ public static partial class ImRaii
         }
 
         /// <summary>Initializes a new instance of the <see cref="HeaderDisposable"/> struct. </summary>
-        /// <param name="label"> The header label and ID as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The header label and ID as text. </param>
         /// <param name="visible"> If true, displays a small close button on the upper right of the header, which will set this to false when clicked. If false, do not display the header at all. </param>
         /// <param name="flags"> Additional flags to control the header's behaviour. </param>
         /// <returns> A disposable object that evaluates to true if the collapsing header is currently open. Use with using. </returns>

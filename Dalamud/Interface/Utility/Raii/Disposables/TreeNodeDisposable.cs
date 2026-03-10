@@ -16,7 +16,7 @@ public static partial class ImRaii
         public bool Alive { get; private set; }
 
         /// <summary>Initializes a new instance of the <see cref="TreeNodeDisposable"/> struct. </summary>
-        /// <param name="label"> The node label as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The node label as text. </param>
         /// <param name="flags"> Additional flags to control the tree's behaviour. </param>
         /// <returns> A disposable object that evaluates to true if the begun tree node is currently expanded. Use with using. </returns>
         internal TreeNodeDisposable(ImU8String label)
@@ -26,7 +26,7 @@ public static partial class ImRaii
         }
 
         /// <summary>Initializes a new instance of the <see cref="TreeNodeDisposable"/> struct. </summary>
-        /// <param name="label"> The node label as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The node label as text. </param>
         /// <param name="flags"> Additional flags to control the tree's behaviour. </param>
         /// <returns> A disposable object that evaluates to true if the begun tree node is currently expanded. Use with using. </returns>
         internal TreeNodeDisposable(ImU8String label, ImGuiTreeNodeFlags flags)

@@ -8,8 +8,6 @@ namespace Dalamud.Interface.Utility.Raii;
 // All previous files, but only for ImPlot specific functions.
 public static partial class ImRaii
 {
-    #region EndObjects
-
     public static PlotDisposable Plot(string titleId, Vector2 size, ImPlotFlags flags)
         => new(titleId, size, flags);
 
@@ -60,8 +58,6 @@ public static partial class ImRaii
 
     public static PlotDragDropTargetDisposable DragDropTargetPlot()
         => PlotDragDropTargetDisposable.SourcePlot();
-
-    #endregion EndObjects
 
     #region Style
 

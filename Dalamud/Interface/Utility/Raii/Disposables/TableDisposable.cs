@@ -38,7 +38,7 @@ public static partial class ImRaii
         }
 
         /// <summary>Initializes a new instance of the <see cref="TableDisposable"/> struct. </summary>
-        /// <param name="id"> The table ID as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="id"> The table ID as text. </param>
         /// <param name="columns"> The number of columns in the table. </param>
         /// <param name="flags"> Additional flags to control the table's behaviour. </param>
         /// <param name="outerSize">

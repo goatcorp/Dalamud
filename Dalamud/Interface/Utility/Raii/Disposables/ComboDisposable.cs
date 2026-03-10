@@ -16,8 +16,8 @@ public static partial class ImRaii
         public bool Alive { get; private set; }
 
         /// <summary>Initializes a new instance of the <see cref="ComboDisposable"/> struct. </summary>
-        /// <param name="label"> The combo label as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
-        /// <param name="previewValue"> The currently displayed string in the combo field as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The combo label as text. </param>
+        /// <param name="previewValue"> The currently displayed string in the combo field as text. </param>
         /// <returns> A disposable object that evaluates to true if the begun combo popup is currently open. Use with using. </returns>
         internal ComboDisposable(ImU8String label, ImU8String previewValue)
         {
@@ -26,8 +26,8 @@ public static partial class ImRaii
         }
 
         /// <summary>Initializes a new instance of the <see cref="ComboDisposable"/> struct. </summary>
-        /// <param name="label"> The combo label as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
-        /// <param name="previewValue"> The currently displayed string in the combo field as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The combo label as text. </param>
+        /// <param name="previewValue"> The currently displayed string in the combo field as text. </param>
         /// <param name="flags"> Additional flags to control the combo's behaviour. </param>
         /// <returns> A disposable object that evaluates to true if the begun combo popup is currently open. Use with using. </returns>
         internal ComboDisposable(ImU8String label, ImU8String previewValue, ImGuiComboFlags flags)

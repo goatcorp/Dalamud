@@ -16,7 +16,7 @@ public static partial class ImRaii
         public bool Alive { get; private set; }
 
         /// <summary>Initializes a new instance of the <see cref="TabBarDisposable"/> struct. </summary>
-        /// <param name="label"> The tab bar label as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The tab bar label as text. </param>
         /// <returns> A disposable object that evaluates to true if any part of the begun tab bar is currently visible. Use with using. </returns>
         internal TabBarDisposable(ImU8String label)
         {
@@ -25,7 +25,7 @@ public static partial class ImRaii
         }
 
         /// <summary>Initializes a new instance of the <see cref="TabBarDisposable"/> struct. </summary>
-        /// <param name="label"> The tab bar label as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The tab bar label as text. </param>
         /// <param name="flags"> Additional flags to control the tab bar's behaviour. </param>
         /// <returns> A disposable object that evaluates to true if any part of the begun tab bar is currently visible. Use with using. </returns>
         internal TabBarDisposable(ImU8String label, ImGuiTabBarFlags flags)

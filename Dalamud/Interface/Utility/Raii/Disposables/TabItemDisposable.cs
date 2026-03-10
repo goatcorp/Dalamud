@@ -37,7 +37,7 @@ public static partial class ImRaii
         }
 
         /// <summary>Initializes a new instance of the <see cref="TabItemDisposable"/> struct. </summary>
-        /// <param name="label"> The tab item label as text. If this is a UTF8 string, it HAS to be null-terminated. </param>
+        /// <param name="label"> The tab item label as text. </param>
         /// <param name="open"> Whether the tab item is currently open. If this is provided, the tab item will render a close button that controls this value. </param>
         /// <param name="flags"> Additional flags to control the tab item's behaviour. </param>
         /// <returns> A disposable object that evaluates to true if the tab item is currently opened. Use with using. </returns>

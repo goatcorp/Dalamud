@@ -59,6 +59,9 @@ public static partial class ImRaii
     public static IndentDisposable PushIndent(int i = 1, bool condition = true)
         => new IndentDisposable().Indent(i, condition);
 
+    public static ColumnsDisposable Columns(int count, ImU8String id, bool border = false)
+        => new(count, id, border);
+
     public static DragDropTargetDisposable DragDropTarget()
         => new();
 
@@ -193,18 +196,4 @@ public static partial class ImRaii
 
     public static EnabledDisposable Enabled()
         => new(DisabledDisposable.GlobalCount != 0);
-
-    /* Only in OtterGui for now
-    public static IEndObject FramedGroup(string label)
-    {
-        Widget.BeginFramedGroup(label, Vector2.Zero);
-        return new EndUnconditionally(Widget.EndFramedGroup, true);
-    }
-
-    public static IEndObject FramedGroup(string label, Vector2 minSize, string description = "")
-    {
-        Widget.BeginFramedGroup(label, minSize, description);
-        return new EndUnconditionally(Widget.EndFramedGroup, true);
-    }
-    */
 }
