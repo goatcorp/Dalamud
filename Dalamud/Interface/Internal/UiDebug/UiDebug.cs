@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 using Dalamud.Bindings.ImGui;
@@ -6,6 +7,7 @@ using Dalamud.Interface.Internal.UiDebug.Browsing;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -26,6 +28,7 @@ internal partial class UiDebug : IDisposable
     internal static readonly ModuleLog Log = ModuleLog.Create<UiDebug>();
 
     private readonly ElementSelector elementSelector;
+    private readonly DataCachePluginId dalamudInternalId = new("DalamudInternal", Guid.NewGuid());
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UiDebug"/> class.
@@ -33,7 +36,11 @@ internal partial class UiDebug : IDisposable
     internal UiDebug()
     {
         this.elementSelector = new(this);
+        CustomNodeDefinitions = Service<DataShare>.Get().GetOrCreateData("KamiToolKitAllocatedNodes", this.dalamudInternalId, () => new ConcurrentDictionary<nint, Type>());
     }
+
+    /// <summary> Gets a mapping of address to typename for custom nodes.</summary>
+    internal static ConcurrentDictionary<nint, Type>? CustomNodeDefinitions { get; private set; }
 
     /// <inheritdoc cref="IGameGui"/>
     internal static IGameGui GameGui { get; set; } = Service<GameGui>.Get();
@@ -66,6 +73,8 @@ internal partial class UiDebug : IDisposable
         AddonTrees.Clear();
         PopoutWindows.RemoveAllWindows();
         this.elementSelector.Dispose();
+
+        Service<DataShare>.Get().RelinquishData("KamiToolKitAllocatedNodes",  this.dalamudInternalId);
     }
 
     /// <summary>

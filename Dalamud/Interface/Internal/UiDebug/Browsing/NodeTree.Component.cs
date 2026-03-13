@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
@@ -42,7 +43,23 @@ internal unsafe class ComponentNodeTree : ResNodeTree
     private protected override string GetHeaderText()
     {
         var childCount = (int)this.UldManager->NodeListCount;
-        return $"{this.componentType} Component Node{(childCount > 0 ? $" [+{childCount}]" : string.Empty)}";
+
+        var nodeType = $"{this.componentType} Component Node";
+
+        // If this node is defined as a known custom node, display the custom type instead
+        if (UiDebug.CustomNodeDefinitions is not null && UiDebug.CustomNodeDefinitions.TryGetValue((nint)this.Node, out var typeInfo))
+        {
+            if (typeInfo.IsGenericType)
+            {
+                nodeType = $"{typeInfo.Name[..typeInfo.Name.IndexOf('`')]}<{string.Join(",", typeInfo.GetGenericArguments().Select(t => t.Name))}>";
+            }
+            else
+            {
+                nodeType = typeInfo.Name;
+            }
+        }
+
+        return $"{nodeType}{(childCount > 0 ? $" [+{childCount}]" : string.Empty)}";
     }
 
     /// <inheritdoc/>
