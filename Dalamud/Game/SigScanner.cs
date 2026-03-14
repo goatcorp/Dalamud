@@ -83,10 +83,10 @@ public class SigScanner : IDisposable, ISigScanner
     public bool Is32BitProcess { get; }
 
     /// <inheritdoc/>
-    public IntPtr SearchBase => this.IsCopy ? this.moduleCopyPtr : this.Module.BaseAddress;
+    public nint SearchBase => this.IsCopy ? this.moduleCopyPtr : this.Module.BaseAddress;
 
     /// <inheritdoc/>
-    public IntPtr TextSectionBase => new(this.SearchBase.ToInt64() + this.TextSectionOffset);
+    public nint TextSectionBase => new(this.SearchBase.ToInt64() + this.TextSectionOffset);
 
     /// <inheritdoc/>
     public long TextSectionOffset { get; private set; }
@@ -95,7 +95,7 @@ public class SigScanner : IDisposable, ISigScanner
     public int TextSectionSize { get; private set; }
 
     /// <inheritdoc/>
-    public IntPtr DataSectionBase => new(this.SearchBase.ToInt64() + this.DataSectionOffset);
+    public nint DataSectionBase => new(this.SearchBase.ToInt64() + this.DataSectionOffset);
 
     /// <inheritdoc/>
     public long DataSectionOffset { get; private set; }
@@ -104,7 +104,7 @@ public class SigScanner : IDisposable, ISigScanner
     public int DataSectionSize { get; private set; }
 
     /// <inheritdoc/>
-    public IntPtr RDataSectionBase => new(this.SearchBase.ToInt64() + this.RDataSectionOffset);
+    public nint RDataSectionBase => new(this.SearchBase.ToInt64() + this.RDataSectionOffset);
 
     /// <inheritdoc/>
     public long RDataSectionOffset { get; private set; }
@@ -119,7 +119,7 @@ public class SigScanner : IDisposable, ISigScanner
     /// Dalamud service.</summary>
     private protected bool IsService { get; set; }
 
-    private IntPtr TextSectionTop => this.TextSectionBase + this.TextSectionSize;
+    private nint TextSectionTop => this.TextSectionBase + this.TextSectionSize;
 
     /// <summary>
     /// Scan memory for a signature.
@@ -128,7 +128,7 @@ public class SigScanner : IDisposable, ISigScanner
     /// <param name="size">The amount of bytes to scan.</param>
     /// <param name="signature">The signature to search for.</param>
     /// <returns>The found offset.</returns>
-    public static IntPtr Scan(IntPtr baseAddress, int size, string signature)
+    public static nint Scan(nint baseAddress, int size, string signature)
     {
         var (needle, mask, badShift) = ParseSignature(signature);
         var index = IndexOf(baseAddress, size, needle, mask, badShift);
@@ -145,7 +145,7 @@ public class SigScanner : IDisposable, ISigScanner
     /// <param name="signature">The signature to search for.</param>
     /// <param name="result">The offset, if found.</param>
     /// <returns>true if the signature was found.</returns>
-    public static bool TryScan(IntPtr baseAddress, int size, string signature, out IntPtr result)
+    public static bool TryScan(nint baseAddress, int size, string signature, out nint result)
     {
         try
         {
@@ -154,7 +154,7 @@ public class SigScanner : IDisposable, ISigScanner
         }
         catch (KeyNotFoundException)
         {
-            result = IntPtr.Zero;
+            result = nint.Zero;
             return false;
         }
     }
@@ -167,8 +167,8 @@ public class SigScanner : IDisposable, ISigScanner
     /// </summary>
     /// <param name="signature">The signature of the function using the data.</param>
     /// <param name="offset">The offset from function start of the instruction using the data.</param>
-    /// <returns>An IntPtr to the static memory location.</returns>
-    public unsafe IntPtr GetStaticAddressFromSig(string signature, int offset = 0)
+    /// <returns>An nint to the static memory location.</returns>
+    public unsafe nint GetStaticAddressFromSig(string signature, int offset = 0)
     {
         var instructionAddress = (byte*)this.ScanText(signature);
         instructionAddress += offset;
@@ -183,7 +183,7 @@ public class SigScanner : IDisposable, ISigScanner
                 if (instruction.IsInvalid) continue;
                 if (instruction.Op0Kind is OpKind.Memory || instruction.Op1Kind is OpKind.Memory)
                 {
-                    return (IntPtr)instruction.MemoryDisplacement64;
+                    return (nint)instruction.MemoryDisplacement64;
                 }
             }
         }
@@ -201,10 +201,10 @@ public class SigScanner : IDisposable, ISigScanner
     /// Place your cursor on the line calling a static address, and create and IDA sig.
     /// </summary>
     /// <param name="signature">The signature of the function using the data.</param>
-    /// <param name="result">An IntPtr to the static memory location, if found.</param>
+    /// <param name="result">An nint to the static memory location, if found.</param>
     /// <param name="offset">The offset from function start of the instruction using the data.</param>
     /// <returns>true if the signature was found.</returns>
-    public bool TryGetStaticAddressFromSig(string signature, out IntPtr result, int offset = 0)
+    public bool TryGetStaticAddressFromSig(string signature, out nint result, int offset = 0)
     {
         try
         {
@@ -213,24 +213,24 @@ public class SigScanner : IDisposable, ISigScanner
         }
         catch (KeyNotFoundException)
         {
-            result = IntPtr.Zero;
+            result = nint.Zero;
             return false;
         }
     }
 
     /// <inheritdoc/>
-    public IntPtr ScanData(string signature)
+    public nint ScanData(string signature)
     {
         var scanRet = Scan(this.DataSectionBase, this.DataSectionSize, signature);
 
         if (this.IsCopy)
-            scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+            scanRet = new nint(scanRet.ToInt64() - this.moduleCopyOffset);
 
         return scanRet;
     }
 
     /// <inheritdoc/>
-    public bool TryScanData(string signature, out IntPtr result)
+    public bool TryScanData(string signature, out nint result)
     {
         try
         {
@@ -239,24 +239,24 @@ public class SigScanner : IDisposable, ISigScanner
         }
         catch (KeyNotFoundException)
         {
-            result = IntPtr.Zero;
+            result = nint.Zero;
             return false;
         }
     }
 
     /// <inheritdoc/>
-    public IntPtr ScanModule(string signature)
+    public nint ScanModule(string signature)
     {
         var scanRet = Scan(this.SearchBase, this.Module.ModuleMemorySize, signature);
 
         if (this.IsCopy)
-            scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+            scanRet = new nint(scanRet.ToInt64() - this.moduleCopyOffset);
 
         return scanRet;
     }
 
     /// <inheritdoc/>
-    public bool TryScanModule(string signature, out IntPtr result)
+    public bool TryScanModule(string signature, out nint result)
     {
         try
         {
@@ -265,33 +265,33 @@ public class SigScanner : IDisposable, ISigScanner
         }
         catch (KeyNotFoundException)
         {
-            result = IntPtr.Zero;
+            result = nint.Zero;
             return false;
         }
     }
 
     /// <inheritdoc/>
-    public IntPtr ResolveRelativeAddress(IntPtr nextInstAddr, int relOffset)
+    public nint ResolveRelativeAddress(nint nextInstAddr, int relOffset)
     {
         if (this.Is32BitProcess) throw new NotSupportedException("32 bit is not supported.");
         return nextInstAddr + relOffset;
     }
 
     /// <inheritdoc/>
-    public IntPtr ScanText(string signature)
+    public nint ScanText(string signature)
     {
         if (this.textCache != null)
         {
             if (this.textCache.TryGetValue(signature, out var address))
             {
-                return new IntPtr(address + this.Module.BaseAddress.ToInt64());
+                return new nint(address + this.Module.BaseAddress.ToInt64());
             }
         }
 
         var scanRet = Scan(this.TextSectionBase, this.TextSectionSize, signature);
 
         if (this.IsCopy)
-            scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+            scanRet = new nint(scanRet.ToInt64() - this.moduleCopyOffset);
 
         var insnByte = Marshal.ReadByte(scanRet);
 
@@ -317,7 +317,7 @@ public class SigScanner : IDisposable, ISigScanner
     }
 
     /// <inheritdoc/>
-    public bool TryScanText(string signature, out IntPtr result)
+    public bool TryScanText(string signature, out nint result)
     {
         try
         {
@@ -326,7 +326,7 @@ public class SigScanner : IDisposable, ISigScanner
         }
         catch (KeyNotFoundException)
         {
-            result = IntPtr.Zero;
+            result = nint.Zero;
             return false;
         }
     }
@@ -397,10 +397,10 @@ public class SigScanner : IDisposable, ISigScanner
     /// </summary>
     /// <param name="sigLocation">The address the JMP or CALL sig resolved to.</param>
     /// <returns>The real offset of the signature.</returns>
-    private static IntPtr ReadJmpCallSig(IntPtr sigLocation)
+    private static nint ReadJmpCallSig(nint sigLocation)
     {
         var jumpOffset = Marshal.ReadInt32(sigLocation, 1);
-        return IntPtr.Add(sigLocation, 5 + jumpOffset);
+        return nint.Add(sigLocation, 5 + jumpOffset);
     }
 
     private static (byte[] Needle, bool[] Mask, int[] BadShift) ParseSignature(string signature)
