@@ -5,6 +5,7 @@ using Dalamud.Data;
 using Dalamud.Game.Player;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
+using Dalamud.Utility;
 
 using Lumina.Excel;
 
@@ -143,13 +144,13 @@ internal readonly unsafe struct Fate(CSFateContext* ptr) : IFate
     public long TimeRemaining => this.StartTimeEpoch + this.Duration - DateTimeOffset.Now.ToUnixTimeSeconds();
 
     /// <inheritdoc/>
-    public SeString Name => MemoryHelper.ReadSeString(&ptr->Name);
+    public SeString Name => ptr->Name.AsDalamudSeString();
 
     /// <inheritdoc/>
-    public SeString Description => MemoryHelper.ReadSeString(&ptr->Description);
+    public SeString Description => ptr->Description.AsDalamudSeString();
 
     /// <inheritdoc/>
-    public SeString Objective => MemoryHelper.ReadSeString(&ptr->Objective);
+    public SeString Objective => ptr->Objective.AsDalamudSeString();
 
     /// <inheritdoc/>
     public FateState State => (FateState)ptr->State;
