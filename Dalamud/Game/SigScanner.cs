@@ -17,6 +17,8 @@ using Newtonsoft.Json;
 
 using Serilog;
 
+using TerraFX.Interop.Windows;
+
 namespace Dalamud.Game;
 
 // TODO(v9): There are static functions here that we can't keep due to interfaces
@@ -473,63 +475,49 @@ public class SigScanner : IDisposable, ISigScanner
         return badShift;
     }
 
-    private void SetupSearchSpace(ProcessModule module)
+    private unsafe void SetupSearchSpace(ProcessModule module)
     {
         var baseAddress = module.BaseAddress;
 
-        // We don't want to read all of IMAGE_DOS_HEADER or IMAGE_NT_HEADER stuff so we cheat here.
-        var ntNewOffset = Marshal.ReadInt32(baseAddress, 0x3C);
-        var ntHeader = baseAddress + ntNewOffset;
+        var dosHeader = (IMAGE_DOS_HEADER*)baseAddress;
+        var ntHeader = (IMAGE_NT_HEADERS64*)(baseAddress + dosHeader->e_lfanew);
 
-        // IMAGE_NT_HEADER
-        var fileHeader = ntHeader + 4;
-        var numSections = Marshal.ReadInt16(ntHeader, 6);
+        var numSections = ntHeader->FileHeader.NumberOfSections;
+        var section = (IMAGE_SECTION_HEADER*)((byte*)ntHeader + sizeof(IMAGE_NT_HEADERS64));
 
-        // IMAGE_OPTIONAL_HEADER
-        var optionalHeader = fileHeader + 20;
-
-        IntPtr sectionHeader;
-        if (this.Is32BitProcess) // IMAGE_OPTIONAL_HEADER32
-            sectionHeader = optionalHeader + 224;
-        else // IMAGE_OPTIONAL_HEADER64
-            sectionHeader = optionalHeader + 240;
-
-        // IMAGE_SECTION_HEADER
-        var sectionCursor = sectionHeader;
         for (var i = 0; i < numSections; i++)
         {
-            var sectionName = Marshal.ReadInt64(sectionCursor);
+            var sectionName = Unsafe.As<byte, ulong>(ref section->Name.e0);
+            var offset = section->VirtualAddress;
+            var size = (int)section->Misc.VirtualSize;
 
-            // .text
             switch (sectionName)
             {
                 case 0x747865742E: // .text
-                    this.TextSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
-                    this.TextSectionSize = Marshal.ReadInt32(sectionCursor, 8);
+                    this.TextSectionOffset = offset;
+                    this.TextSectionSize = size;
 
                     if (this.IsCopy)
                     {
-                        var pointerToRawData = Marshal.ReadInt32(sectionCursor, 20);
-
-                        Marshal.Copy(
-                                     fileBytes.AsSpan(pointerToRawData, this.TextSectionSize).ToArray(),
-                                     0,
-                                     this.moduleCopyPtr + (nint)this.TextSectionOffset,
-                                     this.TextSectionSize);
+                        var source = fileBytes.AsSpan((int)section->PointerToRawData, this.TextSectionSize);
+                        var destination = new Span<byte>((void*)(this.moduleCopyPtr + (nint)this.TextSectionOffset), this.TextSectionSize);
+                        source.CopyTo(destination);
                     }
 
                     break;
+
                 case 0x617461642E: // .data
-                    this.DataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
-                    this.DataSectionSize = Marshal.ReadInt32(sectionCursor, 8);
+                    this.DataSectionOffset = offset;
+                    this.DataSectionSize = size;
                     break;
+
                 case 0x61746164722E: // .rdata
-                    this.RDataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
-                    this.RDataSectionSize = Marshal.ReadInt32(sectionCursor, 8);
+                    this.RDataSectionOffset = offset;
+                    this.RDataSectionSize = size;
                     break;
             }
 
-            sectionCursor += 40;
+            section++;
         }
     }
 
