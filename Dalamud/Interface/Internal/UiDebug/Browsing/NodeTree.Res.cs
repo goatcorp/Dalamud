@@ -203,7 +203,7 @@ internal unsafe partial class ResNodeTree : IDisposable
         var nodeType = $"{this.NodeType} Node";
 
         // If this node is defined as a known custom node, display the custom type instead
-        if (CustomNodeDefinitions is not null && CustomNodeDefinitions.TryGetValue((nint)this.Node, out var typeInfo))
+        if (CustomNodeTypeDefinitions is not null && CustomNodeTypeDefinitions.TryGetValue((nint)this.Node, out var typeInfo))
         {
             if (typeInfo.IsGenericType)
             {
@@ -213,6 +213,11 @@ internal unsafe partial class ResNodeTree : IDisposable
             {
                 nodeType = typeInfo.Name;
             }
+        }
+
+        if (CustomNodeStringDefinitions is not null && CustomNodeStringDefinitions.TryGetValue((nint)this.Node, out var stringName))
+        {
+            nodeType = stringName;
         }
 
         return $"{nodeType} {(count > 0 ? $" [+{count}]" : string.Empty)}";

@@ -9,6 +9,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -22,10 +23,14 @@ namespace Dalamud.Interface.Internal.UiDebug;
 /// <summary>
 /// A tool for browsing the contents and structure of UI elements.
 /// </summary>
+[Api15ToDo("Rename 'KamiToolKitAllocatedNodes' to 'TypeMappedCustomNodes'")]
 internal partial class UiDebug : IDisposable
 {
     /// <inheritdoc cref="ModuleLog"/>
     internal static readonly ModuleLog Log = ModuleLog.Create<UiDebug>();
+
+    private const string TypeMappedNodesDataShareName = "KamiToolKitAllocatedNodes";
+    private const string StringMappedNodesDataShareName = "StringMappedCustomNodes";
 
     private readonly ElementSelector elementSelector;
     private readonly DataCachePluginId dalamudInternalId = new("DalamudInternal", Guid.NewGuid());
@@ -35,12 +40,16 @@ internal partial class UiDebug : IDisposable
     /// </summary>
     internal UiDebug()
     {
-        this.elementSelector = new(this);
-        CustomNodeDefinitions = Service<DataShare>.Get().GetOrCreateData("KamiToolKitAllocatedNodes", this.dalamudInternalId, () => new ConcurrentDictionary<nint, Type>());
+        this.elementSelector = new ElementSelector(this);
+        CustomNodeTypeDefinitions = Service<DataShare>.Get().GetOrCreateData(TypeMappedNodesDataShareName, this.dalamudInternalId, () => new ConcurrentDictionary<nint, Type>());
+        CustomNodeStringDefinitions = Service<DataShare>.Get().GetOrCreateData(StringMappedNodesDataShareName, this.dalamudInternalId, () => new ConcurrentDictionary<nint, string>());
     }
 
     /// <summary> Gets a mapping of address to typename for custom nodes.</summary>
-    internal static ConcurrentDictionary<nint, Type>? CustomNodeDefinitions { get; private set; }
+    internal static ConcurrentDictionary<nint, Type>? CustomNodeTypeDefinitions { get; private set; }
+
+    /// <summary> Gets a mapping of address to typename for custom nodes.</summary>
+    internal static ConcurrentDictionary<nint, string>? CustomNodeStringDefinitions { get; private set; }
 
     /// <inheritdoc cref="IGameGui"/>
     internal static IGameGui GameGui { get; set; } = Service<GameGui>.Get();
@@ -74,7 +83,8 @@ internal partial class UiDebug : IDisposable
         PopoutWindows.RemoveAllWindows();
         this.elementSelector.Dispose();
 
-        Service<DataShare>.Get().RelinquishData("KamiToolKitAllocatedNodes",  this.dalamudInternalId);
+        Service<DataShare>.Get().RelinquishData(TypeMappedNodesDataShareName,  this.dalamudInternalId);
+        Service<DataShare>.Get().RelinquishData(StringMappedNodesDataShareName,  this.dalamudInternalId);
     }
 
     /// <summary>
