@@ -17,6 +17,7 @@ public interface ISigScanner : IDalamudService
     /// <summary>
     /// Gets a value indicating whether the ProcessModule is 32-bit.
     /// </summary>
+    [Obsolete("We're now only supporting 64-bit processes.")]
     public bool Is32BitProcess { get; }
 
     /// <summary>

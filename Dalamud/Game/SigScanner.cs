@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using Iced.Intel;
 
@@ -78,6 +79,7 @@ public class SigScanner : IDisposable, ISigScanner
     public bool IsCopy { get; }
 
     /// <inheritdoc/>
+    [Api15ToDo("Remove this property.")]
     public bool Is32BitProcess { get; }
 
     /// <inheritdoc/>
