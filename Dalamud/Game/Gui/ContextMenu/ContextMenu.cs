@@ -19,6 +19,8 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
+using InteropGenerator.Runtime;
+
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace Dalamud.Game.Gui.ContextMenu;
@@ -47,7 +49,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         this.addonContextMenuOnMenuSelectedHook.Enable();
     }
 
-    private delegate ushort AtkModuleVf22OpenAddonByAgentDelegate(AtkModule* module, byte* addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8);
+    private delegate ushort AtkModuleVf22OpenAddonByAgentDelegate(AtkModule* module, CStringPointer addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8);
 
     /// <inheritdoc/>
     public event IContextMenu.OnMenuOpenedDelegate? OnMenuOpened;
@@ -327,11 +329,12 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         this.SetupGenericMenu(8, 0, 6, 5, items, ref valueCount, ref values);
     }
 
-    private ushort AtkModuleVf22OpenAddonByAgentDetour(AtkModule* module, byte* addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8)
+    private ushort AtkModuleVf22OpenAddonByAgentDetour(AtkModule* module, CStringPointer addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8)
     {
         var oldValues = values;
+        var addonNameSpan = addonName.AsSpan();
 
-        if (MemoryHelper.EqualsZeroTerminatedString("ContextMenu", (nint)addonName))
+        if (addonNameSpan.SequenceEqual("ContextMenu"u8))
         {
             this.MenuCallbackIds.Clear();
             this.SelectedAgent = agent;
@@ -387,7 +390,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 this.SelectedItems = null;
             }
         }
-        else if (MemoryHelper.EqualsZeroTerminatedString("AddonContextSub", (nint)addonName))
+        else if (addonNameSpan.SequenceEqual("AddonContextSub"u8))
         {
             this.MenuCallbackIds.Clear();
             if (this.SubmenuItems != null)
@@ -398,7 +401,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 Log.Verbose($"Opening {this.SelectedMenuType} submenu with {this.SubmenuItems.Count} custom items.");
             }
         }
-        else if (MemoryHelper.EqualsZeroTerminatedString("AddonContextMenuTitle", (nint)addonName))
+        else if (addonNameSpan.SequenceEqual("AddonContextMenuTitle"u8))
         {
             this.MenuCallbackIds.Clear();
         }
