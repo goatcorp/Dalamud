@@ -76,6 +76,8 @@ internal class PluginManager : IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
 
+    private Task? repoRefreshTask;
+
     static PluginManager()
     {
         DalamudApiLevel = typeof(PluginManager).Assembly.GetName().Version!.Major;
@@ -242,7 +244,7 @@ internal class PluginManager : IInternalDisposableService
     /// <summary>
     /// Gets a value indicating whether all added repos are not in progress.
     /// </summary>
-    public bool ReposReady { get; private set; }
+    public bool ReposReady => this.repoRefreshTask is { IsCompleted: true };
 
     /// <summary>
     /// Gets or sets a value indicating whether the plugin manager started in safe mode.
@@ -433,11 +435,31 @@ internal class PluginManager : IInternalDisposableService
         var repos = new List<PluginRepository> { this.MainRepo };
         repos.AddRange(this.configuration.ThirdRepoList
                            .Where(repo => repo.IsEnabled)
+                           .DistinctBy(x => x.Url)
                            .Select(repo => new PluginRepository(this.happyHttpClient, repo.Url, repo.IsEnabled)));
 
         this.Repos = repos;
-        await this.ReloadPluginMastersAsync(notify);
+        await this.ReloadAllReposAsync();
     }
+
+    /// <summary>
+    /// Reload all plugin repositories. This is called after setting repos from config, but can also be called manually to refresh repos.
+    /// </summary>
+    /// <returns>Task that will resolve once all repos are reloaded.</returns>
+    public async Task ReloadAllReposAsync()
+    {
+        if (this.repoRefreshTask is null or { IsCompleted: true })
+            this.repoRefreshTask = this.ReloadAllReposInternalAsync();
+
+        await this.repoRefreshTask;
+    }
+
+    /// <summary>
+    /// Wait for the plugin repositories to finish refreshing.
+    /// </summary>
+    /// <returns>Task that will resolve once all repos are reloaded, or a completed task if no reload operation is in progress.</returns>
+    public Task WaitForReposAsync() =>
+        this.repoRefreshTask ?? throw new Exception("Repo refresh task was never set.");
 
     /// <summary>
     /// Load all plugins, sorted by priority. Any plugins with no explicit definition file or a negative priority
@@ -700,7 +722,7 @@ internal class PluginManager : IInternalDisposableService
 
                 var sigScanner = await Service<TargetSigScanner>.GetAsync().ConfigureAwait(false);
                 this.PluginsReady = true;
-                this.NotifyinstalledPluginsListChanged();
+                this.NotifyInstalledPluginsChanged();
                 sigScanner.Save();
 
                 try
@@ -720,58 +742,6 @@ internal class PluginManager : IInternalDisposableService
                     Log.Error(t.Exception, "Failed to load FrameworkTickAsync/DrawAvailableAsync plugins");
                 }
             }, TaskContinuationOptions.OnlyOnFaulted);
-    }
-
-    /// <summary>
-    /// Reload the PluginMaster for each repo, filter, and event that the list has updated.
-    /// </summary>
-    /// <param name="notify">Whether to notify that available plugins have changed afterwards.</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task ReloadPluginMastersAsync(bool notify = true)
-    {
-        Log.Information("Now reloading all PluginMasters...");
-        this.ReposReady = false;
-
-        try
-        {
-            Debug.Assert(!this.Repos.First().IsThirdParty, "First repository should be main repository");
-            await this.Repos.First().ReloadPluginMasterAsync(); // Load official repo first
-
-            await Task.WhenAll(this.Repos.Skip(1).Select(repo => repo.ReloadPluginMasterAsync()));
-
-            Log.Information("PluginMasters reloaded, now refiltering...");
-
-            this.RefilterPluginMasters(notify);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Could not reload plugin repositories");
-        }
-        finally
-        {
-            this.ReposReady = true;
-        }
-    }
-
-    /// <summary>
-    /// Apply visibility and eligibility filters to the available plugins, then event that the list has updated.
-    /// </summary>
-    /// <param name="notify">Whether to notify that available plugins have changed afterwards.</param>
-    public void RefilterPluginMasters(bool notify = true)
-    {
-        lock (this.pluginListLock)
-        {
-            this.availablePluginsList.Clear();
-            this.availablePluginsList.AddRange(this.Repos
-                                                   .SelectMany(repo => repo.PluginMaster)
-                                                   .Where(this.IsManifestEligible)
-                                                   .Where(IsManifestVisible));
-
-            if (notify)
-            {
-                this.NotifyAvailablePluginsChanged();
-            }
-        }
     }
 
     /// <summary>
@@ -841,7 +811,7 @@ internal class PluginManager : IInternalDisposableService
         }
 
         if (listChanged)
-            this.NotifyinstalledPluginsListChanged();
+            this.NotifyInstalledPluginsChanged();
     }
 
     /// <summary>
@@ -874,7 +844,7 @@ internal class PluginManager : IInternalDisposableService
             this.installedPluginsList.Remove(plugin);
         }
 
-        this.NotifyinstalledPluginsListChanged();
+        this.NotifyInstalledPluginsChanged();
         this.NotifyAvailablePluginsChanged();
     }
 
@@ -1008,7 +978,7 @@ internal class PluginManager : IInternalDisposableService
 
         var updatedList = await Task.WhenAll(updateTasks);
 
-        this.NotifyinstalledPluginsListChanged();
+        this.NotifyInstalledPluginsChanged();
         this.NotifyPluginsForStateChange(
             autoUpdate ? PluginListInvalidationKind.AutoUpdate : PluginListInvalidationKind.Update,
             updatedList.Select(x => x.InternalName));
@@ -1141,7 +1111,7 @@ internal class PluginManager : IInternalDisposableService
         }
 
         if (notify && updateStatus.Status == PluginUpdateStatus.StatusKind.Success)
-            this.NotifyinstalledPluginsListChanged();
+            this.NotifyInstalledPluginsChanged();
 
         return updateStatus;
     }
@@ -1282,14 +1252,6 @@ internal class PluginManager : IInternalDisposableService
 
         return null;
     }
-
-    /// <summary>
-    /// Get the plugin that called this method by walking the stack,
-    /// or null, if it cannot be determined.
-    /// At the time, this is naive and shouldn't be used for security-critical checks.
-    /// </summary>
-    /// <returns>The calling plugin, or null.</returns>
-    public LocalPlugin? FindCallingPlugin() => this.FindCallingPlugin(new StackTrace());
 
     /// <summary>
     /// Notifies all plugins that the active plugins list changed.
@@ -1552,7 +1514,7 @@ internal class PluginManager : IInternalDisposableService
             Log.Information("Installed plugin {InternalName} (testing={UseTesting})", tempManifest.Name, useTesting);
             var plugin = await this.LoadPluginAsync(finalDllFile, finalManifest, reason);
 
-            this.NotifyinstalledPluginsListChanged();
+            this.NotifyInstalledPluginsChanged();
             return plugin;
         }
         catch
@@ -1822,6 +1784,53 @@ internal class PluginManager : IInternalDisposableService
         Log.Debug("Update check found {updateCount} available updates.", this.updatablePluginsList.Count);
     }
 
+    /// <summary>
+    /// Reload the PluginMaster for each repo, filter, and event that the list has updated.
+    /// </summary>
+    /// <param name="notify">Whether to notify that available plugins have changed afterward.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    private async Task ReloadAllReposInternalAsync(bool notify = true)
+    {
+        Log.Information("Now reloading all repos...");
+
+        try
+        {
+            Debug.Assert(!this.Repos.First().IsThirdParty, "First repository should be main repository");
+            await this.Repos.First().ReloadAsync(); // Load official repo first
+
+            await Task.WhenAll(this.Repos.Skip(1).Select(repo => repo.ReloadAsync()));
+
+            Log.Information("Repos reloaded, now refiltering...");
+
+            this.RefilterAvailablePlugins(notify);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not reload plugin repositories");
+        }
+    }
+
+    /// <summary>
+    /// Apply visibility and eligibility filters to the available plugins, then event that the list has updated.
+    /// </summary>
+    /// <param name="notify">Whether to notify that available plugins have changed afterwards.</param>
+    private void RefilterAvailablePlugins(bool notify = true)
+    {
+        lock (this.pluginListLock)
+        {
+            this.availablePluginsList.Clear();
+            this.availablePluginsList.AddRange(this.Repos
+                                                   .SelectMany(repo => repo.PluginMaster)
+                                                   .Where(this.IsManifestEligible)
+                                                   .Where(IsManifestVisible));
+
+            if (notify)
+            {
+                this.NotifyAvailablePluginsChanged();
+            }
+        }
+    }
+
     private void NotifyAvailablePluginsChanged()
     {
         this.DetectAvailablePluginUpdates();
@@ -1829,7 +1838,7 @@ internal class PluginManager : IInternalDisposableService
         this.OnAvailablePluginsChanged?.InvokeSafely();
     }
 
-    private void NotifyinstalledPluginsListChanged()
+    private void NotifyInstalledPluginsChanged()
     {
         this.DetectAvailablePluginUpdates();
 

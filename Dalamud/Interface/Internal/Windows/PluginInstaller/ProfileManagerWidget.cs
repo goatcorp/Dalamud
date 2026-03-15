@@ -6,6 +6,8 @@ using CheapLoc;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.Player;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.ImGuiNotification;
@@ -29,6 +31,7 @@ internal class ProfileManagerWidget
     private readonly PluginInstallerWindow installer;
     private Mode mode = Mode.Overview;
     private Guid? editingProfileGuid;
+    private bool lastWasPickingPlugin;
 
     private string pickerSearch = string.Empty;
     private string profileNameEdit = string.Empty;
@@ -121,6 +124,8 @@ internal class ProfileManagerWidget
                     ImGuiHelpers.ScaledDummy(5);
                     ImGui.TextWrapped(Locs.TutorialParagraphFour);
                     ImGuiHelpers.ScaledDummy(5);
+                    ImGui.TextWrapped(Locs.TutorialParagraphFive);
+                    ImGuiHelpers.ScaledDummy(5);
                     ImGui.TextWrapped(Locs.TutorialCommands);
 
                     ImGui.Bullet();
@@ -202,11 +207,10 @@ internal class ProfileManagerWidget
         ImGui.Separator();
         ImGuiHelpers.ScaledDummy(5);
 
-        var windowSize = ImGui.GetWindowSize();
-
         using var profileChooserChild = ImRaii.Child("###profileChooserScrolling"u8);
         if (profileChooserChild)
         {
+            var contentRegionMaxX = ImGui.GetWindowContentRegionMax().X;
             Guid? toCloneGuid = null;
 
             using var syncScope = profman.GetSyncScope();
@@ -232,7 +236,7 @@ internal class ProfileManagerWidget
                 ImGui.Text(profile.Name);
 
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
+                ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30));
 
                 if (ImGuiComponents.IconButton($"###editButton{profile.Guid}", FontAwesomeIcon.PencilAlt))
                 {
@@ -245,7 +249,7 @@ internal class ProfileManagerWidget
                     ImGui.SetTooltip(Locs.EditProfileHint);
 
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 2) - 5);
+                ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30 * 2) - 5);
 
                 if (ImGuiComponents.IconButton($"###cloneButton{profile.Guid}", FontAwesomeIcon.Copy))
                     toCloneGuid = profile.Guid;
@@ -254,7 +258,7 @@ internal class ProfileManagerWidget
                     ImGui.SetTooltip(Locs.CloneProfileHint);
 
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 3) - 5);
+                ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30 * 3) - 5);
 
                 if (ImGuiComponents.IconButton($"###exportButton{profile.Guid}", FontAwesomeIcon.FileExport))
                 {
@@ -327,6 +331,31 @@ internal class ProfileManagerWidget
             plugin => !plugin.Manifest.SupportsProfiles ||
                       profile.Plugins.Any(x => x.WorkingPluginId == plugin.EffectiveWorkingPluginId));
 
+        // Reapply states when closing plugin picker, as we might have changed want states for some plugins. Only do this when closing, to avoid doing it multiple times while picking.
+        var isPickingPlugin = ImGui.IsPopupOpen("###addPluginToProfilePicker");
+        switch (isPickingPlugin)
+        {
+            case false when this.lastWasPickingPlugin:
+                // Clear search after closing
+                this.pickerSearch = string.Empty;
+
+                Task.Run(async () =>
+                    {
+                        await profman.ApplyAllWantStatesAsync("Finish adding plugins");
+                    })
+                    .ContinueWith(t =>
+                    {
+                        this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
+                    });
+
+                this.lastWasPickingPlugin = false;
+                break;
+
+            case true:
+                this.lastWasPickingPlugin = true;
+                break;
+        }
+
         var didAny = false;
 
         // ======== Top bar ========
@@ -364,7 +393,7 @@ internal class ProfileManagerWidget
             Task.Run(async () =>
                 {
                     await profman.DeleteProfileAsync(profile);
-                    await profman.ApplyAllWantStatesAsync();
+                    await profman.ApplyAllWantStatesAsync("Delete profile");
                 })
                 .ContinueWith(t =>
                 {
@@ -419,12 +448,138 @@ internal class ProfileManagerWidget
 
         ImGuiHelpers.ScaledDummy(5);
 
+        var model = (ProfileModelV1)profile.Model;
+
+        if (Service<DalamudConfiguration>.Get().ProfilesEnableCharacters)
+        {
+            var enableForCharacters = model.EnableForCharacters;
+            ImGui.Checkbox(
+                Locs.EnableForSpecificCharacters,
+                ref enableForCharacters);
+            if (enableForCharacters != model.EnableForCharacters)
+            {
+                model.EnableForCharacters = enableForCharacters;
+                Service<DalamudConfiguration>.Get().QueueSave();
+
+                // Profile might now no longer want active
+                Task.Run(async () =>
+                    {
+                        await profman.ApplyAllWantStatesAsync("Toggle enable for characters");
+                    })
+                    .ContinueWith(t =>
+                    {
+                        this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
+                    });
+            }
+        }
+
+        // If the profile is configured to enable by specific characters, show the character list and controls
+        if (model.EnableForCharacters)
+        {
+            ulong? wantRemoveContentId = null;
+
+            ImGui.Indent();
+
+            foreach (var entry in model.EnabledCharacters.ToArray())
+            {
+                if (ImGuiComponents.IconButton($"###removeChar{entry.ContentId}", FontAwesomeIcon.Trash))
+                {
+                    wantRemoveContentId = entry.ContentId;
+                }
+
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(Loc.Localize("ProfileManagerRemoveCharacter", "Remove character"));
+
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (5 * ImGuiHelpers.GlobalScale));
+
+                string characterDisplay;
+                if (!string.IsNullOrEmpty(entry.DisplayName) && !string.IsNullOrEmpty(entry.ServerName))
+                {
+                    characterDisplay =
+                        $"{entry.DisplayName} <icon({(int)BitmapFontIcon.CrossWorld})> {entry.ServerName}";
+                }
+                else
+                {
+                    characterDisplay = entry.ContentId.ToString();
+                }
+
+                ImGuiHelpers.CompileSeStringWrapped(characterDisplay);
+
+                if (entry != model.EnabledCharacters.LastOrDefault())
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Border, ImGuiColors.DalamudGrey.WithAlpha(0.2f));
+                    ImGui.Separator();
+                    ImGui.PopStyleColor();
+                }
+            }
+
+            if (model.EnabledCharacters.Count == 0)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
+                ImGui.TextColoredWrapped(
+                    ImGuiColors.DalamudGrey,
+                    Loc.Localize(
+                        "ProfileManagerNoCharactersAdded",
+                        "This collection will not be active for any characters until you add some with the button below."));
+                ImGui.PopStyleColor();
+            }
+
+            ImGui.Unindent();
+
+            if (wantRemoveContentId != null)
+            {
+                var toRem =
+                    model.EnabledCharacters.FirstOrDefault(x => x.ContentId == wantRemoveContentId.Value);
+                if (toRem != null)
+                {
+                    model.EnabledCharacters.Remove(toRem);
+                    Service<DalamudConfiguration>.Get().QueueSave();
+                }
+
+                // Profile might now no longer want active
+                Task.Run(async () => { await profman.ApplyAllWantStatesAsync("Remove character"); })
+                    .ContinueWith(t => { this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState); });
+            }
+
+            ImGuiHelpers.ScaledDummy(5);
+
+            var player = Service<PlayerState>.Get();
+            if (player.IsLoaded)
+            {
+                using var disabled = ImRaii.Disabled(model.EnabledCharacters.Any(x => x.ContentId == player.ContentId));
+                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, $"Add current character: {player.CharacterName}"))
+                {
+                    var serverName = player.HomeWorld.Value.Name.ExtractText();
+                    model.EnabledCharacters.Add(new ProfileModelV1.ProfileModelV1Character(player.CharacterName, player.ContentId, serverName));
+                    Service<DalamudConfiguration>.Get().QueueSave();
+
+                    // Profile might now want active
+                    Task.Run(async () =>
+                        {
+                            await profman.ApplyAllWantStatesAsync("Add character");
+                        })
+                        .ContinueWith(t =>
+                        {
+                            this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
+                        });
+                }
+            }
+            else
+            {
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("ProfileManagerCharacterNotLoaded", "You must be logged in to add your current character."));
+            }
+
+            ImGuiHelpers.ScaledDummy(5);
+        }
+
         ImGui.Separator();
         var wantPluginAddPopup = false;
 
         using var pluginListChild = ImRaii.Child("###profileEditorPluginList"u8);
         if (pluginListChild)
         {
+            var contentRegionMaxX = ImGui.GetWindowContentRegionMax().X;
             var pluginLineHeight = 32 * ImGuiHelpers.GlobalScale;
             Guid? wantRemovePluginGuid = null;
 
@@ -452,6 +607,7 @@ internal class ProfileManagerWidget
                     }
 
                     ImGui.SameLine();
+                    ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (5 * ImGuiHelpers.GlobalScale));
 
                     var text = $"{pmPlugin.Name}{(pmPlugin.IsDev ? " (dev plugin" : string.Empty)}";
                     var textHeight = ImGui.CalcTextSize(text);
@@ -490,7 +646,7 @@ internal class ProfileManagerWidget
                             profileEntry.WorkingPluginId = firstAvailableInstalled.EffectiveWorkingPluginId;
                             Task.Run(async () =>
                                 {
-                                    await profman.ApplyAllWantStatesAsync();
+                                    await profman.ApplyAllWantStatesAsync("Match plugin");
                                 })
                                 .ContinueWith(t =>
                                 {
@@ -501,7 +657,7 @@ internal class ProfileManagerWidget
                     else if (installable != null)
                     {
                         ImGui.SameLine();
-                        ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 2) - 2);
+                        ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30 * 2) - 2);
                         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
                         btnOffset = 3;
 
@@ -518,7 +674,7 @@ internal class ProfileManagerWidget
                 }
 
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
+                ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30));
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
 
                 var enabled = profileEntry.IsEnabled;
@@ -529,7 +685,7 @@ internal class ProfileManagerWidget
                 }
 
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * btnOffset) - 5);
+                ImGui.SetCursorPosX(contentRegionMaxX - (ImGuiHelpers.GlobalScale * 30 * btnOffset) - 5);
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
 
                 if (ImGuiComponents.IconButton($"###removePlugin{profileEntry.InternalName}", FontAwesomeIcon.Trash))
@@ -553,7 +709,7 @@ internal class ProfileManagerWidget
             if (wantRemovePluginGuid != null)
             {
                 // TODO: handle error
-                Task.Run(() => profile.RemoveAsync(wantRemovePluginGuid.Value, false))
+                Task.Run(() => profile.RemoveAsync(wantRemovePluginGuid.Value))
                                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotRemove);
             }
 
@@ -590,6 +746,10 @@ internal class ProfileManagerWidget
     {
         public static string StartupBehavior =>
             Loc.Localize("ProfileManagerStartupBehavior", "Startup behavior");
+
+        public static string EnableForSpecificCharacters => Loc.Localize(
+            "ProfileManagerEnableForCharacters",
+            "Only enable for specific characters");
 
         public static string TooltipEnableDisable =>
             Loc.Localize("ProfileManagerEnableDisableHint", "Enable/Disable this collection");
@@ -654,6 +814,10 @@ internal class ProfileManagerWidget
 
         public static string TutorialParagraphFour =>
             Loc.Localize("ProfileManagerTutorialParagraphFour", "Individual plugins inside a collection also have a checkbox next to them. This indicates if a plugin is active within that collection - if the checkbox is not ticked, the plugin will not be enabled if that collection is active. Mind that it will still be enabled if the plugin is an active part of any other collection.");
+
+        public static string TutorialParagraphFive =>
+            Loc.Localize("ProfileManagerTutorialParagraphFive", "When ticking the \"{0}\" checkbox, the collection will only be active for specific characters. You can add characters to the list by clicking the plus button and selecting a character, or by clicking the button with the person icon to add your current character. This is useful if you want different collections active on different characters.")
+               .Format(EnableForSpecificCharacters);
 
         public static string TutorialCommands =>
             Loc.Localize("ProfileManagerTutorialCommands", "You can use the following commands in chat or in macros to manage active collections:");

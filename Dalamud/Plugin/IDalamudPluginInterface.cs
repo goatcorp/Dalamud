@@ -89,6 +89,11 @@ public interface IDalamudPluginInterface : IServiceProvider
     bool IsTesting { get; }
 
     /// <summary>
+    /// Gets a value indicating whether this plugin's load status is controlled by a profile/collection.
+    /// </summary>
+    bool IsInProfile { get; }
+
+    /// <summary>
     /// Gets the time that this plugin was loaded.
     /// </summary>
     DateTime LoadTime { get; }
@@ -137,6 +142,13 @@ public interface IDalamudPluginInterface : IServiceProvider
     /// Gets a value indicating whether a debugger is attached.
     /// </summary>
     bool IsDebugging { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the user wants to allow seasonal events, such as April Fools, to be to run.
+    /// Certain users may not wish to be affected by these and may disable them globally.
+    /// We recommend that plugins check this value before running any seasonal event code, and disable or hide such features if this is false.
+    /// </summary>
+    bool AllowSeasonalEvents { get; }
 
     /// <summary>
     /// Gets the current UI language in two-letter iso format.
@@ -332,4 +344,12 @@ public interface IDalamudPluginInterface : IServiceProvider
     /// <param name="scopedObjects">Objects to inject additionally.</param>
     /// <returns>A <see cref="ValueTask"/> representing the status of the operation.</returns>
     Task InjectAsync(object instance, params object[] scopedObjects);
+
+    /// <summary>
+    /// Check for updates for this plugin, returning information about the latest version if available.
+    /// Does not actually re-request data from the remote repository, but will wait for a pending reload if one is in progress.
+    /// Reloads happen at periodic intervals (10 minutes) so data will stay relatively fresh.
+    /// </summary>
+    /// <returns>A record containing details about the update, or null if no update is available.</returns>
+    Task<PluginUpdate?> CheckForUpdateAsync();
 }

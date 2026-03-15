@@ -330,6 +330,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool ProfilesHasSeenTutorial { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets a value indicating whether the user has enabled character-specific profiles.
+    /// </summary>
+    public bool ProfilesEnableCharacters { get; set; } = false;
+
+    /// <summary>
     /// Gets or sets the default UI preset.
     /// </summary>
     public PresetModel DefaultUiPreset { get; set; } = new();
@@ -488,6 +493,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating where notifications are anchored to on the screen.
     /// </summary>
     public Vector2 NotificationAnchorPosition { get; set; } = new(1f, 1f);
+
+    /// <summary>
+    /// Gets or sets a value indicating whether seasonal events, such as April Fools, should be allowed to run.
+    /// </summary>
+    public bool AllowSeasonalEvents { get; set; } = true;
 
 #pragma warning disable SA1600
 #pragma warning disable SA1516

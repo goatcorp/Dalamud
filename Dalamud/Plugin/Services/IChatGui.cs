@@ -54,7 +54,7 @@ public interface IChatGui : IDalamudService
     /// <summary>
     /// A delegate type used with the <see cref="IChatGui.LogMessage"/> event.
     /// </summary>
-    /// <param name="message">The message sent.</param>
+    /// <param name="message">The message sent. The passed object is only valid during the event callback and must not be used after returning from it.</param>
     public delegate void OnLogMessageDelegate(ILogMessage message);
 
     /// <summary>

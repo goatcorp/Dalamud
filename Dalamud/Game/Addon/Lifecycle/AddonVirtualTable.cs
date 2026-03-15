@@ -409,6 +409,10 @@ internal unsafe class AddonVirtualTable : IDisposable
                 {
                     this.OriginalVirtualTable->ReceiveEvent(addon, eventType, eventParam, atkEvent, atkEventData);
                 }
+                else
+                {
+                    atkEvent->SetEventIsHandled();
+                }
             }
             catch (Exception e)
             {

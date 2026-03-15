@@ -25,16 +25,16 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
     public const string CommandEnableProfile = "/xlenablecollection";
     public const string CommandDisableProfile = "/xldisablecollection";
     public const string CommandToggleProfile = "/xltogglecollection";
-    
+
     public const string CommandEnablePlugin = "/xlenableplugin";
     public const string CommandDisablePlugin = "/xldisableplugin";
     public const string CommandTogglePlugin = "/xltoggleplugin";
 #pragma warning restore SA1600
-    
+
     private static readonly string LegacyCommandEnable = CommandEnableProfile.Replace("collection", "profile");
     private static readonly string LegacyCommandDisable = CommandDisableProfile.Replace("collection", "profile");
     private static readonly string LegacyCommandToggle = CommandToggleProfile.Replace("collection", "profile");
-    
+
     private readonly CommandManager cmd;
     private readonly ProfileManager profileManager;
     private readonly PluginManager pluginManager;
@@ -42,7 +42,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
     private readonly Framework framework;
 
     private List<(Target Target, PluginCommandOperation Operation)> commandQueue = [];
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginManagementCommandHandler"/> class.
     /// </summary>
@@ -82,7 +82,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
             HelpMessage = Loc.Localize("ProfileCommandsToggleHint", "Toggle a collection. Usage: /xltogglecollection \"Collection Name\""),
             ShowInHelp = true,
         });
-        
+
         this.cmd.AddHandler(LegacyCommandEnable, new CommandInfo(this.OnEnableProfile)
         {
             ShowInHelp = false,
@@ -97,19 +97,19 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
         {
             ShowInHelp = false,
         });
-        
+
         this.cmd.AddHandler(CommandEnablePlugin, new CommandInfo(this.OnEnablePlugin)
         {
             HelpMessage = Loc.Localize("PluginCommandsEnableHint", "Enable a plugin. Usage: /xlenableplugin \"Plugin Name\""),
             ShowInHelp = true,
         });
-        
+
         this.cmd.AddHandler(CommandDisablePlugin, new CommandInfo(this.OnDisablePlugin)
         {
             HelpMessage = Loc.Localize("PluginCommandsDisableHint", "Disable a plugin. Usage: /xldisableplugin \"Plugin Name\""),
             ShowInHelp = true,
         });
-        
+
         this.cmd.AddHandler(CommandTogglePlugin, new CommandInfo(this.OnTogglePlugin)
         {
             HelpMessage = Loc.Localize("PluginCommandsToggleHint", "Toggle a plugin. Usage: /xltoggleplugin \"Plugin Name\""),
@@ -125,7 +125,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
         Disable,
         Toggle,
     }
-    
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
@@ -138,7 +138,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
 
         this.framework.Update += this.FrameworkOnUpdate;
     }
-    
+
     private void HandleProfileOperation(string profileName, PluginCommandOperation operation)
     {
         var profile = this.profileManager.Profiles.FirstOrDefault(
@@ -168,7 +168,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
                 ? Loc.Localize("ProfileCommandsEnabling", "Enabling collection \"{0}\"...").Format(profile.Name)
                 : Loc.Localize("ProfileCommandsDisabling", "Disabling collection \"{0}\"...").Format(profile.Name));
 
-        Task.Run(this.profileManager.ApplyAllWantStatesAsync).ContinueWith(t =>
+        Task.Run(() => this.profileManager.ApplyAllWantStatesAsync("Command")).ContinueWith(t =>
         {
             if (!t.IsCompletedSuccessfully && t.Exception != null)
             {
@@ -181,7 +181,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
             }
         });
     }
-    
+
     private bool HandlePluginOperation(Guid workingPluginId, PluginCommandOperation operation)
     {
         var plugin = this.pluginManager.InstalledPlugins.FirstOrDefault(x => x.EffectiveWorkingPluginId == workingPluginId);
@@ -215,7 +215,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
                 this.chat.PrintError(onError);
                 return;
             }
-            
+
             this.chat.Print(onSuccess);
         }
 
@@ -229,8 +229,8 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
             case PluginCommandOperation.Enable:
                 this.chat.Print(Loc.Localize("PluginCommandsEnabling", "Enabling plugin \"{0}\"...").Format(plugin.Name));
                 Task.Run(() => plugin.LoadAsync(PluginLoadReason.Installer))
-                    .ContinueWith(t => Continuation(t, 
-                                                    Loc.Localize("PluginCommandsEnableSuccess", "Plugin \"{0}\" enabled.").Format(plugin.Name), 
+                    .ContinueWith(t => Continuation(t,
+                                                    Loc.Localize("PluginCommandsEnableSuccess", "Plugin \"{0}\" enabled.").Format(plugin.Name),
                                                     Loc.Localize("PluginCommandsEnableFailed", "Failed to enable plugin \"{0}\". Please check the console for errors.").Format(plugin.Name)))
                     .ConfigureAwait(false);
                 break;
@@ -248,18 +248,18 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
 
         return true;
     }
-    
+
     private void FrameworkOnUpdate(IFramework framework1)
     {
         if (this.profileManager.IsBusy)
         {
             return;
         }
-        
+
         if (this.commandQueue.Count > 0)
         {
             var op = this.commandQueue[0];
-            
+
             var remove = true;
             switch (op.Target)
             {
@@ -270,7 +270,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
                     this.HandleProfileOperation(profileTarget.ProfileName, op.Operation);
                     break;
             }
-            
+
             if (remove)
             {
                 this.commandQueue.RemoveAt(0);
@@ -309,7 +309,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
         var target = new ProfileTarget(name);
         this.commandQueue.Add((target, PluginCommandOperation.Toggle));
     }
-    
+
     private void OnEnablePlugin(string command, string arguments)
     {
         var plugin = this.ValidatePluginName(arguments);
@@ -321,19 +321,19 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
             .RemoveAll(x => x.Target == target);
         this.commandQueue.Add((target, PluginCommandOperation.Enable));
     }
-    
+
     private void OnDisablePlugin(string command, string arguments)
     {
         var plugin = this.ValidatePluginName(arguments);
         if (plugin == null)
             return;
-        
+
         var target = new PluginTarget(plugin.EffectiveWorkingPluginId);
         this.commandQueue
             .RemoveAll(x => x.Target == target);
         this.commandQueue.Add((target, PluginCommandOperation.Disable));
     }
-    
+
     private void OnTogglePlugin(string command, string arguments)
     {
         var plugin = this.ValidatePluginName(arguments);
@@ -363,7 +363,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
         var name = arguments.Replace("\"", string.Empty);
         var targetPlugin =
             this.pluginManager.InstalledPlugins.FirstOrDefault(x => x.InternalName == name || x.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
-        
+
         if (targetPlugin == null)
         {
             this.chat.PrintError(Loc.Localize("PluginCommandsNotFound", "Plugin \"{0}\" not found.").Format(name));

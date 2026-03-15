@@ -14,6 +14,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
@@ -268,6 +269,14 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
     }
 
     private static bool ValidThirdPartyRepoUrl(string url)
-        => Uri.TryCreate(url, UriKind.Absolute, out var uriResult)
-        && (uriResult.Scheme == Uri.UriSchemeHttps || uriResult.Scheme == Uri.UriSchemeHttp);
+    {
+        // Disallow inputting main repo as a ThirdPartyRepo
+        if (string.Equals(url, PluginRepository.MainRepoUrl, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return Uri.TryCreate(url, UriKind.Absolute, out var uriResult)
+               && (uriResult.Scheme == Uri.UriSchemeHttps || uriResult.Scheme == Uri.UriSchemeHttp);
+    }
 }

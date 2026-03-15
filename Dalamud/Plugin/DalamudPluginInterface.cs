@@ -111,6 +111,9 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     public bool IsTesting { get; }
 
     /// <inheritdoc/>
+    public bool IsInProfile => !this.plugin.IsInDefaultProfile;
+
+    /// <inheritdoc/>
     public DateTime LoadTime { get; }
 
     /// <inheritdoc/>
@@ -139,6 +142,9 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     /// <inheritdoc/>
     public bool IsDebugging => Debugger.IsAttached;
+
+    /// <inheritdoc/>
+    public bool AllowSeasonalEvents => Service<DalamudConfiguration>.Get().AllowSeasonalEvents;
 
     /// <inheritdoc/>
     public string UiLanguage { get; private set; }
@@ -413,6 +419,18 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
         this.plugin.ServiceScope!.InjectPropertiesAsync(instance, this.GetPublicIocScopes(scopedObjects));
 
     #endregion
+
+    /// <inheritdoc/>
+    public async Task<PluginUpdate?> CheckForUpdateAsync()
+    {
+        var pm = Service<PluginManager>.Get();
+        await pm.WaitForReposAsync();
+
+        var update = pm.UpdatablePlugins.FirstOrDefault(x =>
+                                                            x.UpdateManifest.SourceRepo.PluginMasterUrl == this.SourceRepository &&
+                                                            x.UpdateManifest.InternalName == this.plugin.InternalName);
+        return update == null ? null : new PluginUpdate(update.EffectiveVersion, update.UseTesting, update.UpdateManifest.Changelog);
+    }
 
     /// <inheritdoc/>
     public void Dispose()

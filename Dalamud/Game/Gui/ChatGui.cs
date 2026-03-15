@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text;
@@ -44,7 +43,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = [];
     private readonly List<nint> seenLogMessageObjects = [];
 
-    private readonly Hook<PrintMessageDelegate> printMessageHook;
+    private readonly Hook<RaptureLogModule.Delegates.PrintMessage> printMessageHook;
     private readonly Hook<InventoryItem.Delegates.Copy> inventoryItemCopyHook;
     private readonly Hook<LogViewer.Delegates.HandleLinkClick> handleLinkClickHook;
     private readonly Hook<RaptureLogModule.Delegates.Update> handleLogModuleUpdate;
@@ -58,7 +57,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     [ServiceManager.ServiceConstructor]
     private ChatGui()
     {
-        this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(RaptureLogModule.Addresses.PrintMessage.Value, this.HandlePrintMessageDetour);
+        this.printMessageHook = Hook<RaptureLogModule.Delegates.PrintMessage>.FromAddress((nint)RaptureLogModule.MemberFunctionPointers.PrintMessage, this.HandlePrintMessageDetour);
         this.inventoryItemCopyHook = Hook<InventoryItem.Delegates.Copy>.FromAddress((nint)InventoryItem.StaticVirtualTablePointer->Copy, this.InventoryItemCopyDetour);
         this.handleLinkClickHook = Hook<LogViewer.Delegates.HandleLinkClick>.FromAddress(LogViewer.Addresses.HandleLinkClick.Value, this.HandleLinkClickDetour);
         this.handleLogModuleUpdate = Hook<RaptureLogModule.Delegates.Update>.FromAddress(RaptureLogModule.Addresses.Update.Value, this.UpdateDetour);
@@ -68,9 +67,6 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         this.handleLinkClickHook.Enable();
         this.handleLogModuleUpdate.Enable();
     }
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate uint PrintMessageDelegate(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, byte silent);
 
     /// <inheritdoc/>
     public event IChatGui.OnMessageDelegate? ChatMessage;
@@ -249,11 +245,11 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
             this.HandlePrintMessageDetour(
                 RaptureLogModule.Instance(),
-                targetChannel,
+                (ushort)targetChannel,
                 &sender,
                 &message,
                 chat.Timestamp,
-                (byte)(chat.Silent ? 1 : 0));
+                chat.Silent);
         }
     }
 
@@ -373,13 +369,15 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         }
     }
 
-    private uint HandlePrintMessageDetour(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, byte silent)
+    private uint HandlePrintMessageDetour(RaptureLogModule* thisPtr, ushort logInfo, Utf8String* senderName, Utf8String* message, int timestamp, bool silent)
     {
         var messageId = 0u;
 
         try
         {
-            var parsedSender = SeString.Parse(sender->AsSpan());
+            var chatType = (XivChatType)logInfo;
+
+            var parsedSender = SeString.Parse(senderName->AsSpan());
             var parsedMessage = SeString.Parse(message->AsSpan());
 
             var terminatedSender = parsedSender.EncodeWithNullTerminator();
@@ -421,7 +419,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             if (!terminatedSender.SequenceEqual(possiblyModifiedSenderData))
             {
                 Log.Verbose($"HandlePrintMessageDetour Sender modified: {new ReadOnlySeStringSpan(terminatedSender).ToMacroString()} -> {new ReadOnlySeStringSpan(possiblyModifiedSenderData).ToMacroString()}");
-                sender->SetString(possiblyModifiedSenderData);
+                senderName->SetString(possiblyModifiedSenderData);
             }
 
             if (!terminatedMessage.SequenceEqual(possiblyModifiedMessageData))
@@ -438,7 +436,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             }
             else
             {
-                messageId = this.printMessageHook.Original(manager, chatType, sender, message, timestamp, silent);
+                messageId = this.printMessageHook.Original(thisPtr, logInfo, senderName, message, timestamp, silent);
                 foreach (var d in Delegate.EnumerateInvocationList(this.ChatMessageUnhandled))
                     d(chatType, timestamp, parsedSender, parsedMessage);
             }
@@ -446,7 +444,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         catch (Exception ex)
         {
             Log.Error(ex, "Exception on OnChatMessage hook.");
-            messageId = this.printMessageHook.Original(manager, chatType, sender, message, timestamp, silent);
+            messageId = this.printMessageHook.Original(thisPtr, logInfo, senderName, message, timestamp, silent);
         }
 
         return messageId;
@@ -507,26 +505,45 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     {
         try
         {
+            var sharedLogMessage = Chat.LogMessage.Instance;
+            var sharedParams = Chat.LogMessageParameterList.Instance;
+
             foreach (ref var item in thisPtr->LogMessageQueue)
             {
-                var logMessage = new Chat.LogMessage((LogMessageQueueItem*)Unsafe.AsPointer(ref item));
+                var address = (LogMessageQueueItem*)Unsafe.AsPointer(ref item);
 
                 // skip any entries that survived the previous Update call as the event was already called for them
-                if (this.seenLogMessageObjects.Contains(logMessage.Address))
+                if (this.seenLogMessageObjects.Contains((nint)address))
                     continue;
+
+                sharedLogMessage.Pointer = address;
+                sharedParams.Pointer = &address->Parameters;
 
                 foreach (var action in Delegate.EnumerateInvocationList(this.LogMessage))
                 {
                     try
                     {
-                        action(logMessage);
+                        action(sharedLogMessage);
                     }
                     catch (Exception e)
                     {
                         Log.Error(e, "Could not invoke registered OnLogMessageDelegate for {Name}", action.Method);
                     }
                 }
+
+                if (sharedLogMessage.IsHandled)
+                {
+                    sharedLogMessage.IsHandled = false;
+                    // LogMessage 0 is an empty string that is displayed nowhere
+                    // setting a non-existent row would "properly" skip the entry,
+                    // but the game attempts to read that row for 150 frames before
+                    // continuing with the next item in the queue
+                    item.LogMessageId = 0;
+                }
             }
+
+            sharedLogMessage.Pointer = null;
+            sharedParams.Pointer = null;
 
             this.handleLogModuleUpdate.Original(thisPtr);
 
