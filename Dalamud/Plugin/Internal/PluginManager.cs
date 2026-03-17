@@ -1243,8 +1243,8 @@ internal class PluginManager : IInternalDisposableService
             {
                 foreach (var plugin in this.installedPluginsList)
                 {
-                    if (plugin.AssemblyName != null &&
-                        plugin.AssemblyName.FullName == declaringType.Assembly.GetName().FullName)
+                    if (plugin.Assembly != null &&
+                        plugin.Assembly.GetName().FullName == declaringType.Assembly.GetName().FullName)
                         return plugin;
                 }
             }

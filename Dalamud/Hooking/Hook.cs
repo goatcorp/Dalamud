@@ -110,10 +110,11 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// </summary>
     /// <param name="address">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromFunctionPointerVariable(IntPtr address, T detour)
+    internal static Hook<T> FromFunctionPointerVariable(IntPtr address, T detour, Assembly? callingAssembly = null)
     {
-        return new FunctionPointerVariableHook<T>(address, detour, Assembly.GetCallingAssembly());
+        return new FunctionPointerVariableHook<T>(address, detour, callingAssembly ?? Assembly.GetCallingAssembly());
     }
 
     /// <summary>
@@ -124,8 +125,9 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="functionName">Decorated name of the function.</param>
     /// <param name="hintOrOrdinal">Hint or ordinal. 0 to unspecify.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static unsafe Hook<T> FromImport(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour)
+    internal static unsafe Hook<T> FromImport(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour, Assembly? callingAssembly = null)
     {
         module ??= Process.GetCurrentProcess().MainModule;
         if (module == null)
@@ -171,27 +173,16 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
 
             if (isPe64)
             {
-                return new FunctionPointerVariableHook<T>(FromImportHelper64(module.BaseAddress, ref importDescriptor, ref *pDataDirectory, functionName, hintOrOrdinal), detour, Assembly.GetCallingAssembly());
+                return new FunctionPointerVariableHook<T>(FromImportHelper64(module.BaseAddress, ref importDescriptor, ref *pDataDirectory, functionName, hintOrOrdinal), detour, callingAssembly ?? Assembly.GetCallingAssembly());
             }
             else
             {
-                return new FunctionPointerVariableHook<T>(FromImportHelper32(module.BaseAddress, ref importDescriptor, ref *pDataDirectory, functionName, hintOrOrdinal), detour, Assembly.GetCallingAssembly());
+                return new FunctionPointerVariableHook<T>(FromImportHelper32(module.BaseAddress, ref importDescriptor, ref *pDataDirectory, functionName, hintOrOrdinal), detour, callingAssembly ?? Assembly.GetCallingAssembly());
             }
         }
 
         throw new MissingMethodException("Specified dll not found");
     }
-
-    /// <summary>
-    /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
-    /// The hook is not activated until Enable() method is called.
-    /// </summary>
-    /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
-    /// <param name="exportName">A name of the exported function name (e.g. send).</param>
-    /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
-        => FromSymbol(moduleName, exportName, detour, false);
 
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
@@ -202,8 +193,9 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="exportName">A name of the exported function name (e.g. send).</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook)
+    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook = false, Assembly? callingAssembly = null)
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
@@ -218,9 +210,9 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
 
         var address = HookManager.FollowJmp(procAddress.Value);
         if (useMinHook)
-            return new MinHookHook<T>(address, detour, Assembly.GetCallingAssembly());
+            return new MinHookHook<T>(address, detour, callingAssembly ?? Assembly.GetCallingAssembly());
         else
-            return new ReloadedHook<T>(address, detour, Assembly.GetCallingAssembly());
+            return new ReloadedHook<T>(address, detour, callingAssembly ?? Assembly.GetCallingAssembly());
     }
 
     /// <summary>
@@ -231,8 +223,9 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="procAddress">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false)
+    internal static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false, Assembly? callingAssembly = null)
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
@@ -249,9 +242,9 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
 
         procAddress = HookManager.FollowJmp(procAddress);
         if (useMinHook)
-            return new MinHookHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
+            return new MinHookHook<T>(procAddress, detour, callingAssembly ?? Assembly.GetCallingAssembly());
         else
-            return new ReloadedHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
+            return new ReloadedHook<T>(procAddress, detour, callingAssembly ?? Assembly.GetCallingAssembly());
     }
 
     /// <summary>
