@@ -301,7 +301,8 @@ internal class PluginStatWindow : Window
                             if (!this.hookSearchText.IsNullOrEmpty())
                             {
                                 if ((trackedHook.Delegate.Target == null || !trackedHook.Delegate.Target.ToString().Contains(this.hookSearchText, StringComparison.OrdinalIgnoreCase))
-                                    && !trackedHook.Delegate.Method.Name.Contains(this.hookSearchText, StringComparison.OrdinalIgnoreCase))
+                                    && !trackedHook.Delegate.Method.Name.Contains(this.hookSearchText, StringComparison.OrdinalIgnoreCase)
+                                    && (trackedHook.Assembly.GetName().Name == null || !trackedHook.Assembly.GetName().Name.Contains(this.hookSearchText, StringComparison.OrdinalIgnoreCase)))
                                     continue;
                             }
 

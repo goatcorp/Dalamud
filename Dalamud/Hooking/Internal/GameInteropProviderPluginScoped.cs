@@ -42,14 +42,14 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     /// <inheritdoc/>
     public void InitializeFromAttributes(object self)
     {
-        foreach (var hook in SignatureHelper.Initialize(self))
+        foreach (var hook in SignatureHelper.Initialize(self, callingAssembly: this.plugin.Assembly))
             this.trackedHooks.Add(hook);
     }
 
     /// <inheritdoc/>
     public Hook<T> HookFromFunctionPointerVariable<T>(nint address, T detour) where T : Delegate
     {
-        var hook = Hook<T>.FromFunctionPointerVariable(address, detour);
+        var hook = Hook<T>.FromFunctionPointerVariable(address, detour, this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
@@ -57,7 +57,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     /// <inheritdoc/>
     public Hook<T> HookFromImport<T>(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour) where T : Delegate
     {
-        var hook = Hook<T>.FromImport(module, moduleName, functionName, hintOrOrdinal, detour);
+        var hook = Hook<T>.FromImport(module, moduleName, functionName, hintOrOrdinal, detour, this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
@@ -65,7 +65,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     /// <inheritdoc/>
     public Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
     {
-        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, backend == IGameInteropProvider.HookBackend.MinHook);
+        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, backend == IGameInteropProvider.HookBackend.MinHook, this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
@@ -73,7 +73,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     /// <inheritdoc/>
     public Hook<T> HookFromAddress<T>(nint procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
     {
-        var hook = Hook<T>.FromAddress(procAddress, detour, backend == IGameInteropProvider.HookBackend.MinHook);
+        var hook = Hook<T>.FromAddress(procAddress, detour, backend == IGameInteropProvider.HookBackend.MinHook, this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
