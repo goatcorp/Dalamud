@@ -8,6 +8,7 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.MSBuild;
+using Nuke.Common.Utilities;
 using Serilog;
 
 [UnsetVisualStudioEnvironmentVariables]
@@ -55,12 +56,17 @@ public class DalamudBuild : NukeBuild
 
     AbsolutePath ArtifactsDirectory => RootDirectory / "bin" / Configuration;
 
-    private static AbsolutePath LibraryDirectory => RootDirectory / "lib";
-
     private static Dictionary<string, string> EnvironmentVariables => new(EnvironmentInfo.Variables);
 
     private static string ConsoleTemplate => "{Message:l}{NewLine}{Exception}";
     private static bool IsCIBuild => Environment.GetEnvironmentVariable("CI") == "true";
+
+    [PathVariable]
+    readonly Tool CMake;
+
+    DefaultCMakePaths CMakePaths => new(RootDirectory, CMake);
+
+    IVCProjExec MSBuild => EnvironmentInfo.IsWin ? new VCProjMSBuildExec() : new VCProjToCMakeExec(CMakePaths);
 
     Target Restore => _ => _
         .Executes(() =>
@@ -72,40 +78,31 @@ public class DalamudBuild : NukeBuild
     Target CompileCImGui => _ => _
         .Executes(() =>
         {
-            // Not necessary, and does not build on Linux
+            // Not necessary
             if (IsDocsBuild)
                 return;
             
-            MSBuildTasks.MSBuild(s => s
-                .SetTargetPath(CImGuiProjectFile)
-                .SetConfiguration(Configuration)
-                .SetTargetPlatform(MSBuildTargetPlatform.x64));
+            MSBuild.Build(CImGuiProjectFile, Configuration);
         });
 
     Target CompileCImPlot => _ => _
         .Executes(() =>
         {
-            // Not necessary, and does not build on Linux
+            // Not necessary
             if (IsDocsBuild)
                 return;
             
-            MSBuildTasks.MSBuild(s => s
-                .SetTargetPath(CImPlotProjectFile)
-                .SetConfiguration(Configuration)
-                .SetTargetPlatform(MSBuildTargetPlatform.x64));
+            MSBuild.Build(CImPlotProjectFile, Configuration);
         });
 
     Target CompileCImGuizmo => _ => _
         .Executes(() =>
         {
-            // Not necessary, and does not build on Linux
+            // Not necessary
             if (IsDocsBuild)
                 return;
             
-            MSBuildTasks.MSBuild(s => s
-                .SetTargetPath(CImGuizmoProjectFile)
-                .SetConfiguration(Configuration)
-                .SetTargetPlatform(MSBuildTargetPlatform.x64));
+            MSBuild.Build(CImGuizmoProjectFile, Configuration);
         });
 
     Target CompileImGuiNatives => _ => _
@@ -145,17 +142,13 @@ public class DalamudBuild : NukeBuild
     Target CompileDalamudBoot => _ => _
         .Executes(() =>
         {
-            MSBuildTasks.MSBuild(s => s
-                .SetTargetPath(DalamudBootProjectFile)
-                .SetConfiguration(Configuration));
+            MSBuild.Build(DalamudBootProjectFile, Configuration);
         });
     
     Target CompileDalamudCrashHandler => _ => _
         .Executes(() =>
         {
-            MSBuildTasks.MSBuild(s => s
-                                      .SetTargetPath(DalamudCrashHandlerProjectFile)
-                                      .SetConfiguration(Configuration));
+            MSBuild.Build(DalamudCrashHandlerProjectFile, Configuration);
         });
 
     Target CompileInjector => _ => _
@@ -204,39 +197,53 @@ public class DalamudBuild : NukeBuild
     Target Clean => _ => _
         .Executes(() =>
         {
-            MSBuildTasks.MSBuild(s => s
-                .SetProjectFile(CImGuiProjectFile)
-                .SetConfiguration(Configuration)
-                .SetTargets("Clean"));
+            MSBuild.Clean(CImGuiProjectFile, Configuration);
 
-            MSBuildTasks.MSBuild(s => s
-                .SetProjectFile(CImPlotProjectFile)
-                .SetConfiguration(Configuration)
-                .SetTargets("Clean"));
+            MSBuild.Clean(CImPlotProjectFile, Configuration);
 
-            MSBuildTasks.MSBuild(s => s
-                .SetProjectFile(CImGuizmoProjectFile)
-                .SetConfiguration(Configuration)
-                .SetTargets("Clean"));
+            MSBuild.Clean(CImGuizmoProjectFile, Configuration);
 
             DotNetTasks.DotNetClean(s => s
                 .SetProject(DalamudProjectFile)
                 .SetConfiguration(Configuration));
 
-            MSBuildTasks.MSBuild(s => s
-                .SetProjectFile(DalamudBootProjectFile)
-                .SetConfiguration(Configuration)
-                .SetTargets("Clean"));
+            MSBuild.Clean(DalamudBootProjectFile, Configuration);
             
-            MSBuildTasks.MSBuild(s => s
-                .SetProjectFile(DalamudCrashHandlerProjectFile)
-                .SetConfiguration(Configuration)
-                .SetTargets("Clean"));
+            MSBuild.Clean(DalamudCrashHandlerProjectFile, Configuration);
 
             DotNetTasks.DotNetClean(s => s
                 .SetProject(InjectorProjectFile)
                 .SetConfiguration(Configuration));
 
             ArtifactsDirectory.CreateOrCleanDirectory();
+
+            CMakePaths.JWasmBuildDirectory.DeleteDirectory();
+        });
+
+    Target PrepareJWasm => _ => _
+        .Executes(() =>
+        {
+            if (EnvironmentInfo.IsWin)
+                return [];
+
+            var buildDir = CMakePaths.JWasmBuildDirectory;
+            buildDir.CreateDirectory();
+
+            List<Output> outputs = [];
+
+            outputs.AddRange(CMake(
+                $"-S{CMakePaths.JWasmSrcDirectory.ToString().DoubleQuoteIfNeeded()} " +
+                $"-B{CMakePaths.JWasmBuildDirectory.ToString().DoubleQuoteIfNeeded()} " +
+                // Fails to build with C++23 onwards.
+                "-DCMAKE_C_STANDARD=17 -DCMAKE_CXX_STANDARD=17 " +
+                // The min ver is ancient and NUKE picks up CMake's warnings about that as errors.
+                "-Wno-deprecated"));
+
+            outputs.AddRange(CMake(
+                $"--build {CMakePaths.JWasmBuildDirectory.ToString().DoubleQuoteIfNeeded()}"));
+
+            Assert.FileExists(CMakePaths.JWasmTool);
+
+            return outputs;
         });
 }
