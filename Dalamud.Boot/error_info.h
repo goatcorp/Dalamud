@@ -3,6 +3,10 @@
 #include <expected>
 #include <string>
 
+#if defined(__MINGW32__)
+#include <sal.h>
+#endif
+
 typedef unsigned long       DWORD;
 typedef _Return_type_success_(return >= 0) long HRESULT;
 

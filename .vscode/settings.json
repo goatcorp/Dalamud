@@ -1,0 +1,5 @@
+{
+    "cmake.ignoreCMakeListsMissing": true,
+    "cmake.sourceDirectory": "${workspaceFolder}/build/cmake/DalamudCrashHandler",
+    "cmake.buildDirectory": "${workspaceFolder}/build/cmake/DalamudCrashHandler"
+}

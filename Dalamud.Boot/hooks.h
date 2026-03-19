@@ -114,14 +114,14 @@ namespace hooks {
     public:
         direct_hook(std::string name, TFn* pfnFunction)
             : Base(std::move(name), pfnFunction) {
-            if (const auto mhStatus = MH_CreateHook(pfnFunction, Base::get_thunk(), reinterpret_cast<void**>(&m_pfnMinHookBridge)); mhStatus != MH_OK)
+            if (const auto mhStatus = MH_CreateHook(reinterpret_cast<void*>(pfnFunction), reinterpret_cast<void*>(Base::get_thunk()), reinterpret_cast<void**>(&m_pfnMinHookBridge)); mhStatus != MH_OK)
                 throw std::runtime_error(std::format("MH_CreateHook(0x{:X}, ...) failure: {}", reinterpret_cast<size_t>(pfnFunction), static_cast<int>(mhStatus)));
 
-            MH_EnableHook(Base::get_original());
+            MH_EnableHook(reinterpret_cast<void*>(Base::get_original()));
         }
 
         ~direct_hook() override {
-            MH_DisableHook(Base::get_original());
+            MH_DisableHook(reinterpret_cast<void*>(Base::get_original()));
         }
 
         TReturn call_original(TArgs... args) override {
@@ -232,7 +232,7 @@ namespace hooks {
             m_singleImportHook = getprocaddress_singleton_import_hook::get_instance()->set_handler(
                 dllName,
                 functionName,
-                m_thunk.get_thunk(),
+                reinterpret_cast<void*>(m_thunk.get_thunk()),
                 [this](void* p) { m_thunk.set_target(reinterpret_cast<TFn*>(p)); }
             );
         }

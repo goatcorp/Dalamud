@@ -22,3 +22,6 @@
 [submodule "lib/Lumina.Excel"]
 	path = lib/Lumina.Excel
 	url = https://github.com/NotAdam/Lumina.Excel.git
+[submodule "lib/JWasm"]
+	path = lib/JWasm
+	url = https://github.com/JWasm/JWasm

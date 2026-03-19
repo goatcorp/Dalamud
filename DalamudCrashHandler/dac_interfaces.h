@@ -147,6 +147,9 @@ ICLRDataTarget : public IUnknown
         /* [in]  */ ULONG32 outBufferSize,
         /* [out] */ BYTE* outBuffer) = 0;
 };
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(ICLRDataTarget,0x3E11CCEE,0xD08B,0x43e5,0xAF,0x01,0x32,0x71,0x7A,0x64,0xDA,0x03)
+#endif
 
 MIDL_INTERFACE("6d05fae3-189c-4630-a6dc-1c251e1c01ab")
 ICLRDataTarget2 : public ICLRDataTarget
@@ -163,6 +166,9 @@ ICLRDataTarget2 : public ICLRDataTarget
         /* [in] */ ULONG32 size,
         /* [in] */ ULONG32 typeFlags) = 0;
 };
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(ICLRDataTarget2,0x6d05fae3,0x189c,0x4630,0xa6,0xdc,0x1c,0x25,0x1e,0x1c,0x01,0xab)
+#endif
 
 #define DAC_UNUSED_SLOT(n) virtual HRESULT STDMETHODCALLTYPE __unused_xclrdata_##n() = 0
 
@@ -284,6 +290,9 @@ IXCLRDataProcess : public IUnknown
     // Slot 45
     DAC_UNUSED_SLOT(45); // DumpNativeImage
 };
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(IXCLRDataProcess,0x5c552ab6,0xfc09,0x4cb3,0x8e,0x36,0x22,0xfa,0x03,0xc7,0x98,0xb7)
+#endif
 
 #undef DAC_UNUSED_SLOT
 
@@ -321,6 +330,9 @@ IXCLRDataMethodInstance : public IUnknown
     DAC_UNUSED_SLOT(15); // Request
     DAC_UNUSED_SLOT(16); // GetRepresentativeEntryAddress
 };
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(IXCLRDataMethodInstance,0xECD73800,0x22CA,0x4b0d,0xAB,0x55,0xE9,0xBA,0x7E,0x63,0x18,0xA5)
+#endif
 
 #undef DAC_UNUSED_SLOT
 
@@ -378,6 +390,9 @@ ISOSDacInterface : public IUnknown
         /* [in]  */ CLRDATA_ADDRESS          ip,
         /* [out] */ struct DacpCodeHeaderData* data) = 0;
 };
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(ISOSDacInterface,0x436f00f2,0xb42a,0x4b9f,0x87,0x0c,0xe7,0x3d,0xb6,0x6a,0xe9,0x30)
+#endif
 
 #undef SOS_UNUSED_SLOT
 
@@ -409,6 +424,9 @@ IXCLRDataTask : public IUnknown
     DAC_UNUSED_SLOT(14); // GetName
     DAC_UNUSED_SLOT(15); // GetLastExceptionState
 };
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(IXCLRDataTask,0xA5B0BEEA,0xEC62,0x4618,0x80,0x12,0xA2,0x4F,0xFC,0x23,0x93,0x4C)
+#endif
 
 #undef DAC_UNUSED_SLOT
 
@@ -450,5 +468,8 @@ IXCLRDataStackWalk : public IUnknown
         /* [in] */ ULONG32 contextSize,
         /* [in] */ BYTE context[]) = 0;
 };
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(IXCLRDataStackWalk,0xE59D8D22,0xADA7,0x49a2,0x89,0xB5,0xA4,0x15,0xAF,0xCF,0xC9,0x5F)
+#endif
 
 #undef DAC_UNUSED_SLOT
