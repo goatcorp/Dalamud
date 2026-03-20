@@ -80,6 +80,7 @@ jobs:
           sudo apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends `
             mingw-w64
+          x86_64-w64-mingw32-g++ --version
       - uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '10.0.100'
