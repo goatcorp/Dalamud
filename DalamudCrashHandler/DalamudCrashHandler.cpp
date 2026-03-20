@@ -56,11 +56,12 @@ static constexpr GUID Guid_IFileDialog_Tspack{ 0xfc057318, 0xad35, 0x4599, {0xa7
 #if defined(_MSC_VER)
 #define SEH_MSVC
 #define SEH_NOOPT
-static constexpr bool exceptionCeption = false;
-#elif defined(__try1) || true
+static constexpr bool print_exception_info_violation = false;
+#elif defined(__try1)
 #define SEH_MINGW
 #define SEH_NOOPT __attribute__((optimize("O0")))
-static __thread bool exceptionCeption;
+static __thread bool print_exception_info_violation;
+extern "C" long SEH_NOOPT print_exception_info_violation_handler(EXCEPTION_POINTERS* data);
 #else
 #error "Your compilation environment does not expose SEH try / except unwind helpers"
 #endif
@@ -376,13 +377,8 @@ void print_exception_info(HANDLE hThread, const EXCEPTION_POINTERS& ex, const CO
         __try {
 
         #elif defined(SEH_MINGW)
-        const auto seh = [] (EXCEPTION_POINTERS* data) -> long SEH_NOOPT {
-            exceptionCeption = true;
-            return EXCEPTION_EXECUTE_HANDLER;
-        };
-
-        exceptionCeption = false;
-        __try1(seh);
+        print_exception_info_violation = false;
+        __try1(print_exception_info_violation_handler);
 
         {
         #endif
@@ -394,18 +390,18 @@ void print_exception_info(HANDLE hThread, const EXCEPTION_POINTERS& ex, const CO
 
                 appendContextToLog(ctxWalk);
 
-            } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset && !exceptionCeption);
+            } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset && !print_exception_info_violation);
 
-        #if defined(_MSC_VER)
+        #if defined(SEH_MSVC)
             return true;
         } __except(EXCEPTION_EXECUTE_HANDLER) {
             return false;
         }
 
-        #elif defined(__try1)
+        #elif defined(SEH_MINGW)
         }
         __except1;
-        return !exceptionCeption;
+        return !print_exception_info_violation;
         #endif
     };
 
@@ -459,6 +455,12 @@ void print_exception_info_extended(const EXCEPTION_POINTERS& ex, const CONTEXT& 
         log << std::format(L"\n  {:08X}\t{}\t{}", reinterpret_cast<DWORD64>(hModule), path.wstring(), describe_module(path));
 
     log << L"\n}\n";
+}
+
+long SEH_NOOPT print_exception_info_violation_handler(EXCEPTION_POINTERS* data)
+{
+    print_exception_info_violation = true;
+    return EXCEPTION_EXECUTE_HANDLER;
 }
 
 std::wstring escape_shell_arg(const std::wstring& arg) {
