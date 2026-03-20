@@ -287,7 +287,7 @@ static bool is_xivalex(const std::filesystem::path& dllPath) {
 static bool is_openprocess_already_dealt_with() {
     static const auto s_value = [] {
         for (const auto& mod : utils::loaded_module::all_modules()) {
-            const auto path = mod.path().value_or({});
+            const auto path = mod.path().value_or(std::filesystem::path());
             if (path.empty())
                 continue;
             if (is_xivalex(path))
