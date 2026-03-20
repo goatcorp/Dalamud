@@ -5,7 +5,6 @@ using System.Text;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
-using Namotion.Reflection;
 using Nuke.Common.IO;
 using Nuke.Common.Utilities;
 
