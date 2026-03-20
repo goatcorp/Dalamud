@@ -178,7 +178,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
     static WNDPROC s_pfnGameWndProc = nullptr;
 
     // We're intentionally leaking memory for this one.
-    static const auto s_pfnBinder = static_cast<WNDPROC>(VirtualAlloc(nullptr, 64, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
+    static const auto s_pfnBinder = reinterpret_cast<WNDPROC>(VirtualAlloc(nullptr, 64, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
     static const auto s_pfnAlternativeWndProc = static_cast<WNDPROC>([](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT {
         if (uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
             try {
@@ -220,8 +220,8 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             // push qword ptr [rip+1]
             // ret
             // <pointer to new wndproc>
-            memcpy(s_pfnBinder, "\xFF\x35\x01\x00\x00\x00\xC3", 7);
-            *reinterpret_cast<void**>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnAlternativeWndProc;
+            memcpy(reinterpret_cast<void*>(s_pfnBinder), "\xFF\x35\x01\x00\x00\x00\xC3", 7);
+            *reinterpret_cast<WNDPROC*>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnAlternativeWndProc;
             
             s_pfnGameWndProc = pWndClassExA->lpfnWndProc;
 
@@ -238,7 +238,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             s_hookRegisterClassExA.reset();
         }
 
-        *reinterpret_cast<void**>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnGameWndProc;
+        *reinterpret_cast<WNDPROC*>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnGameWndProc;
     }
 }
 

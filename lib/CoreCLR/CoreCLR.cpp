@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <iostream>
 #include "nethost/nethost.h"
-#include "..\..\Dalamud.Boot\logging.h"
+#include "../../Dalamud.Boot/logging.h"
 
 CoreCLR::CoreCLR(void* calling_module)
     : m_calling_module(calling_module)

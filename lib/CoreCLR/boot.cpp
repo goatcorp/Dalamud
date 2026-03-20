@@ -6,7 +6,7 @@
 #include <Lmcons.h>
 #include <Shlobj.h>
 #include "CoreCLR.h"
-#include "..\..\Dalamud.Boot\logging.h"
+#include "../../Dalamud.Boot/logging.h"
 
 FILE* g_CmdStream;
 void ConsoleSetup(const std::wstring console_name)
