@@ -12,9 +12,6 @@
         <!-- Disable Intel CET. Causes crashes on unpatched Windows 10 systems. -->
         <!-- https://github.com/dotnet/runtime/issues/108589 -->
         <CETCompat>false</CETCompat>
-
-        <!-- Overridden on NUKE Linux full builds, needs a default value. -->
-        <IsMinGW Condition="'$(IsMinGW)' == ''">false</IsMinGW>
     </PropertyGroup>
 
     <!-- Code analysis settings for all Dalamud projects. -->
