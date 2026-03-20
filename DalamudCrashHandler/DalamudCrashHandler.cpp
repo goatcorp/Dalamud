@@ -453,11 +453,13 @@ void print_exception_info_extended(const EXCEPTION_POINTERS& ex, const CONTEXT& 
     log << L"\n}\n";
 }
 
+#if defined(SEH_MINGW)
 long SEH_NOOPT print_exception_info_violation_handler(EXCEPTION_POINTERS* data)
 {
     print_exception_info_violation = true;
     return EXCEPTION_EXECUTE_HANDLER;
 }
+#endif
 
 std::wstring escape_shell_arg(const std::wstring& arg) {
     // https://docs.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
