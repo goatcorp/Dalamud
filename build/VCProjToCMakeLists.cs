@@ -60,6 +60,12 @@ public sealed class VCProjToCMakeLists
 
         foreach (var item in VCProj.Items)
         {
+            if (bool.TryParse(item.GetMetadataValue("ExcludedFromBuild"), out var excluded) &&
+                excluded)
+            {
+                continue;
+            }
+
             Compile compile = item.ItemType switch
             {
                 "ClCompile" => new ClCompile(item),
@@ -279,6 +285,10 @@ install(CODE [[
             .TrimStart("stdcpp")
             .Replace("latest", StandardCXXLatest);
 
+        public readonly bool ExtensionsC = !item.GetMetadataValue("LanguageStandard_C").StartsWith("stdc");
+
+        public readonly bool ExtensionsCXX = !item.GetMetadataValue("LanguageStandard").StartsWith("stdcpp");
+
         public readonly string AdditionalOptions = item.GetMetadataValue("AdditionalOptions");
 
         public override void Gen(StringBuilder lists)
@@ -287,7 +297,9 @@ install(CODE [[
 set_target_properties({Key} PROPERTIES
     COMPILE_DEFINITIONS {Definitions}
     C_STANDARD {StandardC}
+    C_EXTENSIONS {(ExtensionsC ? "ON" : "OFF")}
     CXX_STANDARD {StandardCXX}
+    CXX_EXTENSIONS {(ExtensionsCXX ? "ON" : "OFF")}
 )
 ");
 
