@@ -61,6 +61,60 @@ jobs:
           name: dalamud-artifact
           path: bin\Release
 
+  build_linux:
+    name: Build on Linux
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Dalamud
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Setup MinGW
+        shell: pwsh
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends `
+            mingw-w64
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '10.0.100'
+      - name: Define VERSION
+        shell: pwsh
+        run: |
+          $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
+          $env:REPO_NAME = $env:GITHUB_REPOSITORY -replace '.*/'
+          $env:BRANCH = $env:GITHUB_REF -replace '.*/'
+
+          ($env:REPO_NAME) >> VERSION
+          ($env:BRANCH) >> VERSION
+          ($env:COMMIT) >> VERSION
+      - name: Build and Test Dalamud
+        run: bash ./build.sh ci
+      - name: Create hashlist
+        run: pwsh ./CreateHashList.ps1 ./bin/Release
+      - name: Attest Build
+        if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            bin/Release/hashes.json
+            bin/Release/Dalamud.dll
+            bin/Release/DalamudCrashHandler.exe
+            bin/Release/Dalamud.*.dll
+            bin/Release/Dalamud.*.exe
+            bin/Release/FFXIVClientStructs.dll
+            bin/Release/cim*.dll
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dalamud-artifact
+          path: bin/Release
+
   check_api_compat:
     name: "Check API Compatibility"
     if: ${{ github.event_name == 'pull_request' }}
