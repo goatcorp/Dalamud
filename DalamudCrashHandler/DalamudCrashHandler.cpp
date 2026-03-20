@@ -1,6 +1,7 @@
 #include <array>
 #include <chrono>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -13,6 +14,7 @@
 #include <vector>
 
 #define WIN32_LEAN_AND_MEAN
+#undef NOMINMAX
 #define NOMINMAX
 #include <Windows.h>
 
@@ -45,6 +47,23 @@ static constexpr GUID Guid_IFileDialog_Tspack{ 0xfc057318, 0xad35, 0x4599, {0xa7
 #include "resource.h"
 #include "../Dalamud.Boot/crashhandler_shared.h"
 #include "miniz.h"
+
+/* mingw SEH try / catch seems to be absolutely cursed beyond belief,
+ * with some projects handling it wrong, some projects warning against it,
+ * and yet again some other projects pushing through despite its fragility.
+ * If anyone's got a better idea at handling the flag than a thread local, please fix, thanks.
+ */
+#if defined(_MSC_VER)
+#define SEH_MSVC
+#define SEH_NOOPT
+static constexpr bool exceptionCeption = false;
+#elif defined(__try1) || true
+#define SEH_MINGW
+#define SEH_NOOPT __attribute__((optimize("O0")))
+static __thread bool exceptionCeption;
+#else
+#error "Your compilation environment does not expose SEH try / except unwind helpers"
+#endif
 
 HANDLE g_hProcess = nullptr;
 bool g_bSymbolsAvailable = false;
@@ -352,8 +371,22 @@ void print_exception_info(HANDLE hThread, const EXCEPTION_POINTERS& ex, const CO
         log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string(sf.AddrPC.Offset, false));
     };
 
-    const auto tryStackWalk = [&] {
+    const auto tryStackWalk = [&] SEH_NOOPT {
+        #if defined(SEH_MSVC)
         __try {
+
+        #elif defined(SEH_MINGW)
+        const auto seh = [] (EXCEPTION_POINTERS* data) -> long SEH_NOOPT {
+            exceptionCeption = true;
+            return EXCEPTION_EXECUTE_HANDLER;
+        };
+
+        exceptionCeption = false;
+        __try1(seh);
+
+        {
+        #endif
+
             CONTEXT ctxWalk = ctx;
             do {
                 if (!StackWalk64(IMAGE_FILE_MACHINE_AMD64, g_hProcess, hThread, &sf, &ctxWalk, nullptr, &SymFunctionTableAccess64, &SymGetModuleBase64, nullptr))
@@ -361,11 +394,19 @@ void print_exception_info(HANDLE hThread, const EXCEPTION_POINTERS& ex, const CO
 
                 appendContextToLog(ctxWalk);
 
-            } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset);
+            } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset && !exceptionCeption);
+
+        #if defined(_MSC_VER)
             return true;
         } __except(EXCEPTION_EXECUTE_HANDLER) {
             return false;
         }
+
+        #elif defined(__try1)
+        }
+        __except1;
+        return !exceptionCeption;
+        #endif
     };
 
     if (!tryStackWalk())
@@ -542,7 +583,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         pItem.Release();
         filePath.emplace(pFilePath);
 
-        std::fstream fileStream(*filePath, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
+        std::fstream fileStream(std::filesystem::path(*filePath), std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
 
         mz_zip_archive zipa{};
         zipa.m_pIO_opaque = &fileStream;
