@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
+using Namotion.Reflection;
 using Nuke.Common.IO;
 using Nuke.Common.Utilities;
 
@@ -13,6 +14,10 @@ using Nuke.Common.Utilities;
 /// </summary>
 public sealed class VCProjToCMakeLists
 {
+    const string CMakeVersion = "3.31";
+    const string StandardCLatest = "23";
+    const string StandardCXXLatest = "23";
+
     readonly ICMakePaths Paths;
 
     readonly Project VCProj;
@@ -23,9 +28,13 @@ public sealed class VCProjToCMakeLists
 
     readonly ConfigurationType Type;
 
+    readonly string SubSystem;
+
     readonly string CMakeLists;
 
-    readonly List<ClCompile> ClCompiles = [];
+    readonly List<Compile> Compiles = [];
+
+    readonly List<string> LinkDeps = [];
 
     AbsolutePath OwnDirectory => Paths.ProjectsDirectory / Name;
 
@@ -49,12 +58,33 @@ public sealed class VCProjToCMakeLists
 
         foreach (var item in VCProj.Items)
         {
-            switch (item.ItemType)
+            Compile compile = item.ItemType switch
             {
-                case "ClCompile":
-                    ClCompiles.Add(new ClCompile(item));
-                break;
+                "ClCompile" => new ClCompile(item),
+                "ResourceCompile" => new ResourceCompile(item),
+                _ => null
+            };
+
+            if (compile is not null)
+            {
+                Compiles.Add(compile);
             }
+        }
+
+        if (VCProj.ItemDefinitions.TryGetValue("Link", out var link))
+        {
+            SubSystem = link.GetMetadataValue("SubSystem");
+
+            foreach (var dep in link.GetMetadataValue("AdditionalDependencies").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                // TODO: Figure out how to figure out whether the lib needs to be lowercased or not...
+                LinkDeps.Add(dep.ToLowerInvariant().TrimEnd(".lib"));
+            }
+        }
+
+        if (Type == ConfigurationType.Application && string.IsNullOrEmpty(SubSystem))
+        {
+            SubSystem = "Console";
         }
     }
 
@@ -65,17 +95,39 @@ public sealed class VCProjToCMakeLists
 
     public AbsolutePath Gen()
     {
-        #region Header
+        #region Header and global props
         var lists = new StringBuilder($@"# Auto-generated, changes will be overwritten by NUKE
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION {CMakeVersion})
 project({Name})
 
 include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
 
 ");
+
+        if (VCProj.GetPropertyValue("CharacterSet").EqualsOrdinalIgnoreCase("Unicode"))
+        {
+            lists.AppendLine("add_compile_definitions(_UNICODE UNICODE)");
+            lists.AppendLine();
+        }
+
         #endregion
 
-        #region add_
+        #region Source -> Objects
+        foreach (var compile in Compiles)
+        {
+            lists.AppendLine($"add_library({compile.Key} OBJECT {compile.Path.ToString().DoubleQuoteIfNeeded()})");
+
+            var text = compile.Gen();
+            if (!string.IsNullOrEmpty(text))
+            {
+                lists.Append(text);
+            }
+
+            lists.AppendLine();
+        }
+        #endregion
+
+        #region Objects -> Target
         lists.AppendLine(Type switch
         {
             ConfigurationType.Application => $"add_executable({TargetName}",
@@ -84,22 +136,33 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
             _ => throw new NotSupportedException(),
         });
 
-        foreach (var item in ClCompiles)
+        foreach (var compile in Compiles)
         {
-            lists.AppendLine(item.Path.DoubleQuoteIfNeeded());
+            lists.AppendLine($"$<TARGET_OBJECTS:{compile.Key}>");
         }
 
         lists.AppendLine(")");
+        lists.AppendLine();
         #endregion
 
-        #region set_property
-        foreach (var item in ClCompiles)
+        #region Target linker props
+        if (Type == ConfigurationType.Application)
         {
-            lists.AppendLine($"set_property(SOURCE {item.Path.DoubleQuoteIfNeeded()} PROPERTY");
-            lists.AppendLine($"COMPILE_DEFINITIONS {item.Definitions}");
-            lists.AppendLine($"C_STANDARD {item.StandardC}");
-            lists.AppendLine($"CXX_STANDARD {item.StandardCXX}");
+            lists.AppendLine($"target_link_options({TargetName} PRIVATE -m{SubSystem.ToLowerInvariant()})");
+            lists.AppendLine();
+        }
+
+        if (LinkDeps.Count != 0)
+        {
+            lists.AppendLine($"target_link_libraries({TargetName}");
+
+            foreach (var dep in LinkDeps)
+            {
+                lists.AppendLine($"PRIVATE {dep}");
+            }
+
             lists.AppendLine(")");
+            lists.AppendLine();
         }
         #endregion
 
@@ -126,7 +189,8 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
                     { "Configuration", config },
                     { "Platform", "x64" },
                     { "IsMinGW", "true" },
-                    { "VCTargetsPath", paths.VCStubDirectory }
+                    { "VCTargetsPath", paths.VCStubDirectory },
+                    { "CoreLibraryDependencies", "kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib" }
                 },
                 ToolsVersion = collection.DefaultToolsVersion,
                 ProjectCollection = collection
@@ -144,18 +208,57 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
         return projPath.Parent / path;
     }
 
-    class ClCompile(ProjectItem item)
-    {
-        public readonly string Path = ResolvePath(item.Project, item.EvaluatedInclude);
-        public readonly string Definitions = item.GetMetadataValue("PreprocessorDefinitions");
-        public readonly string StandardC = item.GetMetadataValue("LanguageStandard_C");
-        public readonly string StandardCXX = item.GetMetadataValue("LanguageStandard");
-    }
-
     enum ConfigurationType
     {
         Application,
         DynamicLibrary,
         StaticLibrary
+    }
+
+    abstract class Compile
+    {
+        public readonly AbsolutePath Path;
+
+        public readonly string Key;
+
+        public Compile(ProjectItem item)
+        {
+            Path = ResolvePath(item.Project, item.EvaluatedInclude);
+            Key = Path.NameWithoutExtension + "_" + item.UnevaluatedInclude.ToString().GetSHA256Hash();
+        }
+
+        public virtual string Gen()
+            => "";
+    }
+
+    sealed class ClCompile(ProjectItem item) : Compile(item)
+    {
+        public readonly string Definitions = item.GetMetadataValue("PreprocessorDefinitions");
+
+        public readonly string StandardC =
+            item.GetMetadataValue("LanguageStandard_C")
+            .TrimStart("stdc")
+            .Replace("latest", StandardCLatest);
+
+        public readonly string StandardCXX =
+            item.GetMetadataValue("LanguageStandard")
+            .TrimStart("stdcpp")
+            .Replace("latest", StandardCXXLatest);
+
+        public override string Gen()
+            => $@"
+set_target_properties({Key} PROPERTIES
+    COMPILE_DEFINITIONS {Definitions}
+    C_STANDARD {StandardC}
+    CXX_STANDARD {StandardCXX}
+)
+";
+    }
+
+    sealed class ResourceCompile(ProjectItem item) : Compile(item)
+    {
+        public readonly string Definitions = item.GetMetadataValue("PreprocessorDefinitions");
+        public readonly string StandardC = item.GetMetadataValue("LanguageStandard_C");
+        public readonly string StandardCXX = item.GetMetadataValue("LanguageStandard");
     }
 }
