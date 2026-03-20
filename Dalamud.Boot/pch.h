@@ -39,6 +39,8 @@
 
 // COM
 #include <comdef.h>
+#include <wrl.h>
+using Microsoft::WRL::ComPtr;
 
 // C++ Standard Libraries
 #include <algorithm>
@@ -73,7 +75,14 @@
 #include "../lib/CoreCLR/CoreCLR.h"
 
 // https://github.com/nlohmann/json
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-literal-operator"
+#endif
 #include "../lib/nlohmann-json/json.hpp"
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 #include "unicode.h"
 
