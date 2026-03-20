@@ -18,6 +18,12 @@ public sealed class VCProjToCMakeLists
     const string StandardCLatest = "23";
     const string StandardCXXLatest = "23";
 
+    // FIXME JADE: Figure out how to figure this out on the fly.
+    static readonly List<string> StandardDependencies = [
+        "libwinpthread-1.dll",
+        "libgcc_s_seh-1.dll",
+        "libstdc++-6.dll"];
+
     readonly ICMakePaths Paths;
 
     readonly Project VCProj;
@@ -167,6 +173,14 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
             lists.AppendLine(")");
             lists.AppendLine();
         }
+        #endregion
+
+        #region Shared dependency copying
+        foreach (var dep in StandardDependencies)
+        {
+            lists.AppendLine($"file(COPY \"${{CMAKE_FIND_ROOT_PATH}}/bin/{dep}\" DESTINATION {OutDir})");
+        }
+        lists.AppendLine();
         #endregion
 
         OwnDirectory.CreateDirectory();

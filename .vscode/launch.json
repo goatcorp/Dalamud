@@ -19,6 +19,30 @@
             "cmakeDebugType": "configure",
             "clean": false,
             "configureAll": false
+        },
+        {
+            "name": "Launch Wine gdbserver Debug DalamudCrashHandler and attach gdb",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/Debug/DalamudCrashHandler.exe",
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "miDebuggerServerAddress": "localhost:12345",
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Wine gdbserver Debug DalamudCrashHandler"
         }
     ]
 }
