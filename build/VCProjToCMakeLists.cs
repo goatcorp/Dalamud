@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
+using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Utilities;
 
@@ -33,6 +35,8 @@ public sealed class VCProjToCMakeLists
 
     readonly string LinkOptions;
 
+    readonly ClCompile PCH;
+
     readonly List<Compile> Compiles = [];
 
     readonly List<string> LinkDeps = [];
@@ -60,23 +64,26 @@ public sealed class VCProjToCMakeLists
 
         foreach (var item in VCProj.Items)
         {
-            if (bool.TryParse(item.GetMetadataValue("ExcludedFromBuild"), out var excluded) &&
-                excluded)
+            Compile compile = item.ItemType switch
+            {
+                "ClCompile" => new ClCompile(this, item),
+                "ResourceCompile" => new ResourceCompile(this, item),
+                _ => null
+            };
+
+            if (compile is null || compile.Excluded)
             {
                 continue;
             }
 
-            Compile compile = item.ItemType switch
+            if (compile as ClCompile is { PCH: PrecompiledHeader.Create } pch)
             {
-                "ClCompile" => new ClCompile(item),
-                "ResourceCompile" => new ResourceCompile(item),
-                _ => null
-            };
-
-            if (compile is not null)
-            {
-                Compiles.Add(compile);
+                Assert.Equals(PCH, null);
+                PCH = pch;
+                continue;
             }
+
+            Compiles.Add(compile);
         }
 
         if (VCProj.ItemDefinitions.TryGetValue("Link", out var link))
@@ -121,11 +128,9 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
         #endregion
 
         #region Source -> Objects
-        foreach (var compile in Compiles)
+        foreach (var compile in new Compile[] { PCH }.Concat(Compiles))
         {
-            lists.AppendLine($"add_library({compile.Key} OBJECT {compile.Path.ToString().DoubleQuoteIfNeeded()})");
-            compile.Gen(lists);
-            lists.AppendLine();
+            compile?.Gen(lists);
         }
         #endregion
 
@@ -238,6 +243,11 @@ install(CODE [[
 
     private static AbsolutePath ResolvePath(Project proj, string path)
     {
+        if (string.IsNullOrEmpty(path))
+        {
+            return null;
+        }
+
         if (Path.IsPathRooted(path))
         {
             return path;
@@ -254,36 +264,57 @@ install(CODE [[
         StaticLibrary
     }
 
+    enum PrecompiledHeader
+    {
+        NotUsing,
+        Create,
+        Use
+    }
+
     abstract class Compile
     {
+        protected readonly VCProjToCMakeLists Ctx;
+
         public readonly AbsolutePath Path;
 
         public readonly string Key;
 
-        public Compile(ProjectItem item)
+        public virtual bool Excluded { get; }
+
+        public Compile(VCProjToCMakeLists ctx, ProjectItem item)
         {
+            Ctx = ctx;
             Path = ResolvePath(item.Project, item.EvaluatedInclude);
-            Key = Path.NameWithoutExtension + "_" + item.UnevaluatedInclude.ToString().GetSHA256Hash();
+            Key = Path.NameWithoutExtension + "." + item.UnevaluatedInclude.ToString().GetSHA256Hash()[..4] + ".o";
+
+            if (bool.TryParse(item.GetMetadataValue("ExcludedFromBuild"), out var excluded))
+            {
+                Excluded = excluded;
+            }
         }
 
         public virtual void Gen(StringBuilder lists)
         {
+            lists.AppendLine($"add_library({Key} OBJECT {Path.ToString().DoubleQuoteIfNeeded()})");
+            lists.AppendLine();
         }
     }
 
-    sealed class ClCompile(ProjectItem item) : Compile(item)
+    sealed class ClCompile(VCProjToCMakeLists ctx, ProjectItem item) : Compile(ctx, item)
     {
         public readonly string Definitions = item.GetMetadataValue("PreprocessorDefinitions");
 
         public readonly string StandardC =
             item.GetMetadataValue("LanguageStandard_C")
             .TrimStart("stdc")
-            .Replace("latest", StandardCLatest);
+            .Replace("latest", StandardCLatest)
+            .ToNullIfEmpty() ?? StandardCLatest;
 
         public readonly string StandardCXX =
             item.GetMetadataValue("LanguageStandard")
             .TrimStart("stdcpp")
-            .Replace("latest", StandardCXXLatest);
+            .Replace("latest", StandardCXXLatest)
+            .ToNullIfEmpty() ?? StandardCXXLatest;
 
         public readonly bool ExtensionsC = !item.GetMetadataValue("LanguageStandard_C").StartsWith("stdc");
 
@@ -291,11 +322,28 @@ install(CODE [[
 
         public readonly string AdditionalOptions = item.GetMetadataValue("AdditionalOptions");
 
+        public readonly string Language =
+            item.GetMetadataValue("CompileAs")
+            .ToUpperInvariant()
+            .TrimStart("COMPILEAS")
+            .Replace("CPP", "CXX")
+            .Replace("Default", "");
+
+        public readonly PrecompiledHeader PCH =
+            Enum.TryParse(item.GetMetadataValue("PrecompiledHeader"), out PrecompiledHeader value)
+                ? value : PrecompiledHeader.NotUsing;
+
+        public readonly AbsolutePath PCHFile = ResolvePath(item.Project, item.GetMetadataValue("PrecompiledHeaderFile"));
+
+        public override bool Excluded => base.Excluded;
+
         public override void Gen(StringBuilder lists)
         {
+            base.Gen(lists);
+
             lists.AppendLine($@"
 set_target_properties({Key} PROPERTIES
-    COMPILE_DEFINITIONS {Definitions}
+    COMPILE_DEFINITIONS ""{Definitions}""
     C_STANDARD {StandardC}
     C_EXTENSIONS {(ExtensionsC ? "ON" : "OFF")}
     CXX_STANDARD {StandardCXX}
@@ -303,17 +351,47 @@ set_target_properties({Key} PROPERTIES
 )
 ");
 
+            var lang = Language;
+
+            // For PCH files, the header extension might not match the source file extension...
+            if (string.IsNullOrEmpty(lang) && PCH == PrecompiledHeader.Create)
+            {
+                // Based on GCC suffix list, which might not match MSVC behavior, but might be close enough.
+                var cxx = Path.Name.EndsWithAny([
+                    ".C", ".cc", ".cpp", ".CPP", ".c++", ".cp", ".cxx"
+                ]);
+                lang = cxx ? "CXX" : "C";
+            }
+
+            if (!string.IsNullOrEmpty(lang))
+            {
+                lists.AppendLine($"set_target_properties({Key} PROPERTIES LANGUAGE {lang})");
+            }
+
             if (!string.IsNullOrEmpty(AdditionalOptions))
             {
                 lists.AppendLine($"target_compile_options({Key} PRIVATE {AdditionalOptions})");
             }
+
+            switch (PCH)
+            {
+                case PrecompiledHeader.Create:
+                    Assert.NotNull(PCHFile);
+                    lists.AppendLine($"target_precompile_headers({Key} PRIVATE {PCHFile.ToString().DoubleQuoteIfNeeded()})");
+                    break;
+
+                case PrecompiledHeader.Use:
+                    var pch = Assert.NotNull(Ctx.PCH);
+                    Assert.Equals(PCHFile, pch.PCHFile);
+                    lists.AppendLine($"target_precompile_headers({Key} REUSE_FROM {pch.Key})");
+                    break;
+            }
+
+            lists.AppendLine();
         }
     }
 
-    sealed class ResourceCompile(ProjectItem item) : Compile(item)
+    sealed class ResourceCompile(VCProjToCMakeLists ctx, ProjectItem item) : Compile(ctx, item)
     {
-        public readonly string Definitions = item.GetMetadataValue("PreprocessorDefinitions");
-        public readonly string StandardC = item.GetMetadataValue("LanguageStandard_C");
-        public readonly string StandardCXX = item.GetMetadataValue("LanguageStandard");
     }
 }
