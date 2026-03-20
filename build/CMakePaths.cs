@@ -5,6 +5,8 @@ public interface ICMakePaths
 {
     Tool CMake { get; }
 
+    AbsolutePath RootDirectory { get; }
+
     AbsolutePath BuildToolDirectory { get; }
 
     AbsolutePath CMakeToolchain { get; }
