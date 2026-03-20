@@ -211,7 +211,7 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     }
     else
     {
-        stackTrace = static_cast<wchar_t*(*)()>(fn)();
+        stackTrace = reinterpret_cast<wchar_t*(*)()>(fn)();
         // Don't free it, as the program's going to be quit anyway
     }
 

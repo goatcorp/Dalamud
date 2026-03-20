@@ -99,7 +99,7 @@ void read_process_memory_or_throw(HANDLE hProcess, void* pAddress, void* data, s
 
 template<typename T>
 void read_process_memory_or_throw(HANDLE hProcess, void* pAddress, T& data) {
-    return read_process_memory_or_throw(hProcess, pAddress, &data, sizeof data);
+    return read_process_memory_or_throw(hProcess, pAddress, &data, sizeof(data));
 }
 
 void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const void* data, size_t len) {
@@ -113,7 +113,7 @@ void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const void* 
 
 template<typename T>
 void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const T& data) {
-    return write_process_memory_or_throw(hProcess, pAddress, &data, sizeof data);
+    return write_process_memory_or_throw(hProcess, pAddress, &data, sizeof(data));
 }
 
 std::filesystem::path get_path_from_local_module(HMODULE hModule) {
@@ -131,7 +131,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
     std::ifstream exe(path, std::ios::binary);
 
     IMAGE_DOS_HEADER exe_dos_header;
-    exe.read(reinterpret_cast<char*>(&exe_dos_header), sizeof exe_dos_header);
+    exe.read(reinterpret_cast<char*>(&exe_dos_header), sizeof(exe_dos_header));
     if (!exe || exe_dos_header.e_magic != IMAGE_DOS_SIGNATURE)
         throw std::runtime_error("Game executable is corrupt (DOS header).");
 
@@ -140,13 +140,13 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
         IMAGE_NT_HEADERS64 exe_nt_header64;
     };
     exe.seekg(exe_dos_header.e_lfanew, std::ios::beg);
-    exe.read(reinterpret_cast<char*>(&exe_nt_header64), sizeof exe_nt_header64);
+    exe.read(reinterpret_cast<char*>(&exe_nt_header64), sizeof(exe_nt_header64));
     if (!exe || exe_nt_header64.Signature != IMAGE_NT_SIGNATURE)
         throw std::runtime_error("Game executable is corrupt (NT header).");
 
     std::vector<IMAGE_SECTION_HEADER> exe_section_headers(exe_nt_header64.FileHeader.NumberOfSections);
     exe.seekg(exe_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS32, OptionalHeader) + exe_nt_header64.FileHeader.SizeOfOptionalHeader, std::ios::beg);
-    exe.read(reinterpret_cast<char*>(&exe_section_headers[0]), sizeof IMAGE_SECTION_HEADER * exe_section_headers.size());
+    exe.read(reinterpret_cast<char*>(&exe_section_headers[0]), sizeof(IMAGE_SECTION_HEADER) * exe_section_headers.size());
     if (!exe)
         throw std::runtime_error("Game executable is corrupt (Truncated section header).");
 
@@ -154,7 +154,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
     GetSystemInfo(&sysinfo);
     
     for (MEMORY_BASIC_INFORMATION mbi{};
-        VirtualQueryEx(hProcess, mbi.BaseAddress, &mbi, sizeof mbi);
+        VirtualQueryEx(hProcess, mbi.BaseAddress, &mbi, sizeof(mbi));
         mbi.BaseAddress = static_cast<char*>(mbi.BaseAddress) + mbi.RegionSize) {
 
         // wine: apparently there exists a RegionSize of 0xFFF
@@ -188,7 +188,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
             if (compare_nt_header32.FileHeader.NumberOfSections != exe_nt_header32.FileHeader.NumberOfSections)
                 continue;
 
-            if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof IMAGE_OPTIONAL_HEADER32) {
+            if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof(IMAGE_OPTIONAL_HEADER32)) {
                 read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS32, OptionalHeader), compare_nt_header32.OptionalHeader);
                 if (compare_nt_header32.OptionalHeader.SizeOfImage != exe_nt_header32.OptionalHeader.SizeOfImage)
                     continue;
@@ -196,11 +196,11 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
                     continue;
 
                 std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header32.FileHeader.NumberOfSections);
-                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header32, &compare_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size());
-                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
+                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof(compare_nt_header32), &compare_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size());
+                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size()) != 0)
                     continue;
 
-            } else if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof IMAGE_OPTIONAL_HEADER64) {
+            } else if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof(IMAGE_OPTIONAL_HEADER64)) {
                 read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS64, OptionalHeader), compare_nt_header64.OptionalHeader);
                 if (compare_nt_header64.OptionalHeader.SizeOfImage != exe_nt_header64.OptionalHeader.SizeOfImage)
                     continue;
@@ -208,8 +208,8 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
                     continue;
 
                 std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header64.FileHeader.NumberOfSections);
-                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header64, &compare_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size());
-                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
+                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof(compare_nt_header64), &compare_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size());
+                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size()) != 0)
                     continue;
 
             } else
@@ -286,20 +286,20 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
 
         // Backup original entry point.
         last_operation = std::format(L"read_process_memory_or_throw(entrypoint, {}b)", entrypoint_replacement.size());
-        read_process_memory_or_throw(hProcess, entrypoint, &buffer[sizeof params], entrypoint_replacement.size());
+        read_process_memory_or_throw(hProcess, entrypoint, &buffer[sizeof(params)], entrypoint_replacement.size());
 
-        memcpy(&buffer[sizeof params + entrypoint_replacement.size()], load_info.data(), load_info.size());
+        memcpy(&buffer[sizeof(params) + entrypoint_replacement.size()], load_info.data(), load_info.size());
 
         last_operation = L"thunks::fill_placeholders(EntryPointReplacement)";
         thunks::fill_placeholders(standalone_rewrittenentrypoint.data(), remote_buffer);
-        memcpy(&buffer[sizeof params + entrypoint_replacement.size() + load_info.size()], standalone_rewrittenentrypoint.data(), standalone_rewrittenentrypoint.size());
+        memcpy(&buffer[sizeof(params) + entrypoint_replacement.size() + load_info.size()], standalone_rewrittenentrypoint.data(), standalone_rewrittenentrypoint.size());
 
         // Write the local buffer into the buffer in remote process.
         last_operation = std::format(L"write_process_memory_or_throw(remote_buffer, {}b)", buffer.size());
         write_process_memory_or_throw(hProcess, remote_buffer, buffer.data(), buffer.size());
 
         last_operation = L"thunks::fill_placeholders(RewrittenEntryPoint_Standalone::pRewrittenEntryPointParameters)";
-        thunks::fill_placeholders(entrypoint_replacement.data(), remote_buffer + sizeof params + entrypoint_replacement.size() + load_info.size());
+        thunks::fill_placeholders(entrypoint_replacement.data(), remote_buffer + sizeof(params) + entrypoint_replacement.size() + load_info.size());
 
         // Overwrite remote process' entry point with a thunk that will load our DLLs and call our trampoline function.
         last_operation = std::format(L"write_process_memory_or_throw(entrypoint={:X}, {}b)", reinterpret_cast<uintptr_t>(entrypoint), buffer.size());
@@ -317,7 +317,7 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
             utils::format_win32_error(err));
         OutputDebugStringW((formatted + L"\r\n").c_str());
 
-        ICreateErrorInfoPtr cei;
+        ComPtr<ICreateErrorInfo> cei;
         if (FAILED(CreateErrorInfo(&cei)))
             return hr;
         if (FAILED(cei->SetSource(const_cast<LPOLESTR>(L"Dalamud.Boot"))))
@@ -325,11 +325,11 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
         if (FAILED(cei->SetDescription(const_cast<LPOLESTR>(formatted.c_str()))))
             return hr;
 
-        IErrorInfoPtr ei;
-        if (FAILED(cei.QueryInterface(IID_PPV_ARGS(&ei))))
+        ComPtr<IErrorInfo> ei;
+        if (FAILED(cei.As(&ei)))
             return hr;
 
-        (void)SetErrorInfo(0, ei);
+        (void)SetErrorInfo(0, ei.Get());
         return hr;
     }
 }
@@ -366,12 +366,12 @@ extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointPara
             hr = err == ERROR_SUCCESS ? E_FAIL : HRESULT_FROM_WIN32(err);
         }
 
-        ICreateErrorInfoPtr cei;
-        IErrorInfoPtr ei;
+        ComPtr<ICreateErrorInfo> cei;
+        ComPtr<IErrorInfo> ei;
         if (SUCCEEDED(CreateErrorInfo(&cei))
             && SUCCEEDED(cei->SetDescription(const_cast<wchar_t*>(unicode::convert<std::wstring>(e.what()).c_str())))
-            && SUCCEEDED(cei.QueryInterface(IID_PPV_ARGS(&ei)))) {
-            (void)SetErrorInfo(0, ei);
+            && SUCCEEDED(cei.As(&ei))) {
+            (void)SetErrorInfo(0, ei.Get());
         }
     }
 
@@ -400,7 +400,7 @@ extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointPara
                 desc.GetBSTR()));
 
         const TASKDIALOGCONFIG config{
-            .cbSize = sizeof config,
+            .cbSize = sizeof(config),
             .hInstance = g_hModule,
             .dwFlags = TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS | TDF_EXPAND_FOOTER_AREA,
             .pszWindowTitle = MAKEINTRESOURCEW(IDS_APPNAME),
