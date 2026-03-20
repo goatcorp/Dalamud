@@ -46,6 +46,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalOptions Condition="'$(IsMinGW)'=='true'">-Wno-deprecated-enum-enum-conversion</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
