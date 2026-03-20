@@ -28,9 +28,9 @@ public sealed class VCProjToCMakeLists
 
     readonly ConfigurationType Type;
 
-    readonly string SubSystem;
+    readonly AbsolutePath OutDir;
 
-    readonly string CMakeLists;
+    readonly string SubSystem;
 
     readonly List<Compile> Compiles = [];
 
@@ -47,6 +47,7 @@ public sealed class VCProjToCMakeLists
 
         Name = VCProj.GetPropertyValue("MSBuildProjectName");
         Type = Enum.Parse<ConfigurationType>(VCProj.GetPropertyValue("ConfigurationType"));
+        OutDir = ResolvePath(VCProj, VCProj.GetPropertyValue("OutDir"));
 
         TargetName = Type switch
         {
@@ -144,7 +145,10 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
         lists.AppendLine();
         #endregion
 
-        #region Target linker props
+        #region Target props
+        lists.AppendLine($"set_target_properties({TargetName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY {OutDir.ToString().DoubleQuoteIfNeeded()})");
+        lists.AppendLine();
+
         if (Type == ConfigurationType.Application)
         {
             lists.AppendLine($"target_link_options({TargetName} PRIVATE -m{SubSystem.ToLowerInvariant()})");
