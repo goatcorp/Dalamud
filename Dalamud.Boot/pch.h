@@ -75,12 +75,12 @@ using Microsoft::WRL::ComPtr;
 #include "../lib/CoreCLR/CoreCLR.h"
 
 // https://github.com/nlohmann/json
-#if defined(__GNUC__)
+#if __GNUC__ >= 15
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-literal-operator"
 #endif
 #include "../lib/nlohmann-json/json.hpp"
-#if defined(__GNUC__)
+#if __GNUC__ >= 15
 #pragma GCC diagnostic pop
 #endif
 
