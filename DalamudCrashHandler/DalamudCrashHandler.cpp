@@ -10,7 +10,6 @@
 #include <span>
 #include <sstream>
 #include <string>
-#include <thread>
 #include <vector>
 
 #define WIN32_LEAN_AND_MEAN
@@ -31,6 +30,10 @@
 #include <shlobj_core.h>
 
 #include <dxgi.h>
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
+#endif
 
 _COM_SMARTPTR_TYPEDEF(IFileOperation, __uuidof(IFileOperation));
 _COM_SMARTPTR_TYPEDEF(IFileSaveDialog, __uuidof(IFileSaveDialog));
