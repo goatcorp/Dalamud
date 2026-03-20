@@ -31,10 +31,6 @@
 #include <shlobj_core.h>
 
 #include <dxgi.h>
-#pragma comment(lib, "dxgi.lib")
-
-#pragma comment(lib, "comctl32.lib")
-#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 _COM_SMARTPTR_TYPEDEF(IFileOperation, __uuidof(IFileOperation));
 _COM_SMARTPTR_TYPEDEF(IFileSaveDialog, __uuidof(IFileSaveDialog));
