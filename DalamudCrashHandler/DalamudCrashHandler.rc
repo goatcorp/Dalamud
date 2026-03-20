@@ -69,3 +69,4 @@ IDI_ICON1               ICON                    "dalamud.ico"
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "../manifest.xml"

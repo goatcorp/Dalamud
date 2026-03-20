@@ -50,8 +50,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>version.lib;winhttp.lib;dbghelp.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(IsMinGW)'!=''">dxgi.lib;comctl32;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>version.lib;winhttp.lib;dbghelp.lib;dxgi.lib;comctl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
