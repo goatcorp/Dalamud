@@ -19,6 +19,10 @@ if(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL 'Windows')
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
     set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
     set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+
+    enable_language(RC)
+
+    include_directories(${CMAKE_CURRENT_LIST_DIR}/include-mingw)
 endif()
 
 message(STATUS 'Using CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}')

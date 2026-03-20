@@ -9,6 +9,7 @@
 
 // Exclude rarely-used stuff from Windows headers
 #define WIN32_LEAN_AND_MEAN
+#undef NOMINMAX
 #define NOMINMAX
 
 // https://developercommunity.visualstudio.com/t/Access-violation-with-std::mutex::lock-a/10664660
