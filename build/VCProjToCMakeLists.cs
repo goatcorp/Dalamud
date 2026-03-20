@@ -77,8 +77,7 @@ public sealed class VCProjToCMakeLists
 
             foreach (var dep in link.GetMetadataValue("AdditionalDependencies").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
-                // TODO: Figure out how to figure out whether the lib needs to be lowercased or not...
-                LinkDeps.Add(dep.ToLowerInvariant().TrimEnd(".lib"));
+                LinkDeps.Add(dep.TrimEnd(".lib"));
             }
         }
 
