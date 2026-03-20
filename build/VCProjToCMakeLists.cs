@@ -37,6 +37,8 @@ public sealed class VCProjToCMakeLists
 
     readonly string SubSystem;
 
+    readonly string LinkOptions;
+
     readonly List<Compile> Compiles = [];
 
     readonly List<string> LinkDeps = [];
@@ -80,6 +82,7 @@ public sealed class VCProjToCMakeLists
         if (VCProj.ItemDefinitions.TryGetValue("Link", out var link))
         {
             SubSystem = link.GetMetadataValue("SubSystem");
+            LinkOptions = link.GetMetadataValue("AdditionalOptions");
 
             foreach (var dep in link.GetMetadataValue("AdditionalDependencies").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
@@ -121,13 +124,7 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
         foreach (var compile in Compiles)
         {
             lists.AppendLine($"add_library({compile.Key} OBJECT {compile.Path.ToString().DoubleQuoteIfNeeded()})");
-
-            var text = compile.Gen();
-            if (!string.IsNullOrEmpty(text))
-            {
-                lists.Append(text);
-            }
-
+            compile.Gen(lists);
             lists.AppendLine();
         }
         #endregion
@@ -160,13 +157,19 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
             lists.AppendLine();
         }
 
+        if (!string.IsNullOrEmpty(LinkOptions))
+        {
+            lists.AppendLine($"target_link_options({TargetName} PRIVATE {LinkOptions})");
+            lists.AppendLine();
+        }
+
         if (LinkDeps.Count != 0)
         {
-            lists.AppendLine($"target_link_libraries({TargetName}");
+            lists.AppendLine($"target_link_libraries({TargetName} PRIVATE");
 
             foreach (var dep in LinkDeps)
             {
-                lists.AppendLine($"PRIVATE {dep}");
+                lists.AppendLine(dep);
             }
 
             lists.AppendLine(")");
@@ -243,8 +246,9 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
             Key = Path.NameWithoutExtension + "_" + item.UnevaluatedInclude.ToString().GetSHA256Hash();
         }
 
-        public virtual string Gen()
-            => "";
+        public virtual void Gen(StringBuilder lists)
+        {
+        }
     }
 
     sealed class ClCompile(ProjectItem item) : Compile(item)
@@ -261,14 +265,23 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
             .TrimStart("stdcpp")
             .Replace("latest", StandardCXXLatest);
 
-        public override string Gen()
-            => $@"
+        public readonly string AdditionalOptions = item.GetMetadataValue("AdditionalOptions");
+
+        public override void Gen(StringBuilder lists)
+        {
+            lists.AppendLine($@"
 set_target_properties({Key} PROPERTIES
     COMPILE_DEFINITIONS {Definitions}
     C_STANDARD {StandardC}
     CXX_STANDARD {StandardCXX}
 )
-";
+");
+
+            if (!string.IsNullOrEmpty(AdditionalOptions))
+            {
+                lists.AppendLine($"target_compile_options({Key} PRIVATE {AdditionalOptions})");
+            }
+        }
     }
 
     sealed class ResourceCompile(ProjectItem item) : Compile(item)
