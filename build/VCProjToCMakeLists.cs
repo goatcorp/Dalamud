@@ -17,12 +17,6 @@ public sealed class VCProjToCMakeLists
     const string StandardCLatest = "23";
     const string StandardCXXLatest = "23";
 
-    // FIXME JADE: Figure out how to figure this out on the fly.
-    static readonly List<string> StandardDependencies = [
-        "libwinpthread-1.dll",
-        "libgcc_s_seh-1.dll",
-        "libstdc++-6.dll"];
-
     readonly ICMakePaths Paths;
 
     readonly Project VCProj;
@@ -148,9 +142,6 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
         #endregion
 
         #region Target props
-        lists.AppendLine($"set_target_properties({TargetName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY {OutDir.ToString().DoubleQuoteIfNeeded()})");
-        lists.AppendLine();
-
         if (Type == ConfigurationType.Application)
         {
             lists.AppendLine($"target_link_options({TargetName} PRIVATE -m{SubSystem.ToLowerInvariant()})");
@@ -177,12 +168,35 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
         }
         #endregion
 
-        #region Shared dependency copying
-        foreach (var dep in StandardDependencies)
-        {
-            lists.AppendLine($"file(COPY \"${{CMAKE_FIND_ROOT_PATH}}/bin/{dep}\" DESTINATION {OutDir})");
-        }
-        lists.AppendLine();
+        #region Installation
+        lists.AppendLine(@$"
+install(CODE [[
+    include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
+
+    file(INSTALL
+        DESTINATION {OutDir.ToString().DoubleQuoteIfNeeded()}
+        TYPE EXECUTABLE
+        FILES ""$<TARGET_FILE:{TargetName}>""
+    )
+
+    file(GET_RUNTIME_DEPENDENCIES
+        EXECUTABLES ""$<TARGET_FILE:{TargetName}>""
+        RESOLVED_DEPENDENCIES_VAR DEPS_RESOLVED
+        UNRESOLVED_DEPENDENCIES_VAR DEPS_UNRESOLVED
+        DIRECTORIES ${{MINGW_DLL_DIRS}}
+    )
+
+    message(STATUS ""Resolved: ${{DEPS_RESOLVED}}"")
+    file(INSTALL
+        DESTINATION {OutDir.ToString().DoubleQuoteIfNeeded()}
+        TYPE SHARED_LIBRARY
+        FOLLOW_SYMLINK_CHAIN
+        FILES ${{DEPS_RESOLVED}}
+    )
+
+    message(STATUS ""Unresolved: ${{DEPS_UNRESOLVED}}"")
+]])
+");
         #endregion
 
         OwnDirectory.CreateDirectory();
