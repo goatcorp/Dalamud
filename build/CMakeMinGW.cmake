@@ -44,8 +44,10 @@ execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-search-dirs
 execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-sysroot
     OUTPUT_VARIABLE CMAKE_FIND_ROOT_PATH
 )
-string(REGEX MATCH "([^\r\n]*)" _ ${CMAKE_FIND_ROOT_PATH})
-set(CMAKE_FIND_ROOT_PATH ${CMAKE_MATCH_1})
+if(CMAKE_FIND_ROOT_PATH)
+    string(REGEX MATCH "([^\r\n]*)" _ ${CMAKE_FIND_ROOT_PATH})
+    set(CMAKE_FIND_ROOT_PATH ${CMAKE_MATCH_1})
+endif()
 
 if(NOT CMAKE_FIND_ROOT_PATH)
     string(REGEX MATCH "install: ([^\r\n]*)" _ ${MINGW_SEARCH_DIRS})
