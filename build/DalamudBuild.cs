@@ -140,6 +140,7 @@ public class DalamudBuild : NukeBuild
         });
 
     Target CompileDalamudBoot => _ => _
+        .DependsOn(PrepareJWasm)
         .Executes(() =>
         {
             MSBuild.Build(DalamudBootProjectFile, Configuration);
