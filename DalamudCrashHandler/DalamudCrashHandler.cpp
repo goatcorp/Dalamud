@@ -15,19 +15,26 @@
 #define WIN32_LEAN_AND_MEAN
 #undef NOMINMAX
 #define NOMINMAX
-#include <Windows.h>
+#include <windows.h>
 
 #include <comdef.h>
-#include <CommCtrl.h>
-#include <DbgHelp.h>
+#include <commctrl.h>
+#include <dbghelp.h>
 #include <intrin.h>
+#if !defined(__MINGW32__)
+// In MinGW, the parts of minidumpapiset needed are available via dbghelp.
 #include <minidumpapiset.h>
-#include <PathCch.h>
-#include <Psapi.h>
+#endif
+#include <pathcch.h>
+#include <psapi.h>
 #include <shellapi.h>
-#include <ShlGuid.h>
-#include <ShObjIdl.h>
+#include <shlguid.h>
+#include <shobjidl.h>
+#if !defined(__MINGW32__)
 #include <shlobj_core.h>
+#else
+#include <shlobj.h>
+#endif
 
 #include <dxgi.h>
 
