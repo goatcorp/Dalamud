@@ -15,14 +15,14 @@ public sealed class VCProjToCMakeExec(ICMakePaths paths) : IVCProjExec
         List<Output> outputs = [];
 
         outputs.AddRange(Paths.CMake(
-            $"-S{dir.ToString().DoubleQuoteIfNeeded()} " +
-            $"-B{dir.ToString().DoubleQuoteIfNeeded()}"));
+            $"-S{dir.ToString().SingleQuoteIfNeeded()} " +
+            $"-B{dir.ToString().SingleQuoteIfNeeded()}"));
 
         outputs.AddRange(Paths.CMake(
-            $"--build {dir.ToString().DoubleQuoteIfNeeded()}"));
+            $"--build {dir.ToString().SingleQuoteIfNeeded()}"));
 
         outputs.AddRange(Paths.CMake(
-            $"--install {dir.ToString().DoubleQuoteIfNeeded()}"));
+            $"--install {dir.ToString().SingleQuoteIfNeeded()}"));
 
         return outputs;
     }
