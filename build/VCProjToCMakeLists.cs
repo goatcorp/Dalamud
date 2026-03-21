@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
@@ -124,7 +123,7 @@ public sealed class VCProjToCMakeLists
 cmake_minimum_required(VERSION {CMakeVersion})
 project({Name} C CXX ASM_MASM)
 
-include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
+include({Paths.CMakeToolchain.ToString().SingleQuoteIfNeeded()})
 
 ");
 
@@ -194,7 +193,7 @@ set_target_properties({Name} PROPERTIES
 
         if (ModuleDef is not null)
         {
-            lists.AppendLine($"target_link_options({Name} PRIVATE {ModuleDef.ToString().DoubleQuoteIfNeeded()})");
+            lists.AppendLine($"target_link_options({Name} PRIVATE {ModuleDef.ToString().SingleQuoteIfNeeded()})");
         }
 
         if (LinkDeps.Count != 0)
@@ -214,12 +213,12 @@ set_target_properties({Name} PROPERTIES
         #region Installation
         lists.AppendLine(@$"
 install(CODE [[
-    include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
+    include({Paths.CMakeToolchain.ToString().SingleQuoteIfNeeded()})
 
-    set(PROJECTDIR {ResolvePath(VCProj, ".").ToString().DoubleQuoteIfNeeded()})
+    set(PROJECTDIR {ResolvePath(VCProj, ".").ToString().SingleQuoteIfNeeded()})
 
     file(INSTALL
-        DESTINATION {OutDir.ToString().DoubleQuoteIfNeeded()}
+        DESTINATION {OutDir.ToString().SingleQuoteIfNeeded()}
         FILES ""$<TARGET_FILE:{Name}>""
     )
 
@@ -232,7 +231,7 @@ install(CODE [[
 
     message(STATUS ""Resolved: ${{DEPS_RESOLVED}}"")
     file(INSTALL
-        DESTINATION {OutDir.ToString().DoubleQuoteIfNeeded()}
+        DESTINATION {OutDir.ToString().SingleQuoteIfNeeded()}
         FOLLOW_SYMLINK_CHAIN
         FILES ${{DEPS_RESOLVED}}
     )
@@ -360,7 +359,7 @@ install(CODE [[
     {
         public override void GenBeforeMain(StringBuilder lists)
         {
-            lists.AppendLine($"add_library({Key} OBJECT {Path.ToString().DoubleQuoteIfNeeded()})");
+            lists.AppendLine($"add_library({Key} OBJECT {Path.ToString().SingleQuoteIfNeeded()})");
             lists.AppendLine();
         }
 
@@ -392,6 +391,8 @@ install(CODE [[
 
         public readonly string AdditionalOptions = item.GetMetadataValue("AdditionalOptions");
 
+        public readonly string AdditionalIncludeDirectories = item.GetMetadataValue("AdditionalIncludeDirectories");
+
         public readonly string Language =
             item.GetMetadataValue("CompileAs")
                 .ToUpperInvariant()
@@ -411,7 +412,6 @@ install(CODE [[
 
             lists.AppendLine($@"
 set_target_properties({Key} PROPERTIES
-    COMPILE_DEFINITIONS ""{Definitions}""
     C_STANDARD {StandardC}
     C_EXTENSIONS {(ExtensionsC ? "ON" : "OFF")}
     CXX_STANDARD {StandardCXX}
@@ -436,16 +436,31 @@ set_target_properties({Key} PROPERTIES
                 lists.AppendLine($"set_target_properties({Key} PROPERTIES LANGUAGE {lang})");
             }
 
+            if (!string.IsNullOrEmpty(Definitions))
+            {
+                lists.AppendLine($"target_compile_definitions({Key} PRIVATE {Definitions})");
+            }
+
             if (!string.IsNullOrEmpty(AdditionalOptions))
             {
                 lists.AppendLine($"target_compile_options({Key} PRIVATE {AdditionalOptions})");
+            }
+
+            if (!string.IsNullOrEmpty(AdditionalIncludeDirectories))
+            {
+                lists.AppendLine($"target_include_directories({Key} PRIVATE");
+                foreach (var dir in AdditionalIncludeDirectories.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    lists.AppendLine(ResolvePath(Ctx.VCProj, dir).ToString().SingleQuoteIfNeeded());
+                }
+                lists.AppendLine(")");
             }
 
             switch (PCH)
             {
                 case PrecompiledHeader.Create:
                     Assert.NotNull(PCHFile);
-                    lists.AppendLine($"target_precompile_headers({Key} PRIVATE {PCHFile.ToString().DoubleQuoteIfNeeded()})");
+                    lists.AppendLine($"target_precompile_headers({Key} PRIVATE {PCHFile.ToString().SingleQuoteIfNeeded()})");
                     break;
 
                 case PrecompiledHeader.Use:
@@ -504,9 +519,9 @@ set_target_properties({Key} PROPERTIES
 add_custom_command(
     OUTPUT {TargetPath}
     COMMAND ${{CMAKE_COMMAND}} -E copy
-        {Path.ToString().DoubleQuoteIfNeeded()}
+        {Path.ToString().SingleQuoteIfNeeded()}
         {TargetPath}
-    DEPENDS {Path.ToString().DoubleQuoteIfNeeded()}
+    DEPENDS {Path.ToString().SingleQuoteIfNeeded()}
 )
 ");
         }
