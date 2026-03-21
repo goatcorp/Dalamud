@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Wrapper around wine dotnet for NUKE CI tests specifically.
 
 export WINEDEBUG=-all
