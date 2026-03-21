@@ -233,15 +233,15 @@ public class DalamudBuild : NukeBuild
             List<Output> outputs = [];
 
             outputs.AddRange(CMake(
-                $"-S{CMakePaths.JWasmSrcDirectory.ToString().DoubleQuoteIfNeeded()} " +
-                $"-B{CMakePaths.JWasmBuildDirectory.ToString().DoubleQuoteIfNeeded()} " +
+                $"-S{CMakePaths.JWasmSrcDirectory.ToString().SingleQuoteIfNeeded()} " +
+                $"-B{CMakePaths.JWasmBuildDirectory.ToString().SingleQuoteIfNeeded()} " +
                 // Fails to build with C++23 onwards.
                 "-DCMAKE_C_STANDARD=17 -DCMAKE_CXX_STANDARD=17 " +
                 // The min ver is ancient and NUKE picks up CMake's warnings about that as errors.
                 "-Wno-deprecated"));
 
             outputs.AddRange(CMake(
-                $"--build {CMakePaths.JWasmBuildDirectory.ToString().DoubleQuoteIfNeeded()}"));
+                $"--build {CMakePaths.JWasmBuildDirectory.ToString().SingleQuoteIfNeeded()}"));
 
             Assert.FileExists(CMakePaths.JWasmTool);
 
