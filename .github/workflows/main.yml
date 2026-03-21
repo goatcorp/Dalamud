@@ -99,6 +99,7 @@ jobs:
             winehq-stable \
             xvfb
           wine --version
+          WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u
       - name: Setup Wine .NET SDK
         shell: bash
         run: |
