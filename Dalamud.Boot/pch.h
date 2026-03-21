@@ -16,20 +16,20 @@
 #define _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
 
 // Windows Header Files (1)
-#include <Windows.h>
+#include <windows.h>
 
 // Windows Header Files (2)
-#include <DbgHelp.h>
-#include <Dbt.h>
+#include <dbghelp.h>
+#include <dbt.h>
 #include <dwmapi.h>
 #include <iphlpapi.h>
-#include <PathCch.h>
-#include <Psapi.h>
+#include <pathcch.h>
+#include <psapi.h>
 #include <shellapi.h>
-#include <ShlObj.h>
-#include <Shlwapi.h>
-#include <SubAuth.h>
-#include <TlHelp32.h>
+#include <shlobj.h>
+#include <shlwapi.h>
+#include <subauth.h>
+#include <tlhelp32.h>
 
 // Windows Header Files (3)
 #include <icmpapi.h> // Must be loaded after iphlpapi.h

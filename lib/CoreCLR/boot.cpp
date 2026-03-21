@@ -2,9 +2,9 @@
 
 #include <cstdio>
 #include <filesystem>
-#include <Windows.h>
-#include <Lmcons.h>
-#include <Shlobj.h>
+#include <windows.h>
+#include <lmcons.h>
+#include <shlobj.h>
 #include "CoreCLR.h"
 #include "../../Dalamud.Boot/logging.h"
 
