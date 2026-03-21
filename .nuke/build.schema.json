@@ -35,6 +35,7 @@
         "CompileDalamudCrashHandler",
         "CompileImGuiNatives",
         "CompileInjector",
+        "CompileTest",
         "PrepareJWasm",
         "Restore",
         "SetCILogging",
