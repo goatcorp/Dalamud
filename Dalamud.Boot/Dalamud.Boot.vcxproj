@@ -211,4 +211,12 @@
     <Copy SourceFiles="$(OutDir)$(TargetName).pdb" DestinationFolder="..\bin\$(Configuration)\" />
     <Copy SourceFiles="$(OutDir)nethost.dll" DestinationFolder="..\bin\$(Configuration)\" />
   </Target>
+  <PropertyGroup>
+    <CMakePostBuild><![CDATA[
+      file(INSTALL DESTINATION "$(MSBuildProjectDirectory)/../$(Configuration)" FILES
+        "$<TARGET_FILE:$(TargetName)>"
+        "$<TARGET_FILE_DIR:$(TargetName)>/nethost.dll"
+      )
+    ]]></CMakePostBuild>
+  </PropertyGroup>
 </Project>
