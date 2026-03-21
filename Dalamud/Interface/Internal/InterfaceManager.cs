@@ -335,6 +335,9 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.IconFontHandle?.Dispose();
         this.IconFontHandle = null;
 
+        this.IconFontFixedWidthHandle?.Dispose();
+        this.IconFontFixedWidthHandle = null;
+
         Interlocked.Exchange(ref this.dalamudAtlas, null)?.Dispose();
         Interlocked.Exchange(ref this.backend, null)?.Dispose();
 
