@@ -68,6 +68,8 @@ public class DalamudBuild : NukeBuild
 
     IVCProjExec MSBuild => EnvironmentInfo.IsWin ? new VCProjMSBuildExec() : new VCProjToCMakeExec(CMakePaths);
 
+    AbsolutePath WineDotNetTestPath => CMakePaths.BuildToolDirectory / "wine-dotnet-test.sh";
+
     Target Restore => _ => _
         .Executes(() =>
         {
@@ -184,15 +186,39 @@ public class DalamudBuild : NukeBuild
         .DependsOn(Compile)
         .Triggers(Test);
 
-    Target Test => _ => _
+    Target CompileTest => _ => _
+        .DependsOn(Restore)
         .DependsOn(Compile)
         .Executes(() =>
         {
-            DotNetTasks.DotNetTest(s => s
+            DotNetTasks.DotNetBuild(s => s
                 .SetProjectFile(TestProjectFile)
                 .SetConfiguration(Configuration)
-                .AddProperty("WarningLevel", "0")
                 .EnableNoRestore());
+        });
+
+    Target Test => _ => _
+        .DependsOn(Compile)
+        .DependsOn(CompileTest)
+        .Executes(() =>
+        {
+            if (!EnvironmentInfo.IsWin)
+                ToolResolver.GetPathTool("chmod")($"+x {WineDotNetTestPath}");
+
+            DotNetTasks.DotNetTest(s => {
+                if (!EnvironmentInfo.IsWin)
+                    s = s
+                        .SetProcessToolPath(WineDotNetTestPath);
+
+                s = s
+                    .SetProjectFile(TestProjectFile)
+                    .SetConfiguration(Configuration)
+                    .AddProperty("WarningLevel", "0")
+                    .EnableNoRestore()
+                    .EnableNoBuild();
+
+                return s;
+            });
         });
 
     Target Clean => _ => _
@@ -222,18 +248,15 @@ public class DalamudBuild : NukeBuild
         });
 
     Target PrepareJWasm => _ => _
+        .OnlyWhenStatic(() => !EnvironmentInfo.IsWin)
         .Executes(() =>
         {
-            if (EnvironmentInfo.IsWin)
-                return [];
-
             var buildDir = CMakePaths.JWasmBuildDirectory;
             buildDir.CreateDirectory();
 
             List<Output> outputs = [];
 
             outputs.AddRange(CMake(
-                "--fresh " +
                 $"-S{CMakePaths.JWasmSrcDirectory.ToString().SingleQuoteIfNeeded()} " +
                 $"-B{CMakePaths.JWasmBuildDirectory.ToString().SingleQuoteIfNeeded()} " +
                 // Fails to build with C++23 onwards.
