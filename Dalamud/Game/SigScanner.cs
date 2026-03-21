@@ -81,7 +81,7 @@ public class SigScanner : IDisposable, ISigScanner
     public bool IsCopy { get; }
 
     /// <inheritdoc/>
-    [Api15ToDo("Remove this property.")]
+    [Api15ToDo("Remove this property. In the interface too.")]
     public bool Is32BitProcess { get; }
 
     /// <inheritdoc/>
