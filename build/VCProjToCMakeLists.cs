@@ -31,6 +31,8 @@ public sealed class VCProjToCMakeLists
 
     readonly AbsolutePath OutDir;
 
+    readonly string PostBuild;
+
     readonly string SubSystem;
 
     readonly string LinkOptions;
@@ -52,9 +54,10 @@ public sealed class VCProjToCMakeLists
         Paths = paths;
         VCProj = proj;
 
-        Name = VCProj.GetPropertyValue("MSBuildProjectName");
+        Name = VCProj.GetPropertyValue("TargetName");
         Type = Enum.Parse<ConfigurationType>(VCProj.GetPropertyValue("ConfigurationType"));
         OutDir = ResolvePath(VCProj, VCProj.GetPropertyValue("OutDir"));
+        PostBuild = VCProj.GetPropertyValue("CMakePostBuild");
 
         OutputName = Type switch
         {
@@ -69,8 +72,9 @@ public sealed class VCProjToCMakeLists
             Compile compile = item.ItemType switch
             {
                 "ClCompile" => new ClCompile(this, item),
-                "ResourceCompile" => new ResourceCompile(this, item),
+                "Content" => new Content(this, item),
                 "MASM" => new MASM(this, item),
+                "ResourceCompile" => new ResourceCompile(this, item),
                 _ => null
             };
 
@@ -83,6 +87,7 @@ public sealed class VCProjToCMakeLists
             {
                 Assert.Equals(PCH, null);
                 PCH = pch;
+                Compiles.Insert(0, pch);
                 continue;
             }
 
@@ -132,9 +137,9 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
         #endregion
 
         #region Source -> Objects
-        foreach (var compile in new Compile[] { PCH }.Concat(Compiles))
+        foreach (var compile in Compiles)
         {
-            compile?.Gen(lists);
+            compile.GenBeforeMain(lists);
         }
         #endregion
 
@@ -149,11 +154,18 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
 
         foreach (var compile in Compiles)
         {
-            lists.AppendLine($"$<TARGET_OBJECTS:{compile.Key}>");
+            compile.GenMainDep(lists);
         }
 
         lists.AppendLine(")");
         lists.AppendLine();
+        #endregion
+
+        #region Non-.o Items
+        foreach (var compile in Compiles)
+        {
+            compile.GenAfterMain(lists);
+        }
         #endregion
 
         #region Target props
@@ -204,9 +216,10 @@ set_target_properties({Name} PROPERTIES
 install(CODE [[
     include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
 
+    set(PROJECTDIR {ResolvePath(VCProj, ".").ToString().DoubleQuoteIfNeeded()})
+
     file(INSTALL
         DESTINATION {OutDir.ToString().DoubleQuoteIfNeeded()}
-        TYPE EXECUTABLE
         FILES ""$<TARGET_FILE:{Name}>""
     )
 
@@ -220,14 +233,21 @@ install(CODE [[
     message(STATUS ""Resolved: ${{DEPS_RESOLVED}}"")
     file(INSTALL
         DESTINATION {OutDir.ToString().DoubleQuoteIfNeeded()}
-        TYPE SHARED_LIBRARY
         FOLLOW_SYMLINK_CHAIN
         FILES ${{DEPS_RESOLVED}}
     )
 
     message(STATUS ""Unresolved: ${{DEPS_UNRESOLVED}}"")
-]])
+
 ");
+
+        if (!string.IsNullOrEmpty(PostBuild))
+        {
+            lists.AppendLine(PostBuild);
+        }
+
+        lists.AppendLine(@"
+]])");
         #endregion
 
         OwnDirectory.CreateDirectory();
@@ -291,6 +311,16 @@ install(CODE [[
         Use
     }
 
+    enum CopyToOutputDirectory
+    {
+        Never,
+        Always,
+        PreserveNewest,
+        IfDifferent
+    }
+
+    #region Items
+
     abstract class Compile
     {
         protected readonly VCProjToCMakeLists Ctx;
@@ -299,7 +329,7 @@ install(CODE [[
 
         public readonly string Key;
 
-        public virtual bool IsExcluded { get; }
+        public readonly bool IsExcluded;
 
         public Compile(VCProjToCMakeLists ctx, ProjectItem item)
         {
@@ -313,28 +343,48 @@ install(CODE [[
             }
         }
 
-        public virtual void Gen(StringBuilder lists)
+        public virtual void GenBeforeMain(StringBuilder lists)
+        {
+        }
+
+        public virtual void GenMainDep(StringBuilder lists)
+        {
+        }
+
+        public virtual void GenAfterMain(StringBuilder lists)
+        {
+        }
+    }
+
+    abstract class CompileObj(VCProjToCMakeLists ctx, ProjectItem item) : Compile(ctx, item)
+    {
+        public override void GenBeforeMain(StringBuilder lists)
         {
             lists.AppendLine($"add_library({Key} OBJECT {Path.ToString().DoubleQuoteIfNeeded()})");
             lists.AppendLine();
         }
+
+        public override void GenMainDep(StringBuilder lists)
+        {
+            lists.AppendLine($"$<TARGET_OBJECTS:{Key}>");
+        }
     }
 
-    sealed class ClCompile(VCProjToCMakeLists ctx, ProjectItem item) : Compile(ctx, item)
+    sealed class ClCompile(VCProjToCMakeLists ctx, ProjectItem item) : CompileObj(ctx, item)
     {
         public readonly string Definitions = item.GetMetadataValue("PreprocessorDefinitions");
 
         public readonly string StandardC =
             item.GetMetadataValue("LanguageStandard_C")
-            .TrimStart("stdc")
-            .Replace("latest", StandardCLatest)
-            .ToNullIfEmpty() ?? StandardCLatest;
+                .TrimStart("stdc")
+                .Replace("latest", StandardCLatest)
+                .ToNullIfEmpty() ?? StandardCLatest;
 
         public readonly string StandardCXX =
             item.GetMetadataValue("LanguageStandard")
-            .TrimStart("stdcpp")
-            .Replace("latest", StandardCXXLatest)
-            .ToNullIfEmpty() ?? StandardCXXLatest;
+                .TrimStart("stdcpp")
+                .Replace("latest", StandardCXXLatest)
+                .ToNullIfEmpty() ?? StandardCXXLatest;
 
         public readonly bool ExtensionsC = !item.GetMetadataValue("LanguageStandard_C").StartsWith("stdc");
 
@@ -344,10 +394,10 @@ install(CODE [[
 
         public readonly string Language =
             item.GetMetadataValue("CompileAs")
-            .ToUpperInvariant()
-            .TrimStart("COMPILEAS")
-            .Replace("CPP", "CXX")
-            .Replace("Default", "");
+                .ToUpperInvariant()
+                .TrimStart("COMPILEAS")
+                .Replace("CPP", "CXX")
+                .Replace("Default", "");
 
         public readonly PrecompiledHeader PCH =
             Enum.TryParse(item.GetMetadataValue("PrecompiledHeader"), out PrecompiledHeader value)
@@ -355,11 +405,9 @@ install(CODE [[
 
         public readonly AbsolutePath PCHFile = ResolvePath(item.Project, item.GetMetadataValue("PrecompiledHeaderFile"));
 
-        public override bool IsExcluded => base.IsExcluded;
-
-        public override void Gen(StringBuilder lists)
+        public override void GenBeforeMain(StringBuilder lists)
         {
-            base.Gen(lists);
+            base.GenBeforeMain(lists);
 
             lists.AppendLine($@"
 set_target_properties({Key} PROPERTIES
@@ -411,15 +459,13 @@ set_target_properties({Key} PROPERTIES
         }
     }
 
-    sealed class MASM(VCProjToCMakeLists ctx, ProjectItem item) : Compile(ctx, item)
+    sealed class MASM(VCProjToCMakeLists ctx, ProjectItem item) : CompileObj(ctx, item)
     {
         public readonly string AdditionalOptions = item.GetMetadataValue("AdditionalOptions");
 
-        public override bool IsExcluded => base.IsExcluded;
-
-        public override void Gen(StringBuilder lists)
+        public override void GenBeforeMain(StringBuilder lists)
         {
-            base.Gen(lists);
+            base.GenBeforeMain(lists);
 
             lists.AppendLine($"set_target_properties({Key} PROPERTIES LANGUAGE ASM_MASM)");
 
@@ -432,7 +478,48 @@ set_target_properties({Key} PROPERTIES
         }
     }
 
-    sealed class ResourceCompile(VCProjToCMakeLists ctx, ProjectItem item) : Compile(ctx, item)
+    sealed class ResourceCompile(VCProjToCMakeLists ctx, ProjectItem item) : CompileObj(ctx, item)
     {
     }
+
+    sealed class Content(VCProjToCMakeLists ctx, ProjectItem item) : Compile(ctx, item)
+    {
+        public readonly string Link = item.GetMetadataValue("Link");
+
+        // TODO: Not that critical to implement, but if anyone wants to dig deeper... -jade
+        public readonly CopyToOutputDirectory Copy =
+            Enum.TryParse(item.GetMetadataValue("CopyToOutputDirectory"), out CopyToOutputDirectory value)
+                ? value : CopyToOutputDirectory.Never;
+
+        string TargetPath => $"${{CMAKE_CURRENT_BINARY_DIR}}/{Link}";
+
+        public override void GenBeforeMain(StringBuilder lists)
+        {
+            if (Copy == CopyToOutputDirectory.Never)
+            {
+                return;
+            }
+
+            lists.AppendLine($@"
+add_custom_command(
+    OUTPUT {TargetPath}
+    COMMAND ${{CMAKE_COMMAND}} -E copy
+        {Path.ToString().DoubleQuoteIfNeeded()}
+        {TargetPath}
+    DEPENDS {Path.ToString().DoubleQuoteIfNeeded()}
+)
+");
+        }
+
+        public override void GenMainDep(StringBuilder lists)
+        {
+            if (Copy == CopyToOutputDirectory.Never)
+            {
+                return;
+            }
+
+            lists.AppendLine(TargetPath);
+        }
+    }
+    #endregion
 }
