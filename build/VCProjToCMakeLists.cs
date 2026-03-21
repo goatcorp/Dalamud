@@ -68,10 +68,11 @@ public sealed class VCProjToCMakeLists
             {
                 "ClCompile" => new ClCompile(this, item),
                 "ResourceCompile" => new ResourceCompile(this, item),
+                "MASM" => new MASM(this, item),
                 _ => null
             };
 
-            if (compile is null || compile.Excluded)
+            if (compile is null || compile.IsExcluded)
             {
                 continue;
             }
@@ -113,7 +114,7 @@ public sealed class VCProjToCMakeLists
         #region Header and global props
         var lists = new StringBuilder($@"# Auto-generated, changes will be overwritten by NUKE
 cmake_minimum_required(VERSION {CMakeVersion})
-project({Name})
+project({Name} C CXX ASM_MASM)
 
 include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
 
@@ -279,7 +280,7 @@ install(CODE [[
 
         public readonly string Key;
 
-        public virtual bool Excluded { get; }
+        public virtual bool IsExcluded { get; }
 
         public Compile(VCProjToCMakeLists ctx, ProjectItem item)
         {
@@ -289,7 +290,7 @@ install(CODE [[
 
             if (bool.TryParse(item.GetMetadataValue("ExcludedFromBuild"), out var excluded))
             {
-                Excluded = excluded;
+                IsExcluded = excluded;
             }
         }
 
@@ -335,7 +336,7 @@ install(CODE [[
 
         public readonly AbsolutePath PCHFile = ResolvePath(item.Project, item.GetMetadataValue("PrecompiledHeaderFile"));
 
-        public override bool Excluded => base.Excluded;
+        public override bool IsExcluded => base.IsExcluded;
 
         public override void Gen(StringBuilder lists)
         {
@@ -385,6 +386,27 @@ set_target_properties({Key} PROPERTIES
                     Assert.Equals(PCHFile, pch.PCHFile);
                     lists.AppendLine($"target_precompile_headers({Key} REUSE_FROM {pch.Key})");
                     break;
+            }
+
+            lists.AppendLine();
+        }
+    }
+
+    sealed class MASM(VCProjToCMakeLists ctx, ProjectItem item) : Compile(ctx, item)
+    {
+        public readonly string AdditionalOptions = item.GetMetadataValue("AdditionalOptions");
+
+        public override bool IsExcluded => base.IsExcluded;
+
+        public override void Gen(StringBuilder lists)
+        {
+            base.Gen(lists);
+
+            lists.AppendLine($"set_target_properties({Key} PROPERTIES LANGUAGE ASM_MASM)");
+
+            if (!string.IsNullOrEmpty(AdditionalOptions))
+            {
+                lists.AppendLine($"target_compile_options({Key} PRIVATE {AdditionalOptions})");
             }
 
             lists.AppendLine();
