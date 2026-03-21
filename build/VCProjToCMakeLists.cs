@@ -25,7 +25,7 @@ public sealed class VCProjToCMakeLists
 
     readonly string Name;
 
-    readonly string TargetName;
+    readonly string OutputName;
 
     readonly ConfigurationType Type;
 
@@ -34,6 +34,8 @@ public sealed class VCProjToCMakeLists
     readonly string SubSystem;
 
     readonly string LinkOptions;
+
+    readonly AbsolutePath ModuleDef = null;
 
     readonly ClCompile PCH;
 
@@ -54,7 +56,7 @@ public sealed class VCProjToCMakeLists
         Type = Enum.Parse<ConfigurationType>(VCProj.GetPropertyValue("ConfigurationType"));
         OutDir = ResolvePath(VCProj, VCProj.GetPropertyValue("OutDir"));
 
-        TargetName = Type switch
+        OutputName = Type switch
         {
             ConfigurationType.Application => $"{Name}.exe",
             ConfigurationType.DynamicLibrary => $"{Name}.dll",
@@ -91,6 +93,7 @@ public sealed class VCProjToCMakeLists
         {
             SubSystem = link.GetMetadataValue("SubSystem");
             LinkOptions = link.GetMetadataValue("AdditionalOptions");
+            ModuleDef = ResolvePath(VCProj, link.GetMetadataValue("ModuleDefinitionFile"));
 
             foreach (var dep in link.GetMetadataValue("AdditionalDependencies").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
@@ -138,9 +141,9 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
         #region Objects -> Target
         lists.AppendLine(Type switch
         {
-            ConfigurationType.Application => $"add_executable({TargetName}",
-            ConfigurationType.DynamicLibrary => $"add_library({TargetName} SHARED",
-            ConfigurationType.StaticLibrary => $"add_library({TargetName} STATIC",
+            ConfigurationType.Application => $"add_executable({Name}",
+            ConfigurationType.DynamicLibrary => $"add_library({Name} SHARED",
+            ConfigurationType.StaticLibrary => $"add_library({Name} STATIC",
             _ => throw new NotSupportedException(),
         });
 
@@ -155,29 +158,36 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
 
         #region Target props
         lists.AppendLine($@"
-set_target_properties({TargetName} PROPERTIES
-    OUTPUT_NAME {TargetName}
+set_target_properties({Name} PROPERTIES
+    OUTPUT_NAME {OutputName}
     PREFIX """"
     SUFFIX """"
 )
 
 ");
 
-        if (Type == ConfigurationType.Application)
+        switch (Type)
         {
-            lists.AppendLine($"target_link_options({TargetName} PRIVATE -m{SubSystem.ToLowerInvariant()})");
-            lists.AppendLine();
+            case ConfigurationType.Application:
+                lists.AppendLine($"target_link_options({Name} PRIVATE -m{SubSystem.ToLowerInvariant()})");
+                lists.AppendLine();
+                break;
         }
 
         if (!string.IsNullOrEmpty(LinkOptions))
         {
-            lists.AppendLine($"target_link_options({TargetName} PRIVATE {LinkOptions})");
+            lists.AppendLine($"target_link_options({Name} PRIVATE {LinkOptions})");
             lists.AppendLine();
+        }
+
+        if (ModuleDef is not null)
+        {
+            lists.AppendLine($"target_link_options({Name} PRIVATE {ModuleDef.ToString().DoubleQuoteIfNeeded()})");
         }
 
         if (LinkDeps.Count != 0)
         {
-            lists.AppendLine($"target_link_libraries({TargetName} PRIVATE");
+            lists.AppendLine($"target_link_libraries({Name} PRIVATE");
 
             foreach (var dep in LinkDeps)
             {
@@ -197,11 +207,11 @@ install(CODE [[
     file(INSTALL
         DESTINATION {OutDir.ToString().DoubleQuoteIfNeeded()}
         TYPE EXECUTABLE
-        FILES ""$<TARGET_FILE:{TargetName}>""
+        FILES ""$<TARGET_FILE:{Name}>""
     )
 
     file(GET_RUNTIME_DEPENDENCIES
-        EXECUTABLES ""$<TARGET_FILE:{TargetName}>""
+        EXECUTABLES ""$<TARGET_FILE:{Name}>""
         RESOLVED_DEPENDENCIES_VAR DEPS_RESOLVED
         UNRESOLVED_DEPENDENCIES_VAR DEPS_UNRESOLVED
         DIRECTORIES ${{MINGW_DLL_DIRS}}
