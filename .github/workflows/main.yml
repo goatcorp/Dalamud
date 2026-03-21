@@ -78,7 +78,7 @@ jobs:
         with:
           dotnet-version: '10.0.100'
       - name: Setup apt
-        shell: pwsh
+        shell: bash
         run: |
           RELEASE=$(lsb_release -cs)
           sudo mkdir -pm755 /etc/apt/keyrings
@@ -87,13 +87,13 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update
       - name: Setup MinGW
-        shell: pwsh
+        shell: bash
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
             mingw-w64
           x86_64-w64-mingw32-g++ --version
       - name: Setup Wine
-        shell: pwsh
+        shell: bash
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq --install-recommends \
             winehq-stable \
