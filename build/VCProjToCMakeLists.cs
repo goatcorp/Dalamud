@@ -154,6 +154,15 @@ include({Paths.CMakeToolchain.ToString().DoubleQuoteIfNeeded()})
         #endregion
 
         #region Target props
+        lists.AppendLine($@"
+set_target_properties({TargetName} PROPERTIES
+    OUTPUT_NAME {TargetName}
+    PREFIX """"
+    SUFFIX """"
+)
+
+");
+
         if (Type == ConfigurationType.Application)
         {
             lists.AppendLine($"target_link_options({TargetName} PRIVATE -m{SubSystem.ToLowerInvariant()})");
