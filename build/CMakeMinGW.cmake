@@ -23,12 +23,6 @@ if(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     set(CMAKE_ASM_MASM_FLAGS "-win64 -Zg -c")
     set(CMAKE_ASM_MASM_FLAGS_DEBUG "-Zi")
-
-    if(NOT CMAKE_SCRIPT_MODE_FILE)
-        enable_language(RC)
-
-        include_directories(${CMAKE_CURRENT_LIST_DIR}/include-mingw)
-    endif()
 endif()
 
 
