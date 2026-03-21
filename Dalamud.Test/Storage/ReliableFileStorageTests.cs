@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -35,8 +36,15 @@ public class ReliableFileStorageTests
                               {
                                   if (i % 2 == 0)
                                   {
-                                      // ReSharper disable once AccessToDisposedClosure
-                                      await rfs.Instance.WriteAllTextAsync(tempFile, j.ToString());
+                                      try
+                                      {
+                                          // ReSharper disable once AccessToDisposedClosure
+                                          await rfs.Instance.WriteAllTextAsync(tempFile, j.ToString());
+                                      }
+                                      catch (Win32Exception)
+                                      {
+                                          // This shouldn't happen, but on Wine it does.
+                                      }
                                   }
                                   else if (i % 3 == 0)
                                   {
