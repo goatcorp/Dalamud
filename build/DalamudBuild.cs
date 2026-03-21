@@ -233,12 +233,18 @@ public class DalamudBuild : NukeBuild
             List<Output> outputs = [];
 
             outputs.AddRange(CMake(
+                "--fresh " +
                 $"-S{CMakePaths.JWasmSrcDirectory.ToString().SingleQuoteIfNeeded()} " +
                 $"-B{CMakePaths.JWasmBuildDirectory.ToString().SingleQuoteIfNeeded()} " +
                 // Fails to build with C++23 onwards.
                 "-DCMAKE_C_STANDARD=17 -DCMAKE_CXX_STANDARD=17 " +
                 // The min ver is ancient and NUKE picks up CMake's warnings about that as errors.
-                "-Wno-deprecated"));
+                "-Wno-deprecated",
+                environmentVariables: new Dictionary<string, string>(EnvironmentVariables)
+                {
+                    // Ubuntu 22.04 MinGW 13 warns about some possible overflows.
+                    { "CFLAGS", "-Wno-format-overflow -Wno-format" }
+                }));
 
             outputs.AddRange(CMake(
                 $"--build {CMakePaths.JWasmBuildDirectory.ToString().SingleQuoteIfNeeded()}"));
