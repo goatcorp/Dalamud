@@ -213,7 +213,7 @@
   </Target>
   <PropertyGroup>
     <CMakePostBuild><![CDATA[
-      file(INSTALL DESTINATION "$(MSBuildProjectDirectory)/../$(Configuration)" FILES
+      file(INSTALL DESTINATION "$(MSBuildProjectDirectory)/../bin/$(Configuration)" FILES
         "$<TARGET_FILE:$(TargetName)>"
         "$<TARGET_FILE_DIR:$(TargetName)>/nethost.dll"
       )
