@@ -92,6 +92,11 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
             mingw-w64
           x86_64-w64-mingw32-g++ --version
+      - name: Patch MinGW
+        shell: bash
+        working-directory: /
+        run: |
+          sudo patch -f -p1 < ${GITHUB_WORKSPACE}/build/mingw-gcc-13-fix-static.patch
       - name: Setup Wine
         shell: bash
         run: |
