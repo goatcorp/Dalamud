@@ -56,6 +56,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="createprocess.manifest" />
+    <Manifest Include="createprocess.manifest" />
   </ItemGroup>
 </Project>
