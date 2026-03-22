@@ -30,6 +30,8 @@
     <CharacterSet>Unicode</CharacterSet>
     <OutDir>..\bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
+    <GenerateManifest>false</GenerateManifest>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -93,7 +95,7 @@
     <Image Include="dalamud.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="createprocess.manifest" />
+    <Manifest Include="createprocess.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
