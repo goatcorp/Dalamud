@@ -215,7 +215,7 @@
     <None Include="module.def" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="themes.manifest" />
+    <None Include="themes.manifest" />
   </ItemGroup>
   <Target Name="CopyOutputDlls" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(OutDir)$(TargetName).dll" DestinationFolder="..\bin\$(Configuration)\" />
