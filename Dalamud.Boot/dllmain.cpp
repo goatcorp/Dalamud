@@ -406,10 +406,8 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
             break;
 
         case DLL_PROCESS_DETACH:
-#if !defined(__MINGW32__)
             // do not show debug message boxes on abort() here
             _set_abort_behavior(0, _WRITE_ABORT_MSG);
-#endif
 
             // process is terminating; don't bother cleaning up
             if (lpReserved)
