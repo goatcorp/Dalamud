@@ -297,7 +297,6 @@ internal sealed class LoadingDialog
         fixed (char* pszEmpty = "-")
         fixed (char* pszWindowTitle = "Dalamud")
         fixed (char* pszDalamudBoot = "Dalamud.Boot.dll")
-        fixed (char* pszThemesManifestResourceName = "RT_MANIFEST_THEMES")
         fixed (char* pszHide = Loc.Localize("LoadingDialogHide", "Hide"))
         fixed (char* pszShowLatestLogs = Loc.Localize("LoadingDialogShowLatestLogs", "Show Latest Logs"))
         fixed (char* pszHideLatestLogs = Loc.Localize("LoadingDialogHideLatestLogs", "Hide Latest Logs"))
@@ -348,7 +347,7 @@ internal sealed class LoadingDialog
                 {
                     cbSize = (uint)sizeof(ACTCTXW),
                     dwFlags = ACTCTX_FLAG_HMODULE_VALID | ACTCTX_FLAG_RESOURCE_NAME_VALID,
-                    lpResourceName = pszThemesManifestResourceName,
+                    lpResourceName = ISOLATIONAWARE_MANIFEST_RESOURCE_ID,
                     hModule = GetModuleHandleW(pszDalamudBoot),
                 };
                 hActCtx = CreateActCtxW(&actctx);
