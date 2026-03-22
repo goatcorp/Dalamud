@@ -66,6 +66,8 @@
       - We need to explicitly link against the MSVC or Universal C Runtime ourselves.
         - Wine doesn't come with the debug variant, thus only ever link to the release version runtime. Sorry not sorry!
       - Building a statically self-contained library is required for e.g. the entrypoint injection method.
+      - Explicitly set _GXX_TYPEINFO_EQUALITY_INLINE=0 to work around https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110572
+        - Ubuntu LTS (24.04) still ships with that bug...
     -->
     <Link>
       <AdditionalDependencies>ucrtbase.lib;%(AdditionalDependencies)</AdditionalDependencies>
