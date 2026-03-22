@@ -59,8 +59,17 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>version.lib;shlwapi.lib;oleaut32.lib;comctl32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\CoreCLR;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <!-- For MinGW specifically, building a statically self-contained library is required for e.g. the entrypoint injection method. -->
-      <AdditionalOptions Condition="'$(IsMinGW)'=='true'">-static %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(IsMinGW)'=='true'">
+    <!-- For MinGW specifically:
+      - We need to explicitly link against the MSVC or Universal C Runtime ourselves.
+        - Wine doesn't come with the debug variant, thus only ever link to the release version runtime. Sorry not sorry!
+      - Building a statically self-contained library is required for e.g. the entrypoint injection method.
+    -->
+    <Link>
+      <AdditionalDependencies>ucrtbase.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>-static %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
