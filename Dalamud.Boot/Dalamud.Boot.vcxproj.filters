@@ -170,6 +170,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="themes.manifest" />
+    <None Include="themes.manifest" />
   </ItemGroup>
 </Project>
