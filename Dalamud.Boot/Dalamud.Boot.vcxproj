@@ -30,6 +30,8 @@
     <CharacterSet>Unicode</CharacterSet>
     <OutDir>bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
+    <GenerateManifest>false</GenerateManifest>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -66,8 +68,6 @@
       - We need to explicitly link against the MSVC or Universal C Runtime ourselves.
         - Wine doesn't come with the debug variant, thus only ever link to the release version runtime. Sorry not sorry!
       - Building a statically self-contained library is required for e.g. the entrypoint injection method.
-      - Explicitly set _GXX_TYPEINFO_EQUALITY_INLINE=0 to work around https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110572
-        - Ubuntu LTS (24.04) still ships with that bug...
     -->
     <Link>
       <AdditionalDependencies>ucrtbase.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -217,7 +217,7 @@
     <None Include="module.def" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="themes.manifest" />
+    <Manifest Include="themes.manifest" />
   </ItemGroup>
   <Target Name="CopyOutputDlls" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(OutDir)$(TargetName).dll" DestinationFolder="..\bin\$(Configuration)\" />
