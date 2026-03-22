@@ -32,7 +32,7 @@ static void CheckMsvcrtVersion() {
         | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[3]) << 0);
 
     constexpr const wchar_t* RuntimeDllNames[] = {
-#ifdef _DEBUG
+#if defined(_DEBUG)
         L"msvcp140d.dll",
         L"vcruntime140d.dll",
         L"vcruntime140_1d.dll",
