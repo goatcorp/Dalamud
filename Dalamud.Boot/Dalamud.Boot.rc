@@ -25,7 +25,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 RT_MANIFEST_THEMES      RT_MANIFEST             "themes.manifest"
-
+ISOLATIONAWARE_MANIFEST_RESOURCE_ID RT_MANIFEST "themes.manifest"
 
 /////////////////////////////////////////////////////////////////////////////
 //
