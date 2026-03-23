@@ -374,26 +374,17 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
         ThreadSafety.MarkMainThread();
 
-        this.BeforeUpdate?.InvokeSafely(this);
-
         this.hitchDetector.Start();
+
+        this.BeforeUpdate?.InvokeSafely(this);
 
         try
         {
-            var chatGui = Service<ChatGui>.GetNullable();
-            var toastGui = Service<ToastGui>.GetNullable();
-            var config = Service<DalamudConfiguration>.GetNullable();
-            if (chatGui == null || toastGui == null)
-                goto original;
-
-            chatGui.UpdateQueue();
-            toastGui.UpdateQueue();
-
-            config?.Update();
+            this.configuration.Update();
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Exception while handling Framework::Update hook.");
+            Log.Error(ex, "Exception in DalamudConfiguration.Update.");
         }
 
         if (this.DispatchUpdateEvents)
@@ -460,7 +451,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
         this.hitchDetector.Stop();
 
-    original:
         return this.updateHook.OriginalDisposeSafe(thisPtr);
     }
 
