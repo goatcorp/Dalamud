@@ -98,6 +98,7 @@ internal sealed unsafe class Dalamud : IServiceType
             if (Interlocked.CompareExchange(ref shownServiceError, 1, 0) != 0)
                 return;
 
+            ErrorHandling.ShowSystemIntegrityPolicyErrorIfApplicable(t.Exception);
             Util.Fatal(
                 $"Dalamud failed to load all necessary services.\nThe game will continue, but you may not be able to use plugins.\n\n{t.Exception}",
                 "Dalamud", false);
