@@ -999,6 +999,7 @@ public abstract class Window
         /// Gets or sets the icon of the button.
         /// </summary>
         public FontAwesomeIcon Icon { get; set; }
+
         /// <summary>
         /// Gets or sets the icon color. If null, the default text color is used.
         /// </summary>
