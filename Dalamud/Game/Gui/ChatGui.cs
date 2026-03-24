@@ -49,6 +49,9 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     private readonly Hook<RaptureLogModule.Delegates.Update> handleLogModuleUpdate;
 
     [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
+
+    [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     private ImmutableDictionary<(string PluginName, uint CommandId), Action<uint, SeString>>? dalamudLinkHandlersCopy;
@@ -66,6 +69,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         this.inventoryItemCopyHook.Enable();
         this.handleLinkClickHook.Enable();
         this.handleLogModuleUpdate.Enable();
+
+        this.framework.BeforeUpdate += this.UpdateQueue;
     }
 
     /// <inheritdoc/>
@@ -111,6 +116,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
+        this.framework.BeforeUpdate -= this.UpdateQueue;
+
         this.printMessageHook.Dispose();
         this.inventoryItemCopyHook.Dispose();
         this.handleLinkClickHook.Dispose();
@@ -206,7 +213,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// <summary>
     /// Process a chat queue.
     /// </summary>
-    public void UpdateQueue()
+    /// <param name="framework">The Framework instance.</param>
+    private void UpdateQueue(IFramework framework)
     {
         if (this.chatQueue.Count == 0)
             return;

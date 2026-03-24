@@ -199,7 +199,28 @@ internal unsafe partial class ResNodeTree : IDisposable
     private protected virtual string GetHeaderText()
     {
         var count = this.GetDirectChildCount();
-        return $"{this.NodeType} Node{(count > 0 ? $" [+{count}]" : string.Empty)}";
+
+        var nodeType = $"{this.NodeType} Node";
+
+        // If this node is defined as a known custom node, display the custom type instead
+        if (CustomNodeTypeDefinitions is not null && CustomNodeTypeDefinitions.TryGetValue((nint)this.Node, out var typeInfo))
+        {
+            if (typeInfo.IsGenericType)
+            {
+                nodeType = $"{typeInfo.Name[..typeInfo.Name.IndexOf('`')]}<{string.Join(",", typeInfo.GetGenericArguments().Select(t => t.Name))}>";
+            }
+            else
+            {
+                nodeType = typeInfo.Name;
+            }
+        }
+
+        if (CustomNodeStringDefinitions is not null && CustomNodeStringDefinitions.TryGetValue((nint)this.Node, out var stringName))
+        {
+            nodeType = stringName;
+        }
+
+        return $"{nodeType} {(count > 0 ? $" [+{count}]" : string.Empty)}";
     }
 
     /// <summary>
