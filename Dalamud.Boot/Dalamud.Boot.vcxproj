@@ -30,6 +30,8 @@
     <CharacterSet>Unicode</CharacterSet>
     <OutDir>bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
+    <GenerateManifest>false</GenerateManifest>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -57,8 +59,19 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>Version.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>version.lib;shlwapi.lib;oleaut32.lib;comctl32.lib;uuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\CoreCLR;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(IsMinGW)'=='true'">
+    <!-- For MinGW specifically:
+      - We need to explicitly link against the MSVC or Universal C Runtime ourselves.
+        - Wine doesn't come with the debug variant, thus only ever link to the release version runtime. Sorry not sorry!
+      - Building a statically self-contained library is required for e.g. the entrypoint injection method.
+    -->
+    <Link>
+      <AdditionalDependencies>ucrtbase.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>-static %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
@@ -114,13 +127,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\HDE\hde32.c">
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\hde\hde32.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.c">
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\hde\hde64.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -172,11 +185,11 @@
     <ClInclude Include="..\lib\CoreCLR\nethost\nethost.h" />
     <ClInclude Include="..\lib\TsudaKageyu-minhook\include\MinHook.h" />
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\buffer.h" />
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\hde32.h" />
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.h" />
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\pstdint.h" />
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table32.h" />
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table64.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\hde\hde32.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\hde\hde64.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\hde\pstdint.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\hde\table32.h" />
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\hde\table64.h" />
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\trampoline.h" />
     <ClInclude Include="crashhandler_shared.h" />
     <ClInclude Include="DalamudStartInfo.h" />
@@ -211,4 +224,12 @@
     <Copy SourceFiles="$(OutDir)$(TargetName).pdb" DestinationFolder="..\bin\$(Configuration)\" />
     <Copy SourceFiles="$(OutDir)nethost.dll" DestinationFolder="..\bin\$(Configuration)\" />
   </Target>
+  <PropertyGroup>
+    <CMakePostBuild><![CDATA[
+      file(INSTALL DESTINATION "$(MSBuildProjectDirectory)/../bin/$(Configuration)" FILES
+        "$<TARGET_FILE:$(TargetName)>"
+        "$<TARGET_FILE_DIR:$(TargetName)>/nethost.dll"
+      )
+    ]]></CMakePostBuild>
+  </PropertyGroup>
 </Project>

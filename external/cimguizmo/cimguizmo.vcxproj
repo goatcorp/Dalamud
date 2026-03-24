@@ -108,4 +108,11 @@
     <Copy SourceFiles="$(OutDir)$(TargetName).dll" DestinationFolder="..\..\bin\$(Configuration)\" />
     <Copy SourceFiles="$(OutDir)$(TargetName).pdb" DestinationFolder="..\..\bin\$(Configuration)\" />
   </Target>
+  <PropertyGroup>
+    <CMakePostBuild><![CDATA[
+      file(INSTALL DESTINATION "$(MSBuildProjectDirectory)/../../bin/$(Configuration)" FILES
+        "$<TARGET_FILE:$(TargetName)>"
+      )
+    ]]></CMakePostBuild>
+  </PropertyGroup>
 </Project>

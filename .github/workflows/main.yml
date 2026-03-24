@@ -61,6 +61,97 @@ jobs:
           name: dalamud-artifact
           path: bin\Release
 
+  build_linux:
+    name: Build on Linux
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Dalamud
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '10.0.100'
+      - name: Setup apt
+        shell: bash
+        run: |
+          RELEASE=$(lsb_release -cs)
+          sudo mkdir -pm755 /etc/apt/keyrings
+          sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+          sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/${RELEASE}/winehq-${RELEASE}.sources
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+      - name: Setup MinGW
+        shell: bash
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+            mingw-w64
+          x86_64-w64-mingw32-g++ --version
+      - name: Patch MinGW
+        shell: bash
+        working-directory: /
+        run: |
+          sudo patch -f -p1 < ${GITHUB_WORKSPACE}/build/mingw-gcc-13-fix-static.patch
+      - name: Setup Wine
+        shell: bash
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq --install-recommends \
+            winehq-stable \
+            xvfb
+          wine --version
+          WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u
+      - name: Setup Wine .NET SDK
+        shell: bash
+        run: |
+          wget -O dotnet-sdk.exe https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.201/dotnet-sdk-10.0.201-win-x64.exe
+          xvfb-run wine ./dotnet-sdk.exe /install /quiet /norestart
+          rm ./dotnet-sdk.exe
+          wine dotnet --list-runtimes
+          wine dotnet --list-sdks
+      - name: Setup Wine git
+        shell: bash
+        run: |
+          wget -O git.exe https://github.com/git-for-windows/git/releases/download/v2.53.0.windows.2/Git-2.53.0.2-64-bit.exe
+          xvfb-run wine ./git.exe wine ./Git-2.53.0.2-64-bit.exe /sp- /suppressmsgboxes /norestart /verysilent
+          rm ./git.exe
+          wine git -v
+      - name: Define VERSION
+        shell: pwsh
+        run: |
+          $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
+          $env:REPO_NAME = $env:GITHUB_REPOSITORY -replace '.*/'
+          $env:BRANCH = $env:GITHUB_REF -replace '.*/'
+
+          ($env:REPO_NAME) >> VERSION
+          ($env:BRANCH) >> VERSION
+          ($env:COMMIT) >> VERSION
+      - name: Build and Test Dalamud
+        run: bash ./build.sh ci
+      - name: Create hashlist
+        run: pwsh ./CreateHashList.ps1 ./bin/Release
+      - name: Attest Build
+        if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            bin/Release/hashes.json
+            bin/Release/Dalamud.dll
+            bin/Release/DalamudCrashHandler.exe
+            bin/Release/Dalamud.*.dll
+            bin/Release/Dalamud.*.exe
+            bin/Release/FFXIVClientStructs.dll
+            bin/Release/cim*.dll
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dalamud-artifact-mingw
+          path: bin/Release
+
   check_api_compat:
     name: "Check API Compatibility"
     if: ${{ github.event_name == 'pull_request' }}
