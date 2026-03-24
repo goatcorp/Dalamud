@@ -9,12 +9,15 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using Iced.Intel;
 
 using Newtonsoft.Json;
 
 using Serilog;
+
+using TerraFX.Interop.Windows;
 
 namespace Dalamud.Game;
 
@@ -78,13 +81,14 @@ public class SigScanner : IDisposable, ISigScanner
     public bool IsCopy { get; }
 
     /// <inheritdoc/>
+    [Api15ToDo("Remove this property. In the interface too.")]
     public bool Is32BitProcess { get; }
 
     /// <inheritdoc/>
-    public IntPtr SearchBase => this.IsCopy ? this.moduleCopyPtr : this.Module.BaseAddress;
+    public nint SearchBase => this.IsCopy ? this.moduleCopyPtr : this.Module.BaseAddress;
 
     /// <inheritdoc/>
-    public IntPtr TextSectionBase => new(this.SearchBase.ToInt64() + this.TextSectionOffset);
+    public nint TextSectionBase => new(this.SearchBase.ToInt64() + this.TextSectionOffset);
 
     /// <inheritdoc/>
     public long TextSectionOffset { get; private set; }
@@ -93,7 +97,7 @@ public class SigScanner : IDisposable, ISigScanner
     public int TextSectionSize { get; private set; }
 
     /// <inheritdoc/>
-    public IntPtr DataSectionBase => new(this.SearchBase.ToInt64() + this.DataSectionOffset);
+    public nint DataSectionBase => new(this.SearchBase.ToInt64() + this.DataSectionOffset);
 
     /// <inheritdoc/>
     public long DataSectionOffset { get; private set; }
@@ -102,7 +106,7 @@ public class SigScanner : IDisposable, ISigScanner
     public int DataSectionSize { get; private set; }
 
     /// <inheritdoc/>
-    public IntPtr RDataSectionBase => new(this.SearchBase.ToInt64() + this.RDataSectionOffset);
+    public nint RDataSectionBase => new(this.SearchBase.ToInt64() + this.RDataSectionOffset);
 
     /// <inheritdoc/>
     public long RDataSectionOffset { get; private set; }
@@ -117,7 +121,7 @@ public class SigScanner : IDisposable, ISigScanner
     /// Dalamud service.</summary>
     private protected bool IsService { get; set; }
 
-    private IntPtr TextSectionTop => this.TextSectionBase + this.TextSectionSize;
+    private nint TextSectionTop => this.TextSectionBase + this.TextSectionSize;
 
     /// <summary>
     /// Scan memory for a signature.
@@ -126,7 +130,7 @@ public class SigScanner : IDisposable, ISigScanner
     /// <param name="size">The amount of bytes to scan.</param>
     /// <param name="signature">The signature to search for.</param>
     /// <returns>The found offset.</returns>
-    public static IntPtr Scan(IntPtr baseAddress, int size, string signature)
+    public static nint Scan(nint baseAddress, int size, string signature)
     {
         var (needle, mask, badShift) = ParseSignature(signature);
         var index = IndexOf(baseAddress, size, needle, mask, badShift);
@@ -143,7 +147,7 @@ public class SigScanner : IDisposable, ISigScanner
     /// <param name="signature">The signature to search for.</param>
     /// <param name="result">The offset, if found.</param>
     /// <returns>true if the signature was found.</returns>
-    public static bool TryScan(IntPtr baseAddress, int size, string signature, out IntPtr result)
+    public static bool TryScan(nint baseAddress, int size, string signature, out nint result)
     {
         try
         {
@@ -152,7 +156,7 @@ public class SigScanner : IDisposable, ISigScanner
         }
         catch (KeyNotFoundException)
         {
-            result = IntPtr.Zero;
+            result = nint.Zero;
             return false;
         }
     }
@@ -165,8 +169,8 @@ public class SigScanner : IDisposable, ISigScanner
     /// </summary>
     /// <param name="signature">The signature of the function using the data.</param>
     /// <param name="offset">The offset from function start of the instruction using the data.</param>
-    /// <returns>An IntPtr to the static memory location.</returns>
-    public unsafe IntPtr GetStaticAddressFromSig(string signature, int offset = 0)
+    /// <returns>An nint to the static memory location.</returns>
+    public unsafe nint GetStaticAddressFromSig(string signature, int offset = 0)
     {
         var instructionAddress = (byte*)this.ScanText(signature);
         instructionAddress += offset;
@@ -181,7 +185,7 @@ public class SigScanner : IDisposable, ISigScanner
                 if (instruction.IsInvalid) continue;
                 if (instruction.Op0Kind is OpKind.Memory || instruction.Op1Kind is OpKind.Memory)
                 {
-                    return (IntPtr)instruction.MemoryDisplacement64;
+                    return (nint)instruction.MemoryDisplacement64;
                 }
             }
         }
@@ -199,10 +203,10 @@ public class SigScanner : IDisposable, ISigScanner
     /// Place your cursor on the line calling a static address, and create and IDA sig.
     /// </summary>
     /// <param name="signature">The signature of the function using the data.</param>
-    /// <param name="result">An IntPtr to the static memory location, if found.</param>
+    /// <param name="result">An nint to the static memory location, if found.</param>
     /// <param name="offset">The offset from function start of the instruction using the data.</param>
     /// <returns>true if the signature was found.</returns>
-    public bool TryGetStaticAddressFromSig(string signature, out IntPtr result, int offset = 0)
+    public bool TryGetStaticAddressFromSig(string signature, out nint result, int offset = 0)
     {
         try
         {
@@ -211,24 +215,24 @@ public class SigScanner : IDisposable, ISigScanner
         }
         catch (KeyNotFoundException)
         {
-            result = IntPtr.Zero;
+            result = nint.Zero;
             return false;
         }
     }
 
     /// <inheritdoc/>
-    public IntPtr ScanData(string signature)
+    public nint ScanData(string signature)
     {
         var scanRet = Scan(this.DataSectionBase, this.DataSectionSize, signature);
 
         if (this.IsCopy)
-            scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+            scanRet = new nint(scanRet.ToInt64() - this.moduleCopyOffset);
 
         return scanRet;
     }
 
     /// <inheritdoc/>
-    public bool TryScanData(string signature, out IntPtr result)
+    public bool TryScanData(string signature, out nint result)
     {
         try
         {
@@ -237,24 +241,24 @@ public class SigScanner : IDisposable, ISigScanner
         }
         catch (KeyNotFoundException)
         {
-            result = IntPtr.Zero;
+            result = nint.Zero;
             return false;
         }
     }
 
     /// <inheritdoc/>
-    public IntPtr ScanModule(string signature)
+    public nint ScanModule(string signature)
     {
         var scanRet = Scan(this.SearchBase, this.Module.ModuleMemorySize, signature);
 
         if (this.IsCopy)
-            scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+            scanRet = new nint(scanRet.ToInt64() - this.moduleCopyOffset);
 
         return scanRet;
     }
 
     /// <inheritdoc/>
-    public bool TryScanModule(string signature, out IntPtr result)
+    public bool TryScanModule(string signature, out nint result)
     {
         try
         {
@@ -263,33 +267,33 @@ public class SigScanner : IDisposable, ISigScanner
         }
         catch (KeyNotFoundException)
         {
-            result = IntPtr.Zero;
+            result = nint.Zero;
             return false;
         }
     }
 
     /// <inheritdoc/>
-    public IntPtr ResolveRelativeAddress(IntPtr nextInstAddr, int relOffset)
+    public nint ResolveRelativeAddress(nint nextInstAddr, int relOffset)
     {
         if (this.Is32BitProcess) throw new NotSupportedException("32 bit is not supported.");
         return nextInstAddr + relOffset;
     }
 
     /// <inheritdoc/>
-    public IntPtr ScanText(string signature)
+    public nint ScanText(string signature)
     {
         if (this.textCache != null)
         {
             if (this.textCache.TryGetValue(signature, out var address))
             {
-                return new IntPtr(address + this.Module.BaseAddress.ToInt64());
+                return new nint(address + this.Module.BaseAddress.ToInt64());
             }
         }
 
         var scanRet = Scan(this.TextSectionBase, this.TextSectionSize, signature);
 
         if (this.IsCopy)
-            scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+            scanRet = new nint(scanRet.ToInt64() - this.moduleCopyOffset);
 
         var insnByte = Marshal.ReadByte(scanRet);
 
@@ -315,7 +319,7 @@ public class SigScanner : IDisposable, ISigScanner
     }
 
     /// <inheritdoc/>
-    public bool TryScanText(string signature, out IntPtr result)
+    public bool TryScanText(string signature, out nint result)
     {
         try
         {
@@ -324,7 +328,7 @@ public class SigScanner : IDisposable, ISigScanner
         }
         catch (KeyNotFoundException)
         {
-            result = IntPtr.Zero;
+            result = nint.Zero;
             return false;
         }
     }
@@ -395,10 +399,10 @@ public class SigScanner : IDisposable, ISigScanner
     /// </summary>
     /// <param name="sigLocation">The address the JMP or CALL sig resolved to.</param>
     /// <returns>The real offset of the signature.</returns>
-    private static IntPtr ReadJmpCallSig(IntPtr sigLocation)
+    private static nint ReadJmpCallSig(nint sigLocation)
     {
         var jumpOffset = Marshal.ReadInt32(sigLocation, 1);
-        return IntPtr.Add(sigLocation, 5 + jumpOffset);
+        return nint.Add(sigLocation, 5 + jumpOffset);
     }
 
     private static (byte[] Needle, bool[] Mask, int[] BadShift) ParseSignature(string signature)
@@ -471,63 +475,49 @@ public class SigScanner : IDisposable, ISigScanner
         return badShift;
     }
 
-    private void SetupSearchSpace(ProcessModule module)
+    private unsafe void SetupSearchSpace(ProcessModule module)
     {
         var baseAddress = module.BaseAddress;
 
-        // We don't want to read all of IMAGE_DOS_HEADER or IMAGE_NT_HEADER stuff so we cheat here.
-        var ntNewOffset = Marshal.ReadInt32(baseAddress, 0x3C);
-        var ntHeader = baseAddress + ntNewOffset;
+        var dosHeader = (IMAGE_DOS_HEADER*)baseAddress;
+        var ntHeader = (IMAGE_NT_HEADERS64*)(baseAddress + dosHeader->e_lfanew);
 
-        // IMAGE_NT_HEADER
-        var fileHeader = ntHeader + 4;
-        var numSections = Marshal.ReadInt16(ntHeader, 6);
+        var numSections = ntHeader->FileHeader.NumberOfSections;
+        var section = (IMAGE_SECTION_HEADER*)((byte*)ntHeader + sizeof(IMAGE_NT_HEADERS64));
 
-        // IMAGE_OPTIONAL_HEADER
-        var optionalHeader = fileHeader + 20;
-
-        IntPtr sectionHeader;
-        if (this.Is32BitProcess) // IMAGE_OPTIONAL_HEADER32
-            sectionHeader = optionalHeader + 224;
-        else // IMAGE_OPTIONAL_HEADER64
-            sectionHeader = optionalHeader + 240;
-
-        // IMAGE_SECTION_HEADER
-        var sectionCursor = sectionHeader;
         for (var i = 0; i < numSections; i++)
         {
-            var sectionName = Marshal.ReadInt64(sectionCursor);
+            var sectionName = Unsafe.As<byte, ulong>(ref section->Name.e0);
+            var offset = section->VirtualAddress;
+            var size = (int)section->Misc.VirtualSize;
 
-            // .text
             switch (sectionName)
             {
                 case 0x747865742E: // .text
-                    this.TextSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
-                    this.TextSectionSize = Marshal.ReadInt32(sectionCursor, 8);
+                    this.TextSectionOffset = offset;
+                    this.TextSectionSize = size;
 
                     if (this.IsCopy)
                     {
-                        var pointerToRawData = Marshal.ReadInt32(sectionCursor, 20);
-
-                        Marshal.Copy(
-                                     fileBytes.AsSpan(pointerToRawData, this.TextSectionSize).ToArray(),
-                                     0,
-                                     this.moduleCopyPtr + (nint)this.TextSectionOffset,
-                                     this.TextSectionSize);
+                        var source = fileBytes.AsSpan((int)section->PointerToRawData, this.TextSectionSize);
+                        var destination = new Span<byte>((void*)(this.moduleCopyPtr + (nint)this.TextSectionOffset), this.TextSectionSize);
+                        source.CopyTo(destination);
                     }
 
                     break;
+
                 case 0x617461642E: // .data
-                    this.DataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
-                    this.DataSectionSize = Marshal.ReadInt32(sectionCursor, 8);
+                    this.DataSectionOffset = offset;
+                    this.DataSectionSize = size;
                     break;
+
                 case 0x61746164722E: // .rdata
-                    this.RDataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
-                    this.RDataSectionSize = Marshal.ReadInt32(sectionCursor, 8);
+                    this.RDataSectionOffset = offset;
+                    this.RDataSectionSize = size;
                     break;
             }
 
-            sectionCursor += 40;
+            section++;
         }
     }
 

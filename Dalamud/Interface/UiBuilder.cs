@@ -151,6 +151,12 @@ public interface IUiBuilder
     /// </summary>
     public ImFontPtr FontMono { get; }
 
+    /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid with a fixed width and vertically centered glyphs. <br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    ImFontPtr FontIconFixedWidth { get; }
+
     /// <summary>Gets the game's active Direct3D device.</summary>
     /// <value>Pointer to the instance of IUnknown that the game is using and should be containing an ID3D11Device,
     /// or 0 if it is not available yet.</value>
@@ -402,6 +408,12 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     public static ImFontPtr MonoFont => InterfaceManager.MonoFont;
 
     /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid with a fixed width and vertically centered glyphs. <br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    public static ImFontPtr IconFontFixedWidth => InterfaceManager.IconFontFixedWidth;
+
+    /// <summary>
     /// Gets the default font specifications.
     /// </summary>
     public IFontSpec DefaultFontSpec => Service<FontAtlasFactory>.Get().DefaultFontSpec;
@@ -420,6 +432,9 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 
     /// <inheritdoc/>
     public ImFontPtr FontMono => InterfaceManager.MonoFont;
+
+    /// <inheritdoc/>
+    public ImFontPtr FontIconFixedWidth => InterfaceManager.IconFontFixedWidth;
 
     /// <summary>
     /// Gets the handle to the default Dalamud font - supporting all game languages and icons.
