@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 
+using Serilog;
+
 namespace Dalamud.Utility;
 
 /// <summary>
@@ -14,6 +16,33 @@ internal static partial class ErrorHandling
     public static void CrashWithContext(string context)
     {
         BootVehRaiseExternalEvent(context);
+    }
+
+    /// <summary>
+    /// Check the stack trace for indications of a smart app control error, and show a message box and terminate the process
+    /// if found.
+    /// </summary>
+    /// <param name="exception">The exception to search in.</param>
+    public static void ShowSystemIntegrityPolicyErrorIfApplicable(Exception? exception)
+    {
+        if (exception == null)
+        {
+            return;
+        }
+
+        // ERROR_SYSTEM_INTEGRITY_POLICY_VIOLATION
+        const string indicator = "0x800711C7";
+
+        if (exception.ToString().Contains(indicator))
+        {
+            Util.Fatal("Windows Smart App Control has blocked Dalamud from loading, and the game cannot continue.\n" +
+                       "You must disable Smart App Control or Dalamud to start the game.\n\n" +
+                       "Press OK to open a guide in your web browser.", "Dalamud Error", false);
+
+            Util.OpenLink("https://goatcorp.github.io/faq/xl_troubleshooting#q-how-do-i-disable-smart-app-control");
+            Log.CloseAndFlush();
+            Environment.Exit(-1);
+        }
     }
 
     [LibraryImport("Dalamud.Boot.dll", EntryPoint = "BootVehRaiseExternalEventW", StringMarshalling = StringMarshalling.Utf16)]
