@@ -2,6 +2,23 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "type": "shell",
+            "label": "Full Build",
+            "command": "${workspaceFolder}/build.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
             "type": "dotnet",
             "label": "Build build/build.csproj",
             "task": "build build/build.csproj",
@@ -29,6 +46,7 @@
             "command": "wine",
             "args": [
                 "Z:/usr/x86_64-w64-mingw32/sys-root/mingw/bin/gdbserver.exe",
+                "--once",
                 "localhost:12345",
                 "${workspaceFolder}/bin/Debug/DalamudCrashHandler.exe"
             ],
@@ -50,7 +68,7 @@
                 ],
                 "background": {
                     "activeOnStart": true,
-                    "beginsPattern": ".*", 
+                    "beginsPattern": ".*",
                     "endsPattern": "Listening on port 12345"
                 }
             },
