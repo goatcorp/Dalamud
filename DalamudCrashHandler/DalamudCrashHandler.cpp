@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <filesystem>
@@ -38,8 +39,12 @@
 
 #include <dxgi.h>
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) 
 #pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
+#endif
+
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wdeprecated-anon-enum-enum-conversion"
 #endif
 
 _COM_SMARTPTR_TYPEDEF(IFileOperation, __uuidof(IFileOperation));
@@ -65,7 +70,7 @@ static constexpr GUID Guid_IFileDialog_Tspack{ 0xfc057318, 0xad35, 0x4599, {0xa7
 static constexpr bool print_exception_info_violation = false;
 #elif defined(__try1)
 #define SEH_MINGW
-#define SEH_NOOPT __attribute__((optimize("O0")))
+#define SEH_NOOPT __attribute__((optnone))
 static __thread bool print_exception_info_violation;
 extern "C" long SEH_NOOPT print_exception_info_violation_handler(EXCEPTION_POINTERS* data);
 #else

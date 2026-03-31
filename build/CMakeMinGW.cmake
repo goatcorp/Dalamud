@@ -1,11 +1,17 @@
 if(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(CMAKE_SYSTEM_NAME Windows)
     set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
+
+    set(TOOLCHAIN_PREFIX_TRY "${CMAKE_CURRENT_LIST_DIR}/../linuxtools/llvm/bin/${TOOLCHAIN_PREFIX}")
+    if(EXISTS "${TOOLCHAIN_PREFIX_TRY}-gcc")
+        set(CMAKE_FIND_ROOT_PATH "${CMAKE_CURRENT_LIST_DIR}/../linuxtools/llvm/${TOOLCHAIN_PREFIX}/bin")
+        set(TOOLCHAIN_PREFIX ${TOOLCHAIN_PREFIX_TRY})
+    endif()
+
     message(STATUS "Cross-compiling using default settings with ${TOOLCHAIN_PREFIX}")
 
     set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}-gcc)
     set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++)
-    set(CMAKE_Fortran_COMPILER ${TOOLCHAIN_PREFIX}-gfortran)
     set(CMAKE_RC_COMPILER ${TOOLCHAIN_PREFIX}-windres)
     set(CMAKE_ASM_MASM_COMPILER ${CMAKE_CURRENT_LIST_DIR}/../lib/JWasm/build/jwasm)
     set(CMAKE_AR ${TOOLCHAIN_PREFIX}-ar)
@@ -23,10 +29,6 @@ if(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     set(CMAKE_ASM_MASM_FLAGS "-win64 -Zg -c")
     set(CMAKE_ASM_MASM_FLAGS_DEBUG "-Zi")
-
-    if(NOT CMAKE_SCRIPT_MODE_FILE)
-        enable_language(RC)
-    endif()
 endif()
 
 
@@ -44,27 +46,31 @@ execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-search-dirs
 )
 
 # Some distros use sysroot, some distros use install path...
-execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-sysroot
-    OUTPUT_VARIABLE CMAKE_FIND_ROOT_PATH
-)
-if(CMAKE_FIND_ROOT_PATH)
-    string(REGEX MATCH "([^\r\n]*)" _ ${CMAKE_FIND_ROOT_PATH})
-    set(CMAKE_FIND_ROOT_PATH ${CMAKE_MATCH_1})
-endif()
-
 if(NOT CMAKE_FIND_ROOT_PATH)
-    string(REGEX MATCH "install: ([^\r\n]*)" _ ${MINGW_SEARCH_DIRS})
-    set(CMAKE_FIND_ROOT_PATH ${CMAKE_MATCH_1})
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-sysroot
+        OUTPUT_VARIABLE CMAKE_FIND_ROOT_PATH
+    )
+    if(CMAKE_FIND_ROOT_PATH)
+        string(REGEX MATCH "([^\r\n]*)" _ ${CMAKE_FIND_ROOT_PATH})
+        set(CMAKE_FIND_ROOT_PATH ${CMAKE_MATCH_1})
+    endif()
+
+    if(NOT CMAKE_FIND_ROOT_PATH)
+        string(REGEX MATCH "install: ([^\r\n]*)" _ ${MINGW_SEARCH_DIRS})
+        set(CMAKE_FIND_ROOT_PATH ${CMAKE_MATCH_1})
+    endif()
+    message(STATUS "Using sysroot: ${CMAKE_FIND_ROOT_PATH}")
 endif()
-message(STATUS "Using sysroot: ${CMAKE_FIND_ROOT_PATH}")
 
 
 # Some distros rely on proper search path setups, some distros break print-file-name for fun...
 if(NOT MINGW_DLL_DIRS)
     string(REGEX MATCH "libraries: =([^\r\n]*)" _ ${MINGW_SEARCH_DIRS})
-    set(MINGW_SEARCH_DIRS ${CMAKE_MATCH_1})
+    string(REPLACE "::" ":" MINGW_SEARCH_DIRS ${CMAKE_MATCH_1})
     cmake_path(CONVERT "${MINGW_SEARCH_DIRS}" TO_CMAKE_PATH_LIST MINGW_DLL_DIRS)
 
+    cmake_path(CONVERT "${CMAKE_FIND_ROOT_PATH}" TO_CMAKE_PATH_LIST MINGW_SYSROOT_BIN)
+    list(APPEND MINGW_DLL_DIRS ${MINGW_SYSROOT_BIN})
     cmake_path(CONVERT "${CMAKE_FIND_ROOT_PATH}/mingw/bin" TO_CMAKE_PATH_LIST MINGW_SYSROOT_BIN)
     list(APPEND MINGW_DLL_DIRS ${MINGW_SYSROOT_BIN})
 
