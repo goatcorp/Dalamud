@@ -49,9 +49,6 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
     // [ServiceManager.ServiceDependency]
     // private readonly ContextMenu contextMenu = Service<ContextMenu>.Get();
 
-    private readonly string locDalamudPlugins;
-    private readonly string locDalamudSettings;
-
     private readonly AgentLifecycleEventListener agentLobbyPreEventListener;
     private Task lobbyProfileApplyTask = Task.CompletedTask;
 
@@ -63,9 +60,6 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         this.hookAgentHudOpenSystemMenu = Hook<AgentHUD.Delegates.OpenSystemMenu>.FromAddress(AgentHUD.Addresses.OpenSystemMenu.Value, this.AgentHudOpenSystemMenuDetour);
         this.hookUiModuleExecuteMainCommand = Hook<UIModule.Delegates.ExecuteMainCommand>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ExecuteMainCommand, this.UiModuleExecuteMainCommandDetour);
         this.hookAtkUnitBaseReceiveGlobalEvent = Hook<AtkUnitBase.Delegates.ReceiveGlobalEvent>.FromAddress((nint)AtkUnitBase.StaticVirtualTablePointer->ReceiveGlobalEvent, this.AtkUnitBaseReceiveGlobalEventDetour);
-
-        this.locDalamudPlugins = Loc.Localize("SystemMenuPlugins", "Dalamud Plugins");
-        this.locDalamudSettings = Loc.Localize("SystemMenuSettings", "Dalamud Settings");
 
         // this.contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
 
@@ -80,6 +74,12 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 
     /// <summary>Finalizes an instance of the <see cref="DalamudAtkTweaks"/> class.</summary>
     ~DalamudAtkTweaks() => this.Dispose(false);
+
+    private string LocDalamudPlugins => Loc.Localize("SystemMenuPlugins", "Dalamud Plugins");
+
+    private string LocDalamudSettings => Loc.Localize("SystemMenuSettings", "Dalamud Settings");
+
+    private string LocDalamudLoadingPluginsForCharacter => Loc.Localize("LoadingPluginsForCharacter", "Loading plugins for this character...");
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService() => this.Dispose(true);
@@ -116,12 +116,12 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         {
             var dalamudInterface = Service<DalamudInterface>.Get();
 
-            args.Items.Insert(0, new CustomContextMenuItem(this.locDalamudSettings, selectedArgs =>
+            args.Items.Insert(0, new CustomContextMenuItem(this.LocDalamudSettings, selectedArgs =>
             {
                 dalamudInterface.ToggleSettingsWindow();
             }));
 
-            args.Items.Insert(0, new CustomContextMenuItem(this.locDalamudPlugins, selectedArgs =>
+            args.Items.Insert(0, new CustomContextMenuItem(this.LocDalamudPlugins, selectedArgs =>
             {
                 dalamudInterface.TogglePluginInstallerWindow();
             }));
@@ -175,13 +175,15 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         {
             var addonSelectYesno = Service<GameGui>.Get().GetAddonByName<AddonSelectYesno>("SelectYesno");
 
-            var text = new SeStringBuilder()
-                       .AddUiForeground($"{SeIconChar.BoxedLetterD.ToIconString()} ", 539)
-                       .Append("Loading plugins for this character...")
-                       .Build()
-                       .EncodeWithNullTerminator();
+            using var rssb = new RentedSeStringBuilder();
 
-            addonSelectYesno->PromptText->SetText(text);
+            addonSelectYesno->PromptText->SetText(rssb.Builder
+                .PushColorType(539)
+                .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
+                .PopColorType()
+                .Append(this.LocDalamudLoadingPluginsForCharacter)
+                .GetViewAsSpan());
+
             addonSelectYesno->YesButton->SetEnabledState(false);
             addonSelectYesno->NoButton->SetEnabledState(false);
             addonSelectYesno->DisableUserClose = true;
@@ -221,7 +223,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
     private void AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, AtkEventType eventType, int eventParam, AtkEvent* atkEvent, AtkEventData* atkEventData)
     {
         // 3 == Close
-        if (eventType == AtkEventType.InputReceived && WindowSystem.ShouldInhibitAtkCloseEvents && atkEventData != null && *(int*)atkEventData == 3 && this.configuration.IsFocusManagementEnabled)
+        if (eventType == AtkEventType.InputReceived && WindowSystem.ShouldInhibitAtkCloseEvents && atkEventData != null && atkEventData->InputData.InputId == 3 && this.configuration.IsFocusManagementEnabled)
         {
             Log.Verbose($"Cancelling global event SendHotkey command due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
             return;
@@ -266,59 +268,42 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         // reference the original function for more details :)
 
         // step 1) move all the current menu items down so we can put Dalamud at the top like it deserves
-        (&atkValueArgs[menuSize + 5])->ChangeType(ValueType.Int); // currently this value has no type, set it to int
-        (&atkValueArgs[menuSize + 5 + 1])->ChangeType(ValueType.Int);
-
         for (var i = menuSize + 2; i > 1; i--)
         {
-            var curEntry = &atkValueArgs[i + 5 - 2];
-            var nextEntry = &atkValueArgs[i + 5];
-
-            nextEntry->Int = curEntry->Int;
+            ref var curEntry = ref atkValueArgs[i + 5 - 2];
+            ref var nextEntry = ref atkValueArgs[i + 5];
+            nextEntry.SetInt(curEntry.Int);
         }
 
         // step 2) set our new entries to dummy commands
-        var firstEntry = &atkValueArgs[5];
-        firstEntry->Int = 69420;
-        var secondEntry = &atkValueArgs[6];
-        secondEntry->Int = 69421;
-
-        // step 3) create strings for them
-        // since the game first checks for strings in the AtkValue argument before pulling them from the exd, if we create strings we dont have to worry
-        // about hooking the exd reader, thank god
-        var firstStringEntry = &atkValueArgs[5 + 18];
-        firstStringEntry->ChangeType(ValueType.String);
-
-        var secondStringEntry = &atkValueArgs[6 + 18];
-        secondStringEntry->ChangeType(ValueType.String);
-
         const int color = 539;
-
         using var rssb = new RentedSeStringBuilder();
 
-        firstStringEntry->SetManagedString(rssb.Builder
+        atkValueArgs[5].SetInt(69420);
+        atkValueArgs[5 + 18].SetManagedString(rssb.Builder
             .PushColorType(color)
             .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
             .PopColorType()
-            .Append(this.locDalamudPlugins)
+            .Append(this.LocDalamudPlugins)
             .GetViewAsSpan());
 
         rssb.Builder.Clear();
-        secondStringEntry->SetManagedString(rssb.Builder
+
+        atkValueArgs[6].SetInt(69421);
+        atkValueArgs[6 + 18].SetManagedString(rssb.Builder
             .PushColorType(color)
             .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
             .PopColorType()
-            .Append(this.locDalamudSettings)
+            .Append(this.LocDalamudSettings)
             .GetViewAsSpan());
 
         // open menu with new size
-        var sizeEntry = &atkValueArgs[4];
-        sizeEntry->UInt = menuSize + 2;
+        atkValueArgs[4].SetUInt(menuSize + 2);
 
         this.hookAgentHudOpenSystemMenu.Original(thisPtr, atkValueArgs, menuSize + 2);
     }
 
-    private unsafe void UiModuleExecuteMainCommandDetour(UIModule* thisPtr, uint commandId)
+    private void UiModuleExecuteMainCommandDetour(UIModule* thisPtr, uint commandId)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable();
 
