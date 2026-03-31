@@ -20,12 +20,18 @@ public class DutyStateEventArgs : EventArgs
     /// </summary>
     public required RowRef<ContentFinderCondition> ContentFinderCondition { get; init; }
 
+    /// <summary>
+    /// Gets the EventHandler id for which this event was fired.
+    /// </summary>
+    public required uint EventHandlerId { get; init; }
+
     /// <inheritdoc/>
     public override string ToString()
     {
         var sb = new StringBuilder("DutyStateEventArgs { ");
         sb.Append($"TerritoryTypeId = {this.TerritoryType.RowId}, ");
         sb.Append($"ContentFinderCondition = {this.ContentFinderCondition.RowId}, ");
+        sb.Append($"EventHandlerId = {this.EventHandlerId}, ");
         sb.Append(" }");
         return sb.ToString();
     }

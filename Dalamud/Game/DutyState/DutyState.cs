@@ -82,33 +82,33 @@ internal unsafe class DutyState : IInternalDisposableService, IDutyState
                 // Duty Commenced
                 case 0x4000_0001:
                     this.IsDutyStarted = true;
-                    this.DutyStarted?.InvokeSafely(this.CreateEventArgs());
+                    this.DutyStarted?.InvokeSafely(this.CreateEventArgs(arg1));
                     break;
 
                 // Party Wipe
                 case 0x4000_0005:
                     this.IsDutyStarted = false;
-                    this.DutyWiped?.InvokeSafely(this.CreateEventArgs());
+                    this.DutyWiped?.InvokeSafely(this.CreateEventArgs(arg1));
                     break;
 
                 // Duty Recommence
                 case 0x4000_0006:
                     this.IsDutyStarted = true;
-                    this.DutyRecommenced?.InvokeSafely(this.CreateEventArgs());
+                    this.DutyRecommenced?.InvokeSafely(this.CreateEventArgs(arg1));
                     break;
 
                 // Duty Completed Flytext Shown
                 case 0x4000_0002 when !this.CompletedThisTerritory:
                     this.IsDutyStarted = false;
                     this.CompletedThisTerritory = true;
-                    this.DutyCompleted?.InvokeSafely(this.CreateEventArgs());
+                    this.DutyCompleted?.InvokeSafely(this.CreateEventArgs(arg1));
                     break;
 
                 // Duty Completed
                 case 0x4000_0003 when !this.CompletedThisTerritory:
                     this.IsDutyStarted = false;
                     this.CompletedThisTerritory = true;
-                    this.DutyCompleted?.InvokeSafely(this.CreateEventArgs());
+                    this.DutyCompleted?.InvokeSafely(this.CreateEventArgs(arg1));
                     break;
             }
         }
@@ -116,12 +116,13 @@ internal unsafe class DutyState : IInternalDisposableService, IDutyState
         this.handleActorControlPacketHook.Original(entityId, category, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, targetId, isRecorded);
     }
 
-    private DutyStateEventArgs CreateEventArgs()
+    private DutyStateEventArgs CreateEventArgs(uint eventHandlerId)
     {
         return new DutyStateEventArgs()
         {
             TerritoryType = LuminaUtils.CreateRef<TerritoryType>(this.clientState.TerritoryType),
             ContentFinderCondition = this.ContentFinderCondition,
+            EventHandlerId = eventHandlerId,
         };
     }
 
