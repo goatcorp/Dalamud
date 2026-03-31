@@ -55,7 +55,7 @@ public class ZoneInitEventArgs : EventArgs
         var flags = *(byte*)(packet + 0x12);
 
         eventArgs.TerritoryType = dataManager.GetExcelSheet<TerritoryType>().GetRow(*(ushort*)(packet + 0x02));
-        eventArgs.Instance = flags >= 0 ? (ushort)0 : *(ushort*)(packet + 0x04);
+        eventArgs.Instance = (flags & 0x80u) == 0 ? (ushort)0 : *(ushort*)(packet + 0x04);
         eventArgs.ContentFinderCondition = dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(*(ushort*)(packet + 0x06));
         eventArgs.Weather = dataManager.GetExcelSheet<Weather>().GetRow(*(byte*)(packet + 0x10));
 
