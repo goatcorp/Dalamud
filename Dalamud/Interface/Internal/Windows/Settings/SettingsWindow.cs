@@ -5,6 +5,8 @@ using CheapLoc;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
+using Dalamud.Console;
+using Dalamud.Game.Player;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -25,6 +27,10 @@ internal sealed class SettingsWindow : Window
     private bool isSearchInputPrefilled = false;
 
     private SettingsTab? setActiveTab;
+
+    private bool fools26NeedSet = true;
+    private bool fools26Active;
+    private SettingsTab fools26Tab = new SettingsTabFools26();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
@@ -101,6 +107,8 @@ internal sealed class SettingsWindow : Window
         }
 
         localization.LocalizationChanged += this.OnLocalizationChanged;
+
+        this.fools26Active = this.IsApplicableForFools26();
 
         base.OnOpen();
     }
@@ -202,9 +210,55 @@ internal sealed class SettingsWindow : Window
         }
     }
 
+    private bool IsApplicableForFools26()
+    {
+        var config = Service<DalamudConfiguration>.Get();
+        var cid = Service<PlayerState>.Get().ContentId;
+
+        if (cid == 0)
+            return false;
+
+        if (!config.AllowSeasonalEvents)
+            return false;
+
+        if (config.Fools26Dismissed)
+            return false;
+
+        if (config.Fools26CompletedContentIds.Contains(cid))
+            return false;
+
+        if (config.EffectiveLanguage != "en")
+            return false;
+
+        // var localZone = TimeZoneInfo.Local;
+        // var offset = localZone.GetUtcOffset(DateTime.UtcNow);
+        // var isEuOrAmerica = offset.TotalHours is >= -10 and <= 3;
+        // if (!isEuOrAmerica)
+        //     return false;
+
+        var now = DateTime.Now;
+        var aprilFirstStart = new DateTime(now.Year, 3, 31, 12, 0, 0, DateTimeKind.Utc);
+        var aprilFirstEnd = new DateTime(now.Year, 4,  1, 23, 59, 59, DateTimeKind.Utc);
+
+        return now >= aprilFirstStart && now < aprilFirstEnd;
+    }
+
     private void DrawTabs()
     {
-        foreach (var settingsTab in this.tabs)
+        var activeTabs = this.tabs.ToList();
+
+        if (this.fools26Active)
+        {
+            activeTabs.Insert(0, this.fools26Tab);
+
+            if (this.fools26NeedSet)
+            {
+                this.setActiveTab = this.fools26Tab;
+                this.fools26NeedSet = false;
+            }
+        }
+
+        foreach (var settingsTab in activeTabs)
         {
             var flags = ImGuiTabItemFlags.NoCloseWithMiddleMouseButton;
 
