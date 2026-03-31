@@ -880,7 +880,10 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         sb.Append(this.EvaluateFromAddon(6, [rarity], context.Language)); // appends colortype and edgecolortype
 
         if (!skipLink)
-            sb.PushLink(LinkMacroPayloadType.Item, itemId, rarity, 0u); // arg3 = some LogMessage flag based on LogKind RowId? => "89 5C 24 20 E8 ?? ?? ?? ?? 48 8B 1F"
+        {
+            // The last argument is a flag for LogMessages, set here "C7 80 ?? ?? ?? ?? 00 00 00 00 66 83 E7".
+            sb.PushLink(LinkMacroPayloadType.Item, itemId, rarity, 0u);
+        }
 
         // there is code here for handling noun link markers (//), but i don't know why
 
@@ -1124,7 +1127,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 8 => this.TryResolveFixedTimeRemaining(in context, ref enu),
                 // Reads a uint and saves it to PronounModule+0x3AC
                 // TODO: handle this? looks like it's for the mentor/beginner icon of the player link in novice network
-                // see "FF 50 50 8B B0"
+                // see "FF 50 ?? 33 C9 8B B8" - used as parameter for Addon#7864
                 9 => true,
                 10 => this.TryResolveFixedStatusLink(in context, ref enu),
                 11 => this.TryResolveFixedPartyFinderLink(in context, ref enu),
