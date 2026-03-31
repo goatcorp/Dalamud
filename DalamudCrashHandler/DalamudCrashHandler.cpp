@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstring>
@@ -39,8 +40,12 @@
 
 #include <dxgi.h>
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) 
 #pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
+#endif
+
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wdeprecated-anon-enum-enum-conversion"
 #endif
 
 _COM_SMARTPTR_TYPEDEF(IFileOperation, __uuidof(IFileOperation));
@@ -73,6 +78,7 @@ static constexpr bool seh_violation = false;
 
 #elif defined(__try1)
 #define SEH_MINGW
+<<<<<<< HEAD
 #define SEH_NOOPT __attribute__((optimize("O0")))
 static __thread bool seh_violation;
 extern "C" long SEH_NOOPT seh_violation_handler(EXCEPTION_POINTERS* data)
@@ -100,6 +106,11 @@ extern "C" long SEH_NOOPT seh_violation_handler(EXCEPTION_POINTERS* data)
     asm ("\tnop\n" \
     "\t2: nop\n");
 
+=======
+#define SEH_NOOPT __attribute__((optnone))
+static __thread bool print_exception_info_violation;
+extern "C" long SEH_NOOPT print_exception_info_violation_handler(EXCEPTION_POINTERS* data);
+>>>>>>> 50b05df84 (mingw: LLVM configuration and fixes)
 #else
 #error "Your compilation environment does not expose SEH try / except unwind helpers"
 #endif

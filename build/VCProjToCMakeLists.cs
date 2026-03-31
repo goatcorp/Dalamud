@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
@@ -121,9 +122,11 @@ public sealed class VCProjToCMakeLists
         #region Header and global props
         var lists = new StringBuilder($@"# Auto-generated, changes will be overwritten by NUKE
 cmake_minimum_required(VERSION {CMakeVersion})
-project({Name} C CXX ASM_MASM)
-
 include({Paths.CMakeToolchain.ToString().SingleQuoteIfNeeded()})
+project({Name} C CXX ASM_MASM RC)
+
+# Target Windows 10
+add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
 
 ");
 
@@ -271,13 +274,39 @@ install(CODE [[
                 {
                     { "Configuration", config },
                     { "Platform", "x64" },
-                    { "IsMinGW", "true" },
+                    { "IsMinGW", GetCompilerId(paths) },
                     { "VCTargetsPath", paths.VCStubDirectory },
                     { "CoreLibraryDependencies", "kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib" }
                 },
                 ToolsVersion = collection.DefaultToolsVersion,
                 ProjectCollection = collection
             });
+    }
+
+    private static string GetCompilerId(ICMakePaths paths)
+    {
+        AbsolutePath checkTmp = Path.GetTempFileName();
+        File.Delete(checkTmp);
+        Directory.CreateDirectory(checkTmp);
+
+        File.WriteAllText(checkTmp / "CMakeLists.txt", $@"
+cmake_minimum_required(VERSION {CMakeVersion})
+include({paths.CMakeToolchain.ToString().SingleQuoteIfNeeded()})
+project(GetCompilerId CXX)
+message(STATUS ""CMAKE_CXX_COMPILER_ID=${{CMAKE_CXX_COMPILER_ID}}"")
+");
+
+        var outputs = paths.CMake(
+            $"-S{checkTmp.ToString().SingleQuoteIfNeeded()} " +
+            $"-B{checkTmp.ToString().SingleQuoteIfNeeded()}");
+
+        Directory.Delete(checkTmp, true);
+
+        var line = outputs
+            .Select(l => (l.Text, Index: l.Text.IndexOf("CMAKE_CXX_COMPILER_ID=")))
+            .First(l => l.Index != -1);
+
+        return line.Text[(line.Index + "CMAKE_CXX_COMPILER_ID=".Length)..].Trim();
     }
 
     private static AbsolutePath ResolvePath(Project proj, string path)

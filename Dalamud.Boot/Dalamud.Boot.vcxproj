@@ -63,7 +63,7 @@
       <AdditionalLibraryDirectories>..\lib\CoreCLR;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(IsMinGW)'=='true'">
+  <ItemDefinitionGroup Condition="'$(IsMinGW)'!=''">
     <!-- For MinGW specifically:
       - We need to explicitly link against the MSVC or Universal C Runtime ourselves.
         - Wine doesn't come with the debug variant, thus only ever link to the release version runtime. Sorry not sorry!
