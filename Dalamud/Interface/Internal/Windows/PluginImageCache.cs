@@ -45,7 +45,6 @@ internal class PluginImageCache : IInternalDisposableService
     /// </summary>
     public const int PluginIconHeight = 512;
 
-    private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api6/{0}/{1}/images/{2}";
     private const string MainRepoDip17ImageUrl = "https://raw.githubusercontent.com/goatcorp/PluginDistD17/main/{0}/{1}/images/{2}";
 
     [ServiceManager.ServiceDependency]
@@ -56,7 +55,7 @@ internal class PluginImageCache : IInternalDisposableService
     private readonly CancellationTokenSource cancelToken = new();
     private readonly Task downloadTask;
     private readonly Task loadTask;
-    
+
     private readonly ConcurrentDictionary<string, LoadedIcon?> pluginIconMap = new();
     private readonly ConcurrentDictionary<string, IDalamudTextureWrap?[]?> pluginImagesMap = new();
     private readonly DalamudAssetManager dalamudAssetManager;
@@ -100,7 +99,7 @@ internal class PluginImageCache : IInternalDisposableService
     /// </summary>
     public IDalamudTextureWrap TroubleIcon =>
         this.dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.TroubleIcon, this.EmptyTexture);
-    
+
     /// <summary>
     /// Gets the devPlugin icon overlay.
     /// </summary>
@@ -687,7 +686,7 @@ internal class PluginImageCache : IInternalDisposableService
 
         return output;
     }
-    
+
     /// <summary>
     /// Record for a loaded icon.
     /// </summary>
