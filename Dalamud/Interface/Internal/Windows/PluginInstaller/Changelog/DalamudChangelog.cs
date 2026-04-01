@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
+namespace Dalamud.Interface.Internal.Windows.PluginInstaller.Changelog;
 
 /// <summary>
 /// Class representing a Dalamud changelog.

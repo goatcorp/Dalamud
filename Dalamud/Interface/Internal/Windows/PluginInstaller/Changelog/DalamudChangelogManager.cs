@@ -9,7 +9,7 @@ using Dalamud.Utility;
 
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
+namespace Dalamud.Interface.Internal.Windows.PluginInstaller.Changelog;
 
 /// <summary>
 /// Class responsible for managing Dalamud changelogs.

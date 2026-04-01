@@ -4,7 +4,7 @@ using Dalamud.Plugin.Internal.Types;
 
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
+namespace Dalamud.Interface.Internal.Windows.PluginInstaller.Changelog;
 
 /// <summary>
 /// Class representing a plugin changelog.

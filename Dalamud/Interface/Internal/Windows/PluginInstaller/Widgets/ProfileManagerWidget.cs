@@ -21,7 +21,7 @@ using Dalamud.Utility;
 
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
+namespace Dalamud.Interface.Internal.Windows.PluginInstaller.Widgets;
 
 /// <summary>
 /// ImGui widget used to manage profiles.
