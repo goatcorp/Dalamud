@@ -298,7 +298,7 @@ internal class Fools26VerifyWindow : Window, IDisposable
 
         var style = ImGui.GetStyle();
         var fontSize = ImGui.GetFontSize();
-        var windowSize = this.Size!.Value;
+        var windowSize = ImGui.GetWindowSize();
 
         var headerSize = fontSize
                          + (fontSize + (style.FramePadding.Y * 2))
@@ -491,7 +491,7 @@ internal class Fools26VerifyWindow : Window, IDisposable
         var bonePos = headPose.Position;
         var headRot = headPose.Rotation;
         var windowPos = ImGui.GetWindowPos();
-        var windowSize = this.Size!.Value;
+        var windowSize = ImGui.GetWindowSize();
         if (bonePos != null)
         {
             if (gameGui.WorldToScreen(bonePos.Value, out var pos))
