@@ -844,7 +844,7 @@ public abstract class Window
 
             // Render
             var bgCol = ImGui.GetColorU32((held && hovered) ? ImGuiCol.ButtonActive : hovered ? ImGuiCol.ButtonHovered : ImGuiCol.Button);
-            var textCol = ImGui.GetColorU32(ImGuiCol.Text);
+            var textCol = button.IconColor.HasValue ? ImGui.GetColorU32(button.IconColor.Value) : ImGui.GetColorU32(ImGuiCol.Text);
             if (hovered || held)
                 drawList.AddCircleFilled(GetCenter(bb) + new Vector2(0.0f, -0.5f), (fontSize * 0.5f) + 1.0f, bgCol);
 
@@ -999,6 +999,11 @@ public abstract class Window
         /// Gets or sets the icon of the button.
         /// </summary>
         public FontAwesomeIcon Icon { get; set; }
+
+        /// <summary>
+        /// Gets or sets the icon color. If null, the default text color is used.
+        /// </summary>
+        public Vector4? IconColor { get; set; }
 
         /// <summary>
         /// Gets or sets a vector by which the position of the icon within the button shall be offset.

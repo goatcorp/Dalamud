@@ -55,44 +55,41 @@ public partial class FileDialog
         }
 
         var wasClosed = false;
-        if (windowVisible)
+        if (!this.visible)
+        { // window closed (works whether the window was collapsed or not)
+            this.isOk = false;
+            wasClosed = true;
+        }
+        else if (windowVisible)
         {
-            if (!this.visible)
-            { // window closed
-                this.isOk = false;
-                wasClosed = true;
-            }
-            else
+            if (this.selectedFilter.Empty() && (this.filters.Count > 0))
             {
-                if (this.selectedFilter.Empty() && (this.filters.Count > 0))
+                this.selectedFilter = this.filters[0];
+            }
+
+            if (this.files.Count == 0)
+            {
+                if (!string.IsNullOrEmpty(this.defaultFileName))
                 {
-                    this.selectedFilter = this.filters[0];
+                    this.SetDefaultFileName();
+                    this.SetSelectedFilterWithExt(this.defaultExtension);
+                }
+                else if (this.IsDirectoryMode())
+                {
+                    this.SetDefaultFileName();
                 }
 
-                if (this.files.Count == 0)
-                {
-                    if (!string.IsNullOrEmpty(this.defaultFileName))
-                    {
-                        this.SetDefaultFileName();
-                        this.SetSelectedFilterWithExt(this.defaultExtension);
-                    }
-                    else if (this.IsDirectoryMode())
-                    {
-                        this.SetDefaultFileName();
-                    }
-
-                    this.ScanDir(this.currentPath);
-                }
-
-                this.DrawHeader();
-                this.DrawContent();
-                res = this.DrawFooter();
+                this.ScanDir(this.currentPath);
             }
 
-            if (this.isModal && !this.okResultToConfirm)
-            {
-                ImGui.EndPopup();
-            }
+            this.DrawHeader();
+            this.DrawContent();
+            res = this.DrawFooter();
+        }
+
+        if (windowVisible && this.isModal && !this.okResultToConfirm)
+        {
+            ImGui.EndPopup();
         }
 
         if (!this.isModal || this.okResultToConfirm)

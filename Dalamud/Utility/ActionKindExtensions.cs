@@ -15,7 +15,7 @@ public static class ActionKindExtensions
     /// <returns>An id that can be used in the ActStr sheet redirect.</returns>
     public static uint GetActStrId(this ActionKind actionKind, uint id)
     {
-        // See "83 F9 0D 76 0B"
+        // See ToActStrId in CS
         var idx = (uint)actionKind;
 
         if (idx is <= 13 or 19 or 20)
