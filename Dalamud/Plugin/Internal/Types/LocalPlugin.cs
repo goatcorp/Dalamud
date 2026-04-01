@@ -42,7 +42,6 @@ internal class LocalPlugin : IAsyncDisposable
     private readonly SemaphoreSlim pluginLoadStateLock = new(1);
 
     private PluginLoader? loader;
-    private Assembly? pluginAssembly;
     private Type? pluginType;
     private IDalamudPlugin? instance;
     private IServiceScope? serviceScope;
@@ -132,10 +131,9 @@ internal class LocalPlugin : IAsyncDisposable
     public PluginState State { get; protected set; }
 
     /// <summary>
-    /// Gets the AssemblyName plugin, populated during <see cref="LoadAsync"/>.
+    /// Gets the plugin's Assembly, populated during <see cref="LoadAsync"/>.
     /// </summary>
-    /// <returns>Plugin type.</returns>
-    public AssemblyName? AssemblyName { get; private set; }
+    public Assembly? Assembly { get; private set; }
 
     /// <summary>
     /// Gets the plugin name from the manifest.
@@ -359,7 +357,7 @@ internal class LocalPlugin : IAsyncDisposable
                     // time, we need to essentially "Unload" the plugin, but we can't call plugin.Unload because of the
                     // load state checks. Null any references to the assembly and types, then proceed with regular reload
                     // operations.
-                    this.pluginAssembly = null;
+                    this.Assembly = null;
                     this.pluginType = null;
                 }
 
@@ -370,7 +368,7 @@ internal class LocalPlugin : IAsyncDisposable
             Log.Verbose("{Name} ({Guid}): Have type", this.InternalName, this.EffectiveWorkingPluginId);
 
             // Check for any loaded plugins with the same assembly name
-            var assemblyName = this.pluginAssembly!.GetName().Name;
+            var assemblyName = this.Assembly!.GetName().Name;
             foreach (var otherPlugin in pluginManager.InstalledPlugins)
             {
                 // During hot-reloading, this plugin will be in the plugin list, and the instance will have been disposed
@@ -650,8 +648,7 @@ internal class LocalPlugin : IAsyncDisposable
 
         try
         {
-            this.pluginAssembly = this.loader.LoadDefaultAssembly();
-            this.AssemblyName = this.pluginAssembly.GetName();
+            this.Assembly = this.loader.LoadDefaultAssembly();
         }
         catch (Exception ex)
         {
@@ -660,7 +657,7 @@ internal class LocalPlugin : IAsyncDisposable
             throw new InvalidPluginException(this.DllFile);
         }
 
-        if (this.pluginAssembly == null)
+        if (this.Assembly == null)
         {
             this.ResetLoader();
             Log.Error("Plugin assembly is null: {DllFileFullName}", this.DllFile.FullName);
@@ -669,7 +666,7 @@ internal class LocalPlugin : IAsyncDisposable
 
         try
         {
-            this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+            this.pluginType = this.Assembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
         }
         catch (ReflectionTypeLoadException ex)
         {
@@ -688,7 +685,7 @@ internal class LocalPlugin : IAsyncDisposable
 
     private void ResetLoader()
     {
-        this.pluginAssembly = null;
+        this.Assembly = null;
         this.pluginType = null;
         this.loader?.Dispose();
         this.loader = null;
@@ -728,7 +725,7 @@ internal class LocalPlugin : IAsyncDisposable
         // Fields below are expected to be alive until the plugin is (attempted) disposed.
         // Clear them after this point.
         this.pluginType = null;
-        this.pluginAssembly = null;
+        this.Assembly = null;
 
         await AttemptCleanup(
             nameof(this.serviceScope),
