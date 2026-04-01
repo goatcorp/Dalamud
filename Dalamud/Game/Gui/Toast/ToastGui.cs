@@ -33,6 +33,9 @@ internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
     private readonly Hook<UIModule.Delegates.ShowText> showQuestToastHook;
     private readonly Hook<UIModule.Delegates.ShowErrorText> showErrorToastHook;
 
+    [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ToastGui"/> class.
     /// </summary>
@@ -46,6 +49,8 @@ internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
         this.showNormalToastHook.Enable();
         this.showQuestToastHook.Enable();
         this.showErrorToastHook.Enable();
+
+        this.framework.BeforeUpdate += this.UpdateQueue;
     }
 
     #region Events
@@ -66,6 +71,8 @@ internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
+        this.framework.BeforeUpdate -= this.UpdateQueue;
+
         this.showNormalToastHook.Dispose();
         this.showQuestToastHook.Dispose();
         this.showErrorToastHook.Dispose();
@@ -74,7 +81,7 @@ internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
     /// <summary>
     /// Process the toast queue.
     /// </summary>
-    internal void UpdateQueue()
+    private void UpdateQueue(IFramework framework)
     {
         while (this.normalQueue.Count > 0)
         {
