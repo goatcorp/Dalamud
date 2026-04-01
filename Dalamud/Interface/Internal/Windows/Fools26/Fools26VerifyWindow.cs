@@ -6,6 +6,7 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Player;
@@ -119,6 +120,7 @@ internal class Fools26VerifyWindow : Window, IDisposable
         KeepEmote,
         Glasses,
         HoldStill,
+        ExitGPose,
     }
 
     private enum EStateResult
@@ -130,6 +132,7 @@ internal class Fools26VerifyWindow : Window, IDisposable
         MovedRecently,
         HasGlasses,
         NoCharacter,
+        InGPose,
     }
 
     public IDalamudTextureWrap? Screenshot { get; private set; }
@@ -218,6 +221,10 @@ internal class Fools26VerifyWindow : Window, IDisposable
             {
                 this.interruptReason = InterruptReason.Glasses;
             }
+            else if (characterState.Result == EStateResult.InGPose)
+            {
+                this.interruptReason = InterruptReason.ExitGPose;
+            }
             else if (step.DoEmote && !doingEmote)
             {
                 this.interruptReason = InterruptReason.KeepEmote;
@@ -265,6 +272,10 @@ internal class Fools26VerifyWindow : Window, IDisposable
                 {
                     this.interruptReason = InterruptReason.Glasses;
                 }
+                else if (characterState.Result == EStateResult.InGPose)
+                {
+                    this.interruptReason = InterruptReason.ExitGPose;
+                }
                 else
                 {
                     // TODO: this is a little harsh, maybe we should not do this
@@ -287,7 +298,7 @@ internal class Fools26VerifyWindow : Window, IDisposable
 
         var style = ImGui.GetStyle();
         var fontSize = ImGui.GetFontSize();
-        var windowSize = this.Size!.Value;
+        var windowSize = ImGui.GetWindowSize();
 
         var headerSize = fontSize
                          + (fontSize + (style.FramePadding.Y * 2))
@@ -333,6 +344,7 @@ internal class Fools26VerifyWindow : Window, IDisposable
                         InterruptReason.ZoomIn => "Please zoom in a little.",
                         InterruptReason.KeepEmote => "Please do a {0} emote.".Format(currentEmote.TextCommand.Value.Command.ExtractText()),
                         InterruptReason.Glasses => "Please remove your glasses.",
+                        InterruptReason.ExitGPose => "Please exit Group Pose.",
                         _ => this.verifyTimer.IsRunning ? "Verifying..." : "Waiting...",
                     };
 
@@ -433,6 +445,9 @@ internal class Fools26VerifyWindow : Window, IDisposable
     {
         var gameGui = Service<GameGui>.Get();
         var objectTable = Service<ObjectTable>.Get();
+        var clientState = Service<ClientState>.Get();
+
+        if (clientState.IsGPosing) return (EStateResult.InGPose, null);
 
         var cc = CameraManager.Instance()->GetActiveCamera();
         if (cc is null) return (EStateResult.NoCharacter, null);
@@ -476,7 +491,7 @@ internal class Fools26VerifyWindow : Window, IDisposable
         var bonePos = headPose.Position;
         var headRot = headPose.Rotation;
         var windowPos = ImGui.GetWindowPos();
-        var windowSize = this.Size!.Value;
+        var windowSize = ImGui.GetWindowSize();
         if (bonePos != null)
         {
             if (gameGui.WorldToScreen(bonePos.Value, out var pos))
