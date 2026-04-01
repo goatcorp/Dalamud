@@ -30,7 +30,7 @@ public sealed record DefaultCMakePaths(AbsolutePath RootDirectory, Tool CMake) :
 
     public AbsolutePath VCStubDirectory => BuildToolDirectory / "vcstub";
 
-    public AbsolutePath ProjectsDirectory => BuildToolDirectory / "cmake";
+    public AbsolutePath ProjectsDirectory => BuildToolDirectory / "cmakeprojs";
 
     public AbsolutePath JWasmSrcDirectory => RootDirectory / "lib" / "JWasm";
 
