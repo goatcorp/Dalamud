@@ -140,7 +140,7 @@ internal sealed partial class ToastGui
 
     private unsafe void HandleNormalToastDetour(UIModule* thisPtr, CStringPointer text, int layer, bool isTop, bool isFast, uint logMessageId)
     {
-        if (text == null)
+        if (!text.HasValue)
             return;
 
         // call events
@@ -221,7 +221,7 @@ internal sealed partial class ToastGui
 
     private unsafe void HandleQuestToastDetour(UIModule* thisPtr, int position, CStringPointer text, uint iconOrCheck1, bool playSound, uint iconOrCheck2, bool alsoPlaySound)
     {
-        if (text == null)
+        if (!text.HasValue)
             return;
 
         // call events
@@ -301,7 +301,7 @@ internal sealed partial class ToastGui
 
     private unsafe void HandleErrorToastDetour(UIModule* thisPtr, CStringPointer text, bool forceVisible)
     {
-        if (text == null)
+        if (!text.HasValue)
             return;
 
         // call events
