@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.PluginInstaller.Changelog;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller.Parts;
@@ -121,7 +123,81 @@ internal class ChangelogCategory
 
         foreach (var logEntry in sortedChangelogs)
         {
-            this.pluginInstaller.DrawChangelog(logEntry);
+            this.DrawChangelog(logEntry);
         }
+    }
+
+    private void DrawChangelog(IChangelogEntry log)
+    {
+        ImGui.Separator();
+
+        var startCursor = ImGui.GetCursorPos();
+
+        var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
+        var cursorBeforeImage = ImGui.GetCursorPos();
+        var rectOffset = ImGui.GetWindowContentRegionMin() + ImGui.GetWindowPos();
+        if (ImGui.IsRectVisible(rectOffset + cursorBeforeImage, rectOffset + cursorBeforeImage + iconSize))
+        {
+            IDalamudTextureWrap icon;
+            if (log is PluginChangelogEntry pluginLog)
+            {
+                icon = this.pluginInstaller.imageCache.DefaultIcon;
+                var hasIcon = this.pluginInstaller.imageCache.TryGetIcon(pluginLog.Plugin, pluginLog.Plugin.Manifest, pluginLog.Plugin.IsThirdParty, out var cachedIconTex, out _);
+                if (hasIcon && cachedIconTex != null)
+                {
+                    icon = cachedIconTex;
+                }
+            }
+            else
+            {
+                icon = this.pluginInstaller.imageCache.CorePluginIcon;
+            }
+
+            ImGui.Image(icon.Handle, iconSize);
+        }
+        else
+        {
+            ImGui.Dummy(iconSize);
+        }
+
+        ImGui.SameLine();
+
+        ImGuiHelpers.ScaledDummy(5);
+
+        ImGui.SameLine();
+        var cursor = ImGui.GetCursorPos();
+        ImGui.Text(log.Title);
+
+        ImGui.SameLine();
+        ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{log.Version}");
+        if (log.Author != null)
+        {
+            ImGui.SameLine();
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, PluginInstallerLocs.PluginBody_AuthorWithoutDownloadCount(log.Author));
+        }
+
+        if (log.Date != DateTime.MinValue)
+        {
+            var whenText = log.Date.LocRelativePastLong();
+            var whenSize = ImGui.CalcTextSize(whenText);
+            ImGui.SameLine(ImGui.GetWindowWidth() - whenSize.X - (25 * ImGuiHelpers.GlobalScale));
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, whenText);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Published on " + log.Date.LocAbsolute());
+        }
+
+        cursor.Y += ImGui.GetTextLineHeightWithSpacing();
+        ImGui.SetCursorPos(cursor);
+
+        ImGui.TextWrapped(log.Text);
+
+        var endCursor = ImGui.GetCursorPos();
+
+        var sectionSize = Math.Max(
+            66 * ImGuiHelpers.GlobalScale, // min size due to icons
+            endCursor.Y - startCursor.Y);
+
+        startCursor.Y += sectionSize;
+        ImGui.SetCursorPos(startCursor);
     }
 }

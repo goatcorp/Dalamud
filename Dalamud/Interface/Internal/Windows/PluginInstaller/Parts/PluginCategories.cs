@@ -1,9 +1,12 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows.PluginInstaller.Enums;
 using Dalamud.Interface.Internal.Windows.PluginInstaller.Modals;
 using Dalamud.Interface.Utility;
@@ -205,7 +208,7 @@ internal class PluginInstallerPluginCategories
 
     private void DrawPluginCategoryContent()
     {
-        var ready = this.pluginInstaller.DrawPluginListLoading();
+        var ready = this.DrawPluginListLoading();
         if (!this.categoryManager.IsSelectionValid || !ready)
         {
             return;
@@ -254,7 +257,7 @@ internal class PluginInstallerPluginCategories
                         break;
 
                     case PluginCategoryManager.CategoryKind.IconTester:
-                        this.pluginInstaller.DrawImageTester();
+                        this.pluginInstaller.ImageTester.Draw();
                         break;
 
                     default:
@@ -347,7 +350,7 @@ internal class PluginInstallerPluginCategories
             }
             else if (proxy.RemoteManifest != null)
             {
-                this.pluginInstaller.DrawAvailablePlugin(proxy.RemoteManifest, i++);
+                this.DrawAvailablePlugin(proxy.RemoteManifest, i++);
             }
 
             ImGui.PopID();
@@ -482,6 +485,248 @@ internal class PluginInstallerPluginCategories
         {
             DrawMutedBodyText(PluginInstallerLocs.TabBody_NoMoreResultsFor(this.pluginInstaller.searchText), 20, 20);
             ImGuiHelpers.ScaledDummy(20);
+        }
+    }
+
+    private bool DrawPluginListLoading()
+    {
+        var pluginManager = Service<PluginManager>.Get();
+
+        var ready = pluginManager.PluginsReady && pluginManager.ReposReady;
+
+        if (!ready)
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, PluginInstallerLocs.TabBody_LoadingPlugins);
+        }
+
+        var failedRepos = pluginManager.Repos
+                                       .Where(repo => repo.State == PluginRepositoryState.Fail)
+                                       .ToArray();
+
+        if (failedRepos.Length > 0)
+        {
+            var failText = PluginInstallerLocs.TabBody_DownloadFailed;
+            var aggFailText = failedRepos
+                              .Select(repo => $"{failText} ({repo.PluginMasterUrl})")
+                              .Aggregate((s1, s2) => $"{s1}\n{s2}");
+
+            ImGui.TextColored(ImGuiColors.DalamudRed, aggFailText);
+        }
+
+        return ready;
+    }
+
+    private void DrawAvailablePlugin(RemotePluginManifest manifest, int index)
+    {
+        var configuration = Service<DalamudConfiguration>.Get();
+        var pluginManager = Service<PluginManager>.Get();
+
+        var canUseTesting = pluginManager.CanUseTesting(manifest);
+        var useTesting = pluginManager.UseTesting(manifest);
+        var wasSeen = this.pluginInstaller.WasPluginSeen(manifest.InternalName);
+
+        var effectiveApiLevel = useTesting ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
+        var isOutdated = effectiveApiLevel < PluginManager.DalamudApiLevel;
+
+        var isIncompatible = manifest.MinimumDalamudVersion != null &&
+                             manifest.MinimumDalamudVersion > Versioning.GetAssemblyVersionParsed();
+
+        var enableInstallButton = this.pluginInstaller.updateStatus != OperationStatus.InProgress &&
+                                  this.pluginInstaller.installStatus != OperationStatus.InProgress &&
+                                  !isOutdated &&
+                                  !isIncompatible;
+
+        // Check for valid versions
+        if ((useTesting && manifest.TestingAssemblyVersion == null) || manifest.AssemblyVersion == null)
+        {
+            // Without a valid version, quit
+            return;
+        }
+
+        // Name
+        var label = manifest.Name;
+
+        // Testing
+        if (useTesting)
+        {
+            label += PluginInstallerLocs.PluginTitleMod_TestingVersion;
+        }
+        else if (manifest.IsTestingExclusive)
+        {
+            label += PluginInstallerLocs.PluginTitleMod_TestingExclusive;
+        }
+        else if (canUseTesting)
+        {
+            label += PluginInstallerLocs.PluginTitleMod_TestingAvailable;
+        }
+
+        if (isIncompatible)
+        {
+            label += PluginInstallerLocs.PluginTitleMod_Incompatible;
+        }
+
+        var isThirdParty = manifest.SourceRepo.IsThirdParty;
+
+        ImGui.PushID($"available{index}{manifest.InternalName}");
+
+        var flags = PluginHeaderFlags.None;
+        if (isThirdParty)
+            flags |= PluginHeaderFlags.IsThirdParty;
+        if (!wasSeen)
+            flags |= PluginHeaderFlags.IsNew;
+        if (isOutdated)
+            flags |= PluginHeaderFlags.IsInstallableOutdated;
+        if (useTesting || manifest.IsTestingExclusive)
+            flags |= PluginHeaderFlags.IsTesting;
+        if (isIncompatible)
+            flags |= PluginHeaderFlags.IsIncompatible;
+
+        if (this.pluginInstaller.DrawPluginCollapsingHeader(label, null, manifest, flags, () => this.DrawAvailablePluginContextMenu(manifest), index))
+        {
+            if (!wasSeen)
+                configuration.SeenPluginInternalName.Add(manifest.InternalName);
+
+            ImGuiHelpers.ScaledDummy(5);
+
+            ImGui.Indent();
+
+            // Installable from
+            if (manifest.SourceRepo.IsThirdParty)
+            {
+                var repoText = PluginInstallerLocs.PluginBody_Plugin3rdPartyRepo(manifest.SourceRepo.PluginMasterUrl);
+                ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+
+                ImGuiHelpers.ScaledDummy(2);
+            }
+
+            // Description
+            if (!string.IsNullOrWhiteSpace(manifest.Description))
+            {
+                ImGui.TextWrapped(manifest.Description);
+            }
+
+            ImGuiHelpers.ScaledDummy(5);
+
+            var versionString = useTesting
+                                    ? $"{manifest.TestingAssemblyVersion}"
+                                    : $"{manifest.AssemblyVersion}";
+
+            if (pluginManager.SafeMode)
+            {
+                ImGuiComponents.DisabledButton(PluginInstallerLocs.PluginButton_SafeMode);
+            }
+            else if (!enableInstallButton)
+            {
+                ImGuiComponents.DisabledButton(PluginInstallerLocs.PluginButton_InstallVersion(versionString));
+            }
+            else
+            {
+                using var color = ImRaii.PushColor(ImGuiCol.Button, ImGuiColors.DalamudRed.Darken(0.3f).Fade(0.4f));
+                var buttonText = PluginInstallerLocs.PluginButton_InstallVersion(versionString);
+                if (ImGui.Button($"{buttonText}##{buttonText}{index}"))
+                {
+                    this.pluginInstaller.StartInstall(manifest, useTesting);
+                }
+            }
+
+            ImGui.SameLine();
+            ImGuiHelpers.ScaledDummy(10);
+            ImGui.SameLine();
+
+            if (VisitRepoUrlButton.Draw(manifest.RepoUrl, true))
+            {
+                ImGui.SameLine();
+                ImGuiHelpers.ScaledDummy(3);
+            }
+
+            if (!manifest.SourceRepo.IsThirdParty && manifest.AcceptsFeedback && !isOutdated)
+            {
+                ImGui.SameLine();
+                this.pluginInstaller.FeedbackModal.DrawSendFeedbackButton(manifest, false, true);
+            }
+
+            ImGuiHelpers.ScaledDummy(5);
+
+            if (this.pluginInstaller.DrawPluginImages(null, manifest, isThirdParty, index))
+                ImGuiHelpers.ScaledDummy(5);
+
+            ImGui.Unindent();
+        }
+
+        ImGui.PopID();
+    }
+
+    private void DrawAvailablePluginContextMenu(RemotePluginManifest manifest)
+    {
+        var configuration = Service<DalamudConfiguration>.Get();
+        var pluginManager = Service<PluginManager>.Get();
+
+        var hasTestingVersionAvailable = configuration.DoPluginTest && manifest.IsAvailableForTesting;
+
+        if (ImGui.BeginPopupContextItem("ItemContextMenu"u8))
+        {
+            if (hasTestingVersionAvailable)
+            {
+                if (ImGui.Selectable(PluginInstallerLocs.PluginContext_InstallTestingVersion))
+                {
+                    PluginInstallerWindow.EnsureHaveTestingOptIn(manifest);
+                    this.pluginInstaller.StartInstall(manifest, true);
+                }
+
+                ImGui.Separator();
+            }
+
+            if (ImGui.Selectable(PluginInstallerLocs.PluginContext_MarkAllSeen))
+            {
+                configuration.SeenPluginInternalName.AddRange(this.pluginInstaller.pluginListAvailable.Select(x => x.InternalName));
+                configuration.QueueSave();
+            }
+
+            var isHidden = configuration.HiddenPluginInternalName.Contains(manifest.InternalName);
+            switch (isHidden)
+            {
+                case false when ImGui.Selectable(PluginInstallerLocs.PluginContext_HidePlugin):
+                    configuration.HiddenPluginInternalName.Add(manifest.InternalName);
+                    configuration.QueueSave();
+                    break;
+
+                case true when ImGui.Selectable(PluginInstallerLocs.PluginContext_UnhidePlugin):
+                    configuration.HiddenPluginInternalName.Remove(manifest.InternalName);
+                    configuration.QueueSave();
+                    break;
+            }
+
+            if (ImGui.Selectable(PluginInstallerLocs.PluginContext_DeletePluginConfig))
+            {
+                this.pluginInstaller.DeletePluginConfigWarningModal.ShowDeletePluginConfigWarningModal(manifest.Name).ContinueWith(t =>
+                {
+                    var shouldDelete = t.Result;
+
+                    if (shouldDelete)
+                    {
+                        PluginInstallerWindow.Log.Debug($"Deleting config for {manifest.InternalName}");
+
+                        this.pluginInstaller.installStatus = OperationStatus.InProgress;
+
+                        Task.Run(() =>
+                            {
+                                pluginManager.PluginConfigs.Delete(manifest.InternalName);
+                                var dir = pluginManager.PluginConfigs.GetDirectory(manifest.InternalName);
+
+                                if (Directory.Exists(dir))
+                                    Directory.Delete(dir, true);
+                            })
+                            .ContinueWith(task =>
+                            {
+                                this.pluginInstaller.installStatus = OperationStatus.Idle;
+
+                                this.pluginInstaller.DisplayErrorContinuation(task, PluginInstallerLocs.ErrorModal_DeleteConfigFail(manifest.InternalName));
+                            });
+                    }
+                });
+            }
+
+            ImGui.EndPopup();
         }
     }
 }
