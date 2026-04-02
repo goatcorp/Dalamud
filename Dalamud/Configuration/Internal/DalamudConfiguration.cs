@@ -501,13 +501,6 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
 
 #pragma warning disable SA1600
 #pragma warning disable SA1516
-    public bool Fools26Dismissed { get; set; } = false;
-    public List<ulong> Fools26CompletedContentIds { get; set; } = [];
-#pragma warning restore SA1516
-#pragma warning restore SA1600
-
-#pragma warning disable SA1600
-#pragma warning disable SA1516
     // XLCore/XoM compatibility until they move it out
     public string? DalamudBetaKey { get; set; } = null;
     public string? DalamudBetaKind { get; set; }
