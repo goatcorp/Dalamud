@@ -130,7 +130,7 @@ jobs:
           ($env:REPO_NAME) >> VERSION
           ($env:BRANCH) >> VERSION
           ($env:COMMIT) >> VERSION
-      - name: Build and Test Dalamud
+      - name: Build and Test Dalamud GCC
         run: bash ./build.sh ci
       - name: Create hashlist
         run: pwsh ./CreateHashList.ps1 ./bin/Release
@@ -149,7 +149,38 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dalamud-artifact-mingw
+          name: dalamud-artifact-mingw-gcc
+          path: bin/Release
+      - name: Clean Dalamud Build
+        run: bash ./build.sh clean
+      - name: Setup llvm-mingw
+        shell: bash
+        run: |
+          VERSION=llvm-mingw-20260324-ucrt-ubuntu-22.04-x86_64
+          wget -O llvm-mingw.tar.xz https://github.com/mstorsjo/llvm-mingw/releases/download/20260324/${VERSION}.tar.xz
+          tar -C ${GITHUB_WORKSPACE}/linuxtools -xvf llvm-mingw.tar.xz
+          rm ./llvm-mingw.tar.xz
+          mv ${GITHUB_WORKSPACE}/linuxtools/${VERSION} ${GITHUB_WORKSPACE}/linuxtools/llvm
+      - name: Build and Test Dalamud LLVM
+        run: bash ./build.sh ci
+      - name: Create hashlist
+        run: pwsh ./CreateHashList.ps1 ./bin/Release
+      - name: Attest Build
+        if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            bin/Release/hashes.json
+            bin/Release/Dalamud.dll
+            bin/Release/DalamudCrashHandler.exe
+            bin/Release/Dalamud.*.dll
+            bin/Release/Dalamud.*.exe
+            bin/Release/FFXIVClientStructs.dll
+            bin/Release/cim*.dll
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dalamud-artifact-mingw-llvm
           path: bin/Release
 
   check_api_compat:
