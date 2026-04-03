@@ -212,6 +212,7 @@ public sealed class EntryPoint
         catch (Exception ex)
         {
             Log.Fatal(ex, "Unhandled exception on main thread.");
+            ErrorHandling.ShowSystemIntegrityPolicyErrorIfApplicable(ex);
         }
         finally
         {
