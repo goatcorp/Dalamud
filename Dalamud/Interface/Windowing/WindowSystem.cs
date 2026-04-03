@@ -134,7 +134,12 @@ public class WindowSystem
 #if DEBUG
             // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
 #endif
-            window.DrawInternal(flags, persistence);
+            var parameters = new Window.WindowDrawParameters()
+            {
+                Flags = flags,
+                BackgroundBlurSigma = config?.PluginUiBackgroundBlurStrength ?? 0,
+            };
+            window.DrawInternal(parameters, persistence);
         }
 
         var focusedWindow = this.windows.FirstOrDefault(window => window.IsFocused);

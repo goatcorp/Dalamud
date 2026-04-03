@@ -47,6 +47,25 @@ internal sealed class SettingsTabExperimental : SettingsTab
 
         new GapSettingsEntry(5, true),
 
+        new SettingsEntry<float>(
+            LazyLoc.Localize("DalamudSettingBackgroundBlur", "Blur factor for plugin windows"),
+            LazyLoc.Localize("DalamudSettingBackgroundBlurHint", "This will allow you to set the strength of the blur effect for plugin windows.\nSet to 0 to disable the blur effect. This may not be supported by all of your plugins. Contact the plugin author if you want them to support this feature."),
+            c => c.PluginUiBackgroundBlurStrength,
+            (v, c) => c.PluginUiBackgroundBlurStrength = v)
+        {
+            CustomDraw = static e =>
+            {
+                ImGui.TextWrapped(e.Name!);
+
+                var v = e.Value;
+                if (ImGui.SliderFloat($"###{e}", ref v, 0f, 10f, "%.1f%%"))
+                    e.Value = v;
+                ImGui.SameLine();
+            },
+        },
+
+        new GapSettingsEntry(5, true),
+
         new SettingsEntry<bool>(
             LazyLoc.Localize("DalamudSettingsCharacterProfiles", "Enable per-character plugin collections"),
             LazyLoc.Localize("DalamudSettingsCharacterProfilesHint", "If enabled, you can set plugin collections to be enabled only for specific characters. This will add a character list to each collection in the collection editor.\nThis setting is not thoroughly tested and considered experimental, as it may cause problems with certain plugins."),
