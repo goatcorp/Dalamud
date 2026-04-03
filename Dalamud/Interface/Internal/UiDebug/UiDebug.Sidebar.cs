@@ -55,12 +55,9 @@ internal unsafe partial class UiDebug
     private void DrawSidebar()
     {
         using var gr = ImRaii.Group();
-        if (gr.Success)
-        {
-            this.DrawNameSearch();
-            this.DrawAddonSelectionList();
-            this.elementSelector.DrawInterface();
-        }
+        this.DrawNameSearch();
+        this.DrawAddonSelectionList();
+        this.elementSelector.DrawInterface();
     }
 
     private void DrawNameSearch()
