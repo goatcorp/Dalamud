@@ -631,12 +631,6 @@ public static partial class ImGuiHelpers
     }
 
     /// <summary>
-    /// Clears the stack in the current ImGui context.
-    /// </summary>
-    [LibraryImport("cimgui", EntryPoint = "igCustom_ClearStacks")]
-    internal static partial void ClearStacksOnContext();
-
-    /// <summary>
     /// Attempts to validate that <paramref name="fontPtr"/> is valid.
     /// </summary>
     /// <param name="fontPtr">The font pointer.</param>

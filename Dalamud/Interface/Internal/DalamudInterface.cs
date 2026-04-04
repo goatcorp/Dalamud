@@ -992,11 +992,6 @@ internal class DalamudInterface : IInternalDisposableService
                         ImGui.SetWindowFocus((byte*)null);
                     }
 
-                    if (ImGui.MenuItem("Clear stacks"u8))
-                    {
-                        this.interfaceManager.ClearStacks();
-                    }
-
                     if (ImGui.MenuItem("Dump style"u8))
                     {
                         var info = string.Empty;
