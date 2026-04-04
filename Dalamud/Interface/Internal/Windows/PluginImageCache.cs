@@ -200,9 +200,11 @@ internal class PluginImageCache : IInternalDisposableService
             return false;
         }
 
-        if (!this.pluginIconMap.TryAdd(manifest.InternalName, null))
+        var key = plugin?.EffectiveWorkingPluginId.ToString() ?? manifest.InternalName;
+
+        if (!this.pluginIconMap.TryAdd(key, null))
         {
-            var loaded = this.pluginIconMap[manifest.InternalName];
+            var loaded = this.pluginIconMap[key];
             if (loaded != null)
             {
                 iconTexture = loaded.Texture;
@@ -219,7 +221,7 @@ internal class PluginImageCache : IInternalDisposableService
             {
                 var texture = await this.DownloadPluginIconAsync(plugin, manifest, isThirdParty, requestedFrame);
                 if (texture != null)
-                    this.pluginIconMap[manifest.InternalName] = new LoadedIcon(texture, DateTime.Now);
+                    this.pluginIconMap[key] = new LoadedIcon(texture, DateTime.Now);
             }
             catch (Exception ex)
             {
