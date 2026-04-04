@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Configuration.Internal;
 using Dalamud.CorePlugin.PluginInstallerV2.Controllers;
 using Dalamud.CorePlugin.PluginInstallerV2.Enums;
 using Dalamud.CorePlugin.PluginInstallerV2.Enums.EnumExtensions;
@@ -26,6 +26,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
     private readonly InstalledPluginsWidget installedPluginsWidget;
     private readonly AvailablePluginsWidget availablePluginsWidget;
     private readonly ChangelogWidget changelogWidget;
+    private readonly CollectionsWidget collectionsWidget;
 
     private SelectedTab selectedTab = SelectedTab.Default;
 
@@ -53,6 +54,14 @@ internal class PluginInstallerWindow2 : Window, IDisposable
         this.installedPluginsWidget = new InstalledPluginsWidget { ParentWindow = this };
         this.availablePluginsWidget = new AvailablePluginsWidget { ParentWindow = this };
         this.changelogWidget = new ChangelogWidget { ParentWindow = this };
+        this.collectionsWidget = new CollectionsWidget { ParentWindow = this };
+
+        // Delegate search update events to all listeners.
+        this.SearchController.OnSearchUpdated += this.devPluginsWidget.OnSearchUpdated;
+        this.SearchController.OnSearchUpdated += this.installedPluginsWidget.OnSearchUpdated;
+        this.SearchController.OnSearchUpdated += this.availablePluginsWidget.OnSearchUpdated;
+        this.SearchController.OnSearchUpdated += this.changelogWidget.OnSearchUpdated;
+        this.SearchController.OnSearchUpdated += this.collectionsWidget.OnSearchUpdated;
     }
 
     /// <summary>
@@ -77,6 +86,13 @@ internal class PluginInstallerWindow2 : Window, IDisposable
     public void Dispose()
     {
         this.FontManager.Dispose();
+
+        // Probably not necessary to unregister these, but it's good practice.
+        this.SearchController.OnSearchUpdated -= this.devPluginsWidget.OnSearchUpdated;
+        this.SearchController.OnSearchUpdated -= this.installedPluginsWidget.OnSearchUpdated;
+        this.SearchController.OnSearchUpdated -= this.availablePluginsWidget.OnSearchUpdated;
+        this.SearchController.OnSearchUpdated -= this.changelogWidget.OnSearchUpdated;
+        this.SearchController.OnSearchUpdated -= this.collectionsWidget.OnSearchUpdated;
     }
 
     /// <inheritdoc/>
@@ -136,10 +152,12 @@ internal class PluginInstallerWindow2 : Window, IDisposable
             return;
         }
 
+        var currentSearchString = this.SearchController.SearchString;
+
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X * (3.0f / 5.0f));
-        if (ImGui.InputTextWithHint("##SearchInput", PluginInstallerLocs.Header_SearchPlaceholder, ref this.SearchController.SearchString))
+        if (ImGui.InputTextWithHint("##SearchInput", PluginInstallerLocs.Header_SearchPlaceholder, ref currentSearchString))
         {
-            this.SearchController.UpdateSearch();
+            this.SearchController.UpdateSearch(currentSearchString);
         }
 
         ImGui.SameLine();
@@ -193,11 +211,17 @@ internal class PluginInstallerWindow2 : Window, IDisposable
 
     private List<SelectedTab> GetActiveTabs()
     {
+        var dalamudConfiguration = Service<DalamudConfiguration>.Get();
         List<SelectedTab> activeTabs = [];
 
         if (this.PluginListManager.HasDevPlugins)
         {
             activeTabs.Add(SelectedTab.DevPlugins);
+        }
+
+        if (dalamudConfiguration.ProfilesEnabled)
+        {
+            activeTabs.Add(SelectedTab.Collections);
         }
 
         activeTabs.AddRange([SelectedTab.InstalledPlugins, SelectedTab.AvailablePlugins, SelectedTab.Changelog]);
@@ -230,6 +254,10 @@ internal class PluginInstallerWindow2 : Window, IDisposable
 
             case SelectedTab.Changelog:
                 this.changelogWidget.Draw();
+                break;
+
+            case SelectedTab.Collections:
+                this.collectionsWidget.Draw();
                 break;
 
             default:
@@ -282,11 +310,11 @@ internal class PluginInstallerWindow2 : Window, IDisposable
             return;
         }
 
-        foreach (var (optionEnum, locString) in this.SearchController.SortOptions)
+        foreach (var (optionEnum, locString) in this.SearchController.OptionsDictionary)
         {
             if (ImGui.Selectable(locString, this.SearchController.SelectedSortOption == optionEnum))
             {
-                this.SearchController.SelectedSortOption = optionEnum;
+                this.SearchController.UpdateSortOption(optionEnum);
             }
         }
     }

@@ -4,9 +4,9 @@ using Dalamud.CorePlugin.PluginInstallerV2.Interfaces;
 namespace Dalamud.CorePlugin.PluginInstallerV2.Widgets;
 
 /// <summary>
-/// Class responsible for drawing the InstalledPlugins Lists.
+/// Class repsonsible for drawing plugins collection widget.
 /// </summary>
-internal class InstalledPluginsWidget : IPluginInstallerWidget
+internal class CollectionsWidget : IPluginInstallerWidget
 {
     /// <inheritdoc/>
     public required PluginInstallerWindow2 ParentWindow { get; init; }

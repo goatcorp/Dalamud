@@ -1,4 +1,6 @@
-﻿namespace Dalamud.CorePlugin.PluginInstallerV2.Interfaces;
+﻿using Dalamud.CorePlugin.PluginInstallerV2.Controllers;
+
+namespace Dalamud.CorePlugin.PluginInstallerV2.Interfaces;
 
 /// <summary>
 /// Interface for defining Plugin Installer Widgets.
@@ -14,4 +16,10 @@ internal interface IPluginInstallerWidget
     /// Draw this widget.
     /// </summary>
     void Draw();
+
+    /// <summary>
+    /// Function that is called when the search is updated.
+    /// </summary>
+    /// <param name="searchInfo">Information regarding the current search and sort settings.</param>
+    void OnSearchUpdated(SearchController searchInfo);
 }

@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.CorePlugin.PluginInstallerV2.Controllers;
 using Dalamud.CorePlugin.PluginInstallerV2.Interfaces;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal.Windows;
@@ -34,6 +35,11 @@ internal class AvailablePluginsWidget : IPluginInstallerWidget
         {
             this.DrawSelectedPlugin();
         }
+    }
+
+    /// <inheritdoc/>
+    public void OnSearchUpdated(SearchController searchInfo)
+    {
     }
 
     private static IDalamudTextureWrap GetPluginIcon(RemotePluginManifest manifest)

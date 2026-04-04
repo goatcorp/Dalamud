@@ -29,4 +29,9 @@ internal enum SelectedTab
     /// Show Changelog Widget.
     /// </summary>
     Changelog = 4,
+
+    /// <summary>
+    /// Show collections Widget.
+    /// </summary>
+    Collections = 5,
 }

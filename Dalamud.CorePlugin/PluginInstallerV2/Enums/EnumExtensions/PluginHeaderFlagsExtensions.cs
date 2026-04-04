@@ -6,7 +6,7 @@ namespace Dalamud.CorePlugin.PluginInstallerV2.Enums.EnumExtensions;
 internal static class PluginHeaderFlagsExtensions
 {
     /// <summary>
-    /// Adds the specified flag to this flags value;
+    /// Adds the specified flag to this flags value.
     /// </summary>
     /// <param name="flags">this.</param>
     /// <param name="newFlag">Flag to add.</param>
