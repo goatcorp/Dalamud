@@ -498,15 +498,6 @@ internal partial class InterfaceManager : IInternalDisposableService
     }
 
     /// <summary>
-    /// Clear font, style, and color stack. Dangerous, only use when you know
-    /// no one else has something pushed they may try to pop.
-    /// </summary>
-    public void ClearStacks()
-    {
-        ImGuiHelpers.ClearStacksOnContext();
-    }
-
-    /// <summary>
     /// Applies immersive dark mode to the game window based on the current system theme setting.
     /// </summary>
     internal void SetImmersiveModeFromSystemTheme()
