@@ -1,0 +1,83 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Full Build",
+            "command": "${workspaceFolder}/build.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "dotnet",
+            "label": "Build build/build.csproj",
+            "task": "build build/build.csproj",
+            "file": "${workspaceFolder}/build/build.csproj",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "cmake",
+            "label": "CMake build DalamudCrashHandler",
+            "command": "build",
+            "targets": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Wine gdbserver Debug DalamudCrashHandler",
+            "type": "shell",
+            "command": "wine",
+            "args": [
+                "Z:/usr/x86_64-w64-mingw32/sys-root/mingw/bin/gdbserver.exe",
+                "--once",
+                "localhost:12345",
+                "${workspaceFolder}/bin/Debug/DalamudCrashHandler.exe"
+            ],
+            "options": {
+                "env": {
+                    "WINEDEBUG": "-all"
+                }
+            },
+            "problemMatcher": {
+                "owner": "custom",
+                "severity": "info",
+                "pattern": [
+                    {
+                        "regexp": "^(.*)$",
+                        "file": 1,
+                        "line": 0,
+                        "message": 1
+                    }
+                ],
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": "Listening on port 12345"
+                }
+            },
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "dependsOn": "CMake build DalamudCrashHandler"
+        }
+    ]
+}
