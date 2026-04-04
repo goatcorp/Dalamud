@@ -211,6 +211,56 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     #endregion
 
     /// <summary>
+    /// Create a link handler.
+    /// </summary>
+    /// <param name="pluginName">The name of the plugin handling the link.</param>
+    /// <param name="commandId">The ID of the command to run.</param>
+    /// <param name="commandAction">The command action itself.</param>
+    /// <returns>A payload for handling.</returns>
+    internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction)
+    {
+        var payload = new DalamudLinkPayload { Plugin = pluginName, CommandId = commandId };
+        lock (this.dalamudLinkHandlers)
+        {
+            this.dalamudLinkHandlers.Add((pluginName, commandId), commandAction);
+            this.dalamudLinkHandlersCopy = null;
+        }
+
+        return payload;
+    }
+
+    /// <summary>
+    /// Remove all handlers owned by a plugin.
+    /// </summary>
+    /// <param name="pluginName">The name of the plugin handling the links.</param>
+    internal void RemoveChatLinkHandler(string pluginName)
+    {
+        lock (this.dalamudLinkHandlers)
+        {
+            var changed = false;
+
+            foreach (var handler in this.RegisteredLinkHandlers.Keys.Where(k => k.PluginName == pluginName))
+                changed |= this.dalamudLinkHandlers.Remove(handler);
+            if (changed)
+                this.dalamudLinkHandlersCopy = null;
+        }
+    }
+
+    /// <summary>
+    /// Remove a registered link handler.
+    /// </summary>
+    /// <param name="pluginName">The name of the plugin handling the link.</param>
+    /// <param name="commandId">The ID of the command to be removed.</param>
+    internal void RemoveChatLinkHandler(string pluginName, uint commandId)
+    {
+        lock (this.dalamudLinkHandlers)
+        {
+            if (this.dalamudLinkHandlers.Remove((pluginName, commandId)))
+                this.dalamudLinkHandlersCopy = null;
+        }
+    }
+
+    /// <summary>
     /// Process a chat queue.
     /// </summary>
     /// <param name="framework">The Framework instance.</param>
@@ -258,56 +308,6 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 &message,
                 chat.Timestamp,
                 chat.Silent);
-        }
-    }
-
-    /// <summary>
-    /// Create a link handler.
-    /// </summary>
-    /// <param name="pluginName">The name of the plugin handling the link.</param>
-    /// <param name="commandId">The ID of the command to run.</param>
-    /// <param name="commandAction">The command action itself.</param>
-    /// <returns>A payload for handling.</returns>
-    internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction)
-    {
-        var payload = new DalamudLinkPayload { Plugin = pluginName, CommandId = commandId };
-        lock (this.dalamudLinkHandlers)
-        {
-            this.dalamudLinkHandlers.Add((pluginName, commandId), commandAction);
-            this.dalamudLinkHandlersCopy = null;
-        }
-
-        return payload;
-    }
-
-    /// <summary>
-    /// Remove all handlers owned by a plugin.
-    /// </summary>
-    /// <param name="pluginName">The name of the plugin handling the links.</param>
-    internal void RemoveChatLinkHandler(string pluginName)
-    {
-        lock (this.dalamudLinkHandlers)
-        {
-            var changed = false;
-
-            foreach (var handler in this.RegisteredLinkHandlers.Keys.Where(k => k.PluginName == pluginName))
-                changed |= this.dalamudLinkHandlers.Remove(handler);
-            if (changed)
-                this.dalamudLinkHandlersCopy = null;
-        }
-    }
-
-    /// <summary>
-    /// Remove a registered link handler.
-    /// </summary>
-    /// <param name="pluginName">The name of the plugin handling the link.</param>
-    /// <param name="commandId">The ID of the command to be removed.</param>
-    internal void RemoveChatLinkHandler(string pluginName, uint commandId)
-    {
-        lock (this.dalamudLinkHandlers)
-        {
-            if (this.dalamudLinkHandlers.Remove((pluginName, commandId)))
-                this.dalamudLinkHandlersCopy = null;
         }
     }
 
