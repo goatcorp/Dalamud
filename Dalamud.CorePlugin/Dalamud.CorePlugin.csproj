@@ -4,6 +4,7 @@
         <Platforms>x64</Platforms>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+        <Nullable>enable</Nullable>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <NoWarn>IDE0003</NoWarn>
     </PropertyGroup>
