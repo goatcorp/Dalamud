@@ -3,7 +3,6 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.CorePlugin.PluginInstallerV2.Interfaces;
 using Dalamud.Interface;
-using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
@@ -102,16 +101,12 @@ internal class AvailablePluginsWidget : IPluginInstallerWidget
     private void DrawSelectedPlugin()
     {
         using (ImRaii.PushColor(ImGuiCol.Button, Vector4.Zero))
+        using (this.ParentWindow.FontManager.LargerIconFontHandle.Value.Push())
         {
-            ImGui.SetWindowFontScale(2.0f);
-
-            // Note we have to undo global scale here, because IconButton will internally scale the size.
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.ChevronCircleLeft, new Vector2(64.0f, ImGui.GetContentRegionMax().Y / ImGuiHelpers.GlobalScale)))
+            if (ImGui.Button(FontAwesomeIcon.ChevronCircleLeft.ToIconString(), new Vector2(64.0f * ImGuiHelpers.GlobalScale, ImGui.GetContentRegionMax().Y)))
             {
                 this.SelectedPlugin = null;
             }
-
-            ImGui.SetWindowFontScale(1.0f);
         }
     }
 
