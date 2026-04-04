@@ -45,11 +45,13 @@ internal class PluginImageCache : IInternalDisposableService
     /// </summary>
     public const int PluginIconHeight = 512;
 
-    private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api6/{0}/{1}/images/{2}";
     private const string MainRepoDip17ImageUrl = "https://raw.githubusercontent.com/goatcorp/PluginDistD17/main/{0}/{1}/images/{2}";
 
     [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudAssetManager dalamudAssetManager = Service<DalamudAssetManager>.Get();
 
     private readonly BlockingCollection<Tuple<ulong, Func<Task>>> downloadQueue = [];
     private readonly BlockingCollection<Func<Task>> loadQueue = [];
@@ -59,12 +61,10 @@ internal class PluginImageCache : IInternalDisposableService
     
     private readonly ConcurrentDictionary<string, LoadedIcon?> pluginIconMap = new();
     private readonly ConcurrentDictionary<string, IDalamudTextureWrap?[]?> pluginImagesMap = new();
-    private readonly DalamudAssetManager dalamudAssetManager;
 
     [ServiceManager.ServiceConstructor]
-    private PluginImageCache(Dalamud dalamud, DalamudAssetManager dalamudAssetManager)
+    private PluginImageCache()
     {
-        this.dalamudAssetManager = dalamudAssetManager;
         this.downloadTask = Task.Factory.StartNew(
             () => this.DownloadTask(8), TaskCreationOptions.LongRunning);
         this.loadTask = Task.Factory.StartNew(
@@ -246,7 +246,7 @@ internal class PluginImageCache : IInternalDisposableService
         if (!this.pluginImagesMap.TryAdd(manifest.InternalName, null))
         {
             var found = this.pluginImagesMap[manifest.InternalName];
-            imageTextures = found ?? Array.Empty<IDalamudTextureWrap?>();
+            imageTextures = found ?? [];
             return true;
         }
 
@@ -584,8 +584,7 @@ internal class PluginImageCache : IInternalDisposableService
                 var bytes = await this.RunInDownloadQueue<byte[]?>(
                                 async () =>
                                 {
-                                    var httpClient = Service<HappyHttpClient>.Get().SharedHttpClient;
-
+                                    var httpClient = this.happyHttpClient.SharedHttpClient;
                                     var data = await httpClient.GetAsync(url);
                                     if (data.StatusCode == HttpStatusCode.NotFound)
                                         return null;
