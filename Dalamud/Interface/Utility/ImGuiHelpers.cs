@@ -134,7 +134,7 @@ public static partial class ImGuiHelpers
         blurStrength = Math.Clamp(blurStrength, 0.05f, 8f);
         rounding = Math.Max(0f, rounding);
 
-        var data = (BlurCallbackData*)NativeMemory.Alloc((nuint)sizeof(BlurCallbackData));
+        var data = BlurCallbackDataPool.Rent();
         data->BlurStrength = blurStrength;
         data->Rounding = rounding;
         data->TintColor = tintColor;
@@ -196,7 +196,7 @@ public static partial class ImGuiHelpers
         blurStrength = Math.Clamp(blurStrength, 0.05f, 8f);
         rounding = Math.Max(0f, rounding);
 
-        var data = (BlurCallbackData*)NativeMemory.Alloc((nuint)sizeof(BlurCallbackData));
+        var data = BlurCallbackDataPool.Rent();
         data->BlurStrength = blurStrength;
         data->Rounding = rounding;
         data->TintColor = tintColor;

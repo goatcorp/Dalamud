@@ -416,7 +416,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                             var tintColor = data->TintColor;
                             var luminosityColor = data->LuminosityColor;
                             var noiseOpacity = data->NoiseOpacity;
-                            NativeMemory.Free(data);
+                            BlurCallbackDataPool.Return(data);
 
                             var blurV4 = cmd.ClipRect - clipOff;
                             if (blurV4.X >= blurV4.Z || blurV4.Y >= blurV4.W)
