@@ -161,7 +161,7 @@ internal static class PluginInstallerLocs
         => Loc.Localize("InstallerTitleModIncompatible", " (incompatible)");
 
     public static string PluginTitleMod_DevPlugin
-        => Loc.Localize("InstallerDevPlugin", " (dev plugin)");
+        => Loc.Localize("InstallerDevPlugin", "Dev Plugin");
 
     public static string PluginTitleMod_UpdateFailed
         => Loc.Localize("InstallerUpdateFailed", " (update failed)");
@@ -647,7 +647,7 @@ internal static class PluginInstallerLocs
         => Loc.Localize("VerifiedCheckmark_CustomRepo", "Custom Repo");
 
     public static string VerifiedCheckmark_DalamudApproved
-        => Loc.Localize("VerifiedCheckmark_DalamudApproved", "Dalamud Approved");
+        => Loc.Localize("VerifiedCheckmark_DalamudApproved", "Main Repo");
 
     public static string VerifiedCheckmark_VerifiedTooltip
         => Loc.Localize(

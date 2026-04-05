@@ -97,37 +97,6 @@ internal abstract class PluginEntryRenderer
     }
 
     /// <summary>
-    /// Draws a line indicating whether the source repo is from the Dalamud Repo, or a Custom Repo.
-    /// </summary>
-    /// <param name="manifest">Manifest.</param>
-    protected static void DrawRepoSource(RemotePluginManifest manifest)
-    {
-        if (!manifest.SourceRepo.IsThirdParty)
-        {
-            ImGui.TextColored(KnownColor.CornflowerBlue.Vector(), PluginInstallerLocs.VerifiedCheckmark_DalamudApproved);
-            ImGui.SameLine();
-
-            DrawFontawesomeIconOutlined(FontAwesomeIcon.CheckCircle, KnownColor.White.Vector(), KnownColor.RoyalBlue.Vector());
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip(PluginInstallerLocs.VerifiedCheckmark_VerifiedTooltip);
-            }
-        }
-        else
-        {
-            ImGui.TextColored(KnownColor.Orange.Vector(), PluginInstallerLocs.VerifiedCheckmark_CustomRepo);
-            ImGui.SameLine();
-
-            DrawFontawesomeIconOutlined(FontAwesomeIcon.ExclamationCircle, KnownColor.Black.Vector(), KnownColor.Orange.Vector());
-
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip(PluginInstallerLocs.VerifiedCheckmark_UnverifiedTooltip);
-            }
-        }
-    }
-
-    /// <summary>
     /// Draws font awesome icon multiple times to outline it.
     /// </summary>
     /// <param name="icon">FontAwesome Icon.</param>
@@ -163,6 +132,53 @@ internal abstract class PluginEntryRenderer
     }
 
     /// <summary>
+    /// Draws a line indicating whether the source repo is from the Dalamud Repo, or a Custom Repo.
+    /// </summary>
+    /// <param name="manifest">Manifest.</param>
+    protected void DrawRepoSource(RemotePluginManifest manifest)
+    {
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (2.0f * ImGuiHelpers.GlobalScale));
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (2.0f * ImGuiHelpers.GlobalScale));
+
+        if (this.IsPluginInstalled(manifest) && this.IsDevPlugin(manifest))
+        {
+            DrawFontawesomeIconOutlined(FontAwesomeIcon.Wrench, KnownColor.White.Vector(), KnownColor.MediumOrchid.Vector());
+
+            ImGui.SameLine();
+            ImGuiHelpers.ScaledDummy(0.0f);
+            ImGui.SameLine();
+
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (1.0f * ImGuiHelpers.GlobalScale));
+            ImGui.TextColored(KnownColor.MediumOrchid.Vector(), PluginInstallerLocs.PluginTitleMod_DevPlugin);
+        }
+        else
+        {
+            if (!manifest.SourceRepo.IsThirdParty)
+            {
+                DrawFontawesomeIconOutlined(FontAwesomeIcon.CheckCircle, KnownColor.White.Vector(), KnownColor.RoyalBlue.Vector());
+
+                ImGui.SameLine();
+                ImGuiHelpers.ScaledDummy(0.0f);
+                ImGui.SameLine();
+
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (1.0f * ImGuiHelpers.GlobalScale));
+                ImGui.TextColored(KnownColor.CornflowerBlue.Vector(), PluginInstallerLocs.VerifiedCheckmark_DalamudApproved);
+            }
+            else
+            {
+                DrawFontawesomeIconOutlined(FontAwesomeIcon.ExclamationCircle, KnownColor.Black.Vector(), KnownColor.Orange.Vector());
+
+                ImGui.SameLine();
+                ImGuiHelpers.ScaledDummy(0.0f);
+                ImGui.SameLine();
+
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (1.0f * ImGuiHelpers.GlobalScale));
+                ImGui.TextColored(KnownColor.Orange.Vector(), PluginInstallerLocs.VerifiedCheckmark_CustomRepo);
+            }
+        }
+    }
+
+    /// <summary>
     /// Draw Plugin Name and Author.
     /// </summary>
     /// <param name="manifest">Manifest.</param>
@@ -183,4 +199,21 @@ internal abstract class PluginEntryRenderer
             }
         }
     }
+
+    /// <summary>
+    /// Gets whether the provided manifest matches an installed plugin.
+    /// </summary>
+    /// <param name="manifest">Manifest.</param>
+    /// <returns>If this represents an installed plugin.</returns>
+    protected bool IsPluginInstalled(RemotePluginManifest manifest)
+        => this.ParentWindow.PluginListManager.PluginListInstalled.Any(plugin => plugin.InternalName == manifest.InternalName);
+
+    /// <summary>
+    /// Gets whether the provided manifest matches a dev plugin.
+    /// </summary>
+    /// <param name="manifest">Manifest.</param>
+    /// <returns>If this represents an installed dev plugin.</returns>
+    protected bool IsDevPlugin(RemotePluginManifest manifest)
+        => this.ParentWindow.PluginListManager.PluginListInstalled
+               .FirstOrDefault(plugin => plugin.InternalName == manifest.InternalName)?.IsDev ?? false;
 }

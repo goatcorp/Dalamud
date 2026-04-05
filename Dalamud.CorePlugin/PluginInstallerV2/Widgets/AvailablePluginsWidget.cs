@@ -5,6 +5,7 @@ using Dalamud.CorePlugin.PluginInstallerV2.Controllers;
 using Dalamud.CorePlugin.PluginInstallerV2.Drawing;
 using Dalamud.CorePlugin.PluginInstallerV2.Interfaces;
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal.Types.Manifest;
@@ -40,8 +41,19 @@ internal class AvailablePluginsWidget : IPluginInstallerWidget
     {
         if (this.SelectedPlugin is null)
         {
-            this.pluginEntryRenderer.ResetDraw();
-            ImGuiClip.ClippedDraw(this.ParentWindow.PluginListManager.PluginListAvailable, this.DrawPluginEntry, this.pluginEntryRenderer.EntryInnerHeight * ImGuiHelpers.GlobalScale);
+            if (this.ParentWindow.PluginListManager.PluginListAvailable.Count is not 0)
+            {
+                this.pluginEntryRenderer.ResetDraw();
+                ImGuiClip.ClippedDraw(this.ParentWindow.PluginListManager.PluginListAvailable, this.DrawPluginEntry, this.pluginEntryRenderer.EntryInnerHeight * ImGuiHelpers.GlobalScale);
+            }
+            else
+            {
+                using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudOrange))
+                {
+                    // todo: display a localized error here.
+                    ImGuiHelpers.CenteredText("Unable to load any Available Plugins.");
+                }
+            }
         }
         else
         {

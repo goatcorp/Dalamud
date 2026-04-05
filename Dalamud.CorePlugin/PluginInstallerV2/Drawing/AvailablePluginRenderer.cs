@@ -66,7 +66,7 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
         this.DrawContents(manifest);
     }
 
-    private static void DrawExtras(RemotePluginManifest manifest, float downloadSize, float repositorySize)
+    private void DrawExtras(RemotePluginManifest manifest, float downloadSize, float repositorySize)
     {
         using var extrasChild = ImRaii.Child($"ExtrasChild", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y * (3.0f / 5.0f)), false, ImGuiWindowFlags.NoInputs);
         if (!extrasChild.Success)
@@ -88,11 +88,11 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
 
                 ImGui.SameLine();
 
-                using (var repoChild = ImRaii.Child("RepositoryChild", new Vector2(repositorySize, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.NoInputs))
+                using (var repoChild = ImRaii.Child("RepositoryChild", new Vector2(repositorySize, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
                 {
                     if (repoChild.Success)
                     {
-                        DrawRepoSource(manifest);
+                        this.DrawRepoSource(manifest);
                     }
                 }
             }
@@ -107,7 +107,7 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
         }
     }
 
-    private static void DrawFooter(RemotePluginManifest manifest)
+    private void DrawFooter(RemotePluginManifest manifest)
     {
         using var footerChild = ImRaii.Child("FooterChild", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoInputs);
         if (!footerChild.Success)
@@ -125,13 +125,16 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
             }
         }
 
-        ImGui.SameLine();
-
-        using (var widgetChild = ImRaii.Child("WidgetChild", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoInputs))
+        if (this.IsPluginInstalled(manifest))
         {
-            if (widgetChild.Success)
+            ImGui.SameLine();
+
+            using (var widgetChild = ImRaii.Child("WidgetChild", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoInputs))
             {
-                // Placeholder for Enable/Disable Widget
+                if (widgetChild.Success)
+                {
+                    // Placeholder for Enable/Disable Widget
+                }
             }
         }
     }
@@ -149,7 +152,7 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
         }
 
         var downloadSize = 150.0f * ImGuiHelpers.GlobalScale;
-        var repositorySize = 150.0f * ImGuiHelpers.GlobalScale;
+        var repositorySize = 125.0f * ImGuiHelpers.GlobalScale;
 
         using (var titleChild = ImRaii.Child($"TitleChild", new Vector2(ImGui.GetContentRegionAvail().X - downloadSize - repositorySize - (ImGui.GetStyle().ItemSpacing.X * 2.0f), ImGui.GetContentRegionAvail().Y * (3.0f / 5.0f)), false, ImGuiWindowFlags.NoInputs))
         {
@@ -162,9 +165,9 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
         ImGui.SameLine();
 
         // Extras are Download Count, Source Repository, and maybe in the future some badge icons.
-        DrawExtras(manifest, downloadSize, repositorySize);
+        this.DrawExtras(manifest, downloadSize, repositorySize);
 
         // Footer is Punchline and a toggle button to enable/disable.
-        DrawFooter(manifest);
+        this.DrawFooter(manifest);
     }
 }
