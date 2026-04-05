@@ -4,6 +4,8 @@ using System.Text;
 
 using Dalamud.Data;
 
+using FFXIVClientStructs.FFXIV.Client.Game.Network;
+
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
@@ -41,40 +43,6 @@ public class ZoneInitEventArgs : EventArgs
     /// </summary>
     public IReadOnlyList<FestivalEntry> ActiveFestivals { get; private set; }
 
-    /// <summary>
-    /// Reads raw zone initialization data from a network packet and constructs the event arguments.
-    /// </summary>
-    /// <param name="packet">A pointer to the raw packet data.</param>
-    /// <returns>A <see cref="ZoneInitEventArgs"/> populated from the packet.</returns>
-    public static unsafe ZoneInitEventArgs Read(nint packet)
-    {
-        var territoryTypeId = *(ushort*)(packet + 0x02);
-        var contentFinderConditionId = *(ushort*)(packet + 0x06);
-        var weatherId = *(byte*)(packet + 0x10);
-        var flags = *(byte*)(packet + 0x12);
-        var instance = flags >= 0 ? (ushort)0 : *(ushort*)(packet + 0x04);
-
-        // There are also festival ids and phases for PlayerState in this packet,
-        // but it's unclear why they exist as separate entries and why they would be different.
-        var festivals = new FestivalEntry[NumFestivals];
-
-        for (var i = 0; i < NumFestivals; i++)
-        {
-            var festivalId = *(ushort*)(packet + 0x26 + (i * 2));
-            var festivalPhase = *(ushort*)(packet + 0x36 + (i * 2));
-            festivals[i] = new FestivalEntry(LuminaUtils.CreateRef<Festival>(festivalId), festivalPhase);
-        }
-
-        return new ZoneInitEventArgs()
-        {
-            TerritoryType = LuminaUtils.CreateRef<TerritoryType>(territoryTypeId),
-            Instance = instance,
-            ContentFinderCondition = LuminaUtils.CreateRef<ContentFinderCondition>(contentFinderConditionId),
-            Weather = LuminaUtils.CreateRef<Weather>(weatherId),
-            ActiveFestivals = festivals,
-        };
-    }
-
     /// <inheritdoc/>
     public override string ToString()
     {
@@ -86,6 +54,38 @@ public class ZoneInitEventArgs : EventArgs
         sb.Append($"ActiveFestivals = [{string.Join(", ", this.ActiveFestivals.Select(f => $"{f.Festival.RowId}|{f.FestivalPhase}"))}], ");
         sb.Append(" }");
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Reads raw zone initialization data from a network packet and constructs the event arguments.
+    /// </summary>
+    /// <param name="packet">A pointer to the raw packet data.</param>
+    /// <returns>A <see cref="ZoneInitEventArgs"/> populated from the packet.</returns>
+    internal static unsafe ZoneInitEventArgs Read(ZoneInitPacket* packet)
+    {
+        var territoryTypeId = packet->TerritoryTypeId;
+        var contentFinderConditionId = packet->ContentFinderConditionId;
+        var weatherId = packet->WeatherId;
+        var instance = packet->Flags.HasFlag(ZoneInitFlags.IsInstancedArea)
+            ? packet->Instance
+            : (ushort)0;
+
+        var festivals = new FestivalEntry[NumFestivals];
+        for (var i = 0; i < NumFestivals; i++)
+        {
+            var festivalId = packet->GameFestivalIds[i];
+            var festivalPhase = packet->GameFestivalPhases[i];
+            festivals[i] = new FestivalEntry(LuminaUtils.CreateRef<Festival>(festivalId), festivalPhase);
+        }
+
+        return new ZoneInitEventArgs()
+        {
+            TerritoryType = LuminaUtils.CreateRef<TerritoryType>(territoryTypeId),
+            Instance = instance,
+            ContentFinderCondition = LuminaUtils.CreateRef<ContentFinderCondition>(contentFinderConditionId),
+            Weather = LuminaUtils.CreateRef<Weather>(weatherId),
+            ActiveFestivals = festivals,
+        };
     }
 
     /// <summary>
