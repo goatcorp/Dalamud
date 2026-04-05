@@ -2093,7 +2093,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                               .Select(repo => $"{failText} ({repo.PluginMasterUrl})")
                               .Aggregate((s1, s2) => $"{s1}\n{s2}");
 
-            ImGui.TextColored(ImGuiColors.DalamudRed, aggFailText);
+            ImGui.TextColored(ImGuiColors.ErrorForeground, aggFailText);
         }
 
         return ready;
@@ -2306,12 +2306,12 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Outdated warning
         if (flags.HasFlag(PluginHeaderFlags.IsIncompatible))
         {
-            using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
             ImGui.TextWrapped(Locs.PluginBody_Incompatible);
         }
         else if (plugin is { IsOutdated: true, IsBanned: false } || flags.HasFlag(PluginHeaderFlags.IsInstallableOutdated))
         {
-            using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
 
             var bodyText = Locs.PluginBody_Outdated + " ";
             if (flags.HasFlag(PluginHeaderFlags.UpdateAvailable))
@@ -2324,7 +2324,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         else if (plugin is { IsBanned: true })
         {
             // Banned warning
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
 
             var bodyText = plugin.BanReason.IsNullOrEmpty()
                                ? Locs.PluginBody_Banned
@@ -2342,19 +2342,19 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
         else if (plugin is { IsOrphaned: true })
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
             ImGui.TextWrapped(Locs.PluginBody_Orphaned);
             ImGui.PopStyleColor();
         }
         else if (plugin is { IsDecommissioned: true, IsThirdParty: false })
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
             ImGui.TextWrapped(Locs.PluginBody_NoServiceOfficial);
             ImGui.PopStyleColor();
         }
         else if (plugin is { IsDecommissioned: true, IsThirdParty: true })
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
 
             ImGui.TextWrapped(
                 flags.HasFlag(PluginHeaderFlags.MainRepoCrossUpdate)
@@ -2365,14 +2365,14 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
         else if (plugin != null && !plugin.CheckPolicy())
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
             ImGui.TextWrapped(Locs.PluginBody_Policy);
             ImGui.PopStyleColor();
         }
         else if (plugin is { State: PluginState.LoadError or PluginState.DependencyResolutionFailed })
         {
             // Load failed warning
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
             ImGui.TextWrapped(Locs.PluginBody_LoadFailed);
             ImGui.PopStyleColor();
         }

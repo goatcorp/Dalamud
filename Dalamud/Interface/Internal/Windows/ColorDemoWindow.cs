@@ -46,6 +46,16 @@ internal sealed class ColorDemoWindow : Window
             ("ParsedOrange", ImGuiColors.ParsedOrange),
             ("ParsedPink", ImGuiColors.ParsedPink),
             ("ParsedGold", ImGuiColors.ParsedGold),
+            ("InfoForeground", ImGuiColors.ParsedGold),
+            ("InfoBackground", ImGuiColors.ParsedGold),
+            ("SuccessForeground", ImGuiColors.SuccessForeground),
+            ("SuccessBackground", ImGuiColors.SuccessBackground),
+            ("WarningForeground", ImGuiColors.WarningForeground),
+            ("WarningBackground", ImGuiColors.WarningBackground),
+            ("ErrorForeground", ImGuiColors.ErrorForeground),
+            ("ErrorBackground", ImGuiColors.ErrorBackground),
+            ("AttentionForeground", ImGuiColors.AttentionForeground),
+            ("AttentionBackground", ImGuiColors.AttentionBackground),
         }.OrderBy(colorDemo => colorDemo.Name).ToList();
     }
 
