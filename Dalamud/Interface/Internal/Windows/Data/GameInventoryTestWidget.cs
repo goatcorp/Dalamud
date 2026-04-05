@@ -41,7 +41,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
         if (Service<DalamudConfiguration>.Get().LogLevel > LogEventLevel.Information)
         {
             ImGui.TextColoredWrapped(
-                ImGuiColors.DalamudRed,
+                ImGuiColors.AttentionForeground,
                 "Enable LogLevel=Information display to see the logs."u8);
         }
 

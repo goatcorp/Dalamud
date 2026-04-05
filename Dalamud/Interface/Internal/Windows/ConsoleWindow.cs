@@ -159,7 +159,7 @@ internal class ConsoleWindow : Window, IDisposable
         if (this.exceptionLogFilter is not null)
         {
             ImGui.TextColored(
-                ImGuiColors.DalamudRed,
+                ImGuiColors.ErrorForeground,
                 $"Regex Filter Error: {this.exceptionLogFilter.GetType().Name}");
             ImGui.Text(this.exceptionLogFilter.Message);
         }
@@ -167,7 +167,7 @@ internal class ConsoleWindow : Window, IDisposable
         if (this.exceptionLogHighlight is not null)
         {
             ImGui.TextColored(
-                ImGuiColors.DalamudRed,
+                ImGuiColors.ErrorForeground,
                 $"Regex Highlight Error: {this.exceptionLogHighlight.GetType().Name}");
             ImGui.Text(this.exceptionLogHighlight.Message);
         }
@@ -305,11 +305,11 @@ internal class ConsoleWindow : Window, IDisposable
             hadColor = true;
             if (this.lastCmdSuccess.Value)
             {
-                ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGuiColors.HealerGreen - new Vector4(0, 0, 0, 0.7f));
+                ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGuiColors.SuccessBackground - new Vector4(0, 0, 0, 0.7f));
             }
             else
             {
-                ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGuiColors.DalamudRed - new Vector4(0, 0, 0, 0.7f));
+                ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGuiColors.ErrorBackground - new Vector4(0, 0, 0, 0.7f));
             }
         }
 
@@ -734,7 +734,7 @@ internal class ConsoleWindow : Window, IDisposable
 
             if (sourceNames.Count == 0)
             {
-                ImGui.TextColored(ImGuiColors.DalamudRed, "No Results"u8);
+                ImGui.TextColored(ImGuiColors.AttentionForeground, "No Results"u8);
             }
 
             foreach (var selectable in sourceNames)
@@ -1073,7 +1073,7 @@ internal class ConsoleWindow : Window, IDisposable
         var result = false;
 
         var buttonEnabled = enabledState;
-        if (buttonEnabled) ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.HealerGreen with { W = 0.25f });
+        if (buttonEnabled) ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.SuccessBackground with { W = 0.25f });
         if (ImGuiComponents.IconButton(buttonId, icon))
         {
             result = true;
