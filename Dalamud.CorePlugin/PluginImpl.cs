@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.CorePlugin.PluginInstallerV2;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
@@ -46,7 +47,7 @@ namespace Dalamud.CorePlugin
 #else
 
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
-        private readonly PluginWindow window;
+        private readonly PluginInstallerWindow2 installerWindow2;
 
         private Localization localization;
 
@@ -61,12 +62,12 @@ namespace Dalamud.CorePlugin
         {
             try
             {
-                // this.InitLoc();
+                this.InitLoc();
                 this.Interface = pluginInterface;
                 this.pluginLog = log;
 
-                this.window = new PluginWindow();
-                this.windowSystem.AddWindow(this.window);
+                this.installerWindow2 = new PluginInstallerWindow2();
+                this.windowSystem.AddWindow(this.installerWindow2);
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
@@ -139,12 +140,12 @@ namespace Dalamud.CorePlugin
         {
             this.pluginLog.Information("Command called!");
 
-            this.window.IsOpen ^= true;
+            this.installerWindow2.IsOpen ^= true;
         }
 
         private void OnOpenConfigUi()
         {
-            this.window.IsOpen = true;
+            this.installerWindow2.IsOpen = true;
         }
 
         private void OnOpenMainUi()
