@@ -18,6 +18,7 @@ internal static class SelectedTabExtensions
         SelectedTab.InstalledPlugins => PluginCategoryManager.Locs.Group_Installed,
         SelectedTab.AvailablePlugins => PluginCategoryManager.Locs.Group_Available,
         SelectedTab.Changelog => PluginCategoryManager.Locs.Group_Changelog,
+        SelectedTab.Collections => PluginCategoryManager.Locs.Category_PluginProfiles,
         _ => $"No Translation Available for {selectedTab}",
     };
 }

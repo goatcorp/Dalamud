@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
@@ -38,7 +39,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
     {
         this.IsOpen = true;
 
-        this.Size = new Vector2(830.0f, 570.0f);
+        this.Size = new Vector2(730.0f, 570.0f);
         this.SizeCondition = ImGuiCond.FirstUseEver;
 
         this.SizeConstraints = new WindowSizeConstraints
@@ -182,8 +183,9 @@ internal class PluginInstallerWindow2 : Window, IDisposable
     {
         var tabBarHeight = 30.0f * ImGuiHelpers.GlobalScale;
 
-        ImGui.SetCursorPosX((ImGui.GetContentRegionMax().X / 10.0f) + 5.0f);
-        using var child = ImRaii.Child("TabBar"u8, new Vector2(ImGui.GetContentRegionMax().X * (4.0f / 5.0f), tabBarHeight), this.ShowChildBorders);
+        // Might consider reworking this to have fixed button sizes, but somehow center them instead of stretching them.
+        ImGui.SetCursorPosX(ImGui.GetCursorPos().X + (5.0f * ImGuiHelpers.GlobalScale));
+        using var child = ImRaii.Child("TabBar"u8, new Vector2(ImGui.GetContentRegionAvail().X - (10.0f * ImGuiHelpers.GlobalScale), tabBarHeight), this.ShowChildBorders);
         if (!child.Success)
         {
             return;
@@ -191,10 +193,15 @@ internal class PluginInstallerWindow2 : Window, IDisposable
 
         var activeTabs = this.GetActiveTabs();
 
-        using var table = ImRaii.Table("TabBarTable2", activeTabs.Count, ImGuiTableFlags.SizingStretchProp);
+        using var table = ImRaii.Table($"TabBarTable{activeTabs.Count}", activeTabs.Count);
         if (!table.Success)
         {
             return;
+        }
+
+        foreach (var (index, _) in activeTabs.Index())
+        {
+            ImGui.TableSetupColumn($"##ButtonColumn{index}", ImGuiTableColumnFlags.WidthStretch, 1.0f);
         }
 
         foreach (var tab in activeTabs)

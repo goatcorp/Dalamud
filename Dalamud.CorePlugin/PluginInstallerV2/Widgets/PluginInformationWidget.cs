@@ -4,9 +4,10 @@ using Dalamud.CorePlugin.PluginInstallerV2.Interfaces;
 namespace Dalamud.CorePlugin.PluginInstallerV2.Widgets;
 
 /// <summary>
-/// Class responsible for drawing plugins collection widget.
+/// Class responsible for displaying compressive information about a plugin.
+/// This is the big page with the plugins images, description, changelog, controls, etc.
 /// </summary>
-internal class CollectionsWidget : IPluginInstallerWidget
+internal class PluginInformationWidget : IPluginInstallerWidget
 {
     /// <inheritdoc/>
     public required PluginInstallerWindow2 ParentWindow { get; init; }
@@ -19,5 +20,6 @@ internal class CollectionsWidget : IPluginInstallerWidget
     /// <inheritdoc/>
     public void OnSearchUpdated(SearchController searchInfo)
     {
+        // Do nothing, search should be ignored while this widget is active.
     }
 }

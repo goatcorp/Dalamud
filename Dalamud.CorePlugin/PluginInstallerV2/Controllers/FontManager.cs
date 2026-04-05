@@ -23,12 +23,14 @@ internal class FontManager : IDisposable
 
         this.privateAtlas = fontAtlasFactory.CreateFontAtlas("PluginInstallerFontAtlas", FontAtlasAutoRebuildMode.Async);
 
+        // Note: Due to lazy nature, can cause text to pop in larger once its built. May consider making this not so lazy.
         this.LargerFontHandle = new Lazy<IFontHandle>(
             () => this.scopedFinalizer.Add(
                 this.privateAtlas.NewDelegateFontHandle(
                     e => e.OnPreBuild(
-                        toolkit => toolkit.AddDalamudDefaultFont(32.0f)))));
+                        toolkit => toolkit.AddDalamudDefaultFont(24.0f)))));
 
+        // Note: Due to lazy nature, can cause text to pop in larger once its built. May consider making this not so lazy.
         this.LargerIconFontHandle = new Lazy<IFontHandle>(
             () => this.scopedFinalizer.Add(
                 this.privateAtlas.NewDelegateFontHandle(
