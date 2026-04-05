@@ -134,10 +134,10 @@ internal static class NotificationConstants
     public static Vector4 ToColor(this NotificationType type) => type switch
     {
         NotificationType.None => ImGuiColors.DalamudWhite,
-        NotificationType.Success => ImGuiColors.HealerGreen,
-        NotificationType.Warning => ImGuiColors.DalamudOrange,
-        NotificationType.Error => ImGuiColors.DalamudRed,
-        NotificationType.Info => ImGuiColors.TankBlue,
+        NotificationType.Success => ImGuiColors.SuccessForeground,
+        NotificationType.Warning => ImGuiColors.WarningForeground,
+        NotificationType.Error => ImGuiColors.ErrorForeground,
+        NotificationType.Info => ImGuiColors.InfoForeground,
         _ => ImGuiColors.DalamudWhite,
     };
 

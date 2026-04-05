@@ -66,6 +66,36 @@ public class DalamudColors
     [JsonProperty("s")]
     public Vector4? ParsedGold { get; set; }
 
+    [JsonProperty("t")]
+    public Vector4? InfoForeground { get; set; }
+
+    [JsonProperty("u")]
+    public Vector4? InfoBackground { get; set; }
+
+    [JsonProperty("v")]
+    public Vector4? SuccessForeground { get; set; }
+
+    [JsonProperty("w")]
+    public Vector4? SuccessBackground { get; set; }
+
+    [JsonProperty("x")]
+    public Vector4? WarningForeground { get; set; }
+
+    [JsonProperty("y")]
+    public Vector4? WarningBackground { get; set; }
+
+    [JsonProperty("z")]
+    public Vector4? ErrorForeground { get; set; }
+
+    [JsonProperty("aa")]
+    public Vector4? ErrorBackground { get; set; }
+
+    [JsonProperty("ab")]
+    public Vector4? AttentionForeground { get; set; }
+
+    [JsonProperty("ac")]
+    public Vector4? AttentionBackground { get; set; }
+
     public void Apply()
     {
         if (this.DalamudRed.HasValue)
@@ -161,6 +191,56 @@ public class DalamudColors
         if (this.ParsedGold.HasValue)
         {
             ImGuiColors.ParsedGold = this.ParsedGold.Value;
+        }
+
+        if (this.InfoForeground.HasValue)
+        {
+            ImGuiColors.InfoForeground = this.InfoForeground.Value;
+        }
+
+        if (this.InfoBackground.HasValue)
+        {
+            ImGuiColors.InfoBackground = this.InfoBackground.Value;
+        }
+
+        if (this.SuccessForeground.HasValue)
+        {
+            ImGuiColors.SuccessForeground = this.SuccessForeground.Value;
+        }
+
+        if (this.SuccessBackground.HasValue)
+        {
+            ImGuiColors.SuccessBackground = this.SuccessBackground.Value;
+        }
+
+        if (this.WarningForeground.HasValue)
+        {
+            ImGuiColors.WarningForeground = this.WarningForeground.Value;
+        }
+
+        if (this.WarningBackground.HasValue)
+        {
+            ImGuiColors.WarningBackground = this.WarningBackground.Value;
+        }
+
+        if (this.ErrorForeground.HasValue)
+        {
+            ImGuiColors.ErrorForeground = this.ErrorForeground.Value;
+        }
+
+        if (this.ErrorBackground.HasValue)
+        {
+            ImGuiColors.ErrorBackground = this.ErrorBackground.Value;
+        }
+
+        if (this.AttentionForeground.HasValue)
+        {
+            ImGuiColors.AttentionForeground = this.AttentionForeground.Value;
+        }
+
+        if (this.AttentionBackground.HasValue)
+        {
+            ImGuiColors.AttentionBackground = this.AttentionBackground.Value;
         }
     }
 }

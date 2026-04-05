@@ -138,6 +138,16 @@ public class StyleModelV1 : StyleModel
             ParsedOrange = new Vector4(1f, 0.501f, 0f, 1f),
             ParsedPink = new Vector4(0.886f, 0.407f, 0.658f, 1f),
             ParsedGold = new Vector4(0.898f, 0.8f, 0.501f, 1f),
+            InfoForeground = new Vector4(0f, 0.6f, 1f, 1f),
+            InfoBackground = new Vector4(0f, 0.6f, 1f, 1f),
+            SuccessForeground = new Vector4(0f, 0.8f, 0.1333333f, 1f),
+            SuccessBackground = new Vector4(0f, 0.8f, 0.1333333f, 1f),
+            WarningForeground = new Vector4(1f, 0.709f, 0f, 1f),
+            WarningBackground = new Vector4(1f, 0.709f, 0f, 1f),
+            ErrorForeground = new Vector4(1f, 0f, 0f, 1f),
+            ErrorBackground = new Vector4(1f, 0f, 0f, 1f),
+            AttentionForeground = new Vector4(1f, 0.709f, 0f, 1f),
+            AttentionBackground = new Vector4(1f, 0.709f, 0f, 1f),
         },
     };
 
@@ -257,6 +267,16 @@ public class StyleModelV1 : StyleModel
             ParsedOrange = new Vector4(1f, 0.501f, 0f, 1f),
             ParsedPink = new Vector4(0.886f, 0.407f, 0.658f, 1f),
             ParsedGold = new Vector4(0.898f, 0.8f, 0.501f, 1f),
+            InfoForeground = new Vector4(0f, 0.6f, 1f, 1f),
+            InfoBackground = new Vector4(0f, 0.6f, 1f, 1f),
+            SuccessForeground = new Vector4(0f, 0.8f, 0.1333333f, 1f),
+            SuccessBackground = new Vector4(0f, 0.8f, 0.1333333f, 1f),
+            WarningForeground = new Vector4(1f, 0.709f, 0f, 1f),
+            WarningBackground = new Vector4(1f, 0.709f, 0f, 1f),
+            ErrorForeground = new Vector4(1f, 0f, 0f, 1f),
+            ErrorBackground = new Vector4(1f, 0f, 0f, 1f),
+            AttentionForeground = new Vector4(1f, 0.709f, 0f, 1f),
+            AttentionBackground = new Vector4(1f, 0.709f, 0f, 1f),
         },
     };
 
@@ -430,6 +450,16 @@ public class StyleModelV1 : StyleModel
             ParsedOrange = ImGuiColors.ParsedOrange,
             ParsedPink = ImGuiColors.ParsedPink,
             ParsedGold = ImGuiColors.ParsedGold,
+            InfoForeground = ImGuiColors.InfoForeground,
+            InfoBackground = ImGuiColors.InfoBackground,
+            SuccessForeground = ImGuiColors.SuccessForeground,
+            SuccessBackground = ImGuiColors.SuccessBackground,
+            WarningForeground = ImGuiColors.WarningForeground,
+            WarningBackground = ImGuiColors.WarningBackground,
+            ErrorForeground = ImGuiColors.ErrorForeground,
+            ErrorBackground = ImGuiColors.ErrorBackground,
+            AttentionForeground = ImGuiColors.AttentionForeground,
+            AttentionBackground = ImGuiColors.AttentionBackground,
         };
 
         return model;

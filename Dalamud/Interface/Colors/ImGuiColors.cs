@@ -101,4 +101,64 @@ public static class ImGuiColors
     /// Gets parsed gold.
     /// </summary>
     public static Vector4 ParsedGold { get; internal set; } = new(0.898f, 0.8f, 0.501f, 1f);
+
+    /// <summary>
+    /// Gets a foreground color used globally to denote general information.
+    /// </summary>
+    /// <remarks> Default is the same as <see cref="TankBlue"/>. </remarks>
+    public static Vector4 InfoForeground { get; internal set; } = new(0f, 0.6f, 1f, 1f);
+
+    /// <summary>
+    /// Gets a background color used globally to denote general information.
+    /// </summary>
+    /// <remarks> Default is the same as <see cref="TankBlue"/>. </remarks>
+    public static Vector4 InfoBackground { get; internal set; } = new(0f, 0.6f, 1f, 1f);
+
+    /// <summary>
+    /// Gets a foreground color used globally to denote successful actions.
+    /// </summary>
+    /// <remarks> Default is the same as <see cref="HealerGreen"/>. </remarks>
+    public static Vector4 SuccessForeground { get; internal set; } = new(0f, 0.8f, 0.1333333f, 1f);
+
+    /// <summary>
+    /// Gets a background color used globally to denote successful actions.
+    /// </summary>
+    /// <remarks> Default is the same as <see cref="HealerGreen"/>. </remarks>
+    public static Vector4 SuccessBackground { get; internal set; } = new(0f, 0.8f, 0.1333333f, 1f);
+
+    /// <summary>
+    /// Gets a foreground color used globally to denote warnings.
+    /// </summary>
+    /// <remarks> Default is the same as <see cref="DalamudOrange"/>. </remarks>
+    public static Vector4 WarningForeground { get; internal set; } = new(1f, 0.709f, 0f, 1f);
+
+    /// <summary>
+    /// Gets a background color used globally to denote warnings.
+    /// </summary>
+    /// <remarks> Default is the same as <see cref="DalamudOrange"/>. </remarks>
+    public static Vector4 WarningBackground { get; internal set; } = new(1f, 0.709f, 0f, 1f);
+
+    /// <summary>
+    /// Gets a foreground color used globally to denote errors and unsuccessful actions.
+    /// </summary>
+    /// <remarks> Default is the same as <see cref="DalamudRed"/>. </remarks>
+    public static Vector4 ErrorForeground { get; internal set; } = new(1f, 0f, 0f, 1f);
+
+    /// <summary>
+    /// Gets a background color used globally to denote errors and unsuccessful actions.
+    /// </summary>
+    /// <remarks> Default is the same as <see cref="DalamudRed"/>. </remarks>
+    public static Vector4 ErrorBackground { get; internal set; } = new(1f, 0f, 0f, 1f);
+
+    /// <summary>
+    /// Gets a foreground color used globally to highlight things that should catch a user's attention.
+    /// </summary>
+    /// <remarks> Default is the same as <see cref="WarningForeground"/> and <see cref="DalamudOrange"/>. </remarks>
+    public static Vector4 AttentionForeground { get; internal set; } = new(1f, 0.709f, 0f, 1f);
+
+    /// <summary>
+    /// Gets a foreground color used globally to highlight things that should catch a user's attention.
+    /// </summary>
+    /// <remarks> Default is the same as <see cref="WarningBackground"/> and <see cref="DalamudOrange"/>. </remarks>
+    public static Vector4 AttentionBackground { get; internal set; } = new(1f, 0.709f, 0f, 1f);
 }
