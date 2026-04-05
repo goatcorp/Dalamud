@@ -256,12 +256,6 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool EnablePluginUiAdditionalOptions { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the "sigma" value passed into the shader for Windows. 0 == disabled.
-    /// </summary>
-    [JsonProperty("PluginUiBackgroundBlurStrengthExperimental")]
-    public float PluginUiBackgroundBlurStrength { get; set; } = 0f;
-
-    /// <summary>
     /// Gets or sets a value indicating whether viewports should always be disabled.
     /// </summary>
     public bool IsDisableViewport { get; set; } = true;

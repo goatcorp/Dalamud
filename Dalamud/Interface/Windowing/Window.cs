@@ -36,6 +36,7 @@ public abstract class Window
     private const float FadeInOutTime = 0.072f;
     private const string AdditionsPopupName = "WindowSystemContextActions";
     private const float BlurNoiseOpacity = 0.17f;
+    private const float MaxBlurStrength = 14f;
     private static readonly Vector4 BlurTintMultiplier = new(158 / 255f, 158 / 255f, 158 / 255f, 25 / 255f);
 
     private static readonly ModuleLog Log = ModuleLog.Create<WindowSystem>();
@@ -543,7 +544,7 @@ public abstract class Window
         {
             // Apply background blur
             {
-                var effectiveBlurFactor = this.internalBlurFactorOverride ?? internalDrawParams.BackgroundBlurSigma;
+                var effectiveBlurFactor = this.internalBlurFactorOverride ?? internalDrawParams.DefaultBackgroundBlurStrength;
                 var shouldBlur = this.AllowBackgroundBlur &&
                                  effectiveBlurFactor != 0f &&
                                  ImGui.GetWindowViewport().ID == ImGui.GetMainViewport().ID &&
@@ -557,7 +558,7 @@ public abstract class Window
                         ImGui.GetWindowDrawList(),
                         wPos,
                         wPos + ImGui.GetWindowSize(),
-                        effectiveBlurFactor,
+                        effectiveBlurFactor * MaxBlurStrength,
                         ImGui.GetStyle().WindowRounding,
                         tintColor: ImGui.GetStyle().Colors[ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows) ? (int)ImGuiCol.TitleBgActive : (int)ImGuiCol.TitleBg] * BlurTintMultiplier,
                         noiseOpacity: BlurNoiseOpacity * effectiveWindowBgAlpha);
@@ -660,10 +661,11 @@ public abstract class Window
 
                 if (this.AllowBackgroundBlur)
                 {
-                    var blurOverride = this.internalBlurFactorOverride ?? internalDrawParams.BackgroundBlurSigma;
-                    if (ImGui.SliderFloat(Loc.Localize("WindowSystemContextActionBlur", "Background Blur"), ref blurOverride, 0f, 20f))
+                    var blurOverride =
+                        (this.internalBlurFactorOverride ?? internalDrawParams.DefaultBackgroundBlurStrength) * 100f;
+                    if (ImGui.SliderFloat(Loc.Localize("WindowSystemContextActionBlur", "Background Blur"), ref blurOverride, 0f, 100f, "%.1f%%"))
                     {
-                        this.internalBlurFactorOverride = Math.Clamp(blurOverride, 0f, 20f);
+                        this.internalBlurFactorOverride = blurOverride / 100f;
                         this.presetDirty = true;
                     }
 
@@ -1089,7 +1091,7 @@ public abstract class Window
         /// <summary>
         /// Gets the sigma value to be used for background blur, if enabled..
         /// </summary>
-        public float BackgroundBlurSigma { get; init; }
+        public float DefaultBackgroundBlurStrength { get; init; }
     }
 
     /// <summary>
