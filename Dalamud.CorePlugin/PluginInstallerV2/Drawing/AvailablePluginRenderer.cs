@@ -1,11 +1,19 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
+using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin;
+using Dalamud.Plugin.Internal.Profiles;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 
 namespace Dalamud.CorePlugin.PluginInstallerV2.Drawing;
@@ -115,7 +123,8 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
             return;
         }
 
-        var controlWidgetSize = 100.0f * ImGuiHelpers.GlobalScale;
+        var installedPlugin = this.ParentWindow.PluginListManager.PluginListInstalled.FirstOrDefault(plugin => plugin.InternalName == manifest.InternalName);
+        var controlWidgetSize = installedPlugin is not null ? 50.0f * ImGuiHelpers.GlobalScale : 0.0f;
 
         using (var punchlineChild = ImRaii.Child("PunchlineChild", new Vector2(ImGui.GetContentRegionAvail().X - ImGui.GetStyle().ItemSpacing.X - controlWidgetSize, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
         {
@@ -125,18 +134,84 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
             }
         }
 
-        if (this.IsPluginInstalled(manifest))
+        if (installedPlugin is not null)
         {
             ImGui.SameLine();
 
-            using (var widgetChild = ImRaii.Child("WidgetChild", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoInputs))
+            using (var widgetChild = ImRaii.Child("WidgetChild", ImGui.GetContentRegionAvail(), false))
             {
                 if (widgetChild.Success)
                 {
-                    // Placeholder for Enable/Disable Widget
+                    var isEnabled = installedPlugin.IsLoaded;
+                    if (ImGuiComponents.ToggleButton("ToggleButton", ref isEnabled))
+                    {
+                        if (installedPlugin.IsLoaded)
+                        {
+                            this.UnloadPlugin(installedPlugin);
+                        }
+                        else
+                        {
+                            this.LoadPlugin(installedPlugin);
+                        }
+                    }
                 }
             }
         }
+    }
+
+    private void LoadPlugin(LocalPlugin plugin)
+    {
+        var notifications = Service<NotificationManager>.Get();
+        var profileManager = Service<ProfileManager>.Get();
+
+        var profilesThatWantThisPlugin = profileManager.Profiles
+                                                       .Where(x => x.WantsPlugin(plugin.EffectiveWorkingPluginId) != null)
+                                                       .ToArray();
+
+        var applicableProfile = profilesThatWantThisPlugin.First();
+
+        Task.Run(async () =>
+        {
+            await applicableProfile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true, false);
+            await plugin.LoadAsync(PluginLoadReason.Installer);
+
+            notifications.AddNotification(
+                PluginInstallerLocs.Notifications_PluginEnabled(plugin.Manifest.Name),
+                PluginInstallerLocs.Notifications_PluginEnabledTitle,
+                NotificationType.Success);
+        });
+    }
+
+    private void UnloadPlugin(LocalPlugin plugin)
+    {
+        var notifications = Service<NotificationManager>.Get();
+        var profileManager = Service<ProfileManager>.Get();
+
+        var profilesThatWantThisPlugin = profileManager.Profiles
+                                                       .Where(x => x.WantsPlugin(plugin.EffectiveWorkingPluginId) != null)
+                                                       .ToArray();
+
+        var applicableProfile = profilesThatWantThisPlugin.First();
+
+        Task.Run(async () =>
+        {
+            await plugin.UnloadAsync();
+            await applicableProfile.AddOrUpdateAsync(
+                plugin.EffectiveWorkingPluginId,
+                plugin.Manifest.InternalName,
+                false,
+                false);
+
+            notifications.AddNotification(
+                PluginInstallerLocs.Notifications_PluginDisabled(plugin.Manifest.Name),
+                PluginInstallerLocs.Notifications_PluginDisabledTitle,
+                NotificationType.Success);
+        });
+        // }).ContinueWith(t =>
+        // {
+        //     this.enableDisableStatus = OperationStatus.Complete;
+        //     this.DisplayErrorContinuation(t, PluginInstallerLocs.ErrorModal_UnloadFail(plugin.Name));
+        // });
     }
 
     /// <summary>
