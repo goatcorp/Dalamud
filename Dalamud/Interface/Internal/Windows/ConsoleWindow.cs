@@ -303,14 +303,7 @@ internal class ConsoleWindow : Window, IDisposable
         if (this.lastCmdSuccess.HasValue)
         {
             hadColor = true;
-            if (this.lastCmdSuccess.Value)
-            {
-                ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGuiColors.SuccessBackground - new Vector4(0, 0, 0, 0.7f));
-            }
-            else
-            {
-                ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGuiColors.ErrorBackground - new Vector4(0, 0, 0, 0.7f));
-            }
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, this.lastCmdSuccess.Value ? ImGuiColors.SuccessBackground : ImGuiColors.ErrorBackground);
         }
 
         ImGui.SetNextItemWidth(
