@@ -43,7 +43,6 @@ internal class AvailablePluginsWidget : IPluginInstallerWidget
         {
             if (this.ParentWindow.PluginListManager.PluginListAvailable.Count is not 0)
             {
-                this.pluginEntryRenderer.ResetDraw();
                 ImGuiClip.ClippedDraw(this.ParentWindow.PluginListManager.PluginListAvailable, this.DrawPluginEntry, this.pluginEntryRenderer.EntryInnerHeight * ImGuiHelpers.GlobalScale);
             }
             else

@@ -201,7 +201,7 @@ public static partial class ImGuiComponents
     /// that dimension will conform to the size of the icon and text.
     /// </param>
     /// <returns>Indicator if button is clicked.</returns>
-    public static bool IconButtonWithText(FontAwesomeIcon icon, string text, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null, Vector2? size = null)
+    public static bool  IconButtonWithText(FontAwesomeIcon icon, string text, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null, Vector2? size = null)
     {
         using var col = new ImRaii.Color();
 

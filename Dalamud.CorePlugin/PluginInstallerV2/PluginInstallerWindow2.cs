@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
@@ -11,10 +12,12 @@ using Dalamud.CorePlugin.PluginInstallerV2.Enums.EnumExtensions;
 using Dalamud.CorePlugin.PluginInstallerV2.Widgets;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.Style;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal;
 
 namespace Dalamud.CorePlugin.PluginInstallerV2;
 
@@ -23,6 +26,8 @@ namespace Dalamud.CorePlugin.PluginInstallerV2;
 /// </summary>
 internal class PluginInstallerWindow2 : Window, IDisposable
 {
+    private static readonly ModuleLog Log = new("PluginInstaller2");
+
     private readonly DevPluginsWidget devPluginsWidget;
     private readonly InstalledPluginsWidget installedPluginsWidget;
     private readonly AvailablePluginsWidget availablePluginsWidget;
@@ -30,6 +35,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
     private readonly CollectionsWidget collectionsWidget;
 
     private SelectedTab selectedTab = SelectedTab.Default;
+    private Task? updatePluginsTask;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginInstallerWindow2"/> class.
@@ -63,6 +69,8 @@ internal class PluginInstallerWindow2 : Window, IDisposable
         this.SearchController.OnSearchUpdated += this.availablePluginsWidget.OnSearchUpdated;
         this.SearchController.OnSearchUpdated += this.changelogWidget.OnSearchUpdated;
         this.SearchController.OnSearchUpdated += this.collectionsWidget.OnSearchUpdated;
+
+        Log.Verbose("Plugin Installer v2 - Constructed and setup.");
     }
 
     /// <summary>
@@ -80,7 +88,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
     /// </summary>
     public FontManager FontManager { get; init; }
 
-    // DEBUG FUNCTIONALITY, REMOVE FOR RELEASE
+    // todo: DEBUG FUNCTIONALITY, REMOVE FOR RELEASE
     private bool ShowChildBorders { get; set; } = false;
 
     /// <inheritdoc/>
@@ -99,14 +107,6 @@ internal class PluginInstallerWindow2 : Window, IDisposable
     /// <inheritdoc/>
     public override void OnOpen()
     {
-    }
-
-    /// <inheritdoc/>
-    public override void PreDraw()
-    {
-        base.PreDraw();
-
-        StyleModelV1.DalamudStandard.Push();
     }
 
     /// <inheritdoc/>
@@ -132,14 +132,6 @@ internal class PluginInstallerWindow2 : Window, IDisposable
         ImGuiHelpers.ScaledDummy(2.0f);
 
         this.DrawFooter();
-    }
-
-    /// <inheritdoc/>
-    public override void PostDraw()
-    {
-        base.PostDraw();
-
-        StyleModelV1.DalamudStandard.Pop();
     }
 
     private void DrawSearchHeader()
@@ -170,7 +162,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Clear Search");
+            ImGui.SetTooltip(PluginInstallerLocs.Header_ClearSearchTooltip);
         }
 
         ImGui.SameLine();
@@ -282,14 +274,20 @@ internal class PluginInstallerWindow2 : Window, IDisposable
 
         var buttonWidth = 150.0f * ImGuiHelpers.GlobalScale;
 
-        if (ImGui.Button(PluginInstallerLocs.FooterButton_UpdatePlugins, new Vector2(buttonWidth, -1)))
+        // todo: this might permanently disable in some cases probably? I'm not good with async stuff. -midorikami
+        using (ImRaii.Disabled(this.updatePluginsTask is not null and not { Status: TaskStatus.RanToCompletion }))
         {
+            if (ImGui.Button(PluginInstallerLocs.FooterButton_UpdatePlugins, new Vector2(buttonWidth, -1)))
+            {
+                this.updatePluginsTask = this.PluginListManager.UpdatePlugins();
+            }
         }
 
         ImGui.SameLine();
 
         if (ImGui.Button(PluginInstallerLocs.FooterButton_Settings, new Vector2(buttonWidth, -1)))
         {
+            Service<DalamudInterface>.Get().ToggleSettingsWindow();
         }
 
         if (this.PluginListManager.HasDevPlugins)
@@ -298,6 +296,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
 
             if (ImGui.Button(PluginInstallerLocs.FooterButton_ScanDevPlugins, new Vector2(buttonWidth, -1)))
             {
+                _ = Service<PluginManager>.Get().ScanDevPluginsAsync();
             }
         }
 

@@ -33,6 +33,9 @@ internal static class PluginInstallerLocs
     public static string Header_SearchPlaceholder
         => Loc.Localize("InstallerSearch", "Search . . .");
 
+    public static string Header_ClearSearchTooltip
+        => Loc.Localize("InstallerSearchTooltip", "Clear Search");
+
     public static string Header_Downloads
         => Loc.Localize("InstallerDownloads", "downloads");
 
@@ -663,5 +666,9 @@ internal static class PluginInstallerLocs
             "Please make absolutely sure that you only install plugins from developers you trust.\n\n" +
             "You will not receive support for plugins installed from custom repositories on the XIVLauncher & Dalamud server.");
 
+    public static string VerifiedCheckmark_DevPluginTooltip
+        => Loc.Localize("VerifiedCheckmark_DevPluginTooltip", "You added this plugin as a dev plugin."); // todo: maybe include a warning for users that do this by mistake?
+
     #endregion
+
 }
