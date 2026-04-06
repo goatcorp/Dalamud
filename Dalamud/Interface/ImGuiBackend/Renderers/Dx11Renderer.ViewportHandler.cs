@@ -290,7 +290,11 @@ internal unsafe partial class Dx11Renderer
                 return;
 
             this.EnsureRenderTarget();
-            this.parent.RenderDrawDataInternal(this.renderTargetView, drawData, clearRenderTarget);
+            this.parent.RenderDrawDataInternal(
+                this.renderTarget,
+                this.renderTargetView,
+                drawData,
+                clearRenderTarget);
         }
 
         public void PresentIfSwapChainAvailable()
