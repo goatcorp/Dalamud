@@ -15,7 +15,7 @@ public static class ObjectKindExtensions
     /// <returns>An id that can be used in the ObjStr sheet redirect.</returns>
     public static uint GetObjStrId(this ObjectKind objectKind, uint id)
     {
-        // See "8D 41 FE 83 F8 0C 77 4D"
+        // See ToObjStrId in CS
         return objectKind switch
         {
             ObjectKind.BattleNpc => id < 1000000 ? id : id - 900000,

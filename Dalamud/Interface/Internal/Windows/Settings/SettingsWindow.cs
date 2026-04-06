@@ -5,6 +5,8 @@ using CheapLoc;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
+using Dalamud.Console;
+using Dalamud.Game.Player;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
 using Dalamud.Interface.ManagedFontAtlas.Internals;

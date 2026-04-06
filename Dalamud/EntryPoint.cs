@@ -212,6 +212,7 @@ public sealed class EntryPoint
         catch (Exception ex)
         {
             Log.Fatal(ex, "Unhandled exception on main thread.");
+            ErrorHandling.ShowSystemIntegrityPolicyErrorIfApplicable(ex);
         }
         finally
         {
@@ -285,6 +286,7 @@ public sealed class EntryPoint
             case Exception ex:
                 Log.Fatal(ex, "Unhandled exception on AppDomain");
                 Troubleshooting.LogException(ex, "DalamudUnhandled");
+                ErrorHandling.ShowSystemIntegrityPolicyErrorIfApplicable(ex);
 
                 var info = "Further information could not be obtained";
                 if (ex.TargetSite != null && ex.TargetSite.DeclaringType != null)

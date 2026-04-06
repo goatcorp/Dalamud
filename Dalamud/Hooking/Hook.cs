@@ -6,6 +6,8 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.Internal.Verification;
 
+using Serilog;
+
 using TerraFX.Interop.Windows;
 
 namespace Dalamud.Hooking;
@@ -17,15 +19,6 @@ namespace Dalamud.Hooking;
 /// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
 public abstract class Hook<T> : IDalamudHook where T : Delegate
 {
-#pragma warning disable SA1310
-    // ReSharper disable once InconsistentNaming
-    private const ulong IMAGE_ORDINAL_FLAG64 = 0x8000000000000000;
-    // ReSharper disable once InconsistentNaming
-    private const uint IMAGE_ORDINAL_FLAG32 = 0x80000000;
-    // ReSharper disable once InconsistentNaming
-    private const int IMAGE_DIRECTORY_ENTRY_IMPORT = 1;
-#pragma warning restore SA1310
-
     private readonly IntPtr address;
 
     /// <summary>
@@ -108,10 +101,11 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// </summary>
     /// <param name="address">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromFunctionPointerVariable(IntPtr address, T detour)
+    internal static Hook<T> FromFunctionPointerVariable(IntPtr address, T detour, Assembly? callingAssembly = null)
     {
-        return new FunctionPointerVariableHook<T>(address, detour, Assembly.GetCallingAssembly());
+        return new FunctionPointerVariableHook<T>(address, detour, callingAssembly ?? Assembly.GetCallingAssembly());
     }
 
     /// <summary>
@@ -122,31 +116,20 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="functionName">Decorated name of the function.</param>
     /// <param name="hintOrOrdinal">Hint or ordinal. 0 to unspecify.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static unsafe Hook<T> FromImport(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour)
+    internal static unsafe Hook<T> FromImport(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour, Assembly? callingAssembly = null)
     {
         module ??= Process.GetCurrentProcess().MainModule;
         if (module == null)
             throw new InvalidOperationException("Current module is null?");
         var pDos = (IMAGE_DOS_HEADER*)module.BaseAddress;
-        var pNt = (IMAGE_FILE_HEADER*)(module.BaseAddress + pDos->e_lfanew + 4);
-        var isPe64 = pNt->SizeOfOptionalHeader == Marshal.SizeOf<IMAGE_OPTIONAL_HEADER64>();
-        IMAGE_DATA_DIRECTORY* pDataDirectory;
-        if (isPe64)
-        {
-            var pOpt = (IMAGE_OPTIONAL_HEADER64*)(module.BaseAddress + pDos->e_lfanew + 4 + Marshal.SizeOf<IMAGE_FILE_HEADER>());
-            pDataDirectory = &pOpt->DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
-        }
-        else
-        {
-            var pOpt = (IMAGE_OPTIONAL_HEADER32*)(module.BaseAddress + pDos->e_lfanew + 4 + Marshal.SizeOf<IMAGE_FILE_HEADER>());
-            pDataDirectory = &pOpt->DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
-        }
-
+        var pNt = (IMAGE_NT_HEADERS64*)(module.BaseAddress + pDos->e_lfanew);
+        var pDataDirectory = &pNt->OptionalHeader.DataDirectory[IMAGE.IMAGE_DIRECTORY_ENTRY_IMPORT];
         var moduleNameLowerWithNullTerminator = (moduleName + "\0").ToLowerInvariant();
         foreach (ref var importDescriptor in new Span<IMAGE_IMPORT_DESCRIPTOR>(
                      (IMAGE_IMPORT_DESCRIPTOR*)(module.BaseAddress + (int)pDataDirectory->VirtualAddress),
-                     (int)(pDataDirectory->Size / Marshal.SizeOf<IMAGE_IMPORT_DESCRIPTOR>())))
+                     (int)(pDataDirectory->Size / sizeof(IMAGE_IMPORT_DESCRIPTOR))))
         {
             // Having all zero values signals the end of the table. We didn't find anything.
             if (importDescriptor.Characteristics == 0)
@@ -167,29 +150,11 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
             if (!currentDllNameWithNullTerminator.Equals(moduleNameLowerWithNullTerminator, StringComparison.InvariantCultureIgnoreCase))
                 continue;
 
-            if (isPe64)
-            {
-                return new FunctionPointerVariableHook<T>(FromImportHelper64(module.BaseAddress, ref importDescriptor, ref *pDataDirectory, functionName, hintOrOrdinal), detour, Assembly.GetCallingAssembly());
-            }
-            else
-            {
-                return new FunctionPointerVariableHook<T>(FromImportHelper32(module.BaseAddress, ref importDescriptor, ref *pDataDirectory, functionName, hintOrOrdinal), detour, Assembly.GetCallingAssembly());
-            }
+            return new FunctionPointerVariableHook<T>(FromImportHelper(module.BaseAddress, ref importDescriptor, ref *pDataDirectory, functionName, hintOrOrdinal), detour, callingAssembly ?? Assembly.GetCallingAssembly());
         }
 
         throw new MissingMethodException("Specified dll not found");
     }
-
-    /// <summary>
-    /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
-    /// The hook is not activated until Enable() method is called.
-    /// </summary>
-    /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
-    /// <param name="exportName">A name of the exported function name (e.g. send).</param>
-    /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
-        => FromSymbol(moduleName, exportName, detour, false);
 
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
@@ -200,8 +165,9 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="exportName">A name of the exported function name (e.g. send).</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook)
+    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook = false, Assembly? callingAssembly = null)
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
@@ -216,9 +182,9 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
 
         var address = HookManager.FollowJmp(procAddress.Value);
         if (useMinHook)
-            return new MinHookHook<T>(address, detour, Assembly.GetCallingAssembly());
+            return new MinHookHook<T>(address, detour, callingAssembly ?? Assembly.GetCallingAssembly());
         else
-            return new ReloadedHook<T>(address, detour, Assembly.GetCallingAssembly());
+            return new ReloadedHook<T>(address, detour, callingAssembly ?? Assembly.GetCallingAssembly());
     }
 
     /// <summary>
@@ -229,19 +195,28 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="procAddress">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false)
+    internal static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false, Assembly? callingAssembly = null)
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
 
-        HookVerifier.Verify<T>(procAddress);
+        // TODO: Only log verification exceptions for now, figure out how to handle this
+        try
+        {
+            HookVerifier.Verify<T>(procAddress);
+        }
+        catch (HookVerificationException ex)
+        {
+            Log.Error(ex, "Hook verification failed - this may cause crashes and subtle bugs");
+        }
 
         procAddress = HookManager.FollowJmp(procAddress);
         if (useMinHook)
-            return new MinHookHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
+            return new MinHookHook<T>(procAddress, detour, callingAssembly ?? Assembly.GetCallingAssembly());
         else
-            return new ReloadedHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
+            return new ReloadedHook<T>(procAddress, detour, callingAssembly ?? Assembly.GetCallingAssembly());
     }
 
     /// <summary>
@@ -252,10 +227,10 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         ObjectDisposedException.ThrowIf(this.IsDisposed, this);
     }
 
-    private static unsafe IntPtr FromImportHelper32(IntPtr baseAddress, ref IMAGE_IMPORT_DESCRIPTOR desc, ref IMAGE_DATA_DIRECTORY dir, string functionName, uint hintOrOrdinal)
+    private static unsafe IntPtr FromImportHelper(IntPtr baseAddress, ref IMAGE_IMPORT_DESCRIPTOR desc, ref IMAGE_DATA_DIRECTORY dir, string functionName, uint hintOrOrdinal)
     {
-        var importLookupsOversizedSpan = new Span<uint>((uint*)(baseAddress + (int)desc.OriginalFirstThunk), (int)((dir.Size - desc.OriginalFirstThunk) / Marshal.SizeOf<int>()));
-        var importAddressesOversizedSpan = new Span<uint>((uint*)(baseAddress + (int)desc.FirstThunk), (int)((dir.Size - desc.FirstThunk) / Marshal.SizeOf<int>()));
+        var importLookupsOversizedSpan = new Span<ulong>((ulong*)(baseAddress + (int)desc.OriginalFirstThunk), (int)((dir.Size - desc.OriginalFirstThunk) / sizeof(ulong)));
+        var importAddressesOversizedSpan = new Span<ulong>((ulong*)(baseAddress + (int)desc.FirstThunk), (int)((dir.Size - desc.FirstThunk) / sizeof(ulong)));
 
         var functionNameWithNullTerminator = functionName + "\0";
         for (int i = 0, i_ = Math.Min(importLookupsOversizedSpan.Length, importAddressesOversizedSpan.Length); i < i_ && importLookupsOversizedSpan[i] != 0 && importAddressesOversizedSpan[i] != 0; i++)
@@ -263,59 +238,9 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
             var importLookup = importLookupsOversizedSpan[i];
 
             // Is this entry importing by ordinals? A lot of socket functions are the case.
-            if ((importLookup & IMAGE_ORDINAL_FLAG32) != 0)
+            if ((importLookup & IMAGE.IMAGE_ORDINAL_FLAG64) != 0)
             {
-                var ordinal = importLookup & ~IMAGE_ORDINAL_FLAG32;
-
-                // Is this the entry?
-                if (hintOrOrdinal == 0 || ordinal != hintOrOrdinal)
-                    continue;
-
-                // Is this entry not importing by ordinals, and are we using hint exclusively to find the entry?
-            }
-            else
-            {
-                var hint = Marshal.ReadInt16(baseAddress + (int)importLookup);
-
-                if (functionName.Length > 0)
-                {
-                    // Is this the entry?
-                    if (hint != hintOrOrdinal)
-                        continue;
-                }
-                else
-                {
-                    // Name must be contained in this directory.
-                    var currentFunctionNameWithNullTerminator = Marshal.PtrToStringUTF8(
-                        baseAddress + (int)importLookup + 2,
-                        (int)Math.Min(dir.VirtualAddress + dir.Size - (uint)baseAddress - importLookup - 2, (uint)functionNameWithNullTerminator.Length));
-
-                    // Is this entry about the function that we're looking for?
-                    if (currentFunctionNameWithNullTerminator != functionNameWithNullTerminator)
-                        continue;
-                }
-            }
-
-            return baseAddress + (int)desc.FirstThunk + (i * Marshal.SizeOf<int>());
-        }
-
-        throw new MissingMethodException("Specified method not found");
-    }
-
-    private static unsafe IntPtr FromImportHelper64(IntPtr baseAddress, ref IMAGE_IMPORT_DESCRIPTOR desc, ref IMAGE_DATA_DIRECTORY dir, string functionName, uint hintOrOrdinal)
-    {
-        var importLookupsOversizedSpan = new Span<ulong>((ulong*)(baseAddress + (int)desc.OriginalFirstThunk), (int)((dir.Size - desc.OriginalFirstThunk) / Marshal.SizeOf<ulong>()));
-        var importAddressesOversizedSpan = new Span<ulong>((ulong*)(baseAddress + (int)desc.FirstThunk), (int)((dir.Size - desc.FirstThunk) / Marshal.SizeOf<ulong>()));
-
-        var functionNameWithNullTerminator = functionName + "\0";
-        for (int i = 0, i_ = Math.Min(importLookupsOversizedSpan.Length, importAddressesOversizedSpan.Length); i < i_ && importLookupsOversizedSpan[i] != 0 && importAddressesOversizedSpan[i] != 0; i++)
-        {
-            var importLookup = importLookupsOversizedSpan[i];
-
-            // Is this entry importing by ordinals? A lot of socket functions are the case.
-            if ((importLookup & IMAGE_ORDINAL_FLAG64) != 0)
-            {
-                var ordinal = importLookup & ~IMAGE_ORDINAL_FLAG64;
+                var ordinal = importLookup & ~IMAGE.IMAGE_ORDINAL_FLAG64;
 
                 // Is this the entry?
                 if (hintOrOrdinal == 0 || ordinal != hintOrOrdinal)
@@ -346,7 +271,7 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
                 }
             }
 
-            return baseAddress + (int)desc.FirstThunk + (i * Marshal.SizeOf<ulong>());
+            return baseAddress + (int)desc.FirstThunk + (i * sizeof(ulong));
         }
 
         throw new MissingMethodException("Specified method not found");

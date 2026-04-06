@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using CheapLoc;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -49,27 +50,27 @@ internal partial class ChatHandlers : IServiceType
     [GeneratedRegex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", RegexOptions.Compiled)]
     private static partial Regex CompiledUrlRegex();
 
-    private void OnCheckMessageHandled(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnCheckMessageHandled(IHandleableChatMessage message)
     {
-        var textVal = message.TextValue;
+        var textVal = message.Message.TextValue;
 
         if (this.configuration.BadWords != null &&
             this.configuration.BadWords.Any(x => !string.IsNullOrEmpty(x) && textVal.Contains(x)))
         {
             // This seems to be in the user block list - let's not show it
             Log.Debug("Filtered a message that contained a muted word");
-            isHandled = true;
+            message.PreventOriginal();
             return;
         }
     }
 
-    private void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnChatMessage(IHandleableChatMessage message)
     {
         var clientState = Service<ClientState.ClientState>.GetNullable();
         if (clientState == null)
             return;
 
-        if (type == XivChatType.Notice)
+        if (message.LogKind == XivChatType.Notice)
         {
             if (!this.hasSeenLoadingMsg)
                 this.PrintWelcomeMessage();
@@ -84,10 +85,7 @@ internal partial class ChatHandlers : IServiceType
                 return;
 #endif
 
-        var messageCopy = message;
-        var senderCopy = sender;
-
-        var linkMatch = CompiledUrlRegex().Match(message.TextValue);
+        var linkMatch = CompiledUrlRegex().Match(message.Message.TextValue);
         if (linkMatch.Value.Length > 0)
             this.LastLink = linkMatch.Value;
     }
