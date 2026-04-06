@@ -699,7 +699,7 @@ internal class LocalPlugin : IAsyncDisposable
 
         try
         {
-            this.pluginType = FindPluginImpl(this.pluginAssembly);
+            this.pluginType = FindPluginImpl(this.Assembly);
         }
         catch (ReflectionTypeLoadException ex)
         {
