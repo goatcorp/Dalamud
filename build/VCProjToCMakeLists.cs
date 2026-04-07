@@ -124,6 +124,7 @@ public sealed class VCProjToCMakeLists
 cmake_minimum_required(VERSION {CMakeVersion})
 include({Paths.CMakeToolchain.ToString().SingleQuoteIfNeeded()})
 project({Name} C CXX ASM_MASM RC)
+set(CMAKE_BUILD_TYPE {VCProj.GetPropertyValue("Configuration")})
 
 # Target Windows 10
 add_compile_definitions(_WIN32_WINNT=0x0A00 WINVER=0x0A00)
