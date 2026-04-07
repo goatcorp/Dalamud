@@ -47,6 +47,8 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
             onEntryClicked?.Invoke(manifest);
         }
 
+        ImGui.OpenPopupOnItemClick("AvailablePluginContextMenu");
+
         ImGui.SetCursorPos(startPosition);
 
         using (var imageChild = ImRaii.Child($"ImageChild", ImGuiHelpers.ScaledVector2(this.EntryInnerHeight, this.EntryInnerHeight), false, ImGuiWindowFlags.NoInputs))
@@ -154,6 +156,8 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
                 }
             }
         }
+
+        DrawContextMenu(manifest);
     }
 
     private static void DrawBackgroundTexture(RemotePluginManifest manifest)
@@ -163,6 +167,20 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
             var startCursor = ImGui.GetCursorPos();
             DrawCautionTape(startCursor + new Vector2(0.0f, 1.0f), ImGui.GetContentRegionAvail(), ImGuiHelpers.GlobalScale * 40);
             ImGui.SetCursorPos(startCursor);
+        }
+    }
+
+    private static void DrawContextMenu(RemotePluginManifest manifest)
+    {
+        using var popupContextMenu = ImRaii.ContextPopup("AvailablePluginContextMenu");
+        if (!popupContextMenu.Success)
+        {
+            return;
+        }
+
+        if (ImGui.MenuItem($"Test Entry for: {manifest.Name}"))
+        {
+            PluginInstallerWindow2.Log.Debug("Success??");
         }
     }
 

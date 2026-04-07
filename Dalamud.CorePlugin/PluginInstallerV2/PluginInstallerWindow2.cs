@@ -26,7 +26,7 @@ namespace Dalamud.CorePlugin.PluginInstallerV2;
 /// </summary>
 internal class PluginInstallerWindow2 : Window, IDisposable
 {
-    private static readonly ModuleLog Log = new("PluginInstaller2");
+    internal static readonly ModuleLog Log = new("PluginInstaller2");
 
     private readonly DevPluginsWidget devPluginsWidget;
     private readonly InstalledPluginsWidget installedPluginsWidget;
