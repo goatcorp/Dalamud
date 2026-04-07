@@ -70,7 +70,11 @@ static constexpr GUID Guid_IFileDialog_Tspack{ 0xfc057318, 0xad35, 0x4599, {0xa7
 static constexpr bool print_exception_info_violation = false;
 #elif defined(__try1)
 #define SEH_MINGW
+#if defined(__GNUC__)
+#define SEH_NOOPT __attribute__((optimize("O0")))
+#else
 #define SEH_NOOPT __attribute__((optnone))
+#endif
 static __thread bool print_exception_info_violation;
 extern "C" long SEH_NOOPT print_exception_info_violation_handler(EXCEPTION_POINTERS* data);
 #else
