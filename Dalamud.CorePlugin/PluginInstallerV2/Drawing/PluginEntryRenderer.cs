@@ -76,12 +76,11 @@ internal abstract class PluginEntryRenderer
             return;
         }
 
-        ImGui.SameLine();
-
         var downloadCount = $"{manifest.DownloadCount:N0} {PluginInstallerLocs.Header_Downloads}";
         var textSize = ImGui.CalcTextSize(downloadCount);
 
         ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - textSize.X - ImGui.GetStyle().ItemSpacing.X);
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (2.0f * ImGuiHelpers.GlobalScale));
         ImGui.TextColored(ImGuiColors.DalamudGrey, downloadCount);
     }
 
@@ -91,7 +90,7 @@ internal abstract class PluginEntryRenderer
     /// <param name="manifest">Manifest.</param>
     protected static void DrawPunchline(RemotePluginManifest manifest)
     {
-        var punchline = manifest.Punchline;
+        var punchline = manifest.Punchline?.Replace("\n", " "); // It's a PunchLINE, not PunchEssay.
         var textSize = ImGui.CalcTextSize(punchline);
 
         // Center text vertically.
@@ -197,13 +196,12 @@ internal abstract class PluginEntryRenderer
     }
 
     /// <summary>
-    /// Draws a line indicating whether the source repo is from the Dalamud Repo, or a Custom Repo.
+    /// Draws a line the plugin source, Main Repo, Custom Repo, or Dev Plugin.
     /// </summary>
     /// <param name="manifest">Manifest.</param>
-    protected void DrawRepoSource(RemotePluginManifest manifest)
+    protected void DrawPluginSource(RemotePluginManifest manifest)
     {
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (2.0f * ImGuiHelpers.GlobalScale));
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (2.0f * ImGuiHelpers.GlobalScale));
+        ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGuiHelpers.ScaledVector2(2.0f, 2.0f));
 
         FontAwesomeIcon icon;
         Vector4 outlineColor;
@@ -242,8 +240,6 @@ internal abstract class PluginEntryRenderer
         DrawFontawesomeIconOutlined(icon, outlineColor, color);
         var isHovered = ImGui.IsItemHovered();
 
-        ImGui.SameLine();
-        ImGuiHelpers.ScaledDummy(0.0f);
         ImGui.SameLine();
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (1.0f * ImGuiHelpers.GlobalScale));

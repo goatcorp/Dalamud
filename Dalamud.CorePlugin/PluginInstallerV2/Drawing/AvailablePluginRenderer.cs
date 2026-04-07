@@ -9,6 +9,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 
 namespace Dalamud.CorePlugin.PluginInstallerV2.Drawing;
@@ -48,11 +49,111 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
 
         ImGui.SetCursorPos(startPosition);
 
-        this.DrawImageArea(manifest);
+        using (var imageChild = ImRaii.Child($"ImageChild", ImGuiHelpers.ScaledVector2(this.EntryInnerHeight, this.EntryInnerHeight), false, ImGuiWindowFlags.NoInputs))
+        {
+            if (imageChild.Success)
+            {
+                var imageModifier = this.GetImageModifier(manifest);
+
+                var iconOverlayStart = ImGui.GetCursorPos();
+                using (ImRaii.Disabled(imageModifier is not (PluginImageModifier.None or PluginImageModifier.Installed)))
+                {
+                    DrawPluginIcon(GetPluginIcon(manifest));
+                }
+
+                ImGui.SetCursorPos(iconOverlayStart);
+                DrawPluginStatusTexture(imageModifier);
+            }
+        }
 
         ImGui.SameLine();
 
-        this.DrawContents(manifest);
+        using (var contentsChild = ImRaii.Child("ContentsChild", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoInputs))
+        {
+            if (contentsChild.Success)
+            {
+                var downloadSize = 150.0f * ImGuiHelpers.GlobalScale;
+                var repositorySize = 125.0f * ImGuiHelpers.GlobalScale;
+
+                using (var titleChild = ImRaii.Child(
+                           $"TitleChild",
+                           new Vector2(ImGui.GetContentRegionAvail().X - downloadSize - repositorySize - (ImGui.GetStyle().ItemSpacing.X * 2.0f), ImGui.GetContentRegionAvail().Y * (3.0f / 5.0f)),
+                           false,
+                           ImGuiWindowFlags.NoInputs))
+                {
+                    if (titleChild.Success)
+                    {
+                        this.DrawPluginTitle(manifest);
+                    }
+                }
+
+                ImGui.SameLine();
+
+                // Extras are Download Count, Source Repository, and maybe in the future some badge icons.
+                using (var extrasChild = ImRaii.Child($"ExtrasChild", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y * (3.0f / 5.0f)), false, ImGuiWindowFlags.NoInputs))
+                {
+                    if (extrasChild.Success)
+                    {
+                        using (var topLineChild = ImRaii.Child("TopLineChild", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y / 2.0f), false, ImGuiWindowFlags.NoInputs))
+                        {
+                            if (topLineChild.Success)
+                            {
+                                using (var downloadsChild = ImRaii.Child("DownloadsChild", new Vector2(downloadSize, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.NoInputs))
+                                {
+                                    if (downloadsChild.Success)
+                                    {
+                                        DrawPluginDownloadCount(manifest);
+                                    }
+                                }
+
+                                ImGui.SameLine();
+
+                                using (var repoChild = ImRaii.Child("RepositoryChild", new Vector2(repositorySize, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+                                {
+                                    if (repoChild.Success)
+                                    {
+                                        this.DrawPluginSource(manifest);
+                                    }
+                                }
+                            }
+                        }
+
+                        using (var bottomLineChild = ImRaii.Child("BottomLineChild", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.NoInputs))
+                        {
+                            if (bottomLineChild.Success)
+                            {
+                                // Placeholder for Badges like AI Generated, etc.
+                            }
+                        }
+                    }
+                }
+
+                // Footer is Punchline and a toggle button to enable/disable.
+                using (var footerChild = ImRaii.Child("FooterChild", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoInputs))
+                {
+                    if (footerChild.Success)
+                    {
+                        var installedPlugin = this.ParentWindow.PluginListManager.PluginListInstalled.FirstOrDefault(plugin => plugin.InternalName == manifest.InternalName);
+                        var controlWidgetSize = installedPlugin is not null ? ImGui.GetFrameHeight() * 1.55f : 0.0f;
+                        var punchlineSpacing = installedPlugin is not null ? ImGui.GetStyle().ItemSpacing.X : 0.0f;
+
+                        using (var punchlineChild = ImRaii.Child(
+                                   "PunchlineChild",
+                                   new Vector2(ImGui.GetContentRegionAvail().X - controlWidgetSize - punchlineSpacing, ImGui.GetContentRegionAvail().Y),
+                                   false,
+                                   ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+                        {
+                            if (punchlineChild.Success)
+                            {
+                                DrawPunchline(manifest);
+                            }
+                        }
+
+                        this.DrawInstalledPluginToggleWidget(installedPlugin);
+                    }
+                }
+            }
+        }
     }
 
     private static void DrawBackgroundTexture(RemotePluginManifest manifest)
@@ -65,140 +166,28 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
         }
     }
 
-    /// <summary>
-    /// Draws the plugin image and overlaid parts over the image.
-    /// </summary>
-    /// <param name="manifest">Manifest.</param>
-    private void DrawImageArea(RemotePluginManifest manifest)
+    private void DrawInstalledPluginToggleWidget(LocalPlugin? installedPlugin)
     {
-        using var imageChild = ImRaii.Child($"ImageChild", ImGuiHelpers.ScaledVector2(this.EntryInnerHeight, this.EntryInnerHeight), false, ImGuiWindowFlags.NoInputs);
-        if (!imageChild.Success)
-        {
-            return;
-        }
-
-        var imageModifier = this.GetImageModifier(manifest);
-
-        var startPosition = ImGui.GetCursorPos();
-        using (ImRaii.Disabled(imageModifier is not (PluginImageModifier.None or PluginImageModifier.Installed)))
-        {
-            DrawPluginIcon(GetPluginIcon(manifest));
-        }
-
-        ImGui.SetCursorPos(startPosition);
-        DrawPluginStatusTexture(imageModifier);
-    }
-
-    private void DrawExtras(RemotePluginManifest manifest, float downloadSize, float repositorySize)
-    {
-        using var extrasChild = ImRaii.Child($"ExtrasChild", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y * (3.0f / 5.0f)), false, ImGuiWindowFlags.NoInputs);
-        if (!extrasChild.Success)
-        {
-            return;
-        }
-
-        using (var topLineChild = ImRaii.Child("TopLineChild", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y / 2.0f), false, ImGuiWindowFlags.NoInputs))
-        {
-            if (topLineChild.Success)
-            {
-                using (var downloadsChild = ImRaii.Child("DownloadsChild", new Vector2(downloadSize, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.NoInputs))
-                {
-                    if (downloadsChild.Success)
-                    {
-                        DrawPluginDownloadCount(manifest);
-                    }
-                }
-
-                ImGui.SameLine();
-
-                using (var repoChild = ImRaii.Child("RepositoryChild", new Vector2(repositorySize, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
-                {
-                    if (repoChild.Success)
-                    {
-                        this.DrawRepoSource(manifest);
-                    }
-                }
-            }
-        }
-
-        using (var bottomLineChild = ImRaii.Child("BottomLineChild", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.NoInputs))
-        {
-            if (bottomLineChild.Success)
-            {
-                // Placeholder for Badges like AI Generated, etc.
-            }
-        }
-    }
-
-    /// <summary>
-    /// Draws plugins main content body.
-    /// </summary>
-    /// <param name="manifest">Manifest.</param>
-    private void DrawContents(RemotePluginManifest manifest)
-    {
-        using var contentsChild = ImRaii.Child("ContentsChild", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoInputs);
-        if (!contentsChild.Success)
-        {
-            return;
-        }
-
-        var downloadSize = 150.0f * ImGuiHelpers.GlobalScale;
-        var repositorySize = 125.0f * ImGuiHelpers.GlobalScale;
-
-        using (var titleChild = ImRaii.Child($"TitleChild", new Vector2(ImGui.GetContentRegionAvail().X - downloadSize - repositorySize - (ImGui.GetStyle().ItemSpacing.X * 2.0f), ImGui.GetContentRegionAvail().Y * (3.0f / 5.0f)), false, ImGuiWindowFlags.NoInputs))
-        {
-            if (titleChild.Success)
-            {
-                this.DrawPluginTitle(manifest);
-            }
-        }
-
-        ImGui.SameLine();
-
-        // Extras are Download Count, Source Repository, and maybe in the future some badge icons.
-        this.DrawExtras(manifest, downloadSize, repositorySize);
-
-        // Footer is Punchline and a toggle button to enable/disable.
-        this.DrawFooter(manifest);
-    }
-
-    private void DrawFooter(RemotePluginManifest manifest)
-    {
-        using var footerChild = ImRaii.Child("FooterChild", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoInputs);
-        if (!footerChild.Success)
-        {
-            return;
-        }
-
-        var installedPlugin = this.ParentWindow.PluginListManager.PluginListInstalled.FirstOrDefault(plugin => plugin.InternalName == manifest.InternalName);
-        var controlWidgetSize = installedPlugin is not null ? 50.0f * ImGuiHelpers.GlobalScale : 0.0f;
-
-        using (var punchlineChild = ImRaii.Child("PunchlineChild", new Vector2(ImGui.GetContentRegionAvail().X - ImGui.GetStyle().ItemSpacing.X - controlWidgetSize, ImGui.GetContentRegionAvail().Y), false, ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
-        {
-            if (punchlineChild.Success)
-            {
-                DrawPunchline(manifest);
-            }
-        }
-
         if (installedPlugin is not null)
         {
             ImGui.SameLine();
 
             using var widgetChild = ImRaii.Child("WidgetChild", ImGui.GetContentRegionAvail(), false);
-            if (widgetChild.Success)
+            if (!widgetChild.Success)
             {
-                var isEnabled = installedPlugin.IsLoaded;
-                if (ImGuiComponents.ToggleButton("ToggleButton", ref isEnabled))
+                return;
+            }
+
+            var isEnabled = installedPlugin.IsLoaded;
+            if (ImGuiComponents.ToggleButton("ToggleButton", ref isEnabled))
+            {
+                if (installedPlugin.IsLoaded)
                 {
-                    if (installedPlugin.IsLoaded)
-                    {
-                        this.ParentWindow.PluginListManager.DisablePlugin(installedPlugin);
-                    }
-                    else
-                    {
-                        this.ParentWindow.PluginListManager.EnablePlugin(installedPlugin);
-                    }
+                    this.ParentWindow.PluginListManager.DisablePlugin(installedPlugin);
+                }
+                else
+                {
+                    this.ParentWindow.PluginListManager.EnablePlugin(installedPlugin);
                 }
             }
         }
