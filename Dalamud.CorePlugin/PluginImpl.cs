@@ -40,8 +40,13 @@ namespace Dalamud.CorePlugin
         {
         }
 
+        /// <inheritdoc />
+        public async ValueTask LoadAsync(CancellationToken cancellationToken)
+        {
+        }
+
         /// <inheritdoc/>
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
         }
 
