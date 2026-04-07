@@ -41,13 +41,16 @@
             "problemMatcher": []
         },
         {
-            "label": "Wine gdbserver Debug DalamudCrashHandler",
+            "label": "Launch winedbg Debug DalamudCrashHandler",
             "type": "shell",
-            "command": "wine",
+            "command": "xlcore",
             "args": [
-                "Z:/usr/x86_64-w64-mingw32/sys-root/mingw/bin/gdbserver.exe",
-                "--once",
-                "localhost:12345",
+                "wine",
+                "winedbg",
+                "--gdb",
+                "--no-start",
+                "--port",
+                "12345",
                 "${workspaceFolder}/bin/Debug/DalamudCrashHandler.exe"
             ],
             "options": {
@@ -69,7 +72,47 @@
                 "background": {
                     "activeOnStart": true,
                     "beginsPattern": ".*",
-                    "endsPattern": "Listening on port 12345"
+                    "endsPattern": "target remote localhost:12345"
+                }
+            },
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "dependsOn": "CMake build DalamudCrashHandler"
+        },
+        {
+            "label": "Attach winedbg to running ffxiv_dx11.exe",
+            "type": "shell",
+            "command": ". .vscode/wine-common.sh; exec xlcore wine winedbg --gdb --no-start --port 12345 $(get-ffxiv-wpid)",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "/bin/bash",
+                    "args": [
+                        "-c"
+                    ]
+                },
+                "env": {
+                    "WINEDEBUG": "-all"
+                }
+            },
+            "problemMatcher": {
+                "owner": "custom",
+                "severity": "info",
+                "pattern": [
+                    {
+                        "regexp": "^(.*)$",
+                        "file": 1,
+                        "line": 0,
+                        "message": 1
+                    }
+                ],
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": "target remote localhost:12345"
                 }
             },
             "isBackground": true,
