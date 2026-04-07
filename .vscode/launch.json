@@ -2,7 +2,36 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Wine netcoredbg Dalamud.Injector with winedbg",
+            "name": "Launch Wine netcoredbg Dalamud.Injector with winedbg (Release)",
+            "type": "coreclr",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/bin/Release",
+            "program": "${workspaceFolder}/bin/Release/Dalamud.Injector.exe",
+            "args": [
+                "launch",
+                "-f",
+                "--no-plugin",
+                "--no-wait",
+                "--wrap=winedbg",
+                "--wraparg=--gdb",
+                "--wraparg=--no-start",
+                "--wraparg=--port",
+                "--wraparg=12345",
+            ],
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "pipeTransport": {
+                "pipeCwd": "${workspaceFolder}",
+                "pipeProgram": "/bin/bash",
+                "pipeArgs": [
+                    "-c",
+                    "export DOTNET_ROOT=$(xlcore wine winepath -w ~/.xlcore/runtime/); export DALAMUD_RUNTIME=$DOTNET_ROOT; exec xlcore wine $(xlcore wine winepath -w linuxtools/netcoredbg/netcoredbg.exe) --interpreter=vscode"
+                ],
+                "debuggerPath": "#"
+            }
+        },
+        {
+            "name": "Launch Wine netcoredbg Dalamud.Injector with winedbg (Debug)",
             "type": "coreclr",
             "request": "launch",
             "cwd": "${workspaceFolder}/bin/Debug",
