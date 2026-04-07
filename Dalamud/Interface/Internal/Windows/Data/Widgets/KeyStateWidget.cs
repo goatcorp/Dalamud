@@ -39,7 +39,7 @@ internal class KeyStateWidget : IDataWindowWidget
             var code = (int)vkCode;
             var value = keyState[code];
 
-            using (ImRaii.PushColor(ImGuiCol.Text, value ? ImGuiColors.HealerGreen : ImGuiColors.DPSRed))
+            using (ImRaii.PushColor(ImGuiCol.Text, value ? ImGuiColors.SuccessForeground : ImGuiColors.ErrorForeground))
             {
                 ImGui.Text($"{vkCode} ({code})");
             }

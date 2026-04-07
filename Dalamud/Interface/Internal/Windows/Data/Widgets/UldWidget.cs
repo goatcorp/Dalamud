@@ -96,7 +96,7 @@ internal class UldWidget : IDataWindowWidget
                 uldNames = t.Result;
                 break;
             case { Exception: { } loadException }:
-                ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, loadException.ToString());
+                ImGui.TextColoredWrapped(ImGuiColors.ErrorForeground, loadException.ToString());
                 return;
             case { IsCanceled: true }:
                 ClearTask(ref this.uldNamesTask);
@@ -145,7 +145,7 @@ internal class UldWidget : IDataWindowWidget
                 break;
             case { Exception: { } loadException }:
                 ImGui.TextColoredWrapped(
-                    ImGuiColors.DalamudRed,
+                    ImGuiColors.ErrorForeground,
                     $"Failed to load ULD file.\n{loadException}");
                 return;
             case { IsCanceled: true }:
@@ -161,7 +161,7 @@ internal class UldWidget : IDataWindowWidget
             if (ForceNullable(uld.AssetData) is null)
             {
                 ImGui.TextColoredWrapped(
-                    ImGuiColors.DalamudRed,
+                    ImGuiColors.ErrorForeground,
                     $"Error: {nameof(UldFile.AssetData)} is not populated.");
             }
             else
@@ -185,7 +185,7 @@ internal class UldWidget : IDataWindowWidget
             if (ForceNullable(uld.Timelines) is null)
             {
                 ImGui.TextColoredWrapped(
-                    ImGuiColors.DalamudRed,
+                    ImGuiColors.ErrorForeground,
                     $"Error: {nameof(UldFile.Timelines)} is not populated.");
             }
             else if (uld.Timelines.Length == 0)
@@ -204,7 +204,7 @@ internal class UldWidget : IDataWindowWidget
             if (ForceNullable(uld.Parts) is null)
             {
                 ImGui.TextColoredWrapped(
-                    ImGuiColors.DalamudRed,
+                    ImGuiColors.ErrorForeground,
                     $"Error: {nameof(UldFile.Parts)} is not populated.");
             }
             else if (uld.Parts.Length == 0)

@@ -81,7 +81,7 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         var disclaimerDismissed = config.ThirdRepoSpeedbumpDismissed.Value;
 
         ImGui.PushFont(InterfaceManager.IconFont);
-        ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
+        ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.AttentionForeground);
         ImGui.TextWrapped(FontAwesomeIcon.ExclamationTriangle.ToIconString());
         ImGui.PopFont();
         ImGui.SameLine();

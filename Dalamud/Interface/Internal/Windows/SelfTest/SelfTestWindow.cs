@@ -162,11 +162,11 @@ internal class SelfTestWindow : Window
 
             if (this.visibleSteps.Any(test => test.Result == SelfTestStepResult.Fail))
             {
-                ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, "One or more checks failed!"u8);
+                ImGui.TextColoredWrapped(ImGuiColors.ErrorForeground, "One or more checks failed!"u8);
             }
             else if (this.visibleSteps.All(test => test.Result == SelfTestStepResult.Pass))
             {
-                ImGui.TextColoredWrapped(ImGuiColors.HealerGreen, "All checks passed!"u8);
+                ImGui.TextColoredWrapped(ImGuiColors.SuccessForeground, "All checks passed!"u8);
             }
 
             return;
@@ -241,13 +241,13 @@ internal class SelfTestWindow : Window
             switch (step.Result)
             {
                 case SelfTestStepResult.Pass:
-                    ImGui.TextColored(ImGuiColors.HealerGreen, "PASS"u8);
+                    ImGui.TextColored(ImGuiColors.SuccessForeground, "PASS"u8);
                     break;
                 case SelfTestStepResult.Fail:
-                    ImGui.TextColored(ImGuiColors.DalamudRed, "FAIL"u8);
+                    ImGui.TextColored(ImGuiColors.ErrorForeground, "FAIL"u8);
                     break;
                 case SelfTestStepResult.Waiting:
-                    ImGui.TextColored(ImGuiColors.DalamudGrey, "WAIT"u8);
+                    ImGui.TextColored(ImGuiColors.AttentionForeground, "WAIT"u8);
                     break;
                 default:
                     ImGui.TextColored(ImGuiColors.DalamudGrey, "NR"u8);

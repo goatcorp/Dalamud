@@ -76,7 +76,7 @@ public class BranchSwitcherWindow : Window
 
         if (pickedBranch.Value.SupportedGameVer != si.GameVersion)
         {
-            ImGui.TextColored(ImGuiColors.DalamudRed, "Can't pick this branch. GameVer != SupportedGameVer."u8);
+            ImGui.TextColored(ImGuiColors.ErrorForeground, "Can't pick this branch. GameVer != SupportedGameVer."u8);
         }
         else
         {
