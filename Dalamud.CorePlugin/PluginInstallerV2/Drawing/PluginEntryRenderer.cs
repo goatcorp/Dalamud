@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Configuration.Internal;
 using Dalamud.CorePlugin.PluginInstallerV2.Enums;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -37,12 +38,14 @@ internal abstract class PluginEntryRenderer
     /// </summary>
     /// <param name="manifest">Manifest.</param>
     /// <returns>Default Icon or Loaded Texture.</returns>
-    protected static IDalamudTextureWrap GetPluginIcon(RemotePluginManifest manifest)
+    protected static IDalamudTextureWrap GetPluginIcon(IPluginManifest manifest)
     {
         var imageCache = Service<PluginImageCache>.Get();
 
+        var sourceRepo = manifest is RemotePluginManifest remotePluginManifest ? remotePluginManifest.SourceRepo : null;
+
         var iconTex = imageCache.DefaultIcon;
-        var hasIcon = imageCache.TryGetIcon(null, manifest, manifest.SourceRepo.IsThirdParty, out var cachedIconTex, out _);
+        var hasIcon = imageCache.TryGetIcon(null, manifest, sourceRepo is { IsThirdParty: true }, out var cachedIconTex, out _);
 
         if (hasIcon && cachedIconTex != null)
         {
@@ -69,7 +72,7 @@ internal abstract class PluginEntryRenderer
     /// Draws the current download count from manifest.
     /// </summary>
     /// <param name="manifest">Manifest.</param>
-    protected static void DrawPluginDownloadCount(RemotePluginManifest manifest)
+    protected static void DrawPluginDownloadCount(IPluginManifest manifest)
     {
         if (manifest.DownloadCount <= 0)
         {
@@ -88,7 +91,7 @@ internal abstract class PluginEntryRenderer
     /// Draws a plugin punchline. Centered vertically in the content area.
     /// </summary>
     /// <param name="manifest">Manifest.</param>
-    protected static void DrawPunchline(RemotePluginManifest manifest)
+    protected static void DrawPunchline(IPluginManifest manifest)
     {
         var punchline = manifest.Punchline?.Replace("\n", " "); // It's a PunchLINE, not PunchEssay.
         var textSize = ImGui.CalcTextSize(punchline);
@@ -199,7 +202,7 @@ internal abstract class PluginEntryRenderer
     /// Draws a line the plugin source, Main Repo, Custom Repo, or Dev Plugin.
     /// </summary>
     /// <param name="manifest">Manifest.</param>
-    protected void DrawPluginSource(RemotePluginManifest manifest)
+    protected void DrawPluginSource(IPluginManifest manifest)
     {
         ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGuiHelpers.ScaledVector2(2.0f, 2.0f));
 
@@ -219,21 +222,22 @@ internal abstract class PluginEntryRenderer
         }
         else
         {
-            if (!manifest.SourceRepo.IsThirdParty)
-            {
-                icon = FontAwesomeIcon.CheckCircle;
-                outlineColor = KnownColor.White.Vector();
-                color = KnownColor.RoyalBlue.Vector();
-                label = PluginInstallerLocs.VerifiedCheckmark_DalamudApproved;
-                tooltip = PluginInstallerLocs.VerifiedCheckmark_VerifiedTooltip;
-            }
-            else
+            var sourceRepo = manifest is RemotePluginManifest remotePluginManifest ? remotePluginManifest.SourceRepo : null;
+            if (sourceRepo is { IsThirdParty: true })
             {
                 icon = FontAwesomeIcon.ExclamationCircle;
                 outlineColor = KnownColor.Black.Vector();
                 color = KnownColor.Orange.Vector();
                 label = PluginInstallerLocs.VerifiedCheckmark_CustomRepo;
                 tooltip = PluginInstallerLocs.VerifiedCheckmark_UnverifiedTooltip;
+            }
+            else
+            {
+                icon = FontAwesomeIcon.CheckCircle;
+                outlineColor = KnownColor.White.Vector();
+                color = KnownColor.RoyalBlue.Vector();
+                label = PluginInstallerLocs.VerifiedCheckmark_DalamudApproved;
+                tooltip = PluginInstallerLocs.VerifiedCheckmark_VerifiedTooltip;
             }
         }
 
@@ -257,7 +261,7 @@ internal abstract class PluginEntryRenderer
     /// </summary>
     /// <param name="manifest">Manifest.</param>
     /// <returns>What image modifier is needed to be rendered.</returns>
-    protected PluginImageModifier GetImageModifier(RemotePluginManifest manifest)
+    protected PluginImageModifier GetImageModifier(IPluginManifest manifest)
     {
         var plugin = this.GetPlugin(manifest);
 
@@ -290,14 +294,14 @@ internal abstract class PluginEntryRenderer
     /// Draw Plugin Name and Author.
     /// </summary>
     /// <param name="manifest">Manifest.</param>
-    protected void DrawPluginTitle(RemotePluginManifest manifest)
+    protected void DrawPluginTitle(IPluginManifest manifest)
     {
         using (this.ParentWindow.FontManager.LargerFontHandle.Value.Push())
         {
             ImGui.Text(manifest.Name);
         }
 
-        if (manifest.Author is not null)
+        if (!manifest.Author.IsNullOrEmpty())
         {
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (4.0f * ImGuiHelpers.GlobalScale));
 
@@ -306,6 +310,16 @@ internal abstract class PluginEntryRenderer
                 ImGui.TextColored(ImGuiColors.DalamudGrey, PluginInstallerLocs.PluginBody_AuthorWithoutDownloadCount(manifest.Author));
             }
         }
+
+        var wasSeen = Service<DalamudConfiguration>.Get().SeenPluginInternalName.Contains(manifest.InternalName);
+        if (!wasSeen)
+        {
+            var newText = PluginInstallerLocs.PluginTitleMod_New;
+            var textSize = ImGui.CalcTextSize(newText);
+
+            ImGui.SetCursorPos(new Vector2(ImGui.GetContentRegionMax().X - textSize.X, 0.0f));
+            ImGui.TextColored(ImGuiColors.TankBlue, PluginInstallerLocs.PluginTitleMod_New);
+        }
     }
 
     /// <summary>
@@ -313,7 +327,7 @@ internal abstract class PluginEntryRenderer
     /// </summary>
     /// <param name="manifest">Manifest to get Plugin for.</param>
     /// <returns>Reference to LocalPlugin, or null if it is not installed.</returns>
-    protected LocalPlugin? GetPlugin(RemotePluginManifest manifest)
+    protected LocalPlugin? GetPlugin(IPluginManifest manifest)
         => this.ParentWindow.PluginListManager.PluginListInstalled
                .FirstOrDefault(plugin => plugin.InternalName == manifest.InternalName);
 
@@ -322,7 +336,7 @@ internal abstract class PluginEntryRenderer
     /// </summary>
     /// <param name="manifest">Manifest.</param>
     /// <returns>If this represents an installed plugin.</returns>
-    protected bool IsPluginInstalled(RemotePluginManifest manifest)
+    protected bool IsPluginInstalled(IPluginManifest manifest)
         => this.GetPlugin(manifest) is not null;
 
     /// <summary>
@@ -330,7 +344,7 @@ internal abstract class PluginEntryRenderer
     /// </summary>
     /// <param name="manifest">Manifest.</param>
     /// <returns>If this represents an installed dev plugin.</returns>
-    protected bool IsDevPlugin(RemotePluginManifest manifest)
+    protected bool IsDevPlugin(IPluginManifest manifest)
         => this.GetPlugin(manifest)?.IsDev ?? false;
 
     /// <summary>

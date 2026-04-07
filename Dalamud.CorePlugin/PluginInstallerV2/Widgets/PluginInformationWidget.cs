@@ -16,10 +16,4 @@ internal class PluginInformationWidget : IPluginInstallerWidget
     public void Draw()
     {
     }
-
-    /// <inheritdoc/>
-    public void OnSearchUpdated(SearchController searchInfo)
-    {
-        // Do nothing, search should be ignored while this widget is active.
-    }
 }

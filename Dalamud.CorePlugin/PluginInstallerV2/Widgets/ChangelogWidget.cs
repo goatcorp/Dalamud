@@ -15,9 +15,4 @@ internal class ChangelogWidget : IPluginInstallerWidget
     public void Draw()
     {
     }
-
-    /// <inheritdoc/>
-    public void OnSearchUpdated(SearchController searchInfo)
-    {
-    }
 }

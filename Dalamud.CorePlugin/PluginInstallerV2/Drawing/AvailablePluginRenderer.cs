@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Configuration.Internal;
 using Dalamud.CorePlugin.PluginInstallerV2.Enums;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
@@ -157,7 +158,7 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
             }
         }
 
-        DrawContextMenu(manifest);
+        this.DrawContextMenu(manifest);
     }
 
     private static void DrawBackgroundTexture(RemotePluginManifest manifest)
@@ -170,7 +171,7 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
         }
     }
 
-    private static void DrawContextMenu(RemotePluginManifest manifest)
+    private void DrawContextMenu(RemotePluginManifest manifest)
     {
         using var popupContextMenu = ImRaii.ContextPopup("AvailablePluginContextMenu");
         if (!popupContextMenu.Success)
@@ -178,9 +179,25 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
             return;
         }
 
-        if (ImGui.MenuItem($"Test Entry for: {manifest.Name}"))
+        var configuration = Service<DalamudConfiguration>.Get();
+
+        if (ImGui.MenuItem(PluginInstallerLocs.PluginContext_MarkAllSeen))
         {
-            PluginInstallerWindow2.Log.Debug("Success??");
+            configuration.SeenPluginInternalName.AddRange(this.ParentWindow.PluginListManager.PluginListAvailable.Select(x => x.InternalName));
+            configuration.QueueSave();
+        }
+
+        var isHidden = configuration.HiddenPluginInternalName.Contains(manifest.InternalName);
+        if (!isHidden && ImGui.MenuItem(PluginInstallerLocs.PluginContext_HidePlugin))
+        {
+            configuration.HiddenPluginInternalName.Add(manifest.InternalName);
+            configuration.QueueSave();
+        }
+
+        if (isHidden && ImGui.MenuItem(PluginInstallerLocs.PluginContext_UnhidePlugin))
+        {
+            configuration.HiddenPluginInternalName.Remove(manifest.InternalName);
+            configuration.QueueSave();
         }
     }
 

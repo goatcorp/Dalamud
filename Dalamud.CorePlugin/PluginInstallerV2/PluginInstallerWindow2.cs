@@ -12,6 +12,8 @@ using Dalamud.CorePlugin.PluginInstallerV2.Enums.EnumExtensions;
 using Dalamud.CorePlugin.PluginInstallerV2.Widgets;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -26,6 +28,9 @@ namespace Dalamud.CorePlugin.PluginInstallerV2;
 /// </summary>
 internal class PluginInstallerWindow2 : Window, IDisposable
 {
+    /// <summary>
+    /// Log stream for Plugin Installer Window.
+    /// </summary>
     internal static readonly ModuleLog Log = new("PluginInstaller2");
 
     private readonly DevPluginsWidget devPluginsWidget;
@@ -63,12 +68,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
         this.changelogWidget = new ChangelogWidget { ParentWindow = this };
         this.collectionsWidget = new CollectionsWidget { ParentWindow = this };
 
-        // Delegate search update events to all listeners.
-        this.SearchController.OnSearchUpdated += this.devPluginsWidget.OnSearchUpdated;
-        this.SearchController.OnSearchUpdated += this.installedPluginsWidget.OnSearchUpdated;
-        this.SearchController.OnSearchUpdated += this.availablePluginsWidget.OnSearchUpdated;
-        this.SearchController.OnSearchUpdated += this.changelogWidget.OnSearchUpdated;
-        this.SearchController.OnSearchUpdated += this.collectionsWidget.OnSearchUpdated;
+        this.SearchController.OnSearchUpdated += this.PluginListManager.UpdateSortOrder;
 
         Log.Verbose("Plugin Installer v2 - Constructed and setup.");
     }
@@ -96,12 +96,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
     {
         this.FontManager.Dispose();
 
-        // Probably not necessary to unregister these, but it's good practice.
-        this.SearchController.OnSearchUpdated -= this.devPluginsWidget.OnSearchUpdated;
-        this.SearchController.OnSearchUpdated -= this.installedPluginsWidget.OnSearchUpdated;
-        this.SearchController.OnSearchUpdated -= this.availablePluginsWidget.OnSearchUpdated;
-        this.SearchController.OnSearchUpdated -= this.changelogWidget.OnSearchUpdated;
-        this.SearchController.OnSearchUpdated -= this.collectionsWidget.OnSearchUpdated;
+        this.SearchController.OnSearchUpdated -= this.PluginListManager.UpdateSortOrder;
     }
 
     /// <inheritdoc/>
@@ -117,26 +112,23 @@ internal class PluginInstallerWindow2 : Window, IDisposable
         ImGuiHelpers.ScaledDummy(2.0f);
 
         this.DrawSearchHeader();
+
+        ImGuiHelpers.ScaledDummy(3.0f);
+
         this.DrawTabBar();
 
-        ImGuiHelpers.ScaledDummy(2.0f);
-
         ImGui.Separator();
-
-        ImGuiHelpers.ScaledDummy(2.0f);
 
         this.DrawContents();
 
         ImGui.Separator();
-
-        ImGuiHelpers.ScaledDummy(2.0f);
 
         this.DrawFooter();
     }
 
     private void DrawSearchHeader()
     {
-        var headerHeight = 35.0f * ImGuiHelpers.GlobalScale;
+        var headerHeight = 25.0f * ImGuiHelpers.GlobalScale;
 
         ImGui.SetCursorPosX((ImGui.GetContentRegionMax().X / 6.0f) + 5.0f);
         using var child = ImRaii.Child("SearchHeader"u8, new Vector2(ImGui.GetContentRegionMax().X * (2.0f / 3.0f), headerHeight), this.ShowChildBorders);
@@ -148,7 +140,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
         var currentSearchString = this.SearchController.SearchString;
 
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X * (3.0f / 5.0f));
-        if (ImGui.InputTextWithHint("##SearchInput", PluginInstallerLocs.Header_SearchPlaceholder, ref currentSearchString))
+        if (ImGui.InputTextWithHint("##SearchInput", PluginInstallerLocs.Header_SearchPlaceholder, ref currentSearchString, 1024, ImGuiInputTextFlags.AutoSelectAll))
         {
             this.SearchController.UpdateSearch(currentSearchString);
         }
@@ -230,7 +222,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
 
     private void DrawContents()
     {
-        var footerHeight = 42.0f * ImGuiHelpers.GlobalScale;
+        var footerHeight = 31.0f * ImGuiHelpers.GlobalScale;
         using var contentsChild = ImRaii.Child("Contents"u8, new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - footerHeight), this.ShowChildBorders);
         if (!contentsChild.Success)
         {
@@ -296,7 +288,16 @@ internal class PluginInstallerWindow2 : Window, IDisposable
 
             if (ImGui.Button(PluginInstallerLocs.FooterButton_ScanDevPlugins, new Vector2(buttonWidth, -1)))
             {
-                _ = Service<PluginManager>.Get().ScanDevPluginsAsync();
+                var notificationManager = Service<NotificationManager>.Get();
+
+                _ = Service<PluginManager>.Get().ScanDevPluginsAsync().ContinueWith(_ =>
+                {
+                    notificationManager.AddNotification(new Notification
+                    {
+                        Content = "Dev Plugins Scanned", // Maybe indicate how many were found? Just some kind of feedback that it did a thing.
+                        Type = NotificationType.Info,
+                    });
+                });
             }
         }
 

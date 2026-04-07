@@ -15,9 +15,4 @@ internal class CollectionsWidget : IPluginInstallerWidget
     public void Draw()
     {
     }
-
-    /// <inheritdoc/>
-    public void OnSearchUpdated(SearchController searchInfo)
-    {
-    }
 }

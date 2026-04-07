@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.CorePlugin.PluginInstallerV2.Controllers;
 using Dalamud.CorePlugin.PluginInstallerV2.Drawing;
 using Dalamud.CorePlugin.PluginInstallerV2.Interfaces;
 using Dalamud.Interface;
@@ -49,8 +48,7 @@ internal class AvailablePluginsWidget : IPluginInstallerWidget
             {
                 using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudOrange))
                 {
-                    // todo: display a localized error here.
-                    ImGuiHelpers.CenteredText("Unable to load any Available Plugins.");
+                    ImGuiHelpers.CenteredText(PluginInstallerLocs.TabBody_SearchNoMatching);
                 }
             }
         }
@@ -58,11 +56,6 @@ internal class AvailablePluginsWidget : IPluginInstallerWidget
         {
             this.DrawSelectedPlugin();
         }
-    }
-
-    /// <inheritdoc/>
-    public void OnSearchUpdated(SearchController searchInfo)
-    {
     }
 
     private void DrawPluginEntry(RemotePluginManifest manifest)
