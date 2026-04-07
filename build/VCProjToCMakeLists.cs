@@ -340,6 +340,14 @@ message(STATUS ""CMAKE_CXX_COMPILER_ID=${{CMAKE_CXX_COMPILER_ID}}"")
         Use
     }
 
+    enum DebugInformationFormat
+    {
+        None,
+        OldStyle,
+        ProgramDatabase,
+        EditAndContinue
+    }
+
     enum CopyToOutputDirectory
     {
         Never,
@@ -436,6 +444,10 @@ message(STATUS ""CMAKE_CXX_COMPILER_ID=${{CMAKE_CXX_COMPILER_ID}}"")
 
         public readonly AbsolutePath PCHFile = ResolvePath(item.Project, item.GetMetadataValue("PrecompiledHeaderFile"));
 
+        public readonly DebugInformationFormat DebugInfo =
+            Enum.TryParse(item.GetMetadataValue("DebugInformationFormat"), out DebugInformationFormat value)
+                ? value : DebugInformationFormat.None;
+
         public override void GenBeforeMain(StringBuilder lists)
         {
             base.GenBeforeMain(lists);
@@ -474,6 +486,11 @@ set_target_properties({Key} PROPERTIES
             if (!string.IsNullOrEmpty(AdditionalOptions))
             {
                 lists.AppendLine($"target_compile_options({Key} PRIVATE {AdditionalOptions})");
+            }
+
+            if (DebugInfo != DebugInformationFormat.None)
+            {
+                lists.AppendLine($"target_compile_options({Key} PRIVATE -g)");
             }
 
             if (!string.IsNullOrEmpty(AdditionalIncludeDirectories))
