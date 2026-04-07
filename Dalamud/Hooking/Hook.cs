@@ -202,21 +202,23 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
 
+        var assembly = callingAssembly ?? Assembly.GetCallingAssembly();
+
         // TODO: Only log verification exceptions for now, figure out how to handle this
         try
         {
-            HookVerifier.Verify<T>(procAddress);
+            HookVerifier.Verify<T>(procAddress, assembly);
         }
         catch (HookVerificationException ex)
         {
-            Log.Error(ex, "Hook verification failed - this may cause crashes and subtle bugs");
+            Log.Error(ex, $"Hook verification failed - this may cause crashes and subtle bugs");
         }
 
         procAddress = HookManager.FollowJmp(procAddress);
         if (useMinHook)
-            return new MinHookHook<T>(procAddress, detour, callingAssembly ?? Assembly.GetCallingAssembly());
+            return new MinHookHook<T>(procAddress, detour, assembly);
         else
-            return new ReloadedHook<T>(procAddress, detour, callingAssembly ?? Assembly.GetCallingAssembly());
+            return new ReloadedHook<T>(procAddress, detour, assembly);
     }
 
     /// <summary>
