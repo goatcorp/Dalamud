@@ -78,8 +78,11 @@ static constexpr bool seh_violation = false;
 
 #elif defined(__try1)
 #define SEH_MINGW
-<<<<<<< HEAD
+#if defined(__GNUC__)
 #define SEH_NOOPT __attribute__((optimize("O0")))
+#else
+#define SEH_NOOPT __attribute__((optnone))
+#endif
 static __thread bool seh_violation;
 extern "C" long SEH_NOOPT seh_violation_handler(EXCEPTION_POINTERS* data)
 {
@@ -106,11 +109,6 @@ extern "C" long SEH_NOOPT seh_violation_handler(EXCEPTION_POINTERS* data)
     asm ("\tnop\n" \
     "\t2: nop\n");
 
-=======
-#define SEH_NOOPT __attribute__((optnone))
-static __thread bool print_exception_info_violation;
-extern "C" long SEH_NOOPT print_exception_info_violation_handler(EXCEPTION_POINTERS* data);
->>>>>>> 50b05df84 (mingw: LLVM configuration and fixes)
 #else
 #error "Your compilation environment does not expose SEH try / except unwind helpers"
 #endif
