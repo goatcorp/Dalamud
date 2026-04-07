@@ -85,7 +85,7 @@ public class StyleEditorWindow : Window
         var workStyle = config.SavedStyles[this.currentSel];
         workStyle.BuiltInColors ??= StyleModelV1.DalamudStandard.BuiltInColors;
 
-        var isBuiltinStyle = this.currentSel < 2;
+        var isBuiltinStyle = this.currentSel < 3;
         var appliedThisFrame = false;
 
         var styleAry = config.SavedStyles.Select(x => x.Name).ToArray();
@@ -212,7 +212,7 @@ public class StyleEditorWindow : Window
 
         if (isBuiltinStyle)
         {
-            ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("StyleEditorNotAllowed", "You cannot edit built-in styles. Please add a new style first."));
+            ImGui.TextColored(ImGuiColors.AttentionForeground, Loc.Localize("StyleEditorNotAllowed", "You cannot edit built-in styles. Please add a new style first."));
         }
         else if (appliedThisFrame)
         {
@@ -348,6 +348,27 @@ public class StyleEditorWindow : Window
                 ImGui.EndTabItem();
             }
 
+            if (workStyle is StyleModelV1 workStyleV1 && ImGui.BeginTabItem(Loc.Localize("StyleEditorBlur", "Blur")))
+            {
+                ImGui.TextWrapped(Loc.Localize("StyleEditorWindowBgBlur", "Window Background Blur strength") + " (Experimental)");
+
+                var v = workStyleV1.WindowBlurStrength * 100f;
+                if (ImGui.SliderFloat($"###blurStrength", ref v, 0f, 100f, "%.1f%%"))
+                {
+                    workStyleV1.WindowBlurStrength = v / 100f;
+                    WindowSystem.DefaultBackgroundBlurStrength = workStyleV1.WindowBlurStrength;
+                    changes = true;
+                }
+
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
+                ImGui.TextWrapped(
+                    Loc.Localize(
+                        "DalamudSettingBackgroundBlurHint",
+                        "This will allow you to set the strength of the blur effect for plugin windows.\n" +
+                        "Set to 0%% to disable the blur effect. This may not be supported by all of your plugins. Contact the plugin author if you want them to support this feature."));
+                ImGui.PopStyleColor();
+            }
+
             if (changes)
             {
                 this.Change();
@@ -403,7 +424,7 @@ public class StyleEditorWindow : Window
 
     private void SaveStyle()
     {
-        if (this.currentSel < 2)
+        if (this.currentSel < 3)
             return;
 
         var config = Service<DalamudConfiguration>.Get();

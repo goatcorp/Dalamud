@@ -11,6 +11,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.ImGuiBackend.InputHandler;
+using Dalamud.Interface.ImGuiBackend.Renderers;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -86,6 +87,133 @@ public static partial class ImGuiHelpers
     /// Force the next ImGui window to stay inside the main game window.
     /// </summary>
     public static void ForceNextWindowMainViewport() => ImGui.SetNextWindowViewport(MainViewport.ID);
+
+    /// <summary>
+    /// Adds a blur-behind region to an ImGui draw list.
+    /// Optionally applies a luminosity blend, color tint and grain noise.
+    /// </summary>
+    /// <param name="drawList">
+    /// Target draw list. For windows, you may want to use <see cref="PrependBlurBehind"/>, since calling this after ImGui.Begin()
+    /// will affect the title bar and the window background.
+    /// </param>
+    /// <param name="min">Top-left corner of the blur region in display (screen) coordinates.</param>
+    /// <param name="max">Bottom-right corner of the blur region in display (screen) coordinates.</param>
+    /// <param name="blurStrength">
+    /// Controls the strength of the blur. Higher values produce stronger blur.
+    /// </param>
+    /// <param name="rounding">
+    /// Corner radius of the rounded-rectangle mask in pixels.
+    /// Use <c>0</c> for sharp corners, or match the value from <c>ImGui.GetStyle().WindowRounding</c>
+    /// to align with the window border.
+    /// </param>
+    /// <param name="tintColor">
+    /// Tint color (RGB) and tint blend strength (A in [0, 1]).
+    /// A = 0 (default) means no tint is applied.
+    /// </param>
+    /// <param name="luminosityColor">
+    /// Luminosity target color (RGB) and blend strength (A in [0, 1]).
+    /// The luminosity step reduces contrast in the blurred image by replacing its lightness with the
+    /// target's lightness.
+    /// A = 0 (default) skips the step. A typical value is around 0.64–0.85.
+    /// </param>
+    /// <param name="noiseOpacity">
+    /// Opacity of the tiled noise grain layer composited on top, in [0, 1].
+    /// Defaults to an aesthetically pleasing value that was scientifically determined by the implementor
+    /// Pass <c>0</c> to disable grain.
+    /// </param>
+    public static unsafe void AddBlurBehind(
+        ImDrawListPtr drawList,
+        Vector2 min,
+        Vector2 max,
+        float blurStrength = 1.5f,
+        float rounding = 4f,
+        Vector4 tintColor = default,
+        Vector4 luminosityColor = default,
+        float noiseOpacity = 0.17f)
+    {
+        blurStrength = Math.Clamp(blurStrength, 0.05f, 8f);
+        rounding = Math.Max(0f, rounding);
+
+        var data = BlurCallbackDataPool.Rent();
+        data->BlurStrength = blurStrength;
+        data->Rounding = rounding;
+        data->TintColor = tintColor;
+        data->LuminosityColor = luminosityColor;
+        data->NoiseOpacity = noiseOpacity;
+
+        // PushClipRect with intersect=false so cmd.ClipRect always contains the unclipped min/max,
+        // callback handler uses clip rect to determine blur region
+        drawList.PushClipRect(min, max, false);
+        ImGuiNative.AddCallback(
+            drawList,
+            (delegate*<ImDrawList*, ImDrawCmd*, void>)(nint)(long)CustomImDrawCallbackEnum.Blur,
+            data);
+        drawList.PopClipRect();
+    }
+
+    /// <summary>
+    /// Like <see cref="AddBlurBehind"/>, but inserts the blur callback at index 0 of the draw list's
+    /// command buffer so that it fires before all other draw commands.
+    /// This is the correct variant to use from within a window, because it preserves z-order.
+    /// Each window's blur fires after all lower-z windows have been rendered to the RT, so an
+    /// overlapping blurred window correctly captures the window behind it rather than only the
+    /// game.
+    /// </summary>
+    /// <param name="drawList">
+    /// The drawlist to prepend the blur command to. Usually the window drawlist.
+    /// </param>
+    /// <param name="min">
+    /// Top-left corner of the blur region in display (screen) coordinates.
+    /// </param>
+    /// <param name="max">
+    /// Bottom-right corner of the blur region in display (screen) coordinates.
+    /// </param>
+    /// <param name="blurStrength">
+    /// Controls the strength of the blur. Higher values produce stronger blur.
+    /// </param>
+    /// <param name="rounding">
+    /// Corner radius of the rounded-rectangle mask in pixels.
+    /// </param>
+    /// <param name="tintColor">
+    /// Tint colour RGB and blend strength A. A=0 disables the tint.
+    /// </param>
+    /// <param name="luminosityColor">
+    /// Luminosity target RGB and blend strength A. A=0 skips the step.
+    /// </param>
+    /// <param name="noiseOpacity">
+    /// Noise grain opacity [0, 1]. Defaults to an aesthetically pleasing value that was scientifically determined by the implementor.
+    /// </param>
+    public static unsafe void PrependBlurBehind(
+        ImDrawListPtr drawList,
+        Vector2 min,
+        Vector2 max,
+        float blurStrength = 1.5f,
+        float rounding = 4f,
+        Vector4 tintColor = default,
+        Vector4 luminosityColor = default,
+        float noiseOpacity = 0.17f)
+    {
+        blurStrength = Math.Clamp(blurStrength, 0.05f, 8f);
+        rounding = Math.Max(0f, rounding);
+
+        var data = BlurCallbackDataPool.Rent();
+        data->BlurStrength = blurStrength;
+        data->Rounding = rounding;
+        data->TintColor = tintColor;
+        data->LuminosityColor = luminosityColor;
+        data->NoiseOpacity = noiseOpacity;
+
+        var blurCmd = new ImDrawCmd
+        {
+            ClipRect = new Vector4(min.X, min.Y, max.X, max.Y),
+            ElemCount = 0,
+            UserCallback = (void*)(nint)(long)CustomImDrawCallbackEnum.Blur,
+            UserCallbackData = data,
+        };
+
+        var cmdVec = new ImVectorWrapper<ImDrawCmd>(drawList.Handle->CmdBuffer.ToUntyped());
+        cmdVec.Insert(0, blurCmd);
+    }
 
     /// <summary>
     /// Create a dummy scaled by the global Dalamud scale.
@@ -629,12 +757,6 @@ public static partial class ImGuiHelpers
 
         return -1;
     }
-
-    /// <summary>
-    /// Clears the stack in the current ImGui context.
-    /// </summary>
-    [LibraryImport("cimgui", EntryPoint = "igCustom_ClearStacks")]
-    internal static partial void ClearStacksOnContext();
 
     /// <summary>
     /// Attempts to validate that <paramref name="fontPtr"/> is valid.

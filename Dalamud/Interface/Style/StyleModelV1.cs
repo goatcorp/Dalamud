@@ -3,6 +3,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Windowing;
 
 using Newtonsoft.Json;
 
@@ -138,6 +139,16 @@ public class StyleModelV1 : StyleModel
             ParsedOrange = new Vector4(1f, 0.501f, 0f, 1f),
             ParsedPink = new Vector4(0.886f, 0.407f, 0.658f, 1f),
             ParsedGold = new Vector4(0.898f, 0.8f, 0.501f, 1f),
+            InfoForeground = new Vector4(0f, 0.6f, 1f, 1f),
+            InfoBackground = new Vector4(0.2f, 0.45f, 0.6f, 0.4f),
+            SuccessForeground = new Vector4(0f, 0.8f, 0.1333333f, 1f),
+            SuccessBackground = new Vector4(0.3f, 0.6f, 0.35f, 0.4f),
+            WarningForeground = new Vector4(1f, 0.709f, 0f, 1f),
+            WarningBackground = new Vector4(0.75f, 0.65f, 0.3f, 0.4f),
+            ErrorForeground = new Vector4(1f, 0f, 0f, 1f),
+            ErrorBackground = new Vector4(0.7f, 0.3f, 0.3f, 0.4f),
+            AttentionForeground = new Vector4(1f, 0.709f, 0f, 1f),
+            AttentionBackground = new Vector4(0.75f, 0.65f, 0.3f, 0.4f),
         },
     };
 
@@ -257,7 +268,138 @@ public class StyleModelV1 : StyleModel
             ParsedOrange = new Vector4(1f, 0.501f, 0f, 1f),
             ParsedPink = new Vector4(0.886f, 0.407f, 0.658f, 1f),
             ParsedGold = new Vector4(0.898f, 0.8f, 0.501f, 1f),
+            InfoForeground = new Vector4(0f, 0.6f, 1f, 1f),
+            InfoBackground = new Vector4(0.2f, 0.45f, 0.6f, 0.4f),
+            SuccessForeground = new Vector4(0f, 0.8f, 0.1333333f, 1f),
+            SuccessBackground = new Vector4(0.3f, 0.6f, 0.35f, 0.4f),
+            WarningForeground = new Vector4(1f, 0.709f, 0f, 1f),
+            WarningBackground = new Vector4(0.75f, 0.65f, 0.3f, 0.4f),
+            ErrorForeground = new Vector4(1f, 0f, 0f, 1f),
+            ErrorBackground = new Vector4(0.7f, 0.3f, 0.3f, 0.4f),
+            AttentionForeground = new Vector4(1f, 0.709f, 0f, 1f),
+            AttentionBackground = new Vector4(0.75f, 0.65f, 0.3f, 0.4f),
         },
+    };
+
+    /// <summary>
+    /// Gets the "hazy" Dalamud look.
+    /// </summary>
+    public static StyleModelV1 DalamudHazy => new()
+    {
+        Name = "Dalamud Hazy",
+
+        Alpha = 1,
+        WindowPadding = new Vector2(8, 8),
+        WindowRounding = 4,
+        WindowBorderSize = 0,
+        WindowTitleAlign = new Vector2(0, 0.5f),
+        WindowMenuButtonPosition = ImGuiDir.Right,
+        ChildRounding = 0,
+        ChildBorderSize = 1,
+        PopupRounding = 0,
+        PopupBorderSize = 0,
+        FramePadding = new Vector2(4, 3),
+        FrameRounding = 4,
+        FrameBorderSize = 0,
+        ItemSpacing = new Vector2(8, 4),
+        ItemInnerSpacing = new Vector2(4, 4),
+        CellPadding = new Vector2(4, 2),
+        TouchExtraPadding = new Vector2(0, 0),
+        IndentSpacing = 21,
+        ScrollbarSize = 16,
+        ScrollbarRounding = 9,
+        GrabMinSize = 13,
+        GrabRounding = 3,
+        LogSliderDeadzone = 4,
+        TabRounding = 4,
+        TabBorderSize = 0,
+        ButtonTextAlign = new Vector2(0.5f, 0.5f),
+        SelectableTextAlign = new Vector2(0, 0),
+        DisplaySafeAreaPadding = new Vector2(3, 3),
+
+        Colors = new Dictionary<string, Vector4>
+        {
+            { "Text", new Vector4(1, 1, 1, 1) },
+            { "TextDisabled", new Vector4(0.5f, 0.5f, 0.5f, 1) },
+            { "WindowBg", new Vector4(0.06f, 0.06f, 0.06f, 0.80f) },
+            { "ChildBg", new Vector4(0, 0, 0, 0) },
+            { "PopupBg", new Vector4(0.08f, 0.08f, 0.08f, 0.94f) },
+            { "Border", new Vector4(0.43f, 0.43f, 0.5f, 0.5f) },
+            { "BorderShadow", new Vector4(0, 0, 0, 0) },
+            { "FrameBg", new Vector4(0.29f, 0.29f, 0.29f, 0.54f) },
+            { "FrameBgHovered", new Vector4(0.54f, 0.54f, 0.54f, 0.4f) },
+            { "FrameBgActive", new Vector4(0.64f, 0.64f, 0.64f, 0.67f) },
+            { "TitleBg", new Vector4(0.022624433f, 0.022624206f, 0.022624206f, 0.85067874f) },
+            { "TitleBgActive", new Vector4(0.439f, 0.105f, 0.141f, 0.827f) },
+            { "TitleBgCollapsed", new Vector4(0, 0, 0, 0.51f) },
+            { "MenuBarBg", new Vector4(0.14f, 0.14f, 0.14f, 1) },
+            { "ScrollbarBg", new Vector4(0, 0, 0, 0) },
+            { "ScrollbarGrab", new Vector4(0.31f, 0.31f, 0.31f, 1) },
+            { "ScrollbarGrabHovered", new Vector4(0.41f, 0.41f, 0.41f, 1) },
+            { "ScrollbarGrabActive", new Vector4(0.51f, 0.51f, 0.51f, 1) },
+            { "CheckMark", new Vector4(0.86f, 0.86f, 0.86f, 1) },
+            { "SliderGrab", new Vector4(0.54f, 0.54f, 0.54f, 1) },
+            { "SliderGrabActive", new Vector4(0.67f, 0.67f, 0.67f, 1) },
+            { "Button", new Vector4(0.71f, 0.71f, 0.71f, 0.4f) },
+            { "ButtonHovered", new Vector4(0.3647059f, 0.078431375f, 0.078431375f, 0.94509804f) },
+            { "ButtonActive", new Vector4(0.48416287f, 0.10077597f, 0.10077597f, 0.94509804f) },
+            { "Header", new Vector4(0.59f, 0.59f, 0.59f, 0.31f) },
+            { "HeaderHovered", new Vector4(0.5f, 0.5f, 0.5f, 0.8f) },
+            { "HeaderActive", new Vector4(0.6f, 0.6f, 0.6f, 1) },
+            { "Separator", new Vector4(0.43f, 0.43f, 0.5f, 0.5f) },
+            { "SeparatorHovered", new Vector4(0.3647059f, 0.078431375f, 0.078431375f, 0.78280544f) },
+            { "SeparatorActive", new Vector4(0.3647059f, 0.078431375f, 0.078431375f, 0.94509804f) },
+            { "ResizeGrip", new Vector4(0.79f, 0.79f, 0.79f, 0.25f) },
+            { "ResizeGripHovered", new Vector4(0.78f, 0.78f, 0.78f, 0.67f) },
+            { "ResizeGripActive", new Vector4(0.3647059f, 0.078431375f, 0.078431375f, 0.94509804f) },
+            { "Tab", new Vector4(0.23f, 0.23f, 0.23f, 0.86f) },
+            { "TabHovered", new Vector4(0.58371043f, 0.30374074f, 0.30374074f, 0.7647059f) },
+            { "TabActive", new Vector4(0.47963798f, 0.15843244f, 0.15843244f, 0.7647059f) },
+            { "TabUnfocused", new Vector4(0.068f, 0.10199998f, 0.14800003f, 0.9724f) },
+            { "TabUnfocusedActive", new Vector4(0.13599998f, 0.26199996f, 0.424f, 1) },
+            { "DockingPreview", new Vector4(0.26f, 0.59f, 0.98f, 0.7f) },
+            { "DockingEmptyBg", new Vector4(0.2f, 0.2f, 0.2f, 1) },
+            { "PlotLines", new Vector4(0.61f, 0.61f, 0.61f, 1) },
+            { "PlotLinesHovered", new Vector4(1, 0.43f, 0.35f, 1) },
+            { "PlotHistogram", new Vector4(0.578199f, 0.16989735f, 0.16989735f, 0.78431374f) },
+            { "PlotHistogramHovered", new Vector4(0.7819905f, 0.12230185f, 0.12230185f, 0.78431374f) },
+            { "TableHeaderBg", new Vector4(0.19f, 0.19f, 0.2f, 1) },
+            { "TableBorderStrong", new Vector4(0.31f, 0.31f, 0.35f, 1) },
+            { "TableBorderLight", new Vector4(0.23f, 0.23f, 0.25f, 1) },
+            { "TableRowBg", new Vector4(0, 0, 0, 0) },
+            { "TableRowBgAlt", new Vector4(1, 1, 1, 0.06f) },
+            { "TextSelectedBg", new Vector4(0.26f, 0.59f, 0.98f, 0.35f) },
+            { "DragDropTarget", new Vector4(1, 1, 0, 0.9f) },
+            { "NavHighlight", new Vector4(0.26f, 0.59f, 0.98f, 1) },
+            { "NavWindowingHighlight", new Vector4(1, 1, 1, 0.7f) },
+            { "NavWindowingDimBg", new Vector4(0.8f, 0.8f, 0.8f, 0.2f) },
+            { "ModalWindowDimBg", new Vector4(0.8f, 0.8f, 0.8f, 0.35f) },
+        },
+
+        BuiltInColors = new DalamudColors
+        {
+            DalamudRed = new Vector4(1f, 0f, 0f, 1f),
+            DalamudGrey = new Vector4(0.7f, 0.7f, 0.7f, 1f),
+            DalamudGrey2 = new Vector4(0.7f, 0.7f, 0.7f, 1f),
+            DalamudGrey3 = new Vector4(0.5f, 0.5f, 0.5f, 1f),
+            DalamudWhite = new Vector4(1f, 1f, 1f, 1f),
+            DalamudWhite2 = new Vector4(0.878f, 0.878f, 0.878f, 1f),
+            DalamudOrange = new Vector4(1f, 0.709f, 0f, 1f),
+            DalamudYellow = new Vector4(1f, 1f, .4f, 1f),
+            DalamudViolet = new Vector4(0.770f, 0.700f, 0.965f, 1.000f),
+            TankBlue = new Vector4(0f, 0.6f, 1f, 1f),
+            HealerGreen = new Vector4(0f, 0.8f, 0.1333333f, 1f),
+            DPSRed = new Vector4(0.7058824f, 0f, 0f, 1f),
+            ParsedGrey = new Vector4(0.4f, 0.4f, 0.4f, 1f),
+            ParsedGreen = new Vector4(0.117f, 1f, 0f, 1f),
+            ParsedBlue = new Vector4(0f, 0.439f, 1f, 1f),
+            ParsedPurple = new Vector4(0.639f, 0.207f, 0.933f, 1f),
+            ParsedOrange = new Vector4(1f, 0.501f, 0f, 1f),
+            ParsedPink = new Vector4(0.886f, 0.407f, 0.658f, 1f),
+            ParsedGold = new Vector4(0.898f, 0.8f, 0.501f, 1f),
+        },
+
+        WindowBlurStrength = 5f,
     };
 
     /// <summary>
@@ -351,6 +493,9 @@ public class StyleModelV1 : StyleModel
     [JsonProperty("aa")]
     public Vector2 DisplaySafeAreaPadding { get; set; }
 
+    [JsonProperty("ac")]
+    public float WindowBlurStrength { get; set; }
+
 #pragma warning restore SA1600
 
     /// <summary>
@@ -430,7 +575,19 @@ public class StyleModelV1 : StyleModel
             ParsedOrange = ImGuiColors.ParsedOrange,
             ParsedPink = ImGuiColors.ParsedPink,
             ParsedGold = ImGuiColors.ParsedGold,
+            InfoForeground = ImGuiColors.InfoForeground,
+            InfoBackground = ImGuiColors.InfoBackground,
+            SuccessForeground = ImGuiColors.SuccessForeground,
+            SuccessBackground = ImGuiColors.SuccessBackground,
+            WarningForeground = ImGuiColors.WarningForeground,
+            WarningBackground = ImGuiColors.WarningBackground,
+            ErrorForeground = ImGuiColors.ErrorForeground,
+            ErrorBackground = ImGuiColors.ErrorBackground,
+            AttentionForeground = ImGuiColors.AttentionForeground,
+            AttentionBackground = ImGuiColors.AttentionBackground,
         };
+
+        model.WindowBlurStrength = WindowSystem.DefaultBackgroundBlurStrength;
 
         return model;
     }
@@ -482,6 +639,7 @@ public class StyleModelV1 : StyleModel
         }
 
         this.BuiltInColors?.Apply();
+        WindowSystem.DefaultBackgroundBlurStrength = this.WindowBlurStrength;
     }
 
     /// <inheritdoc/>

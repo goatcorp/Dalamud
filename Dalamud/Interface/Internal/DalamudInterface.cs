@@ -743,7 +743,7 @@ internal class DalamudInterface : IInternalDisposableService
                         ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMouseInputs |
                         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
                 {
-                    ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, "Is force MinHook!"u8);
+                    ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "Is force MinHook!"u8);
                 }
 
                 ImGui.End();
@@ -990,11 +990,6 @@ internal class DalamudInterface : IInternalDisposableService
                     if (ImGui.MenuItem("Clear focus"u8))
                     {
                         ImGui.SetWindowFocus((byte*)null);
-                    }
-
-                    if (ImGui.MenuItem("Clear stacks"u8))
-                    {
-                        this.interfaceManager.ClearStacks();
                     }
 
                     if (ImGui.MenuItem("Dump style"u8))

@@ -64,7 +64,7 @@ internal sealed class SettingsTabAutoUpdates : SettingsTab
                 "DalamudSettingsAutoUpdateAllWarning",
                 "Warning: This will update all plugins, including those not from the main repository.\n" +
                 "These updates are not reviewed by the Dalamud team and may contain malicious code.");
-            ImGui.TextColoredWrapped(ImGuiColors.DalamudOrange, warning);
+            ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, warning);
         }
 
         ImGuiHelpers.ScaledDummy(8);

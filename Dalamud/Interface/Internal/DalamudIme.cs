@@ -813,7 +813,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 {
                     var pos = cursor + ImGui.CalcTextSize(s) with { Y = 0 } +
                               new Vector2(4 * ImGuiHelpers.GlobalScale, 0);
-                    drawList.AddText(pos, ImGui.GetColorU32(ImGuiColors.DalamudRed), " (x)");
+                    drawList.AddText(pos, ImGui.GetColorU32(ImGuiColors.ErrorForeground), " (x)");
                 }
 
                 cursor.Y += candTextSize.Y + spaceY;

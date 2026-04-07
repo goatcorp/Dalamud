@@ -246,7 +246,7 @@ internal sealed class SettingsTabLook : SettingsTab
         if (fontBuildTask.IsFaulted || fontBuildTask.IsCanceled)
         {
             ImGui.TextColored(
-                ImGuiColors.DalamudRed,
+                ImGuiColors.ErrorForeground,
                 Loc.Localize("DalamudSettingsFontBuildFaulted", "Failed to load fonts as requested."));
             if (fontBuildTask.Exception is not null
                 && ImGui.CollapsingHeader("##DalamudSetingsFontBuildFaultReason"u8))
