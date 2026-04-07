@@ -41,13 +41,16 @@
             "problemMatcher": []
         },
         {
-            "label": "Wine gdbserver Debug DalamudCrashHandler",
+            "label": "Launch winedbg Debug DalamudCrashHandler",
             "type": "shell",
-            "command": "wine",
+            "command": "xlcore",
             "args": [
-                "Z:/usr/x86_64-w64-mingw32/sys-root/mingw/bin/gdbserver.exe",
-                "--once",
-                "localhost:12345",
+                "wine",
+                "winedbg",
+                "--gdb",
+                "--no-start",
+                "--port",
+                "12345",
                 "${workspaceFolder}/bin/Debug/DalamudCrashHandler.exe"
             ],
             "options": {
@@ -69,7 +72,7 @@
                 "background": {
                     "activeOnStart": true,
                     "beginsPattern": ".*",
-                    "endsPattern": "Listening on port 12345"
+                    "endsPattern": "target remote localhost:12345"
                 }
             },
             "isBackground": true,
