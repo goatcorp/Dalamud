@@ -181,7 +181,14 @@ namespace utils {
 
     private:
         // mark it as virtual to prevent compiler from inlining
-        virtual TReturn detour(TArgs... args) {
+#if defined(_MSC_VER)
+        __declspec(noinline)
+#endif
+        virtual TReturn
+#if !defined(_MSC_VER)
+        __attribute__((noinline))
+#endif
+        detour(TArgs... args) {
             return m_fnTarget(std::forward<TArgs>(args)...);
         }
 
