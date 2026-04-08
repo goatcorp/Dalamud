@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.CorePlugin.PluginInstallerV2.Enums;
+using Dalamud.Interface;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Plugin;
@@ -21,8 +21,6 @@ namespace Dalamud.CorePlugin.PluginInstallerV2.Controllers;
 /// </summary>
 internal class PluginListManager
 {
-    private readonly Lock listLock = new();
-
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginListManager"/> class.
     /// </summary>
@@ -30,10 +28,6 @@ internal class PluginListManager
     {
         this.PluginListAvailable = [];
         this.PluginListInstalled = [];
-        this.PluginListUpdatable = [];
-        this.HiddenPlugins = [];
-
-        this.UpdatePluginLists();
     }
 
     /// <summary>
@@ -47,23 +41,10 @@ internal class PluginListManager
     public List<LocalPlugin> PluginListInstalled { get; private set; }
 
     /// <summary>
-    /// Gets list of Updatable Plugins.
-    /// </summary>
-    public List<AvailablePluginUpdate> PluginListUpdatable { get; private set; }
-
-    /// <summary>
     /// Gets a value indicating whether there are any Dev Plugins Installed.
     /// </summary>
     public bool HasDevPlugins
         => this.PluginListInstalled.Any(plugin => plugin.IsDev);
-
-    /// <summary>
-    /// Gets a value indicating whether there are any hidden plugins.
-    /// </summary>
-    public bool HasHiddenPlugins
-        => this.HiddenPlugins.Count != 0;
-
-    private List<string> HiddenPlugins { get; set; }
 
     /// <summary>
     /// Gets whether the specified internal name has been seen yet.
@@ -74,20 +55,96 @@ internal class PluginListManager
         => Service<DalamudConfiguration>.Get().SeenPluginInternalName.Contains(internalName);
 
     /// <summary>
-    /// Updates all plugin lists.
+    /// Enables a already loaded plugin.
     /// </summary>
-    public void UpdatePluginLists()
+    /// <param name="plugin">Plugin.</param>
+    public static void EnablePlugin(LocalPlugin plugin)
+    {
+        var notifications = Service<NotificationManager>.Get();
+        var profileManager = Service<ProfileManager>.Get();
+
+        var profilesThatWantThisPlugin = profileManager.Profiles.Where(x => x.WantsPlugin(plugin.EffectiveWorkingPluginId) is not null).ToArray();
+        var applicableProfile = profilesThatWantThisPlugin.First();
+
+        Task.Run(async () =>
+        {
+            await applicableProfile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true, false);
+            await plugin.LoadAsync(PluginLoadReason.Installer);
+
+            notifications.AddNotification(
+                PluginInstallerLocs.Notifications_PluginEnabled(plugin.Manifest.Name),
+                PluginInstallerLocs.Notifications_PluginEnabledTitle,
+                NotificationType.Success);
+        });
+    }
+
+    /// <summary>
+    /// Disables an already loaded plugin.
+    /// </summary>
+    /// <param name="plugin">Plugin.</param>
+    public static void DisablePlugin(LocalPlugin plugin)
+    {
+        var notifications = Service<NotificationManager>.Get();
+        var profileManager = Service<ProfileManager>.Get();
+
+        var profilesThatWantThisPlugin = profileManager.Profiles.Where(x => x.WantsPlugin(plugin.EffectiveWorkingPluginId) is not null).ToArray();
+        var applicableProfile = profilesThatWantThisPlugin.First();
+
+        Task.Run(async () =>
+        {
+            await plugin.UnloadAsync();
+            await applicableProfile.AddOrUpdateAsync(
+                plugin.EffectiveWorkingPluginId,
+                plugin.Manifest.InternalName,
+                false,
+                false);
+
+            notifications.AddNotification(
+                PluginInstallerLocs.Notifications_PluginDisabled(plugin.Manifest.Name),
+                PluginInstallerLocs.Notifications_PluginDisabledTitle,
+                NotificationType.Success);
+        });
+    }
+
+    /// <summary>
+    /// Start a plugin install and handle errors visually.
+    /// </summary>
+    /// <param name="manifest">The manifest to install.</param>
+    /// <param name="useTesting">Install the testing version.</param>
+    public void StartInstall(RemotePluginManifest manifest, bool useTesting)
     {
         var pluginManager = Service<PluginManager>.Get();
-        var configuration = Service<DalamudConfiguration>.Get();
+        var notifications = Service<NotificationManager>.Get();
 
-        lock (this.listLock)
-        {
-            this.PluginListAvailable = pluginManager.AvailablePlugins.ToList();
-            this.PluginListInstalled = pluginManager.InstalledPlugins.ToList();
-            this.PluginListUpdatable = pluginManager.UpdatablePlugins.ToList();
-            this.HiddenPlugins = configuration.HiddenPluginInternalName.ToList();
-        }
+        Task.Run(() => pluginManager.InstallPluginAsync(manifest, useTesting || manifest.IsTestingExclusive, PluginLoadReason.Installer))
+            .ContinueWith(task =>
+            {
+                // Fine as long as we aren't in an error state
+                if (task.Result.State is PluginState.Loaded or PluginState.Unloaded)
+                {
+                    notifications.AddNotification(PluginInstallerLocs.Notifications_PluginInstalled(manifest.Name), PluginInstallerLocs.Notifications_PluginInstalledTitle, NotificationType.Success);
+                }
+                else
+                {
+                    notifications.AddNotification(PluginInstallerLocs.Notifications_PluginNotInstalled(manifest.Name), PluginInstallerLocs.Notifications_PluginNotInstalledTitle, NotificationType.Error);
+                    // this.ShowErrorModal(PluginInstallerLocs.ErrorModal_InstallFail(manifest.Name));
+                }
+
+                // // There is no need to set as Complete for an individual plugin installation
+                // if (this.DisplayErrorContinuation(task, PluginInstallerLocs.ErrorModal_InstallFail(manifest.Name)))
+                // {
+                //     // Fine as long as we aren't in an error state
+                //     if (task.Result.State is PluginState.Loaded or PluginState.Unloaded)
+                //     {
+                //         notifications.AddNotification(PluginInstallerLocs.Notifications_PluginInstalled(manifest.Name), PluginInstallerLocs.Notifications_PluginInstalledTitle, NotificationType.Success);
+                //     }
+                //     else
+                //     {
+                //         notifications.AddNotification(PluginInstallerLocs.Notifications_PluginNotInstalled(manifest.Name), PluginInstallerLocs.Notifications_PluginNotInstalledTitle, NotificationType.Error);
+                //         this.ShowErrorModal(PluginInstallerLocs.ErrorModal_InstallFail(manifest.Name));
+                //     }
+                // }
+            });
     }
 
     /// <summary>
@@ -98,9 +155,14 @@ internal class PluginListManager
     {
         var pluginManager = Service<PluginManager>.Get();
         var profileManager = Service<ProfileManager>.Get();
+        var configuration = Service<DalamudConfiguration>.Get();
 
-        var availablePlugins = pluginManager.AvailablePlugins.OrderByDescending(entry => GetManifestSearchScore(entry, searchController));
-        var installedPlugins = pluginManager.InstalledPlugins.OrderByDescending(p => GetManifestSearchScore(p.Manifest, searchController));
+        var availablePlugins = pluginManager.AvailablePlugins
+                                            .Where(manifest => !manifest.IsTestingExclusive || configuration.DoPluginTest)
+                                            .OrderByDescending(entry => GetManifestSearchScore(entry, searchController));
+
+        var installedPlugins = pluginManager.InstalledPlugins
+                                            .OrderByDescending(p => GetManifestSearchScore(p.Manifest, searchController));
 
         availablePlugins = searchController.SelectedSortOption switch
         {
@@ -129,127 +191,19 @@ internal class PluginListManager
     }
 
     /// <summary>
-    /// Enables a already loaded plugin.
-    /// </summary>
-    /// <param name="plugin">Plugin.</param>
-    public void EnablePlugin(LocalPlugin plugin)
-    {
-        var notifications = Service<NotificationManager>.Get();
-        var profileManager = Service<ProfileManager>.Get();
-
-        var profilesThatWantThisPlugin = profileManager.Profiles
-                                                       .Where(x => x.WantsPlugin(plugin.EffectiveWorkingPluginId) != null)
-                                                       .ToArray();
-
-        var applicableProfile = profilesThatWantThisPlugin.First();
-
-        Task.Run(async () =>
-        {
-            await applicableProfile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true, false);
-            await plugin.LoadAsync(PluginLoadReason.Installer);
-
-            notifications.AddNotification(
-                PluginInstallerLocs.Notifications_PluginEnabled(plugin.Manifest.Name),
-                PluginInstallerLocs.Notifications_PluginEnabledTitle,
-                NotificationType.Success);
-        });
-    }
-
-    /// <summary>
-    /// Disables an already loaded plugin.
-    /// </summary>
-    /// <param name="plugin">Plugin.</param>
-    public void DisablePlugin(LocalPlugin plugin)
-    {
-        var notifications = Service<NotificationManager>.Get();
-        var profileManager = Service<ProfileManager>.Get();
-
-        var profilesThatWantThisPlugin = profileManager.Profiles
-                                                       .Where(x => x.WantsPlugin(plugin.EffectiveWorkingPluginId) != null)
-                                                       .ToArray();
-
-        var applicableProfile = profilesThatWantThisPlugin.First();
-
-        Task.Run(async () =>
-        {
-            await plugin.UnloadAsync();
-            await applicableProfile.AddOrUpdateAsync(
-                plugin.EffectiveWorkingPluginId,
-                plugin.Manifest.InternalName,
-                false,
-                false);
-
-            notifications.AddNotification(
-                PluginInstallerLocs.Notifications_PluginDisabled(plugin.Manifest.Name),
-                PluginInstallerLocs.Notifications_PluginDisabledTitle,
-                NotificationType.Success);
-        });
-    }
-
-    /// <summary>
     /// Updates plugins.
     /// </summary>
     /// <returns>Task representing update progress.</returns>
     public Task UpdatePlugins()
     {
         var pluginManager = Service<PluginManager>.Get();
-        // var notifications = Service<NotificationManager>.Get();
-        // int updatePluginCount;
 
         var toUpdate =
-            this.PluginListUpdatable
+            pluginManager.UpdatablePlugins
                 .Where(x => x.InstalledPlugin.IsWantedByAnyProfile)
                 .ToList();
 
-        return Task.Run(() => pluginManager.UpdatePluginsAsync(toUpdate, false));
-        // .ContinueWith(task =>
-        // {
-        //     if (task.IsFaulted)
-        //     {
-        //         updatePluginCount = 0;
-        //         // this.DisplayErrorContinuation(task, PluginInstallerLocs.ErrorModal_UpdaterFatal); // todo: this.
-        //     }
-        //     else
-        //     {
-        //         var updatedPlugins = task.Result.Where(res => res.Status == PluginUpdateStatus.StatusKind.Success).ToList();
-        //         updatePluginCount = updatedPlugins.Count;
-        //
-        //         var errorPlugins = task.Result.Where(res => res.Status != PluginUpdateStatus.StatusKind.Success).ToList();
-        //         var errorPluginCount = errorPlugins.Count;
-        //
-        //         if (errorPluginCount > 0)
-        //         {
-        //             var errorMessage = updatePluginCount > 0
-        //                                    ? PluginInstallerLocs.ErrorModal_UpdaterFailPartial(updatePluginCount, errorPluginCount)
-        //                                    : PluginInstallerLocs.ErrorModal_UpdaterFail(errorPluginCount);
-        //
-        //             var hintInsert = errorPlugins
-        //                              .Aggregate(string.Empty, (current, pluginUpdateStatus) => $"{current}* {pluginUpdateStatus.InternalName} ({PluginUpdateStatus.LocalizeUpdateStatusKind(pluginUpdateStatus.Status)})\n")
-        //                              .TrimEnd();
-        //             errorMessage += PluginInstallerLocs.ErrorModal_HintBlame(hintInsert);
-        //
-        //             // this.DisplayErrorContinuation(task, errorMessage); // todo: this.
-        //         }
-        //
-        //         if (updatePluginCount > 0)
-        //         {
-        //             Service<PluginManager>.Get().PrintUpdatedPlugins(updatedPlugins, PluginInstallerLocs.PluginUpdateHeader_Chatbox);
-        //             notifications.AddNotification(new Notification
-        //             {
-        //                 Title = PluginInstallerLocs.Notifications_UpdatesInstalledTitle,
-        //                 Content = PluginInstallerLocs.Notifications_UpdatesInstalled(updatedPlugins),
-        //                 Type = NotificationType.Success,
-        //                 Icon = INotificationIcon.From(FontAwesomeIcon.Download),
-        //             });
-        //
-        //             // this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Installed; // todo: this.
-        //         }
-        //         else if (updatePluginCount is 0)
-        //         {
-        //             notifications.AddNotification(PluginInstallerLocs.Notifications_NoUpdatesFound, PluginInstallerLocs.Notifications_NoUpdatesFoundTitle, NotificationType.Info);
-        //         }
-        //     }
-        // });
+        return Task.Run(() => pluginManager.UpdatePluginsAsync(toUpdate, false)).ContinueWith(PluginUpdateContinuation);
     }
 
     private static int GetManifestSearchScore(IPluginManifest manifest, SearchController searchInfo)
@@ -284,5 +238,93 @@ internal class PluginListManager
         }
 
         return scores.Max();
+    }
+
+    /// <summary>
+    /// Continuation function to report the result of a "Update All Plugins" task.
+    /// </summary>
+    /// <param name="task">Source task.</param>
+    private static void PluginUpdateContinuation(Task<IEnumerable<PluginUpdateStatus>> task)
+    {
+        var notifications = Service<NotificationManager>.Get();
+        var pluginManager = Service<PluginManager>.Get();
+
+        if (task is { IsFaulted: true })
+        {
+        }
+        else
+        {
+            var updatedPlugins = task.Result.Where(res => res.Status == PluginUpdateStatus.StatusKind.Success).ToList();
+
+            if (updatedPlugins.Count is not 0)
+            {
+                pluginManager.PrintUpdatedPlugins(updatedPlugins, PluginInstallerLocs.PluginUpdateHeader_Chatbox);
+                notifications.AddNotification(new Notification
+                {
+                    Title = PluginInstallerLocs.Notifications_UpdatesInstalledTitle,
+                    Content = PluginInstallerLocs.Notifications_UpdatesInstalled(updatedPlugins),
+                    Type = NotificationType.Success,
+                    Icon = INotificationIcon.From(FontAwesomeIcon.Download),
+                });
+            }
+            else
+            {
+                notifications.AddNotification(new Notification
+                {
+                    Title = PluginInstallerLocs.Notifications_NoUpdatesFoundTitle,
+                    Content = PluginInstallerLocs.Notifications_NoUpdatesFound,
+                    Type = NotificationType.Info,
+                });
+            }
+        }
+
+        // .ContinueWith(task =>
+        // {
+        //     if (task.IsFaulted)
+        //     {
+        //         updatePluginCount = 0;
+        //         // this.DisplayErrorContinuation(task, PluginInstallerLocs.ErrorModal_UpdaterFatal);
+        //     }
+        //     else
+        //     {
+        //         var updatedPlugins = task.Result.Where(res => res.Status == PluginUpdateStatus.StatusKind.Success).ToList();
+        //         updatePluginCount = updatedPlugins.Count;
+        //
+        //         var errorPlugins = task.Result.Where(res => res.Status != PluginUpdateStatus.StatusKind.Success).ToList();
+        //         var errorPluginCount = errorPlugins.Count;
+        //
+        //         if (errorPluginCount > 0)
+        //         {
+        //             var errorMessage = updatePluginCount > 0
+        //                                    ? PluginInstallerLocs.ErrorModal_UpdaterFailPartial(updatePluginCount, errorPluginCount)
+        //                                    : PluginInstallerLocs.ErrorModal_UpdaterFail(errorPluginCount);
+        //
+        //             var hintInsert = errorPlugins
+        //                              .Aggregate(string.Empty, (current, pluginUpdateStatus) => $"{current}* {pluginUpdateStatus.InternalName} ({PluginUpdateStatus.LocalizeUpdateStatusKind(pluginUpdateStatus.Status)})\n")
+        //                              .TrimEnd();
+        //             errorMessage += PluginInstallerLocs.ErrorModal_HintBlame(hintInsert);
+        //
+        //             // this.DisplayErrorContinuation(task, errorMessage);
+        //         }
+        //
+        //         if (updatePluginCount > 0)
+        //         {
+        //             Service<PluginManager>.Get().PrintUpdatedPlugins(updatedPlugins, PluginInstallerLocs.PluginUpdateHeader_Chatbox);
+        //             notifications.AddNotification(new Notification
+        //             {
+        //                 Title = PluginInstallerLocs.Notifications_UpdatesInstalledTitle,
+        //                 Content = PluginInstallerLocs.Notifications_UpdatesInstalled(updatedPlugins),
+        //                 Type = NotificationType.Success,
+        //                 Icon = INotificationIcon.From(FontAwesomeIcon.Download),
+        //             });
+        //
+        //             // this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Installed;
+        //         }
+        //         else if (updatePluginCount is 0)
+        //         {
+        //             notifications.AddNotification(PluginInstallerLocs.Notifications_NoUpdatesFound, PluginInstallerLocs.Notifications_NoUpdatesFoundTitle, NotificationType.Info);
+        //         }
+        //     }
+        // });
     }
 }

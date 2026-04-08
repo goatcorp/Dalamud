@@ -5,6 +5,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
+using Dalamud.CorePlugin.PluginInstallerV2.Controllers;
 using Dalamud.CorePlugin.PluginInstallerV2.Enums;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
@@ -25,7 +26,7 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
     /// </summary>
     /// <param name="manifest">Manifest.</param>
     /// <param name="onEntryClicked">Callback when entry is clicked.</param>
-    public void DrawAvailablePlugin(RemotePluginManifest manifest, Action<RemotePluginManifest>? onEntryClicked = null)
+    public void DrawAvailablePlugin(RemotePluginManifest manifest, Action<IPluginManifest>? onEntryClicked = null)
     {
         using var id = ImRaii.PushId(manifest.InternalName);
 
@@ -152,7 +153,7 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
                             }
                         }
 
-                        this.DrawInstalledPluginToggleWidget(installedPlugin);
+                        DrawInstalledPluginToggleWidget(installedPlugin);
                     }
                 }
             }
@@ -163,11 +164,45 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
 
     private static void DrawBackgroundTexture(RemotePluginManifest manifest)
     {
-        if (manifest.IsTestingExclusive)
+        var configuration = Service<DalamudConfiguration>.Get();
+
+        if (!configuration.DoPluginTest)
+        {
+            return;
+        }
+
+        if (manifest.IsTestingExclusive || (manifest.IsAvailableForTesting && configuration.PluginTestingOptIns.Any(plugin => plugin.InternalName == manifest.InternalName)))
         {
             var startCursor = ImGui.GetCursorPos();
             DrawCautionTape(startCursor + new Vector2(0.0f, 1.0f), ImGui.GetContentRegionAvail(), ImGuiHelpers.GlobalScale * 40);
             ImGui.SetCursorPos(startCursor);
+        }
+    }
+
+    private static void DrawInstalledPluginToggleWidget(LocalPlugin? installedPlugin)
+    {
+        if (installedPlugin is not null)
+        {
+            ImGui.SameLine();
+
+            using var widgetChild = ImRaii.Child("WidgetChild", ImGui.GetContentRegionAvail(), false);
+            if (!widgetChild.Success)
+            {
+                return;
+            }
+
+            var isEnabled = installedPlugin.IsLoaded;
+            if (ImGuiComponents.ToggleButton("ToggleButton", ref isEnabled))
+            {
+                if (installedPlugin.IsLoaded)
+                {
+                    PluginListManager.DisablePlugin(installedPlugin);
+                }
+                else
+                {
+                    PluginListManager.EnablePlugin(installedPlugin);
+                }
+            }
         }
     }
 
@@ -180,6 +215,33 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
         }
 
         var configuration = Service<DalamudConfiguration>.Get();
+
+        var hasTestingVersionAvailable = configuration.DoPluginTest && manifest.IsAvailableForTesting;
+        if (hasTestingVersionAvailable)
+        {
+            // If we are opted in to get testing for this plugin
+            var pluginTestingOptIn = configuration.PluginTestingOptIns.FirstOrDefault(plugin => plugin.InternalName == manifest.InternalName);
+            if (pluginTestingOptIn is not null)
+            {
+                if (ImGui.MenuItem(PluginInstallerLocs.PluginContext_OptOutTestingVersion))
+                {
+                    configuration.PluginTestingOptIns.Remove(pluginTestingOptIn);
+                    configuration.QueueSave();
+                }
+            }
+            else
+            {
+                if (ImGui.MenuItem(PluginInstallerLocs.PluginContext_InstallTestingVersion))
+                {
+                    configuration.PluginTestingOptIns.Add(new PluginTestingOptIn(manifest.InternalName));
+                    configuration.QueueSave();
+
+                    this.ParentWindow.PluginListManager.StartInstall(manifest, true);
+                }
+            }
+
+            ImGui.Separator();
+        }
 
         if (ImGui.MenuItem(PluginInstallerLocs.PluginContext_MarkAllSeen))
         {
@@ -198,33 +260,6 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
         {
             configuration.HiddenPluginInternalName.Remove(manifest.InternalName);
             configuration.QueueSave();
-        }
-    }
-
-    private void DrawInstalledPluginToggleWidget(LocalPlugin? installedPlugin)
-    {
-        if (installedPlugin is not null)
-        {
-            ImGui.SameLine();
-
-            using var widgetChild = ImRaii.Child("WidgetChild", ImGui.GetContentRegionAvail(), false);
-            if (!widgetChild.Success)
-            {
-                return;
-            }
-
-            var isEnabled = installedPlugin.IsLoaded;
-            if (ImGuiComponents.ToggleButton("ToggleButton", ref isEnabled))
-            {
-                if (installedPlugin.IsLoaded)
-                {
-                    this.ParentWindow.PluginListManager.DisablePlugin(installedPlugin);
-                }
-                else
-                {
-                    this.ParentWindow.PluginListManager.EnablePlugin(installedPlugin);
-                }
-            }
         }
     }
 }

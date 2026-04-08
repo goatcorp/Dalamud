@@ -134,7 +134,7 @@ internal static class PluginInstallerLocs
     #region Plugin title text
 
     public static string PluginTitleMod_Installed
-        => Loc.Localize("InstallerInstalled", " (installed)");
+        => Loc.Localize("InstallerInstalled", "installed");
 
     public static string PluginTitleMod_Disabled
         => Loc.Localize("InstallerDisabled", " (disabled)");
@@ -152,13 +152,13 @@ internal static class PluginInstallerLocs
         => Loc.Localize("InstallerUpdated", " (updated)");
 
     public static string PluginTitleMod_TestingVersion
-        => Loc.Localize("InstallerTestingVersion", " (testing version)");
+        => Loc.Localize("InstallerTestingVersion", "Testing Enabled");
 
     public static string PluginTitleMod_TestingExclusive
-        => Loc.Localize("InstallerTestingExclusive", " (testing exclusive)");
+        => Loc.Localize("InstallerTestingExclusive", "Testing Exclusive");
 
     public static string PluginTitleMod_TestingAvailable
-        => Loc.Localize("InstallerTestingAvailable", " (has testing version)");
+        => Loc.Localize("InstallerTestingAvailable", "Testing Available");
 
     public static string PluginTitleMod_Incompatible
         => Loc.Localize("InstallerTitleModIncompatible", " (incompatible)");
@@ -199,6 +199,9 @@ internal static class PluginInstallerLocs
 
     public static string PluginContext_InstallTestingVersion
         => Loc.Localize("InstallerInstallTestingVersion", "Install testing version");
+
+    public static string PluginContext_OptOutTestingVersion
+        => Loc.Localize("InstallerOptOutTestingVersion", "Stop Testing");
 
     public static string PluginContext_MarkAllSeen
         => Loc.Localize("InstallerMarkAllSeen", "Mark all as seen");

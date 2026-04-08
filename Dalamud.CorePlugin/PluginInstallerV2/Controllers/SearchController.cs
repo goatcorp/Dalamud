@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 using Dalamud.CorePlugin.PluginInstallerV2.Enums;
 using Dalamud.CorePlugin.PluginInstallerV2.Enums.EnumExtensions;
@@ -28,11 +27,6 @@ internal class SearchController
     public event Action<SearchController>? OnSearchUpdated;
 
     /// <summary>
-    /// Gets the search regex for the current search string.
-    /// </summary>
-    public Regex? SearchRegex { get; private set; }
-
-    /// <summary>
     /// Gets dictionary of SortOptions => Localized String mapping.
     /// This is regenerated each time the installer is opened.
     /// </summary>
@@ -55,7 +49,6 @@ internal class SearchController
     public void UpdateSearch(string? newString = null)
     {
         this.SearchString = newString ?? string.Empty;
-        this.SearchRegex = new Regex(this.SearchString, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         this.OnSearchUpdated?.Invoke(this);
     }
 

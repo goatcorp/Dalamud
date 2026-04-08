@@ -4,6 +4,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
+using Dalamud.CorePlugin.PluginInstallerV2.Controllers;
 using Dalamud.CorePlugin.PluginInstallerV2.Enums;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -12,6 +13,8 @@ using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
@@ -311,15 +314,7 @@ internal abstract class PluginEntryRenderer
             }
         }
 
-        var wasSeen = Service<DalamudConfiguration>.Get().SeenPluginInternalName.Contains(manifest.InternalName);
-        if (!wasSeen)
-        {
-            var newText = PluginInstallerLocs.PluginTitleMod_New;
-            var textSize = ImGui.CalcTextSize(newText);
-
-            ImGui.SetCursorPos(new Vector2(ImGui.GetContentRegionMax().X - textSize.X, 0.0f));
-            ImGui.TextColored(ImGuiColors.TankBlue, PluginInstallerLocs.PluginTitleMod_New);
-        }
+        this.PrintPluginStatusText(manifest);
     }
 
     /// <summary>
@@ -359,6 +354,70 @@ internal abstract class PluginEntryRenderer
             return false;
         }
 
-        return this.ParentWindow.PluginListManager.PluginListUpdatable.Any(updatablePlugin => updatablePlugin.InstalledPlugin == plugin);
+        return Service<PluginManager>.Get().UpdatablePlugins.Any(updatablePlugin => updatablePlugin.InstalledPlugin == plugin);
+    }
+
+    /// <summary>
+    /// Draw plugin status text near the plugin title.
+    /// </summary>
+    /// <param name="manifest">Manifest.</param>
+    private void PrintPluginStatusText(IPluginManifest manifest)
+    {
+        var pluginManager = Service<PluginManager>.Get();
+        var configuration = Service<DalamudConfiguration>.Get();
+
+        var canUseTesting = pluginManager.CanUseTesting(manifest);
+        var useTesting = pluginManager.UseTesting(manifest);
+        var wasSeen = PluginListManager.WasPluginSeen(manifest.InternalName);
+
+
+        var statusText = string.Empty;
+        var color = KnownColor.White.Vector();
+        var plugin = this.GetPlugin(manifest);
+
+        if (useTesting)
+        {
+            statusText = PluginInstallerLocs.PluginTitleMod_TestingVersion;
+            color = ImGuiColors.DalamudOrange;
+        }
+        else if (canUseTesting)
+        {
+            statusText = PluginInstallerLocs.PluginTitleMod_TestingAvailable;
+            color = ImGuiColors.DalamudOrange;
+        }
+
+        // if (plugin is { IsTesting: true })
+        // {
+        //     statusText = PluginInstallerLocs.PluginTitleMod_TestingVersion;
+        //     color = ImGuiColors.DalamudOrange;
+        // }
+        // else
+        // {
+        //     var testingEnabled = configuration.DoPluginTest;
+        //     var canTesting = pluginManager.AvailablePlugins.Any(x => x.InternalName == manifest.InternalName && x.IsAvailableForTesting);
+        //     var isOptedIn = configuration.PluginTestingOptIns.Any(x => x.InternalName == plugin?.Manifest.InternalName);
+        //
+        //     if (testingEnabled && canTesting && isOptedIn)
+        //     {
+        //         statusText = PluginInstallerLocs.PluginTitleMod_TestingAvailable;
+        //         color = ImGuiColors.DalamudYellow;
+        //     }
+        // }
+
+        // if (plugin is { IsWantedByAnyProfile: true })
+        // {
+        //     statusText = PluginInstallerLocs.PluginTitleMod_Installed;
+        //     color = ImGuiColors.HealerGreen;
+        // }
+        // else if (!Service<DalamudConfiguration>.Get().SeenPluginInternalName.Contains(manifest.InternalName))
+        // {
+        //     statusText = PluginInstallerLocs.PluginTitleMod_New;
+        //     color = ImGuiColors.TankBlue;
+        // }
+
+        var textSize = ImGui.CalcTextSize(statusText);
+
+        ImGui.SetCursorPos(new Vector2(ImGui.GetContentRegionMax().X - textSize.X, 0.0f));
+        ImGui.TextColored(color, statusText);
     }
 }

@@ -50,7 +50,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
     {
         this.IsOpen = true;
 
-        this.Size = new Vector2(730.0f, 570.0f);
+        this.Size = new Vector2(830.0f, 570.0f);
         this.SizeCondition = ImGuiCond.FirstUseEver;
 
         this.SizeConstraints = new WindowSizeConstraints
@@ -69,6 +69,11 @@ internal class PluginInstallerWindow2 : Window, IDisposable
         this.collectionsWidget = new CollectionsWidget { ParentWindow = this };
 
         this.SearchController.OnSearchUpdated += this.PluginListManager.UpdateSortOrder;
+
+        this.PluginListManager.UpdateSortOrder(this.SearchController);
+
+        // Listen for config changes, they may have toggled DoPluginTest for example.
+        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved += this.OnConfigurationChanged;
 
         Log.Verbose("Plugin Installer v2 - Constructed and setup.");
     }
@@ -89,6 +94,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
     public FontManager FontManager { get; init; }
 
     // todo: DEBUG FUNCTIONALITY, REMOVE FOR RELEASE
+
     private bool ShowChildBorders { get; set; } = false;
 
     /// <inheritdoc/>
@@ -97,6 +103,8 @@ internal class PluginInstallerWindow2 : Window, IDisposable
         this.FontManager.Dispose();
 
         this.SearchController.OnSearchUpdated -= this.PluginListManager.UpdateSortOrder;
+
+        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved += this.OnConfigurationChanged;
     }
 
     /// <inheritdoc/>
@@ -124,6 +132,11 @@ internal class PluginInstallerWindow2 : Window, IDisposable
         ImGui.Separator();
 
         this.DrawFooter();
+    }
+
+    private void OnConfigurationChanged(DalamudConfiguration dalamudConfiguration)
+    {
+        this.PluginListManager.UpdateSortOrder(this.SearchController);
     }
 
     private void DrawSearchHeader()
