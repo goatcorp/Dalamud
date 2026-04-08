@@ -83,19 +83,22 @@
                 {
                     "description": "Disable winedbg breaking on any and every exception by default",
                     "text": "set $BreakOnFirstChance=0",
-                    "ignoreFailures": true
+                    "ignoreFailures": false
                 },
                 {
                     "description": "Disable gdb breaking on every thread exit",
                     "text": "handle SIGABRT nostop pass",
-                    "ignoreFailures": true
-                },
+                    "ignoreFailures": false
+                }
+            ],
+            "postRemoteConnectCommands": [
                 {
                     "description": "Load external symbols",
                     "text": "symbol-file ${workspaceFolder}/linuxtools/ffxiv_dx11.exe.dwarf",
-                    "ignoreFailures": true
+                    "ignoreFailures": false
                 }
-            ]
+            ],
+            "preLaunchTask": "Attach winedbg to running ffxiv_dx11.exe"
         },
         {
             "name": "Launch build/build.csproj",
