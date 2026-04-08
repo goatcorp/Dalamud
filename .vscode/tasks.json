@@ -81,6 +81,39 @@
                 "panel": "dedicated"
             },
             "dependsOn": "CMake build DalamudCrashHandler"
+        },
+        {
+            "label": "Attach winedbg to running ffxiv_dx11.exe",
+            "type": "shell",
+            "command": "exec xlcore wine winedbg --gdb --no-start --port 12345 $(xlcore wine tasklist | awk '/ffxiv_dx11.exe/ {print $2}')",
+            "options": {
+                "env": {
+                    "WINEDEBUG": "-all"
+                }
+            },
+            "problemMatcher": {
+                "owner": "custom",
+                "severity": "info",
+                "pattern": [
+                    {
+                        "regexp": "^(.*)$",
+                        "file": 1,
+                        "line": 0,
+                        "message": 1
+                    }
+                ],
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": "target remote localhost:12345"
+                }
+            },
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "dependsOn": "CMake build DalamudCrashHandler"
         }
     ]
 }
