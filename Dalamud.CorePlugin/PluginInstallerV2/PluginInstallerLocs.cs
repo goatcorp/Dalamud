@@ -201,7 +201,7 @@ internal static class PluginInstallerLocs
         => Loc.Localize("InstallerInstallTestingVersion", "Install testing version");
 
     public static string PluginContext_OptOutTestingVersion
-        => Loc.Localize("InstallerOptOutTestingVersion", "Stop Testing");
+        => Loc.Localize("InstallerOptOutTestingVersion", "Opt-out of Testing");
 
     public static string PluginContext_MarkAllSeen
         => Loc.Localize("InstallerMarkAllSeen", "Mark all as seen");

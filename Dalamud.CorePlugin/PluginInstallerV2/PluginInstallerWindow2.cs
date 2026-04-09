@@ -46,11 +46,11 @@ internal class PluginInstallerWindow2 : Window, IDisposable
     /// Initializes a new instance of the <see cref="PluginInstallerWindow2"/> class.
     /// </summary>
     public PluginInstallerWindow2()
-        : base("CorePlugin")
+        : base("CorePlugin2")
     {
         this.IsOpen = true;
 
-        this.Size = new Vector2(830.0f, 570.0f);
+        this.Size = new Vector2(830.0f, 630.0f);
         this.SizeCondition = ImGuiCond.FirstUseEver;
 
         this.SizeConstraints = new WindowSizeConstraints
@@ -235,7 +235,7 @@ internal class PluginInstallerWindow2 : Window, IDisposable
 
     private void DrawContents()
     {
-        var footerHeight = 31.0f * ImGuiHelpers.GlobalScale;
+        var footerHeight = 32.0f * ImGuiHelpers.GlobalScale;
         using var contentsChild = ImRaii.Child("Contents"u8, new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - footerHeight), this.ShowChildBorders);
         if (!contentsChild.Success)
         {

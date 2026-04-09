@@ -62,7 +62,7 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
                 var iconOverlayStart = ImGui.GetCursorPos();
                 using (ImRaii.Disabled(imageModifier is not (PluginImageModifier.None or PluginImageModifier.Installed)))
                 {
-                    DrawPluginIcon(GetPluginIcon(manifest));
+                    DrawPluginIcon(ManifestHelpers.GetPluginIcon(manifest));
                 }
 
                 ImGui.SetCursorPos(iconOverlayStart);
@@ -116,7 +116,7 @@ internal class AvailablePluginRenderer : PluginEntryRenderer
                                 {
                                     if (repoChild.Success)
                                     {
-                                        this.DrawPluginSource(manifest);
+                                        DrawPluginSource(manifest);
                                     }
                                 }
                             }

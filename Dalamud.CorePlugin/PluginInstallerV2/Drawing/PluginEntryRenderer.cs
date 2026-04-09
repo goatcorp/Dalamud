@@ -3,8 +3,6 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Configuration.Internal;
-using Dalamud.CorePlugin.PluginInstallerV2.Controllers;
 using Dalamud.CorePlugin.PluginInstallerV2.Enums;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -14,8 +12,6 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
-using Dalamud.Plugin.Internal.Profiles;
-using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
 
@@ -37,25 +33,63 @@ internal abstract class PluginEntryRenderer
     public required PluginInstallerWindow2 ParentWindow { get; init; }
 
     /// <summary>
-    /// Gets plugin icon from Manifest.
+    /// Draws a line the plugin source, Main Repo, Custom Repo, or Dev Plugin.
     /// </summary>
     /// <param name="manifest">Manifest.</param>
-    /// <returns>Default Icon or Loaded Texture.</returns>
-    protected static IDalamudTextureWrap GetPluginIcon(IPluginManifest manifest)
+    protected internal static void DrawPluginSource(IPluginManifest manifest)
     {
-        var imageCache = Service<PluginImageCache>.Get();
+        ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGuiHelpers.ScaledVector2(2.0f, 2.0f));
 
-        var sourceRepo = manifest is RemotePluginManifest remotePluginManifest ? remotePluginManifest.SourceRepo : null;
+        FontAwesomeIcon icon;
+        Vector4 outlineColor;
+        Vector4 color;
+        string label;
+        string tooltip;
 
-        var iconTex = imageCache.DefaultIcon;
-        var hasIcon = imageCache.TryGetIcon(null, manifest, sourceRepo is { IsThirdParty: true }, out var cachedIconTex, out _);
+        var plugin = ManifestHelpers.GetInstalledPluginFromManifest(manifest);
 
-        if (hasIcon && cachedIconTex != null)
+        if (plugin is { IsDev: true })
         {
-            iconTex = cachedIconTex;
+            icon = FontAwesomeIcon.Wrench;
+            outlineColor = KnownColor.White.Vector();
+            color = KnownColor.MediumOrchid.Vector();
+            label = PluginInstallerLocs.PluginTitleMod_DevPlugin;
+            tooltip = PluginInstallerLocs.VerifiedCheckmark_DevPluginTooltip;
+        }
+        else
+        {
+            var sourceRepo = manifest is RemotePluginManifest remotePluginManifest ? remotePluginManifest.SourceRepo : null;
+            if (sourceRepo is { IsThirdParty: true })
+            {
+                icon = FontAwesomeIcon.ExclamationCircle;
+                outlineColor = KnownColor.Black.Vector();
+                color = KnownColor.Orange.Vector();
+                label = PluginInstallerLocs.VerifiedCheckmark_CustomRepo;
+                tooltip = PluginInstallerLocs.VerifiedCheckmark_UnverifiedTooltip;
+            }
+            else
+            {
+                icon = FontAwesomeIcon.CheckCircle;
+                outlineColor = KnownColor.White.Vector();
+                color = KnownColor.RoyalBlue.Vector();
+                label = PluginInstallerLocs.VerifiedCheckmark_DalamudApproved;
+                tooltip = PluginInstallerLocs.VerifiedCheckmark_VerifiedTooltip;
+            }
         }
 
-        return iconTex;
+        DrawFontawesomeIconOutlined(icon, outlineColor, color);
+        var isHovered = ImGui.IsItemHovered();
+
+        ImGui.SameLine();
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (1.0f * ImGuiHelpers.GlobalScale));
+        ImGui.TextColored(color, label);
+        isHovered |= ImGui.IsItemHovered();
+
+        if (isHovered)
+        {
+            ImGui.SetTooltip(tooltip);
+        }
     }
 
     /// <summary>
@@ -96,7 +130,7 @@ internal abstract class PluginEntryRenderer
     /// <param name="manifest">Manifest.</param>
     protected static void DrawPunchline(IPluginManifest manifest)
     {
-        var punchline = manifest.Punchline?.Replace("\n", " "); // It's a PunchLINE, not PunchEssay.
+        var punchline = ManifestHelpers.GetPunchline(manifest);
         var textSize = ImGui.CalcTextSize(punchline);
 
         // Center text vertically.
@@ -202,71 +236,13 @@ internal abstract class PluginEntryRenderer
     }
 
     /// <summary>
-    /// Draws a line the plugin source, Main Repo, Custom Repo, or Dev Plugin.
-    /// </summary>
-    /// <param name="manifest">Manifest.</param>
-    protected void DrawPluginSource(IPluginManifest manifest)
-    {
-        ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGuiHelpers.ScaledVector2(2.0f, 2.0f));
-
-        FontAwesomeIcon icon;
-        Vector4 outlineColor;
-        Vector4 color;
-        string label;
-        string tooltip;
-
-        if (this.IsPluginInstalled(manifest) && this.IsDevPlugin(manifest))
-        {
-            icon = FontAwesomeIcon.Wrench;
-            outlineColor = KnownColor.White.Vector();
-            color = KnownColor.MediumOrchid.Vector();
-            label = PluginInstallerLocs.PluginTitleMod_DevPlugin;
-            tooltip = PluginInstallerLocs.VerifiedCheckmark_DevPluginTooltip;
-        }
-        else
-        {
-            var sourceRepo = manifest is RemotePluginManifest remotePluginManifest ? remotePluginManifest.SourceRepo : null;
-            if (sourceRepo is { IsThirdParty: true })
-            {
-                icon = FontAwesomeIcon.ExclamationCircle;
-                outlineColor = KnownColor.Black.Vector();
-                color = KnownColor.Orange.Vector();
-                label = PluginInstallerLocs.VerifiedCheckmark_CustomRepo;
-                tooltip = PluginInstallerLocs.VerifiedCheckmark_UnverifiedTooltip;
-            }
-            else
-            {
-                icon = FontAwesomeIcon.CheckCircle;
-                outlineColor = KnownColor.White.Vector();
-                color = KnownColor.RoyalBlue.Vector();
-                label = PluginInstallerLocs.VerifiedCheckmark_DalamudApproved;
-                tooltip = PluginInstallerLocs.VerifiedCheckmark_VerifiedTooltip;
-            }
-        }
-
-        DrawFontawesomeIconOutlined(icon, outlineColor, color);
-        var isHovered = ImGui.IsItemHovered();
-
-        ImGui.SameLine();
-
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (1.0f * ImGuiHelpers.GlobalScale));
-        ImGui.TextColored(color, label);
-        isHovered |= ImGui.IsItemHovered();
-
-        if (isHovered)
-        {
-            ImGui.SetTooltip(tooltip);
-        }
-    }
-
-    /// <summary>
     /// Gets a value indicating what kind of modifier to use for this manifest.
     /// </summary>
     /// <param name="manifest">Manifest.</param>
     /// <returns>What image modifier is needed to be rendered.</returns>
     protected PluginImageModifier GetImageModifier(IPluginManifest manifest)
     {
-        var plugin = this.GetPlugin(manifest);
+        var plugin = ManifestHelpers.GetInstalledPluginFromManifest(manifest);
 
         if (manifest.MinimumDalamudVersion != null &&
             manifest.MinimumDalamudVersion > Versioning.GetAssemblyVersionParsed())
@@ -282,7 +258,7 @@ internal abstract class PluginEntryRenderer
             case { IsWantedByAnyProfile: false }:
                 return PluginImageModifier.Disabled;
 
-            case not null when this.IsAvailableForUpdate(plugin):
+            case not null when ManifestHelpers.IsAvailableForUpdate(plugin):
                 return PluginImageModifier.Updatable;
 
             case { IsLoaded: true }:
@@ -314,66 +290,25 @@ internal abstract class PluginEntryRenderer
             }
         }
 
-        this.PrintPluginStatusText(manifest);
-    }
-
-    /// <summary>
-    /// Gets the LocalPlugin for this manifest.
-    /// </summary>
-    /// <param name="manifest">Manifest to get Plugin for.</param>
-    /// <returns>Reference to LocalPlugin, or null if it is not installed.</returns>
-    protected LocalPlugin? GetPlugin(IPluginManifest manifest)
-        => this.ParentWindow.PluginListManager.PluginListInstalled
-               .FirstOrDefault(plugin => plugin.InternalName == manifest.InternalName);
-
-    /// <summary>
-    /// Gets whether the provided manifest matches an installed plugin.
-    /// </summary>
-    /// <param name="manifest">Manifest.</param>
-    /// <returns>If this represents an installed plugin.</returns>
-    protected bool IsPluginInstalled(IPluginManifest manifest)
-        => this.GetPlugin(manifest) is not null;
-
-    /// <summary>
-    /// Gets whether the provided manifest matches a dev plugin.
-    /// </summary>
-    /// <param name="manifest">Manifest.</param>
-    /// <returns>If this represents an installed dev plugin.</returns>
-    protected bool IsDevPlugin(IPluginManifest manifest)
-        => this.GetPlugin(manifest)?.IsDev ?? false;
-
-    /// <summary>
-    /// Gets whether this plugin is available for updating.
-    /// </summary>
-    /// <param name="plugin">Plugin.</param>
-    /// <returns>If this plugin is available for updating.</returns>
-    protected bool IsAvailableForUpdate(LocalPlugin plugin)
-    {
-        if (plugin.IsDev)
-        {
-            return false;
-        }
-
-        return Service<PluginManager>.Get().UpdatablePlugins.Any(updatablePlugin => updatablePlugin.InstalledPlugin == plugin);
+        PrintPluginStatusText(manifest);
     }
 
     /// <summary>
     /// Draw plugin status text near the plugin title.
     /// </summary>
     /// <param name="manifest">Manifest.</param>
-    private void PrintPluginStatusText(IPluginManifest manifest)
+    private static void PrintPluginStatusText(IPluginManifest manifest)
     {
         var pluginManager = Service<PluginManager>.Get();
-        var configuration = Service<DalamudConfiguration>.Get();
+        // var configuration = Service<DalamudConfiguration>.Get();
 
         var canUseTesting = pluginManager.CanUseTesting(manifest);
         var useTesting = pluginManager.UseTesting(manifest);
-        var wasSeen = PluginListManager.WasPluginSeen(manifest.InternalName);
-
+        // var wasSeen = PluginListManager.WasPluginSeen(manifest.InternalName);
 
         var statusText = string.Empty;
         var color = KnownColor.White.Vector();
-        var plugin = this.GetPlugin(manifest);
+        // var plugin = ManifestHelpers.GetInstalledPluginFromManifest(manifest);
 
         if (useTesting)
         {
