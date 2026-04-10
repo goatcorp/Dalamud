@@ -36,9 +36,13 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private AddonLifecycle()
     {
-        this.onInitializeAddonHook = Hook<AtkUnitBase.Delegates.Initialize>.FromAddress((nint)AtkUnitBase.StaticVirtualTablePointer->Initialize, this.OnAddonInitialize);
-        this.onInitializeAddonHook.Enable();
+        this.InitializeAddonLifecycle();
     }
+
+    /// <summary>
+    /// Gets a value indicating whether AddonLifecycle is Enabled.
+    /// </summary>
+    internal bool IsEnabled { get; private set; }
 
     /// <summary>
     /// Gets a list of all AddonLifecycle Event Listeners.
@@ -49,11 +53,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.onInitializeAddonHook?.Dispose();
-        this.onInitializeAddonHook = null;
-
-        AllocatedTables.ForEach(entry => entry.Dispose());
-        AllocatedTables.Clear();
+        this.UnloadAddonLifecycle();
     }
 
     /// <summary>
@@ -70,6 +70,34 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         }
 
         return matchedTable.OriginalVirtualTable;
+    }
+
+    /// <summary>
+    /// Enables AddonLifecycle to replace addon virtual tables for relaying addon events.
+    /// </summary>
+    internal void InitializeAddonLifecycle()
+    {
+        this.IsEnabled = true;
+
+        this.onInitializeAddonHook ??= Hook<AtkUnitBase.Delegates.Initialize>.FromAddress((nint)AtkUnitBase.StaticVirtualTablePointer->Initialize, this.OnAddonInitialize);
+        this.onInitializeAddonHook.Enable();
+    }
+
+    /// <summary>
+    /// Restores all modified addon virtual tables, and disables AddonLifecycle.
+    /// </summary>
+    internal void UnloadAddonLifecycle()
+    {
+        this.IsEnabled = false;
+
+        this.onInitializeAddonHook?.Dispose();
+        this.onInitializeAddonHook = null;
+
+        this.framework.RunOnFrameworkThread(() =>
+        {
+            AllocatedTables.ForEach(entry => entry.Dispose());
+            AllocatedTables.Clear();
+        });
     }
 
     /// <summary>
@@ -95,7 +123,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
         listener.IsRequestedToClear = true;
-        
+
         if (this.isInvokingListeners)
         {
             this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
@@ -125,7 +153,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
             foreach (var listener in globalListeners)
             {
                 if (listener.IsRequestedToClear) continue;
-                
+
                 try
                 {
                     listener.FunctionDelegate.Invoke(eventType, args);
@@ -143,7 +171,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
             foreach (var listener in addonListener)
             {
                 if (listener.IsRequestedToClear) continue;
-                
+
                 try
                 {
                     listener.FunctionDelegate.Invoke(eventType, args);
