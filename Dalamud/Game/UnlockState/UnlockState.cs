@@ -44,11 +44,15 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     private readonly GameGui gameGui = Service<GameGui>.Get();
 
     [ServiceManager.ServiceDependency]
+    private readonly TargetSigScanner sigScanner = Service<TargetSigScanner>.Get();
+
+    [ServiceManager.ServiceDependency]
     private readonly RecipeData recipeData = Service<RecipeData>.Get();
 
     private readonly ConcurrentDictionary<Type, HashSet<uint>> cachedUnlockedRowIds = [];
     private readonly Hook<CSAchievement.Delegates.SetAchievementCompleted> setAchievementCompletedHook;
     private readonly Hook<TitleList.Delegates.SetTitleUnlocked> setTitleUnlockedHook;
+    private readonly Hook<SetOrnamentUnlockedDelegate> setOrnamentUnlockedHook;
 
     [ServiceManager.ServiceConstructor]
     private UnlockState()
@@ -65,9 +69,17 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             (nint)TitleList.MemberFunctionPointers.SetTitleUnlocked,
             this.SetTitleUnlockedDetour);
 
+        // TODO: replace with PlayerState.SetOrnamentUnlocked
+        this.setOrnamentUnlockedHook = Hook<SetOrnamentUnlockedDelegate>.FromAddress(
+            this.sigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC ?? 8B DA 41 0F B6 F8 C1 EA"),
+            this.SetOrnamentUnlockedDetour);
+
         this.setAchievementCompletedHook.Enable();
         this.setTitleUnlockedHook.Enable();
+        this.setOrnamentUnlockedHook.Enable();
     }
+
+    private delegate void SetOrnamentUnlockedDelegate(CSPlayerState* thisPtr, uint ornamentId, byte isUnlocked);
 
     /// <inheritdoc/>
     public event IUnlockState.UnlockDelegate Unlock;
@@ -89,6 +101,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
         this.setAchievementCompletedHook.Dispose();
         this.setTitleUnlockedHook.Dispose();
+        this.setOrnamentUnlockedHook.Dispose();
     }
 
     /// <inheritdoc/>
@@ -709,6 +722,16 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             return;
 
         this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<Title>(id));
+    }
+
+    private void SetOrnamentUnlockedDetour(CSPlayerState* thisPtr, uint ornamentId, byte isUnlocked)
+    {
+        this.setOrnamentUnlockedHook.Original(thisPtr, ornamentId, isUnlocked);
+
+        if (isUnlocked == 0 || !this.IsLoaded)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<Ornament>(ornamentId));
     }
 
     private void Update()
