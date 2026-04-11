@@ -88,6 +88,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.gameGui.AgentUpdate -= this.OnAgentUpdate;
 
         this.setAchievementCompletedHook.Dispose();
+        this.setTitleUnlockedHook.Dispose();
     }
 
     /// <inheritdoc/>
