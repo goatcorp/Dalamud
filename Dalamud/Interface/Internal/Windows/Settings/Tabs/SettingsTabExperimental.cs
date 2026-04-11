@@ -33,7 +33,7 @@ internal sealed class SettingsTabExperimental : SettingsTab
             (v, c) => c.DoPluginTest = v),
         new HintSettingsEntry(
             LazyLoc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may contain bugs or crash your game. Please only enable this if you are aware of the risks."),
-            ImGuiColors.DalamudRed),
+            ImGuiColors.AttentionForeground),
 
         new GapSettingsEntry(5),
 

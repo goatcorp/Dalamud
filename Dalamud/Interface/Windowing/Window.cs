@@ -35,6 +35,9 @@ public abstract class Window
 {
     private const float FadeInOutTime = 0.072f;
     private const string AdditionsPopupName = "WindowSystemContextActions";
+    private const float BlurNoiseOpacity = 0.17f;
+    private const float MaxBlurStrength = 14f;
+    private static readonly Vector4 BlurTintMultiplier = new(158 / 255f, 158 / 255f, 158 / 255f, 25 / 255f);
 
     private static readonly ModuleLog Log = ModuleLog.Create<WindowSystem>();
 
@@ -49,6 +52,7 @@ public abstract class Window
     private bool internalIsClickthrough = false;
     private bool didPushInternalAlpha = false;
     private float? internalAlpha = null;
+    private float? internalBlurFactorOverride = null;
     private bool nextFrameBringToFront = false;
 
     private bool hasInitializedFromPreset = false;
@@ -248,6 +252,27 @@ public abstract class Window
     public bool AllowClickthrough { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether this window should apply a blur effect to the background behind it when drawn, if the user has enabled this feature globally.
+    /// </summary>
+    public bool AllowBackgroundBlur
+    {
+        get;
+        set
+        {
+            field = value;
+            if (!field)
+            {
+                this.internalBlurFactorOverride = null;
+                this.presetDirty = true;
+            }
+        }
+#pragma warning disable SA1500
+#pragma warning disable SA1513
+    } = true;
+#pragma warning restore SA1513
+#pragma warning restore SA1500
+
+    /// <summary>
     /// Gets a value indicating whether this window is pinned.
     /// </summary>
     public bool IsPinned => this.internalIsPinned && this.AllowPinning;
@@ -383,12 +408,12 @@ public abstract class Window
     /// <summary>
     /// Draw the window via ImGui.
     /// </summary>
-    /// <param name="internalDrawFlags">Flags controlling window behavior.</param>
+    /// <param name="internalDrawParams">Parameters controlling window behavior.</param>
     /// <param name="persistence">Handler for window persistence data.</param>
-    internal void DrawInternal(WindowDrawFlags internalDrawFlags, WindowSystemPersistence? persistence)
+    internal void DrawInternal(WindowDrawParameters internalDrawParams, WindowSystemPersistence? persistence)
     {
         this.PreOpenCheck();
-        var doFades = !internalDrawFlags.HasFlag(WindowDrawFlags.IsReducedMotion) && !this.DisableFadeInFadeOut;
+        var doFades = !internalDrawParams.Flags.HasFlag(WindowDrawFlags.IsReducedMotion) && !this.DisableFadeInFadeOut;
 
         if (!this.IsOpen)
         {
@@ -399,7 +424,7 @@ public abstract class Window
 
                 this.IsFocused = false;
 
-                if (internalDrawFlags.HasFlag(WindowDrawFlags.UseSoundEffects) && !this.DisableWindowSounds)
+                if (internalDrawParams.Flags.HasFlag(WindowDrawFlags.UseSoundEffects) && !this.DisableWindowSounds)
                     UIGlobals.PlaySoundEffect(this.OnCloseSfxId);
             }
 
@@ -442,7 +467,7 @@ public abstract class Window
             this.internalLastIsOpen = this.internalIsOpen;
             this.OnOpen();
 
-            if (internalDrawFlags.HasFlag(WindowDrawFlags.UseSoundEffects) && !this.DisableWindowSounds)
+            if (internalDrawParams.Flags.HasFlag(WindowDrawFlags.UseSoundEffects) && !this.DisableWindowSounds)
                 UIGlobals.PlaySoundEffect(this.OnOpenSfxId);
         }
 
@@ -495,8 +520,51 @@ public abstract class Window
             ImGui.SetNextWindowSizeConstraints(Vector2.Zero, Vector2.PositiveInfinity);
         }
 
+        // Determine window background alpha
+        float effectiveWindowBgAlpha;
+        {
+            var nextWindowData = ImGuiP.ImGuiNextWindowData();
+            effectiveWindowBgAlpha = ImGui.GetStyle().Colors[(int)ImGuiCol.WindowBg].W;
+            if (nextWindowData.Flags.HasFlag(ImGuiNextWindowDataFlags.HasBgAlpha))
+            {
+                effectiveWindowBgAlpha = nextWindowData.BgAlphaVal;
+            }
+
+            if (flags.HasFlag(ImGuiWindowFlags.NoBackground))
+            {
+                effectiveWindowBgAlpha = 0;
+            }
+
+            effectiveWindowBgAlpha *= this.internalAlpha ?? 1f;
+        }
+
+        var windowHasBackground = effectiveWindowBgAlpha != 0f;
+
         if (this.CanShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, flags) : ImGui.Begin(this.WindowName, flags))
         {
+            // Apply background blur
+            {
+                var effectiveBlurFactor = this.internalBlurFactorOverride ?? internalDrawParams.DefaultBackgroundBlurStrength;
+                var shouldBlur = this.AllowBackgroundBlur &&
+                                 effectiveBlurFactor != 0f &&
+                                 ImGui.GetWindowViewport().ID == ImGui.GetMainViewport().ID &&
+                                 windowHasBackground;
+
+                // TODO: Fade between active/inactive tint?
+                if (shouldBlur)
+                {
+                    var wPos = ImGui.GetWindowPos();
+                    ImGuiHelpers.PrependBlurBehind(
+                        ImGui.GetWindowDrawList(),
+                        wPos,
+                        wPos + ImGui.GetWindowSize(),
+                        effectiveBlurFactor * MaxBlurStrength,
+                        ImGui.GetStyle().WindowRounding,
+                        tintColor: ImGui.GetStyle().Colors[ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows) ? (int)ImGuiCol.TitleBgActive : (int)ImGuiCol.TitleBg] * BlurTintMultiplier,
+                        noiseOpacity: BlurNoiseOpacity * effectiveWindowBgAlpha);
+                }
+            }
+
             var context = ImGui.GetCurrentContext();
             if (!context.IsNull)
             {
@@ -535,7 +603,7 @@ public abstract class Window
         var flagsApplicableForTitleBarIcons = !flags.HasFlag(ImGuiWindowFlags.NoDecoration) &&
                                               !flags.HasFlag(ImGuiWindowFlags.NoTitleBar);
         var showAdditions = (this.AllowPinning || this.AllowClickthrough) &&
-                            internalDrawFlags.HasFlag(WindowDrawFlags.UseAdditionalOptions) &&
+                            internalDrawParams.Flags.HasFlag(WindowDrawFlags.UseAdditionalOptions) &&
                             flagsApplicableForTitleBarIcons;
         var printWindow = false;
         if (showAdditions)
@@ -585,10 +653,28 @@ public abstract class Window
                 }
 
                 ImGui.SameLine();
-                if (ImGui.Button(Loc.Localize("WindowSystemContextActionReset", "Reset")))
+                if (ImGui.Button(Loc.Localize("WindowSystemContextActionReset", "Reset") + "##resetAlpha"))
                 {
                     this.internalAlpha = null;
                     this.presetDirty = true;
+                }
+
+                if (this.AllowBackgroundBlur)
+                {
+                    var blurOverride =
+                        (this.internalBlurFactorOverride ?? internalDrawParams.DefaultBackgroundBlurStrength) * 100f;
+                    if (ImGui.SliderFloat(Loc.Localize("WindowSystemContextActionBlur", "Background Blur"), ref blurOverride, 0f, 100f, "%.1f%%"))
+                    {
+                        this.internalBlurFactorOverride = blurOverride / 100f;
+                        this.presetDirty = true;
+                    }
+
+                    ImGui.SameLine();
+                    if (ImGui.Button(Loc.Localize("WindowSystemContextActionReset", "Reset") + "##resetBlur"))
+                    {
+                        this.internalBlurFactorOverride = null;
+                        this.presetDirty = true;
+                    }
                 }
 
                 ImGui.TextColored(
@@ -624,7 +710,7 @@ public abstract class Window
 
         this.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
 
-        if (internalDrawFlags.HasFlag(WindowDrawFlags.UseFocusManagement) && !this.IsPinned)
+        if (internalDrawParams.Flags.HasFlag(WindowDrawFlags.UseFocusManagement) && !this.IsPinned)
         {
             var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
             if (escapeDown && this.IsFocused && !wasEscPressedLastFrame && this.RespectCloseHotkey)
@@ -755,6 +841,7 @@ public abstract class Window
         this.internalIsPinned = this.presetWindow.IsPinned;
         this.internalIsClickthrough = this.presetWindow.IsClickThrough;
         this.internalAlpha = this.presetWindow.Alpha;
+        this.internalBlurFactorOverride = this.presetWindow.BlurFactorOverride;
     }
 
     private void PostHandlePreset(WindowSystemPersistence? persistence)
@@ -769,6 +856,7 @@ public abstract class Window
             this.presetWindow.IsPinned = this.internalIsPinned;
             this.presetWindow.IsClickThrough = this.internalIsClickthrough;
             this.presetWindow.Alpha = this.internalAlpha;
+            this.presetWindow.BlurFactorOverride = this.internalBlurFactorOverride;
 
             var id = ImGui.GetID(this.WindowName);
             persistence.SaveWindow(id, this.presetWindow!);
@@ -908,7 +996,7 @@ public abstract class Window
     private void DrawErrorMessage()
     {
         // TODO: Once window systems are services, offer to reload the plugin
-        ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, Loc.Localize("WindowSystemErrorOccurred", "An error occurred while rendering this window. Please contact the developer for details."));
+        ImGui.TextColoredWrapped(ImGuiColors.ErrorForeground, Loc.Localize("WindowSystemErrorOccurred", "An error occurred while rendering this window. Please contact the developer for details."));
 
         ImGuiHelpers.ScaledDummy(5);
 
@@ -988,6 +1076,22 @@ public abstract class Window
 
             return this.internalMaxSize;
         }
+    }
+
+    /// <summary>
+    /// Parameters used when drawing a window through a <see cref="WindowSystem"/>.
+    /// </summary>
+    internal struct WindowDrawParameters
+    {
+        /// <summary>
+        /// Gets flags that control window behavior.
+        /// </summary>
+        public WindowDrawFlags Flags { get; init; }
+
+        /// <summary>
+        /// Gets the sigma value to be used for background blur, if enabled..
+        /// </summary>
+        public float DefaultBackgroundBlurStrength { get; init; }
     }
 
     /// <summary>

@@ -6,7 +6,7 @@
 
     <PropertyGroup Label="Feature">
         <Description>XIV Launcher addon framework</Description>
-        <DalamudVersion>14.0.4.5</DalamudVersion>
+        <DalamudVersion>14.0.5.0</DalamudVersion>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
@@ -102,6 +102,26 @@
         </EmbeddedResource>
         <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\imgui-vertex.hlsl.bytes">
           <LogicalName>imgui-vertex.hlsl.bytes</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\blur-fullscreen.vs.bytes">
+          <WithCulture>false</WithCulture>
+          <LogicalName>blur-fullscreen.vs.bytes</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\kawase-downsample.ps.bytes">
+          <WithCulture>false</WithCulture>
+          <LogicalName>kawase-downsample.ps.bytes</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\kawase-upsample.ps.bytes">
+          <WithCulture>false</WithCulture>
+          <LogicalName>kawase-upsample.ps.bytes</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\kawase-upsample-composite.ps.bytes">
+          <WithCulture>false</WithCulture>
+          <LogicalName>kawase-upsample-composite.ps.bytes</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\NoiseAsset_256X256_PNG.png">
+            <WithCulture>false</WithCulture>
+          <LogicalName>blur-noise.png</LogicalName>
         </EmbeddedResource>
     </ItemGroup>
 

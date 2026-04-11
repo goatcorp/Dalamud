@@ -241,7 +241,7 @@ internal class ServicesWidget : IDataWindowWidget
 
                 if (isPublic)
                 {
-                    using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                    using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.WarningForeground);
                     ImGui.Text("\t => PUBLIC!!!"u8);
                 }
 
@@ -253,7 +253,7 @@ internal class ServicesWidget : IDataWindowWidget
 
                     case ObjectInstanceVisibility.ExposedToPlugins:
                         var hasInterface = container.InterfaceToTypeMap.Values.Any(x => x == instance.Key);
-                        using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed, !hasInterface))
+                        using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.WarningForeground, !hasInterface))
                         {
                             ImGui.Text("\t => Exposed to plugins!"u8);
                             ImGui.Text(
@@ -298,7 +298,7 @@ internal class ServicesWidget : IDataWindowWidget
                 ServiceManager.ServiceKind.EarlyLoadedService => ImGui.GetColorU32(ImGuiColors.DalamudWhite),
                 ServiceManager.ServiceKind.BlockingEarlyLoadedService => ImGui.GetColorU32(ImGuiColors.ParsedPink),
                 ServiceManager.ServiceKind.ScopedService => ImGui.GetColorU32(ImGuiColors.ParsedGreen),
-                _ => ImGui.GetColorU32(ImGuiColors.DalamudRed),
+                _ => ImGui.GetColorU32(ImGuiColors.ErrorForeground),
             };
         }
 
