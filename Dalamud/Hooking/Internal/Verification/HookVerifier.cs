@@ -116,9 +116,10 @@ internal static partial class HookVerifier
     /// Verify the hook with the provided address and exception.
     /// </summary>
     /// <param name="address">The address of the function we are hooking.</param>
+    /// <param name="hookCaller">The caller that is trying to create the hook.</param>
     /// <typeparam name="T">The delegate type passed by the creator of the hook.</typeparam>
     /// <exception cref="HookVerificationException">Exception thrown when we think the hook is not correctly declared.</exception>
-    public static void Verify<T>(IntPtr address) where T : Delegate
+    public static void Verify<T>(IntPtr address, Assembly hookCaller) where T : Delegate
     {
         // Nothing to verify for this hook?
         if (!allToVerify.TryGetValue(address, out var entry))
@@ -190,7 +191,7 @@ internal static partial class HookVerifier
                 HookVerificationException.GetSignature(entry.TargetDelegateType) :
                 $"{entry.ReturnType!.Name} ({string.Join(", ", entry.Parameters!.Select(p => p.ParameterType.Name))})";
 
-            throw HookVerificationException.Create(address, passedType, enforcedDelegate, entry.Message, entry.Name, failContext);
+            throw HookVerificationException.Create(address, passedType, enforcedDelegate, entry.Message, entry.Name, failContext, hookCaller);
         }
     }
 
