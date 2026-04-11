@@ -1,11 +1,11 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include "CoreCLR.h"
-#include <Windows.h>
+#include <windows.h>
 #include <filesystem>
 #include <iostream>
 #include "nethost/nethost.h"
-#include "..\..\Dalamud.Boot\logging.h"
+#include "../../Dalamud.Boot/logging.h"
 
 CoreCLR::CoreCLR(void* calling_module)
     : m_calling_module(calling_module)

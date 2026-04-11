@@ -87,10 +87,13 @@ namespace utils {
         signature_finder& look_for(std::string_view pattern);
         signature_finder& look_for_hex(std::string_view pattern);
 
+#if !defined(__GNUC__)
         template<size_t len>
-        signature_finder& look_for(char pattern[len]) {
+        signature_finder& look_for(char pattern[len])
+        {
             static_assert(len == 5);
         }
+#endif
 
         struct result {
             std::span<const char> Match;
@@ -159,7 +162,7 @@ namespace utils {
 
     public:
         thunk(std::string name, std::function<TFn> target)
-            : m_pThunk(utils::create_thunk(&detour_static, this, Placeholder))
+            : m_pThunk(utils::create_thunk(reinterpret_cast<void*>(&detour_static), this, Placeholder))
             , m_fnTarget(std::move(target))
             , m_name(name) {
         }
@@ -178,7 +181,14 @@ namespace utils {
 
     private:
         // mark it as virtual to prevent compiler from inlining
-        virtual TReturn detour(TArgs... args) {
+#if defined(_MSC_VER)
+        __declspec(noinline)
+#endif
+        virtual TReturn
+#if !defined(_MSC_VER)
+        __attribute__((noinline))
+#endif
+        detour(TArgs... args) {
             return m_fnTarget(std::forward<TArgs>(args)...);
         }
 
