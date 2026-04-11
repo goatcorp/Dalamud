@@ -759,7 +759,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
     private void SetGlassesStyleUnlockedDetour(CSPlayerState* thisPtr, ushort glassesStyleId, byte isUnlocked)
     {
-        this.setOrnamentUnlockedHook.Original(thisPtr, glassesStyleId, isUnlocked);
+        this.setGlassesStyleUnlockedHook.Original(thisPtr, glassesStyleId, isUnlocked);
 
         if (isUnlocked == 0 || !this.IsLoaded)
             return;
