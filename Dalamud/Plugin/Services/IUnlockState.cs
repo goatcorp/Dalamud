@@ -201,6 +201,13 @@ public interface IUnlockState : IDalamudService
     bool IsGlassesUnlocked(Glasses row);
 
     /// <summary>
+    /// Determines whether the specified GlassesStyle is unlocked.
+    /// </summary>
+    /// <param name="row">The GlassesStyle row to check.</param>
+    /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
+    bool IsGlassesStyleUnlocked(GlassesStyle row);
+
+    /// <summary>
     /// Determines whether the specified HowTo is unlocked.
     /// </summary>
     /// <param name="row">The HowTo row to check.</param>
