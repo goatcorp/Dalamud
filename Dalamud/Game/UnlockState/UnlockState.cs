@@ -20,6 +20,7 @@ using Lumina.Excel.Sheets;
 using AchievementSheet = Lumina.Excel.Sheets.Achievement;
 using ActionSheet = Lumina.Excel.Sheets.Action;
 using CSAchievement = FFXIVClientStructs.FFXIV.Client.Game.UI.Achievement;
+using CSPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
 using InstanceContentSheet = Lumina.Excel.Sheets.InstanceContent;
 using PublicContentSheet = Lumina.Excel.Sheets.PublicContent;
 
@@ -43,11 +44,16 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     private readonly GameGui gameGui = Service<GameGui>.Get();
 
     [ServiceManager.ServiceDependency]
+    private readonly TargetSigScanner sigScanner = Service<TargetSigScanner>.Get();
+
+    [ServiceManager.ServiceDependency]
     private readonly RecipeData recipeData = Service<RecipeData>.Get();
 
     private readonly ConcurrentDictionary<Type, HashSet<uint>> cachedUnlockedRowIds = [];
     private readonly Hook<CSAchievement.Delegates.SetAchievementCompleted> setAchievementCompletedHook;
     private readonly Hook<TitleList.Delegates.SetTitleUnlocked> setTitleUnlockedHook;
+    private readonly Hook<SetOrnamentUnlockedDelegate> setOrnamentUnlockedHook;
+    private readonly Hook<SetGlassesStyleUnlockedDelegate> setGlassesStyleUnlockedHook;
 
     [ServiceManager.ServiceConstructor]
     private UnlockState()
@@ -64,9 +70,25 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             (nint)TitleList.MemberFunctionPointers.SetTitleUnlocked,
             this.SetTitleUnlockedDetour);
 
+        // TODO: replace with PlayerState.SetOrnamentUnlocked
+        this.setOrnamentUnlockedHook = Hook<SetOrnamentUnlockedDelegate>.FromAddress(
+            this.sigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC ?? 8B DA 41 0F B6 F8 C1 EA"),
+            this.SetOrnamentUnlockedDetour);
+
+        // TODO: replace with PlayerState.SetGlassesStyleUnlocked
+        this.setGlassesStyleUnlockedHook = Hook<SetGlassesStyleUnlockedDelegate>.FromAddress(
+            this.sigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC ?? 0F BF DA 41 0F B6 F8"),
+            this.SetGlassesStyleUnlockedDetour);
+
         this.setAchievementCompletedHook.Enable();
         this.setTitleUnlockedHook.Enable();
+        this.setOrnamentUnlockedHook.Enable();
+        this.setGlassesStyleUnlockedHook.Enable();
     }
+
+    private delegate void SetOrnamentUnlockedDelegate(CSPlayerState* thisPtr, uint ornamentId, byte isUnlocked);
+
+    private delegate void SetGlassesStyleUnlockedDelegate(CSPlayerState* thisPtr, ushort glassesStyleId, byte isUnlocked);
 
     /// <inheritdoc/>
     public event IUnlockState.UnlockDelegate Unlock;
@@ -77,7 +99,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     /// <inheritdoc/>
     public bool IsTitleListLoaded => UIState.Instance()->TitleList.DataReceived;
 
-    private bool IsLoaded => PlayerState.Instance()->IsLoaded;
+    private bool IsLoaded => CSPlayerState.Instance()->IsLoaded;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -87,6 +109,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.gameGui.AgentUpdate -= this.OnAgentUpdate;
 
         this.setAchievementCompletedHook.Dispose();
+        this.setTitleUnlockedHook.Dispose();
+        this.setOrnamentUnlockedHook.Dispose();
+        this.setGlassesStyleUnlockedHook.Dispose();
     }
 
     /// <inheritdoc/>
@@ -114,7 +139,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return false;
 
-        return PlayerState.Instance()->IsAdventureComplete(row.RowId - 0x210000);
+        return CSPlayerState.Instance()->IsAdventureComplete(row.RowId - 0x210000);
     }
 
     /// <inheritdoc/>
@@ -123,7 +148,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return false;
 
-        return PlayerState.Instance()->IsAetherCurrentUnlocked(row.RowId);
+        return CSPlayerState.Instance()->IsAetherCurrentUnlocked(row.RowId);
     }
 
     /// <inheritdoc/>
@@ -132,7 +157,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return false;
 
-        return PlayerState.Instance()->IsAetherCurrentZoneComplete(row.RowId);
+        return CSPlayerState.Instance()->IsAetherCurrentZoneComplete(row.RowId);
     }
 
     /// <inheritdoc/>
@@ -276,7 +301,17 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return false;
 
-        return PlayerState.Instance()->IsGlassesUnlocked((ushort)row.RowId);
+        return row.Style.IsValid && this.IsGlassesStyleUnlocked(row.Style.Value);
+    }
+
+    /// <inheritdoc/>
+    public bool IsGlassesStyleUnlocked(GlassesStyle row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return CSPlayerState.Instance()->UnlockedGlassesStylesBitArray.TryGet((int)row.RowId, out var isUnlocked)
+            && isUnlocked;
     }
 
     /// <inheritdoc/>
@@ -317,10 +352,10 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
                 return UIState.Instance()->Buddy.CompanionInfo.IsBuddyEquipUnlocked(row.ItemAction.Value.Data[0]);
 
             case ItemActionAction.Mount:
-                return PlayerState.Instance()->IsMountUnlocked(row.ItemAction.Value.Data[0]);
+                return CSPlayerState.Instance()->IsMountUnlocked(row.ItemAction.Value.Data[0]);
 
             case ItemActionAction.SecretRecipeBook:
-                return PlayerState.Instance()->IsSecretRecipeBookUnlocked(row.ItemAction.Value.Data[0]);
+                return CSPlayerState.Instance()->IsSecretRecipeBookUnlocked(row.ItemAction.Value.Data[0]);
 
             case ItemActionAction.UnlockLink:
             case ItemActionAction.OccultRecords:
@@ -330,19 +365,19 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
                 return UIState.Instance()->IsTripleTriadCardUnlocked((ushort)row.AdditionalData.RowId);
 
             case ItemActionAction.FolkloreTome:
-                return PlayerState.Instance()->IsFolkloreBookUnlocked(row.ItemAction.Value.Data[0]);
+                return CSPlayerState.Instance()->IsFolkloreBookUnlocked(row.ItemAction.Value.Data[0]);
 
             case ItemActionAction.OrchestrionRoll when row.AdditionalData.Is<Orchestrion>():
-                return PlayerState.Instance()->IsOrchestrionRollUnlocked(row.AdditionalData.RowId);
+                return CSPlayerState.Instance()->IsOrchestrionRollUnlocked(row.AdditionalData.RowId);
 
             case ItemActionAction.FramersKit:
-                return PlayerState.Instance()->IsFramersKitUnlocked(row.AdditionalData.RowId);
+                return CSPlayerState.Instance()->IsFramersKitUnlocked(row.AdditionalData.RowId);
 
             case ItemActionAction.Ornament:
-                return PlayerState.Instance()->IsOrnamentUnlocked(row.ItemAction.Value.Data[0]);
+                return CSPlayerState.Instance()->IsOrnamentUnlocked(row.ItemAction.Value.Data[0]);
 
             case ItemActionAction.Glasses:
-                return PlayerState.Instance()->IsGlassesUnlocked((ushort)row.AdditionalData.RowId);
+                return CSPlayerState.Instance()->IsGlassesUnlocked((ushort)row.AdditionalData.RowId);
 
             case ItemActionAction.SoulShards when PublicContentOccultCrescent.GetState() is var occultCrescentState && occultCrescentState != null:
                 var supportJobId = (byte)row.ItemAction.Value.Data[0];
@@ -383,7 +418,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return false;
 
-        return PlayerState.Instance()->IsMcGuffinUnlocked(row.RowId);
+        return CSPlayerState.Instance()->IsMcGuffinUnlocked(row.RowId);
     }
 
     /// <inheritdoc/>
@@ -392,7 +427,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return false;
 
-        return PlayerState.Instance()->IsMountUnlocked(row.RowId);
+        return CSPlayerState.Instance()->IsMountUnlocked(row.RowId);
     }
 
     /// <inheritdoc/>
@@ -407,7 +442,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return false;
 
-        return PlayerState.Instance()->IsOrchestrionRollUnlocked(row.RowId);
+        return CSPlayerState.Instance()->IsOrchestrionRollUnlocked(row.RowId);
     }
 
     /// <inheritdoc/>
@@ -416,7 +451,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return false;
 
-        return PlayerState.Instance()->IsOrnamentUnlocked(row.RowId);
+        return CSPlayerState.Instance()->IsOrnamentUnlocked(row.RowId);
     }
 
     /// <inheritdoc/>
@@ -458,7 +493,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return false;
 
-        return PlayerState.Instance()->IsSecretRecipeBookUnlocked(row.RowId);
+        return CSPlayerState.Instance()->IsSecretRecipeBookUnlocked(row.RowId);
     }
 
     /// <inheritdoc/>
@@ -589,6 +624,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<Glasses>(out var glassesRow))
             return this.IsGlassesUnlocked(glassesRow);
 
+        if (rowRef.TryGetValue<GlassesStyle>(out var glassesStyleRow))
+            return this.IsGlassesStyleUnlocked(glassesStyleRow);
+
         if (rowRef.TryGetValue<HowTo>(out var howToRow))
             return this.IsHowToUnlocked(howToRow);
 
@@ -709,6 +747,26 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<Title>(id));
     }
 
+    private void SetOrnamentUnlockedDetour(CSPlayerState* thisPtr, uint ornamentId, byte isUnlocked)
+    {
+        this.setOrnamentUnlockedHook.Original(thisPtr, ornamentId, isUnlocked);
+
+        if (isUnlocked == 0 || !this.IsLoaded)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<Ornament>(ornamentId));
+    }
+
+    private void SetGlassesStyleUnlockedDetour(CSPlayerState* thisPtr, ushort glassesStyleId, byte isUnlocked)
+    {
+        this.setGlassesStyleUnlockedHook.Original(thisPtr, glassesStyleId, isUnlocked);
+
+        if (isUnlocked == 0 || !this.IsLoaded)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<GlassesStyle>(glassesStyleId));
+    }
+
     private void Update()
     {
         if (!this.IsLoaded)
@@ -740,6 +798,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.UpdateUnlocksForSheet<Emote>();
         this.UpdateUnlocksForSheet<GeneralAction>();
         this.UpdateUnlocksForSheet<Glasses>();
+        this.UpdateUnlocksForSheet<GlassesStyle>();
         this.UpdateUnlocksForSheet<HowTo>();
         this.UpdateUnlocksForSheet<InstanceContentSheet>();
         this.UpdateUnlocksForSheet<Item>();
@@ -921,6 +980,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsGlassesUnlocked(Glasses row) => this.unlockStateService.IsGlassesUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsGlassesStyleUnlocked(GlassesStyle row) => this.unlockStateService.IsGlassesStyleUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsHowToUnlocked(HowTo row) => this.unlockStateService.IsHowToUnlocked(row);
