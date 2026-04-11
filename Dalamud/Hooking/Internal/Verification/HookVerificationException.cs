@@ -24,6 +24,7 @@ public class HookVerificationException : Exception
     /// <param name="message">Additional context to show to the user.</param>
     /// <param name="name">The name of enforced hook location.</param>
     /// <param name="failContext">The exact check that failed for hook verification.</param>
+    /// <param name="hookCaller">The caller that is trying to create the hook.</param>
     /// <returns>The created exception.</returns>
     internal static HookVerificationException Create(IntPtr address, Type passed, string enforced, string message, string name, string failContext, Assembly hookCaller)
     {
