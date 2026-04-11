@@ -53,6 +53,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     private readonly Hook<CSAchievement.Delegates.SetAchievementCompleted> setAchievementCompletedHook;
     private readonly Hook<TitleList.Delegates.SetTitleUnlocked> setTitleUnlockedHook;
     private readonly Hook<SetOrnamentUnlockedDelegate> setOrnamentUnlockedHook;
+    private readonly Hook<SetGlassesStyleUnlockedDelegate> setGlassesStyleUnlockedHook;
 
     [ServiceManager.ServiceConstructor]
     private UnlockState()
@@ -74,12 +75,20 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             this.sigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC ?? 8B DA 41 0F B6 F8 C1 EA"),
             this.SetOrnamentUnlockedDetour);
 
+        // TODO: replace with PlayerState.SetGlassesStyleUnlocked
+        this.setGlassesStyleUnlockedHook = Hook<SetGlassesStyleUnlockedDelegate>.FromAddress(
+            this.sigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC ?? 0F BF DA 41 0F B6 F8"),
+            this.SetGlassesStyleUnlockedDetour);
+
         this.setAchievementCompletedHook.Enable();
         this.setTitleUnlockedHook.Enable();
         this.setOrnamentUnlockedHook.Enable();
+        this.setGlassesStyleUnlockedHook.Enable();
     }
 
     private delegate void SetOrnamentUnlockedDelegate(CSPlayerState* thisPtr, uint ornamentId, byte isUnlocked);
+
+    private delegate void SetGlassesStyleUnlockedDelegate(CSPlayerState* thisPtr, ushort glassesStyleId, byte isUnlocked);
 
     /// <inheritdoc/>
     public event IUnlockState.UnlockDelegate Unlock;
@@ -102,6 +111,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.setAchievementCompletedHook.Dispose();
         this.setTitleUnlockedHook.Dispose();
         this.setOrnamentUnlockedHook.Dispose();
+        this.setGlassesStyleUnlockedHook.Dispose();
     }
 
     /// <inheritdoc/>
@@ -732,6 +742,16 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             return;
 
         this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<Ornament>(ornamentId));
+    }
+
+    private void SetGlassesStyleUnlockedDetour(CSPlayerState* thisPtr, ushort glassesStyleId, byte isUnlocked)
+    {
+        this.setOrnamentUnlockedHook.Original(thisPtr, glassesStyleId, isUnlocked);
+
+        if (isUnlocked == 0 || !this.IsLoaded)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<GlassesStyle>(glassesStyleId));
     }
 
     private void Update()
