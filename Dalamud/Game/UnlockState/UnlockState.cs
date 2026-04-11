@@ -301,7 +301,17 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (!this.IsLoaded)
             return false;
 
-        return CSPlayerState.Instance()->IsGlassesUnlocked((ushort)row.RowId);
+        return row.Style.IsValid && this.IsGlassesStyleUnlocked(row.Style.Value);
+    }
+
+    /// <inheritdoc/>
+    public bool IsGlassesStyleUnlocked(GlassesStyle row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        return CSPlayerState.Instance()->UnlockedGlassesStylesBitArray.TryGet((int)row.RowId, out var isUnlocked)
+            && isUnlocked;
     }
 
     /// <inheritdoc/>
@@ -614,6 +624,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<Glasses>(out var glassesRow))
             return this.IsGlassesUnlocked(glassesRow);
 
+        if (rowRef.TryGetValue<GlassesStyle>(out var glassesStyleRow))
+            return this.IsGlassesStyleUnlocked(glassesStyleRow);
+
         if (rowRef.TryGetValue<HowTo>(out var howToRow))
             return this.IsHowToUnlocked(howToRow);
 
@@ -785,6 +798,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.UpdateUnlocksForSheet<Emote>();
         this.UpdateUnlocksForSheet<GeneralAction>();
         this.UpdateUnlocksForSheet<Glasses>();
+        this.UpdateUnlocksForSheet<GlassesStyle>();
         this.UpdateUnlocksForSheet<HowTo>();
         this.UpdateUnlocksForSheet<InstanceContentSheet>();
         this.UpdateUnlocksForSheet<Item>();
@@ -966,6 +980,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsGlassesUnlocked(Glasses row) => this.unlockStateService.IsGlassesUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsGlassesStyleUnlocked(GlassesStyle row) => this.unlockStateService.IsGlassesStyleUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsHowToUnlocked(HowTo row) => this.unlockStateService.IsHowToUnlocked(row);
