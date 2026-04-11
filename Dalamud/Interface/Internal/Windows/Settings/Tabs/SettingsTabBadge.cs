@@ -64,7 +64,7 @@ internal sealed class SettingsTabBadge : SettingsTab
         if (this.badgeWasError)
         {
             ImGuiHelpers.ScaledDummy(5);
-            ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingsBadgesUnlockError", "Failed to unlock badge. The code may be invalid or you may have already unlocked this badge."));
+            ImGui.TextColored(ImGuiColors.ErrorForeground, Loc.Localize("DalamudSettingsBadgesUnlockError", "Failed to unlock badge. The code may be invalid or you may have already unlocked this badge."));
         }
 
         ImGuiHelpers.ScaledDummy(5);

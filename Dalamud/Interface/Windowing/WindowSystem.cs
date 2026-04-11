@@ -68,6 +68,13 @@ public class WindowSystem
     internal static bool ShouldInhibitAtkCloseEvents { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating the default blur strength for windows in this <see cref="WindowSystem"/>.
+    /// This is used for windows that do not have a specific override set in their preset.
+    /// Range [0f,1f].
+    /// </summary>
+    internal static float DefaultBackgroundBlurStrength { get; set; }
+
+    /// <summary>
     /// Add a window to this <see cref="WindowSystem"/>.
     /// The window system doesn't own your window, it just renders it
     /// You need to store a reference to it to use it later.
@@ -134,7 +141,12 @@ public class WindowSystem
 #if DEBUG
             // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
 #endif
-            window.DrawInternal(flags, persistence);
+            var parameters = new Window.WindowDrawParameters()
+            {
+                Flags = flags,
+                DefaultBackgroundBlurStrength = DefaultBackgroundBlurStrength,
+            };
+            window.DrawInternal(parameters, persistence);
         }
 
         var focusedWindow = this.windows.FirstOrDefault(window => window.IsFocused);

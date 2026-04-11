@@ -181,7 +181,7 @@ internal class ServiceContainer : IServiceType
         if (this.interfaceToTypeMap.TryGetValue(serviceType, out var implementingType))
             serviceType = implementingType;
 
-        if (serviceType.GetCustomAttribute<ServiceManager.ScopedServiceAttribute>() != null)
+        if (Attribute.IsDefined(serviceType, typeof(ServiceManager.ScopedServiceAttribute)))
         {
             if (scope == null)
             {
@@ -246,7 +246,7 @@ internal class ServiceContainer : IServiceType
             var contains = validTypes.Any(x => x.IsAssignableTo(type));
 
             // Scoped services are created on-demand
-            return contains || type.GetCustomAttribute<ServiceManager.ScopedServiceAttribute>() != null;
+            return contains || Attribute.IsDefined(type, typeof(ServiceManager.ScopedServiceAttribute));
         }
 
         var parameters = ctor.GetParameters();

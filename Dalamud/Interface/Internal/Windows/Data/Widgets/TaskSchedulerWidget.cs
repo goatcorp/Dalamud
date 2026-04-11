@@ -392,11 +392,11 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                 TaskStatus.Created or TaskStatus.WaitingForActivation or TaskStatus.WaitingToRun
                     => ImRaii.PushColor(ImGuiCol.Header, ImGuiColors.DalamudGrey),
                 TaskStatus.Running or TaskStatus.WaitingForChildrenToComplete
-                    => ImRaii.PushColor(ImGuiCol.Header, ImGuiColors.ParsedBlue),
+                    => ImRaii.PushColor(ImGuiCol.Header, ImGuiColors.InfoForeground),
                 TaskStatus.RanToCompletion
-                    => ImRaii.PushColor(ImGuiCol.Header, ImGuiColors.ParsedGreen),
+                    => ImRaii.PushColor(ImGuiCol.Header, ImGuiColors.SuccessForeground),
                 TaskStatus.Canceled or TaskStatus.Faulted
-                    => ImRaii.PushColor(ImGuiCol.Header, ImGuiColors.DalamudRed),
+                    => ImRaii.PushColor(ImGuiCol.Header, ImGuiColors.ErrorForeground),
 
                 _ => throw new ArgumentOutOfRangeException(),
             };
@@ -425,7 +425,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                 if (task.Exception != null)
                 {
                     ImGuiHelpers.ScaledDummy(15);
-                    ImGui.TextColored(ImGuiColors.DalamudRed, "EXCEPTION:"u8);
+                    ImGui.TextColored(ImGuiColors.ErrorForeground, "EXCEPTION:"u8);
                     ImGui.Text(task.Exception.ToString());
                 }
             }

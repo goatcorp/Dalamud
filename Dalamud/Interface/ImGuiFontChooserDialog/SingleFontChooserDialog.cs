@@ -545,7 +545,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         else if (this.fontHandle.LoadException is { } loadException)
         {
             ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGui.GetStyle().FramePadding);
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
             ImGui.Text(loadException.Message);
             ImGui.PopStyleColor();
         }
@@ -1123,7 +1123,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         {
             var stylePushed = value < min || value > max || !float.TryParse(buf, out _);
             if (stylePushed)
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
 
             var changed2 = false;
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
