@@ -32,7 +32,7 @@ public class HookVerificationException : Exception
 
         return new HookVerificationException(
             $"Hook verification failed for address 0x{address.ToInt64():X} (relative base: {new FileInfo(mainModule.FileName).Name}+0x{address - Process.GetCurrentProcess().MainModule!.BaseAddress:X})\n\n" +
-            $"Hook creation caller: {hookCaller}\n"+
+            $"Hook creation caller: {hookCaller}\n" +
             $"Name:                 {name}\n" +
             $"Why:                  {message}\n" +
             $"Fail Context:         {failContext}\n" +
