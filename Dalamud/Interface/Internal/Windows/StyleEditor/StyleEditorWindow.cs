@@ -365,7 +365,7 @@ public class StyleEditorWindow : Window
                     Loc.Localize(
                         "DalamudSettingBackgroundBlurHint",
                         "This will allow you to set the strength of the blur effect for plugin windows.\n" +
-                        "Set to 0%% to disable the blur effect. This may not be supported by all of your plugins. Contact the plugin author if you want them to support this feature."));
+                        "Set to 0% to disable the blur effect. This may not be supported by all of your plugins. Contact the plugin author if you want them to support this feature."));
                 ImGui.PopStyleColor();
             }
 
