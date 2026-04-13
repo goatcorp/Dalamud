@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui;
@@ -9,7 +10,6 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -23,13 +23,12 @@ namespace Dalamud.Interface.Internal.UiDebug;
 /// <summary>
 /// A tool for browsing the contents and structure of UI elements.
 /// </summary>
-[Api15ToDo("Rename 'KamiToolKitAllocatedNodes' to 'TypeMappedCustomNodes'")]
 internal partial class UiDebug : IDisposable
 {
     /// <inheritdoc cref="ModuleLog"/>
     internal static readonly ModuleLog Log = ModuleLog.Create<UiDebug>();
 
-    private const string TypeMappedNodesDataShareName = "KamiToolKitAllocatedNodes";
+    private const string TypeMappedNodesDataShareName = "TypeMappedCustomNodes";
     private const string StringMappedNodesDataShareName = "StringMappedCustomNodes";
 
     private readonly ElementSelector elementSelector;
@@ -85,6 +84,84 @@ internal partial class UiDebug : IDisposable
 
         Service<DataShare>.Get().RelinquishData(TypeMappedNodesDataShareName,  this.dalamudInternalId);
         Service<DataShare>.Get().RelinquishData(StringMappedNodesDataShareName,  this.dalamudInternalId);
+    }
+
+    /// <summary>
+    /// Returns a string representing the type passed in.
+    /// </summary>
+    /// <param name="type">Type to parse.</param>
+    /// <param name="fullName">Whether to include full typename.</param>
+    /// <returns>String representation of the type.</returns>
+    internal static string GetReadableTypeName(Type type, bool fullName = false)
+    {
+        var stars = string.Empty;
+
+        var i = 0;
+        while (type.IsPointer)
+        {
+            stars += "*";
+            type = type.GetElementType()!;
+            if (i++ > 10) break; // not yet encountered, but better be safe!
+        }
+
+        if (type == typeof(nint) || type.GetElementType() == typeof(nint))
+            return "nint" + stars;
+
+        if (!type.IsEnum)
+        {
+            switch (Type.GetTypeCode(type))
+            {
+                case TypeCode.Boolean:
+                    return "bool" + stars;
+                case TypeCode.Char:
+                    return "char" + stars;
+                case TypeCode.SByte:
+                    return "sbyte" + stars;
+                case TypeCode.Byte:
+                    return "byte" + stars;
+                case TypeCode.Int16:
+                    return "short" + stars;
+                case TypeCode.UInt16:
+                    return "ushort" + stars;
+                case TypeCode.Int32:
+                    return "int" + stars;
+                case TypeCode.UInt32:
+                    return "uint" + stars;
+                case TypeCode.Int64:
+                    return "long" + stars;
+                case TypeCode.UInt64:
+                    return "ulong" + stars;
+                case TypeCode.Single:
+                    return "float" + stars;
+                case TypeCode.Double:
+                    return "double" + stars;
+                case TypeCode.Decimal:
+                    return "decimal" + stars;
+                case TypeCode.String:
+                    return "string" + stars;
+            }
+        }
+
+        if (type.IsGenericType)
+        {
+            var nameEndPos = type.Name.IndexOf('`');
+            if (nameEndPos == -1)
+                nameEndPos = type.Name.Length;
+
+            return $"{type.Name[..nameEndPos]}<{string.Join(",", type.GetGenericArguments().Select(t => GetReadableTypeName(t, fullName)))}>{stars}";
+        }
+
+        if (type.IsUnmanagedFunctionPointer)
+        {
+            var argTypes = type.GetFunctionPointerParameterTypes();
+            var argTypeStr = argTypes.Length > 0
+                                 ? string.Join(", ", argTypes.Select(argType => GetReadableTypeName(argType, fullName)))
+                                 : string.Empty;
+            var retType = GetReadableTypeName(type.GetFunctionPointerReturnType(), fullName);
+            return $"delegate* unmanaged<{(string.IsNullOrEmpty(argTypeStr) ? string.Empty : argTypeStr + ", ")}{retType}>";
+        }
+
+        return (fullName ? type.FullName ?? type.Name : type.Name) + stars;
     }
 
     /// <summary>

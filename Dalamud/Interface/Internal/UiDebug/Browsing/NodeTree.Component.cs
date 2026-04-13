@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
@@ -51,7 +50,7 @@ internal unsafe class ComponentNodeTree : ResNodeTree
         {
             if (typeInfo.IsGenericType)
             {
-                nodeType = $"{typeInfo.Name[..typeInfo.Name.IndexOf('`')]}<{string.Join(",", typeInfo.GetGenericArguments().Select(t => t.Name))}>";
+                nodeType = UiDebug.GetReadableTypeName(typeInfo);
             }
             else
             {
