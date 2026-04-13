@@ -89,9 +89,6 @@ internal partial class UiDebug : IDisposable
     /// <summary>
     /// Returns a string representing the type passed in.
     /// </summary>
-    /// <remarks>
-    /// Yoinked with permission from https://github.com/Haselnussbomber/HaselCommon/blob/fe0b266defceca59a174aab3097fc387f581c575/HaselCommon/Extensions/Reflection/TypeExtensions.cs#L50.
-    /// </remarks>
     /// <param name="type">Type to parse.</param>
     /// <param name="fullName">Whether to include full typename.</param>
     /// <returns>String representation of the type.</returns>
