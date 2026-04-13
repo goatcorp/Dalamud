@@ -207,7 +207,7 @@ internal unsafe partial class ResNodeTree : IDisposable
         {
             if (typeInfo.IsGenericType)
             {
-                nodeType = $"{typeInfo.Name[..typeInfo.Name.IndexOf('`')]}<{string.Join(",", typeInfo.GetGenericArguments().Select(t => t.Name))}>";
+                nodeType = GetReadableTypeName(typeInfo);
             }
             else
             {
