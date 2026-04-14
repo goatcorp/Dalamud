@@ -122,6 +122,8 @@ public class StyleEditorWindow : Window
 
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash) && this.currentSel != 0)
         {
+            var deletingChosenStyle = config.ChosenStyle == config.SavedStyles[this.currentSel].Name;
+
             this.currentSel--;
             var newStyle = config.SavedStyles[this.currentSel];
             newStyle.Apply();
@@ -129,6 +131,9 @@ public class StyleEditorWindow : Window
             appliedThisFrame = true;
 
             config.SavedStyles.RemoveAt(this.currentSel + 1);
+
+            if (deletingChosenStyle)
+                config.ChosenStyle = newStyle.Name;
 
             config.QueueSave();
         }
