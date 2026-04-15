@@ -1,0 +1,13 @@
+# Required for Ubuntu 24.04 LTS which still ships with https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110572
+--- /usr/lib/gcc/x86_64-w64-mingw32/13-win32/include/c++/typeinfo.orig  2026-03-22 14:39:12.935404759 +0000
++++ /usr/lib/gcc/x86_64-w64-mingw32/13-win32/include/c++/typeinfo       2026-03-22 14:38:13.914932773 +0000
+@@ -189,6 +189,9 @@
+ #endif
+ 
+ #if __GXX_TYPEINFO_EQUALITY_INLINE || __cplusplus > 202002L
++# if ! __GXX_TYPEINFO_EQUALITY_INLINE
++  [[__gnu__::__always_inline__]]
++# endif
+   _GLIBCXX23_CONSTEXPR inline bool
+   type_info::operator==(const type_info& __arg) const _GLIBCXX_NOEXCEPT
+   {

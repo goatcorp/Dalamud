@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -9,30 +11,41 @@
 #include <span>
 #include <sstream>
 #include <string>
-#include <thread>
 #include <vector>
 
 #define WIN32_LEAN_AND_MEAN
+#undef NOMINMAX
 #define NOMINMAX
-#include <Windows.h>
+#include <windows.h>
 
 #include <comdef.h>
-#include <CommCtrl.h>
-#include <DbgHelp.h>
+#include <commctrl.h>
+#include <dbghelp.h>
 #include <intrin.h>
+#if !defined(__MINGW32__)
+// In MinGW, the parts of minidumpapiset needed are available via dbghelp.
 #include <minidumpapiset.h>
-#include <PathCch.h>
-#include <Psapi.h>
+#endif
+#include <pathcch.h>
+#include <psapi.h>
 #include <shellapi.h>
-#include <ShlGuid.h>
-#include <ShObjIdl.h>
+#include <shlguid.h>
+#include <shobjidl.h>
+#if !defined(__MINGW32__)
 #include <shlobj_core.h>
+#else
+#include <shlobj.h>
+#endif
 
 #include <dxgi.h>
-#pragma comment(lib, "dxgi.lib")
 
-#pragma comment(lib, "comctl32.lib")
-#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#if defined(__GNUC__) 
+#pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
+#endif
+
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wdeprecated-anon-enum-enum-conversion"
+#endif
 
 _COM_SMARTPTR_TYPEDEF(IFileOperation, __uuidof(IFileOperation));
 _COM_SMARTPTR_TYPEDEF(IFileSaveDialog, __uuidof(IFileSaveDialog));
@@ -45,6 +58,28 @@ static constexpr GUID Guid_IFileDialog_Tspack{ 0xfc057318, 0xad35, 0x4599, {0xa7
 #include "resource.h"
 #include "../Dalamud.Boot/crashhandler_shared.h"
 #include "miniz.h"
+
+/* mingw SEH try / catch seems to be absolutely cursed beyond belief,
+ * with some projects handling it wrong, some projects warning against it,
+ * and yet again some other projects pushing through despite its fragility.
+ * If anyone's got a better idea at handling the flag than a thread local, please fix, thanks.
+ */
+#if defined(_MSC_VER)
+#define SEH_MSVC
+#define SEH_NOOPT
+static constexpr bool print_exception_info_violation = false;
+#elif defined(__try1)
+#define SEH_MINGW
+#if defined(__GNUC__)
+#define SEH_NOOPT __attribute__((optimize("O0")))
+#else
+#define SEH_NOOPT __attribute__((optnone))
+#endif
+static __thread bool print_exception_info_violation;
+extern "C" long SEH_NOOPT print_exception_info_violation_handler(EXCEPTION_POINTERS* data);
+#else
+#error "Your compilation environment does not expose SEH try / except unwind helpers"
+#endif
 
 HANDLE g_hProcess = nullptr;
 bool g_bSymbolsAvailable = false;
@@ -352,8 +387,17 @@ void print_exception_info(HANDLE hThread, const EXCEPTION_POINTERS& ex, const CO
         log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string(sf.AddrPC.Offset, false));
     };
 
-    const auto tryStackWalk = [&] {
+    const auto tryStackWalk = [&] SEH_NOOPT {
+        #if defined(SEH_MSVC)
         __try {
+
+        #elif defined(SEH_MINGW)
+        print_exception_info_violation = false;
+        __try1(print_exception_info_violation_handler);
+
+        {
+        #endif
+
             CONTEXT ctxWalk = ctx;
             do {
                 if (!StackWalk64(IMAGE_FILE_MACHINE_AMD64, g_hProcess, hThread, &sf, &ctxWalk, nullptr, &SymFunctionTableAccess64, &SymGetModuleBase64, nullptr))
@@ -361,11 +405,19 @@ void print_exception_info(HANDLE hThread, const EXCEPTION_POINTERS& ex, const CO
 
                 appendContextToLog(ctxWalk);
 
-            } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset);
+            } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset && !print_exception_info_violation);
+
+        #if defined(SEH_MSVC)
             return true;
         } __except(EXCEPTION_EXECUTE_HANDLER) {
             return false;
         }
+
+        #elif defined(SEH_MINGW)
+        }
+        __except1;
+        return !print_exception_info_violation;
+        #endif
     };
 
     if (!tryStackWalk())
@@ -419,6 +471,14 @@ void print_exception_info_extended(const EXCEPTION_POINTERS& ex, const CONTEXT& 
 
     log << L"\n}\n";
 }
+
+#if defined(SEH_MINGW)
+long SEH_NOOPT print_exception_info_violation_handler(EXCEPTION_POINTERS* data)
+{
+    print_exception_info_violation = true;
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+#endif
 
 std::wstring escape_shell_arg(const std::wstring& arg) {
     // https://docs.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
@@ -542,7 +602,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         pItem.Release();
         filePath.emplace(pFilePath);
 
-        std::fstream fileStream(*filePath, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
+        std::fstream fileStream(std::filesystem::path(*filePath), std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
 
         mz_zip_archive zipa{};
         zipa.m_pIO_opaque = &fileStream;

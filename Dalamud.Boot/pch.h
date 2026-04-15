@@ -9,26 +9,27 @@
 
 // Exclude rarely-used stuff from Windows headers
 #define WIN32_LEAN_AND_MEAN
+#undef NOMINMAX
 #define NOMINMAX
 
 // https://developercommunity.visualstudio.com/t/Access-violation-with-std::mutex::lock-a/10664660
 #define _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
 
 // Windows Header Files (1)
-#include <Windows.h>
+#include <windows.h>
 
 // Windows Header Files (2)
-#include <DbgHelp.h>
-#include <Dbt.h>
+#include <dbghelp.h>
+#include <dbt.h>
 #include <dwmapi.h>
 #include <iphlpapi.h>
-#include <PathCch.h>
-#include <Psapi.h>
+#include <pathcch.h>
+#include <psapi.h>
 #include <shellapi.h>
-#include <ShlObj.h>
-#include <Shlwapi.h>
-#include <SubAuth.h>
-#include <TlHelp32.h>
+#include <shlobj.h>
+#include <shlwapi.h>
+#include <subauth.h>
+#include <tlhelp32.h>
 
 // Windows Header Files (3)
 #include <icmpapi.h> // Must be loaded after iphlpapi.h
@@ -38,6 +39,8 @@
 
 // COM
 #include <comdef.h>
+#include <wrl.h>
+using Microsoft::WRL::ComPtr;
 
 // C++ Standard Libraries
 #include <algorithm>
@@ -72,7 +75,14 @@
 #include "../lib/CoreCLR/CoreCLR.h"
 
 // https://github.com/nlohmann/json
+#if __GNUC__ >= 15
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-literal-operator"
+#endif
 #include "../lib/nlohmann-json/json.hpp"
+#if __GNUC__ >= 15
+#pragma GCC diagnostic pop
+#endif
 
 #include "unicode.h"
 

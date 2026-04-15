@@ -43,4 +43,7 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="createprocess.manifest" />
+  </ItemGroup>
 </Project>

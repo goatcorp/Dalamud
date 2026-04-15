@@ -1,0 +1,176 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Wine netcoredbg Dalamud.Injector with winedbg (Release)",
+            "type": "coreclr",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/bin/Release",
+            "program": "${workspaceFolder}/bin/Release/Dalamud.Injector.exe",
+            "args": [
+                "launch",
+                "-f",
+                "--no-plugin",
+                "--no-wait",
+                "--wrap=winedbg",
+                "--wraparg=--gdb",
+                "--wraparg=--no-start",
+                "--wraparg=--port",
+                "--wraparg=12345",
+            ],
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "pipeTransport": {
+                "pipeCwd": "${workspaceFolder}",
+                "pipeProgram": "/bin/bash",
+                "pipeArgs": [
+                    "-c",
+                    ". .vscode/wine-common.sh; exec xlcore wine \"$(get-netcoredbg)\" --interpreter=vscode"
+                ],
+                "debuggerPath": "#unused"
+            },
+            "justMyCode": false,
+            "suppressJITOptimizations": true
+        },
+        {
+            "name": "Launch Wine netcoredbg Dalamud.Injector with winedbg (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/bin/Debug",
+            "program": "${workspaceFolder}/bin/Debug/Dalamud.Injector.exe",
+            "args": [
+                "launch",
+                "-f",
+                "--no-plugin",
+                "--no-wait",
+                "--wrap=winedbg",
+                "--wraparg=--gdb",
+                "--wraparg=--no-start",
+                "--wraparg=--port",
+                "--wraparg=12345",
+            ],
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "pipeTransport": {
+                "pipeCwd": "${workspaceFolder}",
+                "pipeProgram": "/bin/bash",
+                "pipeArgs": [
+                    "-c",
+                    ". .vscode/wine-common.sh; exec xlcore wine \"$(get-netcoredbg)\" --interpreter=vscode"
+                ],
+                "debuggerPath": "#unused"
+            }
+        },
+        {
+            "name": "Attach to FFXIV via gdb on localhost:12345",
+            "type": "cppdbg",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/linuxtools/ffxiv_dx11.exe",
+            "stopAtEntry": true,
+            "miDebuggerServerAddress": "localhost:12345",
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Disable winedbg breaking on any and every exception by default",
+                    "text": "set $BreakOnFirstChance=0",
+                    "ignoreFailures": false
+                },
+                {
+                    "description": "Disable gdb breaking on every thread exit",
+                    "text": "handle SIGABRT nostop pass",
+                    "ignoreFailures": false
+                }
+            ],
+            "postRemoteConnectCommands": [
+                {
+                    "description": "Load external symbols",
+                    "text": "symbol-file ${workspaceFolder}/linuxtools/ffxiv_dx11.exe.dwarf",
+                    "ignoreFailures": false
+                }
+            ],
+            "preLaunchTask": "Attach winedbg to running ffxiv_dx11.exe"
+        },
+        {
+            "name": "Attach to FFXIV via coreclr vsdbg",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "",
+            "pipeTransport": {
+                "pipeCwd": "${workspaceFolder}",
+                "pipeProgram": "/bin/bash",
+                "pipeArgs": [
+                    ".vscode/wine-coreclr-attach.sh"
+                ],
+                "debuggerPath": "#unused"
+            },
+            "justMyCode": false,
+            "suppressJITOptimizations": true
+        },
+        {
+            "name": "Launch build/build.csproj",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build build/build.csproj",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/build/bin/Debug/build.dll",
+            "args": [],
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
+            "type": "cmake",
+            "request": "launch",
+            "name": "CMake configure DalamudCrashHandler",
+            "cmakeDebugType": "configure",
+            "clean": false,
+            "configureAll": false
+        },
+        {
+            "name": "Launch winedbg Debug DalamudCrashHandler and attach gdb",
+            "type": "cppdbg",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "program": "${workspaceFolder}/bin/Debug/DalamudCrashHandler.exe",
+            "stopAtEntry": true,
+            // pipeTransport only works to some degree, e.g. -exec c works but the continue button doesn't.
+            "miDebuggerServerAddress": "localhost:12345",
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Disable winedbg breaking on any and every exception by default",
+                    "text": "set $BreakOnFirstChance=0",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Disable gdb breaking on every thread exit",
+                    "text": "handle SIGABRT nostop pass",
+                    "ignoreFailures": true
+                },
+            ],
+            "preLaunchTask": "Launch winedbg Debug DalamudCrashHandler"
+        }
+    ]
+}
