@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -117,18 +118,21 @@ internal static partial class HookVerifier
     /// </summary>
     /// <param name="address">The address of the function we are hooking.</param>
     /// <param name="hookCaller">The caller that is trying to create the hook.</param>
+    /// <param name="exception">The exception when we think the hook is not correctly declared.</param>
     /// <typeparam name="T">The delegate type passed by the creator of the hook.</typeparam>
-    /// <exception cref="HookVerificationException">Exception thrown when we think the hook is not correctly declared.</exception>
-    public static void Verify<T>(IntPtr address, Assembly hookCaller) where T : Delegate
+    /// <returns> <see langword="true"/> when we think the hook is not correctly declared, otherwise <see langword="false"/>. </returns>
+    public static bool TryVerify<T>(IntPtr address, Assembly hookCaller, [NotNullWhen(returnValue: true)] out HookVerificationException? exception) where T : Delegate
     {
+        exception = null;
+
         // Nothing to verify for this hook?
         if (!allToVerify.TryGetValue(address, out var entry))
         {
-            return;
+            return true;
         }
 
         var passedType = typeof(T);
-        var isAssemblyMarshaled = passedType.Assembly.GetCustomAttribute<DisableRuntimeMarshallingAttribute>() is null;
+        var isAssemblyMarshaled = !Attribute.IsDefined(passedType.Assembly, typeof(DisableRuntimeMarshallingAttribute));
         bool mismatch;
         string? failContext = null;
 
@@ -142,7 +146,7 @@ internal static partial class HookVerifier
             // Directly compare delegates
             if (passedType == entry.TargetDelegateType)
             {
-                return;
+                return true;
             }
 
             var enforcedInvoke = entry.TargetDelegateType.GetMethod("Invoke")!;
@@ -191,8 +195,11 @@ internal static partial class HookVerifier
                 HookVerificationException.GetSignature(entry.TargetDelegateType) :
                 $"{entry.ReturnType!.Name} ({string.Join(", ", entry.Parameters!.Select(p => p.ParameterType.Name))})";
 
-            throw HookVerificationException.Create(address, passedType, enforcedDelegate, entry.Message, entry.Name, failContext, hookCaller);
+            exception = HookVerificationException.Create(address, passedType, enforcedDelegate, entry.Message, entry.Name, failContext, hookCaller);
+            return false;
         }
+
+        return true;
     }
 
     [GeneratedRegex($@"^{nameof(FFXIVClientStructs)}\.({nameof(FFXIVClientStructs.FFXIV)}|{nameof(FFXIVClientStructs.Havok)}|{nameof(FFXIVClientStructs.Interop)}|{nameof(FFXIVClientStructs.STD)})\.", RegexOptions.Singleline)]
