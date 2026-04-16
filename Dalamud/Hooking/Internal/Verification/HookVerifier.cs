@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -120,7 +121,7 @@ internal static partial class HookVerifier
     /// <param name="exception">The exception when we think the hook is not correctly declared.</param>
     /// <typeparam name="T">The delegate type passed by the creator of the hook.</typeparam>
     /// <returns> <see langword="true"/> when we think the hook is not correctly declared, otherwise <see langword="false"/>. </returns>
-    public static bool TryVerify<T>(IntPtr address, Assembly hookCaller, out HookVerificationException? exception) where T : Delegate
+    public static bool TryVerify<T>(IntPtr address, Assembly hookCaller, [NotNullWhen(returnValue: true)] out HookVerificationException? exception) where T : Delegate
     {
         exception = null;
 
