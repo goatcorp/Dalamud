@@ -205,13 +205,9 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         var assembly = callingAssembly ?? Assembly.GetCallingAssembly();
 
         // TODO: Only log verification exceptions for now, figure out how to handle this
-        try
+        if (!HookVerifier.TryVerify<T>(procAddress, assembly, out var exception))
         {
-            HookVerifier.Verify<T>(procAddress, assembly);
-        }
-        catch (HookVerificationException ex)
-        {
-            Log.Error(ex, $"Hook verification failed - this may cause crashes and subtle bugs");
+            Log.Error(exception, $"Hook verification failed - this may cause crashes and subtle bugs");
         }
 
         procAddress = HookManager.FollowJmp(procAddress);
