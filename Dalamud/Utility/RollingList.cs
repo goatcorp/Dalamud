@@ -68,6 +68,13 @@ namespace Dalamud.Utility
             this.AddRange(items);
         }
 
+        /// <summary>
+        /// Fires whenever an item in the collection is evicted because the maximum capacity is reached.
+        /// This will NOT be called when .Clear() is called, as it is implicitly understood that clearing a collection
+        /// evicts all its items.
+        /// </summary>
+        public event EventHandler<T>? OnEviction;
+
         /// <summary>Gets item count.</summary>
         public int Count => this.items.Count;
 
@@ -138,6 +145,9 @@ namespace Dalamud.Utility
             if (this.size == 0) return;
             if (this.items.Count >= this.size)
             {
+                // evict element at items[firstIndex]
+                this.OnEviction?.Invoke(this, this.items[this.firstIndex]);
+                // then overwrite it
                 this.items[this.firstIndex] = item;
                 this.firstIndex = (this.firstIndex + 1) % this.size;
             }
