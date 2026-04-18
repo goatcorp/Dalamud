@@ -1095,17 +1095,20 @@ internal class ConsoleWindow : Window, IDisposable
 
         bool CheckPluginFilters()
         {
-            var applicable = this.pluginFilters
-                .Where(filter => string.Equals(
-                           filter.Source,
-                           entry.Source,
-                           StringComparison.InvariantCultureIgnoreCase))
-                .ToList();
-
-            if (applicable.Count == 0)
+            // if no plugin filters exist, implicitly accept all log entries
+            if (this.pluginFilters.Count == 0)
+            {
                 return true;
+            }
 
-            return applicable.Any(filter =>
+            // otherwise, there has to be a filter that matches this source, loglevel and regex
+            var applicableFilters = this.pluginFilters
+                                 .Where(filter => string.Equals(
+                                            filter.Source,
+                                            entry.Source,
+                                            StringComparison.InvariantCultureIgnoreCase));
+
+            return applicableFilters.Any(filter =>
             {
                 var allowedLevel = filter.Level <= entry.Level;
                 var matchesContent = filter.FilterRegex is null ||
