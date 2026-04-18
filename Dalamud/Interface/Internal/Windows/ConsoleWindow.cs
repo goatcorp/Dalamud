@@ -37,8 +37,10 @@ internal class ConsoleWindow : Window, IDisposable
     private const int HistorySize = 50;
 
     // Fields below should be touched only from the main thread.
-    private readonly RollingList<LogEntry> logText;
-    private readonly RollingList<LogEntry> filteredLogEntries;
+    private readonly RollingList<LogLine> logText;
+    // use linked list for entries for O(1) removal and addition
+    private readonly LinkedList<LogEntry> logEntries;
+    private LinkedList<LogEntry> filteredLogEntries;
 
     private readonly List<PluginFilterEntry> pluginFilters = [];
 
@@ -108,7 +110,11 @@ internal class ConsoleWindow : Window, IDisposable
 
         var limit = Math.Max(LogLinesMinimum, this.logLinesLimit);
         this.logText = new(limit);
-        this.filteredLogEntries = new(limit);
+
+        this.logEntries = [];
+        this.filteredLogEntries = this.logEntries;
+
+        this.logText.OnEviction += this.HandleLogLineEviction;
 
         this.configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
 
@@ -199,19 +205,26 @@ internal class ConsoleWindow : Window, IDisposable
         var logLineHeight = 0.0f;
 
         this.clipperPtr.Begin(this.filteredLogEntries.Count);
+        var clipperNode = this.filteredLogEntries.First;
+        var clipperNodeIdx = 0;
         while (this.clipperPtr.Step())
         {
             for (var i = this.clipperPtr.DisplayStart; i < this.clipperPtr.DisplayEnd; i++)
             {
-                var index = Math.Max(
-                    i - this.newRolledLines,
-                    0); // Prevents flicker effect. Also workaround to avoid negative indexes.
-                var line = this.filteredLogEntries[index];
+                var index = Math.Max(i - this.newRolledLines, 0);
 
-                if (!line.IsMultiline)
-                    ImGui.Separator();
+                while (clipperNodeIdx < index && clipperNode?.Next != null)
+                {
+                    clipperNode = clipperNode.Next;
+                    clipperNodeIdx++;
+                }
 
-                if (line.SelectedForCopy)
+                if (clipperNode == null) break;
+                var entry = clipperNode.Value;
+
+                ImGui.Separator();
+
+                if (entry.SelectedForCopy)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.ParsedGrey);
                     ImGui.PushStyleColor(ImGuiCol.HeaderActive, ImGuiColors.ParsedGrey);
@@ -219,9 +232,9 @@ internal class ConsoleWindow : Window, IDisposable
                 }
                 else
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Header, GetColorForLogEventLevel(line.Level));
-                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, GetColorForLogEventLevel(line.Level));
-                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, GetColorForLogEventLevel(line.Level));
+                    ImGui.PushStyleColor(ImGuiCol.Header, GetColorForLogEventLevel(entry.Level));
+                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, GetColorForLogEventLevel(entry.Level));
+                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, GetColorForLogEventLevel(entry.Level));
                 }
 
                 ImGui.Selectable(
@@ -229,36 +242,43 @@ internal class ConsoleWindow : Window, IDisposable
                     true,
                     ImGuiSelectableFlags.AllowItemOverlap | ImGuiSelectableFlags.SpanAllColumns);
 
-                // This must be after ImGui.Selectable, it uses ImGui.IsItem... functions
-                this.HandleCopyMode(i, line);
+                this.HandleCopyMode(i, entry);
 
                 ImGui.SameLine();
 
                 ImGui.PopStyleColor(3);
 
-                if (!line.IsMultiline)
+                var isFirstLine = true;
+                foreach (var logLine in entry.Lines)
                 {
-                    ImGui.Text(line.TimestampString);
-                    ImGui.SameLine();
+                    if (!isFirstLine)
+                        ImGui.NewLine();
 
-                    ImGui.SetCursorPosX(cursorLogLevel);
-                    ImGui.Text(GetTextForLogEventLevel(line.Level));
-                    ImGui.SameLine();
-                }
+                    if (isFirstLine)
+                    {
+                        ImGui.Text(entry.TimestampString);
+                        ImGui.SameLine();
+                        ImGui.SetCursorPosX(cursorLogLevel);
+                        ImGui.Text(GetTextForLogEventLevel(entry.Level));
+                        ImGui.SameLine();
+                        isFirstLine = false;
+                    }
 
-                ImGui.SetCursorPosX(cursorLogLine);
-                line.HighlightMatches ??= (this.compiledLogHighlight ?? this.compiledLogFilter)?.Matches(line.Line);
-                if (line.HighlightMatches is { } matches)
-                {
-                    this.DrawHighlighted(
-                        line.Line,
-                        matches,
-                        ImGui.GetColorU32(ImGuiCol.Text),
-                        ImGui.GetColorU32(ImGuiColors.HealerGreen));
-                }
-                else
-                {
-                    ImGui.Text(line.Line);
+                    ImGui.SetCursorPosX(cursorLogLine);
+                    var activeRegex = this.compiledLogHighlight ?? this.compiledLogFilter;
+                    logLine.HighlightMatches ??= activeRegex?.Matches(logLine.Text);
+                    if (logLine.HighlightMatches is { Count: > 0 } matches)
+                    {
+                        this.DrawHighlighted(
+                            logLine.Text,
+                            matches,
+                            ImGui.GetColorU32(ImGuiCol.Text),
+                            ImGui.GetColorU32(ImGuiColors.HealerGreen));
+                    }
+                    else
+                    {
+                        ImGui.Text(logLine.Text);
+                    }
                 }
 
                 var currentLinePosY = ImGui.GetCursorPosY();
@@ -368,19 +388,15 @@ internal class ConsoleWindow : Window, IDisposable
         {
             this.pendingClearLog = false;
             this.logText.Clear();
-            this.filteredLogEntries.Clear();
+            this.logEntries.Clear();
+            this.filteredLogEntries = this.logEntries;
             NewLogEntries.Clear();
         }
 
         if (this.pendingRefilter)
         {
             this.pendingRefilter = false;
-            this.filteredLogEntries.Clear();
-            foreach (var log in this.logText)
-            {
-                if (this.IsFilterApplicable(log))
-                    this.filteredLogEntries.Add(log);
-            }
+            this.filteredLogEntries = new LinkedList<LogEntry>(this.logEntries.Where(this.IsFilterApplicable));
         }
 
         var numPrevFilteredLogEntries = this.filteredLogEntries.Count;
@@ -390,7 +406,18 @@ internal class ConsoleWindow : Window, IDisposable
         this.newRolledLines = addedLines - (this.filteredLogEntries.Count - numPrevFilteredLogEntries);
     }
 
-    private void HandleCopyMode(int i, LogEntry line)
+    private void HandleLogLineEviction(object? sender, LogLine logLine)
+    {
+        var entry = logLine.Entry;
+        entry.Lines.Remove(logLine);
+        if (entry.Lines.Count == 0)
+        {
+            this.logEntries.Remove(entry);
+            this.filteredLogEntries.Remove(entry);
+        }
+    }
+
+    private void HandleCopyMode(int i, LogEntry entry)
     {
         var selectionChanged = false;
 
@@ -398,7 +425,7 @@ internal class ConsoleWindow : Window, IDisposable
         if (this.copyMode && this.copyStart == -1 && ImGui.IsItemClicked())
         {
             this.copyStart = i;
-            line.SelectedForCopy = !line.SelectedForCopy;
+            entry.SelectedForCopy = !entry.SelectedForCopy;
 
             selectionChanged = true;
         }
@@ -407,18 +434,15 @@ internal class ConsoleWindow : Window, IDisposable
         if (this.copyMode && this.copyStart != -1 && ImGui.IsItemHovered() &&
             ImGui.IsMouseDragging(ImGuiMouseButton.Left))
         {
-            if (!line.SelectedForCopy)
+            if (!entry.SelectedForCopy)
             {
-                foreach (var index in Enumerable.Range(0, this.filteredLogEntries.Count))
+                var entryIdx = 0;
+                foreach (var e in this.filteredLogEntries)
                 {
-                    if (this.copyStart < i)
-                    {
-                        this.filteredLogEntries[index].SelectedForCopy = index >= this.copyStart && index <= i;
-                    }
-                    else
-                    {
-                        this.filteredLogEntries[index].SelectedForCopy = index >= i && index <= this.copyStart;
-                    }
+                    e.SelectedForCopy = this.copyStart < i
+                        ? entryIdx >= this.copyStart && entryIdx <= i
+                        : entryIdx >= i && entryIdx <= this.copyStart;
+                    entryIdx++;
                 }
 
                 selectionChanged = true;
@@ -607,8 +631,9 @@ internal class ConsoleWindow : Window, IDisposable
                 this.exceptionLogHighlight = e;
             }
 
-            foreach (var log in this.logText)
-                log.HighlightMatches = null;
+            foreach (var logEntry in this.logEntries)
+                foreach (var logLine in logEntry.Lines)
+                    logLine.HighlightMatches = null;
         }
 
         if (!breakInputLines)
@@ -642,8 +667,9 @@ internal class ConsoleWindow : Window, IDisposable
             this.exceptionLogFilter = e;
         }
 
-        foreach (var log in this.logText)
-            log.HighlightMatches = null;
+        foreach (var logEntry in this.logEntries)
+            foreach (var logLine in logEntry.Lines)
+                logLine.HighlightMatches = null;
     }
 
     private void DrawSettingsPopup()
@@ -935,51 +961,65 @@ internal class ConsoleWindow : Window, IDisposable
 
         // These lines are too huge, and only useful for troubleshooting after the game exist.
         if (line.StartsWith("TROUBLESHOOTING:") || line.StartsWith("LASTEXCEPTION:"))
+        {
             return 0;
+        }
+
+        string? logSource = null;
+
+        if (logEvent.Properties.ContainsKey("Dalamud.ModuleName"))
+        {
+            logSource = "DalamudInternal";
+        }
+        else if (logEvent.Properties.TryGetValue("Dalamud.PluginName", out var sourceProp) &&
+                 sourceProp is ScalarValue { Value: string sourceValue })
+        {
+            logSource = sourceValue;
+        }
 
         // Create a log entry template.
+        var linesLinkedList = new LinkedList<LogLine>();
         var entry = new LogEntry
         {
             Level = logEvent.Level,
             TimeStamp = logEvent.Timestamp,
             HasException = logEvent.Exception != null,
+            Lines = linesLinkedList,
+            Source = logSource,
         };
 
-        if (logEvent.Properties.ContainsKey("Dalamud.ModuleName"))
-        {
-            entry.Source = "DalamudInternal";
-        }
-        else if (logEvent.Properties.TryGetValue("Dalamud.PluginName", out var sourceProp) &&
-                 sourceProp is ScalarValue { Value: string sourceValue })
-        {
-            entry.Source = sourceValue;
-        }
-
+        // the 'line' string may actually contain multiple lines, delimited by newlines. split the lines here,
+        // but maintain a single LogEntry which contains multiple lines.
         var ssp = line.AsSpan();
-        var numLines = 0;
-        while (true)
+
+        // parse out all the lines and append them to the linked list
+        var nextStart = 0;
+        for (var i = 0; i < ssp.Length; i++)
         {
-            var next = ssp.IndexOfAny('\r', '\n');
-            if (next == -1)
+            var c = ssp[i];
+            var isNewLine = c == '\n';
+            var isCarriageReturn = c == '\r';
+            if (!isNewLine && !isCarriageReturn)
+                continue;
+
+            linesLinkedList.AddLast(new LogLine(ssp[nextStart..i].ToString(), entry));
+
+            // skip \r\n as a single delimiter; i++ here so the for loop's i++ lands past the \n
+            if (isCarriageReturn && i + 1 < ssp.Length && ssp[i + 1] == '\n')
             {
-                // Last occurrence; transfer the ownership of the new entry to the queue.
-                entry.Line = ssp.ToString();
-                numLines += this.AddAndFilter(entry);
-                break;
+                nextStart = i + 2;
+                i++;
             }
-
-            // There will be more; create a clone of the entry with the current line.
-            numLines += this.AddAndFilter(entry with { Line = ssp[..next].ToString() });
-
-            // Mark further lines as multiline.
-            entry.IsMultiline = true;
-
-            // Skip the detected line break.
-            ssp = ssp[next..];
-            ssp = ssp.StartsWith("\r\n") ? ssp[2..] : ssp[1..];
+            else
+            {
+                nextStart = i + 1;
+            }
         }
 
-        return numLines;
+        // append trailing text after the last newline (or the whole string if no newlines)
+        linesLinkedList.AddLast(new LogLine(ssp[nextStart..].ToString(), entry));
+
+        return this.AddAndFilter(entry);
     }
 
     /// <summary>Adds a line to the log list and the filtered log list accordingly.</summary>
@@ -989,13 +1029,18 @@ internal class ConsoleWindow : Window, IDisposable
     {
         ThreadSafety.DebugAssertMainThread();
 
-        this.logText.Add(entry);
+        // add entry first, because theoretically the lines of one entry could instantly evict each other
+        this.logEntries.AddLast(entry);
+        this.logText.AddRange(entry.Lines);
 
         if (!this.IsFilterApplicable(entry))
             return 0;
 
-        this.filteredLogEntries.Add(entry);
-        return 1;
+        // in theory, this should never be true, because the log lines are evicted first which deleted the entry
+        if (this.filteredLogEntries.Count == this.logText.Size)
+            this.filteredLogEntries.RemoveFirst();
+        this.filteredLogEntries.AddLast(entry);
+        return entry.Lines.Count;
     }
 
     /// <summary>Determines if a log entry passes the user-specified filter.</summary>
@@ -1017,41 +1062,40 @@ internal class ConsoleWindow : Window, IDisposable
         if (this.filterShowUncaughtExceptions && entry.HasException && entry.Source == null)
             return true;
 
-        // (global filter) && (plugin filter) must be satisfied.
-        var wholeCond = true;
-
         // If we have a global filter, check that first
         if (this.compiledLogFilter is { } logFilter)
         {
             // Someone will definitely try to just text filter a source without using the actual filters, should allow that.
             var matchesSource = entry.Source is not null && logFilter.IsMatch(entry.Source);
-            var matchesContent = logFilter.IsMatch(entry.Line);
+            // check whether the filter matches any of the lines of the entry
+            var matchesContent = entry.Lines.Any(line => logFilter.IsMatch(line));
 
-            wholeCond &= matchesSource || matchesContent;
-        }
-
-        // If this entry has a filter, check the filter
-        if (this.pluginFilters.Count > 0)
-        {
-            var matchesAny = false;
-
-            foreach (var filterEntry in this.pluginFilters)
+            // (global filter) && (plugin filter) must be satisfied, so if global is wrong, we can stop already.
+            // saves us some regex matches.
+            if (!(matchesSource || matchesContent))
             {
-                if (!string.Equals(filterEntry.Source, entry.Source, StringComparison.InvariantCultureIgnoreCase))
-                    continue;
-
-                var allowedLevel = filterEntry.Level <= entry.Level;
-                var matchesContent = filterEntry.FilterRegex?.IsMatch(entry.Line) is not false;
-
-                matchesAny |= allowedLevel && matchesContent;
-                if (matchesAny)
-                    break;
+                return false;
             }
-
-            wholeCond &= matchesAny;
         }
 
-        return wholeCond;
+        return CheckPluginFilters();
+
+        bool CheckPluginFilters()
+        {
+            return this
+                .pluginFilters
+                .Where(filter => string.Equals(
+                           filter.Source,
+                           entry.Source,
+                           StringComparison.InvariantCultureIgnoreCase))
+                .Any(filter =>
+                {
+                    var allowedLevel = filter.Level <= entry.Level;
+                    var matchesContent = filter.FilterRegex is null ||
+                                         entry.Lines.Any(line => filter.FilterRegex.IsMatch(line));
+                    return allowedLevel && matchesContent;
+                });
+        }
     }
 
     /// <summary>Queues clearing the window of all log entries, before next call to <see cref="Draw"/>.</summary>
@@ -1083,8 +1127,9 @@ internal class ConsoleWindow : Window, IDisposable
     {
         this.logLinesLimit = dalamudConfiguration.LogLinesLimit;
         var limit = Math.Max(LogLinesMinimum, this.logLinesLimit);
+        // separately maintaining a max entries limit is pointless before the value is added to the configuration,
+        // as every entry has 1 or more lines, so simply monitoring the lines is good enough.
         this.logText.Size = limit;
-        this.filteredLogEntries.Size = limit;
     }
 
     private unsafe void DrawHighlighted(
@@ -1138,15 +1183,28 @@ internal class ConsoleWindow : Window, IDisposable
         ImGui.Dummy(screenPos - ImGui.GetCursorScreenPos());
     }
 
-    private record LogEntry
+    /// <summary>
+    /// Represents a single, renderable line for the Table.
+    /// </summary>
+    /// <param name="Text">The text that line should contain.</param>
+    /// <param name="Entry">The <see cref="LogEntry"/> that this line is a part of.</param>
+    private sealed record LogLine(string Text, LogEntry Entry)
     {
-        public string Line { get; set; } = string.Empty;
+        public static implicit operator string(LogLine logLine) => logLine.Text;
 
-        public LogEventLevel Level { get; init; }
+        public MatchCollection? HighlightMatches { get; set; }
+    }
 
-        public DateTimeOffset TimeStamp { get; init; }
+    private sealed record LogEntry
+    {
+        public required LinkedList<LogLine> Lines { get; init; } = [];
 
-        public bool IsMultiline { get; set; }
+        // keep LogLevel, timestamp etc. as part of LogEntry, because these properties are the same for all LogLines of an entry
+        public required LogEventLevel Level { get; init; }
+
+        public required DateTimeOffset TimeStamp { get; init; }
+
+        public bool IsMultiline => this.Lines.Count > 1;
 
         /// <summary>
         /// Gets or sets the system responsible for generating this log entry. Generally will be a plugin's
@@ -1156,16 +1214,19 @@ internal class ConsoleWindow : Window, IDisposable
 
         public bool SelectedForCopy { get; set; }
 
-        public bool HasException { get; init; }
-
-        public MatchCollection? HighlightMatches { get; set; }
+        public required bool HasException { get; init; }
 
         public string TimestampString => this.TimeStamp.ToString("HH:mm:ss.fff");
 
-        public override string ToString() =>
-            this.IsMultiline
-                ? $"\t{this.Line}"
-                : $"{this.TimestampString} | {GetTextForLogEventLevel(this.Level)} | {this.Line}";
+        public override string ToString()
+        {
+            var first = this.Lines.First;
+            if (first == null) return string.Empty;
+            var sb = new StringBuilder($"{this.TimestampString} | {GetTextForLogEventLevel(this.Level)} | {first.Value.Text}");
+            for (var node = first.Next; node != null; node = node.Next)
+                sb.Append($"\n\t{node.Value.Text}");
+            return sb.ToString();
+        }
     }
 
     private class PluginFilterEntry
@@ -1182,7 +1243,7 @@ internal class ConsoleWindow : Window, IDisposable
                 this.filter = value;
                 this.FilterRegex = null;
                 this.FilterException = null;
-                if (value == string.Empty)
+                if (string.IsNullOrWhiteSpace(value))
                     return;
 
                 try
