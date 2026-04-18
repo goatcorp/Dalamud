@@ -165,28 +165,34 @@ internal class ConsoleWindow : Window, IDisposable
     public override void Draw()
     {
         this.DrawOptionsToolbar();
-
         this.DrawFilterToolbar();
+        this.DrawRegexErrorBanners();
 
+        var sendButtonSize = ImGui.CalcTextSize("Send"u8) +
+                             ((new Vector2(16, 0) + (ImGui.GetStyle().FramePadding * 2)) * ImGuiHelpers.GlobalScale);
+
+        this.DrawLogScrollRegion(sendButtonSize.Y);
+        this.DrawCommandBar(sendButtonSize);
+    }
+
+    private void DrawRegexErrorBanners()
+    {
         if (this.exceptionLogFilter is not null)
         {
-            ImGui.TextColored(
-                ImGuiColors.ErrorForeground,
-                $"Regex Filter Error: {this.exceptionLogFilter.GetType().Name}");
+            ImGui.TextColored(ImGuiColors.ErrorForeground, $"Regex Filter Error: {this.exceptionLogFilter.GetType().Name}");
             ImGui.Text(this.exceptionLogFilter.Message);
         }
 
         if (this.exceptionLogHighlight is not null)
         {
-            ImGui.TextColored(
-                ImGuiColors.ErrorForeground,
-                $"Regex Highlight Error: {this.exceptionLogHighlight.GetType().Name}");
+            ImGui.TextColored(ImGuiColors.ErrorForeground, $"Regex Highlight Error: {this.exceptionLogHighlight.GetType().Name}");
             ImGui.Text(this.exceptionLogHighlight.Message);
         }
+    }
 
-        var sendButtonSize = ImGui.CalcTextSize("Send"u8) +
-                             ((new Vector2(16, 0) + (ImGui.GetStyle().FramePadding * 2)) * ImGuiHelpers.GlobalScale);
-        var scrollingHeight = ImGui.GetContentRegionAvail().Y - sendButtonSize.Y;
+    private void DrawLogScrollRegion(float sendButtonSizeHeight)
+    {
+        var scrollingHeight = ImGui.GetContentRegionAvail().Y - sendButtonSizeHeight;
         ImGui.BeginChild(
             "scrolling"u8,
             new Vector2(0, scrollingHeight),
@@ -194,7 +200,6 @@ internal class ConsoleWindow : Window, IDisposable
             ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-
         ImGui.PushFont(InterfaceManager.MonoFont);
 
         var childPos = ImGui.GetWindowPos();
@@ -225,89 +230,18 @@ internal class ConsoleWindow : Window, IDisposable
                     clipperNodeIdx++;
                 }
 
-                if (clipperNode == null) break;
-                var entry = clipperNode.Value;
-
-                ImGui.Separator();
-
-                if (entry.SelectedForCopy)
+                if (clipperNode == null)
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.ParsedGrey);
-                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, ImGuiColors.ParsedGrey);
-                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, ImGuiColors.ParsedGrey);
-                }
-                else
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Header, GetColorForLogEventLevel(entry.Level));
-                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, GetColorForLogEventLevel(entry.Level));
-                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, GetColorForLogEventLevel(entry.Level));
+                    break;
                 }
 
-                ImGui.Selectable(
-                    "###console_null"u8,
-                    true,
-                    ImGuiSelectableFlags.AllowItemOverlap | ImGuiSelectableFlags.SpanAllColumns);
-
-                this.HandleCopyMode(i, entry);
-
-                ImGui.SameLine();
-
-                ImGui.PopStyleColor(3);
-
-                var isFirstLine = true;
-                var nextLineY = 0.0f;
-                var activeRegex = this.compiledLogHighlight ?? this.compiledLogFilter;
-                foreach (var logLine in entry.Lines)
-                {
-                    if (!isFirstLine)
-                    {
-                        ImGui.SetCursorPosY(nextLineY);
-                    }
-
-                    if (isFirstLine)
-                    {
-                        ImGui.Text(entry.TimestampString);
-                        ImGui.SameLine();
-                        ImGui.SetCursorPosX(cursorLogLevel);
-                        ImGui.Text(GetTextForLogEventLevel(entry.Level));
-                        ImGui.SameLine();
-                        isFirstLine = false;
-                    }
-
-                    ImGui.SetCursorPosX(cursorLogLine);
-                    var beforeY = ImGui.GetCursorPosY();
-                    logLine.HighlightMatches ??= activeRegex?.Matches(logLine.Text);
-                    if (logLine.HighlightMatches is { Count: > 0 } matches)
-                    {
-                        this.DrawHighlighted(
-                            logLine.Text,
-                            matches,
-                            ImGui.GetColorU32(ImGuiCol.Text),
-                            ImGui.GetColorU32(ImGuiColors.HealerGreen));
-                    }
-                    else
-                    {
-                        ImGui.Text(logLine.Text);
-                    }
-
-                    // DrawHighlighted uses Dummy(width, 0) which only advances Y when DC.CurrLineSize.y > 0
-                    // (true for line 1 due to timestamp/level Text items, false for continuation lines).
-                    // Track nextLineY explicitly so continuation lines are always positioned correctly.
-                    var afterY = ImGui.GetCursorPosY();
-                    nextLineY = afterY > beforeY ? afterY : beforeY + ImGui.GetTextLineHeight();
-                }
-
-                ImGui.SetCursorPosY(nextLineY);
-                var currentLinePosY = ImGui.GetCursorPosY();
-                logLineHeight = currentLinePosY - lastLinePosY;
-                lastLinePosY = currentLinePosY;
+                logLineHeight = this.DrawLogEntry(i, clipperNode.Value, cursorLogLevel, cursorLogLine, ref lastLinePosY);
             }
         }
 
         this.clipperPtr.End();
 
         ImGui.PopFont();
-
         ImGui.PopStyleVar();
 
         if (this.autoScroll && this.newFilteredEntriesAdded > 0)
@@ -319,7 +253,6 @@ internal class ConsoleWindow : Window, IDisposable
             ImGui.SetScrollY(ImGui.GetScrollY() - (logLineHeight * this.newRolledLines));
         }
 
-        // Draw dividing lines
         var div1Offset = MathF.Round((timestampWidth + (separatorWidth / 2)) - ImGui.GetScrollX());
         var div2Offset = MathF.Round((cursorLogLevel + levelWidth + (separatorWidth / 2)) - ImGui.GetScrollX());
         childDrawList.AddLine(
@@ -334,7 +267,81 @@ internal class ConsoleWindow : Window, IDisposable
             1.0f);
 
         ImGui.EndChild();
+    }
 
+    private float DrawLogEntry(int i, LogEntry entry, float cursorLogLevel, float cursorLogLine, ref float lastLinePosY)
+    {
+        ImGui.Separator();
+
+        if (entry.SelectedForCopy)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.ParsedGrey);
+            ImGui.PushStyleColor(ImGuiCol.HeaderActive, ImGuiColors.ParsedGrey);
+            ImGui.PushStyleColor(ImGuiCol.HeaderHovered, ImGuiColors.ParsedGrey);
+        }
+        else
+        {
+            var levelColor = GetColorForLogEventLevel(entry.Level);
+            ImGui.PushStyleColor(ImGuiCol.Header, levelColor);
+            ImGui.PushStyleColor(ImGuiCol.HeaderActive, levelColor);
+            ImGui.PushStyleColor(ImGuiCol.HeaderHovered, levelColor);
+        }
+
+        ImGui.Selectable("###console_null"u8, true, ImGuiSelectableFlags.AllowItemOverlap | ImGuiSelectableFlags.SpanAllColumns);
+        this.HandleCopyMode(i, entry);
+        ImGui.SameLine();
+        ImGui.PopStyleColor(3);
+
+        var isFirstLine = true;
+        var nextLineY = 0.0f;
+        var activeRegex = this.compiledLogHighlight ?? this.compiledLogFilter;
+        foreach (var logLine in entry.Lines)
+        {
+            if (!isFirstLine)
+                ImGui.SetCursorPosY(nextLineY);
+
+            if (isFirstLine)
+            {
+                ImGui.Text(entry.TimestampString);
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(cursorLogLevel);
+                ImGui.Text(GetTextForLogEventLevel(entry.Level));
+                ImGui.SameLine();
+                isFirstLine = false;
+            }
+
+            ImGui.SetCursorPosX(cursorLogLine);
+            var beforeY = ImGui.GetCursorPosY();
+            logLine.HighlightMatches ??= activeRegex?.Matches(logLine.Text);
+            if (logLine.HighlightMatches is { Count: > 0 } matches)
+            {
+                this.DrawHighlighted(
+                    logLine.Text,
+                    matches,
+                    ImGui.GetColorU32(ImGuiCol.Text),
+                    ImGui.GetColorU32(ImGuiColors.HealerGreen));
+            }
+            else
+            {
+                ImGui.Text(logLine.Text);
+            }
+
+            // DrawHighlighted uses Dummy(width, 0) which only advances Y when DC.CurrLineSize.y > 0
+            // (true for line 1 due to timestamp/level Text items, false for continuation lines).
+            // Track nextLineY explicitly so continuation lines are always positioned correctly.
+            var afterY = ImGui.GetCursorPosY();
+            nextLineY = afterY > beforeY ? afterY : beforeY + ImGui.GetTextLineHeight();
+        }
+
+        ImGui.SetCursorPosY(nextLineY);
+        var currentLinePosY = ImGui.GetCursorPosY();
+        var height = currentLinePosY - lastLinePosY;
+        lastLinePosY = currentLinePosY;
+        return height;
+    }
+
+    private void DrawCommandBar(Vector2 sendButtonSize)
+    {
         var hadColor = false;
         if (this.lastCmdSuccess.HasValue)
         {
@@ -347,28 +354,31 @@ internal class ConsoleWindow : Window, IDisposable
             (ImGui.GetStyle().ItemSpacing.X * ImGuiHelpers.GlobalScale));
 
         var getFocus = false;
-        unsafe
+        if (ImGui.InputText(
+                "##command_box"u8,
+                ref this.commandText,
+                255,
+                ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackCompletion |
+                ImGuiInputTextFlags.CallbackHistory | ImGuiInputTextFlags.CallbackEdit,
+                this.CommandInputCallback))
         {
-            if (ImGui.InputText(
-                    "##command_box"u8,
-                    ref this.commandText,
-                    255,
-                    ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackCompletion |
-                    ImGuiInputTextFlags.CallbackHistory | ImGuiInputTextFlags.CallbackEdit,
-                    this.CommandInputCallback))
-            {
-                NewLogEntries.Enqueue((this.commandText, new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate(string.Empty, []), [])));
-                this.ProcessCommand();
-                getFocus = true;
-            }
-
-            ImGui.SameLine();
+            NewLogEntries.Enqueue((this.commandText, new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate(string.Empty, []), [])));
+            this.ProcessCommand();
+            getFocus = true;
         }
 
-        ImGui.SetItemDefaultFocus();
-        if (getFocus) ImGui.SetKeyboardFocusHere(-1); // Auto focus previous widget
+        ImGui.SameLine();
 
-        if (hadColor) ImGui.PopStyleColor();
+        ImGui.SetItemDefaultFocus();
+        if (getFocus)
+        {
+            ImGui.SetKeyboardFocusHere(-1);
+        }
+
+        if (hadColor)
+        {
+            ImGui.PopStyleColor();
+        }
 
         if (ImGui.Button("Send"u8, sendButtonSize))
         {
