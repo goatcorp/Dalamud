@@ -201,7 +201,7 @@ internal class ConsoleWindow : Window, IDisposable
         var cursorLogLevel = timestampWidth + separatorWidth;
         var cursorLogLine = cursorLogLevel + levelWidth + separatorWidth;
 
-        var lastLinePosY = 0.0f;
+        var lastLinePosY = ImGui.GetCursorPosY();
         var logLineHeight = 0.0f;
 
         this.clipperPtr.Begin(this.filteredLogEntries.Count);
@@ -249,10 +249,14 @@ internal class ConsoleWindow : Window, IDisposable
                 ImGui.PopStyleColor(3);
 
                 var isFirstLine = true;
+                var nextLineY = 0.0f;
+                var activeRegex = this.compiledLogHighlight ?? this.compiledLogFilter;
                 foreach (var logLine in entry.Lines)
                 {
                     if (!isFirstLine)
-                        ImGui.NewLine();
+                    {
+                        ImGui.SetCursorPosY(nextLineY);
+                    }
 
                     if (isFirstLine)
                     {
@@ -265,7 +269,7 @@ internal class ConsoleWindow : Window, IDisposable
                     }
 
                     ImGui.SetCursorPosX(cursorLogLine);
-                    var activeRegex = this.compiledLogHighlight ?? this.compiledLogFilter;
+                    var beforeY = ImGui.GetCursorPosY();
                     logLine.HighlightMatches ??= activeRegex?.Matches(logLine.Text);
                     if (logLine.HighlightMatches is { Count: > 0 } matches)
                     {
@@ -279,8 +283,15 @@ internal class ConsoleWindow : Window, IDisposable
                     {
                         ImGui.Text(logLine.Text);
                     }
+
+                    // DrawHighlighted uses Dummy(width, 0) which only advances Y when DC.CurrLineSize.y > 0
+                    // (true for line 1 due to timestamp/level Text items, false for continuation lines).
+                    // Track nextLineY explicitly so continuation lines are always positioned correctly.
+                    var afterY = ImGui.GetCursorPosY();
+                    nextLineY = afterY > beforeY ? afterY : beforeY + ImGui.GetTextLineHeight();
                 }
 
+                ImGui.SetCursorPosY(nextLineY);
                 var currentLinePosY = ImGui.GetCursorPosY();
                 logLineHeight = currentLinePosY - lastLinePosY;
                 lastLinePosY = currentLinePosY;
@@ -1040,7 +1051,7 @@ internal class ConsoleWindow : Window, IDisposable
         if (this.filteredLogEntries.Count == this.logText.Size)
             this.filteredLogEntries.RemoveFirst();
         this.filteredLogEntries.AddLast(entry);
-        return entry.Lines.Count;
+        return 1;
     }
 
     /// <summary>Determines if a log entry passes the user-specified filter.</summary>
@@ -1208,8 +1219,6 @@ internal class ConsoleWindow : Window, IDisposable
 
         public required DateTimeOffset TimeStamp { get; init; }
 
-        public bool IsMultiline => this.Lines.Count > 1;
-
         /// <summary>
         /// Gets or sets the system responsible for generating this log entry. Generally will be a plugin's
         /// InternalName.
@@ -1233,7 +1242,7 @@ internal class ConsoleWindow : Window, IDisposable
         }
     }
 
-    private class PluginFilterEntry
+    private sealed class PluginFilterEntry
     {
         private string filter = string.Empty;
 
