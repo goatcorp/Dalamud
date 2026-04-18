@@ -444,19 +444,18 @@ internal class ConsoleWindow : Window, IDisposable
         }
 
         // Update the selected range when dragging over entries
-        if (this.copyMode && this.copyStart != -1 && ImGui.IsItemHovered() &&
+        if (this.copyMode && this.copyStart != -1 &&
+            !entry.SelectedForCopy && ImGui.IsItemHovered() &&
             ImGui.IsMouseDragging(ImGuiMouseButton.Left))
         {
-            if (!entry.SelectedForCopy)
+            var entryIdx = 0;
+            foreach (var e in this.filteredLogEntries)
             {
-                var entryIdx = 0;
-                foreach (var e in this.filteredLogEntries)
-                {
-                    e.SelectedForCopy = this.copyStart < i
-                        ? entryIdx >= this.copyStart && entryIdx <= i
-                        : entryIdx >= i && entryIdx <= this.copyStart;
-                    entryIdx++;
-                }
+                e.SelectedForCopy = this.copyStart < i
+                                        ? entryIdx >= this.copyStart && entryIdx <= i
+                                        : entryIdx >= i && entryIdx <= this.copyStart;
+                entryIdx++;
+            }
 
             selectionChanged = true;
         }
@@ -931,22 +930,17 @@ internal class ConsoleWindow : Window, IDisposable
             case ImGuiInputTextFlags.CallbackHistory:
                 var prevPos = this.historyPos;
 
-                if (data.EventKey == ImGuiKey.UpArrow)
+                switch (data.EventKey)
                 {
-                    if (this.historyPos == -1)
+                    case ImGuiKey.UpArrow when this.historyPos == -1:
                         this.historyPos = this.configuration.LogCommandHistory.Count - 1;
-                    else if (this.historyPos > 0)
+                        break;
+                    case ImGuiKey.UpArrow when this.historyPos > 0:
                         this.historyPos--;
-                }
-                else if (data.EventKey == ImGuiKey.DownArrow)
-                {
-                    if (this.historyPos != -1)
-                    {
-                        if (++this.historyPos >= this.configuration.LogCommandHistory.Count)
-                        {
-                            this.historyPos = -1;
-                        }
-                    }
+                        break;
+                    case ImGuiKey.DownArrow when this.historyPos != -1 && ++this.historyPos >= this.configuration.LogCommandHistory.Count:
+                        this.historyPos = -1;
+                        break;
                 }
 
                 if (prevPos != this.historyPos)
@@ -1016,11 +1010,14 @@ internal class ConsoleWindow : Window, IDisposable
 
             linesLinkedList.AddLast(new LogLine(ssp[nextStart..i].ToString(), entry));
 
-            // skip \r\n as a single delimiter; i++ here so the for loop's i++ lands past the \n
+            // skip \r\n as a single delimiter
             if (isCarriageReturn && i + 1 < ssp.Length && ssp[i + 1] == '\n')
             {
                 nextStart = i + 2;
+                #pragma warning disable S127
+                // we need to add 1 more to i to skip both \r and \n
                 i++;
+                #pragma warning restore S127
             }
             else
             {
