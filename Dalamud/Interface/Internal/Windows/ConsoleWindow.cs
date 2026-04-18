@@ -149,6 +149,7 @@ internal class ConsoleWindow : Window, IDisposable
     public void Dispose()
     {
         this.configuration.DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
+        this.logText.OnEviction -= this.HandleLogLineEviction;
         if (Service<Framework>.GetNullable() is { } framework)
             framework.Update -= this.FrameworkOnUpdate;
 
