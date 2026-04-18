@@ -308,7 +308,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         if (this.autoScroll && this.newFilteredEntriesAdded > 0)
         {
-            ImGui.SetScrollHereY(1.0f);
+            ImGui.SetScrollY(ImGui.GetScrollMaxY());
         }
         else if (this.newRolledLines > 0 && logLineHeight > 0)
         {
@@ -458,8 +458,7 @@ internal class ConsoleWindow : Window, IDisposable
                     entryIdx++;
                 }
 
-                selectionChanged = true;
-            }
+            selectionChanged = true;
         }
 
         // Finish the drag, we should have already marked all dragged entries as selected by now.
