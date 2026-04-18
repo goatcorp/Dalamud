@@ -48,7 +48,7 @@ internal class ConsoleWindow : Window, IDisposable
     private LinkedList<LogEntry> filteredLogEntries;
 
     private int newRolledLines;
-    private int newFilteredEntriesAdded;
+    private bool hasNewFilteredEntries;
     private bool pendingRefilter;
     private bool pendingClearLog;
 
@@ -244,14 +244,19 @@ internal class ConsoleWindow : Window, IDisposable
         ImGui.PopFont();
         ImGui.PopStyleVar();
 
-        if (this.autoScroll && this.newFilteredEntriesAdded > 0)
+        if (this.autoScroll && this.hasNewFilteredEntries)
         {
-            ImGui.SetScrollY(ImGui.GetScrollMaxY());
+            // float.MaxValue is clamped by ImGui to the real scroll max next frame,
+            // which handles the case where GetScrollMaxY() underestimates due to variable-height items.
+            ImGui.SetScrollY(float.MaxValue);
         }
         else if (this.newRolledLines > 0 && logLineHeight > 0)
         {
             ImGui.SetScrollY(ImGui.GetScrollY() - (logLineHeight * this.newRolledLines));
         }
+
+        this.hasNewFilteredEntries = false;
+        this.newRolledLines = 0;
 
         var div1Offset = MathF.Round((timestampWidth + (separatorWidth / 2)) - ImGui.GetScrollX());
         var div2Offset = MathF.Round((cursorLogLevel + levelWidth + (separatorWidth / 2)) - ImGui.GetScrollX());
@@ -417,6 +422,8 @@ internal class ConsoleWindow : Window, IDisposable
             this.logEntries.Clear();
             this.filteredLogEntries = this.logEntries;
             NewLogEntries.Clear();
+            this.hasNewFilteredEntries = false;
+            this.newRolledLines = 0;
         }
 
         if (this.pendingRefilter)
@@ -428,9 +435,13 @@ internal class ConsoleWindow : Window, IDisposable
         var numPrevFilteredLogEntries = this.filteredLogEntries.Count;
         var addedEntries = 0;
         while (NewLogEntries.TryDequeue(out var logLine))
+        {
             addedEntries += this.HandleLogLine(logLine.Line, logLine.LogEvent);
-        this.newFilteredEntriesAdded = addedEntries;
-        this.newRolledLines = addedEntries - (this.filteredLogEntries.Count - numPrevFilteredLogEntries);
+        }
+
+        // this method could be called multiple times between Draw calls, so add all the values instead of overwriting them
+        this.hasNewFilteredEntries |= addedEntries > 0;
+        this.newRolledLines += addedEntries - (this.filteredLogEntries.Count - numPrevFilteredLogEntries);
     }
 
     private void HandleLogLineEviction(object? sender, LogLine logLine)
