@@ -47,6 +47,7 @@ internal class ConsoleWindow : Window, IDisposable
     private readonly DalamudConfiguration configuration;
 
     private int newRolledLines;
+    private int newFilteredEntriesAdded;
     private bool pendingRefilter;
     private bool pendingClearLog;
 
@@ -304,14 +305,13 @@ internal class ConsoleWindow : Window, IDisposable
 
         ImGui.PopStyleVar();
 
-        if (!this.autoScroll || ImGui.GetScrollY() < ImGui.GetScrollMaxY())
-        {
-            ImGui.SetScrollY(ImGui.GetScrollY() - (logLineHeight * this.newRolledLines));
-        }
-
-        if (this.autoScroll && ImGui.GetScrollY() >= ImGui.GetScrollMaxY())
+        if (this.autoScroll && this.newFilteredEntriesAdded > 0)
         {
             ImGui.SetScrollHereY(1.0f);
+        }
+        else if (this.newRolledLines > 0 && logLineHeight > 0)
+        {
+            ImGui.SetScrollY(ImGui.GetScrollY() - (logLineHeight * this.newRolledLines));
         }
 
         // Draw dividing lines
@@ -411,10 +411,11 @@ internal class ConsoleWindow : Window, IDisposable
         }
 
         var numPrevFilteredLogEntries = this.filteredLogEntries.Count;
-        var addedLines = 0;
+        var addedEntries = 0;
         while (NewLogEntries.TryDequeue(out var logLine))
-            addedLines += this.HandleLogLine(logLine.Line, logLine.LogEvent);
-        this.newRolledLines = addedLines - (this.filteredLogEntries.Count - numPrevFilteredLogEntries);
+            addedEntries += this.HandleLogLine(logLine.Line, logLine.LogEvent);
+        this.newFilteredEntriesAdded = addedEntries;
+        this.newRolledLines = addedEntries - (this.filteredLogEntries.Count - numPrevFilteredLogEntries);
     }
 
     private void HandleLogLineEviction(object? sender, LogLine logLine)
