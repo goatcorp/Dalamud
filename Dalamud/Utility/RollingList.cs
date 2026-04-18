@@ -68,6 +68,13 @@ namespace Dalamud.Utility
             this.AddRange(items);
         }
 
+        /// <summary>
+        /// Fires whenever an item in the collection is evicted because the maximum capacity is reached.
+        /// This will NOT be called when .Clear() is called, as it is implicitly understood that clearing a collection
+        /// evicts all its items.
+        /// </summary>
+        public event EventHandler<T>? OnEviction;
+
         /// <summary>Gets item count.</summary>
         public int Count => this.items.Count;
 
@@ -85,8 +92,10 @@ namespace Dalamud.Utility
             set
             {
                 if (value == this.size) return;
+                // new size is bigger than the previous size
                 if (value > this.size)
                 {
+                    // re-index to 0 with a new list
                     if (this.firstIndex > 0)
                     {
                         this.items = new List<T>(this);
@@ -95,11 +104,20 @@ namespace Dalamud.Utility
                 }
                 else
                 {
-                    // value < this._size
+                    // value < this._size, so resizing to smaller
                     ThrowHelper.ThrowArgumentOutOfRangeExceptionIfLessThan(nameof(value), value, 0);
+                    // if the new size is smaller than the current count, we implicitly evict items from the new list!
                     if (value < this.Count)
                     {
-                        this.items = new List<T>(this.TakeLast(value));
+                        // call eviction handler for all evicted items
+                        var newBackingList = this.TakeLast(value).ToList();
+                        var evicted = this.Except(newBackingList);
+                        foreach (var item in evicted)
+                        {
+                            this.OnEviction?.Invoke(this, item);
+                        }
+
+                        this.items = newBackingList;
                         this.firstIndex = 0;
                     }
                 }
@@ -138,6 +156,9 @@ namespace Dalamud.Utility
             if (this.size == 0) return;
             if (this.items.Count >= this.size)
             {
+                // evict element at items[firstIndex]
+                this.OnEviction?.Invoke(this, this.items[this.firstIndex]);
+                // then overwrite it
                 this.items[this.firstIndex] = item;
                 this.firstIndex = (this.firstIndex + 1) % this.size;
             }
