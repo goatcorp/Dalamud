@@ -1047,10 +1047,12 @@ internal class ConsoleWindow : Window, IDisposable
         if (!this.IsFilterApplicable(entry))
             return 0;
 
-        // in theory, this should never be true, because the log lines are evicted first which deleted the entry
-        if (this.filteredLogEntries.Count == this.logText.Size)
-            this.filteredLogEntries.RemoveFirst();
-        this.filteredLogEntries.AddLast(entry);
+        // When no filter is active, or we just cleared the list,
+        // filteredLogEntries refers to the same object as logEntries —
+        // logEntries.AddLast above already added the entry, don't double-add.
+        if (!ReferenceEquals(this.filteredLogEntries, this.logEntries))
+            this.filteredLogEntries.AddLast(entry);
+
         return 1;
     }
 
