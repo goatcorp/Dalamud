@@ -1082,19 +1082,23 @@ internal class ConsoleWindow : Window, IDisposable
 
         bool CheckPluginFilters()
         {
-            return this
-                .pluginFilters
+            var applicable = this.pluginFilters
                 .Where(filter => string.Equals(
                            filter.Source,
                            entry.Source,
                            StringComparison.InvariantCultureIgnoreCase))
-                .Any(filter =>
-                {
-                    var allowedLevel = filter.Level <= entry.Level;
-                    var matchesContent = filter.FilterRegex is null ||
-                                         entry.Lines.Any(line => filter.FilterRegex.IsMatch(line));
-                    return allowedLevel && matchesContent;
-                });
+                .ToList();
+
+            if (applicable.Count == 0)
+                return true;
+
+            return applicable.Any(filter =>
+            {
+                var allowedLevel = filter.Level <= entry.Level;
+                var matchesContent = filter.FilterRegex is null ||
+                                     entry.Lines.Any(line => filter.FilterRegex.IsMatch(line));
+                return allowedLevel && matchesContent;
+            });
         }
     }
 
