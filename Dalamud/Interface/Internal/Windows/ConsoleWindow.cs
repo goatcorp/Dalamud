@@ -40,11 +40,12 @@ internal class ConsoleWindow : Window, IDisposable
     private readonly RollingList<LogLine> logText;
     // use linked list for entries for O(1) removal and addition
     private readonly LinkedList<LogEntry> logEntries;
-    private LinkedList<LogEntry> filteredLogEntries;
 
     private readonly List<PluginFilterEntry> pluginFilters = [];
 
     private readonly DalamudConfiguration configuration;
+
+    private LinkedList<LogEntry> filteredLogEntries;
 
     private int newRolledLines;
     private int newFilteredEntriesAdded;
@@ -81,6 +82,7 @@ internal class ConsoleWindow : Window, IDisposable
     private int completionTabIdx = 0;
 
     private IActiveNotification? prevCopyNotification;
+    private bool isDisposed;
 
     /// <summary>Initializes a new instance of the <see cref="ConsoleWindow"/> class.</summary>
     /// <param name="configuration">An instance of <see cref="DalamudConfiguration"/>.</param>
@@ -148,6 +150,7 @@ internal class ConsoleWindow : Window, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (this.isDisposed) return;
         this.configuration.DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
         this.logText.OnEviction -= this.HandleLogLineEviction;
         if (Service<Framework>.GetNullable() is { } framework)
@@ -155,6 +158,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         this.clipperPtr.Destroy();
         this.clipperPtr = default;
+        this.isDisposed = true;
     }
 
     /// <inheritdoc/>
