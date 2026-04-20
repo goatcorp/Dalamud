@@ -8,6 +8,8 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 
+using Lumina.Text.ReadOnly;
+
 using Microsoft.Extensions.ObjectPool;
 
 using Windows.Win32.Foundation;
@@ -292,7 +294,7 @@ public static unsafe class MemoryHelper
     /// Read a UTF-8 encoded string from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
+    /// Attention! If this string contains payloads, use <see cref="ReadOnlySeStringSpan(byte*)"/> to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <returns>The read in string.</returns>
@@ -304,7 +306,7 @@ public static unsafe class MemoryHelper
     /// Read a string with the given encoding from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
+    /// Attention! If this string contains payloads, use <see cref="ReadOnlySeStringSpan(byte*)"/> to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="encoding">The encoding to use to decode the string.</param>

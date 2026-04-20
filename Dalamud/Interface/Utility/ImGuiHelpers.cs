@@ -17,6 +17,8 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
 
+using Lumina.Text.Payloads;
+
 using VirtualKey = Dalamud.Game.ClientState.Keys.VirtualKey;
 
 namespace Dalamud.Interface.Utility;
@@ -349,7 +351,7 @@ public static partial class ImGuiHelpers
 
     /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
     /// <param name="text">SeString text macro representation.
-    /// Newline characters will be normalized to <see cref="NewLinePayload"/>.</param>
+    /// Newline characters will be normalized to <see cref="MacroCode.NewLine"/>.</param>
     /// <param name="style">Initial rendering style.</param>
     /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
