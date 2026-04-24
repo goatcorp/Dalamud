@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -9,6 +9,8 @@ using Dalamud.Logging.Internal;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using AtkValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace Dalamud.Game.Agent;
 
@@ -146,7 +148,8 @@ internal unsafe class AgentVirtualTable : IDisposable
                 }
                 else
                 {
-                    result->SetBool(false);
+                    result->Type = AtkValueType.Bool;
+                    result->Bool = false;
                 }
             }
             catch (Exception e)
@@ -195,7 +198,8 @@ internal unsafe class AgentVirtualTable : IDisposable
                 }
                 else
                 {
-                    result->SetBool(false);
+                    result->Type = AtkValueType.Bool;
+                    result->Bool = false;
                 }
             }
             catch (Exception e)

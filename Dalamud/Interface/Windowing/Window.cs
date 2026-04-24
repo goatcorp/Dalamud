@@ -523,7 +523,7 @@ public abstract class Window
         // Determine window background alpha
         float effectiveWindowBgAlpha;
         {
-            var nextWindowData = ImGuiP.ImGuiNextWindowData();
+            ref var nextWindowData = ref ImGui.GetCurrentContext().NextWindowData;
             effectiveWindowBgAlpha = ImGui.GetStyle().Colors[(int)ImGuiCol.WindowBg].W;
             if (nextWindowData.Flags.HasFlag(ImGuiNextWindowDataFlags.HasBgAlpha))
             {
@@ -602,7 +602,7 @@ public abstract class Window
 
         var flagsApplicableForTitleBarIcons = !flags.HasFlag(ImGuiWindowFlags.NoDecoration) &&
                                               !flags.HasFlag(ImGuiWindowFlags.NoTitleBar);
-        var showAdditions = (this.AllowPinning || this.AllowClickthrough) &&
+        var showAdditions = (this.AllowPinning || this.AllowClickthrough || this.AllowBackgroundBlur) &&
                             internalDrawParams.Flags.HasFlag(WindowDrawFlags.UseAdditionalOptions) &&
                             flagsApplicableForTitleBarIcons;
         var printWindow = false;

@@ -67,18 +67,15 @@ internal class PluginStatWindow : Window
                     {
                         foreach (var plugin in pluginManager.InstalledPlugins)
                         {
-                            if (plugin.DalamudInterface != null)
-                            {
-                                plugin.DalamudInterface.LocalUiBuilder.LastDrawTime = -1;
-                                plugin.DalamudInterface.LocalUiBuilder.MaxDrawTime = -1;
-                                plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Clear();
-                            }
+                            plugin.DalamudInterface?.LocalUiBuilder.PluginDrawStatistics.Reset();
                         }
                     }
 
                     var loadedPlugins = pluginManager.InstalledPlugins.Where(plugin => plugin.State == PluginState.Loaded);
-                    var totalLast = loadedPlugins.Sum(plugin => plugin.DalamudInterface?.LocalUiBuilder.LastDrawTime ?? 0);
-                    var totalAverage = loadedPlugins.Sum(plugin => plugin.DalamudInterface?.LocalUiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0);
+                    var pluginStatistics = loadedPlugins.Where(p => p.DalamudInterface is not null)
+                                                        .Select(p => p.DalamudInterface!.LocalUiBuilder.PluginDrawStatistics);
+                    var totalLast = pluginStatistics.Sum(plugin => plugin.LastDrawTime);
+                    var totalAverage = pluginStatistics.Sum(plugin => plugin.AverageDrawTime);
 
                     ImGuiComponents.TextWithLabel("Total Last", $"{totalLast / 10000f:F4}ms", "All last draw times added together");
                     ImGui.SameLine();
@@ -94,7 +91,7 @@ internal class PluginStatWindow : Window
 
                     using var table = ImRaii.Table(
                         "##PluginStatsDrawTimes"u8,
-                        4,
+                        5,
                         ImGuiTableFlags.RowBg
                         | ImGuiTableFlags.SizingStretchProp
                         | ImGuiTableFlags.Sortable
@@ -110,6 +107,7 @@ internal class PluginStatWindow : Window
                         ImGui.TableSetupColumn("Last"u8, ImGuiTableColumnFlags.NoSort); // Changes too fast to sort
                         ImGui.TableSetupColumn("Longest"u8);
                         ImGui.TableSetupColumn("Average"u8);
+                        ImGui.TableSetupColumn("Leaks"u8);
                         ImGui.TableHeadersRow();
 
                         var sortSpecs = ImGui.TableGetSortSpecs();
@@ -119,11 +117,14 @@ internal class PluginStatWindow : Window
                                      ? loadedPlugins.OrderBy(plugin => plugin.Name)
                                      : loadedPlugins.OrderByDescending(plugin => plugin.Name),
                             2 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
-                                     ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.LocalUiBuilder.MaxDrawTime ?? 0)
-                                     : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.LocalUiBuilder.MaxDrawTime ?? 0),
+                                     ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.LocalUiBuilder.PluginDrawStatistics.MaxDrawTime ?? 0)
+                                     : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.LocalUiBuilder.PluginDrawStatistics.MaxDrawTime ?? 0),
                             3 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
-                                     ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.LocalUiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0)
-                                     : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.LocalUiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0),
+                                     ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.LocalUiBuilder.PluginDrawStatistics.AverageDrawTime ?? 0)
+                                     : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.LocalUiBuilder.PluginDrawStatistics.AverageDrawTime ?? 0),
+                            4 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
+                                     ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.LocalUiBuilder.PluginDrawStatistics.LeakedStacks ?? 0)
+                                     : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.LocalUiBuilder.PluginDrawStatistics.LeakedStacks ?? 0),
                             _ => loadedPlugins,
                         };
 
@@ -140,18 +141,39 @@ internal class PluginStatWindow : Window
                             ImGui.TableNextColumn();
                             ImGui.Text(plugin.Manifest.Name);
 
-                            if (plugin.DalamudInterface != null)
+                            if (plugin.DalamudInterface?.LocalUiBuilder.PluginDrawStatistics is { } stats)
                             {
                                 ImGui.TableNextColumn();
-                                ImGui.Text($"{plugin.DalamudInterface.LocalUiBuilder.LastDrawTime / 10000f:F4}ms");
+                                ImGui.Text($"{stats.LastDrawTime / 10000f:F4}ms");
 
                                 ImGui.TableNextColumn();
-                                ImGui.Text($"{plugin.DalamudInterface.LocalUiBuilder.MaxDrawTime / 10000f:F4}ms");
+                                ImGui.Text($"{stats.MaxDrawTime / 10000f:F4}ms");
 
                                 ImGui.TableNextColumn();
-                                ImGui.Text(plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Count > 0
-                                               ? $"{plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Average() / 10000f:F4}ms"
-                                               : "-");
+                                ImGui.Text($"{stats.AverageDrawTime / 10000f:F4}ms");
+
+                                ImGui.TableNextColumn();
+                                ImGui.Text($"{stats.LeakedStacks}");
+                                if (ImGui.IsItemHovered())
+                                {
+                                    using var tt = ImRaii.Tooltip();
+                                    using (ImRaii.Group())
+                                    {
+                                        ImGui.Text("Leaked Styles"u8);
+                                        ImGui.Text("Leaked Colors"u8);
+                                        ImGui.Text("Leaked Fonts"u8);
+                                        ImGui.Text("Leaked Disableds"u8);
+                                    }
+
+                                    ImGui.SameLine();
+                                    using (ImRaii.Group())
+                                    {
+                                        ImGui.Text($"{stats.LeakedStyles}");
+                                        ImGui.Text($"{stats.LeakedColors}");
+                                        ImGui.Text($"{stats.LeakedFonts}");
+                                        ImGui.Text($"{stats.LeakedDisableds}");
+                                    }
+                                }
                             }
                         }
                     }

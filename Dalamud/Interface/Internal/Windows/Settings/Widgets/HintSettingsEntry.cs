@@ -11,12 +11,12 @@ namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 internal sealed class HintSettingsEntry : SettingsEntry
 {
     private readonly LazyLoc text;
-    private readonly Vector4 color;
+    private readonly Vector4? color;
 
     public HintSettingsEntry(LazyLoc text, Vector4? color = null)
     {
         this.text = text;
-        this.color = color ?? ImGuiColors.DalamudGrey;
+        this.color = color;
     }
 
     public override void Load()
@@ -31,6 +31,6 @@ internal sealed class HintSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        ImGui.TextColoredWrapped(this.color, this.text);
+        ImGui.TextColoredWrapped(this.color ?? ImGuiColors.DalamudGrey, this.text);
     }
 }
