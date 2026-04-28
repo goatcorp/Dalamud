@@ -303,7 +303,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
             this.HandlePrintMessageDetour(
                 RaptureLogModule.Instance(),
-                (ushort)targetChannel,
+                new LogInfo { Value = (ushort)targetChannel },
                 &sender,
                 &message,
                 chat.Timestamp,
@@ -377,13 +377,13 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         }
     }
 
-    private uint HandlePrintMessageDetour(RaptureLogModule* thisPtr, ushort logInfo, Utf8String* senderName, Utf8String* message, int timestamp, bool silent)
+    private uint HandlePrintMessageDetour(RaptureLogModule* thisPtr, LogInfo logInfo, Utf8String* senderName, Utf8String* message, int timestamp, bool silent)
     {
         var messageId = 0u;
 
         try
         {
-            var chatType = (XivChatType)logInfo;
+            var chatType = (XivChatType)logInfo.Value;
 
             var parsedSender = SeString.Parse(senderName->AsSpan());
             var parsedMessage = SeString.Parse(message->AsSpan());

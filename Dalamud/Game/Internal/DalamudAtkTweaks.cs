@@ -21,7 +21,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
+using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.AtkValueType;
 
 namespace Dalamud.Game.Internal;
 
@@ -186,7 +186,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 
             addonSelectYesno->YesButton->SetEnabledState(false);
             addonSelectYesno->NoButton->SetEnabledState(false);
-            addonSelectYesno->DisableUserClose = true;
+            addonSelectYesno->ShouldFireCallbackAndHideOrClose = true;
 
             var cts = new CancellationTokenSource();
             cts.CancelAfter(60000);
@@ -197,7 +197,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
             {
                 Service<Framework>.Get().Run(() =>
                 {
-                    addonSelectYesno->DisableUserClose = false;
+                    addonSelectYesno->ShouldFireCallbackAndHideOrClose = false;
                     addonSelectYesno->YesButton->SetEnabledState(true);
                     addonSelectYesno->NoButton->SetEnabledState(true);
                     addonSelectYesno->Close(false);

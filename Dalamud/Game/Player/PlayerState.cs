@@ -187,9 +187,9 @@ internal unsafe class PlayerState : IServiceType, IPlayerState
 
         return grandCompany.RowId switch
         {
-            1 => CSPlayerState.Instance()->GCRankMaelstrom,
-            2 => CSPlayerState.Instance()->GCRankTwinAdders,
-            3 => CSPlayerState.Instance()->GCRankImmortalFlames,
+            1 => CSPlayerState.Instance()->GCRanks[0],
+            2 => CSPlayerState.Instance()->GCRanks[1],
+            3 => CSPlayerState.Instance()->GCRanks[2],
             _ => default,
         };
     }

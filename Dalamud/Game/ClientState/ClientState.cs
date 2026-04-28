@@ -332,7 +332,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
                 break;
             }
 
-            case UIModulePacketType.InitZone:
+            case UIModulePacketType.ZoneInit:
             {
                 var eventArgs = ZoneInitEventArgs.Read((nint)packet);
                 Log.Debug($"ZoneInit: {eventArgs}");

@@ -171,9 +171,9 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         this.isInvokingListeners = false;
     }
 
-    private void OnAgentModuleInitialize(AgentModule* thisPtr, UIModule* uiModule)
+    private AgentModule* OnAgentModuleInitialize(AgentModule* thisPtr, UIModule* uiModule)
     {
-        this.onInitializeAgentsHook!.Original(thisPtr, uiModule);
+        var result = this.onInitializeAgentsHook!.Original(thisPtr, uiModule);
 
         try
         {
@@ -187,6 +187,8 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         {
             Log.Error(e, "Exception in AgentLifecycle during AgentModule Ctor.");
         }
+
+        return result;
     }
 
     private void RegisterListenerMethod(AgentLifecycleEventListener listener)

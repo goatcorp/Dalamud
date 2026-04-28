@@ -6,6 +6,8 @@ using Dalamud.Logging.Internal;
 
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 
+using InteropGenerator.Runtime;
+
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Data;
@@ -42,9 +44,9 @@ internal sealed unsafe class RsvResolver : IDisposable
         this.addRsvStringHook.Dispose();
     }
 
-    private bool AddRsvStringDetour(LayoutWorld* @this, byte* rsvString, byte* resolvedString, nuint resolvedStringSize)
+    private bool AddRsvStringDetour(LayoutWorld* @this, CStringPointer rsvString, byte* resolvedString, nuint resolvedStringSize)
     {
-        var rsv = new ReadOnlySeString(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(rsvString));
+        var rsv = new ReadOnlySeString(rsvString.AsSpan());
         var resolved = new ReadOnlySeString(new ReadOnlySpan<byte>(resolvedString, (int)resolvedStringSize));
         Log.Debug($"Resolving RSV \"{rsv}\" to \"{resolved}\".");
         this.Lookup[rsv] = resolved;

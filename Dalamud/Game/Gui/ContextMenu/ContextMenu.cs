@@ -21,7 +21,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using InteropGenerator.Runtime;
 
-using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
+using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.AtkValueType;
 
 namespace Dalamud.Game.Gui.ContextMenu;
 

@@ -173,7 +173,7 @@ internal unsafe class AddonEventManager : IInternalDisposableService
 
                 if (atkCursor.Type != this.cursorOverride)
                 {
-                    atkCursor.SetCursorType((AtkCursor.CursorType)this.cursorOverride, 1);
+                    atkCursor.SetCursorType((AtkCursor.CursorType)this.cursorOverride, true);
                 }
 
                 return;

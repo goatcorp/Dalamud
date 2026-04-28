@@ -7,6 +7,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 
+using FFXIVClientStructs.FFXIV.Client.Game.Network;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 using Serilog;
@@ -56,11 +57,11 @@ internal sealed unsafe class PartyFinderGui : IInternalDisposableService, IParty
         }
     }
 
-    private void HandleReceiveListingDetour(InfoProxyCrossRealm* infoProxy, nint packet)
+    private void HandleReceiveListingDetour(InfoProxyCrossRealm* infoProxy, ServerIpcSegment<CrossRealmListingSegmentPacket>* packet)
     {
         try
         {
-            this.HandleListingEvents(packet);
+            this.HandleListingEvents((nint)packet);
         }
         catch (Exception ex)
         {

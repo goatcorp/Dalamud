@@ -425,7 +425,12 @@ public abstract class Window
                 this.IsFocused = false;
 
                 if (internalDrawParams.Flags.HasFlag(WindowDrawFlags.UseSoundEffects) && !this.DisableWindowSounds)
-                    UIGlobals.PlaySoundEffect(this.OnCloseSfxId);
+                {
+                    unsafe
+                    {
+                        UIGlobals.PlaySoundEffect(this.OnCloseSfxId);
+                    }
+                }
             }
 
             if (this.fadeOutTexture != null)
@@ -468,7 +473,12 @@ public abstract class Window
             this.OnOpen();
 
             if (internalDrawParams.Flags.HasFlag(WindowDrawFlags.UseSoundEffects) && !this.DisableWindowSounds)
-                UIGlobals.PlaySoundEffect(this.OnOpenSfxId);
+            {
+                unsafe
+                {
+                    UIGlobals.PlaySoundEffect(this.OnOpenSfxId);
+                }
+            }
         }
 
         var isErrorStylePushed = false;
