@@ -3,10 +3,8 @@ using System.Linq;
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects;
-using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Network.Internal;
-using Dalamud.Game.Player;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -48,17 +46,10 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     private readonly NetworkHandlers networkHandlers = Service<NetworkHandlers>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly PlayerState playerState = Service<PlayerState>.Get();
-
-    [ServiceManager.ServiceDependency]
     private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
 
-    private Hook<LogoutCallbackInterface.Delegates.OnLogout> onLogoutHook;
+    private Hook<LogoutCallbackInterface.Delegates.OnLogout>? onLogoutHook;
     private bool initialized;
-    private uint territoryTypeId;
-    private bool isPvP;
-    private uint mapId;
-    private uint instance;
     private bool lastConditionNone = true;
 
     [ServiceManager.ServiceConstructor]
@@ -86,7 +77,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     private unsafe delegate void SetCurrentInstanceDelegate(NetworkModuleProxy* thisPtr, short instanceId);
 
     /// <inheritdoc/>
-    public event Action<ZoneInitEventArgs> ZoneInit;
+    public event Action<ZoneInitEventArgs>? ZoneInit;
 
     /// <inheritdoc/>
     public event Action<uint>? TerritoryChanged;
@@ -124,23 +115,17 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     /// <inheritdoc/>
     public uint TerritoryType
     {
-        get => this.territoryTypeId;
+        get;
         private set
         {
-            if (this.territoryTypeId != value)
+            if (field != value)
             {
-                this.territoryTypeId = value;
+                field = value;
 
                 if (this.initialized)
                 {
                     Log.Debug("TerritoryType changed: {0}", value);
                     this.TerritoryChanged?.InvokeSafely(value);
-                }
-
-                var rowRef = LuminaUtils.CreateRef<TerritoryType>(value);
-                if (rowRef.IsValid)
-                {
-                    this.IsPvP = rowRef.Value.IsPvpZone;
                 }
             }
         }
@@ -149,12 +134,12 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     /// <inheritdoc/>
     public uint MapId
     {
-        get => this.mapId;
+        get;
         private set
         {
-            if (this.mapId != value)
+            if (field != value)
             {
-                this.mapId = value;
+                field = value;
 
                 if (this.initialized)
                 {
@@ -168,12 +153,12 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     /// <inheritdoc/>
     public uint Instance
     {
-        get => this.instance;
+        get;
         private set
         {
-            if (this.instance != value)
+            if (field != value)
             {
-                this.instance = value;
+                field = value;
 
                 if (this.initialized)
                 {
@@ -197,12 +182,12 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     /// <inheritdoc/>
     public bool IsPvP
     {
-        get => this.isPvP;
+        get;
         private set
         {
-            if (this.isPvP != value)
+            if (field != value)
             {
-                this.isPvP = value;
+                field = value;
 
                 if (this.initialized)
                 {
@@ -260,7 +245,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     void IInternalDisposableService.DisposeService()
     {
         this.uiModuleHandlePacketHook.Dispose();
-        this.onLogoutHook.Dispose();
+        this.onLogoutHook?.Dispose();
         this.setCurrentInstanceHook.Dispose();
 
         this.framework.Update -= this.OnFrameworkUpdate;
@@ -333,6 +318,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
                 Log.Debug($"ZoneInit: {eventArgs}");
                 this.ZoneInit?.InvokeSafely(eventArgs);
                 this.TerritoryType = eventArgs.TerritoryType.RowId;
+                this.IsPvP = GameMain.IsInPvPArea();
                 break;
             }
         }
@@ -344,7 +330,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.Instance = (uint)instanceId;
     }
 
-    private unsafe void OnFrameworkUpdate(IFramework framework)
+    private unsafe void OnFrameworkUpdate(IFramework frameworkArg)
     {
         this.MapId = AgentMap.Instance()->CurrentMapId;
 
@@ -402,7 +388,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
             }
         }
 
-        this.onLogoutHook.Original(thisPtr, logoutParams);
+        this.onLogoutHook!.Original(thisPtr, logoutParams);
     }
 
     private void NetworkHandlersOnCfPop(ContentFinderCondition e)
@@ -443,7 +429,7 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     }
 
     /// <inheritdoc/>
-    public event Action<ZoneInitEventArgs> ZoneInit;
+    public event Action<ZoneInitEventArgs>? ZoneInit;
 
     /// <inheritdoc/>
     public event Action<uint>? TerritoryChanged;
