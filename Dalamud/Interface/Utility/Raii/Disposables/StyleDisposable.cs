@@ -101,7 +101,7 @@ public static partial class ImRaii
         /// <summary> Pop all pushed styles. </summary>
         public void Dispose()
         {
-            ImGui.PopStyleVar(this.Count);
+            this.Pop(this.Count);
             this.Count = 0;
         }
 

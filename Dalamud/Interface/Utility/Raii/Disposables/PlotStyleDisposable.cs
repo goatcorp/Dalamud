@@ -104,7 +104,7 @@ public static partial class ImRaii
         /// <summary> Pop all pushed styles. </summary>
         public void Dispose()
         {
-            ImPlot.PopStyleVar(this.Count);
+            this.Pop(this.Count);
             this.Count = 0;
         }
 
