@@ -257,6 +257,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.onLogoutHook = Hook<LogoutCallbackInterface.Delegates.OnLogout>.FromAddress((nint)AgentLobby.Instance()->LogoutCallbackInterface.VirtualTable->OnLogout, this.OnLogoutDetour);
         this.onLogoutHook.Enable();
 
+        this.IsPvP = GameMain.IsInPvPArea();
         this.TerritoryType = GameMain.Instance()->CurrentTerritoryTypeId;
         this.MapId = AgentMap.Instance()->CurrentMapId;
         this.Instance = CSUIState.Instance()->PublicInstance.InstanceId;
