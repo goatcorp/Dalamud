@@ -1,4 +1,7 @@
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Dalamud.Hooking.Internal.Verification;
 
@@ -19,18 +22,31 @@ public class HookVerificationException : Exception
     /// <param name="passed">The delegate passed by the user.</param>
     /// <param name="enforced">The delegate we think is correct.</param>
     /// <param name="message">Additional context to show to the user.</param>
+    /// <param name="name">The name of enforced hook location.</param>
+    /// <param name="failContext">The exact check that failed for hook verification.</param>
+    /// <param name="hookCaller">The caller that is trying to create the hook.</param>
     /// <returns>The created exception.</returns>
-    internal static HookVerificationException Create(IntPtr address, Type passed, Type enforced, string message)
+    internal static HookVerificationException Create(IntPtr address, Type passed, string enforced, string message, string name, string failContext, Assembly hookCaller)
     {
+        var mainModule = Process.GetCurrentProcess().MainModule!;
+
         return new HookVerificationException(
-            $"Hook verification failed for address 0x{address.ToInt64():X}\n\n" +
-            $"Why:               {message}\n" +
-            $"Passed Delegate:   {GetSignature(passed)}\n" +
-            $"Correct Delegate:  {GetSignature(enforced)}\n\n" +
+            $"Hook verification failed for address 0x{address.ToInt64():X} (relative base: {new FileInfo(mainModule.FileName).Name}+0x{address - Process.GetCurrentProcess().MainModule!.BaseAddress:X})\n\n" +
+            $"Hook creation caller: {hookCaller}\n" +
+            $"Name:                 {name}\n" +
+            $"Why:                  {message}\n" +
+            $"Fail Context:         {failContext}\n" +
+            $"Passed Delegate:      {GetSignature(passed)}\n" +
+            $"Correct Delegate:     {enforced}\n\n" +
             "The hook delegate must exactly match the provided signature to prevent memory corruption and wrong data passed to originals.");
     }
 
-    private static string GetSignature(Type delegateType)
+    /// <summary>
+    /// Formats a delegate type to have return type and parameters as a string.
+    /// </summary>
+    /// <param name="delegateType">The delegate to format a string with.</param>
+    /// <returns>Formated delegate string.</returns>
+    internal static string GetSignature(Type delegateType)
     {
         var method = delegateType.GetMethod("Invoke");
         if (method == null) return delegateType.Name;

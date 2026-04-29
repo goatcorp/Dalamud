@@ -81,7 +81,7 @@ public readonly unsafe struct AgentInterfacePtr(nint address) : IEquatable<Agent
     /// Focuses the AtkUnitBase.
     /// </summary>
     /// <returns> <c>true</c> when the addon was focused, <c>false</c> otherwise. </returns>
-    public readonly bool FocusAddon() => this.IsNull && this.Struct->FocusAddon();
+    public readonly bool FocusAddon() => !this.IsNull && this.Struct->FocusAddon();
 
     /// <summary>Determines whether the specified AgentInterfacePtr is equal to the current AgentInterfacePtr.</summary>
     /// <param name="other">The AgentInterfacePtr to compare with the current AgentInterfacePtr.</param>

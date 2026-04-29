@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -34,24 +34,18 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     private Hook<AgentModule.Delegates.Ctor>? onInitializeAgentsHook;
     private bool isInvokingListeners;
 
+    private bool areVirtualTablesReplaced;
+
     [ServiceManager.ServiceConstructor]
     private AgentLifecycle()
     {
-        var agentModuleInstance = AgentModule.Instance();
-
-        // Hook is only used to determine appropriate timing for replacing Agent Virtual Tables
-        // If the agent module is already initialized, then we can replace the tables safely.
-        if (agentModuleInstance is null)
-        {
-            this.onInitializeAgentsHook = Hook<AgentModule.Delegates.Ctor>.FromAddress((nint)AgentModule.MemberFunctionPointers.Ctor, this.OnAgentModuleInitialize);
-            this.onInitializeAgentsHook.Enable();
-        }
-        else
-        {
-            // For safety because this might be injected async, we will make sure we are on the main thread first.
-            this.framework.RunOnFrameworkThread(() => this.ReplaceVirtualTables(agentModuleInstance));
-        }
+        this.InitializeAgentLifecycle();
     }
+
+    /// <summary>
+    /// Gets a value indicating whether AgentLifecycle is Enabled.
+    /// </summary>
+    internal bool IsEnabled { get; private set; }
 
     /// <summary>
     /// Gets a list of all AgentLifecycle Event Listeners.
@@ -62,11 +56,74 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        this.UnloadAgentLifecycle();
+    }
+
+    /// <summary>
+    /// Resolves a virtual table address to the original virtual table address.
+    /// </summary>
+    /// <param name="tableAddress">The modified address to resolve.</param>
+    /// <returns>The original address.</returns>
+    internal static AgentInterface.AgentInterfaceVirtualTable* GetOriginalVirtualTable(AgentInterface.AgentInterfaceVirtualTable* tableAddress)
+    {
+        var matchedTable = AllocatedTables.FirstOrDefault(table => table.ModifiedVirtualTable == tableAddress);
+        if (matchedTable == null)
+        {
+            return null;
+        }
+
+        return matchedTable.OriginalVirtualTable;
+    }
+
+    /// <summary>
+    /// Replaces all native Agent Virtual Tables with Modified Virtual Tables to intercept agent events.
+    /// </summary>
+    /// <remarks>
+    /// This function will only queue the actual table initialization to be handled appropriately with current game state.
+    /// </remarks>
+    internal void InitializeAgentLifecycle()
+    {
+        this.IsEnabled = true;
+
+        // Don't allow loading virtual tables if they are already loaded.
+        if (this.areVirtualTablesReplaced)
+        {
+            return;
+        }
+
+        var agentModuleInstance = AgentModule.Instance();
+
+        // Hook is only used to determine appropriate timing for replacing Agent Virtual Tables
+        // If the agent module is already initialized, then we can replace the tables safely, else wait for AgentModule ctor.
+        if (agentModuleInstance is not null)
+        {
+            // For safety because this might be injected async, we will make sure we are on the main thread first.
+            this.framework.RunOnFrameworkThread(() => this.ReplaceVirtualTables(agentModuleInstance));
+        }
+        else
+        {
+            this.onInitializeAgentsHook ??= Hook<AgentModule.Delegates.Ctor>.FromAddress((nint)AgentModule.MemberFunctionPointers.Ctor, this.OnAgentModuleInitialize);
+            this.onInitializeAgentsHook.Enable();
+        }
+    }
+
+    /// <summary>
+    /// Restores all agents original Virtual Tables.
+    /// </summary>
+    internal void UnloadAgentLifecycle()
+    {
+        this.IsEnabled = false;
+
         this.onInitializeAgentsHook?.Dispose();
         this.onInitializeAgentsHook = null;
 
-        AllocatedTables.ForEach(entry => entry.Dispose());
-        AllocatedTables.Clear();
+        if (this.areVirtualTablesReplaced)
+        {
+            AllocatedTables.ForEach(entry => entry.Dispose());
+            AllocatedTables.Clear();
+        }
+
+        this.areVirtualTablesReplaced = false;
     }
 
     /// <summary>
@@ -75,24 +132,14 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AgentLifecycleEventListener listener)
     {
-        this.framework.RunOnTick(() =>
+        if (this.isInvokingListeners)
         {
-            if (!this.EventListeners.ContainsKey(listener.EventType))
-            {
-                if (!this.EventListeners.TryAdd(listener.EventType, []))
-                    return;
-            }
-
-            // Note: uint.MaxValue is a valid agent id, as that will trigger on any agent for this event type
-            if (!this.EventListeners[listener.EventType].ContainsKey(listener.AgentId))
-            {
-                if (!this.EventListeners[listener.EventType].TryAdd(listener.AgentId, []))
-                    return;
-            }
-
-            this.EventListeners[listener.EventType][listener.AgentId].Add(listener);
-        },
-        delayTicks: this.isInvokingListeners ? 1 : 0);
+            this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
+        }
+        else
+        {
+            this.framework.RunOnFrameworkThread(() => this.RegisterListenerMethod(listener));
+        }
     }
 
     /// <summary>
@@ -101,17 +148,16 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AgentLifecycleEventListener listener)
     {
-        this.framework.RunOnTick(() =>
+        listener.IsRequestedToClear = true;
+
+        if (this.isInvokingListeners)
         {
-            if (this.EventListeners.TryGetValue(listener.EventType, out var agentListeners))
-            {
-                if (agentListeners.TryGetValue(listener.AgentId, out var agentListener))
-                {
-                    agentListener.Remove(listener);
-                }
-            }
-        },
-        delayTicks: this.isInvokingListeners ? 1 : 0);
+            this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
+        }
+        else
+        {
+            this.framework.RunOnFrameworkThread(() => this.UnregisterListenerMethod(listener));
+        }
     }
 
     /// <summary>
@@ -132,6 +178,8 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         {
             foreach (var listener in globalListeners)
             {
+                if (listener.IsRequestedToClear) continue;
+
                 try
                 {
                     listener.FunctionDelegate.Invoke(eventType, args);
@@ -148,6 +196,8 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         {
             foreach (var listener in agentListener)
             {
+                if (listener.IsRequestedToClear) continue;
+
                 try
                 {
                     listener.FunctionDelegate.Invoke(eventType, args);
@@ -162,22 +212,9 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         this.isInvokingListeners = false;
     }
 
-    /// <summary>
-    /// Resolves a virtual table address to the original virtual table address.
-    /// </summary>
-    /// <param name="tableAddress">The modified address to resolve.</param>
-    /// <returns>The original address.</returns>
-    internal AgentInterface.AgentInterfaceVirtualTable* GetOriginalVirtualTable(AgentInterface.AgentInterfaceVirtualTable* tableAddress)
+    private AgentModule* OnAgentModuleInitialize(AgentModule* thisPtr, UIModule* uiModule)
     {
-        var matchedTable = AllocatedTables.FirstOrDefault(table => table.ModifiedVirtualTable == tableAddress);
-        if (matchedTable == null) return null;
-
-        return matchedTable.OriginalVirtualTable;
-    }
-
-    private void OnAgentModuleInitialize(AgentModule* thisPtr, UIModule* uiModule)
-    {
-        this.onInitializeAgentsHook!.Original(thisPtr, uiModule);
+        var ret = this.onInitializeAgentsHook!.Original(thisPtr, uiModule);
 
         try
         {
@@ -191,10 +228,51 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         {
             Log.Error(e, "Exception in AgentLifecycle during AgentModule Ctor.");
         }
+
+        return ret;
+    }
+
+    private void RegisterListenerMethod(AgentLifecycleEventListener listener)
+    {
+        if (!this.EventListeners.ContainsKey(listener.EventType))
+        {
+            if (!this.EventListeners.TryAdd(listener.EventType, []))
+            {
+                return;
+            }
+        }
+
+        // Note: uint.MaxValue is a valid agent id, as that will trigger on any agent for this event type
+        if (!this.EventListeners[listener.EventType].ContainsKey(listener.AgentId))
+        {
+            if (!this.EventListeners[listener.EventType].TryAdd(listener.AgentId, []))
+            {
+                return;
+            }
+        }
+
+        this.EventListeners[listener.EventType][listener.AgentId].Add(listener);
+    }
+
+    private void UnregisterListenerMethod(AgentLifecycleEventListener listener)
+    {
+        if (this.EventListeners.TryGetValue(listener.EventType, out var agentListeners))
+        {
+            if (agentListeners.TryGetValue(listener.AgentId, out var agentListener))
+            {
+                agentListener.Remove(listener);
+            }
+        }
     }
 
     private void ReplaceVirtualTables(AgentModule* agentModule)
     {
+        // Prevent Double Replacement.
+        if (this.areVirtualTablesReplaced)
+        {
+            return;
+        }
+
         foreach (uint index in Enumerable.Range(0, agentModule->Agents.Length))
         {
             try
@@ -215,6 +293,8 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
                 Log.Error(e, "Exception in AgentLifecycle during ReplaceVirtualTables.");
             }
         }
+
+        this.areVirtualTablesReplaced = true;
     }
 }
 
@@ -311,5 +391,5 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
 
     /// <inheritdoc/>
     public unsafe nint GetOriginalVirtualTable(nint virtualTableAddress)
-        => (nint)this.agentLifecycleService.GetOriginalVirtualTable((AgentInterface.AgentInterfaceVirtualTable*)virtualTableAddress);
+        => (nint)AgentLifecycle.GetOriginalVirtualTable((AgentInterface.AgentInterfaceVirtualTable*)virtualTableAddress);
 }

@@ -135,6 +135,10 @@ internal class HookManager : IInternalDisposableService
                         newAddress = (IntPtr)inst.IPRelativeMemoryAddress;
                         newAddress = Marshal.ReadIntPtr(newAddress);
                         break;
+                    case OpKind.Memory when inst.IsJmpNearIndirect:
+                    case OpKind.Memory when inst.IsJmpFarIndirect:
+                        Log.Verbose($"Encountered indirect assembly jump ({kind}) from {address.ToInt64():X}, returning unresolved");
+                        return address;
                     case OpKind.Memory:
                         newAddress = (IntPtr)inst.MemoryDisplacement64;
                         newAddress = Marshal.ReadIntPtr(newAddress);

@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.DutyState;
 using Dalamud.Plugin.SelfTest;
 
@@ -46,7 +46,7 @@ internal class DutyStateSelfTestStep : ISelfTestStep
         dutyState.DutyStarted -= this.DutyStateOnDutyStarted;
     }
 
-    private void DutyStateOnDutyStarted(object? sender, ushort e)
+    private void DutyStateOnDutyStarted(IDutyStateEventArgs args)
     {
         this.hasPassed = true;
     }

@@ -36,6 +36,7 @@ using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 using AddonSheet = Lumina.Excel.Sheets.Addon;
+using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 using StatusSheet = Lumina.Excel.Sheets.Status;
 
 namespace Dalamud.Game.Text.Evaluator;
@@ -309,27 +310,59 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     private unsafe bool TryResolveSetResetTime(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        DateTime date;
+        var enu = payload.GetEnumerator();
 
-        if (payload.TryGetExpression(out var eHour, out var eWeekday)
-            && this.TryResolveInt(in context, eHour, out var eHourVal)
-            && this.TryResolveInt(in context, eWeekday, out var eWeekdayVal))
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var eHourVal))
+            return false;
+
+        var eWeekdayVal = 7; // 0-6 = Sunday to Saturday, 7 = special case "daily reset"
+
+        // Parse optional weekday expression
+        if (enu.MoveNext() && !this.TryResolveInt(in context, enu.Current, out eWeekdayVal))
+            return false;
+
+        // Clamp values
+        if (eHourVal > 23) eHourVal = 0;
+        if (eWeekdayVal > 7) eWeekdayVal = 7;
+
+        // Convert JST to UTC
+        int targetUtcHour;
+        var targetUtcWday = eWeekdayVal;
+
+        if (eHourVal >= 9)
         {
-            var t = DateTime.UtcNow.AddDays(((eWeekdayVal - (int)DateTime.UtcNow.DayOfWeek) + 7) % 7);
-            date = new DateTime(t.Year, t.Month, t.Day, eHourVal, 0, 0, DateTimeKind.Utc).ToLocalTime();
-        }
-        else if (payload.TryGetExpression(out eHour)
-                 && this.TryResolveInt(in context, eHour, out eHourVal))
-        {
-            var t = DateTime.UtcNow;
-            date = new DateTime(t.Year, t.Month, t.Day, eHourVal, 0, 0, DateTimeKind.Utc).ToLocalTime();
+            targetUtcHour = eHourVal - 9;
         }
         else
         {
-            return false;
+            targetUtcHour = eHourVal + 15;
+
+            if (eWeekdayVal != 7)
+                targetUtcWday = (eWeekdayVal + 6) % 7;
         }
 
-        MacroDecoder.GetMacroTime()->SetTime(date);
+        // Create a target date
+        var nowUtc = DateTime.UtcNow;
+        var targetDate = new DateTime(nowUtc.Year, nowUtc.Month, nowUtc.Day, targetUtcHour, 0, 0, DateTimeKind.Utc);
+
+        // Move date to next possible reset
+        if (eWeekdayVal == 7)
+        {
+            // Daily Reset: If we already passed it today, move to tomorrow
+            if (nowUtc.Hour >= targetUtcHour)
+                targetDate = targetDate.AddDays(1);
+        }
+        else
+        {
+            // Weekly Reset: If we already passed it today, move to next week
+            var daysToAdd = (targetUtcWday - (int)nowUtc.DayOfWeek + 7) % 7;
+            if (daysToAdd == 0 && nowUtc.Hour >= targetUtcHour)
+                daysToAdd = 7;
+
+            targetDate = targetDate.AddDays(daysToAdd);
+        }
+
+        MacroDecoder.GetMacroTime()->SetTime(targetDate.ToLocalTime());
 
         return true;
     }
@@ -377,20 +410,17 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return false;
     }
 
-    private bool TryResolveSwitchPlatform(in SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private unsafe bool TryResolveSwitchPlatform(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var expr1))
             return false;
 
-        if (!expr1.TryGetInt(out var intVal))
+        if (!expr1.TryGetInt(out var intVal) || intVal <= 0)
             return false;
 
-        // Our version of the game uses IsMacClient() here and the
-        // Xbox version seems to always return 7 for the platform.
-        var platform = Util.IsWine() ? 5 : 3;
+        var platform = (int)CSFramework.Instance()->GetClientPlatform();
 
-        // The sheet is seeminly split into first 20 rows for wired controllers
-        // and the last 20 rows for wireless controllers.
+        // The sheet is seeminly split into 20 rows segments.
         var rowId = (uint)((20 * ((intVal - 1) / 20)) + (platform - 4 < 2 ? 2 : 1));
 
         if (!this.dataManager.GetExcelSheet<Platform>().TryGetRow(rowId, out var platformRow))
@@ -848,7 +878,10 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         sb.Append(this.EvaluateFromAddon(6, [rarity], context.Language)); // appends colortype and edgecolortype
 
         if (!skipLink)
-            sb.PushLink(LinkMacroPayloadType.Item, itemId, rarity, 0u); // arg3 = some LogMessage flag based on LogKind RowId? => "89 5C 24 20 E8 ?? ?? ?? ?? 48 8B 1F"
+        {
+            // The last argument is a flag for LogMessages, set here "C7 80 ?? ?? ?? ?? 00 00 00 00 66 83 E7".
+            sb.PushLink(LinkMacroPayloadType.Item, itemId, rarity, 0u);
+        }
 
         // there is code here for handling noun link markers (//), but i don't know why
 
@@ -910,19 +943,19 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 return;
 
             case "DescriptionString" when eColParamValue > 0:
-                context.Builder.PushLink((LinkMacroPayloadType)11, eRowIdValue, eColParamValue, 0u, text.AsSpan());
+                context.Builder.PushLink(LinkMacroPayloadType.Description, eRowIdValue, eColParamValue, 0u, text.AsSpan());
                 context.Builder.Append(text);
                 context.Builder.PopLink();
                 return;
 
             case "WKSPioneeringTrailString":
-                context.Builder.PushLink((LinkMacroPayloadType)12, eRowIdValue, eColParamValue, 0u, text.AsSpan());
+                context.Builder.PushLink(LinkMacroPayloadType.WKSPioneeringTrail, eRowIdValue, eColParamValue, 0u, text.AsSpan());
                 context.Builder.Append(text);
                 context.Builder.PopLink();
                 return;
 
             case "MKDLore":
-                context.Builder.PushLink((LinkMacroPayloadType)13, eRowIdValue, 0u, 0u, text.AsSpan());
+                context.Builder.PushLink(LinkMacroPayloadType.MKDLore, eRowIdValue, 0u, 0u, text.AsSpan());
                 context.Builder.Append(text);
                 context.Builder.PopLink();
                 return;
@@ -1092,7 +1125,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 8 => this.TryResolveFixedTimeRemaining(in context, ref enu),
                 // Reads a uint and saves it to PronounModule+0x3AC
                 // TODO: handle this? looks like it's for the mentor/beginner icon of the player link in novice network
-                // see "FF 50 50 8B B0"
+                // see "FF 50 ?? 33 C9 8B B8" - used as parameter for Addon#7864
                 9 => true,
                 10 => this.TryResolveFixedStatusLink(in context, ref enu),
                 11 => this.TryResolveFixedPartyFinderLink(in context, ref enu),

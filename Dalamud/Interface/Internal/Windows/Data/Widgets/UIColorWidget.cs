@@ -3,11 +3,11 @@ using System.Numerics;
 using System.Text;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Data;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
+using Dalamud.Interface.Utility.Raii;
 
 using Lumina.Excel.Sheets;
 
@@ -47,7 +47,7 @@ internal class UiColorWidget : IDataWindowWidget
             "· Click on a color to copy the color code.<br>" +
             "· Hover on a color to preview the text with edge, when the next color has been used together.");
 
-        using var table = ImRaii.Table("UIColor"u8, 7);
+        using var table = ImRaii.Table("UIColor"u8, 9);
         if (!table.Success)
             return;
 
@@ -68,6 +68,8 @@ internal class UiColorWidget : IDataWindowWidget
         ImGui.TableSetupColumn("Clear Blue"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
         ImGui.TableSetupColumn("Clear White"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
         ImGui.TableSetupColumn("Clear Green"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableSetupColumn("Clear Grey"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableSetupColumn("Clear Pink"u8, ImGuiTableColumnFlags.WidthFixed, colorw);
         ImGui.TableHeadersRow();
 
         var clipper = ImGui.ImGuiListClipper();
@@ -141,6 +143,22 @@ internal class UiColorWidget : IDataWindowWidget
                 {
                     if (this.DrawColorColumn(row.ClearGreen) && adjacentRow.HasValue)
                         DrawEdgePreview(id, row.ClearGreen, adjacentRow.Value.ClearGreen);
+                }
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                using (ImRaii.PushId($"row{id}_grey"))
+                {
+                    if (this.DrawColorColumn(row.Unknown2) && adjacentRow.HasValue)
+                        DrawEdgePreview(id, row.Unknown2, adjacentRow.Value.Unknown2);
+                }
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                using (ImRaii.PushId($"row{id}_pink"))
+                {
+                    if (this.DrawColorColumn(row.Unknown3) && adjacentRow.HasValue)
+                        DrawEdgePreview(id, row.Unknown3, adjacentRow.Value.Unknown3);
                 }
             }
         }

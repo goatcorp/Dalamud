@@ -6,11 +6,13 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using InteropGenerator.Runtime;
 
 using Serilog;
 
@@ -84,11 +86,11 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
         int kind,
         int val1,
         int val2,
-        byte* text2,
+        CStringPointer text2,
         uint color,
         uint icon,
         uint damageTypeIcon,
-        byte* text1,
+        CStringPointer text1,
         float yOffset)
     {
         var retVal = nint.Zero;
@@ -101,8 +103,8 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
             var tmpKind = (FlyTextKind)kind;
             var tmpVal1 = val1;
             var tmpVal2 = val2;
-            var tmpText1 = text1 == null ? string.Empty : MemoryHelper.ReadSeStringNullTerminated((nint)text1);
-            var tmpText2 = text2 == null ? string.Empty : MemoryHelper.ReadSeStringNullTerminated((nint)text2);
+            var tmpText1 = text1.AsDalamudSeString();
+            var tmpText2 = text2.AsDalamudSeString();
             var tmpColor = color;
             var tmpIcon = icon;
             var tmpDamageTypeIcon = damageTypeIcon;
@@ -113,7 +115,7 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 
             Log.Verbose($"[FlyText] Called with addonFlyText({(nint)thisPtr:X}) " +
                         $"kind({kind}) val1({val1}) val2({val2}) damageTypeIcon({damageTypeIcon}) " +
-                        $"text1({(nint)text1:X}, \"{tmpText1}\") text2({(nint)text2:X}, \"{tmpText2}\") " +
+                        $"text1({(nint)text1.Value:X}, \"{tmpText1}\") text2({(nint)text2.Value:X}, \"{tmpText2}\") " +
                         $"color({color:X}) icon({icon}) yOffset({yOffset})");
             Log.Verbose("[FlyText] Calling flytext events!");
             foreach (var d in Delegate.EnumerateInvocationList(this.FlyTextCreated))

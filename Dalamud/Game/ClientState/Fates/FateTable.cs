@@ -88,8 +88,8 @@ internal sealed partial class FateTable : IServiceType, IFateTable
         if (address == 0)
             return null;
 
-        var clientState = Service<ClientState>.Get();
-        if (clientState.LocalContentId == 0)
+        var playerState = Service<PlayerState>.Get();
+        if (playerState.ContentId == 0)
             return null;
 
         return new Fate((CSFateContext*)address);

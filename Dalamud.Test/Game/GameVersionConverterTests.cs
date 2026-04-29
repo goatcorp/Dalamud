@@ -1,4 +1,4 @@
-﻿using Dalamud.Common.Game;
+using Dalamud.Common.Game;
 
 using JetBrains.Annotations;
 
@@ -127,7 +127,7 @@ public class GameVersionConverterTests
     {
         [JsonConverter(typeof(GameVersionConverter))]
         [CanBeNull]
-        public GameVersion Version { get; init; }
+        public GameVersion? Version { get; init; }
     }
 
     private class TestWrongTypeSerializationClass

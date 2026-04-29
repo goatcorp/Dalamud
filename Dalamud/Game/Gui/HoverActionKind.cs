@@ -14,145 +14,149 @@ public enum HoverActionKind
     /// <summary>
     /// A regular action is hovered.
     /// </summary>
-    Action = 29,
+    Action = 30,
 
     /// <summary>
     /// A crafting action is hovered.
     /// </summary>
-    CraftingAction = 30,
+    CraftingAction = 31,
 
     /// <summary>
     /// A general action is hovered.
     /// </summary>
-    GeneralAction = 31,
+    GeneralAction = 32,
 
     /// <summary>
     /// A companion order type of action is hovered.
     /// </summary>
-    CompanionOrder = 32, // Game Term: BuddyOrder
+    CompanionOrder = 33, // Game Term: BuddyOrder
 
     /// <summary>
     /// A main command type of action is hovered.
     /// </summary>
-    MainCommand = 33,
+    MainCommand = 34,
 
     /// <summary>
     /// An extras command type of action is hovered.
     /// </summary>
-    ExtraCommand = 34,
+    ExtraCommand = 35,
 
     /// <summary>
     /// A companion action is hovered.
     /// </summary>
-    Companion = 35,
+    Companion = 36,
 
     /// <summary>
     /// A pet order type of action is hovered.
     /// </summary>
-    PetOrder = 36,
+    PetOrder = 37,
 
     /// <summary>
     /// A trait is hovered.
     /// </summary>
-    Trait = 37,
+    Trait = 38,
 
     /// <summary>
     /// A buddy action is hovered.
     /// </summary>
-    BuddyAction = 38,
+    BuddyAction = 39,
 
     /// <summary>
     /// A company action is hovered.
     /// </summary>
-    CompanyAction = 39,
+    CompanyAction = 40,
 
     /// <summary>
     /// A mount is hovered.
     /// </summary>
-    Mount = 40,
+    Mount = 41,
 
     /// <summary>
     /// A chocobo race action is hovered.
     /// </summary>
-    ChocoboRaceAction = 41,
+    ChocoboRaceAction = 42,
 
     /// <summary>
     /// A chocobo race item is hovered.
     /// </summary>
-    ChocoboRaceItem = 42,
+    ChocoboRaceItem = 43,
 
     /// <summary>
     /// A deep dungeon equipment is hovered.
     /// </summary>
-    DeepDungeonEquipment = 43,
+    DeepDungeonEquipment = 44,
 
     /// <summary>
     /// A deep dungeon equipment 2 is hovered.
     /// </summary>
-    DeepDungeonEquipment2 = 44,
+    DeepDungeonEquipment2 = 45,
 
     /// <summary>
     /// A deep dungeon item is hovered.
     /// </summary>
-    DeepDungeonItem = 45,
+    DeepDungeonItem = 46,
 
     /// <summary>
     /// A quick chat is hovered.
     /// </summary>
-    QuickChat = 46,
+    QuickChat = 47,
 
     /// <summary>
     /// An action combo route is hovered.
     /// </summary>
-    ActionComboRoute = 47,
+    ActionComboRoute = 48,
 
     /// <summary>
     /// A pvp trait is hovered.
     /// </summary>
-    PvPSelectTrait = 48,
+    PvPSelectTrait = 49,
 
     /// <summary>
     /// A squadron action is hovered.
     /// </summary>
-    BgcArmyAction = 49,
+    BgcArmyAction = 50,
 
     /// <summary>
     /// A perform action is hovered.
     /// </summary>
-    Perform = 50,
+    Perform = 51,
 
     /// <summary>
     /// A deep dungeon magic stone is hovered.
     /// </summary>
-    DeepDungeonMagicStone = 51,
+    DeepDungeonMagicStone = 52,
 
     /// <summary>
     /// A deep dungeon demiclone is hovered.
     /// </summary>
-    DeepDungeonDemiclone = 52,
+    DeepDungeonDemiclone = 53,
+
+    DeepDungeon4GimmickEffect = 54,
 
     /// <summary>
     /// An eureka magia action is hovered.
     /// </summary>
-    EurekaMagiaAction = 53,
+    EurekaMagiaAction = 55,
 
     /// <summary>
     /// An island sanctuary temporary item is hovered.
     /// </summary>
-    MYCTemporaryItem = 54,
+    MYCTemporaryItem = 56,
 
     /// <summary>
     /// An ornament is hovered.
     /// </summary>
-    Ornament = 55,
+    Ornament = 57,
 
     /// <summary>
     /// Glasses are hovered.
     /// </summary>
-    Glasses = 56,
+    Glasses = 58,
+
+    PhantomAction = 59,
 
     /// <summary>
     /// Phantom Job Trait is hovered.
     /// </summary>
-    MKDTrait = 58,
+    MKDTrait = 60,
 }

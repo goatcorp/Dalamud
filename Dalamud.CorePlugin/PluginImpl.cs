@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
@@ -26,7 +28,7 @@ namespace Dalamud.CorePlugin
     /// While it may have similarities, it is compiled with access to Dalamud internals, which may cause confusion when
     /// some things work and others don't in normal operations.
     /// </remarks>
-    public sealed class PluginImpl : IDalamudPlugin
+    public sealed class PluginImpl : IAsyncDalamudPlugin
     {
 #if !DEBUG
 
@@ -38,8 +40,13 @@ namespace Dalamud.CorePlugin
         {
         }
 
+        /// <inheritdoc />
+        public async ValueTask LoadAsync(CancellationToken cancellationToken)
+        {
+        }
+
         /// <inheritdoc/>
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
         }
 
@@ -91,9 +98,18 @@ namespace Dalamud.CorePlugin
         /// </summary>
         internal IDalamudPluginInterface Interface { get; private set; }
 
-        /// <inheritdoc/>
-        public void Dispose()
+        /// <inheritdoc />
+        public async Task LoadAsync(CancellationToken cancellationToken)
         {
+            await Task.Delay(10000, cancellationToken);
+            this.pluginLog.Information("LoadAsync completed!");
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask DisposeAsync()
+        {
+            await Task.Delay(10000);
+
             Service<CommandManager>.Get().RemoveHandler("/coreplug");
 
             this.Interface.UiBuilder.Draw -= this.OnDraw;

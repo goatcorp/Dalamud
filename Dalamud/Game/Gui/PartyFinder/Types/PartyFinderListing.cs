@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Data;
-using Dalamud.Game.Gui.PartyFinder.Internal;
 using Dalamud.Game.Text.SeStringHandling;
+
+using FFXIVClientStructs.FFXIV.Client.Game.Network;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -54,7 +55,7 @@ public interface IPartyFinderListing
     /// <summary>
     /// Gets the ID assigned to this listing by the game's server.
     /// </summary>
-    uint Id { get; }
+    ulong Id { get; }
 
     /// <summary>
     /// Gets the player's unique content ID.
@@ -141,7 +142,7 @@ public interface IPartyFinderListing
     /// Gets the time at which the server this listings is on last restarted for a patch/hotfix.
     /// Probably.
     /// </summary>
-    uint LastPatchHotfixTimestamp { get; }
+    int LastPatchHotfixTimestamp { get; }
 
     /// <summary>
     /// Gets a list of the class/job IDs that are currently present in the party.
@@ -201,43 +202,48 @@ internal class PartyFinderListing : IPartyFinderListing
     /// Initializes a new instance of the <see cref="PartyFinderListing"/> class.
     /// </summary>
     /// <param name="listing">The interop listing data.</param>
-    internal PartyFinderListing(PartyFinderPacketListing listing)
+    internal PartyFinderListing(ref CrossRealmListingSegmentPacket.CrossRealmListing listing)
     {
         var dataManager = Service<DataManager>.Get();
 
         this.objective = listing.Objective;
-        this.conditions = listing.Conditions;
+        this.conditions = listing.CompletionStatus;
         this.dutyFinderSettings = listing.DutyFinderSettings;
-        this.lootRules = listing.LootRules;
-        this.searchArea = listing.SearchArea;
-        this.slots = listing.Slots.Select(accepting => new PartyFinderSlot(accepting)).ToArray();
-        this.jobsPresent = listing.JobsPresent;
+        this.lootRules = listing.LootRule;
+        this.searchArea = listing.JoinConditionFlags;
 
-        this.Id = listing.Id;
+        this.slots = new PartyFinderSlot[listing.SlotFlags.Length];
+        for (var i = 0; i < this.slots.Length; i++)
+            this.slots[i] = new PartyFinderSlot(listing.SlotFlags[i]);
+
+        this.jobsPresent = listing.JobsPresent.ToArray();
+
+        this.Id = listing.ListingId;
         this.ContentId = listing.ContentId;
-        this.Name = SeString.Parse(listing.Name.TakeWhile(b => b != 0).ToArray());
-        this.Description = SeString.Parse(listing.Description.TakeWhile(b => b != 0).ToArray());
-        this.World = LuminaUtils.CreateRef<World>(listing.World);
-        this.HomeWorld = LuminaUtils.CreateRef<World>(listing.HomeWorld);
-        this.CurrentWorld = LuminaUtils.CreateRef<World>(listing.CurrentWorld);
+        this.Name = SeString.Parse(listing.Name);
+        this.Description = SeString.Parse(listing.Description);
+        this.World = LuminaUtils.CreateRef<World>(listing.WorldId);
+        this.HomeWorld = LuminaUtils.CreateRef<World>(listing.HomeWorldId);
+        this.CurrentWorld = LuminaUtils.CreateRef<World>(listing.CurrentWorldId);
         this.Category = (DutyCategory)listing.Category;
         this.RawDuty = listing.Duty;
         this.Duty = LuminaUtils.CreateRef<ContentFinderCondition>(listing.Duty);
         this.DutyType = (DutyType)listing.DutyType;
         this.BeginnersWelcome = listing.BeginnersWelcome == 1;
-        this.SecondsRemaining = listing.SecondsRemaining;
-        this.MinimumItemLevel = listing.MinimumItemLevel;
-        this.Parties = listing.NumParties;
-        this.SlotsAvailable = listing.NumSlots;
-        this.SlotsFilled = listing.NumSlotsFilled;
+        this.SecondsRemaining = listing.TimeLeft;
+        this.MinimumItemLevel = listing.AvgItemLv;
+        this.Parties = listing.NumberOfParties;
+        this.SlotsAvailable = listing.TotalSlots;
+        this.SlotsFilled = listing.SlotsFilled;
         this.LastPatchHotfixTimestamp = listing.LastPatchHotfixTimestamp;
-        this.JobsPresent = listing.JobsPresent
+
+        this.JobsPresent = this.jobsPresent
                                   .Select(id => LuminaUtils.CreateRef<ClassJob>(id))
                                   .ToArray();
     }
 
     /// <inheritdoc/>
-    public uint Id { get; }
+    public ulong Id { get; }
 
     /// <inheritdoc/>
     public ulong ContentId { get; }
@@ -288,7 +294,7 @@ internal class PartyFinderListing : IPartyFinderListing
     public byte SlotsFilled { get; }
 
     /// <inheritdoc/>
-    public uint LastPatchHotfixTimestamp { get; }
+    public int LastPatchHotfixTimestamp { get; }
 
     /// <inheritdoc/>
     public IReadOnlyCollection<PartyFinderSlot> Slots => this.slots;

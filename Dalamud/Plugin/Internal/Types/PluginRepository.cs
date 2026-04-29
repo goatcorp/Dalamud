@@ -105,7 +105,7 @@ internal class PluginRepository
     /// Reload the plugin master asynchronously in a task.
     /// </summary>
     /// <returns>The new state.</returns>
-    public async Task ReloadPluginMasterAsync()
+    public async Task ReloadAsync()
     {
         this.State = PluginRepositoryState.InProgress;
         this.PluginMaster = new List<RemotePluginManifest>().AsReadOnly();

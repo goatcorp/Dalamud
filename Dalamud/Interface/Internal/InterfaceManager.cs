@@ -335,6 +335,9 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.IconFontHandle?.Dispose();
         this.IconFontHandle = null;
 
+        this.IconFontFixedWidthHandle?.Dispose();
+        this.IconFontFixedWidthHandle = null;
+
         Interlocked.Exchange(ref this.dalamudAtlas, null)?.Dispose();
         Interlocked.Exchange(ref this.backend, null)?.Dispose();
 
@@ -492,15 +495,6 @@ internal partial class InterfaceManager : IInternalDisposableService
         var vmi = default(DXGI_QUERY_VIDEO_MEMORY_INFO);
         adapter4.Get()->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP.DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &vmi);
         return ((long)vmi.CurrentUsage, (long)vmi.CurrentReservation);
-    }
-
-    /// <summary>
-    /// Clear font, style, and color stack. Dangerous, only use when you know
-    /// no one else has something pushed they may try to pop.
-    /// </summary>
-    public void ClearStacks()
-    {
-        ImGuiHelpers.ClearStacksOnContext();
     }
 
     /// <summary>
@@ -706,24 +700,25 @@ internal partial class InterfaceManager : IInternalDisposableService
 
             StyleModel.TransferOldModels();
 
+            StyleModelV1[] builtInStyles = [StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic, StyleModelV1.DalamudHazy];
+
             if (configuration.SavedStyles == null ||
-                configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
+                configuration.SavedStyles.All(x => x.Name != builtInStyles[0].Name))
             {
-                configuration.SavedStyles = [StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic];
-                configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
-            }
-            else if (configuration.SavedStyles.Count == 1)
-            {
-                configuration.SavedStyles.Add(StyleModelV1.DalamudClassic);
-            }
-            else if (configuration.SavedStyles[1].Name != StyleModelV1.DalamudClassic.Name)
-            {
-                configuration.SavedStyles.Insert(1, StyleModelV1.DalamudClassic);
+                configuration.SavedStyles = [..builtInStyles];
+                configuration.ChosenStyle = builtInStyles[0].Name;
             }
 
-            configuration.SavedStyles[0] = StyleModelV1.DalamudStandard;
-            configuration.SavedStyles[1] = StyleModelV1.DalamudClassic;
+            // Ensure built-in styles are pinned to the start of the list
+            for (var i = 0; i < builtInStyles.Length; i++)
+            {
+                if (configuration.SavedStyles.Count <= i || configuration.SavedStyles[i].Name != builtInStyles[i].Name)
+                    configuration.SavedStyles.Insert(i, builtInStyles[i]);
+                else
+                    configuration.SavedStyles[i] = builtInStyles[i];
+            }
 
+            // Use standard if the chosen style isn't there anymore
             var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
             if (style == null)
             {

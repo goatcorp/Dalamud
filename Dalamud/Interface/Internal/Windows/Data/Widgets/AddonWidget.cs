@@ -8,7 +8,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// <summary>
 /// Widget for displaying Addon Data.
 /// </summary>
-internal unsafe class AddonWidget : IDataWindowWidget
+internal class AddonWidget : IDataWindowWidget
 {
     private string inputAddonName = string.Empty;
     private int inputAddonIndex;

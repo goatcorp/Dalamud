@@ -1,11 +1,17 @@
-using System.Runtime.InteropServices;
-
+using Dalamud.Data;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.Network;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.DutyState;
 
@@ -15,11 +21,12 @@ namespace Dalamud.Game.DutyState;
 [ServiceManager.EarlyLoadedService]
 internal unsafe class DutyState : IInternalDisposableService, IDutyState
 {
-    private readonly DutyStateAddressResolver address;
-    private readonly Hook<SetupContentDirectNetworkMessageDelegate> contentDirectorNetworkMessageHook;
+    private static readonly ModuleLog Log = ModuleLog.Create<DutyState>();
+
+    private readonly Hook<PacketDispatcher.Delegates.HandleActorControlPacket> handleActorControlPacketHook;
 
     [ServiceManager.ServiceDependency]
-    private readonly Condition condition = Service<Condition>.Get();
+    private readonly ClientState.Conditions.Condition condition = Service<ClientState.Conditions.Condition>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
@@ -28,34 +35,33 @@ internal unsafe class DutyState : IInternalDisposableService, IDutyState
     private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();
 
     [ServiceManager.ServiceConstructor]
-    private DutyState(TargetSigScanner sigScanner)
+    private DutyState()
     {
-        this.address = new DutyStateAddressResolver();
-        this.address.Setup(sigScanner);
-
-        this.contentDirectorNetworkMessageHook = Hook<SetupContentDirectNetworkMessageDelegate>.FromAddress(this.address.ContentDirectorNetworkMessage, this.ContentDirectorNetworkMessageDetour);
+        this.handleActorControlPacketHook = Hook<PacketDispatcher.Delegates.HandleActorControlPacket>.FromAddress(
+            (nint)PacketDispatcher.MemberFunctionPointers.HandleActorControlPacket,
+            this.HandleActorControlPacketDetour);
 
         this.framework.Update += this.FrameworkOnUpdateEvent;
         this.clientState.TerritoryChanged += this.TerritoryOnChangedEvent;
 
-        this.contentDirectorNetworkMessageHook.Enable();
+        this.handleActorControlPacketHook.Enable();
     }
 
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate byte SetupContentDirectNetworkMessageDelegate(IntPtr a1, IntPtr a2, ushort* a3);
+    /// <inheritdoc/>
+    public event IDutyState.DutyStartedDelegate? DutyStarted;
 
     /// <inheritdoc/>
-    public event EventHandler<ushort>? DutyStarted;
+    public event IDutyState.DutyWipedDelegate? DutyWiped;
 
     /// <inheritdoc/>
-    public event EventHandler<ushort>? DutyWiped;
-    
+    public event IDutyState.DutyRecommencedDelegate? DutyRecommenced;
+
     /// <inheritdoc/>
-    public event EventHandler<ushort>? DutyRecommenced;
-    
+    public event IDutyState.DutyCompletedDelegate? DutyCompleted;
+
     /// <inheritdoc/>
-    public event EventHandler<ushort>? DutyCompleted;
-    
+    public RowRef<ContentFinderCondition> ContentFinderCondition => LuminaUtils.CreateRef<ContentFinderCondition>(GameMain.Instance()->CurrentContentFinderConditionId);
+
     /// <inheritdoc/>
     public bool IsDutyStarted { get; private set; }
 
@@ -64,59 +70,145 @@ internal unsafe class DutyState : IInternalDisposableService, IDutyState
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.contentDirectorNetworkMessageHook.Dispose();
+        this.handleActorControlPacketHook.Dispose();
         this.framework.Update -= this.FrameworkOnUpdateEvent;
         this.clientState.TerritoryChanged -= this.TerritoryOnChangedEvent;
     }
 
-    private byte ContentDirectorNetworkMessageDetour(IntPtr a1, IntPtr a2, ushort* a3)
+    private void HandleActorControlPacketDetour(uint entityId, uint category, uint arg1, uint arg2, uint arg3, uint arg4, uint arg5, uint arg6, uint arg7, uint arg8, GameObjectId targetId, bool isRecorded)
     {
-        var category = *a3;
-        var type = *(uint*)(a3 + 4);
-
-        // DirectorUpdate Category
         if (category == 0x6D)
         {
-            switch (type)
+            switch (arg2)
             {
                 // Duty Commenced
                 case 0x4000_0001:
-                    this.IsDutyStarted = true;
-                    this.DutyStarted?.InvokeSafely(this, this.clientState.TerritoryType);
+                    {
+                        this.IsDutyStarted = true;
+
+                        var args = this.CreateEventArgs(arg1);
+
+                        foreach (var action in Delegate.EnumerateInvocationList(this.DutyStarted))
+                        {
+                            try
+                            {
+                                action(args);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                            }
+                        }
+                    }
+
                     break;
 
                 // Party Wipe
                 case 0x4000_0005:
-                    this.IsDutyStarted = false;
-                    this.DutyWiped?.InvokeSafely(this, this.clientState.TerritoryType);
+                    {
+                        this.IsDutyStarted = false;
+
+                        var args = this.CreateEventArgs(arg1);
+
+                        foreach (var action in Delegate.EnumerateInvocationList(this.DutyWiped))
+                        {
+                            try
+                            {
+                                action(args);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                            }
+                        }
+                    }
+
                     break;
 
                 // Duty Recommence
                 case 0x4000_0006:
-                    this.IsDutyStarted = true;
-                    this.DutyRecommenced?.InvokeSafely(this, this.clientState.TerritoryType);
+                    {
+                        this.IsDutyStarted = true;
+
+                        var args = this.CreateEventArgs(arg1);
+
+                        foreach (var action in Delegate.EnumerateInvocationList(this.DutyRecommenced))
+                        {
+                            try
+                            {
+                                action(args);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                            }
+                        }
+                    }
+
                     break;
 
                 // Duty Completed Flytext Shown
                 case 0x4000_0002 when !this.CompletedThisTerritory:
-                    this.IsDutyStarted = false;
-                    this.CompletedThisTerritory = true;
-                    this.DutyCompleted?.InvokeSafely(this, this.clientState.TerritoryType);
+                    {
+                        this.IsDutyStarted = false;
+                        this.CompletedThisTerritory = true;
+
+                        var args = this.CreateEventArgs(arg1);
+
+                        foreach (var action in Delegate.EnumerateInvocationList(this.DutyCompleted))
+                        {
+                            try
+                            {
+                                action(args);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                            }
+                        }
+                    }
+
                     break;
 
                 // Duty Completed
                 case 0x4000_0003 when !this.CompletedThisTerritory:
-                    this.IsDutyStarted = false;
-                    this.CompletedThisTerritory = true;
-                    this.DutyCompleted?.InvokeSafely(this, this.clientState.TerritoryType);
+                    {
+                        this.IsDutyStarted = false;
+                        this.CompletedThisTerritory = true;
+
+                        var args = this.CreateEventArgs(arg1);
+
+                        foreach (var action in Delegate.EnumerateInvocationList(this.DutyCompleted))
+                        {
+                            try
+                            {
+                                action(args);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                            }
+                        }
+                    }
+
                     break;
             }
         }
 
-        return this.contentDirectorNetworkMessageHook.Original(a1, a2, a3);
+        this.handleActorControlPacketHook.Original(entityId, category, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, targetId, isRecorded);
     }
 
-    private void TerritoryOnChangedEvent(ushort territoryId)
+    private DutyStateEventArgs CreateEventArgs(uint eventHandlerId)
+    {
+        return new DutyStateEventArgs()
+        {
+            TerritoryType = LuminaUtils.CreateRef<TerritoryType>(this.clientState.TerritoryType),
+            ContentFinderCondition = this.ContentFinderCondition,
+            EventHandlerId = eventHandlerId,
+        };
+    }
+
+    private void TerritoryOnChangedEvent(uint territoryId)
     {
         if (this.IsDutyStarted)
         {
@@ -154,8 +246,8 @@ internal unsafe class DutyState : IInternalDisposableService, IDutyState
         => this.condition.Any(ConditionFlag.BoundByDuty,
                               ConditionFlag.BoundByDuty56,
                               ConditionFlag.BoundByDuty95);
-    
-    private bool IsInCombat()        
+
+    private bool IsInCombat()
         => this.condition.Any(ConditionFlag.InCombat);
 }
 
@@ -184,20 +276,23 @@ internal class DutyStatePluginScoped : IInternalDisposableService, IDutyState
     }
 
     /// <inheritdoc/>
-    public event EventHandler<ushort>? DutyStarted;
-    
+    public event IDutyState.DutyStartedDelegate? DutyStarted;
+
     /// <inheritdoc/>
-    public event EventHandler<ushort>? DutyWiped;
-    
+    public event IDutyState.DutyWipedDelegate? DutyWiped;
+
     /// <inheritdoc/>
-    public event EventHandler<ushort>? DutyRecommenced;
-    
+    public event IDutyState.DutyRecommencedDelegate? DutyRecommenced;
+
     /// <inheritdoc/>
-    public event EventHandler<ushort>? DutyCompleted;
-    
+    public event IDutyState.DutyCompletedDelegate? DutyCompleted;
+
+    /// <inheritdoc/>
+    public RowRef<ContentFinderCondition> ContentFinderCondition => this.dutyStateService.ContentFinderCondition;
+
     /// <inheritdoc/>
     public bool IsDutyStarted => this.dutyStateService.IsDutyStarted;
-    
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
@@ -212,11 +307,11 @@ internal class DutyStatePluginScoped : IInternalDisposableService, IDutyState
         this.DutyCompleted = null;
     }
 
-    private void DutyStartedForward(object sender, ushort territoryId) => this.DutyStarted?.Invoke(sender, territoryId);
-    
-    private void DutyWipedForward(object sender, ushort territoryId) => this.DutyWiped?.Invoke(sender, territoryId);
-    
-    private void DutyRecommencedForward(object sender, ushort territoryId) => this.DutyRecommenced?.Invoke(sender, territoryId);
-    
-    private void DutyCompletedForward(object sender, ushort territoryId) => this.DutyCompleted?.Invoke(sender, territoryId);
+    private void DutyStartedForward(IDutyStateEventArgs args) => this.DutyStarted?.Invoke(args);
+
+    private void DutyWipedForward(IDutyStateEventArgs args) => this.DutyWiped?.Invoke(args);
+
+    private void DutyRecommencedForward(IDutyStateEventArgs args) => this.DutyRecommenced?.Invoke(args);
+
+    private void DutyCompletedForward(IDutyStateEventArgs args) => this.DutyCompleted?.Invoke(args);
 }

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -151,6 +149,12 @@ public interface IUiBuilder
     /// </summary>
     public ImFontPtr FontMono { get; }
 
+    /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid with a fixed width and vertically centered glyphs. <br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    ImFontPtr FontIconFixedWidth { get; }
+
     /// <summary>Gets the game's active Direct3D device.</summary>
     /// <value>Pointer to the instance of IUnknown that the game is using and should be containing an ID3D11Device,
     /// or 0 if it is not available yet.</value>
@@ -283,7 +287,6 @@ public interface IUiBuilder
 public sealed class UiBuilder : IDisposable, IUiBuilder
 {
     private readonly LocalPlugin plugin;
-    private readonly Stopwatch stopwatch;
     private readonly HitchDetector hitchDetector;
     private readonly string namespaceName;
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
@@ -312,7 +315,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     {
         try
         {
-            this.stopwatch = new Stopwatch();
             this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
             this.namespaceName = namespaceName;
             this.plugin = plugin;
@@ -402,6 +404,12 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     public static ImFontPtr MonoFont => InterfaceManager.MonoFont;
 
     /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid with a fixed width and vertically centered glyphs. <br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    public static ImFontPtr IconFontFixedWidth => InterfaceManager.IconFontFixedWidth;
+
+    /// <summary>
     /// Gets the default font specifications.
     /// </summary>
     public IFontSpec DefaultFontSpec => Service<FontAtlasFactory>.Get().DefaultFontSpec;
@@ -420,6 +428,9 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 
     /// <inheritdoc/>
     public ImFontPtr FontMono => InterfaceManager.MonoFont;
+
+    /// <inheritdoc/>
+    public ImFontPtr FontIconFixedWidth => InterfaceManager.IconFontFixedWidth;
 
     /// <summary>
     /// Gets the handle to the default Dalamud font - supporting all game languages and icons.
@@ -579,6 +590,9 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     internal static bool DoStats { get; set; } = false;
 #endif
 
+    /// <summary> Gets draw statistics for this plugin. </summary>
+    internal PluginDrawStatistics PluginDrawStatistics { get; } = new();
+
     /// <summary>
     /// Gets a value indicating whether this UiBuilder has a configuration UI registered.
     /// </summary>
@@ -588,21 +602,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// Gets a value indicating whether this UiBuilder has a configuration UI registered.
     /// </summary>
     internal bool HasMainUi => this.OpenMainUi != null;
-
-    /// <summary>
-    /// Gets or sets the time this plugin took to draw on the last frame.
-    /// </summary>
-    internal long LastDrawTime { get; set; } = -1;
-
-    /// <summary>
-    /// Gets or sets the longest amount of time this plugin ever took to draw.
-    /// </summary>
-    internal long MaxDrawTime { get; set; } = -1;
-
-    /// <summary>
-    /// Gets or sets a history of the last draw times, used to calculate an average.
-    /// </summary>
-    internal List<long> DrawTimeHistory { get; set; } = [];
 
     private InterfaceManager? InterfaceManagerWithScene =>
         Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable()?.Manager;
@@ -771,10 +770,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
         }
 
         ImGui.PushID(this.namespaceName);
-        if (DoStats)
-        {
-            this.stopwatch.Restart();
-        }
+        if (DoStats) this.PluginDrawStatistics.StartUpdate();
 
         if (this.hasErrorWindow)
         {
@@ -807,14 +803,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 
         this.FrameCount++;
 
-        if (DoStats)
-        {
-            this.stopwatch.Stop();
-            this.LastDrawTime = this.stopwatch.ElapsedTicks;
-            this.MaxDrawTime = Math.Max(this.LastDrawTime, this.MaxDrawTime);
-            this.DrawTimeHistory.Add(this.LastDrawTime);
-            while (this.DrawTimeHistory.Count > 100) this.DrawTimeHistory.RemoveAt(0);
-        }
+        if (DoStats) this.PluginDrawStatistics.EndUpdate();
 
         ImGui.PopID();
 

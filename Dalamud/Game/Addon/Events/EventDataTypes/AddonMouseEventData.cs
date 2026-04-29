@@ -1,9 +1,8 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using AtkMouseData = FFXIVClientStructs.FFXIV.Component.GUI.AtkEventData.AtkMouseData;
-using ModifierFlag = FFXIVClientStructs.FFXIV.Component.GUI.AtkEventData.AtkMouseData.ModifierFlag;
 
 namespace Dalamud.Game.Addon.Events.EventDataTypes;
 

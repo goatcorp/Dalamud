@@ -109,6 +109,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         this.privateAtlas = fontAtlasFactory.CreateFontAtlas(this.WindowName, FontAtlasAutoRebuildMode.Async);
         this.scopedFinalizer.Add(this.privateAtlas);
 
+        this.AllowBackgroundBlur = false;
+
         this.myFontHandle = new(
             () => this.scopedFinalizer.Add(
                 this.privateAtlas.NewDelegateFontHandle(

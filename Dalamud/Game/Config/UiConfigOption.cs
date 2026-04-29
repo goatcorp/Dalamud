@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Config;
+namespace Dalamud.Game.Config;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable IdentifierTypo
@@ -4075,6 +4075,41 @@ public enum UiConfigOption
     /// </summary>
     [GameConfigOption("GroupPosePortraitUnlockAspectLimit", ConfigType.UInt)]
     GroupPosePortraitUnlockAspectLimit,
+
+    /// <summary>
+    /// UiConfig option with the internal name GroupPosePortraitButtonType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GroupPosePortraitButtonType", ConfigType.UInt)]
+    GroupPosePortraitButtonType,
+
+    /// <summary>
+    /// UiConfig option with the internal name GroupPoseEyelidTracking.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GroupPoseEyelidTracking", ConfigType.UInt)]
+    GroupPoseEyelidTracking,
+
+    /// <summary>
+    /// UiConfig option with the internal name GroupPoseEnableEyelidManulOpening.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GroupPoseEnableEyelidManulOpening", ConfigType.UInt)]
+    GroupPoseEnableEyelidManulOpening,
+
+    /// <summary>
+    /// UiConfig option with the internal name GroupPoseEyelidOpeningL.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GroupPoseEyelidOpeningL", ConfigType.UInt)]
+    GroupPoseEyelidOpeningL,
+
+    /// <summary>
+    /// UiConfig option with the internal name GroupPoseEyelidOpeningR.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GroupPoseEyelidOpeningR", ConfigType.UInt)]
+    GroupPoseEyelidOpeningR,
 
     /// <summary>
     /// UiConfig option with the internal name LsListSortPriority.

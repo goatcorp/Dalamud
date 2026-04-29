@@ -38,7 +38,7 @@ public interface IPartyMember : IEquatable<IPartyMember>
     /// <summary>
     /// Gets the content ID of the party member.
     /// </summary>
-    long ContentId { get; }
+    ulong ContentId { get; }
 
     /// <summary>
     /// Gets the actor ID of this party member.
@@ -126,8 +126,7 @@ internal unsafe readonly struct PartyMember(CSPartyMember* ptr) : IPartyMember
     public Vector3 Position => ptr->Position;
 
     /// <inheritdoc/>
-    [Api15ToDo("Change type to ulong.")]
-    public long ContentId => (long)ptr->ContentId;
+    public ulong ContentId => ptr->ContentId;
 
     /// <inheritdoc/>
     public uint ObjectId => ptr->EntityId;

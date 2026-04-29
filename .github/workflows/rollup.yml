@@ -1,17 +1,17 @@
 name: Rollup changes to next version
 on:
-#  push:
-#    branches:
-#      - master
+  push:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
   check:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        branches:
-          - api14
+#    strategy:
+#      matrix:
+#        branches:
+#          - api15
 
     defaults:
       run:

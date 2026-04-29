@@ -51,6 +51,12 @@ internal class PresetModel
         public float? Alpha { get; set; }
 
         /// <summary>
+        /// Gets or sets a value overriding the global blur factor.
+        /// </summary>
+        [JsonProperty("b")]
+        public float? BlurFactorOverride { get; set; }
+
+        /// <summary>
         /// Gets a value indicating whether this preset is in the default state.
         /// </summary>
         [JsonIgnore]

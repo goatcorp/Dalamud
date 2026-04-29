@@ -35,26 +35,30 @@ RT_MANIFEST_THEMES      RT_MANIFEST             "themes.manifest"
 STRINGTABLE
 BEGIN
     IDS_APPNAME             "Dalamud Boot"
-    IDS_MSVCRT_ACTION_OPENDOWNLOAD 
+    IDS_MSVCRT_ACTION_OPENDOWNLOAD
                             "Download Microsoft Visual C++ Redistributable 2022\nExit the game and download the latest setup file from Microsoft."
-    IDS_MSVCRT_ACTION_IGNORE 
+    IDS_MSVCRT_ACTION_IGNORE
                             "Ignore and Continue\nAttempt to continue with the currently installed version.\nDalamud or plugins may fail to load."
-    IDS_MSVCRT_DIALOG_MAININSTRUCTION 
+    IDS_MSVCRT_DIALOG_MAININSTRUCTION
                             "Outdated Microsoft Visual C++ Redistributable"
-    IDS_MSVCRT_DIALOG_CONTENT 
+    IDS_MSVCRT_DIALOG_CONTENT
                             "The Microsoft Visual C++ Redistributable version detected on this computer (v{0}.{1}.{2}.{3}) is out of date and may not work with Dalamud."
     IDS_MSVCRT_DOWNLOADURL  "https://aka.ms/vs/17/release/vc_redist.x64.exe"
     IDS_INITIALIZEFAIL_ACTION_ABORT "Abort\nExit the game."
-    IDS_INITIALIZEFAIL_ACTION_CONTINUE 
+    IDS_INITIALIZEFAIL_ACTION_CONTINUE
                             "Load game without Dalamud\nThe game will launch without Dalamud enabled."
     IDS_INITIALIZEFAIL_DIALOG_MAININSTRUCTION "Failed to load Dalamud."
-    IDS_INITIALIZEFAIL_DIALOG_CONTENT 
+    IDS_INITIALIZEFAIL_DIALOG_CONTENT
                             "An error is preventing Dalamud from being loaded along with the game."
+    IDS_SAC_ACTION_OPENGUIDE      "Open troubleshooting guide\nOpen a web page with steps to disable Smart App Control."
+    IDS_SAC_DIALOG_MAININSTRUCTION "Windows Smart App Control has blocked Dalamud from loading, and the game cannot continue."
+    IDS_SAC_DIALOG_CONTENT        "You must disable Smart App Control or Dalamud to start the game.\n\nPress the button below to open a guide in your web browser."
+    IDS_SAC_GUIDE_URL             "https://goatcorp.github.io/faq/xl_troubleshooting#q-how-do-i-disable-smart-app-control"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_INITIALIZEFAIL_DIALOG_FOOTER 
+    IDS_INITIALIZEFAIL_DIALOG_FOOTER
                             "Last operation: {0}\nHRESULT: 0x{1:08X}\nDescription: {2}"
 END
 
@@ -75,18 +79,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#include ""winres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\r\n"
     "\0"

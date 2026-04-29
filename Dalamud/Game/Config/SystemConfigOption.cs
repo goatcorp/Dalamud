@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Config;
+namespace Dalamud.Game.Config;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable IdentifierTypo
@@ -1037,6 +1037,13 @@ public enum SystemConfigOption
     /// </summary>
     [GameConfigOption("DisplayObjectLimitType2", ConfigType.UInt)]
     DisplayObjectLimitType2,
+
+    /// <summary>
+    /// System option with the internal name DisplayHouseIndoorPcLimitType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("DisplayHouseIndoorPcLimitType", ConfigType.UInt)]
+    DisplayHouseIndoorPcLimitType,
 
     /// <summary>
     /// System option with the internal name AccessibilitySoundVisualEnable.

@@ -45,7 +45,7 @@ public static class CStringExtensions
     /// <returns>A new Lumina ReadOnlySeString.</returns>
     public static ReadOnlySeString AsReadOnlySeString(this CStringPointer ptr)
     {
-        return new ReadOnlySeString(ptr.AsSpan().ToArray());
+        return new ReadOnlySeString(ptr.AsSpan());
     }
 
     /// <summary>

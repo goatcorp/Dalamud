@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.Player;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
@@ -33,18 +34,6 @@ internal class Profile
         this.modelV1 = model as ProfileModelV1 ??
                        throw new ArgumentException("Model was null or unhandled version");
 
-        // Migrate "policy"
-        if (this.modelV1.StartupPolicy == null)
-        {
-#pragma warning disable CS0618
-            this.modelV1.StartupPolicy = this.modelV1.AlwaysEnableOnBoot
-                                             ? ProfileModelV1.ProfileStartupPolicy.AlwaysEnable
-                                             : ProfileModelV1.ProfileStartupPolicy.RememberState;
-#pragma warning restore CS0618
-
-            Service<DalamudConfiguration>.Get().QueueSave();
-        }
-
         // We don't actually enable plugins here, PM will do it on bootup
         if (isDefaultProfile)
         {
@@ -54,24 +43,24 @@ internal class Profile
         }
         else if (isBoot)
         {
-            if (this.modelV1.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysEnable)
+            if (this.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysEnable)
             {
                 this.IsEnabled = true;
                 Log.Verbose("{Guid} set enabled because always enable", this.modelV1.Guid);
             }
-            else if (this.modelV1.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysDisable)
+            else if (this.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysDisable)
             {
                 this.IsEnabled = false;
                 Log.Verbose("{Guid} set disabled because always disable", this.modelV1.Guid);
             }
-            else if (this.modelV1.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.RememberState)
+            else if (this.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.RememberState)
             {
                 this.IsEnabled = this.modelV1.IsEnabled;
                 Log.Verbose("{Guid} set enabled because remember", this.modelV1.Guid);
             }
             else
             {
-                throw new ArgumentOutOfRangeException(nameof(this.modelV1.StartupPolicy));
+                throw new ArgumentOutOfRangeException(nameof(this.StartupPolicy));
             }
         }
         else
@@ -79,13 +68,15 @@ internal class Profile
             Log.Verbose("{Guid} not enabled", this.modelV1.Guid);
         }
 
-        Log.Verbose("Init profile {Guid} ({Name}) enabled:{Enabled} policy:{Policy} plugins:{NumPlugins} will be enabled:{Status}",
+        Log.Verbose("Init profile {Guid} ({Name}) enabled:{Enabled} policy:{Policy} plugins:{NumPlugins} wants enable:{Status} with character filter:{EnableForCharacters} enabled characters:{NumEnabledCharacters}",
                     this.modelV1.Guid,
                     this.modelV1.Name,
                     this.modelV1.IsEnabled,
                     this.modelV1.StartupPolicy,
                     this.modelV1.Plugins.Count,
-                    this.IsEnabled);
+                    this.IsEnabled,
+                    this.modelV1.EnableForCharacters,
+                    this.modelV1.EnabledCharacters?.Count ?? 0);
     }
 
     /// <summary>
@@ -167,7 +158,7 @@ internal class Profile
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            await this.manager.ApplyAllWantStatesAsync();
+            await this.manager.ApplyAllWantStatesAsync("SetStateAsync");
     }
 
     /// <summary>
@@ -227,7 +218,7 @@ internal class Profile
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            await this.manager.ApplyAllWantStatesAsync();
+            await this.manager.ApplyAllWantStatesAsync("AddOrUpdateAsync");
     }
 
     /// <summary>
@@ -273,7 +264,21 @@ internal class Profile
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            await this.manager.ApplyAllWantStatesAsync();
+            await this.manager.ApplyAllWantStatesAsync("RemoveAsync");
+    }
+
+    /// <summary>
+    /// Check if this profile wants to be active based on the current game state and its policy.
+    /// Separate from <see cref="IsEnabled"/> - a profile may be enabled, but not want to be active in the current game state.
+    /// </summary>
+    /// <param name="currentCharacterContentId">The content ID of the character we are logged in with, or about to log in with.</param>
+    /// <returns>Whether the profile wants to be active.</returns>
+    public bool CheckWantsActiveFromGameState(ulong currentCharacterContentId)
+    {
+        if (!this.modelV1.EnableForCharacters)
+            return true;
+
+        return this.modelV1.EnabledCharacters?.Any(x => x.ContentId == currentCharacterContentId) == true;
     }
 
     /// <summary>

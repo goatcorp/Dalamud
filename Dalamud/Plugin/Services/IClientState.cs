@@ -39,7 +39,7 @@ public interface IClientState : IDalamudService
     /// <summary>
     /// Event that gets fired when the current Territory changes.
     /// </summary>
-    public event Action<ushort> TerritoryChanged;
+    public event Action<uint> TerritoryChanged;
 
     /// <summary>
     /// Event that gets fired when the current Map changes.
@@ -95,7 +95,7 @@ public interface IClientState : IDalamudService
     /// <summary>
     /// Gets the current Territory the player resides in.
     /// </summary>
-    public ushort TerritoryType { get; }
+    public uint TerritoryType { get; }
 
     /// <summary>
     /// Gets the current Map the player resides in.
@@ -106,20 +106,6 @@ public interface IClientState : IDalamudService
     /// Gets the instance number of the current zone, used when multiple copies of an area are active.
     /// </summary>
     public uint Instance { get; }
-
-    /// <summary>
-    /// Gets the local player character, if one is present.
-    /// </summary>
-    [Api15ToDo("Remove")]
-    [Obsolete($"Use {nameof(IPlayerState)} or {nameof(IObjectTable)}.{nameof(IObjectTable.LocalPlayer)} if necessary.")]
-    public IPlayerCharacter? LocalPlayer { get; }
-
-    /// <summary>
-    /// Gets the content ID of the local character.
-    /// </summary>
-    [Api15ToDo("Remove")]
-    [Obsolete($"Use {nameof(IPlayerState)}.{nameof(IPlayerState.ContentId)}")]
-    public ulong LocalContentId { get; }
 
     /// <summary>
     /// Gets a value indicating whether a character is logged in.

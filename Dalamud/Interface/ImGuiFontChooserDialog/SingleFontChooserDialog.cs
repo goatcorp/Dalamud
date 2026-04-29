@@ -129,7 +129,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         this.popupImGuiName = $"{this.title}##{nameof(SingleFontChooserDialog)}[{this.counter}]";
         this.atlas = newAsyncAtlas;
         this.selectedFont = new() { FontId = DalamudDefaultFontAndFamilyId.Instance };
-        Encoding.UTF8.GetBytes("Font preview.\n0123456789!", this.fontPreviewText);
+        Encoding.UTF8.GetBytes("Font preview.\n0123456789!\n遍角次亮采之门，门上插刀、直字拐弯、天上平板、船顶漏雨。\n다람쥐 헌 쳇바퀴에 타고파", this.fontPreviewText);
     }
 
     /// <summary>Called when the selected font spec has changed.</summary>
@@ -545,7 +545,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         else if (this.fontHandle.LoadException is { } loadException)
         {
             ImGui.SetCursorPos(ImGui.GetCursorPos() + ImGui.GetStyle().FramePadding);
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
             ImGui.Text(loadException.Message);
             ImGui.PopStyleColor();
         }
@@ -892,7 +892,21 @@ public sealed class SingleFontChooserDialog : IDisposable
             this.selectedFontWeight = font.Weight;
             this.selectedFontStretch = font.Stretch;
             this.selectedFontStyle = font.Style;
-            this.selectedFont = this.selectedFont with { FontId = font };
+            int fontNo = 0;
+            if (family is DalamudAssetFontAndFamilyId { Asset: DalamudAsset.NotoSansCjkRegular or DalamudAsset.NotoSansCjkMedium })
+            {
+                var dalamudConfiguration = Service<DalamudConfiguration>.Get();
+                fontNo = dalamudConfiguration.EffectiveLanguage switch
+                {
+                    "jp" => 0,
+                    "tw" => 1,
+                    "zh" => 2,
+                    "ko" => 3,
+                    _ => 0,
+                };
+            }
+
+            this.selectedFont = this.selectedFont with { FontId = font, FontNo = fontNo };
         }
 
         return changed;
@@ -1109,7 +1123,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         {
             var stylePushed = value < min || value > max || !float.TryParse(buf, out _);
             if (stylePushed)
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ErrorForeground);
 
             var changed2 = false;
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);

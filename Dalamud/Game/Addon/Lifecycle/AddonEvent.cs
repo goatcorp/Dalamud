@@ -203,4 +203,14 @@ public enum AddonEvent
     /// Be aware this is only called for certain popup windows, it is not triggered when clicking on windows.
     /// </remarks>
     PostFocus,
+
+    /// <summary>
+    /// An event that is fired before an addon processes its FocusChanged method.
+    /// </summary>
+    PreFocusChanged,
+
+    /// <summary>
+    /// An event that is fired after a addon processes its FocusChanged method.
+    /// </summary>
+    PostFocusChanged,
 }

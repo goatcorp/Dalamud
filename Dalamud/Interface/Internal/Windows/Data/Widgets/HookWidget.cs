@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Hooking;
-
+using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using Serilog;
@@ -26,12 +26,12 @@ internal unsafe class HookWidget : IDataWindowWidget
     private Hook<MessageBoxWDelegate>? messageBoxMinHook;
     private bool hookUseMinHook;
 
-    private int hookStressTestCount = 0;
+    private int hookStressTestCount;
     private int hookStressTestMax = 1000;
     private int hookStressTestWait = 100;
     private int hookStressTestMaxDegreeOfParallelism = 10;
     private StressTestHookTarget hookStressTestHookTarget = StressTestHookTarget.Random;
-    private bool hookStressTestRunning = false;
+    private bool hookStressTestRunning;
 
     private MessageBoxWDelegate? messageBoxWOriginal;
     private AddonFinalizeDelegate? addonFinalizeOriginal;
@@ -106,66 +106,67 @@ internal unsafe class HookWidget : IDataWindowWidget
 
             ImGui.Separator();
 
-            ImGui.BeginDisabled(this.hookStressTestRunning);
-            ImGui.Text("Stress Test"u8);
-
-            if (ImGui.InputInt("Max"u8, ref this.hookStressTestMax))
-                this.hookStressTestCount = 0;
-
-            ImGui.InputInt("Wait (ms)"u8, ref this.hookStressTestWait);
-            ImGui.InputInt("Max Degree of Parallelism"u8, ref this.hookStressTestMaxDegreeOfParallelism);
-
-            if (ImGui.BeginCombo("Target"u8, HookTargetToString(this.hookStressTestHookTarget)))
+            using (ImRaii.Disabled(this.hookStressTestRunning))
             {
-                foreach (var target in Enum.GetValues<StressTestHookTarget>())
+                ImGui.Text("Stress Test"u8);
+
+                if (ImGui.InputInt("Max"u8, ref this.hookStressTestMax))
+                    this.hookStressTestCount = 0;
+
+                ImGui.InputInt("Wait (ms)"u8, ref this.hookStressTestWait);
+                ImGui.InputInt("Max Degree of Parallelism"u8, ref this.hookStressTestMaxDegreeOfParallelism);
+
+                using (var combo = ImRaii.Combo("Target"u8, HookTargetToString(this.hookStressTestHookTarget)))
                 {
-                    if (ImGui.Selectable(HookTargetToString(target), this.hookStressTestHookTarget == target))
-                        this.hookStressTestHookTarget = target;
+                    if (combo.Success)
+                    {
+                        foreach (var target in Enum.GetValues<StressTestHookTarget>())
+                        {
+                            if (ImGui.Selectable(HookTargetToString(target), this.hookStressTestHookTarget == target))
+                                this.hookStressTestHookTarget = target;
+                        }
+                    }
                 }
 
-                ImGui.EndCombo();
-            }
-
-            if (ImGui.Button("Stress Test"u8))
-            {
-                Task.Run(() =>
+                if (ImGui.Button("Stress Test"u8))
                 {
-                    this.hookStressTestRunning = true;
-                    this.hookStressTestCount = 0;
-                    Parallel.For(
-                        0,
-                        this.hookStressTestMax,
-                        new ParallelOptions
+                    Task.Run(() =>
+                    {
+                        this.hookStressTestRunning = true;
+                        this.hookStressTestCount = 0;
+                        Parallel.For(
+                            0,
+                            this.hookStressTestMax,
+                            new ParallelOptions
+                            {
+                                MaxDegreeOfParallelism = this.hookStressTestMaxDegreeOfParallelism,
+                            },
+                            _ =>
+                            {
+                                this.hookStressTestList.Add(this.HookTarget(this.hookStressTestHookTarget));
+                                this.hookStressTestCount++;
+                                Thread.Sleep(this.hookStressTestWait);
+                            });
+                    }).ContinueWith(t =>
+                    {
+                        if (t.IsFaulted)
                         {
-                            MaxDegreeOfParallelism = this.hookStressTestMaxDegreeOfParallelism,
-                        },
-                        _ =>
+                            Log.Error(t.Exception, "Stress test failed");
+                        }
+                        else
                         {
-                            this.hookStressTestList.Add(this.HookTarget(this.hookStressTestHookTarget));
-                            this.hookStressTestCount++;
-                            Thread.Sleep(this.hookStressTestWait);
+                            Log.Information("Stress test completed");
+                        }
+
+                        this.hookStressTestRunning = false;
+                        this.hookStressTestList.ForEach(hook =>
+                        {
+                            hook.Dispose();
                         });
-                }).ContinueWith(t =>
-                {
-                    if (t.IsFaulted)
-                    {
-                        Log.Error(t.Exception, "Stress test failed");
-                    }
-                    else
-                    {
-                        Log.Information("Stress test completed");
-                    }
-
-                    this.hookStressTestRunning = false;
-                    this.hookStressTestList.ForEach(hook =>
-                    {
-                        hook.Dispose();
+                        this.hookStressTestList.Clear();
                     });
-                    this.hookStressTestList.Clear();
-                });
+                }
             }
-
-            ImGui.EndDisabled();
 
             ImGui.Text("Status: " + (this.hookStressTestRunning ? "Running" : "Idle"));
             ImGui.ProgressBar(this.hookStressTestCount / (float)this.hookStressTestMax, new System.Numerics.Vector2(0, 0), $"{this.hookStressTestCount}/{this.hookStressTestMax}");
@@ -204,11 +205,6 @@ internal unsafe class HookWidget : IDataWindowWidget
     {
         Log.Information("OnAddonFinalize");
         this.addonFinalizeOriginal!(unitManager, atkUnitBase);
-    }
-
-    private void OnAddonUpdate(AtkUnitBase* thisPtr, float delta)
-    {
-        Log.Information("OnAddonUpdate");
     }
 
     private IDalamudHook HookMessageBoxW()

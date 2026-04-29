@@ -205,7 +205,7 @@ internal sealed class LocalDevPlugin : LocalPlugin
                     }
 
                     await this.ReloadAsync();
-                    notificationManager.AddNotification($"The DevPlugin '{this.Name} was reloaded successfully.", "Plugin reloaded!", NotificationType.Success);
+                    notificationManager.AddNotification($"The DevPlugin '{this.Name}' was reloaded successfully.", "Plugin reloaded!", NotificationType.Success);
                 }
                 catch (Exception ex)
                 {

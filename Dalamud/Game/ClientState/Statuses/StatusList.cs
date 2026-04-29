@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Game.Player;
+
 using CSStatus = FFXIVClientStructs.FFXIV.Client.Game.Status;
 
 namespace Dalamud.Game.ClientState.Statuses;
@@ -74,9 +76,9 @@ public sealed unsafe partial class StatusList
         // The use case for CreateStatusListReference and CreateStatusReference to be static is so
         // fake status lists can be generated. Since they aren't exposed as services, it's either
         // here or somewhere else.
-        var clientState = Service<ClientState>.Get();
+        var playerState = Service<PlayerState>.Get();
 
-        if (clientState.LocalContentId == 0)
+        if (playerState.ContentId == 0)
             return null;
 
         if (address == 0)

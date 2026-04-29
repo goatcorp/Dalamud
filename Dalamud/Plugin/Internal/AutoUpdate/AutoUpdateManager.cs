@@ -245,7 +245,7 @@ internal class AutoUpdateManager : IServiceType
             this.updateNotification == null)
         {
             Log.Verbose("Starting periodic update check");
-            this.pluginManager.ReloadPluginMastersAsync()
+            this.pluginManager.ReloadAllReposAsync()
                 .ContinueWith(
                     t =>
                     {

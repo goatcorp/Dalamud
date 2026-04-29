@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
+using Dalamud.Game.Addon.Events;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Logging.Internal;
 
@@ -42,6 +43,7 @@ internal unsafe class AddonVirtualTable : IDisposable
     private readonly AddonArgs onMouseOverArgs = new();
     private readonly AddonArgs onMouseOutArgs = new();
     private readonly AddonArgs focusArgs = new();
+    private readonly AddonFocusChangedArgs focusChangedArgs = new();
 
     private readonly AtkUnitBase* atkUnitBase;
 
@@ -63,6 +65,7 @@ internal unsafe class AddonVirtualTable : IDisposable
     private readonly AtkUnitBase.Delegates.OnMouseOver onMouseOverFunction;
     private readonly AtkUnitBase.Delegates.OnMouseOut onMouseOutFunction;
     private readonly AtkUnitBase.Delegates.Focus focusFunction;
+    private readonly AtkUnitBase.Delegates.OnFocusChange onFocusChangeFunction;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonVirtualTable"/> class.
@@ -103,6 +106,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.onMouseOverFunction = this.OnAddonMouseOver;
         this.onMouseOutFunction = this.OnAddonMouseOut;
         this.focusFunction = this.OnAddonFocus;
+        this.onFocusChangeFunction = this.OnAddonFocusChange;
 
         // Overwrite specific virtual table entries
         this.ModifiedVirtualTable->Dtor = (delegate* unmanaged<AtkUnitBase*, byte, AtkEventListener*>)Marshal.GetFunctionPointerForDelegate(this.destructorFunction);
@@ -121,6 +125,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.ModifiedVirtualTable->OnMouseOver = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMouseOverFunction);
         this.ModifiedVirtualTable->OnMouseOut = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.onMouseOutFunction);
         this.ModifiedVirtualTable->Focus = (delegate* unmanaged<AtkUnitBase*, void>)Marshal.GetFunctionPointerForDelegate(this.focusFunction);
+        this.ModifiedVirtualTable->OnFocusChange = (delegate* unmanaged<AtkUnitBase*, bool, void>)Marshal.GetFunctionPointerForDelegate(this.onFocusChangeFunction);
     }
 
     /// <summary>
@@ -178,6 +183,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.setupArgs.PreventOriginalRequested = false;
             this.setupArgs.Addon = addon;
             this.setupArgs.AtkValueCount = valueCount;
             this.setupArgs.AtkValues = (nint)values;
@@ -189,7 +195,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->OnSetup(addon, valueCount, values);
+                if (!this.setupArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnSetup(addon, valueCount, values);
+                }
             }
             catch (Exception e)
             {
@@ -210,13 +219,17 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.finalizeArgs.PreventOriginalRequested = false;
             this.finalizeArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFinalize, this.finalizeArgs);
 
             try
             {
-                this.OriginalVirtualTable->Finalizer(thisPtr);
+                if (!this.finalizeArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Finalizer(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -235,13 +248,17 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.drawArgs.PreventOriginalRequested = false;
             this.drawArgs.Addon = addon;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreDraw, this.drawArgs);
 
             try
             {
-                this.OriginalVirtualTable->Draw(addon);
+                if (!this.drawArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Draw(addon);
+                }
             }
             catch (Exception e)
             {
@@ -262,6 +279,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.updateArgs.PreventOriginalRequested = false;
             this.updateArgs.Addon = addon;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreUpdate, this.updateArgs);
@@ -272,7 +290,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Update(addon,  delta);
+                if (!this.updateArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Update(addon, delta);
+                }
             }
             catch (Exception e)
             {
@@ -295,6 +316,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.refreshArgs.PreventOriginalRequested = false;
             this.refreshArgs.Addon = addon;
             this.refreshArgs.AtkValueCount = valueCount;
             this.refreshArgs.AtkValues = (nint)values;
@@ -306,7 +328,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                result = this.OriginalVirtualTable->OnRefresh(addon, valueCount, values);
+                if (!this.refreshArgs.PreventOriginalRequested)
+                {
+                    result = this.OriginalVirtualTable->OnRefresh(addon, valueCount, values);
+                }
             }
             catch (Exception e)
             {
@@ -329,6 +354,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.requestedUpdateArgs.PreventOriginalRequested = false;
             this.requestedUpdateArgs.Addon = addon;
             this.requestedUpdateArgs.NumberArrayData = (nint)numberArrayData;
             this.requestedUpdateArgs.StringArrayData = (nint)stringArrayData;
@@ -340,7 +366,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->OnRequestedUpdate(addon, numberArrayData, stringArrayData);
+                if (!this.requestedUpdateArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnRequestedUpdate(addon, numberArrayData, stringArrayData);
+                }
             }
             catch (Exception e)
             {
@@ -361,8 +390,9 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.receiveEventArgs.PreventOriginalRequested = false;
             this.receiveEventArgs.Addon = (nint)addon;
-            this.receiveEventArgs.AtkEventType = (byte)eventType;
+            this.receiveEventArgs.AtkEventType = (AddonEventType)eventType;
             this.receiveEventArgs.EventParam = eventParam;
             this.receiveEventArgs.AtkEvent = (IntPtr)atkEvent;
             this.receiveEventArgs.AtkEventData = (nint)atkEventData;
@@ -376,7 +406,14 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->ReceiveEvent(addon, eventType, eventParam, atkEvent, atkEventData);
+                if (!this.receiveEventArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->ReceiveEvent(addon, eventType, eventParam, atkEvent, atkEventData);
+                }
+                else
+                {
+                    atkEvent->SetEventIsHandled();
+                }
             }
             catch (Exception e)
             {
@@ -399,13 +436,17 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.openArgs.PreventOriginalRequested = false;
             this.openArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreOpen, this.openArgs);
 
             try
             {
-                result = this.OriginalVirtualTable->Open(thisPtr, depthLayer);
+                if (!this.openArgs.PreventOriginalRequested)
+                {
+                    result = this.OriginalVirtualTable->Open(thisPtr, depthLayer);
+                }
             }
             catch (Exception e)
             {
@@ -430,6 +471,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.closeArgs.PreventOriginalRequested = false;
             this.closeArgs.Addon = thisPtr;
             this.closeArgs.FireCallback = fireCallback;
 
@@ -439,7 +481,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                result = this.OriginalVirtualTable->Close(thisPtr, fireCallback);
+                if (!this.closeArgs.PreventOriginalRequested)
+                {
+                    result = this.OriginalVirtualTable->Close(thisPtr, fireCallback);
+                }
             }
             catch (Exception e)
             {
@@ -462,6 +507,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.showArgs.PreventOriginalRequested = false;
             this.showArgs.Addon = thisPtr;
             this.showArgs.SilenceOpenSoundEffect = silenceOpenSoundEffect;
             this.showArgs.UnsetShowHideFlags = unsetShowHideFlags;
@@ -473,7 +519,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Show(thisPtr, silenceOpenSoundEffect, unsetShowHideFlags);
+                if (!this.showArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Show(thisPtr, silenceOpenSoundEffect, unsetShowHideFlags);
+                }
             }
             catch (Exception e)
             {
@@ -494,6 +543,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.hideArgs.PreventOriginalRequested = false;
             this.hideArgs.Addon = thisPtr;
             this.hideArgs.UnknownBool = unkBool;
             this.hideArgs.CallHideCallback = callHideCallback;
@@ -507,7 +557,10 @@ internal unsafe class AddonVirtualTable : IDisposable
 
             try
             {
-                this.OriginalVirtualTable->Hide(thisPtr, unkBool, callHideCallback, setShowHideFlags);
+                if (!this.hideArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Hide(thisPtr, unkBool, callHideCallback, setShowHideFlags);
+                }
             }
             catch (Exception e)
             {
@@ -528,13 +581,17 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.onMoveArgs.PreventOriginalRequested = false;
             this.onMoveArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreMove, this.onMoveArgs);
 
             try
             {
-                this.OriginalVirtualTable->OnMove(thisPtr);
+                if (!this.onMoveArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnMove(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -555,13 +612,17 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.onMouseOverArgs.PreventOriginalRequested = false;
             this.onMouseOverArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreMouseOver, this.onMouseOverArgs);
 
             try
             {
-                this.OriginalVirtualTable->OnMouseOver(thisPtr);
+                if (!this.onMouseOverArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnMouseOver(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -582,13 +643,17 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.onMouseOutArgs.PreventOriginalRequested = false;
             this.onMouseOutArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreMouseOut, this.onMouseOutArgs);
 
             try
             {
-                this.OriginalVirtualTable->OnMouseOut(thisPtr);
+                if (!this.onMouseOutArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnMouseOut(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -609,13 +674,17 @@ internal unsafe class AddonVirtualTable : IDisposable
         {
             this.LogEvent(EnableLogging);
 
+            this.focusArgs.PreventOriginalRequested = false;
             this.focusArgs.Addon = thisPtr;
 
             this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFocus, this.focusArgs);
 
             try
             {
-                this.OriginalVirtualTable->Focus(thisPtr);
+                if (!this.focusArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->Focus(thisPtr);
+                }
             }
             catch (Exception e)
             {
@@ -627,6 +696,40 @@ internal unsafe class AddonVirtualTable : IDisposable
         catch (Exception e)
         {
             Log.Error(e, "Caught exception from Dalamud when attempting to process OnAddonFocus.");
+        }
+    }
+
+    private void OnAddonFocusChange(AtkUnitBase* thisPtr, bool isFocused)
+    {
+        try
+        {
+            this.LogEvent(EnableLogging);
+
+            this.focusChangedArgs.PreventOriginalRequested = false;
+            this.focusChangedArgs.Addon = thisPtr;
+            this.focusChangedArgs.ShouldFocus = isFocused;
+
+            this.lifecycleService.InvokeListenersSafely(AddonEvent.PreFocusChanged, this.focusChangedArgs);
+
+            isFocused = this.focusChangedArgs.ShouldFocus;
+
+            try
+            {
+                if (!this.focusChangedArgs.PreventOriginalRequested)
+                {
+                    this.OriginalVirtualTable->OnFocusChange(thisPtr, isFocused);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Caught exception when calling original Addon OnFocusChanged. This may be a bug in the game or another plugin hooking this method.");
+            }
+
+            this.lifecycleService.InvokeListenersSafely(AddonEvent.PostFocusChanged, this.focusChangedArgs);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception from Dalamud when attempting to process OnAddonFocusChange.");
         }
     }
 

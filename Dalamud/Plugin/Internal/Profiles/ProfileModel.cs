@@ -56,20 +56,15 @@ public abstract class ProfileModel
 
         // HACK: Just filter the ID for now, we should split the sharing + saving model
         var serialized = JsonConvert.SerializeObject(this, new JsonSerializerSettings()
-                                                         { ContractResolver = new IgnorePropertiesResolver(["WorkingPluginId"]) });
+                                                         { ContractResolver = new IgnorePropertiesResolver(["WorkingPluginId", "StartupPolicy", "EnableForCharacters", "EnabledCharacters"]) });
 
         return prefix + Convert.ToBase64String(Util.CompressString(serialized));
     }
-    
-    // Short helper class to ignore some properties from serialization
-    private class IgnorePropertiesResolver : DefaultContractResolver
-    {
-        private readonly HashSet<string> ignoreProps;
 
-        public IgnorePropertiesResolver(IEnumerable<string> propNamesToIgnore)
-        {
-            this.ignoreProps = new HashSet<string>(propNamesToIgnore);
-        }
+    // Short helper class to ignore some properties from serialization
+    private class IgnorePropertiesResolver(IEnumerable<string> propNamesToIgnore) : DefaultContractResolver
+    {
+        private readonly HashSet<string> ignoreProps = new(propNamesToIgnore);
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
@@ -78,7 +73,7 @@ public abstract class ProfileModel
             {
                 property.ShouldSerialize = _ => false;
             }
-            
+
             return property;
         }
     }

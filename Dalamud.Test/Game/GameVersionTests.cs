@@ -86,7 +86,7 @@ namespace Dalamud.Test.Game
             Assert.False(GameVersion.Parse("2021.01.01.0000.0000").Equals(null));
 
             // Tests `Equals(object? value)`
-            Assert.False(GameVersion.Parse("2021.01.01.0000.0000").Equals((object)null));
+            Assert.False(GameVersion.Parse("2021.01.01.0000.0000").Equals((object?)null));
         }
 
         [Theory]
@@ -123,7 +123,7 @@ namespace Dalamud.Test.Game
             Assert.True(v.CompareTo(null) > 0);
 
             // Tests `CompareTo(object? value)`
-            Assert.True(v.CompareTo((object)null) > 0);
+            Assert.True(v.CompareTo((object?)null) > 0);
         }
 
         [Fact]

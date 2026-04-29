@@ -159,7 +159,7 @@ public interface IPlayerState : IDalamudService
     RowRef<Aetheryte> FreeAetheryte { get; }
 
     /// <summary>
-    /// Gets the amount of received player commendations of the local player.
+    /// Gets the amount of rested experience available to the local player.
     /// </summary>
     uint BaseRestedExperience { get; }
 

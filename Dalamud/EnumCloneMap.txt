@@ -1,3 +1,4 @@
 # Format: Target.Full.TypeName = Source.Full.EnumTypeName
 # Example: Generate a local enum MyGeneratedEnum in namespace Sample.Gen mapped to SourceEnums.SampleSourceEnum
 Dalamud.Game.Agent.AgentId = FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentId
+Dalamud.Game.Addon.Events.AddonEventType = FFXIVClientStructs.FFXIV.Component.GUI.AtkEventType

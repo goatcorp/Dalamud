@@ -1,3 +1,5 @@
+using Dalamud.Game.Addon.Events;
+
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
@@ -18,7 +20,7 @@ public class AddonReceiveEventArgs : AddonArgs
     /// <summary>
     /// Gets or sets the AtkEventType for this event message.
     /// </summary>
-    public byte AtkEventType { get; set; }
+    public AddonEventType AtkEventType { get; set; }
 
     /// <summary>
     /// Gets or sets the event id for this event message.

@@ -125,6 +125,13 @@ public enum DalamudAsset
     TitleScreenMenuShade = 1013,
 
     /// <summary>
+    /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK Medium.
+    /// </summary>
+    [DalamudAsset(DalamudAssetPurpose.Font)]
+    [DalamudAssetPath("UIRes", "NotoSansCJK-Medium.ttc")]
+    NotoSansCjkMedium = 2000,
+
+    /// <summary>
     /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: Atlas containing badges.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
@@ -132,20 +139,11 @@ public enum DalamudAsset
     BadgeAtlas = 1015,
 
     /// <summary>
-    /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK JP Medium.
+    /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK Regular.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.Font)]
-    [DalamudAssetPath("UIRes", "NotoSansCJKjp-Regular.otf")]
-    [DalamudAssetPath("UIRes", "NotoSansCJKjp-Medium.otf")]
-    NotoSansJpMedium = 2000,
-
-    /// <summary>
-    /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK KR Regular.
-    /// </summary>
-    [DalamudAsset(DalamudAssetPurpose.Font)]
-    [DalamudAssetPath("UIRes", "NotoSansCJKkr-Regular.otf")]
-    [DalamudAssetPath("UIRes", "NotoSansKR-Regular.otf")]
-    NotoSansKrRegular = 2001,
+    [DalamudAssetPath("UIRes", "NotoSansCJK-Regular.ttc")]
+    NotoSansCjkRegular = 2001,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.Font"/>: Inconsolata Regular.

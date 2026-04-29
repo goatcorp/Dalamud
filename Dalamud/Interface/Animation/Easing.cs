@@ -45,13 +45,6 @@ public abstract class Easing
     public bool IsInverse { get; set; }
 
     /// <summary>
-    /// Gets the current value of the animation, following unclamped logic.
-    /// </summary>
-    [Obsolete($"This field has been deprecated. Use either {nameof(ValueClamped)} or {nameof(ValueUnclamped)} instead.", true)]
-    [Api15ToDo("Map this field to ValueClamped, probably.")]
-    public double Value => this.ValueUnclamped;
-
-    /// <summary>
     /// Gets the current value of the animation, from 0 to 1.
     /// </summary>
     public double ValueClamped => Math.Clamp(this.ValueUnclamped, 0, 1);

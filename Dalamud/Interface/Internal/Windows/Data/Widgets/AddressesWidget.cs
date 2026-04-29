@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -46,22 +47,24 @@ internal class AddressesWidget : IDataWindowWidget
             }
         }
 
-        ImGui.Text($"Result: {this.sigResult.ToInt64():X}");
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text($"Result: {this.sigResult:X}");
         ImGui.SameLine();
-        if (ImGui.Button($"C##{this.sigResult.ToInt64():X}"))
-            ImGui.SetClipboardText(this.sigResult.ToInt64().ToString("X"));
+        if (ImGui.Button($"C##{this.sigResult:X}"))
+            ImGui.SetClipboardText($"{this.sigResult:X}");
 
         foreach (var debugScannedValue in BaseAddressResolver.DebugScannedValues)
         {
             ImGui.Text($"{debugScannedValue.Key}");
             foreach (var valueTuple in debugScannedValue.Value)
             {
-                ImGui.Text(
-                    $"      {valueTuple.ClassName} - {Util.DescribeAddress(valueTuple.Address)}");
+                using var indent = ImRaii.PushIndent(10.0f);
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text($"{valueTuple.ClassName} - {Util.DescribeAddress(valueTuple.Address)}");
                 ImGui.SameLine();
 
-                if (ImGui.Button($"C##{valueTuple.Address.ToInt64():X}"))
-                    ImGui.SetClipboardText(valueTuple.Address.ToInt64().ToString("X"));
+                if (ImGui.Button($"C##{valueTuple.Address:X}"))
+                    ImGui.SetClipboardText($"{valueTuple.Address:X}");
             }
         }
     }

@@ -1,3 +1,5 @@
+using Dalamud.Plugin.Ipc.Internal;
+
 namespace Dalamud.Plugin.Ipc.Exceptions;
 
 /// <summary>
@@ -9,11 +11,11 @@ public class DataCacheCreationError : IpcError
     /// Initializes a new instance of the <see cref="DataCacheCreationError"/> class.
     /// </summary>
     /// <param name="tag">Tag of the data cache.</param>
-    /// <param name="creator">The assembly name of the caller.</param>
+    /// <param name="creatorPluginId">The plugin ID of the creating plugin.</param>
     /// <param name="expectedType">The type expected.</param>
     /// <param name="ex">The thrown exception.</param>
-    public DataCacheCreationError(string tag, string creator, Type expectedType, Exception ex)
-        : base($"The creation of the {expectedType} data cache {tag} initialized by {creator} was unsuccessful.", ex)
+    public DataCacheCreationError(string tag, DataCachePluginId creatorPluginId, Type expectedType, Exception ex)
+        : base($"The creation of the {expectedType} data cache {tag} initialized by {creatorPluginId.InternalName} ({creatorPluginId.EffectiveWorkingId}) was unsuccessful.", ex)
     {
     }
 }

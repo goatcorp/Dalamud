@@ -44,4 +44,9 @@ public enum AddonArgsType
     /// Contains argument data for Close.
     /// </summary>
     Close,
+
+    /// <summary>
+    /// Contains argument data for OnFocusChanged.
+    /// </summary>
+    FocusChanged,
 }

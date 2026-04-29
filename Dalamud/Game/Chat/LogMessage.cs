@@ -1,6 +1,9 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 using Dalamud.Data;
+using Dalamud.Game.Text.Evaluator;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
@@ -8,6 +11,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
 using FFXIVClientStructs.Interop;
+using FFXIVClientStructs.STD;
 
 using Lumina.Excel;
 using Lumina.Text.ReadOnly;
@@ -50,6 +54,21 @@ public interface ILogMessage : IEquatable<ILogMessage>
     int ParameterCount { get; }
 
     /// <summary>
+    /// Gets a list containing the parameters. The returned object is only valid during the <see cref="global::Dalamud.Plugin.Services.IChatGui.LogMessage"/> event and must not be accessed after returning from it.
+    /// </summary>
+    IReadOnlyList<SeStringParameter> Parameters { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the message is handled and will not appear in chat.
+    /// </summary>
+    bool IsHandled { get; }
+
+    /// <summary>
+    /// Marks this message as handled (<see cref="ILogMessage.IsHandled"/> = <see langword="true"/>) and prevents it from appearing.
+    /// </summary>
+    void PreventOriginal();
+
+    /// <summary>
     /// Retrieves the value of a parameter for the log message if it is an int.
     /// </summary>
     /// <param name="index">The index of the parameter to retrieve.</param>
@@ -74,32 +93,47 @@ public interface ILogMessage : IEquatable<ILogMessage>
 }
 
 /// <summary>
-/// This struct represents log message in the queue to be added to the chat.
+/// This class represents log message in the queue to be added to the chat.
 /// </summary>
-/// <param name="ptr">A pointer to the log message.</param>
-internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessage
+internal unsafe class LogMessage : ILogMessage
 {
-    /// <inheritdoc/>
-    public nint Address => (nint)ptr;
+    /// <summary>
+    /// Gets a shared instance of this class.
+    /// </summary>
+    public static LogMessage Instance { get; } = new();
+
+    /// <summary>
+    /// Gets or sets the native message wrapped by this object.
+    /// </summary>
+    public LogMessageQueueItem* Pointer { get; set; }
 
     /// <inheritdoc/>
-    public uint LogMessageId => ptr->LogMessageId;
+    public nint Address => (nint)this.Pointer;
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.LogMessage> GameData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.LogMessage>(ptr->LogMessageId);
+    public uint LogMessageId => this.Pointer->LogMessageId;
 
     /// <inheritdoc/>
-    ILogMessageEntity? ILogMessage.SourceEntity => ptr->SourceKind == EntityRelationKind.None ? null : this.SourceEntity;
+    public RowRef<Lumina.Excel.Sheets.LogMessage> GameData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.LogMessage>(this.Pointer->LogMessageId);
 
     /// <inheritdoc/>
-    ILogMessageEntity? ILogMessage.TargetEntity => ptr->TargetKind == EntityRelationKind.None ? null : this.TargetEntity;
+    ILogMessageEntity? ILogMessage.SourceEntity => this.Pointer->SourceKind == EntityRelationKind.None ? null : this.SourceEntity;
 
     /// <inheritdoc/>
-    public int ParameterCount => ptr->Parameters.Count;
+    ILogMessageEntity? ILogMessage.TargetEntity => this.Pointer->TargetKind == EntityRelationKind.None ? null : this.TargetEntity;
 
-    private LogMessageEntity SourceEntity => new(ptr, true);
+    /// <inheritdoc/>
+    public int ParameterCount => this.Pointer->Parameters.Count;
 
-    private LogMessageEntity TargetEntity => new(ptr, false);
+    /// <inheritdoc/>
+    public IReadOnlyList<SeStringParameter> Parameters => LogMessageParameterList.Instance;
+
+    /// <inheritdoc/>
+    public bool IsHandled { get; set; }
+
+    private LogMessageEntity SourceEntity => new(this.Pointer, true);
+
+    private LogMessageEntity TargetEntity => new(this.Pointer, false);
 
     public static bool operator ==(LogMessage x, LogMessage y) => x.Equals(y);
 
@@ -122,7 +156,13 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
     {
         return HashCode.Combine(this.LogMessageId, this.SourceEntity, this.TargetEntity);
     }
-    
+
+    /// <inheritdoc/>
+    public void PreventOriginal()
+    {
+        this.IsHandled = true;
+    }
+
     /// <inheritdoc/>
     public bool TryGetIntParameter(int index, out int value)
     {
@@ -165,7 +205,7 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
         SetName(logModule, this.TargetEntity);
 
         using var rssb = new RentedSeStringBuilder();
-        logModule->RaptureTextModule->FormatString(rssb.Builder.Append(this.GameData.Value.Text).GetViewAsSpan(), &ptr->Parameters, &utf8);
+        logModule->RaptureTextModule->FormatString(rssb.Builder.Append(this.GameData.Value.Text).GetViewAsSpan(), &this.Pointer->Parameters, &utf8);
 
         return new ReadOnlySeString(utf8.AsSpan());
 
@@ -204,13 +244,13 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
 
     private bool TryGetParameter(int index, out TextParameter value)
     {
-        if (index < 0 || index >= ptr->Parameters.Count)
+        if (index < 0 || index >= this.Pointer->Parameters.Count)
         {
             value = default;
             return false;
         }
 
-        value = ptr->Parameters[index];
+        value = this.Pointer->Parameters[index];
         return true;
     }
 
@@ -218,4 +258,55 @@ internal unsafe readonly struct LogMessage(LogMessageQueueItem* ptr) : ILogMessa
     {
         return this.LogMessageId == other.LogMessageId && this.SourceEntity == other.SourceEntity && this.TargetEntity == other.TargetEntity;
     }
+}
+
+/// <summary>
+/// This struct represents log message in the queue to be added to the chat.
+/// </summary>
+internal unsafe class LogMessageParameterList : IReadOnlyList<SeStringParameter>
+{
+    /// <summary>
+    /// Gets a shared instance of this class.
+    /// </summary>
+    public static LogMessageParameterList Instance { get; } = new();
+
+    /// <summary>
+    /// Gets or sets the native list wrapped by this object.
+    /// </summary>
+    public StdDeque<TextParameter>* Pointer { get; set; }
+
+    /// <inheritdoc />
+    public int Count => this.Pointer->Count;
+
+    /// <inheritdoc />
+    public SeStringParameter this[int index]
+    {
+        get
+        {
+            var p = (*this.Pointer)[index];
+
+            if (p.Type == TextParameterType.Uninitialized)
+                return default;
+            if (p.Type == TextParameterType.Integer)
+                return new((uint)p.IntValue);
+            if (p.Type == TextParameterType.String)
+                return new(p.StringValue.AsReadOnlySeString());
+            if (p.Type == TextParameterType.ReferencedUtf8String)
+                return new(p.ReferencedUtf8StringValue->Utf8String.AsReadOnlySeString());
+
+            throw new InvalidOperationException($"Invalid parameter type {p.Type}");
+        }
+    }
+
+    /// <inheritdoc />
+    public IEnumerator<SeStringParameter> GetEnumerator()
+    {
+        for (var i = 0; i < this.Count; i++)
+        {
+            yield return this[i];
+        }
+    }
+
+    /// <inheritdoc />
+    IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
@@ -17,7 +16,9 @@ using Dalamud.Hooking;
 using Dalamud.Networking.Http;
 using Dalamud.Utility;
 
-using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using FFXIVClientStructs.FFXIV.Client.Enums;
+using FFXIVClientStructs.FFXIV.Client.Game.Event;
+using FFXIVClientStructs.FFXIV.Client.Game.Network;
 using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
@@ -39,12 +40,10 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private readonly IDisposable handleMarketTaxRates;
     private readonly IDisposable handleMarketBoardPurchaseHandler;
 
-    private readonly NetworkHandlersAddressResolver addressResolver;
-
-    private readonly Hook<PublicContentDirector.Delegates.HandleEnterContentInfoPacket> cfPopHook;
+    private readonly Hook<PacketDispatcher.Delegates.HandleContentsFinderNotificationPacket> cfPopHook;
     private readonly Hook<PacketDispatcher.Delegates.HandleMarketBoardPurchasePacket> mbPurchaseHook;
     private readonly Hook<InfoProxyItemSearch.Delegates.ProcessItemHistory> mbHistoryHook;
-    private readonly Hook<CustomTalkReceiveResponse> customTalkHook; // used for marketboard taxes
+    private readonly Hook<PacketDispatcher.Delegates.HandleEventYieldPacket> eventYieldHook; // used for marketboard taxes
     private readonly Hook<PacketDispatcher.Delegates.HandleMarketBoardItemRequestStartPacket> mbItemRequestStartHook;
     private readonly Hook<InfoProxyItemSearch.Delegates.AddPage> mbOfferingsHook;
     private readonly Hook<InfoProxyItemSearch.Delegates.SendPurchaseRequestPacket> mbSendPurchaseRequestHook;
@@ -55,15 +54,9 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private bool disposing;
 
     [ServiceManager.ServiceConstructor]
-    private NetworkHandlers(
-        GameNetwork gameNetwork,
-        TargetSigScanner sigScanner,
-        HappyHttpClient happyHttpClient)
+    private NetworkHandlers(HappyHttpClient happyHttpClient)
     {
         this.uploader = new UniversalisMarketBoardUploader(happyHttpClient);
-
-        this.addressResolver = new NetworkHandlersAddressResolver();
-        this.addressResolver.Setup(sigScanner);
 
         this.CfPop = _ => { };
 
@@ -151,11 +144,11 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                 this.MarketHistoryPacketDetour);
         this.mbHistoryHook.Enable();
 
-        this.customTalkHook =
-            Hook<CustomTalkReceiveResponse>.FromAddress(
-                this.addressResolver.CustomTalkEventResponsePacketHandler,
-                this.CustomTalkReceiveResponseDetour);
-        this.customTalkHook.Enable();
+        this.eventYieldHook =
+            Hook<PacketDispatcher.Delegates.HandleEventYieldPacket>.FromAddress(
+                PacketDispatcher.Addresses.HandleEventYieldPacket.Value,
+                this.HandleEventYieldPacketDetour);
+        this.eventYieldHook.Enable();
 
         this.mbItemRequestStartHook = Hook<PacketDispatcher.Delegates.HandleMarketBoardItemRequestStartPacket>.FromAddress(
             PacketDispatcher.Addresses.HandleMarketBoardItemRequestStartPacket.Value,
@@ -172,22 +165,11 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             this.MarketBoardSendPurchaseRequestDetour);
         this.mbSendPurchaseRequestHook.Enable();
 
-        this.cfPopHook = Hook<PublicContentDirector.Delegates.HandleEnterContentInfoPacket>.FromAddress(PublicContentDirector.Addresses.HandleEnterContentInfoPacket.Value, this.CfPopDetour);
+        this.cfPopHook = Hook<PacketDispatcher.Delegates.HandleContentsFinderNotificationPacket>.FromAddress(
+            PacketDispatcher.Addresses.HandleContentsFinderNotificationPacket.Value,
+            this.HandleContentsFinderNotificationPacketDetour);
         this.cfPopHook.Enable();
     }
-
-    private delegate nint MarketBoardPurchasePacketHandler(nint a1, nint packetRef);
-
-    private delegate nint MarketBoardHistoryPacketHandler(nint self, nint packetData, uint a3, char a4);
-
-    private delegate void CustomTalkReceiveResponse(
-        nuint a1, ushort eventId, byte responseId, uint* args, byte argCount);
-
-    private delegate nint MarketBoardItemRequestStartPacketHandler(nint a1, nint packetRef);
-
-    private delegate byte InfoProxyItemSearchAddPage(nint self, nint packetRef);
-
-    private delegate byte MarketBoardSendPurchaseRequestPacket(InfoProxyItemSearch* infoProxy);
 
     /// <summary>
     /// Event which gets fired when a duty is ready.
@@ -260,7 +242,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
         this.mbPurchaseHook.Dispose();
         this.mbHistoryHook.Dispose();
-        this.customTalkHook.Dispose();
+        this.eventYieldHook.Dispose();
         this.mbItemRequestStartHook.Dispose();
         this.mbOfferingsHook.Dispose();
         this.mbSendPurchaseRequestHook.Dispose();
@@ -273,31 +255,25 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         return (playerState.ContentId, playerState.CurrentWorld.RowId);
     }
 
-    private unsafe nint CfPopDetour(PublicContentDirector.EnterContentInfoPacket* packetData)
+    private void HandleContentsFinderNotificationPacketDetour(ContentsFinderNotificationPacket* packet)
     {
-        var result = this.cfPopHook.OriginalDisposeSafe(packetData);
+        this.cfPopHook.OriginalDisposeSafe(packet);
 
         try
         {
-            using var stream = new UnmanagedMemoryStream((byte*)packetData, 64);
-            using var reader = new BinaryReader(stream);
-
-            var notifyType = reader.ReadByte();
-            stream.Position += 0x1B;
-            var conditionId = reader.ReadUInt16();
-
-            if (notifyType != 3)
-                return result;
+            if (packet->QueueState != ContentsFinderQueueState.Ready)
+                return;
 
             if (this.configuration.DutyFinderTaskbarFlash)
                 Util.FlashWindow();
 
+            var conditionId = packet->ContentFinderConditionId;
             var cfCondition = LuminaUtils.CreateRef<ContentFinderCondition>(conditionId);
 
             if (!cfCondition.IsValid)
             {
                 Log.Error("CFC key {ConditionId} not in Lumina data", conditionId);
-                return result;
+                return;
             }
 
             var cfcName = cfCondition.Value.Name.ToDalamudString();
@@ -323,8 +299,6 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         {
             Log.Error(ex, "CfPopDetour threw an exception");
         }
-
-        return result;
     }
 
     private IObservable<List<MarketBoardCurrentOfferings.MarketBoardItemListing>> OnMarketBoardListingsBatch(
@@ -572,20 +546,30 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         this.mbHistoryHook.OriginalDisposeSafe(a1, packetData);
     }
 
-    private void CustomTalkReceiveResponseDetour(nuint a1, ushort eventId, byte responseId, uint* args, byte argCount)
+    private void HandleEventYieldPacketDetour(EventId eventId, short scene, byte yieldId, int* intData, byte intDataCount)
     {
         try
         {
-            // Event ID 0 covers the crystarium, 7 covers all other cities
-            if (eventId is 7 or 0 && responseId == 8)
-                this.MarketBoardTaxesReceived?.InvokeSafely((nint)args);
+            // Parnell in Old Gridania
+            // Chachabi in Ul'dah - Steps of Thal
+            // Frydwyb in Limsa Lominsa Lower Decks
+            // Prunilla in The Pillars
+            // Kazashi in Kugane
+            // Tanine in Old Sharlayan
+            // Wuk Ty'ukuk in Tuliyollal
+            if (eventId is { ContentId: EventHandlerContent.CustomTalk, EntryId: 9 } && scene == 7 && yieldId == 8)
+                this.MarketBoardTaxesReceived?.InvokeSafely((nint)intData);
+
+            // Misfrith in The Crystarium
+            if (eventId is { ContentId: EventHandlerContent.CustomTalk, EntryId: 581 } && scene == 0 && yieldId == 8)
+                this.MarketBoardTaxesReceived?.InvokeSafely((nint)intData);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "CustomTalkReceiveResponseDetour threw an exception");
+            Log.Error(ex, "HandleEventYieldPacketDetour threw an exception");
         }
 
-        this.customTalkHook.OriginalDisposeSafe(a1, eventId, responseId, args, argCount);
+        this.eventYieldHook.OriginalDisposeSafe(eventId, scene, yieldId, intData, intDataCount);
     }
 
     private void MarketItemRequestStartDetour(uint targetId, nint packetRef)

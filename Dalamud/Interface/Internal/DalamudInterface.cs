@@ -13,6 +13,7 @@ using Dalamud.Bindings.ImPlot;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Agent;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Keys;
@@ -743,7 +744,7 @@ internal class DalamudInterface : IInternalDisposableService
                         ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMouseInputs |
                         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
                 {
-                    ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, "Is force MinHook!"u8);
+                    ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "Is force MinHook!"u8);
                 }
 
                 ImGui.End();
@@ -873,6 +874,35 @@ internal class DalamudInterface : IInternalDisposableService
 
                     ImGui.Separator();
 
+                    var addonLifecycle = Service<AddonLifecycle>.Get();
+                    var agentLifecycle = Service<AgentLifecycle>.Get();
+
+                    if (ImGui.MenuItem("Addon Lifecycle Enabled", (byte*)null, addonLifecycle.IsEnabled))
+                    {
+                        if (addonLifecycle.IsEnabled)
+                        {
+                            addonLifecycle.UnloadAddonLifecycle();
+                        }
+                        else
+                        {
+                            addonLifecycle.InitializeAddonLifecycle();
+                        }
+                    }
+
+                    if (ImGui.MenuItem("Agent Lifecycle Enabled", (byte*)null, agentLifecycle.IsEnabled))
+                    {
+                        if (agentLifecycle.IsEnabled)
+                        {
+                            agentLifecycle.UnloadAgentLifecycle();
+                        }
+                        else
+                        {
+                            agentLifecycle.InitializeAgentLifecycle();
+                        }
+                    }
+
+                    ImGui.Separator();
+
                     if (ImGui.BeginMenu("Crash game"u8))
                     {
                         if (ImGui.MenuItem("Access Violation"u8))
@@ -882,40 +912,31 @@ internal class DalamudInterface : IInternalDisposableService
 
                         if (ImGui.MenuItem("Set UiModule to NULL"u8))
                         {
-                            unsafe
-                            {
-                                var framework = Framework.Instance();
-                                framework->UIModule = (UIModule*)0;
-                            }
+                            var framework = Framework.Instance();
+                            framework->UIModule = (UIModule*)0;
                         }
 
                         if (ImGui.MenuItem("Set UiModule to invalid ptr"u8))
                         {
-                            unsafe
-                            {
-                                var framework = Framework.Instance();
-                                framework->UIModule = (UIModule*)0x12345678;
-                            }
+                            var framework = Framework.Instance();
+                            framework->UIModule = (UIModule*)0x12345678;
                         }
 
                         if (ImGui.MenuItem("Deref nullptr in Hook"u8))
                         {
-                            unsafe
-                            {
-                                var hook = Hook<CrashDebugDelegate>.FromAddress(
-                                    (nint)UIModule.StaticVirtualTablePointer->GetUIInputData,
-                                    self =>
-                                    {
-                                        _ = *(byte*)0;
-                                        return (nint)UIModule.Instance()->GetUIInputData();
-                                    });
-                                hook.Enable();
-                            }
+                            var hook = Hook<CrashDebugDelegate>.FromAddress(
+                                (nint)UIModule.StaticVirtualTablePointer->GetUIInputData,
+                                self =>
+                                {
+                                    _ = *(byte*)0;
+                                    return (nint)UIModule.Instance()->GetUIInputData();
+                                });
+                            hook.Enable();
                         }
 
                         if (ImGui.MenuItem("Cause CLR fastfail"u8))
                         {
-                            static unsafe void CauseFastFail()
+                            static void CauseFastFail()
                             {
                                 // ReSharper disable once NotAccessedVariable
                                 var texture = Unsafe.AsRef<AtkTexture>((void*)0x12345678);
@@ -990,11 +1011,6 @@ internal class DalamudInterface : IInternalDisposableService
                     if (ImGui.MenuItem("Clear focus"u8))
                     {
                         ImGui.SetWindowFocus((byte*)null);
-                    }
-
-                    if (ImGui.MenuItem("Clear stacks"u8))
-                    {
-                        this.interfaceManager.ClearStacks();
                     }
 
                     if (ImGui.MenuItem("Dump style"u8))

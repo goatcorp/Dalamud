@@ -54,8 +54,7 @@ internal class ImGuiWidget : IDataWindowWidget
 
         ImGui.Separator();
 
-        ImGui.Text(
-            $"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
+        ImGui.Text($"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
 
         ImGui.Separator();
 
@@ -79,45 +78,24 @@ internal class ImGuiWidget : IDataWindowWidget
         switch (this.notificationTemplate.IconInt)
         {
             case 1 or 2:
-                ImGui.InputText(
-                    "Icon Text##iconText"u8,
-                    ref this.notificationTemplate.IconText,
-                    255);
+                ImGui.InputText("Icon Text##iconText"u8, ref this.notificationTemplate.IconText, 255);
                 break;
             case 5 or 6:
-                ImGui.Combo(
-                    "Asset##iconAssetCombo",
-                    ref this.notificationTemplate.IconAssetInt,
-                    NotificationTemplate.AssetSources);
+                ImGui.Combo("Asset##iconAssetCombo", ref this.notificationTemplate.IconAssetInt, NotificationTemplate.AssetSources);
                 break;
             case 3 or 7:
-                ImGui.InputText(
-                    "Game Path##iconText"u8,
-                    ref this.notificationTemplate.IconText,
-                    255);
+                ImGui.InputText("Game Path##iconText"u8, ref this.notificationTemplate.IconText, 255);
                 break;
             case 4 or 8:
-                ImGui.InputText(
-                    "File Path##iconText"u8,
-                    ref this.notificationTemplate.IconText,
-                    255);
+                ImGui.InputText("File Path##iconText"u8, ref this.notificationTemplate.IconText, 255);
                 break;
         }
 
-        ImGui.Combo(
-            "Initial Duration",
-            ref this.notificationTemplate.InitialDurationInt,
-            NotificationTemplate.InitialDurationTitles);
+        ImGui.Combo("Initial Duration", ref this.notificationTemplate.InitialDurationInt, NotificationTemplate.InitialDurationTitles);
 
-        ImGui.Combo(
-            "Extension Duration",
-            ref this.notificationTemplate.HoverExtendDurationInt,
-            NotificationTemplate.HoverExtendDurationTitles);
+        ImGui.Combo("Extension Duration", ref this.notificationTemplate.HoverExtendDurationInt, NotificationTemplate.HoverExtendDurationTitles);
 
-        ImGui.Combo(
-            "Progress",
-            ref this.notificationTemplate.ProgressMode,
-            NotificationTemplate.ProgressModeTitles);
+        ImGui.Combo("Progress", ref this.notificationTemplate.ProgressMode, NotificationTemplate.ProgressModeTitles);
 
         ImGui.Checkbox("Respect UI Hidden"u8, ref this.notificationTemplate.RespectUiHidden);
 
@@ -127,14 +105,11 @@ internal class ImGuiWidget : IDataWindowWidget
 
         ImGui.Checkbox("User Dismissable"u8, ref this.notificationTemplate.UserDismissable);
 
-        ImGui.Checkbox(
-            "Action Bar (always on if not user dismissable for the example)"u8,
-            ref this.notificationTemplate.ActionBar);
+        ImGui.Checkbox("Action Bar (always on if not user dismissable for the example)"u8, ref this.notificationTemplate.ActionBar);
 
         if (ImGui.Button("Add notification"u8))
         {
-            var text =
-                "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
+            var text = "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
 
             NewRandom(out var title, out var type, out var progress);
             if (this.notificationTemplate.ManualTitle)

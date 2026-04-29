@@ -695,7 +695,7 @@ public static partial class Util
         if (actor is ICharacter chara)
         {
             actorString +=
-                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
+                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize.ToArray()).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
         }
 
         if (actor is IPlayerCharacter pc)
@@ -729,7 +729,7 @@ public static partial class Util
         if (actor is Character chara)
         {
             actorString +=
-                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
+                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize.ToArray()).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
         }
 
         if (actor is PlayerCharacter pc)

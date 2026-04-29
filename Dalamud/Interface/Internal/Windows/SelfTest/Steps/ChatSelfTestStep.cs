@@ -104,10 +104,9 @@ internal class ChatSelfTestStep : ISelfTestStep
         this.subscribedLogMessage = false;
     }
 
-    private void ChatOnOnChatMessage(
-        XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool ishandled)
+    private void ChatOnOnChatMessage(IHandleableChatMessage message)
     {
-        if (type == XivChatType.Echo && message.TextValue == "DALAMUD")
+        if (message.LogKind == XivChatType.Echo && message.Message.TextValue == "DALAMUD")
         {
             this.hasSeenEchoMessage = true;
         }

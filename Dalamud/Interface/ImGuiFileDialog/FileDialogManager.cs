@@ -31,6 +31,12 @@ public class FileDialogManager
     private string savedPath = ".";
 
     /// <summary>
+    /// Event fires when a new file is selected by the user
+    /// </summary>
+    /// <returns>Returns the path of the file as a string</returns>
+    public event EventHandler<string>? SelectionChanged;
+
+    /// <summary>
     /// Create a dialog which selects an already existing folder.
     /// </summary>
     /// <param name="title">The header title of the dialog.</param>
@@ -175,6 +181,8 @@ public class FileDialogManager
         this.multiCallback = null;
     }
 
+    private void OnSelectionChange(object sender, string path) => this.SelectionChanged?.Invoke(sender, path);
+
     private void SetDialog(
         string id,
         string title,
@@ -200,6 +208,7 @@ public class FileDialogManager
         if (this.dialog is not null)
         {
             this.dialog.SortOrderChanged -= this.OnSortOrderChange;
+            this.dialog.SelectionChanged -= this.OnSelectionChange;
         }
 
         this.dialog = new FileDialog(id, title, filters, path, defaultFileName, defaultExtension, selectionCountMax, isModal, flags);
@@ -217,6 +226,7 @@ public class FileDialogManager
         }
 
         this.dialog.SortOrderChanged += this.OnSortOrderChange;
+        this.dialog.SelectionChanged += this.OnSelectionChange;
         this.dialog.WindowFlags |= this.AddedWindowFlags;
         foreach (var (name, location, icon, position) in this.CustomSideBarItems)
             this.dialog.SetQuickAccess(name, location, icon, position);

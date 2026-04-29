@@ -39,7 +39,7 @@ internal static class Service<T> where T : IServiceType
             ?? throw new InvalidOperationException(
                 $"{nameof(T)} is missing {nameof(ServiceManager.ServiceAttribute)} annotations.");
 
-        var exposeToPlugins = type.GetCustomAttribute<PluginInterfaceAttribute>() != null;
+        var exposeToPlugins = Attribute.IsDefined(type, typeof(PluginInterfaceAttribute));
         if (exposeToPlugins)
             ServiceManager.Log.Debug("Service<{0}>: Static ctor called; will be exposed to plugins", type.Name);
         else
@@ -199,7 +199,7 @@ internal static class Service<T> where T : IServiceType
         var deps = res
                    .Distinct()
                    .ToList();
-        if (typeof(T).GetCustomAttribute<ServiceManager.BlockingEarlyLoadedServiceAttribute>() is not null)
+        if (Attribute.IsDefined(typeof(T), typeof(ServiceManager.BlockingEarlyLoadedServiceAttribute)))
         {
             var offenders = deps.Where(
                                     x => x.GetCustomAttribute<ServiceManager.ServiceAttribute>(true)!.Kind
@@ -387,7 +387,7 @@ internal static class Service<T> where T : IServiceType
             var argType = argDefs[i].ParameterType;
             ref var argTask = ref argTasks[i];
 
-            if (argType.GetCustomAttribute<ServiceManager.InjectableTypeAttribute>() is not null)
+            if (Attribute.IsDefined(argType, typeof(ServiceManager.InjectableTypeAttribute)))
             {
                 argTask = Task.FromResult(additionalProvidedTypedObjects.Single(x => x.GetType() == argType));
                 continue;

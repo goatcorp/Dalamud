@@ -9,7 +9,6 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Documentation">
-        <DocumentationFile></DocumentationFile>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
@@ -38,6 +37,12 @@
             <Private>false</Private>
         </ProjectReference>
     </ItemGroup>
+
+    <Target Name="ClearReferenceCopyLocalPaths" AfterTargets="ResolveReferences">
+        <ItemGroup>
+            <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" />
+        </ItemGroup>
+    </Target>
 
     <ItemGroup>
         <None Update="Dalamud.CorePlugin.json">

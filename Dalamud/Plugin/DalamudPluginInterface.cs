@@ -111,6 +111,9 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     public bool IsTesting { get; }
 
     /// <inheritdoc/>
+    public bool IsInProfile => !this.plugin.IsInDefaultProfile;
+
+    /// <inheritdoc/>
     public DateTime LoadTime { get; }
 
     /// <inheritdoc/>
@@ -139,6 +142,9 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     /// <inheritdoc/>
     public bool IsDebugging => Debugger.IsAttached;
+
+    /// <inheritdoc/>
+    public bool AllowSeasonalEvents => Service<DalamudConfiguration>.Get().AllowSeasonalEvents;
 
     /// <inheritdoc/>
     public string UiLanguage { get; private set; }
@@ -227,19 +233,19 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     /// <inheritdoc/>
     public T GetOrCreateData<T>(string tag, Func<T> dataGenerator) where T : class
-        => Service<DataShare>.Get().GetOrCreateData(tag, dataGenerator);
+        => Service<DataShare>.Get().GetOrCreateData(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId), dataGenerator);
 
     /// <inheritdoc/>
     public void RelinquishData(string tag)
-        => Service<DataShare>.Get().RelinquishData(tag);
+        => Service<DataShare>.Get().RelinquishData(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId));
 
     /// <inheritdoc/>
     public bool TryGetData<T>(string tag, [NotNullWhen(true)] out T? data) where T : class
-        => Service<DataShare>.Get().TryGetData(tag, out data);
+        => Service<DataShare>.Get().TryGetData(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId), out data);
 
     /// <inheritdoc/>
     public T? GetData<T>(string tag) where T : class
-        => Service<DataShare>.Get().GetData<T>(tag);
+        => Service<DataShare>.Get().GetData<T>(tag, new DataCachePluginId(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId));
 
     /// <inheritdoc/>
     public ICallGateProvider<TRet> GetIpcProvider<TRet>(string name)
@@ -413,6 +419,18 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
         this.plugin.ServiceScope!.InjectPropertiesAsync(instance, this.GetPublicIocScopes(scopedObjects));
 
     #endregion
+
+    /// <inheritdoc/>
+    public async Task<PluginUpdate?> CheckForUpdateAsync()
+    {
+        var pm = Service<PluginManager>.Get();
+        await pm.WaitForReposAsync();
+
+        var update = pm.UpdatablePlugins.FirstOrDefault(x =>
+                                                            x.UpdateManifest.SourceRepo.PluginMasterUrl == this.SourceRepository &&
+                                                            x.UpdateManifest.InternalName == this.plugin.InternalName);
+        return update == null ? null : new PluginUpdate(update.EffectiveVersion, update.UseTesting, update.UpdateManifest.Changelog);
+    }
 
     /// <inheritdoc/>
     public void Dispose()

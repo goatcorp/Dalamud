@@ -60,7 +60,7 @@ internal class EnterTerritorySelfTestStep : ISelfTestStep
         this.subscribed = false;
     }
 
-    private void ClientStateOnTerritoryChanged(ushort territoryId)
+    private void ClientStateOnTerritoryChanged(uint territoryId)
     {
         if (territoryId == this.territory)
         {

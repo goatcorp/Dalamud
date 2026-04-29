@@ -13,6 +13,7 @@ using Dalamud.Interface.ImGuiFontChooserDialog;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 
 using Serilog;
@@ -248,7 +249,8 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
             {
                 ImGui.Text($"{gfs.SizePt}pt");
                 ImGui.SameLine(offsetX);
-                ImGui.PushTextWrapPos(this.useWordWrap ? 0f : -1f);
+
+                using var pushedWrap = ImRaii.TextWrapPos(this.useWordWrap ? 0f : -1f);
                 try
                 {
                     if (handle.Value.LoadException is { } exc)
@@ -263,6 +265,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                     {
                         if (!this.atlasScaleMode)
                             ImGui.SetWindowFontScale(1 / ImGuiHelpers.GlobalScale);
+
                         if (counter++ % 2 == 0)
                         {
                             using var pushPop = handle.Value.Push();
@@ -279,7 +282,6 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                 finally
                 {
                     ImGui.SetWindowFontScale(1);
-                    ImGui.PopTextWrapPos();
                 }
             }
         }

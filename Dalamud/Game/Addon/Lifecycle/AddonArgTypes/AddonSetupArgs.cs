@@ -34,13 +34,6 @@ public class AddonSetupArgs : AddonArgs
     public nint AtkValues { get; set; }
 
     /// <summary>
-    /// Gets the AtkValues in the form of a span.
-    /// </summary>
-    [Obsolete("Pending removal, Use AtkValueEnumerable instead.")]
-    [Api15ToDo("Make this internal, remove obsolete")]
-    public unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
-
-    /// <summary>
     /// Gets an enumerable collection of <see cref="AtkValuePtr"/> of the event's AtkValues.
     /// </summary>
     /// <returns>
@@ -64,4 +57,9 @@ public class AddonSetupArgs : AddonArgs
             }
         }
     }
+
+    /// <summary>
+    /// Gets the AtkValues in the form of a span.
+    /// </summary>
+    internal unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
 }

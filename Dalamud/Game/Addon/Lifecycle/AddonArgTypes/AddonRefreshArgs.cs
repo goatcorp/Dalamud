@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 
 using Dalamud.Game.NativeWrapper;
-using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using FFXIVClientStructs.Interop;
@@ -34,13 +33,6 @@ public class AddonRefreshArgs : AddonArgs
     public nint AtkValues { get; set; }
 
     /// <summary>
-    /// Gets the AtkValues in the form of a span.
-    /// </summary>
-    [Obsolete("Pending removal, Use AtkValueEnumerable instead.")]
-    [Api15ToDo("Make this internal, remove obsolete")]
-    public unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
-
-    /// <summary>
     /// Gets an enumerable collection of <see cref="AtkValuePtr"/> of the event's AtkValues.
     /// </summary>
     /// <returns>
@@ -55,13 +47,16 @@ public class AddonRefreshArgs : AddonArgs
                 AtkValuePtr ptr;
                 unsafe
                 {
-#pragma warning disable CS0618 // Type or member is obsolete
                     ptr = new AtkValuePtr((nint)this.AtkValueSpan.GetPointer(i));
-#pragma warning restore CS0618 // Type or member is obsolete
                 }
 
                 yield return ptr;
             }
         }
     }
+
+    /// <summary>
+    /// Gets the AtkValues in the form of a span.
+    /// </summary>
+    internal unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
 }
