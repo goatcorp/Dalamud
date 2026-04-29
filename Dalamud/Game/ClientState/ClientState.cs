@@ -318,7 +318,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
                 Log.Debug($"ZoneInit: {eventArgs}");
                 this.ZoneInit?.InvokeSafely(eventArgs);
                 this.TerritoryType = eventArgs.TerritoryType.RowId;
-                this.IsPvP = GameMain.IsInPvPArea();
+                this.IsPvP = eventArgs.TerritoryType.Value.IsPvpZone;
                 break;
             }
         }
