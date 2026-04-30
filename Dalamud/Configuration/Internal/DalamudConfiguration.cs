@@ -126,6 +126,16 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public List<string> HiddenPluginInternalName { get; set; } = [];
 
     /// <summary>
+    /// Gets or sets a list of favorite plugins.
+    /// </summary>
+    public List<string> FavoritePluginInternalName { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets a list of pinned plugins.
+    /// </summary>
+    public List<string> PinnedPluginInternalName { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets a list of seen plugins.
     /// </summary>
     public List<string> SeenPluginInternalName { get; set; } = [];
