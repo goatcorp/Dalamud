@@ -208,7 +208,7 @@ internal class ConsoleWindow : Window, IDisposable
                     0); // Prevents flicker effect. Also workaround to avoid negative indexes.
                 var line = this.filteredLogEntries[index];
 
-                if (!line.IsMultiline)
+                if (line.IsFirstLine)
                     ImGui.Separator();
 
                 if (line.SelectedForCopy)
@@ -236,7 +236,7 @@ internal class ConsoleWindow : Window, IDisposable
 
                 ImGui.PopStyleColor(3);
 
-                if (!line.IsMultiline)
+                if (line.IsFirstLine)
                 {
                     ImGui.Text(line.TimestampString);
                     ImGui.SameLine();
@@ -942,7 +942,7 @@ internal class ConsoleWindow : Window, IDisposable
         List<LogLine> lines = [];
 
         // create a LogEntry with this collection
-        var logEntry = new LogEntry { Lines = lines };
+        var logEntry = new LogEntry();
 
         // try to get the source of the line, null otherwise
         string? source = null;
@@ -956,6 +956,8 @@ internal class ConsoleWindow : Window, IDisposable
             source = sourceValue;
         }
 
+        var first = true;
+
         var ssp = line.AsSpan();
         while (true)
         {
@@ -967,7 +969,10 @@ internal class ConsoleWindow : Window, IDisposable
                 TimeStamp = logEvent.Timestamp,
                 HasException = logEvent.Exception != null,
                 Source = source,
+                IsFirstLine = first,
             };
+
+            first = false;
 
             var nextLineSeparator = ssp.IndexOfAny('\r', '\n');
             if (nextLineSeparator == -1)
@@ -983,9 +988,6 @@ internal class ConsoleWindow : Window, IDisposable
             logLine = logLine with { Line = ssp[..nextLineSeparator].ToString() };
             // push the line into the lines list
             lines.Add(logLine);
-
-            // Mark further lines as multiline.
-            logLine.IsMultiline = true;
 
             // Skip the detected line break.
             ssp = ssp[nextLineSeparator..];
@@ -1154,9 +1156,12 @@ internal class ConsoleWindow : Window, IDisposable
     }
 
 
-    private record LogEntry
+    /// <summary>
+    /// This class is only used to differentiate the entry a log line belongs to.
+    /// Cannot be a record, because a record would have value equality instead of referential equality.
+    /// </summary>
+    private class LogEntry
     {
-        public IEnumerable<LogLine> Lines { get; init; }
     }
 
     private record LogLine
@@ -1164,7 +1169,7 @@ internal class ConsoleWindow : Window, IDisposable
         public string Line { get; set; } = string.Empty;
 
         /// <summary>
-        /// The corresponding log entry for the line, used to group lines when filtering
+        /// Gets or sets the corresponding log entry for the line, used to group lines when filtering.
         /// </summary>
         public LogEntry Entry { get; init; }
 
@@ -1172,13 +1177,16 @@ internal class ConsoleWindow : Window, IDisposable
 
         public DateTimeOffset TimeStamp { get; init; }
 
-        public bool IsMultiline { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether this line is the first line in its LogEntry. If true, it may or may not be the only line.
+        /// </summary>
+        public bool IsFirstLine { get; set; }
 
         /// <summary>
         /// Gets or sets the system responsible for generating this log entry. Generally will be a plugin's
         /// InternalName.
         /// </summary>
-        public string? Source { get; set; }
+        public string? Source { get; init; }
 
         public bool SelectedForCopy { get; set; }
 
@@ -1189,9 +1197,9 @@ internal class ConsoleWindow : Window, IDisposable
         public string TimestampString => this.TimeStamp.ToString("HH:mm:ss.fff");
 
         public override string ToString() =>
-            this.IsMultiline
-                ? $"\t{this.Line}"
-                : $"{this.TimestampString} | {GetTextForLogEventLevel(this.Level)} | {this.Line}";
+            this.IsFirstLine
+                ? $"{this.TimestampString} | {GetTextForLogEventLevel(this.Level)} | {this.Line}"
+                : $"\t{this.Line}";
     }
 
     private class PluginFilterEntry
