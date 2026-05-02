@@ -543,10 +543,7 @@ public class WindowHost
 
         if (this.Window.SizeConstraints.HasValue)
         {
-            var (min, max) = this.GetValidatedConstraints(this.Window.SizeConstraints.Value);
-            ImGui.SetNextWindowSizeConstraints(
-                min * ImGuiHelpers.GlobalScale,
-                max * ImGuiHelpers.GlobalScale);
+            ImGui.SetNextWindowSizeConstraints(this.Window.SizeConstraints.Value.MinimumSize * ImGuiHelpers.GlobalScale, this.Window.SizeConstraints.Value.MaximumSize * ImGuiHelpers.GlobalScale);
         }
 
         var maxBgAlpha = this.internalAlpha ?? this.Window.BgAlpha;
@@ -564,18 +561,6 @@ public class WindowHost
         {
             ImGui.SetNextWindowBgAlpha(maxBgAlpha.Value);
         }
-    }
-
-    private (Vector2 Min, Vector2 Max) GetValidatedConstraints(WindowSizeConstraints constraints)
-    {
-        var min = constraints.MinimumSize;
-        var max = constraints.MaximumSize;
-
-        // If max < min, treat as "no constraint" (float.MaxValue)
-        if (max.X < min.X || max.Y < min.Y)
-            max = new Vector2(float.MaxValue);
-
-        return (min, max);
     }
 
     private void PreHandlePreset(WindowSystemPersistence? persistence)
