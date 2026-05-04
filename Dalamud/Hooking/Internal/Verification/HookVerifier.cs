@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 
 using FFXIVClientStructs.FFXIV.Application.Network;
@@ -164,11 +165,14 @@ internal static partial class HookVerifier
     {
         exceptions = [];
 
+        // Is Developer Mode enabled?
+        var configuration = Service<DalamudConfiguration>.GetNullable();
+        if (configuration?.DevMode != true)
+            return true;
+
         // Nothing to verify for this hook?
         if (!allToVerify.TryGetValue(address, out var entries))
-        {
             return true;
-        }
 
         var passedType = typeof(T);
         var isAssemblyMarshaled = !Attribute.IsDefined(passedType.Assembly, typeof(DisableRuntimeMarshallingAttribute));
