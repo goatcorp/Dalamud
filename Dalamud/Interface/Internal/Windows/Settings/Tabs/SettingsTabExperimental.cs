@@ -59,6 +59,12 @@ internal sealed class SettingsTabExperimental : SettingsTab
 
         new GapSettingsEntry(5, true),
 
+        new SettingsEntry<bool>(
+            LazyLoc.Localize("DalamudSettingEnableDeveloperMode", "Enable Developer Mode"),
+            LazyLoc.Localize("DalamudSettingEnableDeveloperModeHint", "Unlocks developer-specific settings."),
+            c => c.DevMode ?? false,
+            (v, c) => c.DevMode = v),
+
         new DevPluginsSettingsEntry(),
 
         new SettingsEntry<bool>(
