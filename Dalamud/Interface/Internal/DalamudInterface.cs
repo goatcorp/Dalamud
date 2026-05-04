@@ -189,9 +189,8 @@ internal class DalamudInterface : IInternalDisposableService
                     () => Service<DalamudInterface>.GetNullable()?.ToggleDevMenu(),
                     VirtualKey.SHIFT);
 
-                var pluginManager = Service<PluginManager>.Get();
-                using var pmLock = pluginManager.GetSyncScope();
-                if (Versioning.GetActiveTrack() != "release" || pluginManager.InstalledPlugins.Any(plugin => plugin.IsDev))
+                var hasDevPluginLocations = configuration.DevPluginLoadLocations.Count > 0;
+                if (Versioning.GetActiveTrack() != "release" || hasDevPluginLocations)
                 {
                     titleScreenMenu.AddEntryCore(
                         Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
