@@ -34,6 +34,8 @@ internal sealed class DevPluginsSettingsEntry : SettingsEntry
         this.Name = LazyLoc.Localize("DalamudSettingsDevPluginLocation", "Dev Plugin Locations");
     }
 
+    public override bool IsVisible => Service<DalamudConfiguration>.Get().DevMode == true;
+
     public override void OnClose()
     {
         this.devPluginLocations =

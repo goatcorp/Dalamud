@@ -73,13 +73,15 @@ internal sealed class SettingsTabExperimental : SettingsTab
                 "If this setting is enabled, a window containing further details will be shown when an internal assertion in ImGui fails.\nWe recommend enabling this when developing plugins. " +
                 "This setting does not persist and will reset when the game restarts.\nUse the setting below to enable it at startup."),
             c => Service<InterfaceManager>.Get().ShowAsserts,
-            (v, _) => Service<InterfaceManager>.Get().ShowAsserts = v),
+            (v, _) => Service<InterfaceManager>.Get().ShowAsserts = v,
+            visibility: () => Service<DalamudConfiguration>.Get().DevMode == true),
 
         new SettingsEntry<bool>(
             LazyLoc.Localize("DalamudSettingEnableImGuiAssertsAtStartup", "Always enable ImGui asserts at startup"),
             LazyLoc.Localize("DalamudSettingEnableImGuiAssertsAtStartupHint", "This will enable ImGui asserts every time the game starts."),
             c => c.ImGuiAssertsEnabledAtStartup ?? false,
-            (v, c) => c.ImGuiAssertsEnabledAtStartup = v),
+            (v, c) => c.ImGuiAssertsEnabledAtStartup = v,
+            visibility: () => Service<DalamudConfiguration>.Get().DevMode == true),
 
         new GapSettingsEntry(5, true),
 
