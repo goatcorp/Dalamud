@@ -642,7 +642,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
                                         ? Plugin.Internal.AutoUpdate.AutoUpdateBehavior.UpdateAll
                                         : Plugin.Internal.AutoUpdate.AutoUpdateBehavior.OnlyNotify;
 
-        this.DevMode ??= this.DevPluginLoadLocations.Count != 0;
+        this.DevMode ??= this.DevPluginLoadLocations.Count != 0 || this.DevBarOpenAtStartup;
 #pragma warning restore CS0618
     }
 
