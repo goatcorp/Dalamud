@@ -196,7 +196,7 @@ internal class DalamudInterface : IInternalDisposableService
                     titleScreenMenu.AddEntryCore(
                         Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
                         new ForwardingSharedImmediateTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
-                        () => this.isImGuiDrawDevMenu = true);
+                        () => this.isImGuiDrawDevMenu = !this.isImGuiDrawDevMenu);
                 }
             });
 
