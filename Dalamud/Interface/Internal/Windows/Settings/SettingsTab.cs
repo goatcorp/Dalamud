@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
+using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Settings;
@@ -33,12 +34,28 @@ internal abstract class SettingsTab : IDisposable
 
     public virtual void Draw()
     {
-        foreach (var settingsEntry in this.Entries)
+        for (var i = 0; i < this.Entries.Length; i++)
         {
-            if (settingsEntry.IsVisible)
-                settingsEntry.Draw();
+            var settingsEntry = this.Entries[i];
+            if (!settingsEntry.IsVisible)
+                continue;
 
-            ImGuiHelpers.ScaledDummy(5);
+            settingsEntry.Draw();
+
+            var needsSpacing = settingsEntry is not GapSettingsEntry;
+
+            for (var j = i + 1; j < this.Entries.Length; j++)
+            {
+                var nextEntry = this.Entries[j];
+                if (!nextEntry.IsVisible)
+                    continue;
+
+                needsSpacing &= nextEntry is not GapSettingsEntry;
+                break;
+            }
+
+            if (needsSpacing)
+                ImGuiHelpers.ScaledDummy(5);
         }
 
         ImGuiHelpers.ScaledDummy(15);
