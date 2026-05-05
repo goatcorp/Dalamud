@@ -997,11 +997,18 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 var swpFlag = topMostChanged ? 0 : SWP.SWP_NOZORDER;
 
                 // Apply flags and position (since it is affected by flags)
-                data->DwStyle = newStyle;
-                data->DwExStyle = newExStyle;
+                // Only apply styles if they actually changed. Setting GWL_STYLE can hide the window, which causes flicker.
+                if (data->DwStyle != newStyle)
+                {
+                    data->DwStyle = newStyle;
+                    _ = SetWindowLongW(data->Hwnd, GWL.GWL_STYLE, data->DwStyle);
+                }
 
-                _ = SetWindowLongW(data->Hwnd, GWL.GWL_STYLE, data->DwStyle);
-                _ = SetWindowLongW(data->Hwnd, GWL.GWL_EXSTYLE, data->DwExStyle);
+                if (data->DwExStyle != newExStyle)
+                {
+                    data->DwExStyle = newExStyle;
+                    _ = SetWindowLongW(data->Hwnd, GWL.GWL_EXSTYLE, data->DwExStyle);
+                }
 
                 // Create window
                 var rect = new RECT
