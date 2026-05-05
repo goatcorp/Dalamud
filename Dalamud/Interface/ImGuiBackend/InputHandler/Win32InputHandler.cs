@@ -332,6 +332,11 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     if (this.mouseButtonsDown == 0 && GetCapture() == hWndCurrent)
                     {
                         ReleaseCapture();
+                        // SetCapture (called in WM_MOUSEACTIVATE) silently cancels any pending
+                        // TrackMouseEvent, so WM_MOUSELEAVE will not fire after the capture is
+                        // released. Reset mouseTracked so the GetCursorPos fallback in UpdateMouseData
+                        // runs until WM_MOUSEMOVE re-establishes tracking.
+                        this.mouseTracked = false;
                     }
 
                     io.AddMouseButtonEvent(button, false);
@@ -346,6 +351,9 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 if (this.mouseButtonsDown == 0 && GetCapture() == this.hWnd)
                 {
                     ReleaseCapture();
+                    // Same as above, SetCapture cancelled TrackMouseEvent, so WM_MOUSELEAVE
+                    // won't arrive. Reset mouseTracked to allow the GetCursorPos fallback to run.
+                    this.mouseTracked = false;
                 }
 
                 break;
@@ -462,11 +470,18 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
 
             case WM.WM_KILLFOCUS when hWndCurrent == this.hWnd:
                 io.AddFocusEvent(false);
-                // if (!ImGui.IsAnyMouseDown() && GetCapture() == hWndCurrent)
-                //     ReleaseCapture();
-                //
-                // ImGui.GetIO().WantCaptureMouse = false;
-                // ImGui.ClearWindowFocus();
+                // If we still hold mouse capture when losing focus, release it so normal OS
+                // hit-testing resumes and other windows can receive mouse messages. This is a
+                // safety net, capture should already be released on button-up, but if a button-up
+                // was lost (alt-tabbed mid-drag?), capture would leak forever.
+                // Also reset mouseTracked: SetCapture canceled any pending TrackMouseEvent, so
+                // WM_MOUSELEAVE won't arrive after we release here either.
+                if (GetCapture() == this.hWnd)
+                {
+                    ReleaseCapture();
+                    this.mouseTracked = false;
+                }
+
                 break;
         }
 
