@@ -270,8 +270,6 @@ public class WindowHost
             {
                 effectiveWindowBgAlpha = 0;
             }
-
-            effectiveWindowBgAlpha *= this.internalAlpha ?? 1f;
         }
 
         var windowHasBackground = effectiveWindowBgAlpha != 0f;
@@ -556,7 +554,7 @@ public class WindowHost
                 max * ImGuiHelpers.GlobalScale);
         }
 
-        var maxBgAlpha = this.internalAlpha ?? this.Window.BgAlpha;
+        var maxBgAlpha = this.Window.BgAlpha;
         var fadeInAlpha = this.fadeInTimer / FadeInOutTime;
         if (fadeInAlpha < 1f)
         {
