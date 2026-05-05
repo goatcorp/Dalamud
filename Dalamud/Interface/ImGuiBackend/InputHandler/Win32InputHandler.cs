@@ -255,8 +255,12 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             case WM.WM_MOUSELEAVE:
             {
                 this.mouseTracked = false;
-                var mouseScreenPos = new POINT(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-                ClientToScreen(hWndCurrent, &mouseScreenPos);
+                // WM_MOUSELEAVE has no parameters.
+                // Use GetCursorPos to obtain the real screen position instead.
+                var mouseScreenPos = default(POINT);
+                if (GetCursorPos(&mouseScreenPos) == 0)
+                    break;
+
                 if (this.ViewportFromPoint(mouseScreenPos).IsNull)
                 {
                     var fltMax = ImGuiNative.GETFLTMAX();
@@ -332,6 +336,16 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
 
                     io.AddMouseButtonEvent(button, false);
                     return default(LRESULT);
+                }
+
+                // WM_MOUSEACTIVATE on a viewport window calls SetCapture(this.hWnd) so that subsequent
+                // mouse messages are routed through our ProcessWndProcW hook even when the viewport is
+                // not the foreground window. WantCaptureMouse is false for clickthrough (NoInputs)
+                // viewports, so the block above never fires and the capture leaks indefinitely.
+                // We can release it here on button-up when no buttons remain tracked.
+                if (this.mouseButtonsDown == 0 && GetCapture() == this.hWnd)
+                {
+                    ReleaseCapture();
                 }
 
                 break;
