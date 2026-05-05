@@ -92,6 +92,10 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         MouseDrop(this.lastKeyState);
         this.lastDropFrame = ImGui.GetFrameCount();
         this.IsDragging = false;
+
+        // OLE never calls DragLeave after a successful Drop
+        var totalCount = this.Files.Count + this.Directories.Count;
+
         if (this.HasPaths)
         {
             pdwEffect &= (uint)DragDropInterop.DropEffects.Copy;
@@ -101,7 +105,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
             pdwEffect = 0;
         }
 
-        Log.Debug("[DragDrop] Dropping {N} files with {KeyState} at {PtX}, {PtY}.", this.Files.Count + this.Directories.Count, (DragDropInterop.ModifierKeys)grfKeyState, pt.X, pt.Y);
+        Log.Debug("[DragDrop] Dropping {N} files with {KeyState} at {PtX}, {PtY}.", totalCount, (DragDropInterop.ModifierKeys)grfKeyState, pt.X, pt.Y);
     }
 
     private static DragDropInterop.ModifierKeys UpdateIo(DragDropInterop.ModifierKeys keys, bool entering)
@@ -109,6 +113,9 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         var io = ImGui.GetIO();
         void UpdateMouse(int mouseIdx)
         {
+            if (io.MouseDown[mouseIdx])
+                return;
+
             if (entering)
             {
                 io.MouseDownDuration[mouseIdx] = 1f;
@@ -116,6 +123,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
 
             io.MouseDown[mouseIdx] = true;
             io.AddMouseButtonEvent(mouseIdx, true);
+            Log.Verbose("[DragDrop] Mouse button {MouseIdx} is now down due to external Drag and Drop.", mouseIdx);
         }
 
         if (keys.HasFlag(DragDropInterop.ModifierKeys.MK_LBUTTON))
@@ -174,8 +182,12 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         var io = ImGui.GetIO();
         void UpdateMouse(int mouseIdx)
         {
+            if (!io.MouseDown[mouseIdx])
+                return;
+
             io.AddMouseButtonEvent(mouseIdx, false);
             io.MouseDown[mouseIdx] = false;
+            Log.Verbose("[DragDrop] Mouse button {MouseIdx} is now up due to external Drag and Drop.", mouseIdx);
         }
 
         if (keys.HasFlag(DragDropInterop.ModifierKeys.MK_LBUTTON))

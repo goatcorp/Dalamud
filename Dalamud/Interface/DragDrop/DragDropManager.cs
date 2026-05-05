@@ -136,11 +136,19 @@ internal partial class DragDropManager : IInternalDisposableService, IDragDropMa
 
         unsafe
         {
-            if (ImGui.AcceptDragDropPayload(label, ImGuiDragDropFlags.AcceptBeforeDelivery).Handle != null && this.IsDropping())
+            var payload = ImGui.AcceptDragDropPayload(label, ImGuiDragDropFlags.AcceptBeforeDelivery);
+            if (payload.Handle != null && (this.IsDropping() || payload.IsDelivery()))
             {
                 this.lastDropFrame = -2;
                 files = this.Files;
                 directories = this.Directories;
+
+                // Clear stale data so HasPaths becomes false and no re-delivery is possible
+                this.Files = [];
+                this.Directories = [];
+                this.Extensions = new HashSet<string>();
+
+                ImGui.EndDragDropTarget();
                 return true;
             }
         }
