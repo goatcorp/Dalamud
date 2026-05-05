@@ -340,6 +340,17 @@ public class WindowHost
             this.Window.IsOpen = false;
         }
 
+        // VP handling
+        var windowViewport = ImGui.GetWindowViewport();
+        var isMainViewport = windowViewport.ID == ImGui.GetMainViewport().ID;
+        if (!isMainViewport)
+        {
+            if (this.Window.IsTopMost)
+                ImGui.GetWindowViewport().Flags |= ImGuiViewportFlags.TopMost;
+            else
+                ImGui.GetWindowViewport().Flags &= ~ImGuiViewportFlags.TopMost;
+        }
+
         var flagsApplicableForTitleBarIcons = !flags.HasFlag(ImGuiWindowFlags.NoDecoration) &&
                                               !flags.HasFlag(ImGuiWindowFlags.NoTitleBar);
         var showAdditions = (this.Window.AllowPinning || this.Window.AllowClickthrough || this.Window.AllowBackgroundBlur) &&
@@ -384,25 +395,62 @@ public class WindowHost
 
                     ImGuiComponents.HelpMarker(
                         Loc.Localize("WindowSystemContextActionClickthroughHint", "Clickthrough windows will not receive mouse input, move or resize. They are completely inert."));
+
+                    if (!isMainViewport)
+                    {
+                        var isTopMost = this.Window.IsTopMost;
+                        if (ImGui.Checkbox(
+                                Loc.Localize("WindowSystemContextActionTopMost", "Stay on top"),
+                                ref isTopMost))
+                        {
+                            this.Window.IsTopMost = isTopMost;
+                            this.presetDirty = true;
+                        }
+
+                        ImGuiComponents.HelpMarker(
+                            Loc.Localize("WindowSystemContextActionTopMostHint", "Stay-on-top windows will not move into the background."));
+                    }
                 }
 
+                ImGuiHelpers.ScaledDummy(5);
+
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                using (ImRaii.Disabled(this.internalAlpha == null || this.internalAlpha == ImGui.GetStyle().Alpha))
+                {
+                    if (ImGui.Button(Loc.Localize("WindowSystemContextActionReset", "Reset") + "##resetAlpha"))
+                    {
+                        this.internalAlpha = null;
+                        this.presetDirty = true;
+                    }
+                }
+
+                ImGui.SameLine();
+
                 var alpha = (this.internalAlpha ?? ImGui.GetStyle().Alpha) * 100f;
+
                 if (ImGui.SliderFloat(Loc.Localize("WindowSystemContextActionAlpha", "Opacity"), ref alpha, 20f,
-                                      100f))
+                                      100f, "%.1f%%"))
                 {
                     this.internalAlpha = Math.Clamp(alpha / 100f, 0.2f, 1f);
                     this.presetDirty = true;
                 }
 
-                ImGui.SameLine();
-                if (ImGui.Button(Loc.Localize("WindowSystemContextActionReset", "Reset") + "##resetAlpha"))
-                {
-                    this.internalAlpha = null;
-                    this.presetDirty = true;
-                }
-
                 if (this.Window.AllowBackgroundBlur)
                 {
+                    using var disabled = ImRaii.Disabled(!isMainViewport);
+
+                    // ReSharper disable once CompareOfFloatsByEqualityOperator
+                    using (ImRaii.Disabled(this.internalBlurFactorOverride == null || this.internalBlurFactorOverride == internalDrawParams.DefaultBackgroundBlurStrength))
+                    {
+                        if (ImGui.Button(Loc.Localize("WindowSystemContextActionReset", "Reset") + "##resetBlur"))
+                        {
+                            this.internalBlurFactorOverride = null;
+                            this.presetDirty = true;
+                        }
+                    }
+
+                    ImGui.SameLine();
+
                     var blurOverride =
                         (this.internalBlurFactorOverride ?? internalDrawParams.DefaultBackgroundBlurStrength) * 100f;
                     if (ImGui.SliderFloat(Loc.Localize("WindowSystemContextActionBlur", "Background Blur"), ref blurOverride, 0f, 100f, "%.1f%%"))
@@ -411,19 +459,20 @@ public class WindowHost
                         this.presetDirty = true;
                     }
 
-                    ImGui.SameLine();
-                    if (ImGui.Button(Loc.Localize("WindowSystemContextActionReset", "Reset") + "##resetBlur"))
+                    if (!isMainViewport && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
                     {
-                        this.internalBlurFactorOverride = null;
-                        this.presetDirty = true;
+                        ImGui.SetTooltip(Loc.Localize("WindowSystemContextActionBlurDisabledHint", "Background blur only takes effect when the window is inside the game window."));
                     }
                 }
 
-                ImGui.TextColored(
-                    ImGuiColors.DalamudGrey,
-                    Loc.Localize(
-                        "WindowSystemContextActionClickthroughDisclaimer",
-                        "Open this menu again by clicking the three dashes to disable clickthrough."));
+                if (this.Window.AllowClickthrough)
+                {
+                    ImGui.TextColored(
+                        ImGuiColors.DalamudGrey,
+                        Loc.Localize(
+                            "WindowSystemContextActionClickthroughDisclaimer",
+                            "Open this menu again by clicking the three dashes to disable clickthrough."));
+                }
 
                 if (ImGui.Button(Loc.Localize("WindowSystemContextActionPrintWindow", "Print window")))
                     printWindow = true;
@@ -603,6 +652,7 @@ public class WindowHost
 
         this.Window.IsPinned = this.presetWindow.IsPinned;
         this.Window.IsClickthrough = this.presetWindow.IsClickThrough;
+        this.Window.IsTopMost =  this.presetWindow.IsTopMost;
         this.internalAlpha = this.presetWindow.Alpha;
         this.internalBlurFactorOverride = this.presetWindow.BlurFactorOverride;
     }
@@ -618,6 +668,7 @@ public class WindowHost
         {
             this.presetWindow.IsPinned = this.Window.IsPinned;
             this.presetWindow.IsClickThrough = this.Window.IsClickthrough;
+            this.presetWindow.IsTopMost = this.Window.IsTopMost;
             this.presetWindow.Alpha = this.internalAlpha;
             this.presetWindow.BlurFactorOverride = this.internalBlurFactorOverride;
 
@@ -676,6 +727,8 @@ public class WindowHost
                 var pad = ImGui.GetStyle().TouchExtraPadding;
                 var rect = new ImRect(pos - pad, max + pad);
                 hovered = rect.Contains(ImGui.GetMousePos());
+
+                Log.Verbose("Cursor at {CursorPos}, button rect {Rect}, hovered: {Hovered}", ImGui.GetMousePos(), rect, hovered);
 
                 // Temporarily enable inputs
                 // This will be reset on next frame, and then enabled again if it is still being hovered

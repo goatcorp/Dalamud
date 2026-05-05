@@ -134,6 +134,12 @@ public interface IWindow
     bool IsClickthrough { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether this window is top-most.
+    /// Only applies to windows that are not on the main viewport.
+    /// </summary>
+    bool IsTopMost { get; set; }
+
+    /// <summary>
     /// Gets or sets a list of available title bar buttons.
     ///
     /// If <see cref="AllowPinning"/> or <see cref="AllowClickthrough"/> are set to true, and this features is not
