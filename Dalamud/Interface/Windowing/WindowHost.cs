@@ -652,7 +652,7 @@ public class WindowHost
 
         this.Window.IsPinned = this.presetWindow.IsPinned;
         this.Window.IsClickthrough = this.presetWindow.IsClickThrough;
-        this.Window.IsTopMost =  this.presetWindow.IsTopMost;
+        this.Window.IsTopMost = this.presetWindow.IsTopMost;
         this.internalAlpha = this.presetWindow.Alpha;
         this.internalBlurFactorOverride = this.presetWindow.BlurFactorOverride;
     }
@@ -727,8 +727,6 @@ public class WindowHost
                 var pad = ImGui.GetStyle().TouchExtraPadding;
                 var rect = new ImRect(pos - pad, max + pad);
                 hovered = rect.Contains(ImGui.GetMousePos());
-
-                Log.Verbose("Cursor at {CursorPos}, button rect {Rect}, hovered: {Hovered}", ImGui.GetMousePos(), rect, hovered);
 
                 // Temporarily enable inputs
                 // This will be reset on next frame, and then enabled again if it is still being hovered
