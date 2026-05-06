@@ -974,7 +974,7 @@ internal class DalamudInterface : IInternalDisposableService
                     }
 
                     ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false, false);
-                    ImGui.MenuItem($"D: {Versioning.GetScmVersion()} CS: {typeof(FFXIVClientStructs.ThisAssembly).GetName().Version!}[{FFXIVClientStructs.ThisAssembly.Git.Commit}]", false, false);
+                    ImGui.MenuItem($"D: {Versioning.GetScmVersion()} CS: {typeof(FFXIVClientStructs.ThisAssembly).Assembly.GetName().Version!}[{FFXIVClientStructs.ThisAssembly.Git.Commit}]", false, false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false, false);
 
                     ImGui.EndMenu();
