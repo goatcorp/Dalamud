@@ -536,63 +536,68 @@ internal class PluginManager : IInternalDisposableService
             }
         }
 
-        // devPlugins are more freeform. Look for any dll and hope to get lucky.
-        var devDllFiles = new List<FileInfo>();
-
-        foreach (var setting in this.configuration.DevPluginLoadLocations)
-        {
-            if (!setting.IsEnabled)
-                continue;
-
-            if (Directory.Exists(setting.Path))
-            {
-                devDllFiles.AddRange(new DirectoryInfo(setting.Path).GetFiles("*.dll", SearchOption.AllDirectories));
-            }
-            else if (File.Exists(setting.Path))
-            {
-                devDllFiles.Add(new FileInfo(setting.Path));
-            }
-        }
-
-        foreach (var dllFile in devDllFiles)
-        {
-            try
-            {
-                // Manifests are now required for devPlugins
-                var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-                if (!manifestFile.Exists)
-                {
-                    Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
-                    continue;
-                }
-
-                var manifest = LocalPluginManifest.Load(manifestFile);
-                if (manifest == null)
-                {
-                    Log.Error("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
-                    continue;
-                }
-
-                if (manifest != null && manifest.InternalName.IsNullOrEmpty())
-                {
-                    Log.Error("InternalName for dll at {Path} was null", manifestFile.FullName);
-                    continue;
-                }
-
-                devPluginDefs.Add(new PluginDef(dllFile, manifest, true));
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Could not load manifest for dev at {Directory}", dllFile.FullName);
-            }
-        }
-
         // Sort for load order - unloaded definitions have default priority of 0
         pluginDefs.Sort(PluginDef.Sorter);
-        devPluginDefs.Sort(PluginDef.Sorter);
 
-        // Dev plugins should load first.
-        pluginDefs.InsertRange(0, devPluginDefs);
+        // devPlugins are more freeform. Look for any dll and hope to get lucky.
+        var isDevModeEnabled = this.configuration.DevMode == true;
+        if (isDevModeEnabled)
+        {
+            var devDllFiles = new List<FileInfo>();
+
+            foreach (var setting in this.configuration.DevPluginLoadLocations)
+            {
+                if (!setting.IsEnabled)
+                    continue;
+
+                if (Directory.Exists(setting.Path))
+                {
+                    devDllFiles.AddRange(new DirectoryInfo(setting.Path).GetFiles("*.dll", SearchOption.AllDirectories));
+                }
+                else if (File.Exists(setting.Path))
+                {
+                    devDllFiles.Add(new FileInfo(setting.Path));
+                }
+            }
+
+            foreach (var dllFile in devDllFiles)
+            {
+                try
+                {
+                    // Manifests are now required for devPlugins
+                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
+                    if (!manifestFile.Exists)
+                    {
+                        Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
+                        continue;
+                    }
+
+                    var manifest = LocalPluginManifest.Load(manifestFile);
+                    if (manifest == null)
+                    {
+                        Log.Error("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
+                        continue;
+                    }
+
+                    if (manifest != null && manifest.InternalName.IsNullOrEmpty())
+                    {
+                        Log.Error("InternalName for dll at {Path} was null", manifestFile.FullName);
+                        continue;
+                    }
+
+                    devPluginDefs.Add(new PluginDef(dllFile, manifest, true));
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not load manifest for dev at {Directory}", dllFile.FullName);
+                }
+            }
+
+            devPluginDefs.Sort(PluginDef.Sorter);
+
+            // Dev plugins should load first.
+            pluginDefs.InsertRange(0, devPluginDefs);
+        }
 
         async Task LoadPluginOnBoot(string logPrefix, PluginDef pluginDef, CancellationToken token)
         {
