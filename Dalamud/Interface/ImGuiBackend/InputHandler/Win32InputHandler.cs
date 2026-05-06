@@ -255,8 +255,12 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             case WM.WM_MOUSELEAVE:
             {
                 this.mouseTracked = false;
-                var mouseScreenPos = new POINT(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-                ClientToScreen(hWndCurrent, &mouseScreenPos);
+                // WM_MOUSELEAVE has no parameters.
+                // Use GetCursorPos to obtain the real screen position instead.
+                var mouseScreenPos = default(POINT);
+                if (GetCursorPos(&mouseScreenPos) == 0)
+                    break;
+
                 if (this.ViewportFromPoint(mouseScreenPos).IsNull)
                 {
                     var fltMax = ImGuiNative.GETFLTMAX();
@@ -328,10 +332,28 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     if (this.mouseButtonsDown == 0 && GetCapture() == hWndCurrent)
                     {
                         ReleaseCapture();
+                        // SetCapture (called in WM_MOUSEACTIVATE) silently cancels any pending
+                        // TrackMouseEvent, so WM_MOUSELEAVE will not fire after the capture is
+                        // released. Reset mouseTracked so the GetCursorPos fallback in UpdateMouseData
+                        // runs until WM_MOUSEMOVE re-establishes tracking.
+                        this.mouseTracked = false;
                     }
 
                     io.AddMouseButtonEvent(button, false);
                     return default(LRESULT);
+                }
+
+                // WM_MOUSEACTIVATE on a viewport window calls SetCapture(this.hWnd) so that subsequent
+                // mouse messages are routed through our ProcessWndProcW hook even when the viewport is
+                // not the foreground window. WantCaptureMouse is false for clickthrough (NoInputs)
+                // viewports, so the block above never fires and the capture leaks indefinitely.
+                // We can release it here on button-up when no buttons remain tracked.
+                if (this.mouseButtonsDown == 0 && GetCapture() == this.hWnd)
+                {
+                    ReleaseCapture();
+                    // Same as above, SetCapture cancelled TrackMouseEvent, so WM_MOUSELEAVE
+                    // won't arrive. Reset mouseTracked to allow the GetCursorPos fallback to run.
+                    this.mouseTracked = false;
                 }
 
                 break;
@@ -448,11 +470,18 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
 
             case WM.WM_KILLFOCUS when hWndCurrent == this.hWnd:
                 io.AddFocusEvent(false);
-                // if (!ImGui.IsAnyMouseDown() && GetCapture() == hWndCurrent)
-                //     ReleaseCapture();
-                //
-                // ImGui.GetIO().WantCaptureMouse = false;
-                // ImGui.ClearWindowFocus();
+                // If we still hold mouse capture when losing focus, release it so normal OS
+                // hit-testing resumes and other windows can receive mouse messages. This is a
+                // safety net, capture should already be released on button-up, but if a button-up
+                // was lost (alt-tabbed mid-drag?), capture would leak forever.
+                // Also reset mouseTracked: SetCapture canceled any pending TrackMouseEvent, so
+                // WM_MOUSELEAVE won't arrive after we release here either.
+                if (GetCapture() == this.hWnd)
+                {
+                    ReleaseCapture();
+                    this.mouseTracked = false;
+                }
+
                 break;
         }
 
@@ -968,11 +997,18 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 var swpFlag = topMostChanged ? 0 : SWP.SWP_NOZORDER;
 
                 // Apply flags and position (since it is affected by flags)
-                data->DwStyle = newStyle;
-                data->DwExStyle = newExStyle;
+                // Only apply styles if they actually changed. Setting GWL_STYLE can hide the window, which causes flicker.
+                if (data->DwStyle != newStyle)
+                {
+                    data->DwStyle = newStyle;
+                    _ = SetWindowLongW(data->Hwnd, GWL.GWL_STYLE, data->DwStyle);
+                }
 
-                _ = SetWindowLongW(data->Hwnd, GWL.GWL_STYLE, data->DwStyle);
-                _ = SetWindowLongW(data->Hwnd, GWL.GWL_EXSTYLE, data->DwExStyle);
+                if (data->DwExStyle != newExStyle)
+                {
+                    data->DwExStyle = newExStyle;
+                    _ = SetWindowLongW(data->Hwnd, GWL.GWL_EXSTYLE, data->DwExStyle);
+                }
 
                 // Create window
                 var rect = new RECT

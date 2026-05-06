@@ -45,6 +45,12 @@ internal class PresetModel
         public bool IsClickThrough { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the window is topmost.
+        /// </summary>
+        [JsonProperty("tm")]
+        public bool IsTopMost { get; set; }
+
+        /// <summary>
         /// Gets or sets the window's opacity override.
         /// </summary>
         [JsonProperty("a")]

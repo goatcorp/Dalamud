@@ -126,6 +126,13 @@ public abstract class Window : IWindow
     public bool RequestFocus { get; set; }
 
     /// <inheritdoc/>
+    public bool IsTopMost
+    {
+        get => field && this.AllowClickthrough;
+        set;
+    }
+
+    /// <inheritdoc/>
     public void Toggle()
     {
         this.IsOpen ^= true;
