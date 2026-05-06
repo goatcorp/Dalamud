@@ -189,12 +189,12 @@ internal class DalamudInterface : IInternalDisposableService
                     () => Service<DalamudInterface>.GetNullable()?.ToggleDevMenu(),
                     VirtualKey.SHIFT);
 
-                if (Versioning.GetActiveTrack() != "release")
+                if (Versioning.GetActiveTrack() != "release" || configuration.DevMode == true)
                 {
                     titleScreenMenu.AddEntryCore(
                         Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
                         new ForwardingSharedImmediateTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
-                        () => this.isImGuiDrawDevMenu = true);
+                        () => this.isImGuiDrawDevMenu = !this.isImGuiDrawDevMenu);
                 }
             });
 

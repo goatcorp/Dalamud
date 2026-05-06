@@ -1,3 +1,4 @@
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -271,6 +272,7 @@ internal class DalamudCommands : IServiceType
     private void OnDebugDrawDevMenu(string command, string arguments)
     {
         Service<DalamudInterface>.Get().ToggleDevMenu();
+        Service<DalamudConfiguration>.Get().DevMode = true;
     }
 
     private void OnTogglePluginStats(string command, string arguments)

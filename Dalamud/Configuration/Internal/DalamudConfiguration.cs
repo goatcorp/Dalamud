@@ -131,6 +131,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public List<string> SeenPluginInternalName { get; set; } = [];
 
     /// <summary>
+    /// Gets or sets a value indicating whether developer mode is enabled.
+    /// </summary>
+    public bool? DevMode { get; set; }
+
+    /// <summary>
     /// Gets or sets a list of additional settings for devPlugins. The key is the absolute path
     /// to the plugin DLL. This is automatically generated for any plugins in the devPlugins folder.
     /// However by specifiying this value manually, you can add arbitrary files outside the normal
@@ -636,6 +641,8 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         this.AutoUpdateBehavior ??= this.AutoUpdatePlugins
                                         ? Plugin.Internal.AutoUpdate.AutoUpdateBehavior.UpdateAll
                                         : Plugin.Internal.AutoUpdate.AutoUpdateBehavior.OnlyNotify;
+
+        this.DevMode ??= this.DevPluginLoadLocations.Count != 0 || this.DevBarOpenAtStartup;
 #pragma warning restore CS0618
     }
 

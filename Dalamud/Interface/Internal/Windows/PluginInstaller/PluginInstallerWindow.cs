@@ -814,8 +814,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         // If any dev plugin locations exist, allow a shortcut for the /xldev menu item
-        var hasDevPluginLocations = configuration.DevPluginLoadLocations.Count > 0;
-        if (hasDevPluginLocations)
+        if (configuration.DevMode == true)
         {
             ImGui.SameLine();
             if (ImGui.Button(Locs.FooterButton_ScanDevPlugins))
