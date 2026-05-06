@@ -102,7 +102,7 @@ public class StyleEditorWindow : Window
         {
             this.SaveStyle();
 
-            var newStyle = config.SavedStyles[this.currentSel];
+            var newStyle = StyleModelV1.Get();
             newStyle.Name = Util.GetRandomName();
             config.SavedStyles.Add(newStyle);
 
