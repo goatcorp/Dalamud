@@ -165,11 +165,6 @@ internal static partial class HookVerifier
     {
         exceptions = [];
 
-        // Is Developer Mode enabled?
-        var configuration = Service<DalamudConfiguration>.GetNullable();
-        if (configuration?.DevMode != true)
-            return true;
-
         // Nothing to verify for this hook?
         if (!allToVerify.TryGetValue(address, out var entries))
             return true;
