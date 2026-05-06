@@ -80,7 +80,7 @@ internal sealed unsafe class Dalamud : IServiceType
         this.SetupClientStructsResolver(cacheDir);
 
         // Set up hook verification if we have any dev plugins. It takes a little while at the moment
-        if (configuration.DevPluginLoadLocations.Count > 0)
+        if (configuration.DevMode == true)
         {
             using var t = Timings.Start("HookVerifier Init");
             HookVerifier.Initialize();
