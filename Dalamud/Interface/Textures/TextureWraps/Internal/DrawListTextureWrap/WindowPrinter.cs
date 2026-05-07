@@ -73,7 +73,12 @@ internal sealed unsafe partial class DrawListTextureWrap
                 _ => 1,
             };
             for (var i = 0; i < window.DC.ChildWindows.Size; i++)
-                res += CountDrawList(window.DC.ChildWindows[i]);
+            {
+                var child = window.DC.ChildWindows[i];
+                if (IsWindowActiveAndVisible(child)) // Clipped children may have been marked not active
+                    res += CountDrawList(child);
+            }
+
             return res;
         }
     }
