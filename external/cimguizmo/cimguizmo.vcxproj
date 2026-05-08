@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\lib\cimguizmo\cimguizmo.cpp" />
+    <ClCompile Include="..\..\lib\cimguizmo\cimguizmo_impl.cpp" />
     <ClCompile Include="..\..\lib\cimguizmo\ImGuizmo\GraphEditor.cpp" />
     <ClCompile Include="..\..\lib\cimguizmo\ImGuizmo\ImCurveEdit.cpp" />
     <ClCompile Include="..\..\lib\cimguizmo\ImGuizmo\ImGradient.cpp" />
@@ -73,7 +74,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;CIMGUIZMO_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;CIMGUIZMO_EXPORTS;_WINDOWS;_USRDLL;IMGUI_USER_CONFIG="cimgui_user.h";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
@@ -89,7 +90,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;CIMGUIZMO_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;CIMGUIZMO_EXPORTS;_WINDOWS;_USRDLL;IMGUI_USER_CONFIG="cimgui_user.h";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>

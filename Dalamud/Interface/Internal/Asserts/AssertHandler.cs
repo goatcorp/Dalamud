@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 
@@ -17,8 +18,8 @@ namespace Dalamud.Interface.Internal.Asserts;
 /// </summary>
 internal class AssertHandler : IDisposable
 {
-    private const int HideThreshold = 20;
-    private const int HidePrintEvery = 1000;
+    private const int HideThreshold = 1;
+    private const int HidePrintEvery = 5000;
 
     private readonly HashSet<string> ignoredAsserts = [];
     private readonly Dictionary<string, uint> assertCounts = [];
@@ -55,8 +56,10 @@ internal class AssertHandler : IDisposable
     /// </summary>
     public unsafe void Setup()
     {
-        CustomNativeFunctions.igCustom_SetAssertCallback(
-            Marshal.GetFunctionPointerForDelegate(this.callback).ToPointer());
+        var cb = Marshal.GetFunctionPointerForDelegate(this.callback).ToPointer();
+        CustomNativeFunctions.igCustom_SetAssertCallback(cb);
+        CustomNativeFunctionsPlot.igCustom_SetAssertCallback(cb);
+        CustomNativeFunctionsGuizmo.igCustom_SetAssertCallback(cb);
     }
 
     /// <summary>
@@ -65,6 +68,8 @@ internal class AssertHandler : IDisposable
     public unsafe void Shutdown()
     {
         CustomNativeFunctions.igCustom_SetAssertCallback(null);
+        CustomNativeFunctionsPlot.igCustom_SetAssertCallback(null);
+        CustomNativeFunctionsGuizmo.igCustom_SetAssertCallback(null);
     }
 
     /// <inheritdoc/>
@@ -110,6 +115,10 @@ internal class AssertHandler : IDisposable
 
     private unsafe void OnImGuiAssert(void* pExpr, void* pFile, int line)
     {
+        // Only show in dev mode for now
+        if (!Service<DalamudConfiguration>.Get().DevMode.GetValueOrDefault(false))
+            return;
+
         var expr = Marshal.PtrToStringAnsi(new IntPtr(pExpr));
         var file = Marshal.PtrToStringAnsi(new IntPtr(pFile));
         if (expr == null || file == null)
@@ -156,7 +165,7 @@ internal class AssertHandler : IDisposable
                 expr,
                 file,
                 line,
-                stackTrace.Value.ToString());
+                stackTrace.Value.ToString().TrimEnd());
         }
 
         if (!this.ShowAsserts)
@@ -291,6 +300,22 @@ internal class AssertHandler : IDisposable
     private static unsafe class CustomNativeFunctions
     {
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+#pragma warning disable SA1300
+        public static extern void igCustom_SetAssertCallback(void* cb);
+#pragma warning restore SA1300
+    }
+
+    private static unsafe class CustomNativeFunctionsPlot
+    {
+        [DllImport("cimplot", CallingConvention = CallingConvention.Cdecl)]
+#pragma warning disable SA1300
+        public static extern void igCustom_SetAssertCallback(void* cb);
+#pragma warning restore SA1300
+    }
+
+    private static unsafe class CustomNativeFunctionsGuizmo
+    {
+        [DllImport("cimguizmo", CallingConvention = CallingConvention.Cdecl)]
 #pragma warning disable SA1300
         public static extern void igCustom_SetAssertCallback(void* cb);
 #pragma warning restore SA1300
