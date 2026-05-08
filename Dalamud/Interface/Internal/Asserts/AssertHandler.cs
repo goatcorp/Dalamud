@@ -18,15 +18,13 @@ namespace Dalamud.Interface.Internal.Asserts;
 internal class AssertHandler : IDisposable
 {
     private const int HideThreshold = 20;
-    private const int HidePrintEvery = 500;
+    private const int HidePrintEvery = 1000;
 
     private readonly HashSet<string> ignoredAsserts = [];
     private readonly Dictionary<string, uint> assertCounts = [];
 
     // Store callback to avoid it from being GC'd
     private readonly AssertCallbackDelegate callback;
-
-    private bool everShownAssertThisSession = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AssertHandler"/> class.
@@ -128,10 +126,6 @@ internal class AssertHandler : IDisposable
         if (this.ignoredAsserts.Contains(key))
             return;
 
-        // Don't log unless we've ever shown an assert this session
-        if (!this.ShowAsserts && !this.everShownAssertThisSession)
-            return;
-
         Lazy<StackTrace> stackTrace = new(GenerateStackTrace);
 
         if (!this.EnableVerboseLogging)
@@ -167,8 +161,6 @@ internal class AssertHandler : IDisposable
 
         if (!this.ShowAsserts)
             return;
-
-        this.everShownAssertThisSession = true;
 
         string? GetRepoUrl()
         {
