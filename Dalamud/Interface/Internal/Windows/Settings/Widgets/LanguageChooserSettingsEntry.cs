@@ -18,6 +18,7 @@ internal sealed class LanguageChooserSettingsEntry : SettingsEntry
     private readonly string[] locLanguages;
 
     private int langIndex = -1;
+    private int loadedLangIndex = -1;
 
     public LanguageChooserSettingsEntry()
     {
@@ -60,12 +61,20 @@ internal sealed class LanguageChooserSettingsEntry : SettingsEntry
         this.langIndex = Array.IndexOf(this.languages, Service<DalamudConfiguration>.Get().EffectiveLanguage);
         if (this.langIndex == -1)
             this.langIndex = 0;
+
+        this.loadedLangIndex = this.langIndex;
     }
 
     public override void Save()
     {
-        Service<Localization>.Get().SetupWithLangCode(this.languages[this.langIndex]);
-        Service<DalamudConfiguration>.Get().LanguageOverride = this.languages[this.langIndex];
+        if (this.langIndex == this.loadedLangIndex)
+            return;
+
+        var language = this.languages[this.langIndex];
+
+        Service<DalamudConfiguration>.Get().LanguageOverride = language;
+        Service<Localization>.Get().SetupWithLangCode(language);
+        this.loadedLangIndex = this.langIndex;
     }
 
     public override void Draw()

@@ -120,17 +120,7 @@ public class Localization : IServiceType
 
         Loc.SetupWithFallbacks(this.assembly);
 
-        foreach (var d in Delegate.EnumerateInvocationList(this.LocalizationChanged))
-        {
-            try
-            {
-                d(FallbackLangCode);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Exception during raise of {handler}", d.Method);
-            }
-        }
+        this.InvokeLocalizationChanged(FallbackLangCode, () => Loc.SetupWithFallbacks(this.assembly));
     }
 
     /// <summary>
@@ -149,24 +139,15 @@ public class Localization : IServiceType
 
         try
         {
-            Loc.Setup(this.ReadLocData(langCode), this.assembly);
+            var locData = this.ReadLocData(langCode);
+            Loc.Setup(locData, this.assembly);
+
+            this.InvokeLocalizationChanged(langCode, () => Loc.Setup(locData, this.assembly));
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Could not load loc {0}. Setting up fallbacks.", langCode);
             this.SetupWithFallbacks();
-        }
-
-        foreach (var d in Delegate.EnumerateInvocationList(this.LocalizationChanged))
-        {
-            try
-            {
-                d(langCode);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Exception during raise of {handler}", d.Method);
-            }
         }
     }
 
@@ -208,5 +189,32 @@ public class Localization : IServiceType
         }
 
         return File.ReadAllText(Path.Combine(this.locResourceDirectory, $"{this.locResourcePrefix}{langCode}.json"));
+    }
+
+    private void InvokeLocalizationChanged(string langCode, Action restoreLocalization)
+    {
+        foreach (var d in Delegate.EnumerateInvocationList(this.LocalizationChanged))
+        {
+            try
+            {
+                restoreLocalization();
+                d(langCode);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", d.Method);
+            }
+            finally
+            {
+                try
+                {
+                    restoreLocalization();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception restoring localization after raise of {handler}", d.Method);
+                }
+            }
+        }
     }
 }
