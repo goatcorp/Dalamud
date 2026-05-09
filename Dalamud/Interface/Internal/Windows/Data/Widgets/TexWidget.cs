@@ -3,12 +3,16 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -18,6 +22,8 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
+using Serilog;
 
 using TerraFX.Interop.DirectX;
 
@@ -71,6 +77,8 @@ internal class TexWidget : IDataWindowWidget
 
     private ImGuiViewportTextureArgs viewportTextureArgs;
     private int viewportIndexInt;
+    private uint drawListTextureWindowId;
+    private Vector2 drawListTextureWrapScale = Vector2.One;
     private string[]? supportedRenderTargetFormatNames;
     private DXGI_FORMAT[]? supportedRenderTargetFormats;
     private int renderTargetChoiceInt;
@@ -219,6 +227,12 @@ internal class TexWidget : IDataWindowWidget
             this.DrawCreateFromImGuiViewportAsync();
         }
 
+        if (ImGui.CollapsingHeader(nameof(ITextureProvider.CreateDrawListTexture)))
+        {
+            using var pushedId = ImRaii.PushId(nameof(this.DrawCreateDrawListTexture));
+            this.DrawCreateDrawListTexture();
+        }
+
         if (ImGui.CollapsingHeader("UV"u8))
         {
             using var pushedId = ImRaii.PushId(nameof(this.DrawUvInput));
@@ -301,6 +315,32 @@ internal class TexWidget : IDataWindowWidget
 
                         ImGui.Text($"RC: Resource({rcres})/View({rcsrv})");
                         ImGui.Text($"{source.Width} x {source.Height} | {source}");
+
+                        ImGui.SameLine();
+                        if (ImGui.Button("Test ConvertToKernelTexture"))
+                        {
+                            try
+                            {
+                                var kt = Service<TextureManager>.Get().ConvertToKernelTexture(source, true);
+                                new Thread(() =>
+                                {
+                                    Thread.Sleep(1000);
+                                    kt->DecRef();
+                                }).Start();
+                                Service<NotificationManager>.Get().AddNotification(
+                                    "Test success",
+                                    "TexWidget",
+                                    NotificationType.Success);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Error(e, "Failed to convert texture to kernel texture");
+                                Service<NotificationManager>.Get().AddNotification(
+                                    $"Failed to convert texture to kernel texture: {e.Message}",
+                                    "TexWidget",
+                                    NotificationType.Error);
+                            }
+                        }
                     }
                     else
                     {
@@ -794,6 +834,57 @@ internal class TexWidget : IDataWindowWidget
                         this.viewportTextureArgs with { ViewportId = viewports[this.viewportIndexInt].ID },
                         null),
                 });
+        }
+    }
+
+    private unsafe void DrawCreateDrawListTexture()
+    {
+        // note: do not take the snapshot of the data span here, because Combo may create a new window
+        ref var windows = ref ImGui.GetCurrentContext().Windows;
+        var selectedWindowIndex = -1;
+        var selectedWindowName = "(select one)"u8;
+        for (var i = 0; i < windows.Size; i++)
+        {
+            if (windows[i].ID == this.drawListTextureWindowId)
+            {
+                selectedWindowIndex = i;
+                selectedWindowName = GetWindowName(windows[i]);
+            }
+        }
+
+        using (var combo = ImRaii.Combo("Window"u8, selectedWindowName))
+        {
+            for (var i = combo.Success ? 0 : windows.Size; i < windows.Size; ++i)
+            {
+                var sel = i == selectedWindowIndex;
+                if (ImGui.Selectable(GetWindowName(windows[i]), ref sel))
+                {
+                    selectedWindowIndex = i;
+                    this.drawListTextureWindowId = windows[i].ID;
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+        }
+
+        ImGui.InputFloat2("Scale"u8, ref this.drawListTextureWrapScale);
+
+        if (ImGui.Button("Create"u8) && selectedWindowIndex >= 0 && selectedWindowIndex < windows.Size)
+        {
+            var dd = this.textureManager.CreateDrawListTexture();
+            dd.ResizeAndDrawWindow(windows[selectedWindowIndex], this.drawListTextureWrapScale);
+            this.addedTextures.Add(new()
+            {
+                Api10 = Task.FromResult<IDalamudTextureWrap>(dd),
+            });
+        }
+
+        return;
+
+        static ReadOnlySpan<byte> GetWindowName(ImGuiWindow* window)
+        {
+            if (window is null || window->Name is null)
+                return "(null)"u8;
+            return MemoryMarshal.CreateReadOnlySpanFromNullTerminated(window->Name);
         }
     }
 
