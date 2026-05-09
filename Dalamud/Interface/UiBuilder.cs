@@ -17,6 +17,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
@@ -805,7 +806,10 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 
     private void DrawErrorWindow()
     {
-        if (!ImGui.Begin($"{this.namespaceName} Error", ref this.hasErrorWindow, ImGuiWindowFlags.NoCollapse))
+        ImGui.SetNextWindowPos(ImGuiHelpers.MainViewport.GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f));
+        ImGui.SetNextWindowSizeConstraints(new Vector2(800 * ImGuiHelpers.GlobalScale, 0), new Vector2(float.MaxValue));
+        ImGuiHelpers.ForceNextWindowMainViewport();
+        if (!ImGui.Begin($"{this.namespaceName} Error", ref this.hasErrorWindow, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
         {
             ImGui.End();
             return;

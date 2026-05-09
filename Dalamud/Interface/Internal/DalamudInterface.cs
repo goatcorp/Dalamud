@@ -24,6 +24,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Badge;
+using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.Data;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
@@ -82,6 +83,10 @@ internal class DalamudInterface : IInternalDisposableService
 
     private bool isCreditsDarkening = false;
     private OutCubic creditsDarkeningAnimation = new(TimeSpan.FromSeconds(10));
+
+    private bool hasDrawError = false;
+    private Exception? lastDrawError = null;
+    private bool isDrawSuppressed = false;
 
 #if DEBUG
     private bool isImGuiDrawDevMenu = true;
@@ -583,39 +588,81 @@ internal class DalamudInterface : IInternalDisposableService
             }
 #endif
 
-        try
+        if (!this.hasDrawError && !this.isDrawSuppressed)
         {
-            this.DrawHiddenDevMenuOpener();
-            this.DrawDevMenu();
-            this.DrawTitleScreenBadges();
+            try
+            {
+                this.DrawHiddenDevMenuOpener();
+                this.DrawDevMenu();
+                this.DrawTitleScreenBadges();
 
-            if (Service<GameGui>.Get().GameUiHidden)
-                return;
+                if (Service<GameGui>.Get().GameUiHidden)
+                    return;
 
-            this.WindowSystem.Draw();
+                this.WindowSystem.Draw();
 
-            if (this.isImGuiTestWindowsInMonospace)
-                ImGui.PushFont(InterfaceManager.MonoFont);
+                if (this.isImGuiTestWindowsInMonospace)
+                    ImGui.PushFont(InterfaceManager.MonoFont);
 
-            if (this.isImGuiDrawDemoWindow)
-                ImGui.ShowDemoWindow(ref this.isImGuiDrawDemoWindow);
+                if (this.isImGuiDrawDemoWindow)
+                    ImGui.ShowDemoWindow(ref this.isImGuiDrawDemoWindow);
 
-            if (this.isImPlotDrawDemoWindow)
-                ImPlot.ShowDemoWindow(ref this.isImPlotDrawDemoWindow);
+                if (this.isImPlotDrawDemoWindow)
+                    ImPlot.ShowDemoWindow(ref this.isImPlotDrawDemoWindow);
 
-            if (this.isImGuiDrawMetricsWindow)
-                ImGui.ShowMetricsWindow(ref this.isImGuiDrawMetricsWindow);
+                if (this.isImGuiDrawMetricsWindow)
+                    ImGui.ShowMetricsWindow(ref this.isImGuiDrawMetricsWindow);
 
-            if (this.isImGuiTestWindowsInMonospace)
-                ImGui.PopFont();
+                if (this.isImGuiTestWindowsInMonospace)
+                    ImGui.PopFont();
 
-            if (this.isCreditsDarkening)
-                this.DrawCreditsDarkeningAnimation();
+                if (this.isCreditsDarkening)
+                    this.DrawCreditsDarkeningAnimation();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error during OnDraw");
+                this.hasDrawError = true;
+                this.lastDrawError = ex;
+            }
         }
-        catch (Exception ex)
+
+        if (this.hasDrawError)
+            this.DrawInternalErrorWindow();
+    }
+
+    private void DrawInternalErrorWindow()
+    {
+        ImGui.SetNextWindowPos(ImGuiHelpers.MainViewport.GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f));
+        ImGui.SetNextWindowSizeConstraints(new Vector2(800 * ImGuiHelpers.GlobalScale, 0), new Vector2(float.MaxValue));
+        ImGuiHelpers.ForceNextWindowMainViewport();
+        if (!ImGui.Begin(
+                Loc.Localize("DalamudInternalDrawErrorTitle", "Dalamud Error"),
+                ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
         {
-            Log.Error(ex, "Error during OnDraw");
+            ImGui.End();
+            return;
         }
+
+        DalamudComponents.DrawErrorDisplay(
+            Loc.Localize("DalamudInternalDrawError", "An error occurred while rendering the Dalamud interface. Some features may be unavailable, you may need to restart your game to continue using plugins.\nPlease contact us via Discord or GitHub."),
+            this.lastDrawError,
+            [
+                (Loc.Localize("DalamudInternalDrawErrorRecoverButton", "Attempt to retry"), () =>
+                    {
+                        this.hasDrawError = false;
+                        this.lastDrawError = null;
+                        this.isDrawSuppressed = false;
+                    }),
+                (Loc.Localize("DalamudInternalDrawErrorIgnoreButton", "Ignore and disable Dalamud UI"), () =>
+                {
+                    this.hasDrawError = false;
+                    this.lastDrawError = null;
+                    this.isDrawSuppressed = true;
+                })
+            ]);
+
+        ImGui.End();
     }
 
     private void DrawTitleScreenBadges()
