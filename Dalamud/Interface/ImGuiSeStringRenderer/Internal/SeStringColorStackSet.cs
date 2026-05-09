@@ -35,7 +35,7 @@ internal sealed class SeStringColorStackSet
         foreach (var row in uiColor)
             maxId = (int)Math.Max(row.RowId, maxId);
 
-        this.ColorTypes = new uint[maxId + 1, 4];
+        this.ColorTypes = new uint[maxId + 1, 9];
         foreach (var row in uiColor)
         {
             // Contains ABGR.
@@ -43,6 +43,10 @@ internal sealed class SeStringColorStackSet
             this.ColorTypes[row.RowId, 1] = row.Light;
             this.ColorTypes[row.RowId, 2] = row.ClassicFF;
             this.ColorTypes[row.RowId, 3] = row.ClearBlue;
+            this.ColorTypes[row.RowId, 5] = row.ClearWhite;
+            this.ColorTypes[row.RowId, 6] = row.ClearGreen;
+            this.ColorTypes[row.RowId, 7] = row.Unknown2; // ClearGrey
+            this.ColorTypes[row.RowId, 8] = row.Unknown3; // ClearPink
         }
 
         if (BitConverter.IsLittleEndian)
