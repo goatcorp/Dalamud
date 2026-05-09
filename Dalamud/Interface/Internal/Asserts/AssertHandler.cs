@@ -18,11 +18,8 @@ namespace Dalamud.Interface.Internal.Asserts;
 /// </summary>
 internal class AssertHandler : IDisposable
 {
-    private const int HideThreshold = 1;
-    private const int HidePrintEvery = 5000;
-
     private readonly HashSet<string> ignoredAsserts = [];
-    private readonly Dictionary<string, uint> assertCounts = [];
+    private readonly HashSet<string> seenAsserts = [];
 
     // Store callback to avoid it from being GC'd
     private readonly AssertCallbackDelegate callback;
@@ -139,27 +136,25 @@ internal class AssertHandler : IDisposable
 
         if (!this.EnableVerboseLogging)
         {
-            if (this.assertCounts.TryGetValue(key, out var count))
+            if (this.seenAsserts.Add(key))
             {
-                this.assertCounts[key] = count + 1;
+                WarnForPlugin();
 
-                if (count <= HideThreshold || count % HidePrintEvery == 0)
-                {
-                    Log.Warning(
-                        "ImGui assertion failed: {Expr} at {File}:{Line} (repeated {Count} times)",
-                        expr,
-                        file,
-                        line,
-                        count);
-                }
-            }
-            else
-            {
-                this.assertCounts[key] = 1;
+                Log.Warning(
+                    "ImGui assertion failed: {Expr} at {File}:{Line}\nFurther occurrences will be hidden. (/xldev -> GUI -> Enable verbose assert logging)\n{StackTrace:l}",
+                    expr,
+                    file,
+                    line,
+                    stackTrace);
             }
         }
         else
         {
+            if (this.seenAsserts.Add(key))
+            {
+                WarnForPlugin();
+            }
+
             Log.Warning(
                 "ImGui assertion failed: {Expr} at {File}:{Line}\n{StackTrace:l}",
                 expr,
@@ -294,6 +289,19 @@ internal class AssertHandler : IDisposable
         else if (result == ignoreButton)
         {
             this.ignoredAsserts.Add(key);
+        }
+
+        return;
+
+        void WarnForPlugin()
+        {
+            var pm = Service<PluginManager>.Get();
+            var localPlugin = pm.FindCallingPlugin(stackTrace.Value);
+
+            var errorHandler = localPlugin?
+                                   .ServiceScope?
+                                   .GetService(typeof(PluginErrorHandler)) as PluginErrorHandler;
+            errorHandler?.NotifyError();
         }
     }
 
