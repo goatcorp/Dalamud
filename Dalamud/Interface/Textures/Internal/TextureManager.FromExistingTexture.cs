@@ -40,7 +40,7 @@ internal sealed partial class TextureManager
 
         using var wrapAux = new WrapAux(wrap, leaveWrapOpen);
 
-        var flags = TextureFlags.TextureType2D | unknownForceAcceptFlag;
+        var flags = TextureFlags.TextureType2D | unknownForceAcceptFlag | TextureFlags.UserManaged;
         if (wrapAux.Desc.Usage == D3D11_USAGE.D3D11_USAGE_IMMUTABLE)
             flags |= TextureFlags.Immutable;
         if (wrapAux.Desc.Usage == D3D11_USAGE.D3D11_USAGE_DYNAMIC)

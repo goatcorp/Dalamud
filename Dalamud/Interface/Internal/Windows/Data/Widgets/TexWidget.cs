@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
@@ -321,7 +322,11 @@ internal class TexWidget : IDataWindowWidget
                             try
                             {
                                 var kt = Service<TextureManager>.Get().ConvertToKernelTexture(source, true);
-                                kt->DecRef();
+                                new Thread(() =>
+                                {
+                                    Thread.Sleep(1000);
+                                    kt->DecRef();
+                                }).Start();
                                 Service<NotificationManager>.Get().AddNotification(
                                     "Test success",
                                     "TexWidget",
@@ -834,10 +839,11 @@ internal class TexWidget : IDataWindowWidget
 
     private unsafe void DrawCreateDrawListTexture()
     {
-        var windows = ImGui.GetCurrentContext().Windows.AsSpan();
+        // note: do not take the snapshot of the data span here, because Combo may create a new window
+        ref var windows = ref ImGui.GetCurrentContext().Windows;
         var selectedWindowIndex = -1;
         var selectedWindowName = "(select one)"u8;
-        for (var i = 0; i < windows.Length; i++)
+        for (var i = 0; i < windows.Size; i++)
         {
             if (windows[i].ID == this.drawListTextureWindowId)
             {
@@ -848,7 +854,7 @@ internal class TexWidget : IDataWindowWidget
 
         using (var combo = ImRaii.Combo("Window"u8, selectedWindowName))
         {
-            for (var i = combo.Success ? 0 : windows.Length; i < windows.Length; ++i)
+            for (var i = combo.Success ? 0 : windows.Size; i < windows.Size; ++i)
             {
                 var sel = i == selectedWindowIndex;
                 if (ImGui.Selectable(GetWindowName(windows[i]), ref sel))
@@ -862,7 +868,7 @@ internal class TexWidget : IDataWindowWidget
 
         ImGui.InputFloat2("Scale"u8, ref this.drawListTextureWrapScale);
 
-        if (ImGui.Button("Create"u8) && selectedWindowIndex >= 0 && selectedWindowIndex < windows.Length)
+        if (ImGui.Button("Create"u8) && selectedWindowIndex >= 0 && selectedWindowIndex < windows.Size)
         {
             var dd = this.textureManager.CreateDrawListTexture();
             dd.ResizeAndDrawWindow(windows[selectedWindowIndex], this.drawListTextureWrapScale);
