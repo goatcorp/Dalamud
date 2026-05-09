@@ -82,6 +82,7 @@ internal class TexWidget : IDataWindowWidget
     private string[]? supportedRenderTargetFormatNames;
     private DXGI_FORMAT[]? supportedRenderTargetFormats;
     private int renderTargetChoiceInt;
+    private IDrawListTextureWrap? drawListBufferBackedTexture;
 
     private enum DrawBlameTableColumnUserId
     {
@@ -123,6 +124,8 @@ internal class TexWidget : IDataWindowWidget
         this.supportedRenderTargetFormats = null;
         this.supportedRenderTargetFormatNames = null;
         this.renderTargetChoiceInt = 0;
+        this.drawListBufferBackedTexture?.Dispose();
+        this.drawListBufferBackedTexture = null;
         this.textureModificationArgs = new()
         {
             Uv0 = new(0.25f),
@@ -231,6 +234,12 @@ internal class TexWidget : IDataWindowWidget
         {
             using var pushedId = ImRaii.PushId(nameof(this.DrawCreateDrawListTexture));
             this.DrawCreateDrawListTexture();
+        }
+
+        if (ImGui.CollapsingHeader($"{nameof(ITextureProvider.CreateDrawListTexture)} + {nameof(BufferBackedImDrawData)}"))
+        {
+            using var pushedId = ImRaii.PushId(nameof(this.DrawCreateDrawListTextureWithBufferBackedImDrawData));
+            this.DrawCreateDrawListTextureWithBufferBackedImDrawData();
         }
 
         if (ImGui.CollapsingHeader("UV"u8))
@@ -886,6 +895,36 @@ internal class TexWidget : IDataWindowWidget
                 return "(null)"u8;
             return MemoryMarshal.CreateReadOnlySpanFromNullTerminated(window->Name);
         }
+    }
+
+    private void DrawCreateDrawListTextureWithBufferBackedImDrawData()
+    {
+        if (ImGui.Button("Reset"u8))
+        {
+            this.drawListBufferBackedTexture?.Dispose();
+            this.drawListBufferBackedTexture = null;
+        }
+
+        if (this.drawListBufferBackedTexture is null)
+        {
+            using var drawData = BufferBackedImDrawData.Create();
+            var viewport = ImGui.GetMainViewport();
+            drawData.ListPtr.AddRectFilled(
+                Vector2.Zero,
+                viewport.Size,
+                ImGui.GetColorU32(System.Drawing.KnownColor.ForestGreen.Vector()));
+
+            drawData.DataPtr.DisplaySize = viewport.Size;
+            drawData.UpdateDrawDataStatistics();
+
+            this.drawListBufferBackedTexture = this.textureManager.CreateDrawListTexture("BufferBackedImDrawDataTest");
+            this.drawListBufferBackedTexture.Size = viewport.Size;
+            this.drawListBufferBackedTexture.Draw(drawData.DataPtr);
+        }
+
+        var tex = this.drawListBufferBackedTexture;
+        ImGui.Image(tex.Handle, tex.Size);
+        ImGuiHelpers.ScaledDummy(10);
     }
 
     private void DrawUvInput()
