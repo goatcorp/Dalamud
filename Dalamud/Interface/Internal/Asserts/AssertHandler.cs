@@ -145,7 +145,7 @@ internal class AssertHandler : IDisposable
                     expr,
                     file,
                     line,
-                    stackTrace);
+                    stackTrace.Value.ToString().TrimEnd());
             }
         }
         else
