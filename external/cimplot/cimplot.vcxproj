@@ -17,6 +17,7 @@
     <ClCompile Include="..\..\lib\cimgui\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\..\lib\cimgui\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\..\lib\cimplot\cimplot.cpp" />
+    <ClCompile Include="..\..\lib\cimplot\cimplot_impl.cpp" />
     <ClCompile Include="..\..\lib\cimplot\implot\implot.cpp" />
     <ClCompile Include="..\..\lib\cimplot\implot\implot_demo.cpp" />
     <ClCompile Include="..\..\lib\cimplot\implot\implot_items.cpp" />
@@ -71,7 +72,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;CIMPLOT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;CIMPLOT_EXPORTS;_WINDOWS;_USRDLL;IMGUI_USER_CONFIG="cimgui_user.h";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
@@ -87,7 +88,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;CIMPLOT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;CIMPLOT_EXPORTS;_WINDOWS;_USRDLL;IMGUI_USER_CONFIG="cimgui_user.h";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>

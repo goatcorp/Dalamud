@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 
@@ -17,16 +18,11 @@ namespace Dalamud.Interface.Internal.Asserts;
 /// </summary>
 internal class AssertHandler : IDisposable
 {
-    private const int HideThreshold = 20;
-    private const int HidePrintEvery = 500;
-
     private readonly HashSet<string> ignoredAsserts = [];
-    private readonly Dictionary<string, uint> assertCounts = [];
+    private readonly HashSet<string> seenAsserts = [];
 
     // Store callback to avoid it from being GC'd
     private readonly AssertCallbackDelegate callback;
-
-    private bool everShownAssertThisSession = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AssertHandler"/> class.
@@ -57,8 +53,10 @@ internal class AssertHandler : IDisposable
     /// </summary>
     public unsafe void Setup()
     {
-        CustomNativeFunctions.igCustom_SetAssertCallback(
-            Marshal.GetFunctionPointerForDelegate(this.callback).ToPointer());
+        var cb = Marshal.GetFunctionPointerForDelegate(this.callback).ToPointer();
+        CustomNativeFunctions.igCustom_SetAssertCallback(cb);
+        CustomNativeFunctionsPlot.igCustom_SetAssertCallback(cb);
+        CustomNativeFunctionsGuizmo.igCustom_SetAssertCallback(cb);
     }
 
     /// <summary>
@@ -67,6 +65,8 @@ internal class AssertHandler : IDisposable
     public unsafe void Shutdown()
     {
         CustomNativeFunctions.igCustom_SetAssertCallback(null);
+        CustomNativeFunctionsPlot.igCustom_SetAssertCallback(null);
+        CustomNativeFunctionsGuizmo.igCustom_SetAssertCallback(null);
     }
 
     /// <inheritdoc/>
@@ -112,6 +112,10 @@ internal class AssertHandler : IDisposable
 
     private unsafe void OnImGuiAssert(void* pExpr, void* pFile, int line)
     {
+        // Only show in dev mode for now
+        if (!Service<DalamudConfiguration>.Get().DevMode.GetValueOrDefault(false))
+            return;
+
         var expr = Marshal.PtrToStringAnsi(new IntPtr(pExpr));
         var file = Marshal.PtrToStringAnsi(new IntPtr(pFile));
         if (expr == null || file == null)
@@ -128,47 +132,39 @@ internal class AssertHandler : IDisposable
         if (this.ignoredAsserts.Contains(key))
             return;
 
-        // Don't log unless we've ever shown an assert this session
-        if (!this.ShowAsserts && !this.everShownAssertThisSession)
-            return;
-
         Lazy<StackTrace> stackTrace = new(GenerateStackTrace);
 
         if (!this.EnableVerboseLogging)
         {
-            if (this.assertCounts.TryGetValue(key, out var count))
+            if (this.seenAsserts.Add(key))
             {
-                this.assertCounts[key] = count + 1;
+                WarnForPlugin();
 
-                if (count <= HideThreshold || count % HidePrintEvery == 0)
-                {
-                    Log.Warning(
-                        "ImGui assertion failed: {Expr} at {File}:{Line} (repeated {Count} times)",
-                        expr,
-                        file,
-                        line,
-                        count);
-                }
-            }
-            else
-            {
-                this.assertCounts[key] = 1;
+                Log.Warning(
+                    "ImGui assertion failed: {Expr} at {File}:{Line}\nFurther occurrences will be hidden. (/xldev -> GUI -> Enable verbose assert logging)\n{StackTrace:l}",
+                    expr,
+                    file,
+                    line,
+                    stackTrace.Value.ToString().TrimEnd());
             }
         }
         else
         {
+            if (this.seenAsserts.Add(key))
+            {
+                WarnForPlugin();
+            }
+
             Log.Warning(
                 "ImGui assertion failed: {Expr} at {File}:{Line}\n{StackTrace:l}",
                 expr,
                 file,
                 line,
-                stackTrace.Value.ToString());
+                stackTrace.Value.ToString().TrimEnd());
         }
 
         if (!this.ShowAsserts)
             return;
-
-        this.everShownAssertThisSession = true;
 
         string? GetRepoUrl()
         {
@@ -294,11 +290,40 @@ internal class AssertHandler : IDisposable
         {
             this.ignoredAsserts.Add(key);
         }
+
+        return;
+
+        void WarnForPlugin()
+        {
+            var pm = Service<PluginManager>.Get();
+            var localPlugin = pm.FindCallingPlugin(stackTrace.Value);
+
+            var errorHandler = localPlugin?
+                                   .ServiceScope?
+                                   .GetService(typeof(PluginErrorHandler)) as PluginErrorHandler;
+            errorHandler?.NotifyError();
+        }
     }
 
     private static unsafe class CustomNativeFunctions
     {
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+#pragma warning disable SA1300
+        public static extern void igCustom_SetAssertCallback(void* cb);
+#pragma warning restore SA1300
+    }
+
+    private static unsafe class CustomNativeFunctionsPlot
+    {
+        [DllImport("cimplot", CallingConvention = CallingConvention.Cdecl)]
+#pragma warning disable SA1300
+        public static extern void igCustom_SetAssertCallback(void* cb);
+#pragma warning restore SA1300
+    }
+
+    private static unsafe class CustomNativeFunctionsGuizmo
+    {
+        [DllImport("cimguizmo", CallingConvention = CallingConvention.Cdecl)]
 #pragma warning disable SA1300
         public static extern void igCustom_SetAssertCallback(void* cb);
 #pragma warning restore SA1300

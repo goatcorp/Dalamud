@@ -171,7 +171,9 @@ internal class DalamudInterface : IInternalDisposableService
         this.WindowSystem.AddWindow(this.branchSwitcherWindow);
         this.WindowSystem.AddWindow(this.hitchSettingsWindow);
 
-        this.interfaceManager.ShowAsserts = configuration.ImGuiAssertsEnabledAtStartup ?? false;
+        this.interfaceManager.ShowAsserts = configuration.DevMode == true &&
+                                            configuration.ImGuiAssertsEnabledAtStartup == true;
+
         this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
 
         this.interfaceManager.Draw += this.OnDraw;
