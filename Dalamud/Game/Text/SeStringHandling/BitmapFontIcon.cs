@@ -789,4 +789,34 @@ public enum BitmapFontIcon : uint
     /// The Event Tutorial icon.
     /// </summary>
     EventTutorial = 182,
+
+    /// <summary>
+    /// The Beastmaster icon.
+    /// </summary>
+    Beastmaster = 183,
+
+    /// <summary>
+    /// A red star icon.
+    /// </summary>
+    RedStar = 184,
+
+    /// <summary>
+    /// A blunt damage icon.
+    /// </summary>
+    BluntDamage = 185,
+
+    /// <summary>
+    /// A piecing damage icon.
+    /// </summary>
+    PiercingDamage = 186,
+
+    /// <summary>
+    /// A slashing damage icon.
+    /// </summary>
+    SlashingDamage = 187,
+
+    /// <summary>
+    /// A magical damage icon.
+    /// </summary>
+    MagicalDamage = 188,
 }
