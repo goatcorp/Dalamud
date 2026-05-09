@@ -23,18 +23,24 @@ namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
 internal sealed class DevPluginsSettingsEntry : SettingsEntry
 {
+    private readonly FileDialogManager fileDialogManager = new();
+    private readonly Func<bool>? checkVisibility;
+
     private List<DevPluginLocationSettings> devPluginLocations = [];
     private bool devPluginLocationsChanged;
     private string devPluginTempLocation = string.Empty;
     private string devPluginLocationAddError = string.Empty;
-    private FileDialogManager fileDialogManager = new();
+    private bool hadDevPlugins;
 
-    public DevPluginsSettingsEntry()
+    public DevPluginsSettingsEntry(Func<bool>? visibility = null)
     {
         this.Name = LazyLoc.Localize("DalamudSettingsDevPluginLocation", "Dev Plugin Locations");
+        this.checkVisibility = visibility;
     }
 
-    public override bool IsVisible => Service<DalamudConfiguration>.Get().DevMode == true;
+    public override bool IsVisible => this.IsDevModeEnabled || this.hadDevPlugins;
+
+    private bool IsDevModeEnabled => this.checkVisibility?.Invoke() ?? true;
 
     public override void OnClose()
     {
@@ -47,6 +53,8 @@ internal sealed class DevPluginsSettingsEntry : SettingsEntry
         this.devPluginLocations =
             [.. Service<DalamudConfiguration>.Get().DevPluginLoadLocations.Select(x => x.Clone())];
         this.devPluginLocationsChanged = false;
+        if (this.devPluginLocations.Count > 0)
+            this.hadDevPlugins = true;
     }
 
     public override void Save()
@@ -63,6 +71,17 @@ internal sealed class DevPluginsSettingsEntry : SettingsEntry
     public override void Draw()
     {
         using var id = ImRaii.PushId("devPluginLocation"u8);
+
+        if (!this.IsDevModeEnabled)
+        {
+            ImGui.TextColoredWrapped(
+                ImGuiColors.AttentionForeground,
+                LazyLoc.Localize(
+                    "DalamudSettingDevModeDisabledWithDevPlugins",
+                    "Developer Mode is disabled, but dev plugins were loaded during this session.\n" +
+                    "They will stay loaded, but will not show in the installer next time the game is restarted."));
+            return;
+        }
 
         ImGui.Text(this.Name);
 
@@ -235,6 +254,7 @@ internal sealed class DevPluginsSettingsEntry : SettingsEntry
                     IsEnabled = true,
                 });
             this.devPluginLocationsChanged = true;
+            this.hadDevPlugins = true;
             this.devPluginTempLocation = string.Empty;
         }
 
