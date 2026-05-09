@@ -26,9 +26,21 @@ internal sealed partial class TextureManager
     /// <inheritdoc cref="ITextureProvider.ConvertToKernelTexture"/>
     public unsafe Texture* ConvertToKernelTexture(IDalamudTextureWrap wrap, bool leaveWrapOpen = false)
     {
+        const TextureFlags unknownForceAcceptFlag = (TextureFlags)0x1000;
+        // CreateTexture2D:
+        //   if ((flags & 0x1800) || someFunction(gtex, 0)) {
+        //     someFunction2(gtex Notifier part);
+        //     return gtex;
+        //   }
+        // 0x800: Immutable; might be incorrect
+        // What does 0x1000 do? idk but:
+        //   1. skips `someFunction`
+        //   2. `someFunction2` does not touch `flags`
+        // so the value of `flags` does not matter, for now (7.50hf1)
+
         using var wrapAux = new WrapAux(wrap, leaveWrapOpen);
 
-        var flags = TextureFlags.TextureType2D;
+        var flags = TextureFlags.TextureType2D | unknownForceAcceptFlag;
         if (wrapAux.Desc.Usage == D3D11_USAGE.D3D11_USAGE_IMMUTABLE)
             flags |= TextureFlags.Immutable;
         if (wrapAux.Desc.Usage == D3D11_USAGE.D3D11_USAGE_DYNAMIC)
@@ -49,6 +61,11 @@ internal sealed partial class TextureManager
             0, // instructs the game to skip preprocessing it seems
             flags,
             0);
+
+        if (gtex is null)
+            throw new($"{nameof(Texture.CreateTexture2D)} failed");
+
+        gtex->Flags &= ~unknownForceAcceptFlag;
 
         // Kernel::Texture owns these resources. We're passing the ownership to them.
         wrapAux.TexPtr->AddRef();

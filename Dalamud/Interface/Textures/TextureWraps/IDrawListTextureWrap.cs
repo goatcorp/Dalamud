@@ -57,4 +57,12 @@ public interface IDrawListTextureWrap : IDalamudTextureWrap
     /// <see cref="ImGui.Begin(ImU8String, ImGuiWindowFlags)"/>.</param>
     /// <param name="scale">Scale to apply to all draw commands in the draw list.</param>
     void ResizeAndDrawWindow(ReadOnlySpan<char> windowName, Vector2 scale);
+
+    /// <inheritdoc cref="ResizeAndDrawWindow(ReadOnlySpan{char}, Vector2)"/>
+    void ResizeAndDrawWindow(ImU8String windowName, Vector2 scale);
+
+    /// <summary>Resizes this texture and draws an ImGui window.</summary>
+    /// <param name="windowPtr">Window to draw.</param>
+    /// <param name="scale">Scale to apply to all draw commands in the draw list.</param>
+    void ResizeAndDrawWindow(ImGuiWindowPtr windowPtr, Vector2 scale);
 }
