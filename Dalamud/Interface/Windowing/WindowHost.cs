@@ -9,6 +9,7 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -811,47 +812,22 @@ public class WindowHost
     private void DrawErrorMessage()
     {
         // TODO: Once window systems are services, offer to reload the plugin
-        ImGui.TextColoredWrapped(ImGuiColors.ErrorForeground, Loc.Localize("WindowSystemErrorOccurred", "An error occurred while rendering this window. Please contact the developer for details."));
-
-        ImGuiHelpers.ScaledDummy(5);
-
-        if (ImGui.Button(Loc.Localize("WindowSystemErrorRecoverButton", "Attempt to retry")))
-        {
-            this.hasError = false;
-            this.lastError = null;
-        }
-
-        ImGui.SameLine();
-
-        if (ImGui.Button(Loc.Localize("WindowSystemErrorClose", "Close Window")))
-        {
-            this.Window.IsOpen = false;
-            this.hasError = false;
-            this.lastError = null;
-        }
-
-        ImGuiHelpers.ScaledDummy(10);
-
-        if (this.lastError != null)
-        {
-            using var child = ImRaii.Child("##ErrorDetails", new Vector2(0, 200 * ImGuiHelpers.GlobalScale), true);
-            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
-            {
-                ImGui.TextWrapped(Loc.Localize("WindowSystemErrorDetails", "Error Details:"));
-                ImGui.Separator();
-                ImGui.TextWrapped(this.lastError.ToString());
-            }
-
-            var childWindowSize = ImGui.GetWindowSize();
-            var copyText = Loc.Localize("WindowSystemErrorCopy", "Copy");
-            var buttonWidth = ImGuiComponents.GetIconButtonWithTextWidth(FontAwesomeIcon.Copy, copyText);
-            ImGui.SetCursorPos(new Vector2(childWindowSize.X - buttonWidth - ImGui.GetStyle().FramePadding.X,
-                                           ImGui.GetStyle().FramePadding.Y));
-            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Copy, copyText))
-            {
-                ImGui.SetClipboardText(this.lastError.ToString());
-            }
-        }
+        DalamudComponents.DrawErrorDisplay(
+            Loc.Localize("WindowSystemErrorOccurred", "An error occurred while rendering this window. Please contact the developer for details."),
+            this.lastError,
+            [
+                (Loc.Localize("WindowSystemErrorRecoverButton", "Attempt to retry"), () =>
+                    {
+                        this.hasError = false;
+                        this.lastError = null;
+                    }),
+                (Loc.Localize("WindowSystemErrorClose", "Close Window"), () =>
+                {
+                    this.Window.IsOpen = false;
+                    this.hasError = false;
+                    this.lastError = null;
+                })
+            ]);
     }
 
     /// <summary>
