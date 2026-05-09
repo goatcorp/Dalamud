@@ -6,7 +6,7 @@ using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Utility;
 
-/// <summary>Wrapper aroundx <see cref="ImDrawData"/> containing one <see cref="ImDrawList"/>.</summary>
+/// <summary>Wrapper around <see cref="ImDrawData"/> containing one <see cref="ImDrawList"/>.</summary>
 public unsafe struct BufferBackedImDrawData : IDisposable
 {
     private nint buffer;
@@ -56,6 +56,7 @@ public unsafe struct BufferBackedImDrawData : IDisposable
         ds->Data.CmdLists = &ds->ListPtr;
         ds->Data.CmdListsCount = 1;
         ds->Data.FramebufferScale = Vector2.One;
+        ds->Data.Valid = 1;
 
         res.ListPtr._ResetForNewFrame();
         res.ListPtr.PushClipRectFullScreen();
