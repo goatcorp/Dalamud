@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 using Dalamud.Console;
+using Dalamud.Game.Gui;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -14,6 +15,7 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using FFXIVClientStructs.FFXIV.Component.Shell;
 
 namespace Dalamud.Game.Command;
@@ -96,6 +98,13 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 
         if (!this.commandMap.TryGetValue(command, out var handler)) // Command was not found.
             return false;
+
+        if (!handler.AllowedInMacros && this.IsMacroRunning())
+        {
+            Log.Warning("Command {CommandName} is not allowed to be run in macros.", command);
+            Service<ChatGui>.Get().PrintError($"Command {command} cannot be run in a macro.");
+            return false;
+        }
 
         this.DispatchCommand(command, argument, handler);
         return true;
@@ -235,6 +244,12 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         if (result != -1) return result;
 
         return this.ProcessCommand(command->ToString()) ? 0 : result;
+    }
+
+    private unsafe bool IsMacroRunning()
+    {
+        var shellModule = RaptureShellModule.Instance();
+        return shellModule->MacroCurrentLine != 0;
     }
 
     /// <inheritdoc />
