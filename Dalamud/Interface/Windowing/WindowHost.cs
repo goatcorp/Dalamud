@@ -294,10 +294,10 @@ public class WindowHost
                         ImGui.GetWindowDrawList(),
                         wPos,
                         wPos + ImGui.GetWindowSize(),
-                        effectiveBlurFactor * MaxBlurStrength,
+                        float.Lerp(0.005f, effectiveBlurFactor, this.internalAlpha ?? 1f) * MaxBlurStrength,
                         ImGui.GetStyle().WindowRounding,
                         tintColor: ImGui.GetStyle().Colors[ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows) ? (int)ImGuiCol.TitleBgActive : (int)ImGuiCol.TitleBg] * BlurTintMultiplier,
-                        noiseOpacity: BlurNoiseOpacity * effectiveWindowBgAlpha);
+                        noiseOpacity: float.Lerp(0.09f, 1f, effectiveWindowBgAlpha * this.internalAlpha ?? 1f) * BlurNoiseOpacity);
                 }
             }
 
@@ -433,6 +433,10 @@ public class WindowHost
                                       100f, "%.1f%%"))
                 {
                     this.internalAlpha = Math.Clamp(alpha / 100f, 0.2f, 1f);
+                }
+
+                if (ImGui.IsItemDeactivatedAfterEdit())
+                {
                     this.presetDirty = true;
                 }
 
@@ -446,6 +450,10 @@ public class WindowHost
                         if (ImGui.Button(Loc.Localize("WindowSystemContextActionReset", "Reset") + "##resetBlur"))
                         {
                             this.internalBlurFactorOverride = null;
+                        }
+
+                        if (ImGui.IsItemDeactivatedAfterEdit())
+                        {
                             this.presetDirty = true;
                         }
                     }
