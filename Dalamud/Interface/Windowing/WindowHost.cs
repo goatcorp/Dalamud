@@ -31,7 +31,7 @@ namespace Dalamud.Interface.Windowing;
 public class WindowHost
 {
     private const float FadeInOutTime = 0.072f;
-    private const float BlurNoiseOpacity = 0.17f;
+    private const float BlurNoiseOpacity = 0.60f;
     private const float MaxBlurStrength = 14f;
     private const string AdditionsPopupName = "WindowSystemContextActions";
 
@@ -297,7 +297,7 @@ public class WindowHost
                         effectiveBlurFactor * MaxBlurStrength,
                         ImGui.GetStyle().WindowRounding,
                         tintColor: ImGui.GetStyle().Colors[ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows) ? (int)ImGuiCol.TitleBgActive : (int)ImGuiCol.TitleBg] * BlurTintMultiplier,
-                        noiseOpacity: BlurNoiseOpacity * effectiveWindowBgAlpha);
+                        noiseOpacity: BlurNoiseOpacity * (effectiveWindowBgAlpha / 10.0f));
                 }
             }
 
@@ -433,6 +433,10 @@ public class WindowHost
                                       100f, "%.1f%%"))
                 {
                     this.internalAlpha = Math.Clamp(alpha / 100f, 0.2f, 1f);
+                }
+
+                if (ImGui.IsItemDeactivatedAfterEdit())
+                {
                     this.presetDirty = true;
                 }
 
@@ -457,6 +461,10 @@ public class WindowHost
                     if (ImGui.SliderFloat(Loc.Localize("WindowSystemContextActionBlur", "Background Blur"), ref blurOverride, 0f, 100f, "%.1f%%"))
                     {
                         this.internalBlurFactorOverride = blurOverride / 100f;
+                    }
+
+                    if (ImGui.IsItemDeactivatedAfterEdit())
+                    {
                         this.presetDirty = true;
                     }
 
