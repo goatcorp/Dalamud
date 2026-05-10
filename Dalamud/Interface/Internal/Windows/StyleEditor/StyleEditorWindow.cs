@@ -8,6 +8,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
@@ -229,7 +230,7 @@ public class StyleEditorWindow : Window
             var changes = false;
             if (ImGui.BeginTabItem(Loc.Localize("StyleEditorVariables", "Variables")))
             {
-                if (ImGui.BeginChild($"ScrollingVars", ImGuiHelpers.ScaledVector2(0, -32), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
+                if (ImGui.BeginChild($"ScrollingVars", ImGuiHelpers.ScaledVector2(0, 0), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
                 {
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
 
@@ -285,7 +286,7 @@ public class StyleEditorWindow : Window
 
             if (ImGui.BeginTabItem(Loc.Localize("StyleEditorColors", "Colors")))
             {
-                if (ImGui.BeginChild("ScrollingColors"u8, ImGuiHelpers.ScaledVector2(0, -30), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
+                if (ImGui.BeginChild("ScrollingColors"u8, ImGuiHelpers.ScaledVector2(0, 0), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
                 {
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
 
@@ -386,16 +387,10 @@ public class StyleEditorWindow : Window
 
         ImGui.PopItemWidth();
 
-        ImGui.Separator();
-
-        if (ImGui.Button(Loc.Localize("Close", "Close")))
-        {
+        if (DalamudComponents.DrawFloatingSaveDiscardButtons(out var saveClicked))
             this.IsOpen = false;
-        }
 
-        ImGui.SameLine();
-
-        if (ImGui.Button(Loc.Localize("SaveAndClose", "Save and Close")))
+        if (saveClicked)
         {
             this.SaveStyle();
 
@@ -403,8 +398,6 @@ public class StyleEditorWindow : Window
             Log.Verbose("ChosenStyle = {ChosenStyle}", config.ChosenStyle);
 
             this.didSave = true;
-
-            this.IsOpen = false;
         }
 
         if (ImGui.BeginPopupModal(renameModalTitle, ref this.renameModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))

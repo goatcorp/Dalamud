@@ -6,7 +6,7 @@ using CheapLoc;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Components;
+using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
@@ -159,8 +159,6 @@ internal sealed class SettingsWindow : Window
             ImGui.InputTextWithHint("###searchInput"u8, Loc.Localize("DalamudSettingsSearchPlaceholder", "Search for settings..."), ref this.searchInput, 100, ImGuiInputTextFlags.AutoSelectAll);
         ImGui.Spacing();
 
-        var windowSize = ImGui.GetWindowSize();
-
         using (var tabBar = ImRaii.TabBar("###settingsTabs"u8))
         {
             if (tabBar)
@@ -173,42 +171,21 @@ internal sealed class SettingsWindow : Window
         }
 
         var hasInvalidEntries = this.tabs.Any(x => x.Entries.Any(y => !y.IsValid));
-        var saveButtonText = Loc.Localize("DalamudSettingsSaveButton", "Save");
-        var saveButtonWidth = ImGuiComponents.GetIconButtonWithTextWidth(FontAwesomeIcon.Save, saveButtonText);
-        ImGui.SetCursorPos(windowSize - new Vector2(saveButtonWidth + ImGuiHelpers.ScaledVector2(74).X, ImGuiHelpers.ScaledVector2(74).Y));
 
-        using (var buttonChild = ImRaii.Child("###settingsFinishButton"u8))
+        if (DalamudComponents.DrawFloatingSaveDiscardButtons(
+                out var saveClicked,
+                saveDisabled: hasInvalidEntries,
+                saveDisabledTooltip: Loc.Localize("DalamudSettingsSaveBlocked", "Some settings have invalid values and cannot be saved.")))
         {
-            if (buttonChild)
-            {
-                using var disabled = ImRaii.Disabled(hasInvalidEntries);
+            this.IsOpen = false;
+        }
 
-                using (ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 100f))
-                using (ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(16, 12)))
-                {
-                    if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Save, saveButtonText))
-                    {
-                        this.Save();
+        if (saveClicked)
+        {
+            this.Save();
 
-                        if (!ImGui.IsKeyDown(ImGuiKey.ModShift))
-                            this.IsOpen = false;
-                    }
-                }
-
-                if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
-                {
-                    if (hasInvalidEntries)
-                    {
-                        ImGui.SetTooltip(Loc.Localize("DalamudSettingsSaveBlocked", "Some settings have invalid values and cannot be saved."));
-                    }
-                    else
-                    {
-                        ImGui.SetTooltip(!ImGui.IsKeyDown(ImGuiKey.ModShift)
-                                             ? Loc.Localize("DalamudSettingsSaveAndExit", "Save changes and close")
-                                             : Loc.Localize("DalamudSettingsSave", "Save changes"));
-                    }
-                }
-            }
+            if (!ImGui.IsKeyDown(ImGuiKey.ModShift))
+                this.IsOpen = false;
         }
     }
 
