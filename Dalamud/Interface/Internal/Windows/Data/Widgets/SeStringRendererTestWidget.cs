@@ -282,21 +282,21 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         ImGuiHelpers.ScaledDummy(3);
         ImGuiHelpers.CompileSeStringWrapped(
             "Optional features implemented for the following test input:<br>" +
-            "· <colortype(506)><edgecolortype(507)>line breaks<colortype(0)><edgecolortype(0)> are automatically replaced to <colortype(502)><edgecolortype(503)>\\<br><colortype(0)><edgecolortype(0)>.<br>" +
-            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>alamud<colortype(0)><edgecolortype(0)> will display Dalamud.<br>" +
-            "· <colortype(506)><edgecolortype(507)>W<link(0xCE)>hite<colortype(0)><edgecolortype(0)> will display White.<br>" +
-            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>efaultIcon<colortype(0)><edgecolortype(0)> will display DefaultIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>isabledIcon<colortype(0)><edgecolortype(0)> will display DisabledIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>O<link(0xCE)>utdatedInstallableIcon<colortype(0)><edgecolortype(0)> will display OutdatedInstallableIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>T<link(0xCE)>roubleIcon<colortype(0)><edgecolortype(0)> will display TroubleIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>evPluginIcon<colortype(0)><edgecolortype(0)> will display DevPluginIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>U<link(0xCE)>pdateIcon<colortype(0)><edgecolortype(0)> will display UpdateIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>I<link(0xCE)>nstalledIcon<colortype(0)><edgecolortype(0)> will display InstalledIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>T<link(0xCE)>hirdIcon<colortype(0)><edgecolortype(0)> will display ThirdIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>T<link(0xCE)>hirdInst<link(0xCE)>alledIcon<colortype(0)><edgecolortype(0)> will display ThirdInstalledIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>C<link(0xCE)>hangelogApiBumpIcon<colortype(0)><edgecolortype(0)> will display ChangelogApiBumpIcon.<br>" +
-            "· <colortype(506)><edgecolortype(507)>icon<link(0xCE)>(5)<colortype(0)><edgecolortype(0)> will display icon(5). This is different from \\<icon<link(0xCE)>(5)>.<br>" +
-            "· <colortype(506)><edgecolortype(507)>tex<link(0xCE)>(ui/loadingimage/-nowloading_base25_hr1.tex)<colortype(0)><edgecolortype(0)> will display tex(ui/loadingimage/-nowloading_base25_hr1.tex).",
+            "· <colortype(710)>line breaks<colortype(0)> are automatically replaced to <colortype(710)>\\<br><colortype(0)>.<br>" +
+            "· <colortype(710)>D<link(0xCE)>alamud<colortype(0)> will display Dalamud.<br>" +
+            "· <colortype(710)>W<link(0xCE)>hite<colortype(0)> will display White.<br>" +
+            "· <colortype(710)>D<link(0xCE)>efaultIcon<colortype(0)> will display DefaultIcon.<br>" +
+            "· <colortype(710)>D<link(0xCE)>isabledIcon<colortype(0)> will display DisabledIcon.<br>" +
+            "· <colortype(710)>O<link(0xCE)>utdatedInstallableIcon<colortype(0)> will display OutdatedInstallableIcon.<br>" +
+            "· <colortype(710)>T<link(0xCE)>roubleIcon<colortype(0)> will display TroubleIcon.<br>" +
+            "· <colortype(710)>D<link(0xCE)>evPluginIcon<colortype(0)> will display DevPluginIcon.<br>" +
+            "· <colortype(710)>U<link(0xCE)>pdateIcon<colortype(0)> will display UpdateIcon.<br>" +
+            "· <colortype(710)>I<link(0xCE)>nstalledIcon<colortype(0)> will display InstalledIcon.<br>" +
+            "· <colortype(710)>T<link(0xCE)>hirdIcon<colortype(0)> will display ThirdIcon.<br>" +
+            "· <colortype(710)>T<link(0xCE)>hirdInst<link(0xCE)>alledIcon<colortype(0)> will display ThirdInstalledIcon.<br>" +
+            "· <colortype(710)>C<link(0xCE)>hangelogApiBumpIcon<colortype(0)> will display ChangelogApiBumpIcon.<br>" +
+            "· <colortype(710)>icon<link(0xCE)>(5)<colortype(0)> will display icon(5). This is different from \\<icon<link(0xCE)>(5)>.<br>" +
+            "· <colortype(710)>tex<link(0xCE)>(ui/loadingimage/-nowloading_base25_hr1.tex)<colortype(0)> will display tex(ui/loadingimage/-nowloading_base25_hr1.tex).",
             this.style);
         ImGuiHelpers.ScaledDummy(3);
 
