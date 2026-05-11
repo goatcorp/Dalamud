@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,7 @@ internal static partial class HookVerifier
     /// <summary>
     /// Hook verification targets that don't exist in ClientStructs.
     /// </summary>
-    private static readonly VerificationEntry[] ToVerify = [];
+    private static readonly VerificationEntry[] ExternalVerificationTargets = [];
 
     private static readonly string ClientStructsInteropNamespacePrefix = string.Join(".", nameof(FFXIVClientStructs), nameof(FFXIVClientStructs.Interop));
 
@@ -42,7 +43,7 @@ internal static partial class HookVerifier
         var csAssembly = Assembly.GetAssembly(typeof(ZoneClient))!;
         var csTypes = csAssembly.GetTypes();
 
-        var verifyContainer = new List<VerificationEntry>(1024);
+        var verifyContainer = new ConcurrentBag<VerificationEntry>();
 
         Parallel.ForEach(
             csTypes,
@@ -145,7 +146,10 @@ internal static partial class HookVerifier
                 }
             });
 
-        verifyContainer.AddRange(ToVerify);
+        foreach (var entry in ExternalVerificationTargets)
+        {
+            verifyContainer.Add(entry);
+        }
 
         allToVerify = verifyContainer.GroupBy(v => v.Address).ToFrozenDictionary(v => v.Key, v => v.ToArray());
         Log.Verbose("Initialized HookVerifier with {Count} entries to verify", allToVerify.Sum(kv => kv.Value.Length));
