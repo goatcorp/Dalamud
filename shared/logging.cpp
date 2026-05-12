@@ -1,7 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#include <fstream>
 #include <memory>
 
 #include "logging.h"
@@ -9,6 +8,11 @@
 static bool s_bLoaded = false;
 static bool s_bSkipLogFileWrite = false;
 static std::shared_ptr<void> s_hLogFile;
+static char s_tag[16] = "CPP";
+
+void logging::set_tag(const char* tag) {
+    strncpy_s(s_tag, tag, _TRUNCATE);
+}
 
 void logging::start_file_logging(const std::filesystem::path& logPath, bool redirect_stderrout) {
     constexpr auto MaxLogFileSize = 1 * 1024 * 1024;
@@ -19,7 +23,7 @@ void logging::start_file_logging(const std::filesystem::path& logPath, bool redi
         return;
 
     const auto oldPath = std::filesystem::path(logPath).replace_extension(".old.log");
-    
+
     try {
         const auto oldPathOld = std::filesystem::path(logPath).replace_extension(".log.old");
         if (exists(oldPathOld)) {
@@ -125,25 +129,25 @@ void logging::print<char>(Level level, const char* s) {
     std::string estr;
     switch (level) {
         case Level::Verbose:
-            estr = std::format("[{:02}:{:02}:{:02} CPP/VRB] {}\n", st.wHour, st.wMinute, st.wSecond, s);
+            estr = std::format("[{:02}:{:02}:{:02} {}/VRB] {}\n", st.wHour, st.wMinute, st.wSecond, s_tag, s);
             break;
         case Level::Debug:
-            estr = std::format("[{:02}:{:02}:{:02} CPP/DBG] {}\n", st.wHour, st.wMinute, st.wSecond, s);
+            estr = std::format("[{:02}:{:02}:{:02} {}/DBG] {}\n", st.wHour, st.wMinute, st.wSecond, s_tag, s);
             break;
         case Level::Info:
-            estr = std::format("[{:02}:{:02}:{:02} CPP/INF] {}\n", st.wHour, st.wMinute, st.wSecond, s);
+            estr = std::format("[{:02}:{:02}:{:02} {}/INF] {}\n", st.wHour, st.wMinute, st.wSecond, s_tag, s);
             break;
         case Level::Warning:
-            estr = std::format("[{:02}:{:02}:{:02} CPP/WRN] {}\n", st.wHour, st.wMinute, st.wSecond, s);
+            estr = std::format("[{:02}:{:02}:{:02} {}/WRN] {}\n", st.wHour, st.wMinute, st.wSecond, s_tag, s);
             break;
         case Level::Error:
-            estr = std::format("[{:02}:{:02}:{:02} CPP/ERR] {}\n", st.wHour, st.wMinute, st.wSecond, s);
+            estr = std::format("[{:02}:{:02}:{:02} {}/ERR] {}\n", st.wHour, st.wMinute, st.wSecond, s_tag, s);
             break;
         case Level::Fatal:
-            estr = std::format("[{:02}:{:02}:{:02} CPP/FTL] {}\n", st.wHour, st.wMinute, st.wSecond, s);
+            estr = std::format("[{:02}:{:02}:{:02} {}/FTL] {}\n", st.wHour, st.wMinute, st.wSecond, s_tag, s);
             break;
         default:
-            estr = std::format("[{:02}:{:02}:{:02} CPP/???] {}\n", st.wHour, st.wMinute, st.wSecond, s);
+            estr = std::format("[{:02}:{:02}:{:02} {}/???] {}\n", st.wHour, st.wMinute, st.wSecond, s_tag, s);
             break;
     }
 
@@ -161,3 +165,4 @@ void logging::print<char>(Level level, const char* s) {
             WriteFile(s_hLogFile.get(), &estr[0], static_cast<DWORD>(estr.size()), &wr, nullptr);
     }
 }
+

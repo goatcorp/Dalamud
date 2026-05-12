@@ -243,3 +243,4 @@ char32_t unicode::upper(char32_t in) {
         return in - 'a' + 'A';
     return in;
 }
+

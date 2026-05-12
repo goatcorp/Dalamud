@@ -41,22 +41,14 @@ public sealed class EntryPoint
     /// </summary>
     /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
     /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
-    /// <returns>Function pointer to the VEH stack trace function.</returns>
-    public delegate IntPtr InitDelegate(IntPtr infoPtr, IntPtr mainThreadContinueEvent);
-
-    /// <summary>
-    /// A delegate used from VEH handler on exception which CoreCLR will fast fail by default.
-    /// </summary>
-    /// <returns>HGLOBAL for message.</returns>
-    private delegate IntPtr VehDelegate();
+    public delegate void InitDelegate(IntPtr infoPtr, IntPtr mainThreadContinueEvent);
 
     /// <summary>
     /// Initialize Dalamud.
     /// </summary>
     /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
     /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
-    /// <returns>Function pointer to the VEH stack trace function.</returns>
-    public static IntPtr Initialize(IntPtr infoPtr, IntPtr mainThreadContinueEvent)
+    public static void Initialize(IntPtr infoPtr, IntPtr mainThreadContinueEvent)
     {
         var infoStr = Marshal.PtrToStringUTF8(infoPtr)!;
         var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr)!;
@@ -65,8 +57,6 @@ public sealed class EntryPoint
             Windows.Win32.PInvoke.MessageBox(HWND.Null, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MESSAGEBOX_STYLE.MB_OK);
 
         new Thread(() => RunThread(info, mainThreadContinueEvent)).Start();
-
-        return Marshal.GetFunctionPointerForDelegate<VehDelegate>(VehCallback);
     }
 
     /// <summary>
@@ -321,21 +311,5 @@ public sealed class EntryPoint
     {
         if (!args.Observed)
             Log.Error(args.Exception, "Unobserved exception in Task.");
-    }
-
-    /// <summary>
-    /// Returns stack trace.
-    /// </summary>
-    /// <returns>HGlobal to wchar_t* stack trace c-string.</returns>
-    private static IntPtr VehCallback()
-    {
-        try
-        {
-            return Marshal.StringToHGlobalUni(new StackTrace(1).ToString());
-        }
-        catch (Exception e)
-        {
-            return Marshal.StringToHGlobalUni("Fail: " + e);
-        }
     }
 }
