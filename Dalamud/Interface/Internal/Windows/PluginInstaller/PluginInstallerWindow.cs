@@ -116,7 +116,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Makes sense like this")]
     private List<RemotePluginManifest> pluginListAvailable = [];
-    private List<RemotePluginManifest> pluginListAvailableLastReorder = [];
+    private List<RemotePluginManifest> pluginListAvailableLastResort = [];
     private List<LocalPlugin> pluginListInstalled = [];
     private List<AvailablePluginUpdate> pluginListUpdatable = [];
     private bool hasDevPlugins = false;
@@ -392,8 +392,9 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             this.sortKind = PluginSortKind.Alphabetical;
             this.filterText = Locs.SortBy_Alphabetical;
-            this.ResortPlugins();
         }
+
+        this.ResortPlugins();
 
         this.UpdateCategoriesOnSearchChange(prevSearchText);
     }
@@ -3905,7 +3906,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void ResortPlugins()
     {
-        this.pluginListAvailableLastReorder = this.pluginListAvailable;
+        this.pluginListAvailableLastResort = this.pluginListAvailable;
 
         switch (this.sortKind)
         {
@@ -4003,7 +4004,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             // Check if the search results are different, and close collapsibles whose slot now contains a different plugin
             if (previousSearchText != null)
             {
-                var previousSearchResults = this.pluginListAvailableLastReorder.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
+                var previousSearchResults = this.pluginListAvailableLastResort.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
                 if (!previousSearchResults.SequenceEqual(pluginsMatchingSearch))
                 {
                     this.openPluginCollapsibles.RemoveAll(
