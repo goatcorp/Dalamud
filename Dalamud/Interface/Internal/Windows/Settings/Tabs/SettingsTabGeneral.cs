@@ -74,6 +74,12 @@ internal sealed class SettingsTabGeneral : SettingsTab
             c => c.DoButtonsSystemMenu,
             (v, c) => c.DoButtonsSystemMenu = v),
 
+        new SettingsEntry<bool>(
+            LazyLoc.Localize("DalamudSettingsUpdateDisabledPluginsOnManualUpdate", "Update disabled plugins"),
+            LazyLoc.Localize("DalamudUpdateDisabledPluginsOnManualUpdateHint", "Include disabled plugins when manually updating plugins from the installer."),
+            c => c.UpdateDisabledPluginsOnManualUpdate,
+            (v, c) => c.UpdateDisabledPluginsOnManualUpdate = v),
+
         new GapSettingsEntry(5),
 
         new SettingsEntry<bool>(
