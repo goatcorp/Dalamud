@@ -116,6 +116,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Makes sense like this")]
     private List<RemotePluginManifest> pluginListAvailable = [];
+    private List<RemotePluginManifest> pluginListAvailableLastResort = [];
     private List<LocalPlugin> pluginListInstalled = [];
     private List<AvailablePluginUpdate> pluginListUpdatable = [];
     private bool hasDevPlugins = false;
@@ -289,14 +290,12 @@ internal class PluginInstallerWindow : Window, IDisposable
         _ = pluginManager.ReloadAllReposAsync();
         _ = pluginManager.ScanDevPluginsAsync();
 
+        this.adaptiveSort = true;
+
         if (!this.isSearchTextPrefilled)
         {
-            this.searchText = string.Empty;
-            this.sortKind = PluginSortKind.Alphabetical;
-            this.filterText = Locs.SortBy_Alphabetical;
+            this.ClearSearch();
         }
-
-        this.adaptiveSort = true;
 
         if (this.updateStatus == OperationStatus.Complete || this.updateStatus == OperationStatus.Idle)
         {
@@ -331,7 +330,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (this.isSearchTextPrefilled)
         {
             this.isSearchTextPrefilled = false;
-            this.searchText = string.Empty;
+            this.ClearSearch();
         }
     }
 
@@ -369,13 +368,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (string.IsNullOrEmpty(text))
         {
             this.isSearchTextPrefilled = false;
-            this.searchText = string.Empty;
-            if (this.sortKind == PluginSortKind.SearchScore)
-            {
-                this.sortKind = PluginSortKind.Alphabetical;
-                this.filterText = Locs.SortBy_Alphabetical;
-                this.ResortPlugins();
-            }
+            this.ClearSearch();
         }
         else
         {
@@ -385,6 +378,25 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.filterText = Locs.SortBy_SearchScore;
             this.ResortPlugins();
         }
+    }
+
+    /// <summary>
+    /// Clear the search text and reset all associated state (sort mode, category highlights, open collapsibles).
+    /// </summary>
+    private void ClearSearch()
+    {
+        var prevSearchText = this.searchText;
+        this.searchText = string.Empty;
+
+        if (this.adaptiveSort || this.sortKind == PluginSortKind.SearchScore)
+        {
+            this.sortKind = PluginSortKind.Alphabetical;
+            this.filterText = Locs.SortBy_Alphabetical;
+        }
+
+        this.ResortPlugins();
+
+        this.UpdateCategoriesOnSearchChange(prevSearchText);
     }
 
     /// <summary>
@@ -738,8 +750,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.SetNextItemWidth(searchClearButtonWidth);
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
             {
-                this.searchText = string.Empty;
-                searchTextChanged = true;
+                this.ClearSearch();
             }
 
             if (searchTextChanged)
@@ -1604,7 +1615,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     this.categoryManager.CurrentGroupKind = groupInfo.GroupKind;
 
                     // Reset search text when switching groups
-                    this.searchText = string.Empty;
+                    this.ClearSearch();
                 }
 
                 ImGui.Indent();
@@ -3900,6 +3911,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void ResortPlugins()
     {
+        this.pluginListAvailableLastResort = this.pluginListAvailable;
+
         switch (this.sortKind)
         {
             case PluginSortKind.Alphabetical:
@@ -3988,20 +4001,22 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (string.IsNullOrEmpty(this.searchText))
         {
             this.categoryManager.SetCategoryHighlightsForPlugins(Array.Empty<RemotePluginManifest>());
-
-            // Reset here for good measure, as we're returning from a search
-            this.openPluginCollapsibles.Clear();
         }
         else
         {
             var pluginsMatchingSearch = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
 
-            // Check if the search results are different, and clear the open collapsibles if they are
+            // Check if the search results are different, and close collapsibles whose slot now contains a different plugin
             if (previousSearchText != null)
             {
-                var previousSearchResults = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
+                var previousSearchResults = this.pluginListAvailableLastResort.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
                 if (!previousSearchResults.SequenceEqual(pluginsMatchingSearch))
-                    this.openPluginCollapsibles.Clear();
+                {
+                    this.openPluginCollapsibles.RemoveAll(
+                        i => i >= pluginsMatchingSearch.Length ||
+                             i >= previousSearchResults.Length ||
+                             pluginsMatchingSearch[i].InternalName != previousSearchResults[i].InternalName);
+                }
             }
 
             this.categoryManager.SetCategoryHighlightsForPlugins(pluginsMatchingSearch);
