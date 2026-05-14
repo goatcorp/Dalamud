@@ -450,27 +450,25 @@ internal class ProfileManagerWidget
 
         var model = (ProfileModelV1)profile.Model;
 
-        if (Service<DalamudConfiguration>.Get().ProfilesEnableCharacters)
-        {
-            var enableForCharacters = model.EnableForCharacters;
-            ImGui.Checkbox(
-                Locs.EnableForSpecificCharacters,
-                ref enableForCharacters);
-            if (enableForCharacters != model.EnableForCharacters)
-            {
-                model.EnableForCharacters = enableForCharacters;
-                Service<DalamudConfiguration>.Get().QueueSave();
+        var enableForCharacters = model.EnableForCharacters;
+        ImGui.Checkbox(
+            Locs.EnableForSpecificCharacters,
+            ref enableForCharacters);
 
-                // Profile might now no longer want active
-                Task.Run(async () =>
-                    {
-                        await profman.ApplyAllWantStatesAsync("Toggle enable for characters");
-                    })
-                    .ContinueWith(t =>
-                    {
-                        this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
-                    });
-            }
+        if (enableForCharacters != model.EnableForCharacters)
+        {
+            model.EnableForCharacters = enableForCharacters;
+            Service<DalamudConfiguration>.Get().QueueSave();
+
+            // Profile might now no longer want active
+            Task.Run(async () =>
+                {
+                    await profman.ApplyAllWantStatesAsync("Toggle enable for characters");
+                })
+                .ContinueWith(t =>
+                {
+                    this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
+                });
         }
 
         // If the profile is configured to enable by specific characters, show the character list and controls
