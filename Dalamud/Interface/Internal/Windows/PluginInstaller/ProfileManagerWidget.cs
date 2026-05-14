@@ -113,7 +113,8 @@ internal class ProfileManagerWidget
         {
             if (popup)
             {
-                using var scrolling = ImRaii.Child("###scrolling"u8, new Vector2(-1, -1));
+                var buttonHeight = ImGui.GetFrameHeight() + (ImGui.GetStyle().ItemSpacing.Y * 2);
+                using var scrolling = ImRaii.Child("###scrolling"u8, new Vector2(-1, ImGui.GetContentRegionAvail().Y - buttonHeight));
                 if (scrolling)
                 {
                     ImGui.TextWrapped(Locs.TutorialParagraphOne);
@@ -141,14 +142,14 @@ internal class ProfileManagerWidget
                     ImGui.TextWrapped(Locs.TutorialCommandsToggle);
 
                     ImGui.TextWrapped(Locs.TutorialCommandsEnd);
-                    ImGuiHelpers.ScaledDummy(5);
+                }
 
-                    var buttonWidth = 120f;
-                    ImGui.SetCursorPosX((ImGui.GetWindowWidth() - buttonWidth) / 2);
-                    if (ImGui.Button("OK"u8, new Vector2(buttonWidth, 40)))
-                    {
-                        ImGui.CloseCurrentPopup();
-                    }
+                ImGuiHelpers.ScaledDummy(4);
+                var buttonWidth = 120f;
+                ImGui.SetCursorPosX((ImGui.GetWindowWidth() - buttonWidth) / 2);
+                if (ImGui.Button("OK"u8, new Vector2(buttonWidth, 0)))
+                {
+                    ImGui.CloseCurrentPopup();
                 }
             }
         }
