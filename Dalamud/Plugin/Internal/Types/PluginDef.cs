@@ -1,5 +1,6 @@
 using System.IO;
 
+using Dalamud.Configuration;
 using Dalamud.Plugin.Internal.Types.Manifest;
 
 namespace Dalamud.Plugin.Internal.Types;
@@ -14,12 +15,12 @@ internal readonly struct PluginDef
     /// </summary>
     /// <param name="dllFile">plugin dll file.</param>
     /// <param name="manifest">plugin manifest.</param>
-    /// <param name="isDev">plugin dev indicator.</param>
-    public PluginDef(FileInfo dllFile, LocalPluginManifest manifest, bool isDev)
+    /// <param name="devPluginLocation">Dev plugin location setting.</param>
+    public PluginDef(FileInfo dllFile, LocalPluginManifest manifest, DevPluginLocationSettings? devPluginLocation)
     {
         this.DllFile = dllFile;
         this.Manifest = manifest;
-        this.IsDev = isDev;
+        this.DevPluginLocation = devPluginLocation;
     }
 
     /// <summary>
@@ -33,9 +34,9 @@ internal readonly struct PluginDef
     public LocalPluginManifest Manifest { get; init; }
 
     /// <summary>
-    /// Gets a value indicating whether plugin is a dev plugin.
+    /// Gets the dev plugin location data, if this is a dev plugin.
     /// </summary>
-    public bool IsDev { get; init; }
+    public DevPluginLocationSettings? DevPluginLocation { get; init; }
 
     /// <summary>
     /// Sort plugin definitions by priority.

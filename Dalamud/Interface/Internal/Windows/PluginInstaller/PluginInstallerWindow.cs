@@ -1403,7 +1403,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (proxy.LocalPlugin != null)
             {
                 var update = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == proxy.LocalPlugin);
-                this.DrawInstalledPlugin(proxy.LocalPlugin, i++, proxy.RemoteManifest, update);
+                this.DrawInstalledPlugin(proxy.LocalPlugin, i++, proxy.RemoteManifest, update, true);
             }
             else if (proxy.RemoteManifest != null)
             {
@@ -1495,7 +1495,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 continue;
             }
 
-            this.DrawInstalledPlugin(plugin, i++, remoteManifest, update);
+            this.DrawInstalledPlugin(plugin, i++, remoteManifest, update, false);
             drewAny = true;
         }
 
@@ -2299,6 +2299,11 @@ internal class PluginInstallerWindow : Window, IDisposable
                                     ? Locs.PluginBody_AuthorWithDownloadCount(manifest.Author, manifest.DownloadCount)
                                     : Locs.PluginBody_AuthorWithDownloadCountUnavailable(manifest.Author);
 
+        if (plugin is LocalDevPlugin devPlugin && !devPlugin.Nickname.IsNullOrWhitespace())
+        {
+            downloadCountText += $" ({devPlugin.Nickname})";
+        }
+
         ImGui.SameLine();
         ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);
 
@@ -2698,7 +2703,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private void DrawInstalledPlugin(LocalPlugin plugin, int index, RemotePluginManifest? remoteManifest, AvailablePluginUpdate? availablePluginUpdate, bool showInstalled = false)
+    private void DrawInstalledPlugin(LocalPlugin plugin, int index, RemotePluginManifest? remoteManifest, AvailablePluginUpdate? availablePluginUpdate, bool showInstalled)
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var commandManager = Service<CommandManager>.Get();
@@ -2732,7 +2737,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             label += Locs.PluginTitleMod_TestingAvailable;
         }
 
-        // Freshly installed
+        // Installed (for the all plugins list)
         if (showInstalled)
         {
             label += Locs.PluginTitleMod_Installed;

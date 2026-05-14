@@ -1,3 +1,5 @@
+// Needs to be here for backward compatibility (config is serialized with types...)
+// ReSharper disable once CheckNamespace
 namespace Dalamud.Configuration;
 
 /// <summary>
@@ -14,6 +16,12 @@ internal sealed class DevPluginLocationSettings
     /// Gets or sets a value indicating whether the third party repo is enabled.
     /// </summary>
     public bool IsEnabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets an optional nickname for this dev plugin, shown next to the plugin name
+    /// in the plugin list to help distinguish plugins that share the same internal name.
+    /// </summary>
+    public string? Nickname { get; set; }
 
     /// <summary>
     /// Clone this object.
