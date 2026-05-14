@@ -505,7 +505,7 @@ internal class PluginManager : IInternalDisposableService
                     // if (manifest.IsTestingExclusive && this.configuration.PluginTestingOptIns!.All(x => x.InternalName != manifest.InternalName))
                     //    this.configuration.PluginTestingOptIns.Add(new PluginTestingOptIn(manifest.InternalName));
 
-                    versionsDefs.Add(new PluginDef(dllFile, manifest, false));
+                    versionsDefs.Add(new PluginDef(dllFile, manifest, null));
                 }
                 catch (Exception ex)
                 {
@@ -534,43 +534,35 @@ internal class PluginManager : IInternalDisposableService
         // Sort for load order - unloaded definitions have default priority of 0
         pluginDefs.Sort(PluginDef.Sorter);
 
-        // devPlugins are more freeform. Look for any dll and hope to get lucky.
         var isDevModeEnabled = this.configuration.DevMode == true;
         if (isDevModeEnabled)
         {
-            var devDllFiles = new List<FileInfo>();
-
-            foreach (var setting in this.configuration.DevPluginLoadLocations)
+            foreach (var loadLocation in this.configuration.DevPluginLoadLocations)
             {
-                if (!setting.IsEnabled)
+                if (!loadLocation.IsEnabled)
                     continue;
 
-                if (Directory.Exists(setting.Path))
+                var fileInfo = new FileInfo(loadLocation.Path);
+                if (!fileInfo.Exists)
                 {
-                    devDllFiles.AddRange(new DirectoryInfo(setting.Path).GetFiles("*.dll", SearchOption.AllDirectories));
+                    Log.Error("Dev plugin path {Path} does not exist", loadLocation.Path);
+                    continue;
                 }
-                else if (File.Exists(setting.Path))
-                {
-                    devDllFiles.Add(new FileInfo(setting.Path));
-                }
-            }
 
-            foreach (var dllFile in devDllFiles)
-            {
                 try
                 {
                     // Manifests are now required for devPlugins
-                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
+                    var manifestFile = LocalPluginManifest.GetManifestFile(fileInfo);
                     if (!manifestFile.Exists)
                     {
-                        Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
+                        Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", fileInfo.FullName);
                         continue;
                     }
 
                     var manifest = LocalPluginManifest.Load(manifestFile);
                     if (manifest == null)
                     {
-                        Log.Error("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
+                        Log.Error("Could not deserialize manifest for DLL at {DllPath}", fileInfo.FullName);
                         continue;
                     }
 
@@ -580,11 +572,11 @@ internal class PluginManager : IInternalDisposableService
                         continue;
                     }
 
-                    devPluginDefs.Add(new PluginDef(dllFile, manifest, true));
+                    devPluginDefs.Add(new PluginDef(fileInfo, manifest, loadLocation));
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "Could not load manifest for dev at {Directory}", dllFile.FullName);
+                    Log.Error(ex, "Could not load manifest for dev at {Directory}", fileInfo.FullName);
                 }
             }
 
@@ -605,7 +597,7 @@ internal class PluginManager : IInternalDisposableService
                         pluginDef.DllFile,
                         pluginDef.Manifest,
                         PluginLoadReason.Boot,
-                        pluginDef.IsDev,
+                        pluginDef.DevPluginLocation,
                         isBoot: true);
                 }
                 catch (InvalidPluginException)
@@ -762,52 +754,48 @@ internal class PluginManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> representing the asynchronous operation. This function generally will not block as new plugins aren't loaded.</returns>
     public async Task ScanDevPluginsAsync()
     {
-        // devPlugins are more freeform. Look for any dll and hope to get lucky.
-        var devDllFiles = new List<FileInfo>();
-
-        foreach (var setting in this.configuration.DevPluginLoadLocations)
-        {
-            if (!setting.IsEnabled)
-                continue;
-
-            Log.Verbose("Scanning dev plugins at {Path}", setting.Path);
-
-            if (File.Exists(setting.Path))
-            {
-                devDllFiles.Add(new FileInfo(setting.Path));
-            }
-        }
-
         var listChanged = false;
 
-        foreach (var dllFile in devDllFiles)
+        foreach (var loadLocation in this.configuration.DevPluginLoadLocations)
         {
+            if (!loadLocation.IsEnabled)
+                continue;
+
+            var fileInfo = new FileInfo(loadLocation.Path);
+            if (!fileInfo.Exists)
+            {
+                Log.Error("Dev plugin path {Path} does not exist", loadLocation.Path);
+                continue;
+            }
+
+            Log.Verbose("Scanned dev plugin at {Path}", loadLocation.Path);
+
             // This file is already known to us
             lock (this.pluginListLock)
             {
-                if (this.installedPluginsList.Any(lp => lp.DllFile.FullName == dllFile.FullName))
+                if (this.installedPluginsList.Any(lp => lp.DllFile.FullName == fileInfo.FullName))
                     continue;
             }
 
             // Manifests are now required for devPlugins
-            var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
+            var manifestFile = LocalPluginManifest.GetManifestFile(fileInfo);
             if (!manifestFile.Exists)
             {
-                Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
+                Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", fileInfo.FullName);
                 continue;
             }
 
             var manifest = LocalPluginManifest.Load(manifestFile);
             if (manifest == null)
             {
-                Log.Error("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
+                Log.Error("Could not deserialize manifest for DLL at {DllPath}", fileInfo.FullName);
                 continue;
             }
 
             try
             {
                 // Add them to the list and let the user decide, nothing is auto-loaded.
-                await this.LoadPluginAsync(dllFile, manifest, PluginLoadReason.Installer, isDev: true, doNotLoad: true);
+                await this.LoadPluginAsync(fileInfo, manifest, PluginLoadReason.Installer, devPluginLocation: loadLocation, doNotLoad: true);
                 listChanged = true;
             }
             catch (InvalidPluginException)
@@ -1557,11 +1545,11 @@ internal class PluginManager : IInternalDisposableService
     /// <param name="dllFile">The <see cref="FileInfo"/> associated with the main assembly of this plugin.</param>
     /// <param name="manifest">The already loaded definition, if available.</param>
     /// <param name="reason">The reason this plugin was loaded.</param>
-    /// <param name="isDev">If this plugin should support development features.</param>
+    /// <param name="devPluginLocation">The location of the dev plugin, if we are loading a dev plugin.</param>
     /// <param name="isBoot">If this plugin is being loaded at boot.</param>
     /// <param name="doNotLoad">Don't load the plugin, just don't do it.</param>
     /// <returns>The loaded plugin.</returns>
-    private async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
+    private async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest manifest, PluginLoadReason reason, DevPluginLocationSettings? devPluginLocation = null, bool isBoot = false, bool doNotLoad = false)
     {
         // TODO: Split this function - it should only take care of adding the plugin to the list, not loading itself, that should be done through the plugin instance
 
@@ -1583,10 +1571,10 @@ internal class PluginManager : IInternalDisposableService
             if (this.installedPluginsList.Any(lp => lp.DllFile.FullName == dllFile.FullName))
                 throw new InvalidOperationException("Plugin at the provided path is already loaded");
 
-            if (isDev)
+            if (devPluginLocation != null)
             {
                 Log.Information("Loading dev plugin {Name}", manifest.InternalName);
-                plugin = new LocalDevPlugin(dllFile, manifest);
+                plugin = new LocalDevPlugin(dllFile, manifest, devPluginLocation);
 
                 // This is a dev plugin - turn ImGui asserts on by default if we haven't chosen yet
                 // TODO(goat): Re-enable this when we have better tracing for what was rendering when
@@ -1614,7 +1602,7 @@ internal class PluginManager : IInternalDisposableService
         var wantedByAnyProfile = false;
 
         // Now, if this is a devPlugin, figure out if we want to load it
-        if (isDev)
+        if (devPluginLocation != null)
         {
             var devPlugin = (LocalDevPlugin)plugin;
             loadPlugin &= !isBoot;

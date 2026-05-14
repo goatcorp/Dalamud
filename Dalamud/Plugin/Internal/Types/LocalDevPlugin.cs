@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
@@ -20,6 +21,7 @@ internal sealed class LocalDevPlugin : LocalPlugin
     private static readonly ModuleLog Log = ModuleLog.Create<LocalDevPlugin>();
 
     // Ref to Dalamud.Configuration.DevPluginSettings
+    private readonly DevPluginLocationSettings locationSettings;
     private readonly DevPluginSettings devSettings;
 
     private FileSystemWatcher? fileWatcher;
@@ -31,9 +33,12 @@ internal sealed class LocalDevPlugin : LocalPlugin
     /// </summary>
     /// <param name="dllFile">Path to the DLL file.</param>
     /// <param name="manifest">The plugin manifest.</param>
-    public LocalDevPlugin(FileInfo dllFile, LocalPluginManifest? manifest)
-        : base(dllFile, manifest)
+    /// <param name="locationSettings">Location settings read when scanning.</param>
+    public LocalDevPlugin(FileInfo dllFile, LocalPluginManifest manifest, DevPluginLocationSettings locationSettings)
+        : base(dllFile, manifest!)
     {
+        this.locationSettings = locationSettings;
+
         var configuration = Service<DalamudConfiguration>.Get();
 
         if (!configuration.DevPluginSettings.TryGetValue(dllFile.FullName, out this.devSettings))
@@ -108,6 +113,12 @@ internal sealed class LocalDevPlugin : LocalPlugin
     /// Gets a list of validation problems that have been dismissed by the user.
     /// </summary>
     public List<string> DismissedValidationProblems => this.devSettings.DismissedValidationProblems;
+
+    /// <summary>
+    /// Gets an optional nickname for this dev plugin, shown in the plugin list header to help
+    /// distinguish plugins that share the same internal name.
+    /// </summary>
+    public string? Nickname => this.locationSettings.Nickname;
 
     /// <inheritdoc/>
     public override ValueTask DisposeAsync()
