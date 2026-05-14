@@ -14,7 +14,7 @@ using Serilog;
 namespace Dalamud.CorePlugin
 {
     /// <summary>
-    /// This class is a a plugin testbed for developing new Dalamud features with easy access to Dalamud itself.
+    /// This class is a plugin testbed for developing new Dalamud features with easy access to Dalamud itself.
     /// Be careful to not commit anything extra.
     /// </summary>
     /// <remarks>
@@ -41,7 +41,7 @@ namespace Dalamud.CorePlugin
         }
 
         /// <inheritdoc />
-        public async ValueTask LoadAsync(CancellationToken cancellationToken)
+        public async Task LoadAsync(CancellationToken cancellationToken)
         {
         }
 
