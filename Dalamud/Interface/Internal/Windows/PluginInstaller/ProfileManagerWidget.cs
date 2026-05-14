@@ -329,7 +329,20 @@ internal class ProfileManagerWidget
                     .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
             },
             plugin => !plugin.Manifest.SupportsProfiles ||
-                      profile.Plugins.Any(x => x.WorkingPluginId == plugin.EffectiveWorkingPluginId));
+                      profile.Plugins.Any(x => x.WorkingPluginId == plugin.EffectiveWorkingPluginId),
+            getAnnotation: plugin =>
+            {
+                var count = profman.Profiles.Count(
+                    p => !p.IsDefaultProfile &&
+                         p.Guid != this.editingProfileGuid &&
+                         p.Plugins.Any(x => x.WorkingPluginId == plugin.EffectiveWorkingPluginId));
+                return count switch
+                {
+                    0 => null,
+                    1 => Locs.InOneCollection,
+                    _ => Locs.InNCollections(count),
+                };
+            });
 
         // Reapply states when closing plugin picker, as we might have changed want states for some plugins. Only do this when closing, to avoid doing it multiple times while picking.
         var isPickingPlugin = ImGui.IsPopupOpen("###addPluginToProfilePicker");
@@ -843,8 +856,14 @@ internal class ProfileManagerWidget
         public static string ChoiceConfirmation =>
             Loc.Localize("ProfileManagerChoiceConfirmation", "Yes, enable Plugin Collections");
 
+        public static string InOneCollection =>
+            Loc.Localize("ProfileManagerPickerInOneCollection", "(in 1 other collection)");
+
         public static string NotInstalled(string name) =>
             Loc.Localize("ProfileManagerNotInstalled", "{0} (Not Installed)").Format(name);
+
+        public static string InNCollections(int count) =>
+            Loc.Localize("ProfileManagerPickerInNCollections", "(in {0} other collections)").Format(count);
 
         public static string PolicyToLocalisedName(ProfileModelV1.ProfileStartupPolicy policy)
         {

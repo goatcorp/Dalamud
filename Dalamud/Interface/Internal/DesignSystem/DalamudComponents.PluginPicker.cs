@@ -4,6 +4,7 @@ using System.Numerics;
 using CheapLoc;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
@@ -25,8 +26,9 @@ internal static partial class DalamudComponents
     /// <param name="onClicked">Action to be called if a plugin is clicked.</param>
     /// <param name="pluginDisabled">Function that should return true if a plugin should show as disabled.</param>
     /// <param name="pluginFiltered">Function that should return true if a plugin should not appear in the list.</param>
+    /// <param name="getAnnotation">Optional function that returns a muted hint string to display next to a plugin's name, or null for none.</param>
     /// <returns>An ImGuiID to open the popup.</returns>
-    internal static uint DrawPluginPicker(string id, ref string pickerSearch, Action<LocalPlugin> onClicked, Func<LocalPlugin, bool> pluginDisabled, Func<LocalPlugin, bool>? pluginFiltered = null)
+    internal static uint DrawPluginPicker(string id, ref string pickerSearch, Action<LocalPlugin> onClicked, Func<LocalPlugin, bool> pluginDisabled, Func<LocalPlugin, bool>? pluginFiltered = null, Func<LocalPlugin, string?>? getAnnotation = null)
     {
         var pm = Service<PluginManager>.GetNullable();
         if (pm == null)
@@ -37,7 +39,7 @@ internal static partial class DalamudComponents
 
         if (popup.Success)
         {
-            var width = ImGuiHelpers.GlobalScale * 300;
+            var width = ImGuiHelpers.GlobalScale * 500;
 
             ImGui.SetNextItemWidth(width);
             ImGui.InputTextWithHint("###pluginPickerSearch"u8, Locs.SearchHint, ref pickerSearch, 255);
@@ -57,10 +59,33 @@ internal static partial class DalamudComponents
 
                 foreach (var plugin in plugins)
                 {
-                    using var disabled2 = ImRaii.Disabled(pluginDisabled(plugin));
-                    if (ImGui.Selectable($"{plugin.Manifest.Name}{(plugin is LocalDevPlugin ? "(dev plugin)" : string.Empty)}###selector{plugin.Manifest.InternalName}"))
+                    var annotation = getAnnotation?.Invoke(plugin);
+                    var isAnnotated = annotation != null;
+                    var isDisabled = pluginDisabled(plugin);
+
+                    var pluginLabel = $"{plugin.Manifest.Name}{(plugin is LocalDevPlugin ? " (dev plugin)" : string.Empty)}";
+
+                    // Save the row's starting Y so we can overlay text on the selectable
+                    var rowStartX = ImGui.GetCursorPosX();
+                    var rowStartY = ImGui.GetCursorPosY();
+
+                    using (ImRaii.Disabled(isDisabled))
                     {
-                        onClicked(plugin);
+                        if (ImGui.Selectable($"###selector{plugin.Manifest.InternalName}"))
+                            onClicked(plugin);
+
+                        ImGui.SetCursorPosX(rowStartX);
+                        ImGui.SetCursorPosY(rowStartY);
+
+                        using (isAnnotated ? ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey2) : null)
+                            ImGui.Text(pluginLabel);
+
+                        if (annotation != null)
+                        {
+                            ImGui.SameLine();
+                            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey3))
+                                ImGui.TextUnformatted(annotation);
+                        }
                     }
                 }
             }
