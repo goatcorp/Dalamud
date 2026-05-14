@@ -224,11 +224,35 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
             operation = plugin.State == PluginState.Loaded ? PluginCommandOperation.Disable : PluginCommandOperation.Enable;
         }
 
+        var profilesThatWantThisPlugin = this.profileManager.Profiles
+                                                       .Where(x => x.WantsPlugin(plugin.EffectiveWorkingPluginId) != null)
+                                                       .ToArray();
+
+        switch (profilesThatWantThisPlugin.Length)
+        {
+            case 0:
+                Log.Error("Plugin \"{InternalName}\" ({Guid}) is not in any collection, cannot be toggled",
+                          plugin.InternalName,
+                          plugin.EffectiveWorkingPluginId);
+                return true;
+            case > 1:
+                Log.Error("Plugin \"{InternalName}\" ({Guid}) is in multiple collections, cannot be toggled",
+                          plugin.InternalName,
+                          plugin.EffectiveWorkingPluginId);
+                return true;
+        }
+
+        var applicableProfile = profilesThatWantThisPlugin.First();
+
         switch (operation)
         {
             case PluginCommandOperation.Enable:
                 this.chat.Print(Loc.Localize("PluginCommandsEnabling", "Enabling plugin \"{0}\"...").Format(plugin.Name));
-                Task.Run(() => plugin.LoadAsync(PluginLoadReason.Installer))
+                Task.Run(async () =>
+                    {
+                        await applicableProfile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true, false);
+                        await plugin.LoadAsync(PluginLoadReason.Installer);
+                    })
                     .ContinueWith(t => Continuation(t,
                                                     Loc.Localize("PluginCommandsEnableSuccess", "Plugin \"{0}\" enabled.").Format(plugin.Name),
                                                     Loc.Localize("PluginCommandsEnableFailed", "Failed to enable plugin \"{0}\". Please check the console for errors.").Format(plugin.Name)))
@@ -236,7 +260,11 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
                 break;
             case PluginCommandOperation.Disable:
                 this.chat.Print(Loc.Localize("PluginCommandsDisabling", "Disabling plugin \"{0}\"...").Format(plugin.Name));
-                Task.Run(() => plugin.UnloadAsync())
+                Task.Run(async () =>
+                    {
+                        await plugin.UnloadAsync();
+                        await applicableProfile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, false, false);
+                    })
                     .ContinueWith(t => Continuation(t,
                                       Loc.Localize("PluginCommandsDisableSuccess", "Plugin \"{0}\" disabled.").Format(plugin.Name),
                                       Loc.Localize("PluginCommandsDisableFailed", "Failed to disable plugin \"{0}\". Please check the console for errors.").Format(plugin.Name)))
@@ -370,10 +398,14 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
             return null;
         }
 
-        if (!this.profileManager.IsInDefaultProfile(targetPlugin.EffectiveWorkingPluginId))
+        var isInSingleProfile = this.profileManager.Profiles
+                                              .Count(x => x.WantsPlugin(targetPlugin.EffectiveWorkingPluginId) != null) == 1;
+
+        if (!isInSingleProfile)
         {
-            this.chat.PrintError(Loc.Localize("PluginCommandsNotInDefaultProfile", "Plugin \"{0}\" is in a collection and can't be managed through commands. Manage the collection instead.")
+            this.chat.PrintError(Loc.Localize("PluginCommandsNotInDefaultProfile", "Plugin \"{0}\" is multiple collections and cannot be toggled individually. Manage the collections instead.")
                                     .Format(targetPlugin.Name));
+            return null;
         }
 
         return targetPlugin;
