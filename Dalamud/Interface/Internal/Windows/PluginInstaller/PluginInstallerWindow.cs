@@ -116,6 +116,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Makes sense like this")]
     private List<RemotePluginManifest> pluginListAvailable = [];
+    private List<RemotePluginManifest> pluginListAvailableLastReorder = [];
     private List<LocalPlugin> pluginListInstalled = [];
     private List<AvailablePluginUpdate> pluginListUpdatable = [];
     private bool hasDevPlugins = false;
@@ -3895,6 +3896,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void ResortPlugins()
     {
+        this.pluginListAvailableLastReorder = this.pluginListAvailable;
+
         switch (this.sortKind)
         {
             case PluginSortKind.Alphabetical:
@@ -3983,20 +3986,22 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (string.IsNullOrEmpty(this.searchText))
         {
             this.categoryManager.SetCategoryHighlightsForPlugins(Array.Empty<RemotePluginManifest>());
-
-            // Reset here for good measure, as we're returning from a search
-            this.openPluginCollapsibles.Clear();
         }
         else
         {
             var pluginsMatchingSearch = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
 
-            // Check if the search results are different, and clear the open collapsibles if they are
+            // Check if the search results are different, and close collapsibles whose slot now contains a different plugin
             if (previousSearchText != null)
             {
-                var previousSearchResults = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
+                var previousSearchResults = this.pluginListAvailableLastReorder.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
                 if (!previousSearchResults.SequenceEqual(pluginsMatchingSearch))
-                    this.openPluginCollapsibles.Clear();
+                {
+                    this.openPluginCollapsibles.RemoveAll(
+                        i => i >= pluginsMatchingSearch.Length ||
+                             i >= previousSearchResults.Length ||
+                             pluginsMatchingSearch[i].InternalName != previousSearchResults[i].InternalName);
+                }
             }
 
             this.categoryManager.SetCategoryHighlightsForPlugins(pluginsMatchingSearch);
