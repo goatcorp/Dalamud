@@ -871,8 +871,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.updateStatus = OperationStatus.InProgress;
                 this.loadingIndicatorKind = LoadingIndicatorKind.UpdatingAll;
 
+                var shouldUpdateDisabledPlugins = Service<DalamudConfiguration>.Get().UpdateDisabledPluginsOnManualUpdate;
                 var toUpdate = this.pluginListUpdatable
-                                   .Where(x => x.InstalledPlugin.IsWantedByAnyProfile)
+                                   .Where(x => shouldUpdateDisabledPlugins || x.InstalledPlugin.IsWantedByAnyProfile)
                                    .ToList();
 
                 Task.Run(() => pluginManager.UpdatePluginsAsync(toUpdate, false))

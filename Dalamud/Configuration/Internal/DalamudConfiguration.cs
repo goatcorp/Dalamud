@@ -495,6 +495,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool UpdateDisabledPlugins { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets a value indicating whether disabled plugins should be updated when updating manually.
+    /// </summary>
+    public bool UpdateDisabledPluginsOnManualUpdate { get; set; } = false;
+
+    /// <summary>
     /// Gets or sets a value indicating where notifications are anchored to on the screen.
     /// </summary>
     public Vector2 NotificationAnchorPosition { get; set; } = new(1f, 1f);
