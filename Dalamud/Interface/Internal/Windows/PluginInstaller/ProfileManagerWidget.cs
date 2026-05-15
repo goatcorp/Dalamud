@@ -490,59 +490,50 @@ internal class ProfileManagerWidget
         {
             ulong? wantRemoveContentId = null;
 
-            ImGui.Indent();
-
-            foreach (var entry in model.EnabledCharacters.ToArray())
-            {
-                if (ImGuiComponents.IconButton($"###removeChar{entry.ContentId}", FontAwesomeIcon.Trash))
-                {
-                    wantRemoveContentId = entry.ContentId;
-                }
-
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(Loc.Localize("ProfileManagerRemoveCharacter", "Remove character"));
-
-                ImGui.SameLine();
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (5 * ImGuiHelpers.GlobalScale));
-
-                string characterDisplay;
-                if (!string.IsNullOrEmpty(entry.DisplayName) && !string.IsNullOrEmpty(entry.ServerName))
-                {
-                    characterDisplay =
-                        $"{entry.DisplayName} <icon({(int)BitmapFontIcon.CrossWorld})> {entry.ServerName}";
-                }
-                else
-                {
-                    characterDisplay = entry.ContentId.ToString();
-                }
-
-                ImGuiHelpers.CompileSeStringWrapped(characterDisplay);
-
-                if (entry != model.EnabledCharacters.LastOrDefault())
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Border, ImGuiColors.DalamudGrey.WithAlpha(0.2f));
-                    ImGui.Separator();
-                    ImGui.PopStyleColor();
-                }
-            }
-
             if (model.EnabledCharacters.Count == 0)
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
                 ImGui.TextColoredWrapped(
                     ImGuiColors.DalamudGrey,
                     Loc.Localize(
                         "ProfileManagerNoCharactersAdded",
                         "This collection will not be active for any characters until you add some with the button below."));
-                ImGui.PopStyleColor();
             }
+            else if (ImGui.BeginTable(
+                         "###charFilterTable",
+                         2,
+                         ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit))
+            {
+                ImGui.TableSetupColumn("###remove"u8, ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn("###charname"u8, ImGuiTableColumnFlags.WidthStretch);
 
-            ImGui.Unindent();
+                foreach (var entry in model.EnabledCharacters.ToArray())
+                {
+                    ImGui.TableNextRow();
+
+                    ImGui.TableSetColumnIndex(0);
+                    if (ImGuiComponents.IconButton($"###removeChar{entry.ContentId}", FontAwesomeIcon.Trash))
+                        wantRemoveContentId = entry.ContentId;
+
+                    if (ImGui.IsItemHovered())
+                        ImGui.SetTooltip(Loc.Localize("ProfileManagerRemoveCharacter", "Remove character"));
+
+                    ImGui.TableSetColumnIndex(1);
+                    string characterDisplay;
+                    if (!string.IsNullOrEmpty(entry.DisplayName) && !string.IsNullOrEmpty(entry.ServerName))
+                        characterDisplay = $"{entry.DisplayName} <icon({(int)BitmapFontIcon.CrossWorld})> {entry.ServerName}";
+                    else
+                        characterDisplay = entry.ContentId.ToString();
+
+                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetFrameHeight() / 2f) - (ImGui.GetTextLineHeight() / 2f));
+                    ImGuiHelpers.CompileSeStringWrapped(characterDisplay);
+                }
+
+                ImGui.EndTable();
+            }
 
             if (wantRemoveContentId != null)
             {
-                var toRem =
-                    model.EnabledCharacters.FirstOrDefault(x => x.ContentId == wantRemoveContentId.Value);
+                var toRem = model.EnabledCharacters.FirstOrDefault(x => x.ContentId == wantRemoveContentId.Value);
                 if (toRem != null)
                 {
                     model.EnabledCharacters.Remove(toRem);
