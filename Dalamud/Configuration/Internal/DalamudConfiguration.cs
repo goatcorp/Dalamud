@@ -315,6 +315,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public string ChosenStyle { get; set; } = "Dalamud Standard";
 
     /// <summary>
+    /// Gets or sets per-character style assignments.
+    /// </summary>
+    public List<CharacterStyleAssignment> CharacterStyleAssignments { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets a list of saved plugin profiles.
     /// </summary>
     public List<ProfileModel>? SavedProfiles { get; set; }
