@@ -129,6 +129,10 @@ internal class PluginInstallerWindow : Window, IDisposable
     private string filterText = Locs.SortBy_Alphabetical;
     private bool adaptiveSort = true;
 
+    private bool showInstalledPlugins = true;
+    private bool showThirdPartyPlugins = true;
+    private bool showUnsupportedPlugins = true;
+
     private OperationStatus installStatus = OperationStatus.Idle;
     private OperationStatus updateStatus = OperationStatus.Idle;
 
@@ -211,7 +215,6 @@ internal class PluginInstallerWindow : Window, IDisposable
         DownloadCount,
         LastUpdate,
         NewOrNot,
-        NotInstalled,
         EnabledDisabled,
         ProfileOrNot,
         SearchScore,
@@ -707,13 +710,14 @@ internal class PluginInstallerWindow : Window, IDisposable
             (Locs.SortBy_DownloadCounts, PluginSortKind.DownloadCount),
             (Locs.SortBy_LastUpdate, PluginSortKind.LastUpdate),
             (Locs.SortBy_NewOrNot, PluginSortKind.NewOrNot),
-            (Locs.SortBy_NotInstalled, PluginSortKind.NotInstalled),
             (Locs.SortBy_EnabledDisabled, PluginSortKind.EnabledDisabled),
             (Locs.SortBy_ProfileOrNot, PluginSortKind.ProfileOrNot),
         };
         var longestSelectableWidth = sortSelectables.Select(t => ImGui.CalcTextSize(t.Localization).X).Max();
         var selectableWidth = longestSelectableWidth + (style.FramePadding.X * 2);  // This does not include the label
         var sortSelectWidth = selectableWidth + sortByTextWidth + style.ItemInnerSpacing.X;  // Item spacing between the selectable and the label
+        var filterButtonWidth = ImGui.GetFrameHeight();
+        const string filterPopupId = "###XlPluginInstaller_FilterPopup";
 
         var headerText = Locs.Header_Hint;
         var headerTextSize = ImGui.CalcTextSize(headerText);
@@ -725,11 +729,46 @@ internal class PluginInstallerWindow : Window, IDisposable
         var downShift = ImGui.GetCursorPosY() + (headerTextSize.Y / 4) - 2;
         ImGui.SetCursorPosY(downShift);
 
-        ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - (style.ItemSpacing.X * 2) - searchInputWidth - searchClearButtonWidth);
+        var controlsStartX = windowSize.X - sortSelectWidth - filterButtonWidth - (style.ItemSpacing.X * 3) - searchInputWidth - searchClearButtonWidth;
+        ImGui.SetCursorPosX(controlsStartX);
 
         var isProfileManager =
             this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Installed &&
             this.categoryManager.CurrentCategoryKind == PluginCategoryManager.CategoryKind.PluginProfiles;
+        var disableHeaderListControls = this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Changelog || isProfileManager;
+        var filterPopupPosition = Vector2.Zero;
+
+        using (ImRaii.Disabled(disableHeaderListControls))
+        {
+            var filterButtonActive = ImGui.IsPopupOpen(filterPopupId) || this.HasActivePluginFilters();
+            var filterButtonColor = ImGuiColors.SuccessBackground with { W = 0.25f };
+            if (ImGuiComponents.IconButton(
+                    "###XlPluginInstaller_FilterToggle",
+                    FontAwesomeIcon.Filter,
+                    filterButtonActive ? filterButtonColor : null,
+                    null,
+                    null,
+                    new Vector2(filterButtonWidth / ImGuiHelpers.GlobalScale, 0)))
+            {
+                ImGui.OpenPopup(filterPopupId);
+            }
+
+            filterPopupPosition = ImGui.GetItemRectMin() + new Vector2(0, ImGui.GetItemRectSize().Y + style.ItemSpacing.Y);
+
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(Locs.Filter_ToggleTooltip);
+        }
+
+        if (!disableHeaderListControls)
+        {
+            ImGui.SetNextWindowPos(filterPopupPosition, ImGuiCond.Appearing);
+            using var filterPopup = ImRaii.Popup(filterPopupId, ImGuiWindowFlags.AlwaysAutoResize);
+            if (filterPopup)
+                this.DrawPluginFilterPopup();
+        }
+
+        ImGui.SameLine();
+        ImGui.SetCursorPosY(downShift);
 
         // Disable search if profile editor
         using (ImRaii.Disabled(isProfileManager))
@@ -780,7 +819,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         // Disable sort if changelogs or profile editor
-        using (ImRaii.Disabled(this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Changelog || isProfileManager))
+        using (ImRaii.Disabled(disableHeaderListControls))
         {
             ImGui.SameLine();
             ImGui.SetCursorPosY(downShift);
@@ -811,6 +850,49 @@ internal class PluginInstallerWindow : Window, IDisposable
                 ImGui.EndCombo();
             }
         }
+    }
+
+    private void DrawPluginFilterPopup()
+    {
+        var filtersChanged = false;
+        var isInstalledDevPluginsCategory = this.IsInstalledDevPluginsCategory();
+        var installedFilterDisabled = this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Installed || isInstalledDevPluginsCategory;
+        var thirdPartyFilterDisabled = isInstalledDevPluginsCategory;
+        var unsupportedFilterDisabled = isInstalledDevPluginsCategory;
+
+        var includeInstalled = installedFilterDisabled || this.showInstalledPlugins;
+        var includeThirdParty = thirdPartyFilterDisabled || this.showThirdPartyPlugins;
+        var includeUnsupported = unsupportedFilterDisabled || this.showUnsupportedPlugins;
+
+        using (ImRaii.Disabled(installedFilterDisabled))
+        {
+            if (ImGui.Checkbox($"{Locs.Filter_Installed}###XlPluginInstaller_FilterInstalled", ref includeInstalled) && !installedFilterDisabled)
+            {
+                this.showInstalledPlugins = includeInstalled;
+                filtersChanged = true;
+            }
+        }
+
+        using (ImRaii.Disabled(thirdPartyFilterDisabled))
+        {
+            if (ImGui.Checkbox($"{Locs.Filter_Unverified}###XlPluginInstaller_FilterThirdParty", ref includeThirdParty) && !thirdPartyFilterDisabled)
+            {
+                this.showThirdPartyPlugins = includeThirdParty;
+                filtersChanged = true;
+            }
+        }
+
+        using (ImRaii.Disabled(unsupportedFilterDisabled))
+        {
+            if (ImGui.Checkbox($"{Locs.Filter_Incompatible}###XlPluginInstaller_FilterUnsupported", ref includeUnsupported) && !unsupportedFilterDisabled)
+            {
+                this.showUnsupportedPlugins = includeUnsupported;
+                filtersChanged = true;
+            }
+        }
+
+        if (filtersChanged)
+            this.openPluginCollapsibles.Clear();
     }
 
     private void DrawFooter()
@@ -1377,7 +1459,9 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         // Filter out plugins that are not hidden
-        proxies = proxies.Where(IsProxyHidden).ToList();
+        proxies = proxies.Where(proxy => !this.IsAvailablePluginProxyFiltered(proxy))
+                 .Where(IsProxyHidden)
+                 .ToList();
 
         return proxies;
     }
@@ -1434,12 +1518,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
         {
             var hasSearch = !this.searchText.IsNullOrEmpty();
+            var hasListFilters = this.HasActivePluginFilters();
 
-            if (i == 0 && !hasSearch)
+            if (i == 0 && !hasSearch && !hasListFilters)
             {
                 DrawMutedBodyText(Locs.TabBody_NoPluginsAvailable, 60, 20);
             }
-            else if (i == 0 && hasSearch)
+            else if (i == 0 && (hasSearch || hasListFilters))
             {
                 DrawMutedBodyText(Locs.TabBody_SearchNoMatching, 60, 20);
             }
@@ -1461,8 +1546,10 @@ internal class PluginInstallerWindow : Window, IDisposable
             return;
         }
 
+        var applyPluginFilters = filter != InstalledPluginListFilter.Dev;
         var filteredList = pluginList
-                           .Where(plugin => !this.IsManifestFiltered(plugin.Manifest))
+                   .Where(plugin => !this.IsManifestFiltered(plugin.Manifest))
+                   .Where(plugin => !applyPluginFilters || !this.IsInstalledPluginFiltered(plugin, false))
                            .ToList();
 
         if (filteredList.Count == 0)
@@ -2511,11 +2598,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         var useTesting = pluginManager.UseTesting(manifest);
         var wasSeen = this.WasPluginSeen(manifest.InternalName);
 
-        var effectiveApiLevel = useTesting ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
-        var isOutdated = effectiveApiLevel < PluginManager.DalamudApiLevel;
-
-        var isIncompatible = manifest.MinimumDalamudVersion != null &&
-                             manifest.MinimumDalamudVersion > Versioning.GetAssemblyVersionParsed();
+        var isOutdated = this.IsAvailableManifestOutdated(manifest, useTesting);
+        var isIncompatible = this.IsAvailableManifestIncompatible(manifest);
 
         var enableInstallButton = this.updateStatus != OperationStatus.InProgress &&
                                   this.installStatus != OperationStatus.InProgress &&
@@ -3837,6 +3921,71 @@ internal class PluginInstallerWindow : Window, IDisposable
         return true;
     }
 
+    private bool IsInstalledDevPluginsCategory()
+        => this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.DevTools &&
+           this.categoryManager.CurrentCategoryKind == PluginCategoryManager.CategoryKind.DevInstalled;
+
+    private bool HasActivePluginFilters()
+    {
+        if (this.IsInstalledDevPluginsCategory())
+            return false;
+
+        var installedFilterActive = this.categoryManager.CurrentGroupKind != PluginCategoryManager.GroupKind.Installed && !this.showInstalledPlugins;
+        return installedFilterActive || !this.showThirdPartyPlugins || !this.showUnsupportedPlugins;
+    }
+
+    private bool IsAvailablePluginProxyFiltered(PluginInstallerAvailablePluginProxy proxy)
+    {
+        if (proxy.LocalPlugin != null && this.IsInstalledPluginFiltered(proxy.LocalPlugin, true))
+            return true;
+
+        if (proxy.LocalPlugin == null && proxy.RemoteManifest != null)
+        {
+            if (!this.showThirdPartyPlugins && proxy.RemoteManifest.SourceRepo.IsThirdParty)
+                return true;
+
+            if (!this.showUnsupportedPlugins && this.IsAvailableManifestUnsupported(proxy.RemoteManifest))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool IsInstalledPluginFiltered(LocalPlugin plugin, bool applyInstalledFilter)
+    {
+        if (applyInstalledFilter && !this.showInstalledPlugins)
+            return true;
+
+        if (!this.showThirdPartyPlugins && plugin.IsThirdParty)
+            return true;
+
+        if (!this.showUnsupportedPlugins && this.IsInstalledPluginUnsupported(plugin))
+            return true;
+
+        return false;
+    }
+
+    private bool IsAvailableManifestUnsupported(RemotePluginManifest manifest)
+    {
+        var pluginManager = Service<PluginManager>.Get();
+        return this.IsAvailableManifestOutdated(manifest, pluginManager.UseTesting(manifest)) || this.IsAvailableManifestIncompatible(manifest);
+    }
+
+    private bool IsAvailableManifestOutdated(RemotePluginManifest manifest, bool useTesting)
+    {
+        var effectiveApiLevel = useTesting && manifest.TestingDalamudApiLevel.HasValue
+                                    ? manifest.TestingDalamudApiLevel.Value
+                                    : manifest.DalamudApiLevel;
+
+        return effectiveApiLevel < PluginManager.DalamudApiLevel;
+    }
+
+    private bool IsAvailableManifestIncompatible(RemotePluginManifest manifest)
+        => manifest.MinimumDalamudVersion != null && manifest.MinimumDalamudVersion > Versioning.GetAssemblyVersionParsed();
+
+    private bool IsInstalledPluginUnsupported(LocalPlugin plugin)
+        => plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned || plugin.IsDecommissioned;
+
     private bool IsManifestFiltered(IPluginManifest manifest)
     {
         if (string.IsNullOrWhiteSpace(this.searchText))
@@ -3944,11 +4093,6 @@ internal class PluginInstallerWindow : Window, IDisposable
                                                               .CompareTo(this.WasPluginSeen(p2.InternalName)));
                 this.pluginListInstalled.Sort((p1, p2) => this.WasPluginSeen(p1.Manifest.InternalName)
                                                               .CompareTo(this.WasPluginSeen(p2.Manifest.InternalName)));
-                break;
-            case PluginSortKind.NotInstalled:
-                this.pluginListAvailable.Sort((p1, p2) => this.pluginListInstalled.Any(x => x.Manifest.InternalName == p1.InternalName)
-                                                              .CompareTo(this.pluginListInstalled.Any(x => x.Manifest.InternalName == p2.InternalName)));
-                this.pluginListInstalled.Sort((p1, p2) => p1.Manifest.Name.CompareTo(p2.Manifest.Name)); // Makes no sense for installed plugins
                 break;
             case PluginSortKind.EnabledDisabled:
                 this.pluginListAvailable.Sort((p1, p2) =>
@@ -4117,6 +4261,18 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         #endregion
 
+        #region Filter
+
+        public static string Filter_ToggleTooltip => Loc.Localize("InstallerFilterToggleTooltip", "Show filters");
+
+        public static string Filter_Installed => Loc.Localize("InstallerFilterInstalled", "Installed");
+
+        public static string Filter_Unverified => Loc.Localize("InstallerFilterUnverified", "Unverified");
+
+        public static string Filter_Incompatible => Loc.Localize("InstallerFilterIncompatible", "Incompatible");
+
+        #endregion
+
         #region SortBy
 
         public static string SortBy_SearchScore => Loc.Localize("InstallerSearchScore", "Search score");
@@ -4128,8 +4284,6 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string SortBy_LastUpdate => Loc.Localize("InstallerLastUpdate", "Last Update");
 
         public static string SortBy_NewOrNot => Loc.Localize("InstallerNewOrNot", "New or not");
-
-        public static string SortBy_NotInstalled => Loc.Localize("InstallerNotInstalled", "Not Installed");
 
         public static string SortBy_EnabledDisabled => Loc.Localize("InstallerEnabledDisabled", "Enabled/Disabled");
 
