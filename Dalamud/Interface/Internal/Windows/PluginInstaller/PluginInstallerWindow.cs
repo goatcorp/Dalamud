@@ -128,7 +128,6 @@ internal class PluginInstallerWindow : Window, IDisposable
     private string filterText = Locs.SortBy_Alphabetical;
     private bool adaptiveSort = true;
 
-    private bool showPluginFilters = false;
     private bool showInstalledPlugins = true;
     private bool showThirdPartyPlugins = true;
     private bool showUnsupportedPlugins = true;
@@ -697,6 +696,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var selectableWidth = longestSelectableWidth + (style.FramePadding.X * 2);  // This does not include the label
         var sortSelectWidth = selectableWidth + sortByTextWidth + style.ItemInnerSpacing.X;  // Item spacing between the selectable and the label
         var filterButtonWidth = ImGui.GetFrameHeight();
+        const string filterPopupId = "###XlPluginInstaller_FilterPopup";
 
         var headerText = Locs.Header_Hint;
         var headerTextSize = ImGui.CalcTextSize(headerText);
@@ -715,10 +715,11 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Installed &&
             this.categoryManager.CurrentCategoryKind == PluginCategoryManager.CategoryKind.PluginProfiles;
         var disableHeaderListControls = this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Changelog || isProfileManager;
+        var filterPopupPosition = Vector2.Zero;
 
         using (ImRaii.Disabled(disableHeaderListControls))
         {
-            var filterButtonActive = this.showPluginFilters || this.HasActivePluginFilters();
+            var filterButtonActive = ImGui.IsPopupOpen(filterPopupId) || this.HasActivePluginFilters();
             var filterButtonColor = ImGuiColors.SuccessBackground with { W = 0.25f };
             if (ImGuiComponents.IconButton(
                     "###XlPluginInstaller_FilterToggle",
@@ -728,11 +729,21 @@ internal class PluginInstallerWindow : Window, IDisposable
                     null,
                     new Vector2(filterButtonWidth / ImGuiHelpers.GlobalScale, 0)))
             {
-                this.showPluginFilters = !this.showPluginFilters;
+                ImGui.OpenPopup(filterPopupId);
             }
+
+            filterPopupPosition = ImGui.GetItemRectMin() + new Vector2(0, ImGui.GetItemRectSize().Y + style.ItemSpacing.Y);
 
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(Locs.Filter_ToggleTooltip);
+        }
+
+        if (!disableHeaderListControls)
+        {
+            ImGui.SetNextWindowPos(filterPopupPosition, ImGuiCond.Appearing);
+            using var filterPopup = ImRaii.Popup(filterPopupId, ImGuiWindowFlags.AlwaysAutoResize);
+            if (filterPopup)
+                this.DrawPluginFilterPopup();
         }
 
         ImGui.SameLine();
@@ -819,16 +830,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                 ImGui.EndCombo();
             }
         }
-
-        if (this.showPluginFilters && !disableHeaderListControls)
-        {
-            ImGui.SetCursorPosY(downShift + ImGui.GetFrameHeight() + style.ItemSpacing.Y);
-            ImGui.SetCursorPosX(controlsStartX);
-            this.DrawPluginFilterRow();
-        }
     }
 
-    private void DrawPluginFilterRow()
+    private void DrawPluginFilterPopup()
     {
         var filtersChanged = false;
         var isInstalledDevPluginsCategory = this.IsInstalledDevPluginsCategory();
@@ -849,7 +853,6 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
         }
 
-        ImGui.SameLine();
         using (ImRaii.Disabled(thirdPartyFilterDisabled))
         {
             if (ImGui.Checkbox($"{Locs.Filter_Unverified}###XlPluginInstaller_FilterThirdParty", ref includeThirdParty) && !thirdPartyFilterDisabled)
@@ -859,7 +862,6 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
         }
 
-        ImGui.SameLine();
         using (ImRaii.Disabled(unsupportedFilterDisabled))
         {
             if (ImGui.Checkbox($"{Locs.Filter_Incompatible}###XlPluginInstaller_FilterUnsupported", ref includeUnsupported) && !unsupportedFilterDisabled)
