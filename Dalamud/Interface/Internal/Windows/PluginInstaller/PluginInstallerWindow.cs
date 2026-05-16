@@ -384,25 +384,6 @@ internal class PluginInstallerWindow : Window, IDisposable
     }
 
     /// <summary>
-    /// Clear the search text and reset all associated state (sort mode, category highlights, open collapsibles).
-    /// </summary>
-    private void ClearSearch()
-    {
-        var prevSearchText = this.searchText;
-        this.searchText = string.Empty;
-
-        if (this.adaptiveSort || this.sortKind == PluginSortKind.SearchScore)
-        {
-            this.sortKind = PluginSortKind.Alphabetical;
-            this.filterText = Locs.SortBy_Alphabetical;
-        }
-
-        this.ResortPlugins();
-
-        this.UpdateCategoriesOnSearchChange(prevSearchText);
-    }
-
-    /// <summary>
     /// Start a plugin install and handle errors visually.
     /// </summary>
     /// <param name="manifest">The manifest to install.</param>
@@ -528,6 +509,25 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         return manifest.IsTestingExclusive || (manifest.TestingDalamudApiLevel == PluginManager.DalamudApiLevel &&
                                                manifest.TestingDalamudApiLevel != manifest.DalamudApiLevel);
+    }
+
+    /// <summary>
+    /// Clear the search text and reset all associated state (sort mode, category highlights, open collapsibles).
+    /// </summary>
+    private void ClearSearch()
+    {
+        var prevSearchText = this.searchText;
+        this.searchText = string.Empty;
+
+        if (this.adaptiveSort || this.sortKind == PluginSortKind.SearchScore)
+        {
+            this.sortKind = PluginSortKind.Alphabetical;
+            this.filterText = Locs.SortBy_Alphabetical;
+        }
+
+        this.ResortPlugins();
+
+        this.UpdateCategoriesOnSearchChange(prevSearchText);
     }
 
     private void SetOpenPage(PluginInstallerOpenKind kind)
