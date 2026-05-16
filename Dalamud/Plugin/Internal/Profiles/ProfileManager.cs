@@ -233,7 +233,7 @@ internal partial class ProfileManager : IServiceType
         {
             wantActive = this.profiles
                              .Where(x => x.IsEnabled && x.CheckWantsActiveFromGameState(currentCharacterContentId ?? 0))
-                             .SelectMany(profile => profile.Plugins.Where(plugin => plugin.IsEnabled))
+                             .SelectMany(profile => profile.Plugins.Where(plugin => profile.WantsPlugin(plugin.WorkingPluginId) == true))
                              .Distinct().ToList();
         }
 
