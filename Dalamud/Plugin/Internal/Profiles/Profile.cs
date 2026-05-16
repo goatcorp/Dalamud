@@ -20,6 +20,8 @@ internal class Profile
     private readonly ProfileManager manager;
     private readonly ProfileModelV1 modelV1;
 
+    private readonly Dictionary<Guid, bool> ephemeralWantOverrides = new();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Profile"/> class.
     /// </summary>
@@ -170,8 +172,31 @@ internal class Profile
     {
         lock (this)
         {
+            if (this.ephemeralWantOverrides.TryGetValue(workingPluginId, out var overrideState))
+            {
+                return overrideState;
+            }
+
             var entry = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
             return entry?.IsEnabled;
+        }
+    }
+
+    /// <summary>
+    /// Override the state of a particular plugin in this profile without modifying the profile itself.
+    /// The plugin must already be in the profile. Does not apply.
+    /// </summary>
+    /// <param name="workingPluginId">The ID of the plugin.</param>
+    /// <param name="state">Whether the plugin should be enabled.</param>
+    /// <exception cref="PluginNotFoundException">Thrown if the plugin is not present in the profile.</exception>
+    public void SetEphemeralOverride(Guid workingPluginId, bool state)
+    {
+        if (this.modelV1.Plugins.All(x => x.WorkingPluginId != workingPluginId))
+            throw new PluginNotFoundException(workingPluginId);
+
+        lock (this.ephemeralWantOverrides)
+        {
+            this.ephemeralWantOverrides[workingPluginId] = state;
         }
     }
 
@@ -207,6 +232,8 @@ internal class Profile
         }
 
         Log.Information("Adding plugin {Plugin}({Guid}) to profile {Profile} with state {State}", internalName, workingPluginId, this.Guid, state);
+
+        this.ClearEphemeralOverride(workingPluginId);
 
         // We need to remove this plugin from the default profile, if it declares it.
         if (!this.IsDefaultProfile && this.manager.DefaultProfile.WantsPlugin(workingPluginId) != null)
@@ -246,6 +273,8 @@ internal class Profile
         }
 
         Log.Information("Removing plugin {Plugin}({Guid}) from profile {Profile}", entry.InternalName, entry.WorkingPluginId, this.Guid);
+
+        this.ClearEphemeralOverride(workingPluginId);
 
         // We need to add this plugin back to the default profile, if we were the last profile to have it.
         if (!this.manager.IsInAnyProfile(workingPluginId))
@@ -311,6 +340,17 @@ internal class Profile
 
     /// <inheritdoc/>
     public override string ToString() => $"{this.Guid} ({this.Name})";
+
+    private void ClearEphemeralOverride(Guid workingPluginId)
+    {
+        lock (this.ephemeralWantOverrides)
+        {
+            if (this.ephemeralWantOverrides.Remove(workingPluginId))
+            {
+                Log.Information("=> Removing ephemeral override for plugin {Guid} in profile {Profile}", workingPluginId, this.Guid);
+            }
+        }
+    }
 }
 
 /// <summary>
