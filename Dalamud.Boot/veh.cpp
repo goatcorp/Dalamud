@@ -33,8 +33,6 @@ HANDLE g_crashhandler_pipe_write = nullptr;
 
 wchar_t g_external_event_info[16384] = L"";
 
-LPVOID g_managed_stracktrace_fun = nullptr;
-
 std::recursive_mutex g_exception_handler_mutex;
 
 std::chrono::time_point<std::chrono::system_clock> g_time_start;
@@ -201,12 +199,7 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     }
     else if (!g_clr)
     {
-        stackTrace = L"(no CLR stack trace available)";
-    }
-    else if (g_managed_stracktrace_fun)
-    {
-        stackTrace = static_cast<wchar_t*(*)()>(g_managed_stracktrace_fun)();
-        // Don't free it, as the program's going to be quit anyway
+        stackTrace = L"(CLR was not loaded)";
     }
 
     exinfo.dwStackTraceLength = static_cast<DWORD>(stackTrace.size());
@@ -281,7 +274,7 @@ LONG WINAPI vectored_exception_handler(EXCEPTION_POINTERS* ex)
     return exception_handler(ex);
 }
 
-bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
+bool veh::add_handler(bool doFullDump, const std::string& workingDirectory, const std::wstring& bootLogPath, bool bootConsole)
 {
     if (g_veh_handle)
         return false;
@@ -379,6 +372,10 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
         logging::W("Failed to read path of the Dalamud Boot module: {}", path.error().describe());
         return false;
     }
+    if (!bootLogPath.empty())
+        args.emplace_back(std::format(L"--log-path={}", bootLogPath));
+    if (bootConsole)
+        args.emplace_back(L"--console");
 
     args.emplace_back(L"--");
     if (auto r = append_injector_launch_args(args); !r) {
@@ -447,11 +444,6 @@ void veh::raise_external_event(const std::wstring& info)
     const auto info_size = std::min(info.size(), std::size(g_external_event_info) - 1);
     wcsncpy_s(g_external_event_info, info.c_str(), info_size);
     RaiseException(CUSTOM_EXCEPTION_EXTERNAL_EVENT, 0, 0, nullptr);
-}
-
-void veh::set_managed_stacktrace_fun(LPVOID fun)
-{
-    g_managed_stracktrace_fun = fun;
 }
 
 extern "C" __declspec(dllexport) void BootVehRaiseExternalEventW(LPCWSTR info)

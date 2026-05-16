@@ -1,5 +1,5 @@
-#include <format>
 #include "pch.h"
+#include <format>
 
 #include <d3d11.h>
 #include <dxgi.h>
@@ -215,7 +215,7 @@ std::vector<IDXGIAdapter1*> enum_dxgi_adapters()
 
 
 static void PrintCpuGpuInfo() {
-    
+
     wchar_t vendor[0x20];
     wchar_t brand[0x40];
     get_cpu_info(vendor, brand);
@@ -246,24 +246,26 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     if (g_startInfo.BootShowConsole)
         ConsoleSetup(utils::get_string_resource(IDS_APPNAME).c_str());
 
+    logging::set_tag("BOOT");
     logging::update_dll_load_status(true);
 
-    const auto logFilePath = unicode::convert<std::wstring>(g_startInfo.BootLogPath);
+    std::wstring resolvedLogPath = unicode::convert<std::wstring>(g_startInfo.BootLogPath);
 
     auto attemptFallbackLog = false;
-    if (logFilePath.empty()) {
+    if (resolvedLogPath.empty()) {
         attemptFallbackLog = true;
 
         logging::I("No log file path given; not logging to file.");
     } else {
         try {
-            logging::start_file_logging(logFilePath, !g_startInfo.BootShowConsole);
-            logging::I("Logging to file: {}", logFilePath);
+            logging::start_file_logging(resolvedLogPath, !g_startInfo.BootShowConsole);
+            logging::I("Logging to file: {}", resolvedLogPath);
 
         } catch (const std::exception& e) {
             attemptFallbackLog = true;
+            resolvedLogPath.clear();
 
-            logging::E("Couldn't open log file: {}", logFilePath);
+            logging::E("Couldn't open log file: {}", unicode::convert<std::wstring>(g_startInfo.BootLogPath));
             logging::E("Error: {} / {}", errno, e.what());
         }
     }
@@ -272,27 +274,28 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
         logging::E("Couldn't parse input JSON: {}", jsonParseError);
 
     if (attemptFallbackLog) {
-        std::wstring logFilePath(PATHCCH_MAX_CCH + 1, L'\0');
-        logFilePath.resize(GetTempPathW(static_cast<DWORD>(logFilePath.size()), &logFilePath[0]));
-        if (logFilePath.empty()) {
-            logFilePath.resize(PATHCCH_MAX_CCH + 1);
-            logFilePath.resize(GetCurrentDirectoryW(static_cast<DWORD>(logFilePath.size()), &logFilePath[0]));
+        std::wstring fallbackLogPath(PATHCCH_MAX_CCH + 1, L'\0');
+        fallbackLogPath.resize(GetTempPathW(static_cast<DWORD>(fallbackLogPath.size()), &fallbackLogPath[0]));
+        if (fallbackLogPath.empty()) {
+            fallbackLogPath.resize(PATHCCH_MAX_CCH + 1);
+            fallbackLogPath.resize(GetCurrentDirectoryW(static_cast<DWORD>(fallbackLogPath.size()), &fallbackLogPath[0]));
         }
-        if (!logFilePath.empty() && logFilePath.back() != '/' && logFilePath.back() != '\\')
-            logFilePath += L"\\";
+        if (!fallbackLogPath.empty() && fallbackLogPath.back() != '/' && fallbackLogPath.back() != '\\')
+            fallbackLogPath += L"\\";
         SYSTEMTIME st;
         GetLocalTime(&st);
-        logFilePath += std::format(L"Dalamud.Boot.{:04}{:02}{:02}.{:02}{:02}{:02}.{:03}.{}.log", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
+        fallbackLogPath += std::format(L"Dalamud.Boot.{:04}{:02}{:02}.{:02}{:02}{:02}.{:03}.{}.log", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
 
         try {
-            logging::start_file_logging(logFilePath, !g_startInfo.BootShowConsole);
-            logging::I("Logging to fallback log file: {}", logFilePath);
+            logging::start_file_logging(fallbackLogPath, !g_startInfo.BootShowConsole);
+            resolvedLogPath = fallbackLogPath;
+            logging::I("Logging to fallback log file: {}", fallbackLogPath);
 
         } catch (const std::exception& e) {
             if (!g_startInfo.BootShowConsole && !g_startInfo.BootDisableFallbackConsole)
                 ConsoleSetup(L"Dalamud Boot - Fallback Console");
 
-            logging::E("Couldn't open fallback log file: {}", logFilePath);
+            logging::E("Couldn't open fallback log file: {}", fallbackLogPath);
             logging::E("Error: {} / {}", errno, e.what());
         }
     }
@@ -420,7 +423,7 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     if (FAILED(result))
         return result;
 
-    using custom_component_entry_point_fn = LPVOID (CORECLR_DELEGATE_CALLTYPE*)(LPVOID, HANDLE);
+    using custom_component_entry_point_fn = void (CORECLR_DELEGATE_CALLTYPE*)(LPVOID, HANDLE);
     const auto entrypoint_fn = reinterpret_cast<custom_component_entry_point_fn>(entrypoint_vfn);
 
     // ============================== VEH ======================================== //
@@ -429,7 +432,7 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     if (g_startInfo.UnhandledException == DalamudStartInfo::UnhandledExceptionHandlingMode::None) {
         logging::W("=> Exception handlers are disabled from DalamudStartInfo.");
     } else if (g_startInfo.BootVehEnabled) {
-        if (veh::add_handler(g_startInfo.BootVehFull, g_startInfo.WorkingDirectory))
+        if (veh::add_handler(g_startInfo.BootVehFull, g_startInfo.WorkingDirectory, resolvedLogPath, g_startInfo.BootShowConsole))
             logging::I("=> Done!");
         else
             logging::I("=> Failed!");
@@ -491,9 +494,8 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     // utils::wait_for_game_window();
 
     logging::I("Initializing Dalamud...");
-    const LPVOID managed_stacktrace_fun = entrypoint_fn(lpParam, hMainThreadContinue);
-    veh::set_managed_stacktrace_fun(managed_stacktrace_fun);
-    logging::I("Done! (managed_stacktrace_fun={})", managed_stacktrace_fun);
+    entrypoint_fn(lpParam, hMainThreadContinue);
+    logging::I("Done!");
 
     return S_OK;
 }
