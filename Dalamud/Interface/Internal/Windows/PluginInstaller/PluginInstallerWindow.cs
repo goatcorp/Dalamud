@@ -3058,7 +3058,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.DrawPluginControlButton(plugin, availablePluginUpdate);
             this.DrawDevPluginButtons(plugin);
             this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl, false);
-            this.DrawDeletePluginButton(plugin);
+            this.DrawDeletePluginButton(plugin, index);
 
             if (canFeedback)
             {
@@ -3735,7 +3735,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private void DrawDeletePluginButton(LocalPlugin plugin)
+    private void DrawDeletePluginButton(LocalPlugin plugin, int index)
     {
         /*var unloaded = plugin.State == PluginState.Unloaded || plugin.State == PluginState.LoadError;
 
@@ -3781,6 +3781,14 @@ internal class PluginInstallerWindow : Window, IDisposable
                     if (plugin.State is PluginState.Unloaded or PluginState.DependencyResolutionFailed)
                     {
                         pluginManager.RemovePlugin(plugin);
+
+                        // Plugin is gone now, shift down modals behind us
+                        this.openPluginCollapsibles.Remove(index);
+                        for (var i = 0; i < this.openPluginCollapsibles.Count; i++)
+                        {
+                            if (this.openPluginCollapsibles[i] > index)
+                                this.openPluginCollapsibles[i]--;
+                        }
                     }
                 }
                 catch (Exception ex)
