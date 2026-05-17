@@ -370,7 +370,7 @@ public class StyleEditorWindow : Window
             {
                 this.DrawBuiltinWarning(isBuiltinStyle);
                 using var disabledBlur = ImRaii.Disabled(isBuiltinStyle);
-                ImGui.TextWrapped(Loc.Localize("StyleEditorWindowBgBlur", "Window Background Blur strength") + " (Experimental)");
+                ImGui.TextWrapped(Loc.Localize("StyleEditorWindowBgBlur", "Background Blur strength"));
 
                 var v = workStyleV1.WindowBlurStrength * 100f;
                 if (ImGui.SliderFloat($"###blurStrength", ref v, 0f, 100f, "%.1f%%"))
@@ -386,6 +386,67 @@ public class StyleEditorWindow : Window
                         "DalamudSettingBackgroundBlurHint",
                         "This will allow you to set the strength of the blur effect for plugin windows.\n" +
                         "Set to 0% to disable the blur effect. This may not be supported by all of your plugins. Contact the plugin author if you want them to support this feature."));
+                ImGui.PopStyleColor();
+
+                ImGuiHelpers.ScaledDummy(5);
+
+                ImGui.TextWrapped(Loc.Localize("StyleEditorWindowBgBlurTint", "Background Blur Tint"));
+                var tint = workStyleV1.WindowBlurTint;
+                if (ImGui.ColorEdit4(
+                        $"###blurTint",
+                        ref tint,
+                        ImGuiColorEditFlags.AlphaBar | ImGuiColorEditFlags.AlphaPreviewHalf))
+                {
+                    workStyleV1.WindowBlurTint = tint;
+                    WindowSystem.DefaultBackgroundBlurTint = workStyleV1.WindowBlurTint;
+                }
+
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
+                ImGui.TextWrapped(
+                    Loc.Localize(
+                        "DalamudSettingBackgroundBlurTintHint",
+                        "This will allow you to tint the background blur for inactive windows."));
+                ImGui.PopStyleColor();
+
+                ImGuiHelpers.ScaledDummy(5);
+
+                ImGui.TextWrapped(Loc.Localize("StyleEditorWindowBgBlurTint", "Background Blur Tint (Active Window)"));
+                var tintActive = workStyleV1.WindowBlurTintActive;
+                if (ImGui.ColorEdit4(
+                        $"###blurTintActive",
+                        ref tintActive,
+                        ImGuiColorEditFlags.AlphaBar | ImGuiColorEditFlags.AlphaPreviewHalf))
+                {
+                    workStyleV1.WindowBlurTintActive = tintActive;
+                    WindowSystem.DefaultBackgroundBlurTintActive = workStyleV1.WindowBlurTintActive;
+                }
+
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
+                ImGui.TextWrapped(
+                    Loc.Localize(
+                        "DalamudSettingBackgroundBlurTintActiveHint",
+                        "This will allow you to tint the background blur for active windows."));
+                ImGui.PopStyleColor();
+
+                ImGuiHelpers.ScaledDummy(5);
+
+                ImGui.TextWrapped(Loc.Localize("StyleEditorWindowBgBlurTint", "Background Blur Luminosity"));
+                var luminosity = workStyleV1.WindowBlurLuminosity;
+                if (ImGui.ColorEdit4(
+                        $"###blurLuminosity",
+                        ref luminosity,
+                        ImGuiColorEditFlags.AlphaBar | ImGuiColorEditFlags.AlphaPreviewHalf))
+                {
+                    workStyleV1.WindowBlurLuminosity = luminosity;
+                    WindowSystem.DefaultBackgroundBlurLuminosity = workStyleV1.WindowBlurLuminosity;
+                }
+
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
+                ImGui.TextWrapped(
+                    Loc.Localize(
+                        "DalamudSettingBackgroundBlurLuminosityHint",
+                        "Luminosity target color (RGB) and luminosity blend strength (Alpha).\n" +
+                        "Reduces contrast of the blurred background by replacing the blurred image's lightness with the target colors' lightness (keeping the blurred background's hue and saturation)."));
                 ImGui.PopStyleColor();
 
                 ImGui.EndTabItem();
