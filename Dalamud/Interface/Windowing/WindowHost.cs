@@ -35,8 +35,6 @@ public class WindowHost
     private const float MaxBlurStrength = 14f;
     private const string AdditionsPopupName = "WindowSystemContextActions";
 
-    private static readonly Vector4 BlurTintMultiplier = new(158 / 255f, 158 / 255f, 158 / 255f, 25 / 255f);
-
     private static readonly ModuleLog Log = ModuleLog.Create<WindowSystem>();
 
     private static bool wasEscPressedLastFrame = false;
@@ -296,8 +294,9 @@ public class WindowHost
                         wPos + ImGui.GetWindowSize(),
                         float.Lerp(0.005f, effectiveBlurFactor, this.internalAlpha ?? 1f) * MaxBlurStrength,
                         ImGui.GetStyle().WindowRounding,
-                        tintColor: ImGui.GetStyle().Colors[ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows) ? (int)ImGuiCol.TitleBgActive : (int)ImGuiCol.TitleBg] * BlurTintMultiplier,
-                        noiseOpacity: float.Lerp(0.09f, 1f, effectiveWindowBgAlpha * this.internalAlpha ?? 1f) * BlurNoiseOpacity);
+                        tintColor: ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows) ? internalDrawParams.DefaultBackgroundBlurTintActive : internalDrawParams.DefaultBackgroundBlurTint,
+                        noiseOpacity: float.Lerp(0.09f, 1f, effectiveWindowBgAlpha * this.internalAlpha ?? 1f) * BlurNoiseOpacity,
+                        luminosityColor: internalDrawParams.DefaultBackgroundBlurLuminosity);
                 }
             }
 
@@ -849,8 +848,23 @@ public class WindowHost
         public WindowDrawFlags Flags { get; init; }
 
         /// <summary>
-        /// Gets the sigma value to be used for background blur, if enabled..
+        /// Gets the strength value to be used for background blur, if enabled.
         /// </summary>
         public float DefaultBackgroundBlurStrength { get; init; }
+
+        /// <summary>
+        /// Gets the tint value to be used for background blur in inactive windows, if enabled.
+        /// </summary>
+        public Vector4 DefaultBackgroundBlurTint { get; init; }
+
+        /// <summary>
+        /// Gets the tint value to be used for background blur in active windows, if enabled.
+        /// </summary>
+        public Vector4 DefaultBackgroundBlurTintActive { get; init; }
+
+        /// <summary>
+        /// Gets the luminosity adjust value to be used for background blur, if enabled.
+        /// </summary>
+        public Vector4 DefaultBackgroundBlurLuminosity { get; init; }
     }
 }

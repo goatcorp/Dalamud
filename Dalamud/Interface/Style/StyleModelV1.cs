@@ -410,6 +410,9 @@ public class StyleModelV1 : StyleModel
         },
 
         WindowBlurStrength = 0.5f,
+        WindowBlurTintActive = new Vector4(0.27200785f, 0.06505883f, 0.08736471f, 0.08107843f),
+        WindowBlurTint = new Vector4(0.014018277f, 0.014018136f, 0.014018136f, 0.08339988f),
+        WindowBlurLuminosity = Vector4.Zero,
     };
 
     /// <summary>
@@ -506,6 +509,15 @@ public class StyleModelV1 : StyleModel
     [JsonProperty("ac")]
     public float WindowBlurStrength { get; set; }
 
+    [JsonProperty("ad")]
+    public Vector4 WindowBlurTint { get; set; }
+
+    [JsonProperty("ae")]
+    public Vector4 WindowBlurTintActive { get; set; }
+
+    [JsonProperty("af")]
+    public Vector4 WindowBlurLuminosity { get; set; }
+
 #pragma warning restore SA1600
 
     /// <summary>
@@ -598,6 +610,9 @@ public class StyleModelV1 : StyleModel
         };
 
         model.WindowBlurStrength = WindowSystem.DefaultBackgroundBlurStrength;
+        model.WindowBlurTint = WindowSystem.DefaultBackgroundBlurTint;
+        model.WindowBlurTintActive = WindowSystem.DefaultBackgroundBlurTintActive;
+        model.WindowBlurLuminosity = WindowSystem.DefaultBackgroundBlurLuminosity;
 
         return model;
     }
@@ -650,6 +665,9 @@ public class StyleModelV1 : StyleModel
 
         this.BuiltInColors?.Apply();
         WindowSystem.DefaultBackgroundBlurStrength = this.WindowBlurStrength;
+        WindowSystem.DefaultBackgroundBlurTint = this.WindowBlurTint;
+        WindowSystem.DefaultBackgroundBlurTintActive = this.WindowBlurTintActive;
+        WindowSystem.DefaultBackgroundBlurLuminosity = this.WindowBlurLuminosity;
     }
 
     /// <inheritdoc/>

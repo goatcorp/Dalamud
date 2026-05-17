@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
@@ -64,6 +65,21 @@ public class WindowSystem : IWindowSystem
     /// </summary>
     internal static float DefaultBackgroundBlurStrength { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating the default inactive window blur tint for windows in this <see cref="WindowSystem"/>.
+    /// </summary>
+    internal static Vector4 DefaultBackgroundBlurTint { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating the default active window blur tint for windows in this <see cref="WindowSystem"/>.
+    /// </summary>
+    internal static Vector4 DefaultBackgroundBlurTintActive { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating the default blur luminosity adjust for windows in this <see cref="WindowSystem"/>.
+    /// </summary>
+    internal static Vector4 DefaultBackgroundBlurLuminosity { get; set; }
+
     /// <inheritdoc/>
     public void AddWindow(IWindow window)
     {
@@ -117,17 +133,20 @@ public class WindowSystem : IWindowSystem
 #if DEBUG
             // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
 #endif
-            var parameters = new WindowHost.WindowDrawParameters()
+            var parameters = new WindowHost.WindowDrawParameters
             {
                 Flags = flags,
                 DefaultBackgroundBlurStrength = DefaultBackgroundBlurStrength,
+                DefaultBackgroundBlurTint = DefaultBackgroundBlurTint,
+                DefaultBackgroundBlurTintActive = DefaultBackgroundBlurTintActive,
+                DefaultBackgroundBlurLuminosity = DefaultBackgroundBlurLuminosity,
             };
 
             window.DrawInternal(parameters, persistence);
         }
 
         var focusedWindow = this.windows.FirstOrDefault(window => window.Window.IsFocused);
-        this.HasAnyFocus = focusedWindow != default;
+        this.HasAnyFocus = focusedWindow != null;
 
         if (this.HasAnyFocus)
         {
