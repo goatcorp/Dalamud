@@ -31,6 +31,7 @@ namespace Dalamud.Interface.Windowing;
 public class WindowHost
 {
     private const float FadeInOutTime = 0.072f;
+    private const float FocusFadeTime = 0.062f;
     private const float BlurNoiseOpacity = 0.17f;
     private const float MaxBlurStrength = 14f;
     private const string AdditionsPopupName = "WindowSystemContextActions";
@@ -61,6 +62,8 @@ public class WindowHost
 
     private bool hasError = false;
     private Exception? lastError;
+
+    private float focusTransitionProgress = 0f;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WindowHost"/> class.
@@ -222,11 +225,34 @@ public class WindowHost
             ImGuiHelpers.ForceNextWindowMainViewport();
 
         var wasFocused = this.Window.IsFocused;
-        if (wasFocused && this.Window is not StyleEditorWindow)
+
+        // Smoothly fade title and tint colors bar when switching between active/inactive
+        if (internalDrawParams.Flags.HasFlag(WindowDrawFlags.IsReducedMotion))
+        {
+            this.focusTransitionProgress = wasFocused ? 1f : 0f;
+        }
+        else
+        {
+            var focusFadeStep = ImGui.GetIO().DeltaTime / FocusFadeTime;
+            this.focusTransitionProgress = Math.Clamp(
+                this.focusTransitionProgress + (wasFocused ? focusFadeStep : -focusFadeStep),
+                0f,
+                1f);
+        }
+
+        var t = this.focusTransitionProgress;
+        var easedFocusProgress = 1f - (1f - t) * (1f - t) * (1f - t);
+
+        if (this.Window is not StyleEditorWindow)
         {
             var style = ImGui.GetStyle();
-            var focusedHeaderColor = style.Colors[(int)ImGuiCol.TitleBgActive];
-            ImGui.PushStyleColor(ImGuiCol.TitleBgCollapsed, focusedHeaderColor);
+            var lerpedTitleBgColor = Vector4.Lerp(
+                style.Colors[(int)ImGuiCol.TitleBg],
+                style.Colors[(int)ImGuiCol.TitleBgActive],
+                easedFocusProgress);
+            ImGui.PushStyleColor(ImGuiCol.TitleBg, lerpedTitleBgColor);
+            ImGui.PushStyleColor(ImGuiCol.TitleBgActive, lerpedTitleBgColor);
+            ImGui.PushStyleColor(ImGuiCol.TitleBgCollapsed, lerpedTitleBgColor);
         }
 
         if (this.Window.RequestFocus)
@@ -284,7 +310,6 @@ public class WindowHost
                                  ImGui.GetWindowViewport().ID == ImGui.GetMainViewport().ID &&
                                  windowHasBackground;
 
-                // TODO: Fade between active/inactive tint?
                 if (shouldBlur)
                 {
                     var wPos = ImGui.GetWindowPos();
@@ -294,7 +319,7 @@ public class WindowHost
                         wPos + ImGui.GetWindowSize(),
                         float.Lerp(0.005f, effectiveBlurFactor, this.internalAlpha ?? 1f) * MaxBlurStrength,
                         ImGui.GetStyle().WindowRounding,
-                        tintColor: ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows) ? internalDrawParams.DefaultBackgroundBlurTintActive : internalDrawParams.DefaultBackgroundBlurTint,
+                        tintColor: Vector4.Lerp(internalDrawParams.DefaultBackgroundBlurTint, internalDrawParams.DefaultBackgroundBlurTintActive, easedFocusProgress),
                         noiseOpacity: float.Lerp(0.09f, 1f, effectiveWindowBgAlpha * this.internalAlpha ?? 1f) * BlurNoiseOpacity,
                         luminosityColor: internalDrawParams.DefaultBackgroundBlurLuminosity);
                 }
@@ -502,9 +527,9 @@ public class WindowHost
             this.DrawTitleBarButtons();
         }
 
-        if (wasFocused && this.Window is not StyleEditorWindow)
+        if (this.Window is not StyleEditorWindow)
         {
-            ImGui.PopStyleColor();
+            ImGui.PopStyleColor(3);
         }
 
         this.Window.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
