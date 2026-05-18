@@ -21,7 +21,7 @@ internal sealed class DevPluginSettings
     /// <summary>
     /// Gets or sets a value indicating whether this plugin should automatically reload on file change.
     /// </summary>
-    public bool AutomaticReloading { get; set; } = false;
+    public bool AutomaticReloading { get; set; } = true;
 
     /// <summary>
     /// Gets or sets an ID uniquely identifying this specific instance of a devPlugin.
