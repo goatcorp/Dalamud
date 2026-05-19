@@ -1701,9 +1701,6 @@ internal class PluginInstallerWindow : Window, IDisposable
                 if (!isCurrent)
                 {
                     this.categoryManager.CurrentGroupKind = groupInfo.GroupKind;
-
-                    // Reset search text when switching groups
-                    this.ClearSearch();
                 }
 
                 ImGui.Indent();
