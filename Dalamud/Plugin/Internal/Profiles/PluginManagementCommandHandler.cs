@@ -29,6 +29,10 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
     public const string CommandEnablePlugin = "/xlenableplugin";
     public const string CommandDisablePlugin = "/xldisableplugin";
     public const string CommandTogglePlugin = "/xltoggleplugin";
+
+    public const string CommandEnablePluginTemp = "/xlenableplugintemp";
+    public const string CommandDisablePluginTemp = "/xldisableplugintemp";
+    public const string CommandTogglePluginTemp = "/xltoggleplugintemp";
 #pragma warning restore SA1600
 
     private static readonly string LegacyCommandEnable = CommandEnableProfile.Replace("collection", "profile");
@@ -98,21 +102,39 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
             ShowInHelp = false,
         });
 
-        this.cmd.AddHandler(CommandEnablePlugin, new CommandInfo(this.OnEnablePlugin)
+        this.cmd.AddHandler(CommandEnablePlugin, new CommandInfo((_, args) => this.OnEnablePlugin(args, false))
         {
             HelpMessage = Loc.Localize("PluginCommandsEnableHint", "Enable a plugin. Usage: /xlenableplugin \"Plugin Name\""),
             ShowInHelp = true,
         });
 
-        this.cmd.AddHandler(CommandDisablePlugin, new CommandInfo(this.OnDisablePlugin)
+        this.cmd.AddHandler(CommandDisablePlugin, new CommandInfo((_, args) => this.OnDisablePlugin(args, false))
         {
             HelpMessage = Loc.Localize("PluginCommandsDisableHint", "Disable a plugin. Usage: /xldisableplugin \"Plugin Name\""),
             ShowInHelp = true,
         });
 
-        this.cmd.AddHandler(CommandTogglePlugin, new CommandInfo(this.OnTogglePlugin)
+        this.cmd.AddHandler(CommandTogglePlugin, new CommandInfo((_, args) => this.OnTogglePlugin(args, false))
         {
             HelpMessage = Loc.Localize("PluginCommandsToggleHint", "Toggle a plugin. Usage: /xltoggleplugin \"Plugin Name\""),
+            ShowInHelp = true,
+        });
+
+        this.cmd.AddHandler(CommandEnablePluginTemp, new CommandInfo((_, args) => this.OnEnablePlugin(args, true))
+        {
+            HelpMessage = Loc.Localize("PluginCommandsEnableTempHint", "Enable a plugin temporarily. Will reset once the game is restarted or the plugin's state is changed in the installer. Usage: /xlenableplugintemp \"Plugin Name\""),
+            ShowInHelp = true,
+        });
+
+        this.cmd.AddHandler(CommandDisablePluginTemp, new CommandInfo((_, args) => this.OnDisablePlugin(args, true))
+        {
+            HelpMessage = Loc.Localize("PluginCommandsDisableTempHint", "Disable a plugin. Will reset once the game is restarted or the plugin's state is changed in the installer. Usage: /xldisableplugintemp \"Plugin Name\""),
+            ShowInHelp = true,
+        });
+
+        this.cmd.AddHandler(CommandTogglePluginTemp, new CommandInfo((_, args) => this.OnTogglePlugin(args, true))
+        {
+            HelpMessage = Loc.Localize("PluginCommandsToggleTempHint", "Toggle a plugin. Will reset once the game is restarted or the plugin's state is changed in the installer. Usage: /xltoggleplugintemp \"Plugin Name\""),
             ShowInHelp = true,
         });
 
@@ -132,6 +154,12 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        this.cmd.RemoveHandler(CommandTogglePluginTemp);
+        this.cmd.RemoveHandler(CommandDisablePluginTemp);
+        this.cmd.RemoveHandler(CommandEnablePluginTemp);
+        this.cmd.RemoveHandler(CommandTogglePlugin);
+        this.cmd.RemoveHandler(CommandDisablePlugin);
+        this.cmd.RemoveHandler(CommandEnablePlugin);
         this.cmd.RemoveHandler(CommandEnableProfile);
         this.cmd.RemoveHandler(CommandDisableProfile);
         this.cmd.RemoveHandler(CommandToggleProfile);
@@ -365,13 +393,11 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
         this.commandQueue.Add((target, PluginCommandOperation.Toggle));
     }
 
-    private void OnEnablePlugin(string command, string arguments)
+    private void OnEnablePlugin(string arguments, bool ephemeral)
     {
         var plugin = this.ValidatePluginName(arguments);
         if (plugin == null)
             return;
-
-        var ephemeral = arguments.EndsWith(" temp", StringComparison.CurrentCultureIgnoreCase);
 
         var target = new PluginTarget(plugin.EffectiveWorkingPluginId);
         this.commandQueue
@@ -379,13 +405,11 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
         this.commandQueue.Add((target, ephemeral ? PluginCommandOperation.EnableEphemeral : PluginCommandOperation.Enable));
     }
 
-    private void OnDisablePlugin(string command, string arguments)
+    private void OnDisablePlugin(string arguments, bool ephemeral)
     {
         var plugin = this.ValidatePluginName(arguments);
         if (plugin == null)
             return;
-
-        var ephemeral = arguments.EndsWith(" temp", StringComparison.CurrentCultureIgnoreCase);
 
         var target = new PluginTarget(plugin.EffectiveWorkingPluginId);
         this.commandQueue
@@ -393,13 +417,11 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
         this.commandQueue.Add((target, ephemeral ? PluginCommandOperation.DisableEphemeral : PluginCommandOperation.Disable));
     }
 
-    private void OnTogglePlugin(string command, string arguments)
+    private void OnTogglePlugin(string arguments, bool ephemeral)
     {
         var plugin = this.ValidatePluginName(arguments);
         if (plugin == null)
             return;
-
-        var ephemeral = arguments.EndsWith(" temp", StringComparison.CurrentCultureIgnoreCase);
 
         var target = new PluginTarget(plugin.EffectiveWorkingPluginId);
         this.commandQueue
@@ -421,7 +443,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
 
     private LocalPlugin? ValidatePluginName(string arguments)
     {
-        var name = arguments.Split().FirstOrDefault(string.Empty).Replace("\"", string.Empty);
+        var name = arguments.Replace("\"", string.Empty);
         var targetPlugin =
             this.pluginManager.InstalledPlugins.FirstOrDefault(x => x.InternalName == name || x.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
 
