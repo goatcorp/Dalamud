@@ -1551,14 +1551,10 @@ internal class PluginInstallerWindow : Window, IDisposable
         var applyPluginFilters = filter != InstalledPluginListFilter.Dev;
         var configuration = Service<DalamudConfiguration>.Get();
         var favoriteList = configuration.FavoritePluginInternalName;
-        var pinnedList = configuration.PinnedPluginInternalName;
         var filteredList = pluginList
                            // Filter out plugins that don't match the search if any
                           .Where(plugin => !this.IsManifestFiltered(plugin.Manifest))
                           .Where(plugin => !applyPluginFilters || !this.IsInstalledPluginFiltered(plugin, false))
-                           // Order plugins by pinned status, then by name
-                          .OrderBy(plugin => !pinnedList.Contains(plugin.Manifest.InternalName))
-                          .ThenBy(plugin => plugin.Manifest.Name)
                           .ToList();
 
         if (filteredList.Count == 0)
@@ -3241,6 +3237,8 @@ internal class PluginInstallerWindow : Window, IDisposable
                 else
                     configuration.PinnedPluginInternalName.Add(plugin.Manifest.InternalName);
                 configuration.QueueSave();
+                // Resort plugins to update pinned order
+                this.ResortPlugins();
             }
 
             ImGui.Separator();
@@ -4199,6 +4197,18 @@ internal class PluginInstallerWindow : Window, IDisposable
             default:
                 throw new InvalidEnumArgumentException("Unknown plugin sort type.");
         }
+
+        this.SortPluginsByPinnedStatus();
+    }
+
+    private void SortPluginsByPinnedStatus()
+    {
+        var configuration = Service<DalamudConfiguration>.Get();
+        var pinnedList = new HashSet<string>(configuration.PinnedPluginInternalName);
+
+        this.pluginListInstalled = this.pluginListInstalled
+                                       .OrderByDescending(p => pinnedList.Contains(p.Manifest.InternalName))
+                                       .ToList();
     }
 
     private bool WasPluginSeen(string internalName) =>
