@@ -236,8 +236,12 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
         var blockingConditions = condition.AsReadOnlySet().Except([
             ConditionFlag.NormalConditions,
+            ConditionFlag.Emoting,
             ConditionFlag.Jumping,
             ConditionFlag.Mounted,
+            ConditionFlag.InFlight,
+            ConditionFlag.Swimming,
+            ConditionFlag.Diving,
             ConditionFlag.UsingFashionAccessory,
             ConditionFlag.OnFreeTrial]);
 
