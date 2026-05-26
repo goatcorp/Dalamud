@@ -135,8 +135,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         if (cancellationToken == CancellationToken.None)
             cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
 
-        if (cancellationToken.IsCancellationRequested)
-            return Task.FromCanceled(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
         return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken);
     }
@@ -147,8 +146,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         if (cancellationToken == CancellationToken.None)
             cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
 
-        if (cancellationToken.IsCancellationRequested)
-            return Task.FromCanceled<T>(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
         return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken);
     }
@@ -159,8 +157,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         if (cancellationToken == CancellationToken.None)
             cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
 
-        if (cancellationToken.IsCancellationRequested)
-            return Task.FromCanceled(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
         return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken).Unwrap();
     }
@@ -171,8 +168,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         if (cancellationToken == CancellationToken.None)
             cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
 
-        if (cancellationToken.IsCancellationRequested)
-            return Task.FromCanceled<T>(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
         return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken).Unwrap();
     }
