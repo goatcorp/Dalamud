@@ -221,7 +221,8 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public bool IsClientIdle(out ConditionFlag blockingFlag)
     {
         blockingFlag = 0;
-        if (this.objectTable.LocalPlayer is null) return true;
+        if (!this.IsLoggedIn)
+            return true;
 
         var condition = Service<Conditions.Condition>.GetNullable();
 
