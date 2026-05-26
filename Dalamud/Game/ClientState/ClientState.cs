@@ -18,7 +18,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.Network;
 using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
 using Lumina.Excel.Sheets;
 
@@ -222,15 +221,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public bool IsClientIdle(out ConditionFlag blockingFlag)
     {
         blockingFlag = 0;
-        if (this.objectTable.LocalPlayer is null)
-            return true;
-
-        unsafe
-        {
-            var inputTimerModule = InputTimerModule.Instance();
-            if (inputTimerModule != null && inputTimerModule->Status == 1 && inputTimerModule->InputTimer < 30)
-                return false;
-        }
+        if (this.objectTable.LocalPlayer is null) return true;
 
         var condition = Service<Conditions.Condition>.GetNullable();
 
