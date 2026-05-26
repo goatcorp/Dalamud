@@ -314,7 +314,7 @@ internal sealed partial class TextureManager
             {
                 for (uint mipSlice = 0, width = desc.Width, height = desc.Height;
                      mipSlice < desc.MipLevels;
-                     ++mipSlice, ++subresource, width = (width + 1) >> 1, height = (height + 1) >> 1)
+                     ++mipSlice, ++subresource, width = Math.Max(width >> 1, 1), height = Math.Max(height >> 1, 1))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
