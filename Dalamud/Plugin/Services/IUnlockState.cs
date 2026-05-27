@@ -145,6 +145,13 @@ public interface IUnlockState : IDalamudService
     bool IsChocoboTaxiStandUnlocked(ChocoboTaxiStand row);
 
     /// <summary>
+    /// Determines whether the specified ClassJob is unlocked.
+    /// </summary>
+    /// <param name="row">The ClassJob row to check.</param>
+    /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
+    bool IsClassJobUnlocked(ClassJob row);
+
+    /// <summary>
     /// Determines whether the specified Companion (Minions) is unlocked.
     /// </summary>
     /// <param name="row">The Companion row to check.</param>

@@ -240,6 +240,16 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
+    public bool IsClassJobUnlocked(ClassJob row)
+    {
+        if (!this.IsLoaded || row.RowId == 0 || row.ClassJobCategory.RowId == 0 || row.ExpArrayIndex < 0)
+            return false;
+
+        var playerState = CSPlayerState.Instance();
+        return playerState->ClassJobLevels.Length > row.ExpArrayIndex && playerState->ClassJobLevels[row.ExpArrayIndex] != 0;
+    }
+
+    /// <inheritdoc/>
     public bool IsCompanionUnlocked(Companion row)
     {
         if (!this.IsLoaded)
@@ -600,6 +610,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<ChocoboTaxiStand>(out var chocoboTaxiStandRow))
             return this.IsChocoboTaxiStandUnlocked(chocoboTaxiStandRow);
 
+        if (rowRef.TryGetValue<ClassJob>(out var classJobRow))
+            return this.IsClassJobUnlocked(classJobRow);
+
         if (rowRef.TryGetValue<Companion>(out var companionRow))
             return this.IsCompanionUnlocked(companionRow);
 
@@ -783,6 +796,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.UpdateUnlocksForSheet<CSBonusContentType>();
         this.UpdateUnlocksForSheet<CharaMakeCustomize>();
         this.UpdateUnlocksForSheet<ChocoboTaxi>();
+        this.UpdateUnlocksForSheet<ClassJob>();
         this.UpdateUnlocksForSheet<Companion>();
         this.UpdateUnlocksForSheet<CraftAction>();
         this.UpdateUnlocksForSheet<EmjVoiceNpc>();
@@ -947,6 +961,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsChocoboTaxiStandUnlocked(ChocoboTaxiStand row) => this.unlockStateService.IsChocoboTaxiStandUnlocked(row);
+
+    /// <inheritdoc/>
+    public bool IsClassJobUnlocked(ClassJob row) => this.unlockStateService.IsClassJobUnlocked(row);
 
     /// <inheritdoc/>
     public bool IsCompanionUnlocked(Companion row) => this.unlockStateService.IsCompanionUnlocked(row);
