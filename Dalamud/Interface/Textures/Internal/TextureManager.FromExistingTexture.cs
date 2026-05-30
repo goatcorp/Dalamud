@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -311,6 +312,8 @@ internal sealed partial class TextureManager
                 .ThrowOnError();
 
             wrapAux.CtxPtr->OMSetRenderTargets(1u, rtvCopyTemp.GetAddressOf(), null);
+            var clearColor = default(Vector4);
+            wrapAux.CtxPtr->ClearRenderTargetView(rtvCopyTemp.Get(), &clearColor.X);
             simpleDrawer.Draw(wrapAux.CtxPtr, wrapAux.SrvPtr, args.Uv0, args.Uv1Effective);
             if (args.MakeOpaque)
                 simpleDrawer.StripAlpha(wrapAux.CtxPtr);
