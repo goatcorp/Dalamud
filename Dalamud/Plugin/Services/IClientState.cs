@@ -128,7 +128,7 @@ public interface IClientState : IDalamudService
     public bool IsGPosing { get; }
 
     /// <summary>
-    /// Check whether the client is currently "idle". This means a player is not logged in, or is notctively in combat
+    /// Opinionated check whether the client is currently "idle". This means a player is not logged in, or is not actively in combat
     /// or doing anything that we may not want to disrupt.
     /// </summary>
     /// <param name="blockingFlag">An outvar containing the first observed condition blocking the "idle" state. 0 if idle.</param>
@@ -136,7 +136,7 @@ public interface IClientState : IDalamudService
     public bool IsClientIdle(out ConditionFlag blockingFlag);
 
     /// <summary>
-    /// Check whether the client is currently "idle". This means a player is not logged in, or is notctively in combat
+    /// Opinionated check whether the client is currently "idle". This means a player is not logged in, or is not actively in combat
     /// or doing anything that we may not want to disrupt.
     /// </summary>
     /// <returns>Returns true if the client is idle, false otherwise.</returns>
