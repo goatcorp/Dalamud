@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
@@ -25,6 +26,7 @@ internal partial class ProfileManager : IServiceType
     private readonly DalamudConfiguration config;
 
     private readonly List<Profile> profiles = [];
+    private readonly Lock profilesLock = new();
 
     private volatile bool isBusy = false;
 
@@ -47,7 +49,7 @@ internal partial class ProfileManager : IServiceType
     {
         get
         {
-            lock (this.profiles)
+            using (this.profilesLock.EnterScope())
                 return this.profiles.First(x => x.IsDefaultProfile);
         }
     }
@@ -84,7 +86,7 @@ internal partial class ProfileManager : IServiceType
 
         var currentCharacterContentId = FindApplicableContentIdFromGameState() ?? 0;
 
-        lock (this.profiles)
+        using (this.profilesLock.EnterScope())
         {
             foreach (var profile in this.profiles)
             {
@@ -118,7 +120,7 @@ internal partial class ProfileManager : IServiceType
     /// <returns>Whether the plugin is in any profile.</returns>
     public bool IsInAnyProfile(Guid workingPluginId)
     {
-        lock (this.profiles)
+        using (this.profilesLock.EnterScope())
             return this.profiles.Any(x => x.WantsPlugin(workingPluginId) != null);
     }
 
@@ -229,7 +231,7 @@ internal partial class ProfileManager : IServiceType
         Log.Information("Getting want states... (reason={Reason}, cid={ContentId})", reason, currentCharacterContentId);
 
         List<ProfilePluginEntry> wantActive;
-        lock (this.profiles)
+        using (this.profilesLock.EnterScope())
         {
             wantActive = this.profiles
                              .Where(x => x.IsEnabled && x.CheckWantsActiveFromGameState(currentCharacterContentId ?? 0))
@@ -319,7 +321,7 @@ internal partial class ProfileManager : IServiceType
     /// <param name="newGuid">Guid to use.</param>
     public void MigrateProfilesToGuidsForPlugin(string internalName, Guid newGuid)
     {
-        lock (this.profiles)
+        using (this.profilesLock.EnterScope())
         {
             foreach (var profile in this.profiles)
                 profile.MigrateProfilesToGuidsForPlugin(internalName, newGuid);
