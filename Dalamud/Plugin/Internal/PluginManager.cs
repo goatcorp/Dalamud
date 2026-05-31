@@ -276,7 +276,7 @@ internal class PluginManager : IInternalDisposableService
     /// You must NEVER use this in async code.
     /// </summary>
     /// <returns>The aforementioned disposable.</returns>
-    public IDisposable GetSyncScope() => new ScopedSyncRoot(this.pluginListLock);
+    public Lock.Scope GetSyncScope() => this.pluginListLock.EnterScope();
 
     /// <summary>
     /// Print to chat any plugin updates and whether they were successful.
