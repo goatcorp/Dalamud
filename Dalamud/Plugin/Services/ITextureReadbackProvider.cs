@@ -11,7 +11,10 @@ namespace Dalamud.Plugin.Services;
 /// <summary>Service that grants you to read instances of <see cref="IDalamudTextureWrap"/>.</summary>
 public interface ITextureReadbackProvider : IDalamudService
 {
-    /// <summary>Gets the raw data of a texture wrap.</summary>
+    /// <summary>
+    /// Gets the raw data of a texture wrap. Only the most detailed mipmap is retrieved,
+    /// and in case of an array texture, only the first slice.
+    /// </summary>
     /// <param name="wrap">The source texture wrap.</param>
     /// <param name="args">The texture modification arguments.</param>
     /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
@@ -29,6 +32,28 @@ public interface ITextureReadbackProvider : IDalamudService
     Task<(RawImageSpecification Specification, byte[] RawData)> GetRawImageAsync(
         IDalamudTextureWrap wrap,
         TextureModificationArgs args = default,
+        bool leaveWrapOpen = false,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the raw data of a texture wrap, including all mipmaps, and in case of an array texture, all slices.
+    /// </summary>
+    /// <param name="wrap">The source texture wrap.</param>
+    /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
+    /// <see cref="Task{TResult}"/> completes.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The number of mip levels, the raw data and its specifications.</returns>
+    /// <remarks>
+    /// <para>The number of <c>Images</c> will be a multiple of <c>MipLevels</c>.</para>
+    /// <para>The length of the returned <c>RawData</c> may not match
+    /// <see cref="RawImageSpecification.Height"/> * <see cref="RawImageSpecification.Pitch"/>.</para>
+    /// <para><see cref="RawImageSpecification.Pitch"/> may not be the minimal value required to represent the texture
+    /// bitmap data. For example, if a texture is 4x4 B8G8R8A8, the minimal pitch would be 32, but the function may
+    /// return 64 instead.</para>
+    /// <para>This function may throw an exception.</para>
+    /// </remarks>
+    Task<(int MipLevels, (RawImageSpecification Specification, byte[] RawData)[] Images)> GetAllRawImagesAsync(
+        IDalamudTextureWrap wrap,
         bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default);
 
