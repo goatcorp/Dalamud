@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 namespace Dalamud.Utility.Timing;
 
@@ -10,6 +11,8 @@ namespace Dalamud.Utility.Timing;
 [DebuggerDisplay("{Name} - {Duration}")]
 public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingHandle>
 {
+    private readonly Lock stackLock = new();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TimingHandle"/> class.
     /// </summary>
@@ -19,7 +22,7 @@ public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingH
     {
         this.Stack = Timings.TaskTimingHandles;
 
-        lock (this.Stack)
+        using (this.StackLockScope)
             this.Parent = this.Stack.LastOrDefault();
 
         if (this.Parent != null)
@@ -37,7 +40,7 @@ public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingH
         this.EndTime = this.StartTime;
         this.IsMainThread = ThreadSafety.IsMainThread;
 
-        lock (this.Stack)
+        using (this.StackLockScope)
             this.Stack.Add(this);
     }
 
@@ -62,6 +65,11 @@ public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingH
     public List<TimingHandle> Stack { get; private set; }
 
     /// <summary>
+    /// Gets the attached timing handle stack.
+    /// </summary>
+    public Lock.Scope StackLockScope => this.stackLock.EnterScope();
+
+    /// <summary>
     /// Gets the parent timing.
     /// </summary>
     public TimingHandle? Parent { get; private set; }
@@ -81,12 +89,12 @@ public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingH
     {
         this.EndTime = Timings.Stopwatch.Elapsed.TotalMilliseconds;
 
-        lock (this.Stack)
+        using (this.StackLockScope)
             this.Stack.Remove(this);
 
         if (this.Duration > 1 || this.ChildCount > 0)
         {
-            lock (Timings.AllTimings)
+            using (Timings.AllTimingsLock.EnterScope())
             {
                 Timings.AllTimings.Add(this, this);
             }
