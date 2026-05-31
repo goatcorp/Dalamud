@@ -110,23 +110,23 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     /// <inheritdoc/>
     public void AddMenuItem(ContextMenuType menuType, IMenuItem item)
     {
-        lock (this.MenuItemsLock)
-        {
-            if (!this.MenuItems.TryGetValue(menuType, out var items))
-                this.MenuItems[menuType] = items = [];
-            items.Add(item);
-        }
+        using var scope = this.MenuItemsLock.EnterScope();
+
+        if (!this.MenuItems.TryGetValue(menuType, out var items))
+            this.MenuItems.TryAdd(menuType, items = []);
+
+        items.Add(item);
     }
 
     /// <inheritdoc/>
     public bool RemoveMenuItem(ContextMenuType menuType, IMenuItem item)
     {
-        lock (this.MenuItemsLock)
-        {
-            if (!this.MenuItems.TryGetValue(menuType, out var items))
-                return false;
-            return items.Remove(item);
-        }
+        using var scope = this.MenuItemsLock.EnterScope();
+
+        if (!this.MenuItems.TryGetValue(menuType, out var items))
+            return false;
+
+        return items.Remove(item);
     }
 
     /// <summary>
@@ -358,10 +358,10 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
             if (this.SelectedMenuType is { } menuType)
             {
-                lock (this.MenuItemsLock)
+                using (this.MenuItemsLock.EnterScope())
                 {
                     if (this.MenuItems.TryGetValue(menuType, out var items))
-                        this.SelectedItems = new(items);
+                        this.SelectedItems = [with(items)];
                     else
                         this.SelectedItems = [];
                 }
@@ -538,7 +538,7 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
 
     private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = [];
 
-    private object MenuItemsLock { get; } = new();
+    private Lock MenuItemsLock { get; } = new();
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -547,25 +547,24 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
 
         this.OnMenuOpened = null;
 
-        lock (this.MenuItemsLock)
+        using var scope = this.MenuItemsLock.EnterScope();
+
+        foreach (var (menuType, items) in this.MenuItems)
         {
-            foreach (var (menuType, items) in this.MenuItems)
-            {
-                foreach (var item in items)
-                    this.parentService.RemoveMenuItem(menuType, item);
-            }
+            foreach (var item in items)
+                this.parentService.RemoveMenuItem(menuType, item);
         }
     }
 
     /// <inheritdoc/>
     public void AddMenuItem(ContextMenuType menuType, IMenuItem item)
     {
-        lock (this.MenuItemsLock)
-        {
-            if (!this.MenuItems.TryGetValue(menuType, out var items))
-                this.MenuItems[menuType] = items = [];
-            items.Add(item);
-        }
+        using var scope = this.MenuItemsLock.EnterScope();
+
+        if (!this.MenuItems.TryGetValue(menuType, out var items))
+            this.MenuItems.TryAdd(menuType, items = []);
+
+        items.Add(item);
 
         this.parentService.AddMenuItem(menuType, item);
     }
@@ -573,11 +572,10 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
     /// <inheritdoc/>
     public bool RemoveMenuItem(ContextMenuType menuType, IMenuItem item)
     {
-        lock (this.MenuItemsLock)
-        {
-            if (this.MenuItems.TryGetValue(menuType, out var items))
-                items.Remove(item);
-        }
+        using var scope = this.MenuItemsLock.EnterScope();
+
+        if (this.MenuItems.TryGetValue(menuType, out var items))
+            items.Remove(item);
 
         return this.parentService.RemoveMenuItem(menuType, item);
     }
