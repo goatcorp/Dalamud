@@ -263,12 +263,11 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        lock (this.listenerLock)
+        using var scope = this.listenerLock.EnterScope();
+
+        foreach (var listener in this.eventListeners)
         {
-            foreach (var listener in this.eventListeners)
-            {
-                this.addonLifecycleService.UnregisterListener(listener);
-            }
+            this.addonLifecycleService.UnregisterListener(listener);
         }
     }
 
@@ -286,11 +285,10 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     {
         var listener = new AddonLifecycleEventListener(eventType, addonName, handler);
 
-        lock (this.listenerLock)
-        {
-            this.eventListeners.Add(listener);
-            this.addonLifecycleService.RegisterListener(listener);
-        }
+        using var scope = this.listenerLock.EnterScope();
+
+        this.eventListeners.Add(listener);
+        this.addonLifecycleService.RegisterListener(listener);
     }
 
     /// <inheritdoc/>
@@ -311,18 +309,17 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     /// <inheritdoc/>
     public void UnregisterListener(AddonEvent eventType, string addonName, IAddonLifecycle.AddonEventDelegate? handler = null)
     {
-        lock (this.listenerLock)
-        {
-            this.eventListeners.RemoveAll(entry =>
-            {
-                if (entry.EventType != eventType) return false;
-                if (entry.AddonName != addonName) return false;
-                if (handler is not null && entry.FunctionDelegate != handler) return false;
+        using var scope = this.listenerLock.EnterScope();
 
-                this.addonLifecycleService.UnregisterListener(entry);
-                return true;
-            });
-        }
+        this.eventListeners.RemoveAll(entry =>
+        {
+            if (entry.EventType != eventType) return false;
+            if (entry.AddonName != addonName) return false;
+            if (handler is not null && entry.FunctionDelegate != handler) return false;
+
+            this.addonLifecycleService.UnregisterListener(entry);
+            return true;
+        });
     }
 
     /// <inheritdoc/>
@@ -334,18 +331,17 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     /// <inheritdoc/>
     public void UnregisterListener(params IAddonLifecycle.AddonEventDelegate[] handlers)
     {
+        using var scope = this.listenerLock.EnterScope();
+
         foreach (var handler in handlers)
         {
-            lock (this.listenerLock)
+            this.eventListeners.RemoveAll(entry =>
             {
-                this.eventListeners.RemoveAll(entry =>
-                {
-                    if (entry.FunctionDelegate != handler) return false;
+                if (entry.FunctionDelegate != handler) return false;
 
-                    this.addonLifecycleService.UnregisterListener(entry);
-                    return true;
-                });
-            }
+                this.addonLifecycleService.UnregisterListener(entry);
+                return true;
+            });
         }
     }
 
