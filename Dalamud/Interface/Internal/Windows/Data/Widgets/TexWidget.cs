@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -154,7 +154,7 @@ internal class TexWidget : IDataWindowWidget
             conf.QueueSave();
         }
 
-        lock (this.textureManager.BlameTracker)
+        using (this.textureManager.BlameTrackerLock.EnterScope())
         {
             using var pushedId = ImRaii.PushId("blames"u8);
             var allBlames = this.textureManager.BlameTracker;

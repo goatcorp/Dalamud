@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -45,6 +46,9 @@ internal sealed partial class TextureManager
     /// <remarks>Returned value must be used inside a lock.</remarks>
     public List<IBlameableDalamudTextureWrap> BlameTracker { get; } = [];
 
+    /// <summary>Gets the lock for the list containing all the loaded textures from plugins.</summary>
+    public Lock BlameTrackerLock { get; } = new();
+
     /// <summary>Gets the blame for a texture wrap.</summary>
     /// <param name="textureWrap">The texture wrap.</param>
     /// <returns>The blame, if it exists.</returns>
@@ -84,7 +88,7 @@ internal sealed partial class TextureManager
 
         if (isNew)
         {
-            lock (this.BlameTracker)
+            using (this.BlameTrackerLock.EnterScope())
                 this.BlameTracker.Add(blame);
         }
 
@@ -116,7 +120,7 @@ internal sealed partial class TextureManager
 
         if (isNew)
         {
-            lock (this.BlameTracker)
+            using (this.BlameTrackerLock.EnterScope())
                 this.BlameTracker.Add(blame);
         }
 
@@ -125,7 +129,7 @@ internal sealed partial class TextureManager
 
     private void BlameTrackerUpdate(IFramework unused)
     {
-        lock (this.BlameTracker)
+        using (this.BlameTrackerLock.EnterScope())
         {
             for (var i = 0; i < this.BlameTracker.Count;)
             {
