@@ -181,7 +181,7 @@ internal class TexWidget : IDataWindowWidget
                 this.DrawLoadedTextures(this.textureManager.Shared.ForDebugManifestResourceTextures);
         }
 
-        lock (this.textureManager.Shared.ForDebugInvalidatedTextures)
+        using (this.textureManager.Shared.ForDebugInvalidatedTexturesScope)
         {
             using var pushedId = ImRaii.PushId("invalidatedTextures"u8);
             if (ImGui.CollapsingHeader($"Invalidated: {this.textureManager.Shared.ForDebugInvalidatedTextures.Count:n0}###header"))

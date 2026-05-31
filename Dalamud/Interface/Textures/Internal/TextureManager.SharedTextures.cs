@@ -65,6 +65,7 @@ internal sealed partial class TextureManager
         private readonly ConcurrentDictionary<string, SharedImmediateTexture> fileDict = new();
         private readonly ConcurrentDictionary<(Assembly, string), SharedImmediateTexture> manifestResourceDict = new();
         private readonly HashSet<SharedImmediateTexture> invalidatedTextures = [];
+        private readonly Lock invalidatedTexturesLock = new();
 
         private readonly Thread sharedTextureReleaseThread;
 
@@ -191,7 +192,7 @@ internal sealed partial class TextureManager
             {
                 if (r.ReleaseSelfReference(true) != 0)
                 {
-                    lock (this.invalidatedTextures)
+                    using (this.invalidatedTexturesLock.EnterScope())
                         this.invalidatedTextures.Add(r);
                 }
             }
@@ -211,12 +212,8 @@ internal sealed partial class TextureManager
                 RemoveFinalReleased(this.fileDict);
                 RemoveFinalReleased(this.manifestResourceDict);
 
-                // ReSharper disable once InconsistentlySynchronizedField
-                if (this.invalidatedTextures.Count != 0)
-                {
-                    lock (this.invalidatedTextures)
-                        this.invalidatedTextures.RemoveWhere(TextureFinalReleasePredicate);
-                }
+                using (this.invalidatedTexturesLock.EnterScope())
+                    this.invalidatedTextures.RemoveWhere(TextureFinalReleasePredicate);
 
                 try
                 {
