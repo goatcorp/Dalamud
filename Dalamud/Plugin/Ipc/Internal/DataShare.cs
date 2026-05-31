@@ -69,8 +69,13 @@ internal class DataShare : IServiceType
                 return;
 
             cache = cacheLazy.Value;
-            if (!cache.UserPluginIds.Remove(callingPluginId) || cache.UserPluginIds.Count > 0)
-                return;
+
+            using (cache.UserPluginIdsLock.EnterScope())
+            {
+                if (!cache.UserPluginIds.Remove(callingPluginId) || cache.UserPluginIds.Count > 0)
+                    return;
+            }
+
             if (!this.caches.Remove(tag))
                 return;
         }
@@ -149,7 +154,11 @@ internal class DataShare : IServiceType
         using (this.cachesLock.EnterScope())
         {
             return this.caches.Select(
-                kvp => (kvp.Key, kvp.Value.Value.CreatorPluginId, kvp.Value.Value.UserPluginIds.ToArray()));
+                kvp =>
+                {
+                    using var scope = kvp.Value.Value.UserPluginIdsLock.EnterScope();
+                    return (kvp.Key, kvp.Value.Value.CreatorPluginId, kvp.Value.Value.UserPluginIds.ToArray());
+                });
         }
     }
 }
