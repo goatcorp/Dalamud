@@ -90,7 +90,7 @@ public class ReliableFileStoragePluginScoped : IReliableFileStorage, IInternalDi
         var task = Task.Run(() => this.storage.WriteAllBytesAsync(path, bytes, this.plugin.EffectiveWorkingPluginId));
 
         // Track the task so we can wait for it on dispose
-        lock (this.pendingLock)
+        using (this.pendingLock.EnterScope())
         {
             if (this.isDisposing)
                 throw new ObjectDisposedException(nameof(ReliableFileStoragePluginScoped));
@@ -101,7 +101,7 @@ public class ReliableFileStoragePluginScoped : IReliableFileStorage, IInternalDi
         // Remove when done, if the task is already done this runs synchronously here and removes immediately
         _ = task.ContinueWith(t =>
         {
-            lock (this.pendingLock)
+            using (this.pendingLock.EnterScope())
             {
                 this.pendingWrites.Remove(t);
             }
@@ -173,7 +173,7 @@ public class ReliableFileStoragePluginScoped : IReliableFileStorage, IInternalDi
     public void DisposeService()
     {
         Task[] tasksSnapshot;
-        lock (this.pendingLock)
+        using (this.pendingLock.EnterScope())
         {
             // Mark disposing to reject new writes.
             this.isDisposing = true;
