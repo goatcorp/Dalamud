@@ -83,27 +83,26 @@ public partial class FileDialog
 
     private void ApplyFilteringOnFileList()
     {
-        lock (this.filesLock)
+        using var scope = this.filesLock.EnterScope();
+
+        this.filteredFiles.Clear();
+
+        foreach (var file in this.files)
         {
-            this.filteredFiles.Clear();
-
-            foreach (var file in this.files)
+            var show = true;
+            if (!string.IsNullOrEmpty(this.searchBuffer) && !file.FileName.Contains(this.searchBuffer, StringComparison.InvariantCultureIgnoreCase))
             {
-                var show = true;
-                if (!string.IsNullOrEmpty(this.searchBuffer) && !file.FileName.Contains(this.searchBuffer, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    show = false;
-                }
+                show = false;
+            }
 
-                if (this.IsDirectoryMode() && file.Type != FileStructType.Directory)
-                {
-                    show = false;
-                }
+            if (this.IsDirectoryMode() && file.Type != FileStructType.Directory)
+            {
+                show = false;
+            }
 
-                if (show)
-                {
-                    this.filteredFiles.Add(file);
-                }
+            if (show)
+            {
+                this.filteredFiles.Add(file);
             }
         }
     }
