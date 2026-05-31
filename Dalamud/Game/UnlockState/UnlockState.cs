@@ -434,7 +434,10 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     /// <inheritdoc/>
     public bool IsNotebookDivisionUnlocked(NotebookDivision row)
     {
-        return this.IsUnlockLinkUnlocked(row.QuestUnlock.RowId);
+        if (row.QuestUnlock.RowId == 0)
+            return true;
+
+        return this.IsUnlockLinkUnlocked(row.QuestUnlock.RowId, row.Unknown1); // Unknown1 was renamed to MinimumQuestSequence
     }
 
     /// <inheritdoc/>
@@ -713,6 +716,18 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             return false;
 
         return UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(unlockLink);
+    }
+
+    /// <inheritdoc/>
+    public bool IsUnlockLinkUnlocked(uint unlockLink, byte minimumQuestSequence)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        if (unlockLink == 0)
+            return false;
+
+        return UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(unlockLink, minimumQuestSequence);
     }
 
     private void OnLogin()
@@ -1060,6 +1075,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsUnlockLinkUnlocked(uint unlockLink) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink);
+
+    /// <inheritdoc/>
+    public bool IsUnlockLinkUnlocked(uint unlockLink, byte minimumQuestSequence) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink, minimumQuestSequence);
 
     /// <inheritdoc/>
     public bool IsUnlockLinkUnlocked(ushort unlockLink) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink);
