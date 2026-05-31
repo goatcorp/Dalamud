@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Textures;
@@ -23,6 +24,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     internal const uint TextureSize = 64;
 
     private readonly List<TitleScreenMenuEntry> entries = [];
+    private readonly Lock entriesLock = new();
     private TitleScreenMenuEntry[]? entriesView;
 
     [ServiceManager.ServiceConstructor]
@@ -40,10 +42,10 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     {
         get
         {
-            lock (this.entries)
+            using (this.entriesLock.EnterScope())
             {
                 if (this.entries.Count == 0)
-                    return Array.Empty<TitleScreenMenuEntry>();
+                    return [];
 
                 return this.entriesView ??= this.entries.OrderByDescending(x => x.IsInternal).ToArray();
             }
@@ -57,10 +59,10 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     {
         get
         {
-            lock (this.entries)
+            using (this.entriesLock.EnterScope())
             {
                 if (this.entries.Count == 0)
-                    return Array.Empty<TitleScreenMenuEntry>();
+                    return [];
 
                 return this.entriesView ??= this.entries.OrderByDescending(x => x.IsInternal).ToArray();
             }
@@ -78,7 +80,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     public ITitleScreenMenuEntry AddPluginEntry(string text, ISharedImmediateTexture texture, Action onTriggered)
     {
         TitleScreenMenuEntry entry;
-        lock (this.entries)
+        using (this.entriesLock.EnterScope())
         {
             var entriesOfAssembly = this.entries.Where(x => x.CallingAssembly == Assembly.GetCallingAssembly()).ToList();
             var priority = entriesOfAssembly.Count != 0
@@ -120,7 +122,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     public ITitleScreenMenuEntry AddPluginEntry(ulong priority, string text, ISharedImmediateTexture texture, Action onTriggered)
     {
         TitleScreenMenuEntry entry;
-        lock (this.entries)
+        using (this.entriesLock.EnterScope())
         {
             entry = new(Assembly.GetCallingAssembly(), priority, text, texture, onTriggered);
             var i = this.entries.BinarySearch(entry);
@@ -137,7 +139,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     /// <inheritdoc/>
     public void RemoveEntry(IReadOnlyTitleScreenMenuEntry entry)
     {
-        lock (this.entries)
+        using (this.entriesLock.EnterScope())
         {
             this.entries.RemoveAll(pluginEntry => pluginEntry == entry);
             this.entriesView = null;
@@ -158,7 +160,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     internal TitleScreenMenuEntry AddEntryCore(ulong priority, string text, ISharedImmediateTexture texture, Action onTriggered)
     {
         TitleScreenMenuEntry entry;
-        lock (this.entries)
+        using (this.entriesLock.EnterScope())
         {
             entry = new(null, priority, text, texture, onTriggered)
             {
@@ -188,7 +190,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         params VirtualKey[] showConditionKeys)
     {
         TitleScreenMenuEntry entry;
-        lock (this.entries)
+        using (this.entriesLock.EnterScope())
         {
             var entriesOfAssembly = this.entries.Where(x => x.CallingAssembly == null).ToList();
             var priority = entriesOfAssembly.Count != 0
