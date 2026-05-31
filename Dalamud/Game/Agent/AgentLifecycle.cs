@@ -318,12 +318,11 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        lock (this.listenerLock)
+        using var scope = this.listenerLock.EnterScope();
+
+        foreach (var listener in this.eventListeners)
         {
-            foreach (var listener in this.eventListeners)
-            {
-                this.agentLifecycleService.UnregisterListener(listener);
-            }
+            this.agentLifecycleService.UnregisterListener(listener);
         }
     }
 
@@ -341,11 +340,10 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     {
         var listener = new AgentLifecycleEventListener(eventType, agentId, handler);
 
-        lock (this.listenerLock)
-        {
-            this.eventListeners.Add(listener);
-            this.agentLifecycleService.RegisterListener(listener);
-        }
+        using var scope = this.listenerLock.EnterScope();
+
+        this.eventListeners.Add(listener);
+        this.agentLifecycleService.RegisterListener(listener);
     }
 
     /// <inheritdoc/>
@@ -366,18 +364,17 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     /// <inheritdoc/>
     public void UnregisterListener(AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate? handler = null)
     {
-        lock (this.listenerLock)
-        {
-            this.eventListeners.RemoveAll(entry =>
-            {
-                if (entry.EventType != eventType) return false;
-                if (entry.AgentId != agentId) return false;
-                if (handler is not null && entry.FunctionDelegate != handler) return false;
+        using var scope = this.listenerLock.EnterScope();
 
-                this.agentLifecycleService.UnregisterListener(entry);
-                return true;
-            });
-        }
+        this.eventListeners.RemoveAll(entry =>
+        {
+            if (entry.EventType != eventType) return false;
+            if (entry.AgentId != agentId) return false;
+            if (handler is not null && entry.FunctionDelegate != handler) return false;
+
+            this.agentLifecycleService.UnregisterListener(entry);
+            return true;
+        });
     }
 
     /// <inheritdoc/>
@@ -389,18 +386,17 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     /// <inheritdoc/>
     public void UnregisterListener(params IAgentLifecycle.AgentEventDelegate[] handlers)
     {
+        using var scope = this.listenerLock.EnterScope();
+
         foreach (var handler in handlers)
         {
-            lock (this.listenerLock)
+            this.eventListeners.RemoveAll(entry =>
             {
-                this.eventListeners.RemoveAll(entry =>
-                {
-                    if (entry.FunctionDelegate != handler) return false;
+                if (entry.FunctionDelegate != handler) return false;
 
-                    this.agentLifecycleService.UnregisterListener(entry);
-                    return true;
-                });
-            }
+                this.agentLifecycleService.UnregisterListener(entry);
+                return true;
+            });
         }
     }
 
