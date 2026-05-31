@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 
 using Dalamud.Plugin.Ipc.Exceptions;
 
@@ -20,6 +21,7 @@ internal class DataShare : IServiceType
     /// effectively preventing calling the data generator multiple times concurrently.
     /// </summary>
     private readonly Dictionary<string, Lazy<DataCache>> caches = [];
+    private readonly Lock cachesLock = new();
 
     [ServiceManager.ServiceConstructor]
     private DataShare()
@@ -43,7 +45,7 @@ internal class DataShare : IServiceType
         where T : class
     {
         Lazy<DataCache> cacheLazy;
-        lock (this.caches)
+        using (this.cachesLock.EnterScope())
         {
             if (!this.caches.TryGetValue(tag, out cacheLazy))
                 this.caches[tag] = cacheLazy = new(() => DataCache.From(tag, callingPluginId, dataGenerator));
@@ -61,7 +63,7 @@ internal class DataShare : IServiceType
     public void RelinquishData(string tag, DataCachePluginId callingPluginId)
     {
         DataCache cache;
-        lock (this.caches)
+        using (this.cachesLock.EnterScope())
         {
             if (!this.caches.TryGetValue(tag, out var cacheLazy))
                 return;
@@ -105,7 +107,7 @@ internal class DataShare : IServiceType
     {
         data = null;
         Lazy<DataCache> cacheLazy;
-        lock (this.caches)
+        using (this.cachesLock.EnterScope())
         {
             if (!this.caches.TryGetValue(tag, out cacheLazy))
                 return false;
@@ -129,7 +131,7 @@ internal class DataShare : IServiceType
         where T : class
     {
         Lazy<DataCache> cacheLazy;
-        lock (this.caches)
+        using (this.cachesLock.EnterScope())
         {
             if (!this.caches.TryGetValue(tag, out cacheLazy))
                 throw new KeyNotFoundException($"The data cache [{tag}] is not registered.");
@@ -144,7 +146,7 @@ internal class DataShare : IServiceType
     /// <returns>All currently subscribed tags, their creator names and all their users.</returns>
     internal IEnumerable<(string Tag, DataCachePluginId CreatorPluginId, DataCachePluginId[] UserPluginIds)> GetAllShares()
     {
-        lock (this.caches)
+        using (this.cachesLock.EnterScope())
         {
             return this.caches.Select(
                 kvp => (kvp.Key, kvp.Value.Value.CreatorPluginId, kvp.Value.Value.UserPluginIds.ToArray()));
