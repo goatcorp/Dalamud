@@ -24,6 +24,7 @@ internal abstract class SharedImmediateTexture
     private static long instanceCounter;
 
     private readonly Lock reviveLock = new();
+    private readonly Lock ownerPluginsLock = new();
     private readonly List<LocalPlugin> ownerPlugins = [];
 
     private bool resourceReleased;
@@ -119,7 +120,7 @@ internal abstract class SharedImmediateTexture
                 // ... Once that's done, TAR may revive the object safely.
                 while (true)
                 {
-                    lock (this.reviveLock)
+                    using (this.reviveLock.EnterScope())
                     {
                         if (this.resourceReleased)
                         {
@@ -240,7 +241,7 @@ internal abstract class SharedImmediateTexture
     /// <param name="plugin">The plugin to add.</param>
     public void AddOwnerPlugin(LocalPlugin plugin)
     {
-        lock (this.ownerPlugins)
+        using (this.ownerPluginsLock.EnterScope())
         {
             if (!this.ownerPlugins.Contains(plugin))
             {
@@ -270,7 +271,7 @@ internal abstract class SharedImmediateTexture
     protected void LoadUnderlyingWrap()
     {
         int addLen;
-        lock (this.ownerPlugins)
+        using (this.ownerPluginsLock.EnterScope())
         {
             this.UnderlyingWrap = Service<TextureManager>.Get().DynamicPriorityTextureLoader.LoadAsync(
                 this,
@@ -287,7 +288,7 @@ internal abstract class SharedImmediateTexture
             {
                 if (!r.IsCompletedSuccessfully)
                     return;
-                lock (this.ownerPlugins)
+                using (this.ownerPluginsLock.EnterScope())
                 {
                     foreach (var op in this.ownerPlugins.Take(addLen))
                         Service<TextureManager>.Get().Blame(r.Result, op);
@@ -312,7 +313,7 @@ internal abstract class SharedImmediateTexture
 
         while (true)
         {
-            lock (this.reviveLock)
+            using (this.reviveLock.EnterScope())
             {
                 if (!this.resourceReleased)
                 {
