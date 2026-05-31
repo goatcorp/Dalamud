@@ -94,12 +94,11 @@ internal sealed partial class TextureManager
         public ICollection<SharedImmediateTexture> ForDebugManifestResourceTextures => this.manifestResourceDict.Values;
 
         /// <summary>Gets all the loaded textures that are invalidated from <see cref="InvalidatePaths"/>.</summary>
-        /// <remarks><c>lock</c> on use of the value returned from this property.</remarks>
-        [SuppressMessage(
-            "ReSharper",
-            "InconsistentlySynchronizedField",
-            Justification = "Debug use only; users are expected to lock around this")]
+        /// <remarks>Use <see cref="ForDebugInvalidatedTexturesLockScope"/> to read this property.</remarks>
         public ICollection<SharedImmediateTexture> ForDebugInvalidatedTextures => this.invalidatedTextures;
+
+        /// <summary>Gets a lock scope for <see cref="ForDebugInvalidatedTextures"/>.</summary>
+        public Lock.Scope ForDebugInvalidatedTexturesLockScope => this.invalidatedTexturesLock.EnterScope();
 
         private SharedTextureManager NonDisposed =>
             this.disposingCancellationTokenSource.IsCancellationRequested
