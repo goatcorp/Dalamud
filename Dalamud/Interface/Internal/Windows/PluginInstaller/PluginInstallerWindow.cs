@@ -856,6 +856,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void DrawPluginFilterPopup()
     {
+        var configuration = Service<DalamudConfiguration>.Get();
+
         var filtersChanged = false;
         var isInstalledDevPluginsCategory = this.IsInstalledDevPluginsCategory();
         var installedFilterDisabled = this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Installed || isInstalledDevPluginsCategory;
@@ -875,12 +877,15 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
         }
 
-        using (ImRaii.Disabled(thirdPartyFilterDisabled))
+        if (configuration.ThirdRepoList.Any(repo => repo.IsEnabled))
         {
-            if (ImGui.Checkbox($"{Locs.Filter_Unverified}###XlPluginInstaller_FilterThirdParty", ref includeThirdParty) && !thirdPartyFilterDisabled)
+            using (ImRaii.Disabled(thirdPartyFilterDisabled))
             {
-                this.showThirdPartyPlugins = includeThirdParty;
-                filtersChanged = true;
+                if (ImGui.Checkbox($"{Locs.Filter_Unverified}###XlPluginInstaller_FilterThirdParty", ref includeThirdParty) && !thirdPartyFilterDisabled)
+                {
+                    this.showThirdPartyPlugins = includeThirdParty;
+                    filtersChanged = true;
+                }
             }
         }
 
@@ -4360,7 +4365,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string Filter_Installed => Loc.Localize("InstallerFilterInstalled", "Installed");
 
-        public static string Filter_Unverified => Loc.Localize("InstallerFilterUnverified", "Unverified");
+        public static string Filter_Unverified => Loc.Localize("InstallerFilterUnverified", "Custom Repository");
 
         public static string Filter_Incompatible => Loc.Localize("InstallerFilterIncompatible", "Incompatible");
 

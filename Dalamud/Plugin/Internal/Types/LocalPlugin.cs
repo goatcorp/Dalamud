@@ -41,6 +41,7 @@ internal class LocalPlugin : IAsyncDisposable
 
     private readonly SemaphoreSlim pluginLoadStateLock = new(1);
 
+    private bool disposed = false;
     private PluginLoader? loader;
     private Type? pluginType;
     private object? instance;
@@ -234,8 +235,11 @@ internal class LocalPlugin : IAsyncDisposable
     public IServiceScope? ServiceScope => this.serviceScope;
 
     /// <inheritdoc/>
-    public virtual async ValueTask DisposeAsync() =>
+    public virtual async ValueTask DisposeAsync()
+    {
+        this.disposed = true;
         await this.ClearAndDisposeAllResources(PluginLoaderDisposalMode.ImmediateDispose);
+    }
 
     /// <summary>
     /// Load this plugin.
@@ -246,6 +250,8 @@ internal class LocalPlugin : IAsyncDisposable
     /// <returns>A task.</returns>
     public async Task LoadAsync(PluginLoadReason reason, bool reloading = false, CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
         // Default timeout, if none is passed
         if (cancellationToken == CancellationToken.None)
         {
@@ -388,10 +394,10 @@ internal class LocalPlugin : IAsyncDisposable
                     otherPlugin.instance.GetType().Assembly.GetName().Name;
                 if (otherPluginAssemblyName == assemblyName && otherPluginAssemblyName != null)
                 {
-                    this.State = PluginState.Unloaded;
-                    Log.Debug("Duplicate assembly: {Name}", this.InternalName);
-
-                    throw new DuplicatePluginException(assemblyName);
+                    Log.Warning("Loading {Name}, but another plugin with the same assembly name was already loaded (thisGuid={ThisGuid}, otherGuid={OtherGuid})",
+                                this.InternalName,
+                                this.EffectiveWorkingPluginId,
+                                otherPlugin.EffectiveWorkingPluginId);
                 }
             }
 
@@ -453,6 +459,8 @@ internal class LocalPlugin : IAsyncDisposable
     /// <returns>The task.</returns>
     public async Task UnloadAsync(PluginLoaderDisposalMode disposalMode = PluginLoaderDisposalMode.WaitBeforeDispose)
     {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
         await this.pluginLoadStateLock.WaitAsync();
         try
         {
@@ -515,6 +523,8 @@ internal class LocalPlugin : IAsyncDisposable
     /// <returns>A task.</returns>
     public async Task ReloadAsync()
     {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
         // Don't unload if we're a dev plugin and have an unload error, this is a bad idea but whatever
         if (this.IsDev && this.State != PluginState.UnloadError)
             await this.UnloadAsync(PluginLoaderDisposalMode.None);
@@ -528,6 +538,8 @@ internal class LocalPlugin : IAsyncDisposable
     /// <returns>Whether this plugin shouldn't load.</returns>
     public bool CheckPolicy()
     {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
         var startInfo = Service<Dalamud>.Get().StartInfo;
         var manager = Service<PluginManager>.Get();
 
@@ -546,6 +558,8 @@ internal class LocalPlugin : IAsyncDisposable
     /// <param name="status">Schedule or cancel the deletion.</param>
     public void ScheduleDeletion(bool status = true)
     {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
         this.manifest.ScheduledForDeletion = status;
         this.SaveManifest("scheduling for deletion");
     }
@@ -556,6 +570,8 @@ internal class LocalPlugin : IAsyncDisposable
     /// <returns>The plugin repository this plugin was installed from, or null if it is no longer there or if the plugin is a dev plugin.</returns>
     public PluginRepository? GetSourceRepository()
     {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+
         if (this.IsDev)
             return null;
 
@@ -575,7 +591,10 @@ internal class LocalPlugin : IAsyncDisposable
     /// <param name="context">The load context to check.</param>
     /// <returns>Whether this plugin loads in the given load context.</returns>
     public bool LoadsIn(AssemblyLoadContext context)
-        => this.loader?.LoadContext == context;
+    {
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
+        return this.loader?.LoadContext == context;
+    }
 
     /// <summary>
     /// Save this plugin manifest.

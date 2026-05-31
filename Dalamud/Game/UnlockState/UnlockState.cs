@@ -240,6 +240,16 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
+    public bool IsClassJobUnlocked(ClassJob row)
+    {
+        if (!this.IsLoaded || row.RowId == 0 || row.ClassJobCategory.RowId == 0 || row.ExpArrayIndex < 0)
+            return false;
+
+        var playerState = CSPlayerState.Instance();
+        return playerState->ClassJobLevels.Length > row.ExpArrayIndex && playerState->ClassJobLevels[row.ExpArrayIndex] != 0;
+    }
+
+    /// <inheritdoc/>
     public bool IsCompanionUnlocked(Companion row)
     {
         if (!this.IsLoaded)
@@ -424,7 +434,10 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     /// <inheritdoc/>
     public bool IsNotebookDivisionUnlocked(NotebookDivision row)
     {
-        return this.IsUnlockLinkUnlocked(row.QuestUnlock.RowId);
+        if (row.QuestUnlock.RowId == 0)
+            return true;
+
+        return this.IsUnlockLinkUnlocked(row.QuestUnlock.RowId, row.Unknown1); // Unknown1 was renamed to MinimumQuestSequence
     }
 
     /// <inheritdoc/>
@@ -600,6 +613,9 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         if (rowRef.TryGetValue<ChocoboTaxiStand>(out var chocoboTaxiStandRow))
             return this.IsChocoboTaxiStandUnlocked(chocoboTaxiStandRow);
 
+        if (rowRef.TryGetValue<ClassJob>(out var classJobRow))
+            return this.IsClassJobUnlocked(classJobRow);
+
         if (rowRef.TryGetValue<Companion>(out var companionRow))
             return this.IsCompanionUnlocked(companionRow);
 
@@ -702,6 +718,18 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         return UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(unlockLink);
     }
 
+    /// <inheritdoc/>
+    public bool IsUnlockLinkUnlocked(uint unlockLink, byte minimumQuestSequence)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        if (unlockLink == 0)
+            return false;
+
+        return UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(unlockLink, minimumQuestSequence);
+    }
+
     private void OnLogin()
     {
         this.Update();
@@ -783,6 +811,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.UpdateUnlocksForSheet<CSBonusContentType>();
         this.UpdateUnlocksForSheet<CharaMakeCustomize>();
         this.UpdateUnlocksForSheet<ChocoboTaxi>();
+        this.UpdateUnlocksForSheet<ClassJob>();
         this.UpdateUnlocksForSheet<Companion>();
         this.UpdateUnlocksForSheet<CraftAction>();
         this.UpdateUnlocksForSheet<EmjVoiceNpc>();
@@ -949,6 +978,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
     public bool IsChocoboTaxiStandUnlocked(ChocoboTaxiStand row) => this.unlockStateService.IsChocoboTaxiStandUnlocked(row);
 
     /// <inheritdoc/>
+    public bool IsClassJobUnlocked(ClassJob row) => this.unlockStateService.IsClassJobUnlocked(row);
+
+    /// <inheritdoc/>
     public bool IsCompanionUnlocked(Companion row) => this.unlockStateService.IsCompanionUnlocked(row);
 
     /// <inheritdoc/>
@@ -1043,6 +1075,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsUnlockLinkUnlocked(uint unlockLink) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink);
+
+    /// <inheritdoc/>
+    public bool IsUnlockLinkUnlocked(uint unlockLink, byte minimumQuestSequence) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink, minimumQuestSequence);
 
     /// <inheritdoc/>
     public bool IsUnlockLinkUnlocked(ushort unlockLink) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink);

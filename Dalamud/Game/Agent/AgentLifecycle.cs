@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 using Dalamud.Game.Agent.AgentArgTypes;
 using Dalamud.Hooking;
@@ -312,13 +313,17 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     private readonly AgentLifecycle agentLifecycleService = Service<AgentLifecycle>.Get();
 
     private readonly List<AgentLifecycleEventListener> eventListeners = [];
+    private readonly Lock listenerLock = new();
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        foreach (var listener in this.eventListeners)
+        lock (this.listenerLock)
         {
-            this.agentLifecycleService.UnregisterListener(listener);
+            foreach (var listener in this.eventListeners)
+            {
+                this.agentLifecycleService.UnregisterListener(listener);
+            }
         }
     }
 
@@ -335,8 +340,12 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     public void RegisterListener(AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate handler)
     {
         var listener = new AgentLifecycleEventListener(eventType, agentId, handler);
-        this.eventListeners.Add(listener);
-        this.agentLifecycleService.RegisterListener(listener);
+
+        lock (this.listenerLock)
+        {
+            this.eventListeners.Add(listener);
+            this.agentLifecycleService.RegisterListener(listener);
+        }
     }
 
     /// <inheritdoc/>
@@ -357,15 +366,18 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     /// <inheritdoc/>
     public void UnregisterListener(AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate? handler = null)
     {
-        this.eventListeners.RemoveAll(entry =>
+        lock (this.listenerLock)
         {
-            if (entry.EventType != eventType) return false;
-            if (entry.AgentId != agentId) return false;
-            if (handler is not null && entry.FunctionDelegate != handler) return false;
+            this.eventListeners.RemoveAll(entry =>
+            {
+                if (entry.EventType != eventType) return false;
+                if (entry.AgentId != agentId) return false;
+                if (handler is not null && entry.FunctionDelegate != handler) return false;
 
-            this.agentLifecycleService.UnregisterListener(entry);
-            return true;
-        });
+                this.agentLifecycleService.UnregisterListener(entry);
+                return true;
+            });
+        }
     }
 
     /// <inheritdoc/>
@@ -379,13 +391,16 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     {
         foreach (var handler in handlers)
         {
-            this.eventListeners.RemoveAll(entry =>
+            lock (this.listenerLock)
             {
-                if (entry.FunctionDelegate != handler) return false;
+                this.eventListeners.RemoveAll(entry =>
+                {
+                    if (entry.FunctionDelegate != handler) return false;
 
-                this.agentLifecycleService.UnregisterListener(entry);
-                return true;
-            });
+                    this.agentLifecycleService.UnregisterListener(entry);
+                    return true;
+                });
+            }
         }
     }
 
