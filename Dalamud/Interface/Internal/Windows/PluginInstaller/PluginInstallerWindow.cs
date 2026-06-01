@@ -3303,7 +3303,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var inSingleNonDefaultProfileWhichDoesNotWantActive =
             isInSingleProfile && !profilesThatWantThisPlugin.First().CheckWantsActiveFromGameState(Service<PlayerState>.Get().ContentId);
 
-        if (plugin.State is PluginState.UnloadError or PluginState.LoadError or PluginState.DependencyResolutionFailed && !plugin.IsDev && !plugin.IsOutdated)
+        if (plugin.State is PluginState.UnloadError or PluginState.LoadError or PluginState.DependencyResolutionFailed && config.DevMode.GetValueOrDefault(false) && !plugin.IsOutdated)
         {
             ImGuiComponents.DisabledToggleButton(toggleId, false);
 
