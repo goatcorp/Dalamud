@@ -46,6 +46,7 @@ internal readonly struct DataCache
         this.Tag = tag;
         this.CreatorPluginId = creatorPluginId;
         this.UserPluginIds = [];
+        this.UserPluginIdsLock = new();
         this.Data = data;
         this.Type = type;
     }
