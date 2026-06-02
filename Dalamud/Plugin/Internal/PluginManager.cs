@@ -1760,32 +1760,32 @@ internal class PluginManager : IInternalDisposableService
         {
             var installedVersion = plugin.Manifest.AssemblyVersion;
 
-                var updates = this.AvailablePlugins
-                                  .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
-                                  .Where(remoteManifest => plugin.Manifest.InstalledFromUrl == remoteManifest.SourceRepo.PluginMasterUrl || !remoteManifest.SourceRepo.IsThirdParty)
-                                  .Where(remoteManifest => remoteManifest.MinimumDalamudVersion == null || Versioning.GetAssemblyVersionParsed() >= remoteManifest.MinimumDalamudVersion)
-                                  .Where(remoteManifest => !remoteManifest.IsTestingExclusive || this.UseTesting(remoteManifest))
-                                  .Where(remoteManifest =>
-                                  {
-                                      var useTesting = this.UseTesting(remoteManifest);
-                                      var candidateApiLevel = useTesting && remoteManifest.TestingDalamudApiLevel != null
-                                                                  ? remoteManifest.TestingDalamudApiLevel.Value
-                                                                  : remoteManifest.DalamudApiLevel;
+            var updates = this.AvailablePlugins
+                              .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
+                              .Where(remoteManifest => plugin.Manifest.InstalledFromUrl == remoteManifest.SourceRepo.PluginMasterUrl || !remoteManifest.SourceRepo.IsThirdParty)
+                              .Where(remoteManifest => remoteManifest.MinimumDalamudVersion == null || Versioning.GetAssemblyVersionParsed() >= remoteManifest.MinimumDalamudVersion)
+                              .Where(remoteManifest => !remoteManifest.IsTestingExclusive || this.UseTesting(remoteManifest))
+                              .Where(remoteManifest =>
+                              {
+                                  var useTesting = this.UseTesting(remoteManifest);
+                                  var candidateApiLevel = useTesting && remoteManifest.TestingDalamudApiLevel != null
+                                                              ? remoteManifest.TestingDalamudApiLevel.Value
+                                                              : remoteManifest.DalamudApiLevel;
 
-                                    return candidateApiLevel == DalamudApiLevel;
-                                })
-                                .Select(remoteManifest =>
-                                {
-                                    var useTesting = this.UseTesting(remoteManifest);
-                                    var candidateVersion = useTesting
-                                                                ? remoteManifest.TestingAssemblyVersion
-                                                                : remoteManifest.AssemblyVersion;
-                                    var isUpdate = candidateVersion > installedVersion;
+                                  return candidateApiLevel == DalamudApiLevel;
+                              })
+                              .Select(remoteManifest =>
+                              {
+                                  var useTesting = this.UseTesting(remoteManifest);
+                                  var candidateVersion = useTesting
+                                                              ? remoteManifest.TestingAssemblyVersion
+                                                              : remoteManifest.AssemblyVersion;
+                                  var isUpdate = candidateVersion > installedVersion;
 
-                                    return (isUpdate, useTesting, candidateVersion, remoteManifest);
-                                })
-                                .Where(tpl => tpl.isUpdate)
-                                .ToList();
+                                  return (isUpdate, useTesting, candidateVersion, remoteManifest);
+                              })
+                              .Where(tpl => tpl.isUpdate)
+                              .ToList();
 
             if (updates.Count > 0)
             {
