@@ -164,7 +164,7 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         {
             var isEnabled = thirdRepoSetting.IsEnabled;
 
-            id.Push(thirdRepoSetting.Url);
+            id.Push($"url{repoNumber}");
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
             ImGui.Text(repoNumber.ToString());
