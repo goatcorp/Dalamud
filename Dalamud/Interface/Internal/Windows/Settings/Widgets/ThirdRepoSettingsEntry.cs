@@ -36,13 +36,13 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
     public override void OnClose()
     {
         this.thirdRepoList =
-            [.. Service<DalamudConfiguration>.Get().ThirdRepoList.Select(x => x.Clone())];
+            [.. Service<DalamudConfiguration>.Get().ThirdRepoList.Where(repo => !repo.Url.IsNullOrEmpty()).Select(x => x.Clone())];
     }
 
     public override void Load()
     {
         this.thirdRepoList =
-            [.. Service<DalamudConfiguration>.Get().ThirdRepoList.Select(x => x.Clone())];
+            [.. Service<DalamudConfiguration>.Get().ThirdRepoList.Where(repo => !repo.Url.IsNullOrEmpty()).Select(x => x.Clone())];
         this.thirdRepoListChanged = false;
     }
 
