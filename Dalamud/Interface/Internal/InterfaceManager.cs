@@ -391,9 +391,15 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.deferredDisposeDisposables.Add(locked);
     }
 
-    /// <summary>Queues an action to be run before <see cref="ImGui.Render"/> call.</summary>
+    /// <summary>Queues an action to be run during the Present detour, before the Dalamud overlay is rendered
+    /// onto the presented back buffer.</summary>
     /// <param name="action">The action.</param>
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
+    /// <remarks>The action is dequeued in <see cref="RenderDalamudDraw"/> just before
+    /// <see cref="IImGuiBackend.Render"/> composites the overlay onto the swap chain back buffer. Note that since the
+    /// Step/Render split, the CPU-side <see cref="ImGui.Render"/> call happens earlier on the framework thread in
+    /// <see cref="IImGuiBackend.Step"/>; "before render" here refers to the overlay being drawn onto the back buffer
+    /// during Present, not to <see cref="ImGui.Render"/>.</remarks>
     public Task RunBeforeImGuiRender(Action action)
     {
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -413,7 +419,8 @@ internal partial class InterfaceManager : IInternalDisposableService
         return tcs.Task;
     }
 
-    /// <summary>Queues a function to be run before <see cref="ImGui.Render"/> call.</summary>
+    /// <summary>Queues a function to be run during the Present detour, before the Dalamud overlay is rendered
+    /// onto the presented back buffer. See <see cref="RunBeforeImGuiRender(Action)"/> for timing details.</summary>
     /// <typeparam name="T">The type of the return value.</typeparam>
     /// <param name="func">The function.</param>
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
@@ -435,11 +442,13 @@ internal partial class InterfaceManager : IInternalDisposableService
         return tcs.Task;
     }
 
-    /// <summary>Queues an action to be run after <see cref="ImGui.Render"/> call.</summary>
+    /// <summary>Queues an action to be run after the Dalamud overlay is rendered onto the presented back buffer.
+    /// See <see cref="RunBeforeImGuiRender(Action)"/> for timing details.</summary>
     /// <param name="action">The action.</param>
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
     public Task RunAfterImGuiRender(Action action)
     {
+
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runAfterImGuiRender.Enqueue(
             () =>
