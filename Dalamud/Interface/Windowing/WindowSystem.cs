@@ -59,6 +59,12 @@ public class WindowSystem : IWindowSystem
     internal static bool ShouldInhibitAtkCloseEvents { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether ATK collisions should be inhibited while any window is hovered.
+    /// Does not respect windows that are pinned or clickthrough.
+    /// </summary>
+    internal static bool ShouldInhibitAtkCollisions { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating the default blur strength for windows in this <see cref="WindowSystem"/>.
     /// This is used for windows that do not have a specific override set in their preset.
     /// Range [0f,1f].
@@ -172,6 +178,11 @@ public class WindowSystem : IWindowSystem
 
         ShouldInhibitAtkCloseEvents |= this.windows.Any(w => w.Window.IsFocused &&
                                                             w.Window.RespectCloseHotkey &&
+                                                            !w.Window.IsPinned &&
+                                                            !w.Window.IsClickthrough);
+
+        ShouldInhibitAtkCollisions |= this.windows.Any(w => w.Window.IsHovered &&
+                                                            w.Window.InhibitAtkCollision &&
                                                             !w.Window.IsPinned &&
                                                             !w.Window.IsClickthrough);
 
