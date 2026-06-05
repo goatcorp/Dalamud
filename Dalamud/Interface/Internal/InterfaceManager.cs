@@ -681,14 +681,12 @@ internal partial class InterfaceManager : IInternalDisposableService
         while (this.runBeforeImGuiRender.TryDequeue(out var action))
             action.InvokeSafely();
 
-        // Enable viewports if there are no issues.
-        var viewportsEnable = this.dalamudConfiguration.IsDisableViewport ||
-                              activeBackend.IsMainViewportFullScreen() ||
-                              ImGui.GetPlatformIO().Monitors.Size == 1;
-        if (viewportsEnable)
-            ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
-        else
-            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+        // NOTE: The viewport enable/disable flag is updated in OnNewRenderFrame (during Step) instead
+        // of here. ImGuiConfigFlags.ViewportsEnable is only consumed by ImGui.NewFrame() and
+        // ImGui.UpdatePlatformWindows(), both of which now run inside Step() on the framework thread
+        // under the backend's step lock. Mutating ImGui.GetIO() here would be a data race against
+        // Step() (Present can be called from a frame-generation thread, e.g. NVIDIA Smooth Motion) and
+        // would not affect the frame currently being rendered anyway.
 
         // Call drawing functions, which in turn will call Draw event.
         activeBackend.Render();
@@ -749,6 +747,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             newBackend.IniPath = iniFileInfo.FullName;
             newBackend.BuildUi += this.Display;
             newBackend.NewInputFrame += this.OnNewInputFrame;
+            newBackend.NewRenderFrame += this.OnNewRenderFrame;
 
             StyleModel.TransferOldModels();
 
@@ -1180,6 +1179,22 @@ internal partial class InterfaceManager : IInternalDisposableService
         return this.setCursorHook?.IsDisposed is not false
                    ? SetCursor((HCURSOR)hCursor)
                    : this.setCursorHook.Original(hCursor);
+    }
+
+    private void OnNewRenderFrame()
+    {
+        // Enable viewports if there are no issues.
+        // This runs inside the backend's Step() (framework thread) under the step lock, before
+        // ImGui.NewFrame()/ImGui.UpdatePlatformWindows() consume the flag. It must not be done in the
+        // Present detour (RenderDalamudDraw), as Present can be invoked from a frame-generation thread
+        // (e.g. NVIDIA Smooth Motion), which would race with Step() over ImGui.GetIO().
+        var viewportsEnable = this.dalamudConfiguration.IsDisableViewport ||
+                              (this.backend?.IsMainViewportFullScreen() ?? false) ||
+                              ImGui.GetPlatformIO().Monitors.Size == 1;
+        if (viewportsEnable)
+            ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
+        else
+            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
     }
 
     private void OnNewInputFrame()
