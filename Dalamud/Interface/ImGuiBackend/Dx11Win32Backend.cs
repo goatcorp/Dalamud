@@ -34,6 +34,21 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private ComPtr<ID3D11Device> device;
     private ComPtr<ID3D11DeviceContext> deviceContext;
 
+    // Snapshot of the draw data produced by the most recent Step(). This is a *shallow* copy: the
+    // struct's CmdLists/VtxBuffer/IdxBuffer pointers reference buffers owned by the global ImGui
+    // context. That is safe because of the following invariants, all enforced elsewhere in this class:
+    //   1. The buffers behind these pointers are only mutated by ImGui.NewFrame()/ImGui.Render(),
+    //      which run exclusively inside Step().
+    //   2. Step() and Render() are mutually exclusive via stepLock, so Render() never observes a
+    //      frame that Step() is mid-rebuilding (relevant because frame-generation layers like
+    //      NVIDIA Smooth Motion can call Present, and therefore Render(), on another thread and
+    //      multiple times between Step() calls).
+    //   3. ImGui.UpdatePlatformWindows() (called in Step() after Render()) does not invalidate the
+    //      main viewport's draw data captured here.
+    // A deep copy is intentionally NOT used: the binding exposes no ImDrawData.Clone(), and cloning
+    // every ImDrawList each Step() (via CloneOutput) would add per-frame allocations/frees and a new
+    // lifetime-management burden for no correctness benefit, since the lock already guarantees the
+    // pointers remain valid for the lifetime of each Render().
     private ImDrawData drawData;
 
     private int targetWidth;
