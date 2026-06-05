@@ -22,12 +22,18 @@ internal unsafe class ReShadeUnwrapper : ComHookUnwrapper
             if (!IsValidReadableMemoryAddress((nint)vtbl, sizeof(nint) * 3))
                 return false;
 
+            // Enumerate the loaded modules once and reuse the snapshot for every vtable pointer
+            // check, rather than calling Process.GetCurrentProcess().Modules per pointer (which also
+            // leaks an undisposed Process). The module set is stable for the duration of this check.
+            using var process = Process.GetCurrentProcess();
+            var modules = process.Modules;
+
             for (var i = 0; i < 3; i++)
             {
                 var pfn = Marshal.ReadIntPtr((nint)(vtbl + i));
                 if (!IsValidExecutableMemoryAddress(pfn, 1))
                     return false;
-                if (!BelongsInReShadeDll(pfn))
+                if (!BelongsInReShadeDll(modules, pfn))
                     return false;
             }
 
@@ -39,9 +45,9 @@ internal unsafe class ReShadeUnwrapper : ComHookUnwrapper
         }
     }
 
-    private static bool BelongsInReShadeDll(nint ptr)
+    private static bool BelongsInReShadeDll(ProcessModuleCollection modules, nint ptr)
     {
-        foreach (ProcessModule processModule in Process.GetCurrentProcess().Modules)
+        foreach (ProcessModule processModule in modules)
         {
             if (ptr < processModule.BaseAddress ||
                 ptr >= processModule.BaseAddress + processModule.ModuleMemorySize ||
