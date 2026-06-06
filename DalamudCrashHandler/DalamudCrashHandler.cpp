@@ -113,6 +113,15 @@ extern "C" long SEH_NOOPT seh_violation_handler(EXCEPTION_POINTERS* data)
 #error "Your compilation environment does not expose SEH try / except unwind helpers"
 #endif
 
+// Windows 10 1607, part of modern Windows SDKs and MinGW 12+, but Ubuntu 24.04 ships MinGW 11
+typedef HRESULT (WINAPI* PFN_GetThreadDescription)(HANDLE hThread, PWSTR* ppszThreadDescription);
+#if defined(__MINGW64_VERSION_MAJOR) && __MINGW64_VERSION_MAJOR < 12
+static PFN_GetThreadDescription _GetThreadDescription = reinterpret_cast<PFN_GetThreadDescription>(
+    GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetThreadDescription"));
+#else
+static PFN_GetThreadDescription _GetThreadDescription = &GetThreadDescription;
+#endif
+
 HANDLE g_hProcess = nullptr;
 bool g_bSymbolsAvailable = false;
 
@@ -1141,7 +1150,7 @@ static HRESULT SEH_NOOPT seh_dac_walk_set_context2(IXCLRDataStackWalk* pWalk, UL
 static std::wstring get_thread_name(HANDLE hThread)
 {
     PWSTR pName = nullptr;
-    if (SUCCEEDED(GetThreadDescription(hThread, &pName)) && pName && pName[0] != L'\0')
+    if (_GetThreadDescription && SUCCEEDED(_GetThreadDescription(hThread, &pName)) && pName && pName[0] != L'\0')
     {
         std::wstring name(pName);
         LocalFree(pName);
