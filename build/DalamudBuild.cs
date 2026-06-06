@@ -261,6 +261,8 @@ public class DalamudBuild : NukeBuild
                 $"-B{CMakePaths.JWasmBuildDirectory.ToString().SingleQuoteIfNeeded()} " +
                 // Fails to build with C++23 onwards.
                 "-DCMAKE_C_STANDARD=17 -DCMAKE_CXX_STANDARD=17 " +
+                // Fails to build out of the box with CMake 4 onwards.
+                "-DCMAKE_POLICY_VERSION_MINIMUM=3.5 " +
                 // The min ver is ancient and NUKE picks up CMake's warnings about that as errors.
                 "-Wno-deprecated",
                 environmentVariables: new Dictionary<string, string>(EnvironmentVariables)
