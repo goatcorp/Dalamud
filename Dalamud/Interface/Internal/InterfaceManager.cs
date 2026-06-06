@@ -690,6 +690,15 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.CumulativePresentCalls++;
         this.IsMainThreadInPresent = true;
 
+        // Mark this thread as being inside the Present detour for the duration of the draw. This is a
+        // frame-phase guard (distinct from main-thread identity): driving the D3D11 immediate context
+        // (e.g. DrawListTextureWrap) is only safe here. Debug-only asserts (ThreadSafety.DebugAssertInPresent)
+        // in those code paths will fire loudly if immediate-context work is ever issued outside Present
+        // (e.g. if frame building were moved back onto the framework-update thread), instead of silently
+        // corrupting the graphics driver state. The scope is per-thread, so it works even when a
+        // frame-generation layer (e.g. NVIDIA Smooth Motion) calls Present from a non-main thread.
+        using var presentScope = ThreadSafety.EnterPresent();
+
         while (this.runBeforeImGuiRender.TryDequeue(out var action))
             action.InvokeSafely();
 
