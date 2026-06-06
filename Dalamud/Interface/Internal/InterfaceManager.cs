@@ -111,6 +111,13 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private bool hooksInitialized;
 
+    // Tracks real game frames so the Present detour can build (Step) the ImGui frame at most once
+    // per game frame. FrameworkOnUpdate advances currentGameFrame on the framework thread; the
+    // Present detour (RenderDalamudDraw) compares it against lastSteppedFrame to decide whether to
+    // Step() or merely re-composite cached draw data. See the comments at those two sites.
+    private long currentGameFrame;
+    private long lastSteppedFrame = -1;
+
     private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<ReShadeDxgiSwapChainPresentDelegate>? reShadeDxgiSwapChainPresentHook;
     private Hook<DxgiSwapChainPresentDelegate>? dxgiSwapChainPresentHook;
@@ -448,7 +455,6 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
     public Task RunAfterImGuiRender(Action action)
     {
-
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runAfterImGuiRender.Enqueue(
             () =>
@@ -632,7 +638,13 @@ internal partial class InterfaceManager : IInternalDisposableService
         if (this.backend is null || !this.dalamudAtlas!.HasBuiltAtlas)
             return;
 
-        this.backend.Step();
+        // Do NOT call backend.Step() here. Step() builds the whole ImGui frame, which runs plugin
+        // Draw callbacks; some of those issue D3D11 immediate-context GPU work (e.g. DrawListTextureWrap),
+        // which is only safe inside the DXGI Present detour. Building the frame on the framework-update
+        // thread corrupts the renderer/driver state machine (observed as an access violation in the
+        // NVIDIA UMD). Instead, just advance the game-frame marker; the Present detour drives Step()
+        // once per game frame and re-composites cached draw data on any extra (frame-generation) Presents.
+        this.currentGameFrame++;
     }
 
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
@@ -683,12 +695,24 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         // NOTE: The viewport enable/disable flag is updated in OnNewRenderFrame (during Step) instead
         // of here. ImGuiConfigFlags.ViewportsEnable is only consumed by ImGui.NewFrame() and
-        // ImGui.UpdatePlatformWindows(), both of which now run inside Step() on the framework thread
-        // under the backend's step lock. Mutating ImGui.GetIO() here would be a data race against
-        // Step() (Present can be called from a frame-generation thread, e.g. NVIDIA Smooth Motion) and
-        // would not affect the frame currently being rendered anyway.
+        // ImGui.UpdatePlatformWindows(), both of which now run inside Step() (invoked below from this
+        // Present detour). Mutating ImGui.GetIO() here directly would not affect the frame currently
+        // being rendered anyway.
 
-        // Call drawing functions, which in turn will call Draw event.
+        // Build the ImGui frame at most once per real game frame, here on the Present path. This keeps
+        // all ImGui construction and the plugin Draw callbacks it runs (which can issue D3D11
+        // immediate-context GPU work, e.g. DrawListTextureWrap) inside the Present detour, where driving
+        // the immediate context is safe. Extra Present calls within the same game frame (e.g. NVIDIA
+        // Smooth Motion frame-generation presents) skip Step() and only re-composite the cached draw
+        // data via Render() below, preserving the Smooth Motion benefit without rebuilding the UI.
+        var gameFrame = Interlocked.Read(ref this.currentGameFrame);
+        if (this.lastSteppedFrame != gameFrame)
+        {
+            activeBackend.Step();
+            this.lastSteppedFrame = gameFrame;
+        }
+
+        // Call drawing functions, which composite the prepared draw data onto the back buffer.
         activeBackend.Render();
 
         this.PostImGuiRender();
