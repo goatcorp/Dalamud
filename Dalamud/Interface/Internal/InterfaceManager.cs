@@ -107,6 +107,15 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private readonly AssertHandler assertHandler = new();
 
+    // Mutual exclusion between the framework-update thread's frame bookkeeping and the Present detour's
+    // Step(). With main-thread identity now scoped onto the presenting thread (see RenderDalamudDraw),
+    // both the framework-update thread and the (Smooth Motion) pacer thread can hold main-thread identity;
+    // they must never run main-thread-gated code concurrently, or plugins reading game state in Draw would
+    // race the next FrameworkUpdate. In practice NvPresent parks the game thread inside Present while the
+    // pacer steps, which already provides this exclusion; taking this lock at both sites makes it explicit
+    // and removes reliance on the driver's internal scheduling.
+    private readonly Lock frameStepLock = new();
+
     private IWin32Backend? backend;
 
     private bool hooksInitialized;
@@ -644,7 +653,16 @@ internal partial class InterfaceManager : IInternalDisposableService
         // thread corrupts the renderer/driver state machine (observed as an access violation in the
         // NVIDIA UMD). Instead, just advance the game-frame marker; the Present detour drives Step()
         // once per game frame and re-composites cached draw data on any extra (frame-generation) Presents.
-        this.currentGameFrame++;
+        //
+        // Hold frameStepLock around the bookkeeping so a framework update can never overlap the Present
+        // detour's Step(). Once main-thread identity is scoped onto the presenting thread (see
+        // RenderDalamudDraw), both this thread and the (Smooth Motion) pacer thread can hold main-thread
+        // identity at once; this lock guarantees they never run main-thread-gated code concurrently, so
+        // plugins reading game state in Draw cannot race the next FrameworkUpdate.
+        using (this.frameStepLock.EnterScope())
+        {
+            this.currentGameFrame++;
+        }
     }
 
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
@@ -699,6 +717,20 @@ internal partial class InterfaceManager : IInternalDisposableService
         // frame-generation layer (e.g. NVIDIA Smooth Motion) calls Present from a non-main thread.
         using var presentScope = ThreadSafety.EnterPresent();
 
+        // Grant main-thread identity to whichever thread is presenting, for the duration of the detour.
+        // Step() runs InterfaceManager.Display() and every plugin Draw callback, much of which asserts
+        // main-thread identity (ThreadSafety.AssertMainThread()), including font access (FontHandle.Push).
+        // Without Smooth Motion, Present runs on the same thread that was permanently marked main in
+        // Framework.HandleFrameworkUpdate, so those asserts pass. With Smooth Motion, Present is driven from
+        // the NvPresent pacer thread, which was never marked main; without this scope every AssertMainThread()
+        // reached during Step() would throw ("Not on main thread!" / "Attempted to access fonts outside the
+        // main thread."), and the unguarded Display() path would let that exception crash the process across
+        // the native reverse-P/Invoke boundary. The scope restores the previous value on dispose, so no
+        // thread is left flagged main after the detour returns; the permanent framework-thread mark is
+        // unaffected. frameStepLock (taken below and in FrameworkOnUpdate) ensures the two main-thread-marked
+        // threads never run main-thread-gated code concurrently.
+        using var mainThreadScope = ThreadSafety.EnterMainThread();
+
         while (this.runBeforeImGuiRender.TryDequeue(out var action))
             action.InvokeSafely();
 
@@ -708,24 +740,52 @@ internal partial class InterfaceManager : IInternalDisposableService
         // Present detour). Mutating ImGui.GetIO() here directly would not affect the frame currently
         // being rendered anyway.
 
-        // Build the ImGui frame at most once per real game frame, here on the Present path. This keeps
-        // all ImGui construction and the plugin Draw callbacks it runs (which can issue D3D11
-        // immediate-context GPU work, e.g. DrawListTextureWrap) inside the Present detour, where driving
-        // the immediate context is safe. Extra Present calls within the same game frame (e.g. NVIDIA
-        // Smooth Motion frame-generation presents) skip Step() and only re-composite the cached draw
-        // data via Render() below, preserving the Smooth Motion benefit without rebuilding the UI.
-        var gameFrame = Interlocked.Read(ref this.currentGameFrame);
-        if (this.lastSteppedFrame != gameFrame)
+        // Defensive hardening: never let an exception from Dalamud's own frame construction/composition
+        // unwind across the native reverse-P/Invoke boundary. This detour is invoked from native code
+        // (the DXGI Present hook), so an unhandled managed exception here would propagate into native code
+        // with no managed handler and terminate the process (E0434352) — for example a stray
+        // ThreadSafety.AssertMainThread() failure inside Display()/NotificationManager.Draw. Plugin Draw
+        // callbacks are already individually isolated; this catch extends the same guarantee to Dalamud's
+        // own Display() path, converting any analogous future mistake from a process kill into a
+        // recoverable, logged error.
+        try
         {
-            activeBackend.Step();
-            this.lastSteppedFrame = gameFrame;
+            // Build the ImGui frame at most once per real game frame, here on the Present path. This keeps
+            // all ImGui construction and the plugin Draw callbacks it runs (which can issue D3D11
+            // immediate-context GPU work, e.g. DrawListTextureWrap) inside the Present detour, where driving
+            // the immediate context is safe. Extra Present calls within the same game frame (e.g. NVIDIA
+            // Smooth Motion frame-generation presents) skip Step() and only re-composite the cached draw
+            // data via Render() below, preserving the Smooth Motion benefit without rebuilding the UI.
+            //
+            // Step() is taken under frameStepLock so that, now that the presenting thread also holds
+            // main-thread identity, it can never run concurrently with the framework update's bookkeeping.
+            // This guarantees plugins reading game state inside Draw cannot race the next FrameworkUpdate,
+            // making the exclusion explicit rather than relying on NvPresent parking the game thread.
+            var gameFrame = Interlocked.Read(ref this.currentGameFrame);
+            if (this.lastSteppedFrame != gameFrame)
+            {
+                using (this.frameStepLock.EnterScope())
+                {
+                    activeBackend.Step();
+                    this.lastSteppedFrame = gameFrame;
+                }
+            }
+
+            // Call drawing functions, which composite the prepared draw data onto the back buffer.
+            activeBackend.Render();
+
+            this.PostImGuiRender();
         }
-
-        // Call drawing functions, which composite the prepared draw data onto the back buffer.
-        activeBackend.Render();
-
-        this.PostImGuiRender();
-        this.IsMainThreadInPresent = false;
+        catch (Exception ex)
+        {
+            // Log and swallow: keeping the exception inside managed code avoids crashing the process across
+            // the native boundary. Subsequent Present calls will retry, so a transient failure self-heals.
+            Log.Error(ex, "Unhandled exception in RenderDalamudDraw; swallowed to protect the native Present boundary.");
+        }
+        finally
+        {
+            this.IsMainThreadInPresent = false;
+        }
     }
 
     private unsafe IImGuiBackend InitBackend(IDXGISwapChain* swapChain)

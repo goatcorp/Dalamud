@@ -100,10 +100,44 @@ public static class ThreadSafety
     }
 
     /// <summary>
+    /// Marks the current thread as the main thread for the duration of the returned scope.
+    /// </summary>
+    /// <returns>A scope that restores the previous main-thread flag when disposed.</returns>
+    /// <remarks>
+    /// Unlike <see cref="MarkMainThread"/> (which permanently tags the framework-update thread), this is a
+    /// scoped marker used by the DXGI Present detour. With frame-generation layers such as NVIDIA Smooth
+    /// Motion, Present can run on a thread that was never marked main; granting main-thread identity only for
+    /// the duration of the detour lets <c>Step()</c>/<c>Display()</c>/plugin <c>Draw</c>/font access see
+    /// <see cref="IsMainThread"/> as <c>true</c> regardless of which OS thread is presenting, and the flag is
+    /// restored on dispose so no thread is left incorrectly flagged afterward.
+    /// </remarks>
+    internal static MainThreadScope EnterMainThread() => new(true);
+
+    /// <summary>
     /// Marks the current thread as executing inside the DXGI Present detour, for the duration of the returned scope.
     /// </summary>
     /// <returns>A scope that clears the flag (restoring the previous value) when disposed.</returns>
     internal static InPresentScope EnterPresent() => new(true);
+
+    /// <summary>
+    /// A disposable scope that sets <see cref="IsMainThread"/> for the current thread and restores its previous
+    /// value when disposed.
+    /// </summary>
+    internal readonly ref struct MainThreadScope
+    {
+        private readonly bool previous;
+
+        /// <summary>Initializes a new instance of the <see cref="MainThreadScope"/> struct.</summary>
+        /// <param name="value">The value to set <see cref="IsMainThread"/> to for the current thread.</param>
+        public MainThreadScope(bool value)
+        {
+            this.previous = threadStaticIsMainThread;
+            threadStaticIsMainThread = value;
+        }
+
+        /// <summary>Restores the previous <see cref="IsMainThread"/> value for the current thread.</summary>
+        public void Dispose() => threadStaticIsMainThread = this.previous;
+    }
 
     /// <summary>
     /// A disposable scope that sets <see cref="IsInPresent"/> for the current thread and restores its previous
