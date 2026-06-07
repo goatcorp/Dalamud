@@ -16,6 +16,9 @@ internal interface IImGuiBackend : IDisposable
     /// <summary>User methods invoked every ImGui frame on handling renders.</summary>
     event ImGuiNewRenderFrameDelegate? NewRenderFrame;
 
+    /// <summary>User methods invoked after copying ImGui data for the current step.</summary>
+    event Action? PostCopy;
+
     /// <summary>Gets or sets a value indicating whether the cursor should be overridden with the ImGui cursor.
     /// </summary>
     bool UpdateCursor { get; set; }
@@ -31,6 +34,9 @@ internal interface IImGuiBackend : IDisposable
 
     /// <summary>Gets the renderer.</summary>
     IImGuiRenderer Renderer { get; }
+
+    /// <summary>Updates ImGui and invokes <see cref="BuildUi"/>. Does not render.</summary>
+    void Step();
 
     /// <summary>Performs a render cycle.</summary>
     void Render();

@@ -1,21 +1,19 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using TerraFX.Interop.Windows;
 
 using static TerraFX.Interop.Windows.Windows;
 
-namespace Dalamud.Interface.Internal.ReShadeHandling;
+namespace Dalamud.Interface.Internal.Unwrapper;
 
-/// <summary>Unwraps IUnknown wrapped by ReShade.</summary>
-internal static unsafe class ReShadeUnwrapper
+/// <summary>Unwraps IUnknown wrapped by other graphics injector.</summary>
+internal abstract unsafe class ComHookUnwrapper
 {
     /// <summary>Unwraps <typeparamref name="T"/> if it is wrapped by ReShade.</summary>
     /// <param name="comptr">[inout] The COM pointer to an instance of <typeparamref name="T"/>.</param>
     /// <typeparam name="T">A COM type that is or extends <see cref="IUnknown"/>.</typeparam>
     /// <returns><c>true</c> if peeled.</returns>
-    public static bool Unwrap<T>(ComPtr<T>* comptr)
+    public bool Unwrap<T>(ComPtr<T>* comptr)
         where T : unmanaged, IUnknown.Interface
     {
         if (typeof(T).GetNestedType("Vtbl`1") is not { } vtblType)
@@ -23,9 +21,10 @@ internal static unsafe class ReShadeUnwrapper
 
         nint vtblSize = vtblType.GetFields().Length * sizeof(nint);
         var changed = false;
-        while (comptr->Get() != null && IsReShadedComObject(comptr->Get()))
+        while (comptr->Get() != null && this.IsRelevantComObject(comptr->Get()))
         {
             // Expectation: the pointer to the underlying object should come early after the overriden vtable.
+            var peeled = false;
             for (nint i = sizeof(nint); i <= 0x20; i += sizeof(nint))
             {
                 var ppObjectBehind = (nint)comptr->Get() + i;
@@ -64,70 +63,26 @@ internal static unsafe class ReShadeUnwrapper
 
                 comptr2.Swap(comptr);
                 changed = true;
+                peeled = true;
                 break;
             }
 
-            if (!changed)
+            // Use a per-iteration flag: once 'changed' is true it stays true, so the outer
+            // loop exit condition must track whether *this* iteration succeeded, not any prior one.
+            if (!peeled)
                 break;
         }
 
         return changed;
     }
 
-    private static bool BelongsInReShadeDll(nint ptr)
-    {
-        foreach (ProcessModule processModule in Process.GetCurrentProcess().Modules)
-        {
-            if (ptr < processModule.BaseAddress ||
-                ptr >= processModule.BaseAddress + processModule.ModuleMemorySize ||
-                !HasProcExported(processModule, "ReShadeRegisterAddon"u8) ||
-                !HasProcExported(processModule, "ReShadeUnregisterAddon"u8) ||
-                !HasProcExported(processModule, "ReShadeRegisterEvent"u8) ||
-                !HasProcExported(processModule, "ReShadeUnregisterEvent"u8))
-                continue;
-
-            return true;
-        }
-
-        return false;
-
-        static bool HasProcExported(ProcessModule m, ReadOnlySpan<byte> name)
-        {
-            fixed (byte* p = name)
-                return GetProcAddress((HMODULE)m.BaseAddress, (sbyte*)p) != null;
-        }
-    }
-
-    private static bool IsReShadedComObject<T>(T* obj)
-        where T : unmanaged, IUnknown.Interface
-    {
-        if (!IsValidReadableMemoryAddress((nint)obj, sizeof(nint)))
-            return false;
-
-        try
-        {
-            var vtbl = (nint**)Marshal.ReadIntPtr((nint)obj);
-            if (!IsValidReadableMemoryAddress((nint)vtbl, sizeof(nint) * 3))
-                return false;
-
-            for (var i = 0; i < 3; i++)
-            {
-                var pfn = Marshal.ReadIntPtr((nint)(vtbl + i));
-                if (!IsValidExecutableMemoryAddress(pfn, 1))
-                    return false;
-                if (!BelongsInReShadeDll(pfn))
-                    return false;
-            }
-
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private static bool IsValidReadableMemoryAddress(nint p, nint size)
+    /// <summary>
+    /// Whether the given memory address is a valid readable userspace memory region of the given size.
+    /// </summary>
+    /// <param name="p">Pointer to read from.</param>
+    /// <param name="size">Size to read.</param>
+    /// <returns>Whether the memory is readable.</returns>
+    protected static bool IsValidReadableMemoryAddress(nint p, nint size)
     {
         while (size > 0)
         {
@@ -155,7 +110,13 @@ internal static unsafe class ReShadeUnwrapper
         return true;
     }
 
-    private static bool IsValidExecutableMemoryAddress(nint p, nint size)
+    /// <summary>
+    /// Whether the given memory address is a valid executable userspace memory region of the given size.
+    /// </summary>
+    /// <param name="p">Pointer to read from.</param>
+    /// <param name="size">Size to read.</param>
+    /// <returns>Whether the memory is executable.</returns>
+    protected static bool IsValidExecutableMemoryAddress(nint p, nint size)
     {
         while (size > 0)
         {
@@ -182,6 +143,15 @@ internal static unsafe class ReShadeUnwrapper
 
         return true;
     }
+
+    /// <summary>
+    /// Checks whether a given COM object is relevant to this unwrapper.
+    /// </summary>
+    /// <param name="obj">The object to check.</param>
+    /// <typeparam name="T">The type of the COM object.</typeparam>
+    /// <returns>Whether we should go ahead with the unwrap.</returns>
+    protected abstract bool IsRelevantComObject<T>(T* obj)
+        where T : unmanaged, IUnknown.Interface;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsValidUserspaceMemoryAddress(nint p)
