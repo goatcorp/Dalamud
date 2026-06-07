@@ -85,7 +85,7 @@
         {
             "label": "Attach winedbg to running ffxiv_dx11.exe",
             "type": "shell",
-            "command": ". .vscode/wine-common.sh; exec xlcore wine winedbg --gdb --no-start --port 12345 $(get-ffxiv-wpid)",
+            "command": ". .vscode/wine-common.sh; xlcore-wine winedbg --gdb --no-start --port 12345 $(get-wpid ffxiv_dx11.exe)",
             "options": {
                 "cwd": "${workspaceFolder}",
                 "shell": {

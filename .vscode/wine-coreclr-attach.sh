@@ -7,7 +7,7 @@ if [ "$1" == "sh -s" ]; then
     # Assume VSCode is trying to run remoteProcessPickerScript, which expects
     # uname
     # ps -axww -o pid=,flags=,comm=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,args=
-    pid=$(get-ffxiv-wpid)
+    pid=$(get-wpid ffxiv_dx11.exe)
     if [ -z "$pid" ]; then
         exit 1
     fi
@@ -18,4 +18,4 @@ if [ "$1" == "sh -s" ]; then
     exit 0
 fi
 
-exec xlcore wine "$(get-vsdbg)" --interpreter=vscode
+xlcore-wine "$(get-vsdbg)" --interpreter=vscode
