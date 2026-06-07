@@ -70,7 +70,6 @@ static constexpr GUID Guid_IFileDialog_Tspack{ 0xfc057318, 0xad35, 0x4599, {0xa7
 #if defined(_MSC_VER)
 #define SEH_MSVC
 #define SEH_NOOPT
-static constexpr bool seh_violation = false;
 
 // MSVC: __try { faulty; } __except(EXCEPTION_EXECUTE_HANDLER) { handler; }
 #define __seh_try_begin __try
@@ -78,36 +77,35 @@ static constexpr bool seh_violation = false;
 
 #elif defined(__try1)
 #define SEH_MINGW
-#if defined(__GNUC__)
-#define SEH_NOOPT __attribute__((optimize("O0")))
-#else
+#if defined(__clang__)
 #define SEH_NOOPT __attribute__((optnone))
+#else
+#define SEH_NOOPT __attribute__((optimize("O0")))
 #endif
-static __thread bool seh_violation;
 extern "C" long SEH_NOOPT seh_violation_handler(EXCEPTION_POINTERS* data)
 {
-    seh_violation = true;
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
 // MinGW: __try1(handler); faulty; __except1; runs_always;
 /* MinGW __try1 / __except1 is great... except for when it decides to use named labels which cannot be reused.
- * if (!seh_violation) abomination to work around the 2 label not getting resolved after otherwise guaranteed returns.
  */
 #define __seh_try_begin \
-    seh_violation = false; \
-    __asm__ __volatile__ ("\t1:\n" \
-    "\t.seh_handler __C_specific_handler, @except\n" \
-    "\t.seh_handlerdata\n" \
-    "\t.long 1\n" \
-    "\t.rva 1b, 2f, " __MINGW64_STRINGIFY(__MINGW_USYMBOL(seh_violation_handler)) " ,2f\n" \
-    "\t.text" \
-    ); \
-    if (!seh_violation)
+    startw: \
+    asm goto volatile ( \
+        "\t.seh_handler __C_specific_handler, @except\n" \
+        "\t.seh_handlerdata\n" \
+        "\t.long 1\n" \
+        "\t.rva %l[startw], %l[endw], " __MINGW64_STRINGIFY(__MINGW_USYMBOL(seh_violation_handler)) ", %l[endw]\n" \
+        "\t.text" \
+        : \
+        : \
+        : \
+        : startw, endw \
+    );
 
 #define __seh_try_end \
-    asm ("\tnop\n" \
-    "\t2: nop\n");
+    endw:
 
 #else
 #error "Your compilation environment does not expose SEH try / except unwind helpers"
