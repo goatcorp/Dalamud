@@ -17,6 +17,8 @@ internal unsafe partial class InterfaceManager
         if (this.backend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
             return;
 
+        using var frameLockScope = this.imGuiFrameLock.EnterScope();
+        this.imGuiResizeInProgress = true;
         this.backend?.OnPreResize();
     }
 
@@ -28,9 +30,21 @@ internal unsafe partial class InterfaceManager
 
         DXGI_SWAP_CHAIN_DESC desc;
         if (swapChainNative->GetDesc(&desc).FAILED)
+        {
+            using var failedResizeLockScope = this.imGuiFrameLock.EnterScope();
+            this.imGuiResizeInProgress = false;
             return;
+        }
 
-        this.backend?.OnPostResize((int)desc.BufferDesc.Width, (int)desc.BufferDesc.Height);
+        using var frameLockScope = this.imGuiFrameLock.EnterScope();
+        try
+        {
+            this.backend?.OnPostResize((int)desc.BufferDesc.Width, (int)desc.BufferDesc.Height);
+        }
+        finally
+        {
+            this.imGuiResizeInProgress = false;
+        }
     }
 
     private void ReShadeAddonInterfaceOnPresent(

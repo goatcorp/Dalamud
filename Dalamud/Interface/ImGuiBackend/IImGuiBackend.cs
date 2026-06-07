@@ -38,6 +38,9 @@ internal interface IImGuiBackend : IDisposable
     /// <summary>Performs a render cycle.</summary>
     void Render();
 
+    /// <summary>Steps and renders ImGui atomically.</summary>
+    void RenderFrame();
+
     /// <summary>Handles stuff before resizing happens.</summary>
     void OnPreResize();
 

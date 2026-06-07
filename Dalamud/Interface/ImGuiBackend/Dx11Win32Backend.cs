@@ -8,6 +8,7 @@ using Dalamud.Interface.ImGuiBackend.Delegates;
 using Dalamud.Interface.ImGuiBackend.Helpers;
 using Dalamud.Interface.ImGuiBackend.InputHandler;
 using Dalamud.Interface.ImGuiBackend.Renderers;
+using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 
 using TerraFX.Interop.DirectX;
@@ -34,21 +35,6 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private ComPtr<ID3D11Device> device;
     private ComPtr<ID3D11DeviceContext> deviceContext;
 
-    // Snapshot of the draw data produced by the most recent Step(). This is a *shallow* copy: the
-    // struct's CmdLists/VtxBuffer/IdxBuffer pointers reference buffers owned by the global ImGui
-    // context. That is safe because of the following invariants, all enforced elsewhere in this class:
-    //   1. The buffers behind these pointers are only mutated by ImGui.NewFrame()/ImGui.Render(),
-    //      which run exclusively inside Step().
-    //   2. Step() and Render() are mutually exclusive via stepLock, so Render() never observes a
-    //      frame that Step() is mid-rebuilding (relevant because frame-generation layers like
-    //      NVIDIA Smooth Motion can call Present, and therefore Render(), on another thread and
-    //      multiple times between Step() calls).
-    //   3. ImGui.UpdatePlatformWindows() (called in Step() after Render()) does not invalidate the
-    //      main viewport's draw data captured here.
-    // A deep copy is intentionally NOT used: the binding exposes no ImDrawData.Clone(), and cloning
-    // every ImDrawList each Step() (via CloneOutput) would add per-frame allocations/frees and a new
-    // lifetime-management burden for no correctness benefit, since the lock already guarantees the
-    // pointers remain valid for the lifetime of each Render().
     private ImDrawData drawData;
 
     private int targetWidth;
@@ -73,6 +59,14 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
             fixed (ID3D11DeviceContext** pp = &this.deviceContext.GetPinnableReference())
                 this.device.Get()->GetImmediateContext(pp);
+
+            if (SwapChainHelper.IsNvPresentUnwrapped)
+            {
+                if (EnableD3D11MultithreadProtection(this.deviceContext.Get()))
+                    Serilog.Log.Information("Enabled D3D11 multithread protection for NvPresent");
+                else
+                    Serilog.Log.Warning("Could not enable D3D11 multithread protection for NvPresent");
+            }
 
             using var buffer = default(ComPtr<ID3D11Resource>);
             fixed (Guid* guid = &IID.IID_ID3D11Resource)
@@ -175,35 +169,24 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     public void Step()
     {
         using var stepLockScope = this.stepLock.EnterScope();
-
-        this.imguiRenderer.OnNewFrame();
-        this.NewRenderFrame?.Invoke();
-        this.imguiInput.NewFrame(this.targetWidth, this.targetHeight);
-        this.NewInputFrame?.Invoke();
-
-        ImGui.NewFrame();
-        ImGuizmo.BeginFrame();
-
-        this.BuildUi?.Invoke();
-
-        ImGui.Render();
-        ImGui.UpdatePlatformWindows();
-
-        this.drawData = *ImGui.GetDrawData().Handle;
+        this.StepInternal();
     }
 
     /// <inheritdoc/>
     public void Render()
     {
         // Smooth Motion and other frame-generation layers can call Present outside the
-        // normal game frame cadence. Render the last prepared draw data here, while Step
-        // owns building the next frame on the framework thread.
+        // normal game frame cadence. Reuse the last frame prepared by Step for those calls.
         using var stepLockScope = this.stepLock.EnterScope();
+        this.RenderInternal();
+    }
 
-        fixed (ImDrawData* pDrawData = &this.drawData)
-            this.imguiRenderer.RenderDrawData(new ImDrawDataPtr(pDrawData));
-
-        ImGui.RenderPlatformWindowsDefault();
+    /// <inheritdoc/>
+    public void RenderFrame()
+    {
+        using var stepLockScope = this.stepLock.EnterScope();
+        this.StepInternal();
+        this.RenderInternal();
     }
 
     /// <inheritdoc/>
@@ -259,6 +242,55 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
             return u1.Get() == u2.Get();
         }
+    }
+
+    private static bool EnableD3D11MultithreadProtection(ID3D11DeviceContext* context)
+    {
+        // ID3D11Multithread is not currently exposed by TerraFX. Query it directly
+        // from the immediate context and enable its built-in serialization.
+        var iid = new Guid(0x9B7E4E00, 0x342C, 0x4106, 0xA1, 0x9F, 0x4F, 0x27, 0x04, 0xF6, 0x89, 0xF0);
+        void* multithread = null;
+        if (context->QueryInterface(&iid, &multithread).FAILED)
+            return false;
+
+        try
+        {
+            var vtable = *(void***)multithread;
+            var setProtected = (delegate* unmanaged[Stdcall]<void*, BOOL, BOOL>)vtable[5];
+            var getProtected = (delegate* unmanaged[Stdcall]<void*, BOOL>)vtable[6];
+            setProtected(multithread, BOOL.TRUE);
+            return getProtected(multithread);
+        }
+        finally
+        {
+            ((IUnknown*)multithread)->Release();
+        }
+    }
+
+    private void StepInternal()
+    {
+        this.imguiRenderer.OnNewFrame();
+        this.NewRenderFrame?.Invoke();
+        this.imguiInput.NewFrame(this.targetWidth, this.targetHeight);
+        this.NewInputFrame?.Invoke();
+
+        ImGui.NewFrame();
+        ImGuizmo.BeginFrame();
+
+        this.BuildUi?.Invoke();
+
+        ImGui.Render();
+        ImGui.UpdatePlatformWindows();
+
+        this.drawData = *ImGui.GetDrawData().Handle;
+    }
+
+    private void RenderInternal()
+    {
+        fixed (ImDrawData* pDrawData = &this.drawData)
+            this.imguiRenderer.RenderDrawData(new ImDrawDataPtr(pDrawData));
+
+        ImGui.RenderPlatformWindowsDefault();
     }
 
     private void ReleaseUnmanagedResources()

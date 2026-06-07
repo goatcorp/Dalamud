@@ -76,16 +76,6 @@ internal sealed unsafe partial class DrawListTextureWrap
         {
             ThreadSafety.AssertMainThread();
 
-            // Frame-phase guard (Debug only): driving the shared D3D11 immediate context below
-            // (Map/Unmap/Draw/OMSetRenderTargets) is only safe inside the DXGI Present detour. Asserting
-            // main-thread identity alone is insufficient — historically this work was incorrectly moved
-            // onto the framework-update thread (which is also the "main thread"), which corrupted the
-            // graphics driver state and crashed inside the NVIDIA UMD. This makes that class of misuse
-            // fail loudly in Debug instead of silently corrupting the driver.
-            ThreadSafety.DebugAssertInPresent(
-                "DrawListTextureWrap.RenderDrawData must run inside the Present detour; the D3D11 immediate " +
-                "context is only safe to drive there.");
-
             if (drawData.DisplaySize.X <= 0 || drawData.DisplaySize.Y <= 0
                 || !drawData.Valid || drawData.CmdListsCount < 1)
                 return;
@@ -273,12 +263,6 @@ internal sealed unsafe partial class DrawListTextureWrap
         public void MakeStraight(ID3D11ShaderResourceView* psrv, ID3D11RenderTargetView* prtv)
         {
             ThreadSafety.AssertMainThread();
-
-            // Frame-phase guard (Debug only): like RenderDrawData, this drives the shared D3D11 immediate
-            // context and is only safe inside the DXGI Present detour. See RenderDrawData for the rationale.
-            ThreadSafety.DebugAssertInPresent(
-                "DrawListTextureWrap.MakeStraight must run inside the Present detour; the D3D11 immediate " +
-                "context is only safe to drive there.");
 
             D3D11_TEXTURE2D_DESC texDesc;
             using (var texRes = default(ComPtr<ID3D11Resource>))

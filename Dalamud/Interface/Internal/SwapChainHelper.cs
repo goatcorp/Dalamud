@@ -24,6 +24,11 @@ internal static unsafe class SwapChainHelper
         VTable,
     }
 
+    /// <summary>
+    /// Gets a value indicating whether the game swap chain was unwrapped from NvPresent.
+    /// </summary>
+    public static bool IsNvPresentUnwrapped { get; private set; }
+
     /// <summary>Gets the game's active instance of IDXGISwapChain that is initialized.</summary>
     /// <value>Address of the game's instance of IDXGISwapChain, or <c>null</c> if not available (yet.)</value>
     public static IDXGISwapChain* GameDeviceSwapChain
@@ -128,6 +133,7 @@ internal static unsafe class SwapChainHelper
             return false;
 
         foundGameDeviceSwapChain = swapChain.Get();
+        IsNvPresentUnwrapped = true;
         return true;
     }
 }

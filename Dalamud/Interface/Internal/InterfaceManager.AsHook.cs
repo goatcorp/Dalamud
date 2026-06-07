@@ -112,22 +112,38 @@ internal unsafe partial class InterfaceManager
         if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
             return this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
+        using var frameLockScope = this.imGuiFrameLock.EnterScope();
+        this.imGuiResizeInProgress = true;
+
 #if DEBUG
         Log.Verbose(
             $"Calling resizebuffers swap@{(nint)swapChain:X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
 #endif
 
-        this.ResizeBuffers?.InvokeSafely();
+        try
+        {
+            this.ResizeBuffers?.InvokeSafely();
 
-        this.backend?.OnPreResize();
+            this.backend?.OnPreResize();
 
-        var ret = this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
-        if (ret == DXGI.DXGI_ERROR_INVALID_CALL)
-            Log.Error("invalid call to resizeBuffers");
+            var ret = this.dxgiSwapChainResizeBuffersHook!.Original(
+                swapChain,
+                bufferCount,
+                width,
+                height,
+                newFormat,
+                swapChainFlags);
+            if (ret == DXGI.DXGI_ERROR_INVALID_CALL)
+                Log.Error("invalid call to resizeBuffers");
 
-        this.backend?.OnPostResize((int)width, (int)height);
+            this.backend?.OnPostResize((int)width, (int)height);
 
-        return ret;
+            return ret;
+        }
+        finally
+        {
+            this.imGuiResizeInProgress = false;
+        }
     }
 
     /// <summary>Represents <c>DXGISwapChain</c> in ReShade.</summary>
