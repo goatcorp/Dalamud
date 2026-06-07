@@ -490,7 +490,8 @@ set_target_properties({Key} PROPERTIES
 
             if (DebugInfo != DebugInformationFormat.None)
             {
-                lists.AppendLine($"target_compile_options({Key} PRIVATE -g)");
+                // Wine restricts us to DWARF v4 without type info.
+                lists.AppendLine($"target_compile_options({Key} PRIVATE -gdwarf-4 -g1)");
             }
 
             if (!string.IsNullOrEmpty(AdditionalIncludeDirectories))
