@@ -400,7 +400,7 @@ internal sealed partial class TextureManager
     // Not sure why this and the below can't be unconditional RunOnFrameworkThread
     private async Task RunDuringPresent(Action action)
     {
-        if (this.interfaceManager.IsMainThreadInPresent && ThreadSafety.IsMainThread)
+        if (this.interfaceManager.IsAnyThreadInPresent)
             action();
         else
             await this.interfaceManager.RunBeforeImGuiRender(action);
@@ -412,7 +412,7 @@ internal sealed partial class TextureManager
     /// <returns>The return value from the function.</returns>
     private async Task<T> RunDuringPresent<T>(Func<T> func)
     {
-        if (this.interfaceManager.IsMainThreadInPresent && ThreadSafety.IsMainThread)
+        if (this.interfaceManager.IsAnyThreadInPresent)
             return func();
         return await this.interfaceManager.RunBeforeImGuiRender(func);
     }

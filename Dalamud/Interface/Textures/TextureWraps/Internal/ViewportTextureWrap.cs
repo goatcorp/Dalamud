@@ -70,9 +70,84 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
     /// <summary>Gets the task representing the first <see cref="Update"/> call.</summary>
     public Task<IDalamudTextureWrap> FirstUpdateTask => this.firstUpdateTaskCompletionSource.Task;
 
-    /// <summary>Updates the texture from the source viewport.</summary>
-    public unsafe void Update()
+    /// <summary>Queues a call to <see cref="Update"/>.</summary>
+    public void QueueUpdate() =>
+        Service<Framework>.Get().RunOnTick(
+            () =>
+            {
+                if (this.args.TakeBeforeImGuiRender)
+                    Service<InterfaceManager>.Get().RunBeforeImGuiRender(this.Update);
+                else
+                    Service<InterfaceManager>.Get().RunAfterImGuiRender(this.Update);
+            },
+            cancellationToken: this.cancellationToken);
+
+    /// <summary>Queue the texture to be disposed once the frame ends. </summary>
+    public void Dispose()
     {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>Actually dispose the wrapped texture.</summary>
+    void IDeferredDisposable.RealDispose()
+    {
+        _ = this.FirstUpdateTask.Exception;
+        this.tex.Reset();
+        this.srv.Reset();
+        this.rtv.Reset();
+    }
+
+    private static unsafe ComPtr<ID3D11Texture2D> GetImGuiViewportBackBuffer(uint viewportId)
+    {
+        var viewports = ImGui.GetPlatformIO().Viewports;
+        var viewportIndex = 0;
+        for (; viewportIndex < viewports.Size; viewportIndex++)
+        {
+            if (viewports[viewportIndex].ID == viewportId)
+                break;
+        }
+
+        if (viewportIndex >= viewports.Size)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(viewportId),
+                viewportId,
+                "Could not find a viewport with the given ID.");
+        }
+
+        var texture = default(ComPtr<ID3D11Texture2D>);
+
+        Debug.Assert(viewports[0].ID == ImGui.GetMainViewport().ID, "ImGui has changed");
+        if (viewportId == viewports[0].ID)
+        {
+            fixed (Guid* piid = &IID.IID_ID3D11Texture2D)
+            {
+                SwapChainHelper.GameDisplaySwapChain->GetBuffer(0, piid, (void**)texture.GetAddressOf())
+                    .ThrowOnError();
+            }
+        }
+        else
+        {
+            // See: ImGui_Impl_DX11.ImGuiViewportDataDx11
+            var rud = (nint*)viewports[viewportIndex].RendererUserData;
+            if (rud == null || rud[0] == nint.Zero || rud[1] == nint.Zero)
+                throw new InvalidOperationException();
+
+            using var resource = default(ComPtr<ID3D11Resource>);
+            ((ID3D11RenderTargetView*)rud[1])->GetResource(resource.GetAddressOf());
+            resource.As(&texture).ThrowOnError();
+        }
+
+        return texture;
+    }
+
+    /// <summary>Updates the texture from the source viewport.</summary>
+    private unsafe void Update()
+    {
+        if (this.disposed)
+            return;
+
         if (this.cancellationToken.IsCancellationRequested || this.disposed)
         {
             this.firstUpdateTaskCompletionSource.TrySetCanceled();
@@ -81,8 +156,6 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
 
         try
         {
-            ThreadSafety.AssertMainThread();
-
             using var backBuffer = GetImGuiViewportBackBuffer(this.args.ViewportId);
             D3D11_TEXTURE2D_DESC newDesc;
             backBuffer.Get()->GetDesc(&newDesc);
@@ -188,80 +261,6 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
 
         if (this.args.AutoUpdate)
             this.QueueUpdate();
-    }
-
-    /// <summary>Queues a call to <see cref="Update"/>.</summary>
-    public void QueueUpdate() =>
-        Service<Framework>.Get().RunOnTick(
-            () =>
-            {
-                if (this.args.TakeBeforeImGuiRender)
-                    Service<InterfaceManager>.Get().RunBeforeImGuiRender(this.Update);
-                else
-                    Service<InterfaceManager>.Get().RunAfterImGuiRender(this.Update);
-            },
-            cancellationToken: this.cancellationToken);
-
-    /// <summary>Queue the texture to be disposed once the frame ends. </summary>
-    public void Dispose()
-    {
-        this.Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>Actually dispose the wrapped texture.</summary>
-    void IDeferredDisposable.RealDispose()
-    {
-        _ = this.FirstUpdateTask.Exception;
-        this.tex.Reset();
-        this.srv.Reset();
-        this.rtv.Reset();
-    }
-
-    private static unsafe ComPtr<ID3D11Texture2D> GetImGuiViewportBackBuffer(uint viewportId)
-    {
-        ThreadSafety.AssertMainThread();
-        var viewports = ImGui.GetPlatformIO().Viewports;
-        var viewportIndex = 0;
-        for (; viewportIndex < viewports.Size; viewportIndex++)
-        {
-            if (viewports[viewportIndex].ID == viewportId)
-                break;
-        }
-
-        if (viewportIndex >= viewports.Size)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(viewportId),
-                viewportId,
-                "Could not find a viewport with the given ID.");
-        }
-
-        var texture = default(ComPtr<ID3D11Texture2D>);
-
-        Debug.Assert(viewports[0].ID == ImGui.GetMainViewport().ID, "ImGui has changed");
-        if (viewportId == viewports[0].ID)
-        {
-            var device = FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Device.Instance();
-            fixed (Guid* piid = &IID.IID_ID3D11Texture2D)
-            {
-                ((IDXGISwapChain*)device->SwapChain->DXGISwapChain)->GetBuffer(0, piid, (void**)texture.GetAddressOf())
-                    .ThrowOnError();
-            }
-        }
-        else
-        {
-            // See: ImGui_Impl_DX11.ImGuiViewportDataDx11
-            var rud = (nint*)viewports[viewportIndex].RendererUserData;
-            if (rud == null || rud[0] == nint.Zero || rud[1] == nint.Zero)
-                throw new InvalidOperationException();
-
-            using var resource = default(ComPtr<ID3D11Resource>);
-            ((ID3D11RenderTargetView*)rud[1])->GetResource(resource.GetAddressOf());
-            resource.As(&texture).ThrowOnError();
-        }
-
-        return texture;
     }
 
     private void Dispose(bool disposing)

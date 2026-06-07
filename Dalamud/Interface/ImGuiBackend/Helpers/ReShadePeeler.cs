@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Support;
+
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
@@ -86,7 +88,7 @@ internal static unsafe class ReShadePeeler
 
     private static bool BelongsInReShadeDll(nint ptr)
     {
-        foreach (ProcessModule processModule in Process.GetCurrentProcess().Modules)
+        foreach (ProcessModule processModule in CurrentProcessModules.ModuleCollection)
         {
             if (ptr < processModule.BaseAddress)
                 continue;
