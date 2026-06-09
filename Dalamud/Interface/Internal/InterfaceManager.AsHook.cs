@@ -114,6 +114,7 @@ internal unsafe partial class InterfaceManager
 
         using var frameLockScope = this.imGuiFrameLock.EnterScope();
         this.imGuiResizeInProgress = true;
+        this.InvalidatePreparedImGuiFrame();
 
 #if DEBUG
         Log.Verbose(

@@ -32,13 +32,13 @@ internal interface IImGuiBackend : IDisposable
     /// <summary>Gets the renderer.</summary>
     IImGuiRenderer Renderer { get; }
 
-    /// <summary>Steps ImGui once and invokes draw events.</summary>
+    /// <summary>Builds an ImGui frame without drawing it.</summary>
     void Step();
 
-    /// <summary>Performs a render cycle.</summary>
+    /// <summary>Draws the most recently built ImGui frame.</summary>
     void Render();
 
-    /// <summary>Steps and renders ImGui atomically.</summary>
+    /// <summary>Builds and draws an ImGui frame atomically.</summary>
     void RenderFrame();
 
     /// <summary>Handles stuff before resizing happens.</summary>

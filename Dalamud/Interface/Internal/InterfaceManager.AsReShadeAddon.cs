@@ -19,6 +19,7 @@ internal unsafe partial class InterfaceManager
 
         using var frameLockScope = this.imGuiFrameLock.EnterScope();
         this.imGuiResizeInProgress = true;
+        this.InvalidatePreparedImGuiFrame();
         this.backend?.OnPreResize();
     }
 
@@ -39,6 +40,7 @@ internal unsafe partial class InterfaceManager
         using var frameLockScope = this.imGuiFrameLock.EnterScope();
         try
         {
+            this.InvalidatePreparedImGuiFrame();
             this.backend?.OnPostResize((int)desc.BufferDesc.Width, (int)desc.BufferDesc.Height);
         }
         finally

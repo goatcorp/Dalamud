@@ -635,8 +635,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         // Smooth Motion may render the prepared frame multiple times. Keep everything
         // referenced by that frame alive until no Present is using it and it is replaced.
-        if (this.hasPreparedImGuiFrame)
-            this.PostImGuiRender();
+        this.InvalidatePreparedImGuiFrame();
 
         this.PrepareImGuiFrame(this.backend);
 
@@ -896,6 +895,15 @@ internal partial class InterfaceManager : IInternalDisposableService
             while (this.deferredDisposeDisposables.TryTake(out var d))
                 d.Dispose();
         }
+    }
+
+    private void InvalidatePreparedImGuiFrame()
+    {
+        if (!this.hasPreparedImGuiFrame)
+            return;
+
+        this.hasPreparedImGuiFrame = false;
+        this.PostImGuiRender();
     }
 
     private unsafe void SetupHooks(

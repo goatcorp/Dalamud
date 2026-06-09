@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using TerraFX.Interop.Windows;
@@ -20,9 +21,16 @@ internal abstract unsafe class ComHookUnwrapper
             return false;
 
         nint vtblSize = vtblType.GetFields().Length * sizeof(nint);
-        var changed = false;
+        var unwrappedAny = false;
+        var visitedObjects = new HashSet<nint>();
         while (comptr->Get() != null && this.IsRelevantComObject(comptr->Get()))
         {
+            var currentObject = (nint)comptr->Get();
+            if (!visitedObjects.Add(currentObject))
+                break;
+
+            var unwrappedCurrent = false;
+
             // Expectation: the pointer to the underlying object should come early after the overridden vtable.
             for (nint i = sizeof(nint); i <= 0x20; i += sizeof(nint))
             {
@@ -55,16 +63,20 @@ internal abstract unsafe class ComHookUnwrapper
                 if (punk.As(&comptr2).FAILED)
                     continue;
 
+                if ((nint)comptr2.Get() == currentObject)
+                    continue;
+
                 comptr2.Swap(comptr);
-                changed = true;
+                unwrappedAny = true;
+                unwrappedCurrent = true;
                 break;
             }
 
-            if (!changed)
+            if (!unwrappedCurrent)
                 break;
         }
 
-        return changed;
+        return unwrappedAny;
     }
 
     /// <summary>
@@ -75,6 +87,9 @@ internal abstract unsafe class ComHookUnwrapper
     /// <returns>Whether the memory is readable.</returns>
     protected static bool IsValidReadableMemoryAddress(nint p, nint size)
     {
+        if (size < 0)
+            return false;
+
         while (size > 0)
         {
             if (!IsValidUserspaceMemoryAddress(p))
@@ -92,8 +107,12 @@ internal abstract unsafe class ComHookUnwrapper
                 })
                 return false;
 
-            var regionSize = (nint)((mbi.RegionSize + 0xFFFUL) & ~0x1000UL);
-            var checkedSize = ((nint)mbi.BaseAddress + regionSize) - p;
+            var regionEnd = (nint)mbi.BaseAddress + (nint)mbi.RegionSize;
+            var checkedSize = regionEnd - p;
+            if (checkedSize <= 0)
+                return false;
+
+            checkedSize = Math.Min(checkedSize, size);
             size -= checkedSize;
             p += checkedSize;
         }
@@ -109,6 +128,9 @@ internal abstract unsafe class ComHookUnwrapper
     /// <returns>Whether the memory is executable.</returns>
     protected static bool IsValidExecutableMemoryAddress(nint p, nint size)
     {
+        if (size < 0)
+            return false;
+
         while (size > 0)
         {
             if (!IsValidUserspaceMemoryAddress(p))
@@ -126,8 +148,12 @@ internal abstract unsafe class ComHookUnwrapper
                 })
                 return false;
 
-            var regionSize = (nint)((mbi.RegionSize + 0xFFFUL) & ~0x1000UL);
-            var checkedSize = ((nint)mbi.BaseAddress + regionSize) - p;
+            var regionEnd = (nint)mbi.BaseAddress + (nint)mbi.RegionSize;
+            var checkedSize = regionEnd - p;
+            if (checkedSize <= 0)
+                return false;
+
+            checkedSize = Math.Min(checkedSize, size);
             size -= checkedSize;
             p += checkedSize;
         }

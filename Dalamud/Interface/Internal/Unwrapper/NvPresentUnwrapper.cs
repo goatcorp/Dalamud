@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace Dalamud.Interface.Internal.Unwrapper;
 
 /// <inheritdoc />
-internal class NvPresentUnwrapper : ComHookUnwrapper
+internal sealed class NvPresentUnwrapper : ComHookUnwrapper
 {
     /// <inheritdoc/>
     protected override unsafe bool IsRelevantComObject<T>(T* obj)

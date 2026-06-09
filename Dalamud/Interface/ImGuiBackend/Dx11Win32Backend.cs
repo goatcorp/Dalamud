@@ -28,7 +28,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private readonly Dx11Renderer imguiRenderer;
     private readonly Win32InputHandler imguiInput;
 
-    private readonly Lock stepLock = new();
+    private readonly Lock frameLock = new();
 
     private ComPtr<IDXGISwapChain> swapChainPossiblyWrapped;
     private ComPtr<IDXGISwapChain> swapChain;
@@ -36,6 +36,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private ComPtr<ID3D11DeviceContext> deviceContext;
 
     private ImDrawData drawData;
+    private bool hasDrawData;
 
     private int targetWidth;
     private int targetHeight;
@@ -168,8 +169,9 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void Step()
     {
-        using var stepLockScope = this.stepLock.EnterScope();
+        using var frameLockScope = this.frameLock.EnterScope();
         this.StepInternal();
+        ImGui.UpdatePlatformWindows();
     }
 
     /// <inheritdoc/>
@@ -177,24 +179,35 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     {
         // Smooth Motion and other frame-generation layers can call Present outside the
         // normal game frame cadence. Reuse the last frame prepared by Step for those calls.
-        using var stepLockScope = this.stepLock.EnterScope();
+        using var frameLockScope = this.frameLock.EnterScope();
         this.RenderInternal();
     }
 
     /// <inheritdoc/>
     public void RenderFrame()
     {
-        using var stepLockScope = this.stepLock.EnterScope();
+        using var frameLockScope = this.frameLock.EnterScope();
         this.StepInternal();
-        this.RenderInternal();
+        this.RenderMainViewportInternal();
+        ImGui.UpdatePlatformWindows();
+        ImGui.RenderPlatformWindowsDefault();
     }
 
     /// <inheritdoc/>
-    public void OnPreResize() => this.imguiRenderer.OnPreResize();
+    public void OnPreResize()
+    {
+        using var frameLockScope = this.frameLock.EnterScope();
+        this.hasDrawData = false;
+        this.drawData = default;
+        this.imguiRenderer.OnPreResize();
+    }
 
     /// <inheritdoc/>
     public void OnPostResize(int newWidth, int newHeight)
     {
+        using var frameLockScope = this.frameLock.EnterScope();
+        this.hasDrawData = false;
+        this.drawData = default;
         this.imguiRenderer.OnPostResize(newWidth, newHeight);
         this.targetWidth = newWidth;
         this.targetHeight = newHeight;
@@ -280,17 +293,28 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         this.BuildUi?.Invoke();
 
         ImGui.Render();
-        ImGui.UpdatePlatformWindows();
 
-        this.drawData = *ImGui.GetDrawData().Handle;
+        var drawData = ImGui.GetDrawData();
+        this.hasDrawData = !drawData.IsNull;
+        this.drawData = this.hasDrawData ? *drawData.Handle : default;
     }
 
     private void RenderInternal()
     {
+        if (!this.hasDrawData)
+            return;
+
+        this.RenderMainViewportInternal();
+        ImGui.RenderPlatformWindowsDefault();
+    }
+
+    private void RenderMainViewportInternal()
+    {
+        if (!this.hasDrawData)
+            return;
+
         fixed (ImDrawData* pDrawData = &this.drawData)
             this.imguiRenderer.RenderDrawData(new ImDrawDataPtr(pDrawData));
-
-        ImGui.RenderPlatformWindowsDefault();
     }
 
     private void ReleaseUnmanagedResources()

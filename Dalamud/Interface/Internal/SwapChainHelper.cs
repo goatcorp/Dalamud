@@ -1,5 +1,6 @@
 using System.Threading;
 
+using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.Internal.Unwrapper;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
