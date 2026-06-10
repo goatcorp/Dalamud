@@ -110,6 +110,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
+    private readonly object renderDalamudLock = new();
 
     private readonly AssertHandler assertHandler = new();
 
@@ -692,26 +693,37 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// <param name="activeBackend">The scene to draw to.</param>
     private void RenderDalamudDraw(IImGuiBackend activeBackend)
     {
-        this.CumulativePresentCalls++;
-        this.IsAnyThreadInPresent = true;
+        // Smooth Motion can invoke Present from multiple threads. The queued pre/post actions may touch the
+        // immediate context and ImGui state too, so serialize the complete render transaction rather than only
+        // the backend draw submission.
+        lock (this.renderDalamudLock)
+        {
+            this.CumulativePresentCalls++;
+            this.IsAnyThreadInPresent = true;
 
-        this.PreImGuiRender();
+            try
+            {
+                this.PreImGuiRender();
 
-        // Enable viewports if there are no issues.
-        var viewportsDisabled = this.dalamudConfiguration.IsDisableViewport ||
-                              activeBackend.IsMainViewportFullScreen() ||
-                              ImGui.GetPlatformIO().Monitors.Size == 1;
-        if (viewportsDisabled)
-            ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
-        else
-            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+                // Enable viewports if there are no issues.
+                var viewportsDisabled = this.dalamudConfiguration.IsDisableViewport ||
+                                      activeBackend.IsMainViewportFullScreen() ||
+                                      ImGui.GetPlatformIO().Monitors.Size == 1;
+                if (viewportsDisabled)
+                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
+                else
+                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
 
-        // Call drawing functions, which in turn will call Draw event.
-        activeBackend.Render();
+                // Call drawing functions, which in turn will call Draw event.
+                activeBackend.Render();
 
-        this.PostImGuiRender();
-
-        this.IsAnyThreadInPresent = false;
+                this.PostImGuiRender();
+            }
+            finally
+            {
+                this.IsAnyThreadInPresent = false;
+            }
+        }
     }
 
     private unsafe IImGuiBackend InitBackend(IDXGISwapChain* swapChain)
