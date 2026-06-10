@@ -36,13 +36,13 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
     public override void OnClose()
     {
         this.thirdRepoList =
-            [.. Service<DalamudConfiguration>.Get().ThirdRepoList.Select(x => x.Clone())];
+            [.. Service<DalamudConfiguration>.Get().ThirdRepoList.Where(repo => !repo.Url.IsNullOrEmpty()).Select(x => x.Clone())];
     }
 
     public override void Load()
     {
         this.thirdRepoList =
-            [.. Service<DalamudConfiguration>.Get().ThirdRepoList.Select(x => x.Clone())];
+            [.. Service<DalamudConfiguration>.Get().ThirdRepoList.Where(repo => !repo.Url.IsNullOrEmpty()).Select(x => x.Clone())];
         this.thirdRepoListChanged = false;
     }
 
@@ -164,7 +164,7 @@ internal class ThirdRepoSettingsEntry : SettingsEntry
         {
             var isEnabled = thirdRepoSetting.IsEnabled;
 
-            id.Push(thirdRepoSetting.Url);
+            id.Push($"url{repoNumber}");
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
             ImGui.Text(repoNumber.ToString());

@@ -574,10 +574,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         try
         {
             deserialized.SetDefaults();
+            deserialized.Cleanup();
         }
         catch (Exception e)
         {
-            Log.Error(e, "Failed to set defaults for DalamudConfiguration");
+            Log.Error(e, "Failed to set defaults or cleanup for DalamudConfiguration");
         }
 
         return deserialized;
@@ -659,6 +660,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
 
         this.DevMode ??= this.DevPluginLoadLocations.Count != 0 || this.DevBarOpenAtStartup;
 #pragma warning restore CS0618
+    }
+
+    private void Cleanup()
+    {
+        // Unsure of the cause, but a null URL repo is possible
+        this.ThirdRepoList.RemoveAll(repo => repo.Url.IsNullOrEmpty());
     }
 
     private void Save()
