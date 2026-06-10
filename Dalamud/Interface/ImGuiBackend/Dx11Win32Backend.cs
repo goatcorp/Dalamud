@@ -88,6 +88,13 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             fixed (ID3D11DeviceContext** pp = &this.deviceContext.GetPinnableReference())
                 this.device.Get()->GetImmediateContext(pp);
 
+            // Enable driver-enforced serialization of immediate-context calls UNCONDITIONALLY.
+            // In this build, frame construction (Step(), driven from the framework-update thread) and
+            // frame presentation (Render(), driven from the Present detour) split immediate-context use
+            // across threads on EVERY session, regardless of whether NVIDIA Smooth Motion is active.
+            // The protection must therefore not be gated behind IsNvPresentUnwrapped. See FixPlan Phase 1.
+            this.EnableD3D11MultithreadProtection();
+
             using var buffer = default(ComPtr<ID3D11Resource>);
             fixed (Guid* guid = &IID.IID_ID3D11Resource)
                 this.swapChain.Get()->GetBuffer(0, guid, (void**)buffer.GetAddressOf()).ThrowOnError();
@@ -372,6 +379,62 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
             return u1.Get() == u2.Get();
         }
+    }
+
+    /// <summary>
+    /// Enables D3D11 multithread protection on the immediate context so that immediate-context calls are
+    /// serialized by the driver. This guards against concurrent immediate-context access between the
+    /// framework-update thread (which drives <see cref="Step"/>) and the present thread (which drives
+    /// <see cref="Render"/>), including when an NVIDIA threaded/pacer driver presents off-cadence.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="ID3D11Multithread"/> is not surfaced by TerraFX, so it is obtained via
+    /// <c>QueryInterface</c> on the immediate context and <c>SetMultithreadProtected</c> is invoked through
+    /// the vtable (entry 5: IUnknown occupies 0-2, then Enter, Leave, SetMultithreadProtected,
+    /// GetMultithreadProtected).
+    /// </remarks>
+    private void EnableD3D11MultithreadProtection()
+    {
+        if (this.deviceContext.Get() is null)
+        {
+            Log.Warning("D3D11 multithread protection not enabled: immediate context is null.");
+            return;
+        }
+
+        // {9B7E4E00-342C-4106-A19F-4F2704F689F0}
+        var iidMultithread = new Guid(
+            0x9B7E4E00,
+            0x342C,
+            0x4106,
+            0xA1,
+            0x9F,
+            0x4F,
+            0x27,
+            0x04,
+            0xF6,
+            0x89,
+            0xF0);
+
+        using var multithread = default(ComPtr<IUnknown>);
+        var hr = this.deviceContext.Get()->QueryInterface(&iidMultithread, (void**)multithread.GetAddressOf());
+        if (hr.FAILED || multithread.Get() is null)
+        {
+            Log.Warning("D3D11 multithread protection not enabled: ID3D11Multithread unavailable (hr=0x{Hr:X8}).", (uint)hr);
+            return;
+        }
+
+        // ID3D11Multithread vtable: 0-2 = IUnknown, 3 = Enter, 4 = Leave, 5 = SetMultithreadProtected, 6 = GetMultithreadProtected.
+        var vtbl = *(void***)multithread.Get();
+        var setMultithreadProtected = (delegate* unmanaged[Stdcall]<void*, int, int>)vtbl[5];
+        var getMultithreadProtected = (delegate* unmanaged[Stdcall]<void*, int>)vtbl[6];
+
+        setMultithreadProtected(multithread.Get(), 1 /* TRUE */);
+        var enabled = getMultithreadProtected(multithread.Get()) != 0;
+
+        if (enabled)
+            Log.Information("D3D11 multithread protection enabled: {Enabled}.", enabled);
+        else
+            Log.Warning("D3D11 multithread protection enabled: {Enabled}.", enabled);
     }
 
     private void ReleaseUnmanagedResources()
