@@ -47,6 +47,12 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private readonly ReaderWriterLockSlim drawDataLock = new(LockRecursionPolicy.NoRecursion);
     private readonly DrawDataSnapshot snapshot = new();
 
+    // Deep copies of every secondary (multi-viewport / pop-out) window's draw data captured under the write lock
+    // during Step(), so the pacer thread can render and present them in Render() without ever touching the live,
+    // single-buffered ImGui platform-IO viewport state (which ImGui.RenderPlatformWindowsDefault() would walk and
+    // which the framework thread mutates each Step() via NewFrame()/UpdatePlatformWindows()).
+    private readonly ViewportSnapshot viewportSnapshots = new();
+
     // Set true for the whole swap-chain resize window (see EnterResize/ExitResize). Checked lock-free as a
     // fast-path skip in Step()/Render().
     private volatile bool resizeInProgress;
@@ -205,13 +211,37 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         this.BuildUi?.Invoke();
 
         ImGui.Render();
-        ImGui.UpdatePlatformWindows();
 
-        // Snapshot the draw data under the write lock and signal that we want to render our viewports
+        // Snapshot the draw data under the write lock and signal that we want to render our viewports.
+        // UpdatePlatformWindows() is moved INSIDE the write lock: it only lays out viewports and
+        // creates/destroys/resizes their secondary windows (no GPU work), so it is safe on the framework thread,
+        // and holding the write lock across it guarantees a viewport create/destroy cannot race an in-flight
+        // pacer-thread Render() (which holds the read lock). This is what lets us safely snapshot the live
+        // per-viewport draw data immediately afterwards.
         this.drawDataLock.EnterWriteLock();
         try
         {
+            ImGui.UpdatePlatformWindows();
+
             this.snapshot.CopyFrom(ImGui.GetDrawData().Handle);
+
+            // Capture a stable, owned copy of EVERY viewport's draw data so the pacer thread never has to walk the
+            // live ImGui platform-IO viewport list (which the next Step() mutates). Entry 0 is the main viewport.
+            this.viewportSnapshots.BeginCapture();
+            this.viewportSnapshots.Capture(ImGui.GetDrawData().Handle, nint.Zero, isMainViewport: true);
+
+            var viewports = ImGui.GetPlatformIO().Viewports;
+            for (var i = 1; i < viewports.Size; i++)
+            {
+                var viewport = viewports[i];
+
+                // Skip viewports we don't own a renderer-side handle for (not yet created / being torn down).
+                var rendererUserData = (nint)viewport.RendererUserData;
+                if (rendererUserData == nint.Zero)
+                    continue;
+
+                this.viewportSnapshots.Capture(viewport.DrawData.Handle, rendererUserData, isMainViewport: false);
+            }
 
             // PostCopy fires while the write lock is held (guaranteeing no render pass is active with the resources from the previous frame),
             // giving InterfaceManager a chance to retire the previous frame's resources
@@ -239,12 +269,26 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         this.drawDataLock.EnterReadLock();
         try
         {
+            // Render the main viewport (entry 0) through the existing main-viewport composite path.
             this.imguiRenderer.RenderDrawData(new ImDrawDataPtr(this.snapshot.Handle));
 
-            // TODO: This is probably not entirely safe, we might need to batch the things we do in response to
-            // UpdatePlatformWindows() and do them here instead
+            // Render the secondary (multi-viewport / pop-out) windows exactly once per Step(). We deliberately do
+            // NOT call ImGui.RenderPlatformWindowsDefault() here: that walks the live, single-buffered
+            // ImGui.GetPlatformIO().Viewports list and reads each viewport's live DrawData, which the framework
+            // thread mutates in the next Step() (NewFrame()/UpdatePlatformWindows()) - enumerating/rendering that
+            // while it is being mutated throws on the pacer thread. Instead we iterate the stable, owned snapshots
+            // captured under the write lock in Step(), mirroring what RenderPlatformWindowsDefault() does per
+            // viewport (RendererRenderWindow + RendererSwapBuffers) but against isolated copies.
             if (Interlocked.CompareExchange(ref this.platformWindowsRenderedForStep, 1, 0) == 0)
-                ImGui.RenderPlatformWindowsDefault();
+            {
+                for (var i = 1; i < this.viewportSnapshots.Count; i++)
+                {
+                    var entry = this.viewportSnapshots[i];
+                    this.imguiRenderer.RenderViewportSnapshot(
+                        entry.RendererUserData,
+                        new ImDrawDataPtr(entry.DrawData.Handle));
+                }
+            }
         }
         finally
         {
@@ -262,6 +306,10 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         // Blocks until all current read-lock Render() passes drain, then prevents Step()/Render() for the
         // duration of the resize window.
         this.drawDataLock.EnterWriteLock();
+
+        // Drop any captured secondary-viewport snapshots: they are sized for the OLD swap chain and must not be
+        // re-presented after the resize. The next Step() will recapture against the new swap chain.
+        this.viewportSnapshots.BeginCapture();
     }
 
     /// <inheritdoc/>
@@ -335,6 +383,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         this.imguiInput.Dispose();
 
         this.snapshot.Dispose();
+        this.viewportSnapshots.Dispose();
 
         ImPlot.DestroyContext();
         ImGui.DestroyContext();
