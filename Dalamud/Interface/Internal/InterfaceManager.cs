@@ -1024,15 +1024,6 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         Log.Information("===== S W A P C H A I N =====");
 
-        // Unwrap NvPresent if needed.
-        // Some NVIDIA drivers wrap the game's swap chain with their own implementation to inject driver-level optimizations.
-        // This breaks our ability to hook the swap chain methods, so we need to unwrap it.
-        // We want to render on top of the interpolated frames (because it's easier and prevents artifacts).
-        if (SwapChainHelper.UnwrapNvPresent())
-        {
-            Log.Information("Unwrapped NvPresent, using Smooth Motion");
-        }
-
         var sb = new StringBuilder();
         foreach (var m in ReShadeAddonInterface.AllReShadeModules)
         {
@@ -1066,10 +1057,32 @@ internal partial class InterfaceManager : IInternalDisposableService
             // This is the only mode honored when SwapChainHookMode is set to VTable.
             case ReShadeHandlingMode.Default:
             case ReShadeHandlingMode.UnwrapReShade:
-                if (SwapChainHelper.UnwrapReShade())
-                    Log.Information("Unwrapped ReShade");
-                else
+                var unwrappedReShade = false;
+                var unwrappedNvPresent = false;
+                bool changed;
+                do
+                {
+                    changed = false;
+                    if (SwapChainHelper.UnwrapReShade())
+                    {
+                        unwrappedReShade = true;
+                        changed = true;
+                        Log.Information("Unwrapped ReShade");
+                    }
+
+                    if (SwapChainHelper.UnwrapNvPresent())
+                    {
+                        unwrappedNvPresent = true;
+                        changed = true;
+                        Log.Information("Unwrapped NvPresent");
+                    }
+                }
+                while (changed);
+
+                if (!unwrappedReShade)
                     Log.Warning("Could not unwrap ReShade");
+                if (unwrappedNvPresent)
+                    Log.Information("Using Smooth Motion");
                 goto default;
 
             // Do no special ReShade handling.
@@ -1077,6 +1090,8 @@ internal partial class InterfaceManager : IInternalDisposableService
             case ReShadeHandlingMode.None:
             case var _ when this.dalamudConfiguration.SwapChainHookMode == SwapChainHelper.HookMode.VTable:
             default:
+                if (SwapChainHelper.UnwrapNvPresent())
+                    Log.Information("Unwrapped NvPresent, using Smooth Motion");
                 dxgiSwapChainResizeBuffersDelegate = this.AsHookDxgiSwapChainResizeBuffersDetour;
                 dxgiSwapChainPresentDelegate = this.DxgiSwapChainPresentDetour;
                 break;
