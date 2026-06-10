@@ -36,12 +36,17 @@ internal unsafe partial class InterfaceManager
 
     private void ReShadeAddonInterfaceOnInitSwapChain(ref ReShadeAddonInterface.ApiObject swapChain)
     {
-        var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
-        if (this.backend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
-            return;
-
+        // IMPORTANT: This callback is responsible for balancing the EnterResize() taken in
+        // OnDestroySwapChain. We must NOT early-return before the finally below, or the backend's resize
+        // write lock would be held forever and Step()/Render() would early-return on resizeInProgress for the
+        // rest of the session - freezing the rendered image while the game keeps running (audio/input still
+        // work). So the whole body, including the attached-target check, runs inside the try/finally.
         try
         {
+            var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
+            if (this.backend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
+                return;
+
             DXGI_SWAP_CHAIN_DESC desc;
             if (swapChainNative->GetDesc(&desc).FAILED)
                 return;
@@ -50,11 +55,13 @@ internal unsafe partial class InterfaceManager
         }
         finally
         {
-            // Balance the EnterResize from OnDestroySwapChain, even on the GetDesc failure early-out.
+            // Balance the EnterResize from OnDestroySwapChain, even on the attached-target/GetDesc early-outs.
+            // ExitResize() is itself defensive (no-ops if the section is not actually held), so calling it here
+            // is always safe.
             if (this.reShadeResizeEntered)
             {
-                this.backend?.ExitResize();
                 this.reShadeResizeEntered = false;
+                this.backend?.ExitResize();
             }
         }
     }
