@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 using Dalamud.Console;
 using Dalamud.Hooking;
@@ -270,6 +271,8 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     private readonly List<string> pluginRegisteredCommands = [];
     private readonly LocalPlugin pluginInfo;
 
+    private readonly Lock commandListLock = new();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CommandManagerPluginScoped"/> class.
     /// </summary>
@@ -285,6 +288,8 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        using var scope = this.commandListLock.EnterScope();
+
         foreach (var command in this.pluginRegisteredCommands)
         {
             this.commandManagerService.RemoveHandler(command);
@@ -304,6 +309,8 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     /// <inheritdoc/>
     public bool AddHandler(string command, CommandInfo info)
     {
+        using var scope = this.commandListLock.EnterScope();
+
         if (!this.pluginRegisteredCommands.Contains(command))
         {
             if (this.commandManagerService.AddHandler(command, info, this.pluginInfo.InternalName))
@@ -323,6 +330,8 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     /// <inheritdoc/>
     public bool RemoveHandler(string command)
     {
+        using var scope = this.commandListLock.EnterScope();
+
         if (this.pluginRegisteredCommands.Contains(command))
         {
             if (this.commandManagerService.RemoveHandler(command))
