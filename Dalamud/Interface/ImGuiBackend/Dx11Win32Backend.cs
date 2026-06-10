@@ -57,6 +57,12 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     // fast-path skip in Step()/Render().
     private volatile bool resizeInProgress;
 
+    // Identity of the thread currently holding the resize-exclusive section (0 = none). Used to make
+    // EnterResize()/ExitResize() defensive against unbalanced calls from the (asymmetric) resize detours:
+    // a double-enter or an exit-without-enter must never permanently wedge the write lock and freeze
+    // Step()/Render() (which would freeze the rendered image while the game keeps running).
+    private int resizeOwnerThreadId;
+
     private ComPtr<IDXGISwapChain> swapChainPossiblyWrapped;
     private ComPtr<IDXGISwapChain> swapChain;
     private ComPtr<ID3D11Device> device;
@@ -306,6 +312,19 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void EnterResize()
     {
+        // Defensive: the resize detours (especially the asymmetric ReShade OnDestroy/OnInitSwapChain split) can
+        // theoretically call EnterResize() twice without an intervening ExitResize(). Because drawDataLock is
+        // NoRecursion, a second EnterWriteLock() on the SAME thread would self-deadlock and freeze the rendered
+        // image forever (Step()/Render() keep early-returning on resizeInProgress). Guard against it.
+        var currentThreadId = Environment.CurrentManagedThreadId;
+        if (this.resizeOwnerThreadId == currentThreadId)
+        {
+            Log.Warning(
+                "EnterResize() called re-entrantly on thread {ThreadId}; ignoring the nested enter to avoid a self-deadlock.",
+                currentThreadId);
+            return;
+        }
+
         // Set the flag BEFORE taking the lock so an in-flight Step() that just missed the lock will early-out
         // next time, rather than racing to snapshot against the swap-chain reallocation.
         this.resizeInProgress = true;
@@ -313,6 +332,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         // Blocks until all current read-lock Render() passes drain, then prevents Step()/Render() for the
         // duration of the resize window.
         this.drawDataLock.EnterWriteLock();
+        this.resizeOwnerThreadId = currentThreadId;
 
         // Drop any captured secondary-viewport snapshots: they are sized for the OLD swap chain and must not be
         // re-presented after the resize. The next Step() will recapture against the new swap chain.
@@ -322,6 +342,18 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void ExitResize()
     {
+        // Defensive: only release the write lock if THIS backend believes the section is actually held. An
+        // unbalanced ExitResize() (e.g. a detour that exits without ever entering) would otherwise throw
+        // SynchronizationLockException, and a missing ExitResize() would leave the lock wedged forever. Clearing
+        // state unconditionally keeps Step()/Render() from being frozen if the section was already released.
+        if (this.resizeOwnerThreadId == 0)
+        {
+            Log.Warning("ExitResize() called without a matching EnterResize(); ignoring.");
+            this.resizeInProgress = false;
+            return;
+        }
+
+        this.resizeOwnerThreadId = 0;
         this.drawDataLock.ExitWriteLock();
         this.resizeInProgress = false;
     }
