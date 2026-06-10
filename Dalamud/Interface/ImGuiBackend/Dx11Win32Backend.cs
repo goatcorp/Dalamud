@@ -34,8 +34,22 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     // Dalamud and plugin code is potentially mutating the next frame's draw data for the next Render() call.
     // Otherwise, we would be updating ImGui multiple times per game-tick which causes large problems with plugin (and our own) code,
     // which relies on executing in-step with the game tick.
+    //
+    // Lock-acquisition order / contract for drawDataLock:
+    //   - Render() takes the READ lock (multiple interpolated presents can render the stable snapshot concurrently).
+    //   - Step() takes the WRITE lock for the (short) draw-data copy.
+    //   - A swap-chain resize takes the WRITE lock for the whole resize window via EnterResize()/ExitResize(),
+    //     guaranteeing no pacer-thread Render() is compositing while the swap chain's back buffers are reallocated.
+    //   - resizeInProgress is checked lock-free as a fast-path skip in Step()/Render(); correctness is still
+    //     guaranteed by the write lock, the flag just avoids queuing work behind the resize writer.
+    //   - EnterResize()/ExitResize() must be paired on the SAME thread and must not be nested with Step()/Render()
+    //     on that thread (the lock is NoRecursion).
     private readonly ReaderWriterLockSlim drawDataLock = new(LockRecursionPolicy.NoRecursion);
     private readonly DrawDataSnapshot snapshot = new();
+
+    // Set true for the whole swap-chain resize window (see EnterResize/ExitResize). Checked lock-free as a
+    // fast-path skip in Step()/Render().
+    private volatile bool resizeInProgress;
 
     private ComPtr<IDXGISwapChain> swapChainPossiblyWrapped;
     private ComPtr<IDXGISwapChain> swapChain;
@@ -132,6 +146,9 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public IImGuiRenderer Renderer => this.imguiRenderer;
 
+    /// <inheritdoc/>
+    public bool IsResizeInProgress => this.resizeInProgress;
+
     /// <summary>
     /// Gets the pointer to an instance of <see cref="IDXGISwapChain"/>.
     /// </summary>
@@ -171,6 +188,11 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void Step()
     {
+        // Skip frame construction/snapshotting while a swap-chain resize holds (or is about to hold) the write
+        // lock. This also avoids Step() blocking the framework thread behind a resize.
+        if (this.resizeInProgress)
+            return;
+
         this.imguiRenderer.OnNewFrame();
         this.NewRenderFrame?.Invoke();
         this.imguiInput.NewFrame(this.targetWidth, this.targetHeight);
@@ -208,6 +230,11 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void Render()
     {
+        // Fast-path skip while a resize is in progress; the write lock already guarantees correctness, this just
+        // avoids queuing readers behind the resize writer.
+        if (this.resizeInProgress)
+            return;
+
         // Prevent Step() from mutating the draw data copy
         this.drawDataLock.EnterReadLock();
         try
@@ -223,6 +250,25 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         {
             this.drawDataLock.ExitReadLock();
         }
+    }
+
+    /// <inheritdoc/>
+    public void EnterResize()
+    {
+        // Set the flag BEFORE taking the lock so an in-flight Step() that just missed the lock will early-out
+        // next time, rather than racing to snapshot against the swap-chain reallocation.
+        this.resizeInProgress = true;
+
+        // Blocks until all current read-lock Render() passes drain, then prevents Step()/Render() for the
+        // duration of the resize window.
+        this.drawDataLock.EnterWriteLock();
+    }
+
+    /// <inheritdoc/>
+    public void ExitResize()
+    {
+        this.drawDataLock.ExitWriteLock();
+        this.resizeInProgress = false;
     }
 
     /// <inheritdoc/>

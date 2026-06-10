@@ -35,11 +35,24 @@ internal interface IImGuiBackend : IDisposable
     /// <summary>Gets the renderer.</summary>
     IImGuiRenderer Renderer { get; }
 
+    /// <summary>Gets a value indicating whether a swap-chain resize is currently in progress.</summary>
+    bool IsResizeInProgress { get; }
+
     /// <summary>Updates ImGui and invokes <see cref="BuildUi"/>. Does not render.</summary>
     void Step();
 
     /// <summary>Performs a render cycle.</summary>
     void Render();
+
+    /// <summary>Enters the resize-exclusive section: blocks until no render pass is active, then
+    /// prevents <see cref="Step"/>/<see cref="Render"/> from running until <see cref="ExitResize"/> is called.
+    /// </summary>
+    /// <remarks>Must be paired with <see cref="ExitResize"/> on the same thread, and must not be nested with
+    /// <see cref="Step"/>/<see cref="Render"/> on that thread.</remarks>
+    void EnterResize();
+
+    /// <summary>Leaves the resize-exclusive section opened by <see cref="EnterResize"/>.</summary>
+    void ExitResize();
 
     /// <summary>Handles stuff before resizing happens.</summary>
     void OnPreResize();

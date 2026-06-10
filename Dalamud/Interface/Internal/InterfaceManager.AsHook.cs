@@ -117,17 +117,31 @@ internal unsafe partial class InterfaceManager
             $"Calling resizebuffers swap@{(nint)swapChain:X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
 #endif
 
-        this.ResizeBuffers?.InvokeSafely();
+        // Take the backend's resize write lock for the whole reallocation window. Because every Render() takes
+        // the read lock, this guarantees no pacer-thread render is compositing to the swap chain while its back
+        // buffers are reallocated.
+        this.backend?.EnterResize();
+        try
+        {
+            // Retire anything sized for the old swap chain while the write lock is held (no render pass active).
+            this.RetireResourcesForResize();
 
-        this.backend?.OnPreResize();
+            this.ResizeBuffers?.InvokeSafely();
 
-        var ret = this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
-        if (ret == DXGI.DXGI_ERROR_INVALID_CALL)
-            Log.Error("invalid call to resizeBuffers");
+            this.backend?.OnPreResize();
 
-        this.backend?.OnPostResize((int)width, (int)height);
+            var ret = this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+            if (ret == DXGI.DXGI_ERROR_INVALID_CALL)
+                Log.Error("invalid call to resizeBuffers");
 
-        return ret;
+            this.backend?.OnPostResize((int)width, (int)height);
+
+            return ret;
+        }
+        finally
+        {
+            this.backend?.ExitResize();
+        }
     }
 
     /// <summary>Represents <c>DXGISwapChain</c> in ReShade.</summary>
