@@ -36,7 +36,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     // which relies on executing in-step with the game tick.
     //
     // Lock-acquisition order / contract for drawDataLock:
-    //   - Render() takes the READ lock (multiple interpolated presents can render the stable snapshot concurrently).
+    //   - Render() is serialized by renderLock, then takes the READ lock to render the stable snapshot.
     //   - Step() takes the WRITE lock for the (short) draw-data copy.
     //   - A swap-chain resize takes the WRITE lock for the whole resize window via EnterResize()/ExitResize(),
     //     guaranteeing no pacer-thread Render() is compositing while the swap chain's back buffers are reallocated.
@@ -44,6 +44,12 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     //     guaranteed by the write lock, the flag just avoids queuing work behind the resize writer.
     //   - EnterResize()/ExitResize() must be paired on the SAME thread and must not be nested with Step()/Render()
     //     on that thread (the lock is NoRecursion).
+    //
+    // The D3D11 immediate context and the renderer's dynamic buffers are not safe for concurrent use. Smooth
+    // Motion can invoke our present hook from multiple threads, so renderLock must be acquired before the read
+    // lock. This keeps render calls waiting outside drawDataLock instead of making them active readers that block
+    // Step() or a swap-chain resize.
+    private readonly object renderLock = new();
     private readonly ReaderWriterLockSlim drawDataLock = new(LockRecursionPolicy.NoRecursion);
     private readonly DrawDataSnapshot snapshot = new();
 
@@ -57,16 +63,17 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     // fast-path skip in Step()/Render().
     private volatile bool resizeInProgress;
 
-    // Identity of the thread currently holding the resize-exclusive section (0 = none). Used to make
-    // EnterResize()/ExitResize() defensive against unbalanced calls from the (asymmetric) resize detours:
-    // a double-enter or an exit-without-enter must never permanently wedge the write lock and freeze
-    // Step()/Render() (which would freeze the rendered image while the game keeps running).
+    // Managed thread id holding the resize-exclusive section (0 = none). Guards EnterResize()/ExitResize()
+    // against unbalanced calls from the asymmetric resize detours, which would otherwise either self-deadlock
+    // the NoRecursion write lock (double-enter) or throw / wedge the lock forever (exit-without-enter).
     private int resizeOwnerThreadId;
 
     private ComPtr<IDXGISwapChain> swapChainPossiblyWrapped;
     private ComPtr<IDXGISwapChain> swapChain;
     private ComPtr<ID3D11Device> device;
     private ComPtr<ID3D11DeviceContext> deviceContext;
+    private ComPtr<ID3D11Multithread> deviceMultithread;
+    private bool restoreMultithreadProtection;
 
     // 0 = RenderPlatformWindowsDefault() still needs to be called for the current step, 1 = already done
     private int platformWindowsRenderedForStep = 1;
@@ -94,12 +101,27 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             fixed (ID3D11DeviceContext** pp = &this.deviceContext.GetPinnableReference())
                 this.device.Get()->GetImmediateContext(pp);
 
-            // Enable driver-enforced serialization of immediate-context calls UNCONDITIONALLY.
-            // In this build, frame construction (Step(), driven from the framework-update thread) and
-            // frame presentation (Render(), driven from the Present detour) split immediate-context use
-            // across threads on EVERY session, regardless of whether NVIDIA Smooth Motion is active.
-            // The protection must therefore not be gated behind IsNvPresentUnwrapped. See FixPlan Phase 1.
-            this.EnableD3D11MultithreadProtection();
+            // Smooth Motion uses its own capture and pacing threads while Dalamud renders through the game's
+            // immediate context. Protect the shared context at the D3D11 runtime level so calls from the game,
+            // NVIDIA and Dalamud cannot race each other. A private managed lock only protects Dalamud calls.
+            // This whole feature is about driver behavior, so log whether the protection was actually enabled -
+            // silent success/failure here is a debugging liability.
+            fixed (Guid* guid = &IID.IID_ID3D11Multithread)
+            fixed (ID3D11Multithread** pp = &this.deviceMultithread.GetPinnableReference())
+            {
+                if (this.deviceContext.Get()->QueryInterface(guid, (void**)pp).SUCCEEDED)
+                {
+                    var alreadyProtected = this.deviceMultithread.Get()->SetMultithreadProtected(BOOL.TRUE);
+                    this.restoreMultithreadProtection = !alreadyProtected;
+                    Log.Information(
+                        "D3D11 multithread protection enabled (was already protected: {Already}).",
+                        (bool)alreadyProtected);
+                }
+                else
+                {
+                    Log.Warning("D3D11 multithread protection NOT enabled: ID3D11Multithread unavailable.");
+                }
+            }
 
             using var buffer = default(ComPtr<ID3D11Resource>);
             fixed (Guid* guid = &IID.IID_ID3D11Resource)
@@ -278,44 +300,51 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         if (this.resizeInProgress)
             return;
 
-        // Prevent Step() from mutating the draw data copy
-        this.drawDataLock.EnterReadLock();
-        try
+        lock (this.renderLock)
         {
-            // Render the main viewport (entry 0) through the existing main-viewport composite path.
-            this.imguiRenderer.RenderDrawData(new ImDrawDataPtr(this.snapshot.Handle));
+            // Resize may have started while this render call was waiting for another render to finish.
+            if (this.resizeInProgress)
+                return;
 
-            // Render the secondary (multi-viewport / pop-out) windows exactly once per Step(). We deliberately do
-            // NOT call ImGui.RenderPlatformWindowsDefault() here: that walks the live, single-buffered
-            // ImGui.GetPlatformIO().Viewports list and reads each viewport's live DrawData, which the framework
-            // thread mutates in the next Step() (NewFrame()/UpdatePlatformWindows()) - enumerating/rendering that
-            // while it is being mutated throws on the pacer thread. Instead we iterate the stable, owned snapshots
-            // captured under the write lock in Step(), mirroring what RenderPlatformWindowsDefault() does per
-            // viewport (RendererRenderWindow + RendererSwapBuffers) but against isolated copies.
-            if (Interlocked.CompareExchange(ref this.platformWindowsRenderedForStep, 1, 0) == 0)
+            // Prevent Step() from mutating the draw data copy.
+            this.drawDataLock.EnterReadLock();
+            try
             {
-                for (var i = 1; i < this.viewportSnapshots.Count; i++)
+                // Render the main viewport (entry 0) through the existing main-viewport composite path.
+                this.imguiRenderer.RenderDrawData(new ImDrawDataPtr(this.snapshot.Handle));
+
+                // Render the secondary (multi-viewport / pop-out) windows exactly once per Step(). We deliberately do
+                // NOT call ImGui.RenderPlatformWindowsDefault() here: that walks the live, single-buffered
+                // ImGui.GetPlatformIO().Viewports list and reads each viewport's live DrawData, which the framework
+                // thread mutates in the next Step() (NewFrame()/UpdatePlatformWindows()) - enumerating/rendering that
+                // while it is being mutated throws on the pacer thread. Instead we iterate the stable, owned snapshots
+                // captured under the write lock in Step(), mirroring what RenderPlatformWindowsDefault() does per
+                // viewport (RendererRenderWindow + RendererSwapBuffers) but against isolated copies.
+                if (Interlocked.CompareExchange(ref this.platformWindowsRenderedForStep, 1, 0) == 0)
                 {
-                    var entry = this.viewportSnapshots[i];
-                    this.imguiRenderer.RenderViewportSnapshot(
-                        entry.RendererUserData,
-                        new ImDrawDataPtr(entry.DrawData.Handle));
+                    for (var i = 1; i < this.viewportSnapshots.Count; i++)
+                    {
+                        var entry = this.viewportSnapshots[i];
+                        this.imguiRenderer.RenderViewportSnapshot(
+                            entry.RendererUserData,
+                            new ImDrawDataPtr(entry.DrawData.Handle));
+                    }
                 }
             }
-        }
-        finally
-        {
-            this.drawDataLock.ExitReadLock();
+            finally
+            {
+                this.drawDataLock.ExitReadLock();
+            }
         }
     }
 
     /// <inheritdoc/>
     public void EnterResize()
     {
-        // Defensive: the resize detours (especially the asymmetric ReShade OnDestroy/OnInitSwapChain split) can
+        // Defensive: the asymmetric resize detours (especially the ReShade OnDestroy/OnInitSwapChain split) can
         // theoretically call EnterResize() twice without an intervening ExitResize(). Because drawDataLock is
         // NoRecursion, a second EnterWriteLock() on the SAME thread would self-deadlock and freeze the rendered
-        // image forever (Step()/Render() keep early-returning on resizeInProgress). Guard against it.
+        // image forever (Step()/Render() keep early-returning on resizeInProgress). Ignore the nested enter.
         var currentThreadId = Environment.CurrentManagedThreadId;
         if (this.resizeOwnerThreadId == currentThreadId)
         {
@@ -413,62 +442,6 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         }
     }
 
-    /// <summary>
-    /// Enables D3D11 multithread protection on the immediate context so that immediate-context calls are
-    /// serialized by the driver. This guards against concurrent immediate-context access between the
-    /// framework-update thread (which drives <see cref="Step"/>) and the present thread (which drives
-    /// <see cref="Render"/>), including when an NVIDIA threaded/pacer driver presents off-cadence.
-    /// </summary>
-    /// <remarks>
-    /// <see cref="ID3D11Multithread"/> is not surfaced by TerraFX, so it is obtained via
-    /// <c>QueryInterface</c> on the immediate context and <c>SetMultithreadProtected</c> is invoked through
-    /// the vtable (entry 5: IUnknown occupies 0-2, then Enter, Leave, SetMultithreadProtected,
-    /// GetMultithreadProtected).
-    /// </remarks>
-    private void EnableD3D11MultithreadProtection()
-    {
-        if (this.deviceContext.Get() is null)
-        {
-            Log.Warning("D3D11 multithread protection not enabled: immediate context is null.");
-            return;
-        }
-
-        // {9B7E4E00-342C-4106-A19F-4F2704F689F0}
-        var iidMultithread = new Guid(
-            0x9B7E4E00,
-            0x342C,
-            0x4106,
-            0xA1,
-            0x9F,
-            0x4F,
-            0x27,
-            0x04,
-            0xF6,
-            0x89,
-            0xF0);
-
-        using var multithread = default(ComPtr<IUnknown>);
-        var hr = this.deviceContext.Get()->QueryInterface(&iidMultithread, (void**)multithread.GetAddressOf());
-        if (hr.FAILED || multithread.Get() is null)
-        {
-            Log.Warning("D3D11 multithread protection not enabled: ID3D11Multithread unavailable (hr=0x{Hr:X8}).", (uint)hr);
-            return;
-        }
-
-        // ID3D11Multithread vtable: 0-2 = IUnknown, 3 = Enter, 4 = Leave, 5 = SetMultithreadProtected, 6 = GetMultithreadProtected.
-        var vtbl = *(void***)multithread.Get();
-        var setMultithreadProtected = (delegate* unmanaged[Stdcall]<void*, int, int>)vtbl[5];
-        var getMultithreadProtected = (delegate* unmanaged[Stdcall]<void*, int>)vtbl[6];
-
-        setMultithreadProtected(multithread.Get(), 1 /* TRUE */);
-        var enabled = getMultithreadProtected(multithread.Get()) != 0;
-
-        if (enabled)
-            Log.Information("D3D11 multithread protection enabled: {Enabled}.", enabled);
-        else
-            Log.Warning("D3D11 multithread protection enabled: {Enabled}.", enabled);
-    }
-
     private void ReleaseUnmanagedResources()
     {
         if (this.device.IsEmpty())
@@ -482,6 +455,10 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
         ImPlot.DestroyContext();
         ImGui.DestroyContext();
+
+        if (this.restoreMultithreadProtection && !this.deviceMultithread.IsEmpty())
+            this.deviceMultithread.Get()->SetMultithreadProtected(BOOL.FALSE);
+        this.deviceMultithread.Dispose();
 
         this.swapChain.Dispose();
         this.deviceContext.Dispose();
