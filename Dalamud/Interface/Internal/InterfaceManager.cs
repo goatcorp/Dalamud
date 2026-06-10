@@ -892,6 +892,20 @@ internal partial class InterfaceManager : IInternalDisposableService
             this.frameRetireActions.Add(action);
     }
 
+    /// <summary>Retires everything that was sized for the current swap chain, in preparation for a resize.</summary>
+    /// <remarks>Must be called while the backend's resize write lock is held (i.e. between
+    /// <see cref="IImGuiBackend.EnterResize"/> and <see cref="IImGuiBackend.ExitResize"/>), so that no render
+    /// pass is active. This mirrors the <see cref="PostImGuiCopy"/> drain so anything sized for the old swap
+    /// chain is released before the back buffers are reallocated.</remarks>
+    private void RetireResourcesForResize()
+    {
+        foreach (var action in this.frameRetireActions)
+            action.InvokeSafely();
+        this.frameRetireActions.Clear();
+        while (this.pendingRetireQueue.TryDequeue(out var action))
+            action.InvokeSafely();
+    }
+
     private unsafe void SetupHooks(
         TargetSigScanner sigScanner,
         FontAtlasFactory fontAtlasFactory)
