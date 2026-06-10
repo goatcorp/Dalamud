@@ -145,6 +145,7 @@ public class WindowHost
                 this.Window.OnClose();
 
                 this.Window.IsFocused = false;
+                this.Window.IsHovered = false;
 
                 if (internalDrawParams.Flags.HasFlag(WindowDrawFlags.UseSoundEffects) && !this.Window.DisableWindowSounds)
                 {
@@ -533,6 +534,7 @@ public class WindowHost
         }
 
         this.Window.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
+        this.Window.IsHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows);
 
         if (internalDrawParams.Flags.HasFlag(WindowDrawFlags.UseFocusManagement) && !this.Window.IsPinned)
         {

@@ -32,11 +32,9 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
     private static readonly ModuleLog Log = ModuleLog.Create<DalamudAtkTweaks>();
 
     private readonly Hook<AgentHUD.Delegates.OpenSystemMenu> hookAgentHudOpenSystemMenu;
-
-    // TODO: Make this into events in Framework.Gui
-    private readonly Hook<UIModule.Delegates.ExecuteMainCommand> hookUiModuleExecuteMainCommand;
-
+    private readonly Hook<UIModule.Delegates.ExecuteMainCommand> hookUiModuleExecuteMainCommand; // TODO: Make this into events in Framework.Gui
     private readonly Hook<AtkUnitBase.Delegates.ReceiveGlobalEvent> hookAtkUnitBaseReceiveGlobalEvent;
+    private readonly Hook<RaptureAtkUnitManager.Delegates.GetAddonCollision> hookGetAddonCollision;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -58,6 +56,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         this.hookAgentHudOpenSystemMenu = Hook<AgentHUD.Delegates.OpenSystemMenu>.FromAddress(AgentHUD.Addresses.OpenSystemMenu.Value, this.AgentHudOpenSystemMenuDetour);
         this.hookUiModuleExecuteMainCommand = Hook<UIModule.Delegates.ExecuteMainCommand>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ExecuteMainCommand, this.UiModuleExecuteMainCommandDetour);
         this.hookAtkUnitBaseReceiveGlobalEvent = Hook<AtkUnitBase.Delegates.ReceiveGlobalEvent>.FromAddress((nint)AtkUnitBase.StaticVirtualTablePointer->ReceiveGlobalEvent, this.AtkUnitBaseReceiveGlobalEventDetour);
+        this.hookGetAddonCollision = Hook<RaptureAtkUnitManager.Delegates.GetAddonCollision>.FromAddress((nint)RaptureAtkUnitManager.StaticVirtualTablePointer->GetAddonCollision, this.RaptureAtkUnitManagerGetAddonCollisionDetour);
 
         // this.contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
 
@@ -68,6 +67,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         this.hookAgentHudOpenSystemMenu.Enable();
         this.hookUiModuleExecuteMainCommand.Enable();
         this.hookAtkUnitBaseReceiveGlobalEvent.Enable();
+        this.hookGetAddonCollision.Enable();
     }
 
     /// <summary>Finalizes an instance of the <see cref="DalamudAtkTweaks"/> class.</summary>
@@ -94,6 +94,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
             this.hookAgentHudOpenSystemMenu.Dispose();
             this.hookUiModuleExecuteMainCommand.Dispose();
             this.hookAtkUnitBaseReceiveGlobalEvent.Dispose();
+            this.hookGetAddonCollision.Dispose();
 
             // this.contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
         }
@@ -230,6 +231,22 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         }
 
         this.hookAtkUnitBaseReceiveGlobalEvent.Original(thisPtr, eventType, eventParam, atkEvent, atkEventData);
+    }
+
+    private void RaptureAtkUnitManagerGetAddonCollisionDetour(RaptureAtkUnitManager* thisPtr, AddonCollision* collisionInfo, short x, short y)
+    {
+        if (WindowSystem.ShouldInhibitAtkCollisions)
+        {
+            if (collisionInfo != null)
+            {
+                collisionInfo->UnitBase = null;
+                collisionInfo->CollisionNode = null;
+            }
+
+            return;
+        }
+
+        this.hookGetAddonCollision.Original(thisPtr, collisionInfo, x, y);
     }
 
     private void AgentHudOpenSystemMenuDetour(AgentHUD* thisPtr, AtkValue* atkValueArgs, uint menuSize)

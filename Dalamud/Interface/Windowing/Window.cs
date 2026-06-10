@@ -46,7 +46,13 @@ public abstract class Window : IWindow
     public bool IsFocused { get; set; }
 
     /// <inheritdoc/>
+    public bool IsHovered { get; set; }
+
+    /// <inheritdoc/>
     public bool RespectCloseHotkey { get; set; } = true;
+
+    /// <inheritdoc/>
+    public bool InhibitAtkCollision { get; set; } = true;
 
     /// <inheritdoc/>
     public bool DisableWindowSounds { get; set; } = false;
