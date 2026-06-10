@@ -116,12 +116,11 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private IWin32Backend? backend;
 
-    private bool hooksInitialized;
-
     private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<ReShadeDxgiSwapChainPresentDelegate>? reShadeDxgiSwapChainPresentHook;
     private Hook<DxgiSwapChainPresentDelegate>? dxgiSwapChainPresentHook;
     private Hook<ResizeBuffersDelegate>? dxgiSwapChainResizeBuffersHook;
+    private Hook<PresentDelegate>? kernelDeviceSwapchainPresentHook;
     private ObjectVTableHook<IDXGISwapChain4.Vtbl<IDXGISwapChain4>>? dxgiSwapChainHook;
     private ReShadeAddonInterface? reShadeAddonInterface;
 
@@ -139,6 +138,10 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.framework.Update += this.FrameworkOnUpdate;
         this.clientState.Login += this.OnLogin;
     }
+
+    // Must match Client::Graphics::Kernel::SwapChain::Present()
+    // TODO: CS?
+    private delegate void PresentDelegate(nint thisPtr);
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     private delegate nint SetCursorDelegate(nint hCursor);
@@ -322,7 +325,6 @@ internal partial class InterfaceManager : IInternalDisposableService
     void IInternalDisposableService.DisposeService()
     {
         this.clientState.Login -= this.OnLogin;
-        this.framework.Update -= this.FrameworkOnUpdate;
 
         this.assertHandler.Dispose();
 
@@ -370,6 +372,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         void ClearHooks()
         {
             this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
+            Interlocked.Exchange(ref this.kernelDeviceSwapchainPresentHook, null)?.Dispose();
             Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
             Interlocked.Exchange(ref this.dxgiSwapChainPresentHook, null)?.Dispose();
             Interlocked.Exchange(ref this.reShadeDxgiSwapChainPresentHook, null)?.Dispose();
@@ -632,25 +635,18 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private unsafe void FrameworkOnUpdate(IFramework framework1)
     {
-        if (!this.hooksInitialized)
-        {
-            // We now delay hooking until Framework is set up and has fired its first update.
-            // Some graphics drivers seem to consider the game's shader cache as invalid if we hook too early.
-            // The game loads shader packages on the file thread and then compiles them. It will show the logo once it is done.
-            // This is a workaround, but it fixes an issue where the game would take a very long time to get to the title screen.
-            // NetworkModuleProxy is set up after lua scripts are loaded (EventFramework.LoadState >= 5), which can only happen
-            // after the shaders are compiled (if necessary) and loaded. AgentLobby.Update doesn't do much until this condition is met.
-            if (CSFramework.Instance()->GetNetworkModuleProxy() == null)
-                return;
-
-            this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
-            this.hooksInitialized = true;
-        }
-
-        if (this.backend is null || !this.dalamudAtlas!.HasBuiltAtlas)
+        // We now delay hooking until Framework is set up and has fired its first update.
+        // Some graphics drivers seem to consider the game's shader cache as invalid if we hook too early.
+        // The game loads shader packages on the file thread and then compiles them. It will show the logo once it is done.
+        // This is a workaround, but it fixes an issue where the game would take a very long time to get to the title screen.
+        // NetworkModuleProxy is set up after Lua scripts are loaded (EventFramework.LoadState >= 5), which can only happen
+        // after the shaders are compiled (if necessary) and loaded. AgentLobby.Update doesn't do much until this condition is met.
+        if (CSFramework.Instance()->GetNetworkModuleProxy() == null)
             return;
 
-        this.backend.Step();
+        this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
+
+        this.framework.Update -= this.FrameworkOnUpdate;
     }
 
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
@@ -870,6 +866,30 @@ internal partial class InterfaceManager : IInternalDisposableService
             args.SuppressWithValue(r.Value);
     }
 
+    private void KernelDeviceSwapChainPresentDetour(nint thisPtr)
+    {
+        // Step the backend here, at a fixed point in time.
+        // Makes sure that we do it at the same point in time, no matter what is going on
+        // with the presentation side.
+
+        try
+        {
+            if (this.backend is null || !this.dalamudAtlas!.HasBuiltAtlas)
+            {
+                this.kernelDeviceSwapchainPresentHook!.Original(thisPtr);
+                return;
+            }
+
+            this.backend.Step();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Exception in KernelDeviceSwapChainPresentDetour");
+        }
+
+        this.kernelDeviceSwapchainPresentHook!.Original(thisPtr);
+    }
+
     private void PreImGuiRender()
     {
         while (this.runBeforeImGuiRender.TryDequeue(out var action))
@@ -1070,6 +1090,16 @@ internal partial class InterfaceManager : IInternalDisposableService
         if (ReShadeAddonInterface.AllReShadeModules.Length > 1)
             Log.Warning("Multiple ReShade dlls are detected.");
 
+        if (!sigScanner.TryScanText("E8 ?? ?? ?? ?? C6 46 79 00 EB 40", out var pPresent))
+        {
+            Log.Error("Could not find Client::Graphics::Kernel::SwapChain::Present(), no UI will be drawn");
+            return;
+        }
+
+        this.kernelDeviceSwapchainPresentHook = Hook<PresentDelegate>.FromAddress(
+            pPresent,
+            this.KernelDeviceSwapChainPresentDetour);
+
         ResizeBuffersDelegate dxgiSwapChainResizeBuffersDelegate;
         ReShadeDxgiSwapChainPresentDelegate? reShadeDxgiSwapChainPresentDelegate = null;
         DxgiSwapChainPresentDelegate? dxgiSwapChainPresentDelegate = null;
@@ -1231,6 +1261,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.dxgiSwapChainResizeBuffersHook.Enable();
         this.dxgiSwapChainPresentHook?.Enable();
         this.dxgiSwapChainHook?.Enable();
+        this.kernelDeviceSwapchainPresentHook.Enable();
     }
 
     private nint SetCursorDetour(nint hCursor)
