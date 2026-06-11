@@ -56,7 +56,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     // Deep copies of every secondary (multi-viewport / pop-out) window's draw data captured under the write lock
     // during Step(), so the pacer thread can render and present them in Render() without ever touching the live,
     // single-buffered ImGui platform-IO viewport state (which ImGui.RenderPlatformWindowsDefault() would walk and
-    // which the framework thread mutates each Step() via NewFrame()/UpdatePlatformWindows()).
+    // which the game-present thread mutates each Step() via NewFrame()/UpdatePlatformWindows()).
     private readonly ViewportSnapshot viewportSnapshots = new();
 
     // Set true for the whole swap-chain resize window (see EnterResize/ExitResize). Checked lock-free as a
@@ -85,7 +85,10 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// Initializes a new instance of the <see cref="Dx11Win32Backend"/> class.
     /// </summary>
     /// <param name="swapChain">The pointer to an instance of <see cref="IDXGISwapChain"/>. The reference is copied.</param>
-    public Dx11Win32Backend(IDXGISwapChain* swapChain)
+    /// <param name="enableMultithreadProtection">
+    /// Whether to enable D3D11 runtime serialization for Smooth Motion's cross-thread immediate-context access.
+    /// </param>
+    public Dx11Win32Backend(IDXGISwapChain* swapChain, bool enableMultithreadProtection)
     {
         try
         {
@@ -101,25 +104,27 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             fixed (ID3D11DeviceContext** pp = &this.deviceContext.GetPinnableReference())
                 this.device.Get()->GetImmediateContext(pp);
 
-            // Smooth Motion uses its own capture and pacing threads while Dalamud renders through the game's
-            // immediate context. Protect the shared context at the D3D11 runtime level so calls from the game,
-            // NVIDIA and Dalamud cannot race each other. A private managed lock only protects Dalamud calls.
-            // This whole feature is about driver behavior, so log whether the protection was actually enabled -
-            // silent success/failure here is a debugging liability.
-            fixed (Guid* guid = &IID.IID_ID3D11Multithread)
-            fixed (ID3D11Multithread** pp = &this.deviceMultithread.GetPinnableReference())
+            if (enableMultithreadProtection)
             {
-                if (this.deviceContext.Get()->QueryInterface(guid, (void**)pp).SUCCEEDED)
+                // Smooth Motion uses its own capture and pacing threads while Dalamud renders through the game's
+                // immediate context. Protect the shared context at the D3D11 runtime level so calls from the game,
+                // NVIDIA and Dalamud cannot race each other. A private managed lock only protects Dalamud calls.
+                fixed (Guid* guid = &IID.IID_ID3D11Multithread)
+                fixed (ID3D11Multithread** pp = &this.deviceMultithread.GetPinnableReference())
                 {
-                    var alreadyProtected = this.deviceMultithread.Get()->SetMultithreadProtected(BOOL.TRUE);
-                    this.restoreMultithreadProtection = !alreadyProtected;
-                    Log.Information(
-                        "D3D11 multithread protection enabled (was already protected: {Already}).",
-                        (bool)alreadyProtected);
-                }
-                else
-                {
-                    Log.Warning("D3D11 multithread protection NOT enabled: ID3D11Multithread unavailable.");
+                    if (this.deviceContext.Get()->QueryInterface(guid, (void**)pp).SUCCEEDED)
+                    {
+                        var alreadyProtected = this.deviceMultithread.Get()->SetMultithreadProtected(BOOL.TRUE);
+                        this.restoreMultithreadProtection = !alreadyProtected;
+                        Log.Information(
+                            "D3D11 multithread protection enabled for Smooth Motion (was already protected: {Already}).",
+                            (bool)alreadyProtected);
+                    }
+                    else
+                    {
+                        Log.Warning(
+                            "D3D11 multithread protection NOT enabled for Smooth Motion: ID3D11Multithread unavailable.");
+                    }
                 }
             }
 
@@ -230,7 +235,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     public void Step()
     {
         // Skip frame construction/snapshotting while a swap-chain resize holds (or is about to hold) the write
-        // lock. This also avoids Step() blocking the framework thread behind a resize.
+        // lock. This also avoids blocking the game-present thread behind a resize.
         if (this.resizeInProgress)
             return;
 
@@ -249,7 +254,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
         // Snapshot the draw data under the write lock and signal that we want to render our viewports.
         // UpdatePlatformWindows() is moved INSIDE the write lock: it only lays out viewports and
-        // creates/destroys/resizes their secondary windows (no GPU work), so it is safe on the framework thread,
+        // creates/destroys/resizes their secondary windows (no GPU work), so it is safe on the game-present thread,
         // and holding the write lock across it guarantees a viewport create/destroy cannot race an in-flight
         // pacer-thread Render() (which holds the read lock). This is what lets us safely snapshot the live
         // per-viewport draw data immediately afterwards.
@@ -315,7 +320,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
                 // Render the secondary (multi-viewport / pop-out) windows exactly once per Step(). We deliberately do
                 // NOT call ImGui.RenderPlatformWindowsDefault() here: that walks the live, single-buffered
-                // ImGui.GetPlatformIO().Viewports list and reads each viewport's live DrawData, which the framework
+                // ImGui.GetPlatformIO().Viewports list and reads each viewport's live DrawData, which the game-present
                 // thread mutates in the next Step() (NewFrame()/UpdatePlatformWindows()) - enumerating/rendering that
                 // while it is being mutated throws on the pacer thread. Instead we iterate the stable, owned snapshots
                 // captured under the write lock in Step(), mirroring what RenderPlatformWindowsDefault() does per
