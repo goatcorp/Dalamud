@@ -115,6 +115,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     private readonly AssertHandler assertHandler = new();
 
     private IWin32Backend? backend;
+    private bool isSmoothMotionDetected;
 
     private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<ReShadeDxgiSwapChainPresentDelegate>? reShadeDxgiSwapChainPresentHook;
@@ -729,7 +730,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         {
             try
             {
-                newBackend = new Dx11Win32Backend(swapChain);
+                newBackend = new Dx11Win32Backend(swapChain, this.isSmoothMotionDetected);
                 this.assertHandler.Setup();
             }
             catch (DllNotFoundException ex)
@@ -1128,6 +1129,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
                     if (SwapChainHelper.UnwrapNvPresent())
                     {
+                        this.isSmoothMotionDetected = true;
                         unwrappedNvPresent = true;
                         changed = true;
                         Log.Information("Unwrapped NvPresent");
@@ -1147,7 +1149,11 @@ internal partial class InterfaceManager : IInternalDisposableService
             case var _ when this.dalamudConfiguration.SwapChainHookMode == SwapChainHelper.HookMode.VTable:
             default:
                 if (SwapChainHelper.UnwrapNvPresent())
+                {
+                    this.isSmoothMotionDetected = true;
                     Log.Information("Unwrapped NvPresent, using Smooth Motion");
+                }
+
                 dxgiSwapChainResizeBuffersDelegate = this.AsHookDxgiSwapChainResizeBuffersDetour;
                 dxgiSwapChainPresentDelegate = this.DxgiSwapChainPresentDetour;
                 break;
