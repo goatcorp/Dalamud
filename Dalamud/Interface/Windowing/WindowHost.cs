@@ -180,8 +180,13 @@ public class WindowHost
             this.fadeInTimer = FadeInOutTime;
 
         this.Window.Update();
+
         if (!this.Window.DrawConditions())
+        {
+            this.Window.IsFocused = false;
+            this.Window.IsHovered = false;
             return;
+        }
 
         var hasNamespace = !string.IsNullOrEmpty(this.Window.Namespace);
 
