@@ -4,7 +4,6 @@
 #include <d3d11.h>
 #include <dxgi.h>
 #include <dxgi1_3.h>
-#pragma comment(lib, "dxgi.lib")
 
 #include "DalamudStartInfo.h"
 #include "hooks.h"
@@ -13,6 +12,8 @@
 #include "veh.h"
 #include "xivfixes.h"
 #include "resource.h"
+
+#include <thread>
 
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
@@ -33,7 +34,7 @@ static void CheckMsvcrtVersion() {
         | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[3]) << 0);
 
     constexpr const wchar_t* RuntimeDllNames[] = {
-#ifdef _DEBUG
+#if defined(_DEBUG)
         L"msvcp140d.dll",
         L"vcruntime140d.dll",
         L"vcruntime140_1d.dll",
@@ -325,8 +326,8 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
 
         const auto hD3D11 = GetModuleHandleW(L"d3d11.dll");
         const auto hDXGI = GetModuleHandleW(L"dxgi.dll");
-        const auto pfnD3D11CreateDevice = static_cast<decltype(&D3D11CreateDevice)>(
-            hD3D11 ? static_cast<void*>(GetProcAddress(hD3D11, "D3D11CreateDevice")) : nullptr);
+        const auto pfnD3D11CreateDevice = reinterpret_cast<decltype(&D3D11CreateDevice)>(
+            hD3D11 ? reinterpret_cast<void*>(GetProcAddress(hD3D11, "D3D11CreateDevice")) : nullptr);
         if (pfnD3D11CreateDevice) {
             static hooks::direct_hook<decltype(D3D11CreateDevice)> s_hookD3D11CreateDevice(
                 "d3d11.dll!D3D11CreateDevice",
@@ -359,12 +360,12 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
             logging::W("Could not find d3d11!D3D11CreateDevice.");
         }
 
-        const auto pfnCreateDXGIFactory = static_cast<decltype(&CreateDXGIFactory)>(
-            hDXGI ? static_cast<void*>(GetProcAddress(hDXGI, "CreateDXGIFactory")) : nullptr);
-        const auto pfnCreateDXGIFactory1 = static_cast<decltype(&CreateDXGIFactory1)>(
-            hDXGI ? static_cast<void*>(GetProcAddress(hDXGI, "CreateDXGIFactory1")) : nullptr);
-        static const auto pfnCreateDXGIFactory2 = static_cast<decltype(&CreateDXGIFactory2)>(
-            hDXGI ? static_cast<void*>(GetProcAddress(hDXGI, "CreateDXGIFactory2")) : nullptr);
+        const auto pfnCreateDXGIFactory = reinterpret_cast<decltype(&CreateDXGIFactory)>(
+            hDXGI ? reinterpret_cast<void*>(GetProcAddress(hDXGI, "CreateDXGIFactory")) : nullptr);
+        const auto pfnCreateDXGIFactory1 = reinterpret_cast<decltype(&CreateDXGIFactory1)>(
+            hDXGI ? reinterpret_cast<void*>(GetProcAddress(hDXGI, "CreateDXGIFactory1")) : nullptr);
+        static const auto pfnCreateDXGIFactory2 = reinterpret_cast<decltype(&CreateDXGIFactory2)>(
+            hDXGI ? reinterpret_cast<void*>(GetProcAddress(hDXGI, "CreateDXGIFactory2")) : nullptr);
         if (pfnCreateDXGIFactory2) {
             static hooks::direct_hook<decltype(CreateDXGIFactory)> s_hookCreateDXGIFactory(
                 "dxgi.dll!CreateDXGIFactory",

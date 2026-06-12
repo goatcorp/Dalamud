@@ -2,11 +2,11 @@
 
 #include <cstdio>
 #include <filesystem>
-#include <Windows.h>
-#include <Lmcons.h>
-#include <Shlobj.h>
+#include <windows.h>
+#include <lmcons.h>
+#include <shlobj.h>
 #include "CoreCLR.h"
-#include "..\..\Dalamud.Boot\logging.h"
+#include "../../Dalamud.Boot/logging.h"
 
 FILE* g_CmdStream;
 void ConsoleSetup(const std::wstring console_name)

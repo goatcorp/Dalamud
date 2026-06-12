@@ -1,6 +1,9 @@
+#include <algorithm>
 #include <array>
 #include <chrono>
+#include <cstring>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <map>
 #include <optional>
@@ -8,31 +11,42 @@
 #include <span>
 #include <sstream>
 #include <string>
-#include <thread>
 #include <vector>
 
 #define WIN32_LEAN_AND_MEAN
+#undef NOMINMAX
 #define NOMINMAX
-#include <Windows.h>
+#include <windows.h>
 
 #include <comdef.h>
-#include <CommCtrl.h>
-#include <DbgHelp.h>
+#include <commctrl.h>
+#include <dbghelp.h>
 #include <intrin.h>
+#if !defined(__MINGW32__)
+// In MinGW, the parts of minidumpapiset needed are available via dbghelp.
 #include <minidumpapiset.h>
-#include <PathCch.h>
-#include <Psapi.h>
+#endif
+#include <pathcch.h>
+#include <psapi.h>
 #include <shellapi.h>
-#include <TlHelp32.h>
-#include <ShlGuid.h>
-#include <ShObjIdl.h>
+#include <tlhelp32.h>
+#include <shlguid.h>
+#include <shobjidl.h>
+#if !defined(__MINGW32__)
 #include <shlobj_core.h>
+#else
+#include <shlobj.h>
+#endif
 
 #include <dxgi.h>
-#pragma comment(lib, "dxgi.lib")
 
-#pragma comment(lib, "comctl32.lib")
-#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#if defined(__GNUC__) 
+#pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
+#endif
+
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wdeprecated-anon-enum-enum-conversion"
+#endif
 
 _COM_SMARTPTR_TYPEDEF(IFileOperation, __uuidof(IFileOperation));
 _COM_SMARTPTR_TYPEDEF(IFileSaveDialog, __uuidof(IFileSaveDialog));
@@ -47,6 +61,64 @@ static constexpr GUID Guid_IFileDialog_Tspack{ 0xfc057318, 0xad35, 0x4599, {0xa7
 #include "../shared/logging.h"
 #include "miniz.h"
 #include "dac_interfaces.h"
+
+/* mingw SEH try / catch seems to be absolutely cursed beyond belief,
+ * with some projects handling it wrong, some projects warning against it,
+ * and yet again some other projects pushing through despite its fragility.
+ * If anyone's got a better idea at handling the flag than a thread local, please fix, thanks.
+ */
+#if defined(_MSC_VER)
+#define SEH_MSVC
+#define SEH_NOOPT
+
+// MSVC: __try { faulty; } __except(EXCEPTION_EXECUTE_HANDLER) { handler; }
+#define __seh_try_begin __try
+#define __seh_try_end __except(EXCEPTION_EXECUTE_HANDLER) {}
+
+#elif defined(__try1)
+#define SEH_MINGW
+#if defined(__clang__)
+#define SEH_NOOPT __attribute__((optnone))
+#else
+#define SEH_NOOPT __attribute__((optimize("O0")))
+#endif
+extern "C" long SEH_NOOPT seh_violation_handler(EXCEPTION_POINTERS* data)
+{
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+
+// MinGW: __try1(handler); faulty; __except1; runs_always;
+/* MinGW __try1 / __except1 is great... except for when it decides to use named labels which cannot be reused.
+ */
+#define __seh_try_begin \
+    startw: \
+    asm goto volatile ( \
+        "\t.seh_handler __C_specific_handler, @except\n" \
+        "\t.seh_handlerdata\n" \
+        "\t.long 1\n" \
+        "\t.rva %l[startw], %l[endw], " __MINGW64_STRINGIFY(__MINGW_USYMBOL(seh_violation_handler)) ", %l[endw]\n" \
+        "\t.text" \
+        : \
+        : \
+        : \
+        : startw, endw \
+    );
+
+#define __seh_try_end \
+    endw:
+
+#else
+#error "Your compilation environment does not expose SEH try / except unwind helpers"
+#endif
+
+// Windows 10 1607, part of modern Windows SDKs and MinGW 12+, but Ubuntu 24.04 ships MinGW 11
+typedef HRESULT (WINAPI* PFN_GetThreadDescription)(HANDLE hThread, PWSTR* ppszThreadDescription);
+#if defined(__MINGW64_VERSION_MAJOR) && __MINGW64_VERSION_MAJOR < 12
+static PFN_GetThreadDescription _GetThreadDescription = reinterpret_cast<PFN_GetThreadDescription>(
+    GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetThreadDescription"));
+#else
+static PFN_GetThreadDescription _GetThreadDescription = &GetThreadDescription;
+#endif
 
 HANDLE g_hProcess = nullptr;
 bool g_bSymbolsAvailable = false;
@@ -512,14 +584,14 @@ struct DacNameResult
     int kind;
 };
 
-static DacNameResult try_get_managed_method_name_seh(IXCLRDataProcess* pClrProc, DWORD64 address)
+static DacNameResult SEH_NOOPT try_get_managed_method_name_seh(IXCLRDataProcess* pClrProc, DWORD64 address)
 {
     DacNameResult result{};
     result.nameBuf[0] = L'\0';
     result.displacement = 0;
     result.kind = 0;
 
-    __try
+    __seh_try_begin
     {
         CLRDataAddressType addrType = CLRDATA_ADDRESS_UNRECOGNIZED;
         if (FAILED(pClrProc->GetAddressType(static_cast<CLRDATA_ADDRESS>(address), &addrType)))
@@ -568,7 +640,7 @@ static DacNameResult try_get_managed_method_name_seh(IXCLRDataProcess* pClrProc,
             return result;
         }
     }
-    __except (EXCEPTION_EXECUTE_HANDLER)
+    __seh_try_end
     {
         // DAC may raise exceptions on corrupt CLR heap
     }
@@ -617,12 +689,12 @@ std::wstring to_address_string_mixed(DWORD64 address, IXCLRDataProcess* pClrProc
     return to_address_string(address, false);
 }
 
-static HRESULT seh_get_code_header_data(ISOSDacInterface* pSos,
+static HRESULT SEH_NOOPT seh_get_code_header_data(ISOSDacInterface* pSos,
                                          CLRDATA_ADDRESS    ip,
                                          DacpCodeHeaderData* pOut)
 {
-    __try { return pSos->GetCodeHeaderData(ip, pOut); }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+    __seh_try_begin { return pSos->GetCodeHeaderData(ip, pOut); }
+    __seh_try_end { return E_FAIL; }
 }
 
 // Map x64 unwind register index (0-15) to the matching CONTEXT field pointer
@@ -1029,54 +1101,54 @@ static bool try_jit_virtual_unwind(HANDLE hProcess, ISOSDacInterface* pSos, CONT
     return true;
 }
 
-static HRESULT seh_dac_get_task(IXCLRDataProcess* pProc, DWORD osId, IXCLRDataTask** ppTask)
+static HRESULT SEH_NOOPT seh_dac_get_task(IXCLRDataProcess* pProc, DWORD osId, IXCLRDataTask** ppTask)
 {
     *ppTask = nullptr;
-    __try { return pProc->GetTaskByOSThreadID(osId, ppTask); }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+    __seh_try_begin { return pProc->GetTaskByOSThreadID(osId, ppTask); }
+    __seh_try_end { return E_FAIL; }
 }
 
-static HRESULT seh_dac_create_stack_walk(IXCLRDataTask* pTask, ULONG32 flags, IXCLRDataStackWalk** ppWalk)
+static HRESULT SEH_NOOPT seh_dac_create_stack_walk(IXCLRDataTask* pTask, ULONG32 flags, IXCLRDataStackWalk** ppWalk)
 {
     *ppWalk = nullptr;
-    __try { return pTask->CreateStackWalk(flags, ppWalk); }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+    __seh_try_begin { return pTask->CreateStackWalk(flags, ppWalk); }
+    __seh_try_end { return E_FAIL; }
 }
 
-static HRESULT seh_dac_walk_get_context(IXCLRDataStackWalk* pWalk, CONTEXT* pCtx)
+static HRESULT SEH_NOOPT seh_dac_walk_get_context(IXCLRDataStackWalk* pWalk, CONTEXT* pCtx)
 {
     ULONG32 ctxSize = 0;
-    __try { return pWalk->GetContext(CONTEXT_ALL, sizeof(CONTEXT), &ctxSize, reinterpret_cast<BYTE*>(pCtx)); }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+    __seh_try_begin { return pWalk->GetContext(CONTEXT_ALL, sizeof(CONTEXT), &ctxSize, reinterpret_cast<BYTE*>(pCtx)); }
+    __seh_try_end { return E_FAIL; }
 }
 
-static HRESULT seh_dac_walk_get_frame_type(IXCLRDataStackWalk* pWalk,
+static HRESULT SEH_NOOPT seh_dac_walk_get_frame_type(IXCLRDataStackWalk* pWalk,
     CLRDataSimpleFrameType* pSimple, CLRDataDetailedFrameType* pDetailed)
 {
-    __try { return pWalk->GetFrameType(pSimple, pDetailed); }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+    __seh_try_begin { return pWalk->GetFrameType(pSimple, pDetailed); }
+    __seh_try_end { return E_FAIL; }
 }
 
-static HRESULT seh_dac_walk_next(IXCLRDataStackWalk* pWalk)
+static HRESULT SEH_NOOPT seh_dac_walk_next(IXCLRDataStackWalk* pWalk)
 {
-    __try { return pWalk->Next(); }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+    __seh_try_begin { return pWalk->Next(); }
+    __seh_try_end { return E_FAIL; }
 }
 
-static HRESULT seh_dac_walk_set_context2(IXCLRDataStackWalk* pWalk, ULONG32 flags, const CONTEXT* pCtx)
+static HRESULT SEH_NOOPT seh_dac_walk_set_context2(IXCLRDataStackWalk* pWalk, ULONG32 flags, const CONTEXT* pCtx)
 {
-    __try
+    __seh_try_begin
     {
         return pWalk->SetContext2(flags, sizeof(CONTEXT),
             const_cast<BYTE*>(reinterpret_cast<const BYTE*>(pCtx)));
     }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return E_FAIL; }
+    __seh_try_end { return E_FAIL; }
 }
 
 static std::wstring get_thread_name(HANDLE hThread)
 {
     PWSTR pName = nullptr;
-    if (SUCCEEDED(GetThreadDescription(hThread, &pName)) && pName && pName[0] != L'\0')
+    if (_GetThreadDescription && SUCCEEDED(_GetThreadDescription(hThread, &pName)) && pName && pName[0] != L'\0')
     {
         std::wstring name(pName);
         LocalFree(pName);
@@ -1340,8 +1412,8 @@ void print_thread_call_stack(HANDLE hThread, const CONTEXT& ctx, std::wostringst
             log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string_mixed(sf.AddrPC.Offset, g_pClrDataProcess));
         };
 
-        const auto tryStackWalk = [&] {
-            __try {
+        const auto tryStackWalk = [&] SEH_NOOPT {
+            __seh_try_begin {
                 CONTEXT ctxWalk = ctx;
                 do {
                     if (!StackWalk64(IMAGE_FILE_MACHINE_AMD64, g_hProcess, hThread, &sf, &ctxWalk, nullptr, &SymFunctionTableAccess64, &SymGetModuleBase64, nullptr))
@@ -1351,7 +1423,7 @@ void print_thread_call_stack(HANDLE hThread, const CONTEXT& ctx, std::wostringst
 
                 } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset);
                 return true;
-            } __except(EXCEPTION_EXECUTE_HANDLER) {
+            } __seh_try_end {
                 return false;
             }
         };
@@ -1657,7 +1729,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         pItem.Release();
         filePath.emplace(pFilePath);
 
-        std::fstream fileStream(*filePath, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
+        std::fstream fileStream(std::filesystem::path(*filePath), std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
 
         mz_zip_archive zipa{};
         zipa.m_pIO_opaque = &fileStream;

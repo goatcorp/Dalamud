@@ -67,6 +67,11 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(IsMinGW)'=='Clang'">
+    <ClCompile>
+      <AdditionalOptions>-Wno-nontrivial-memcall -Wno-return-type-c-linkage %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -106,4 +111,11 @@
     <Copy SourceFiles="$(OutDir)$(TargetName).dll" DestinationFolder="..\..\bin\$(Configuration)\" />
     <Copy SourceFiles="$(OutDir)$(TargetName).pdb" DestinationFolder="..\..\bin\$(Configuration)\" />
   </Target>
+  <PropertyGroup>
+    <CMakePostBuild><![CDATA[
+      file(INSTALL DESTINATION "$(MSBuildProjectDirectory)/../../bin/$(Configuration)" FILES
+        "$<TARGET_FILE:$(TargetName)>"
+      )
+    ]]></CMakePostBuild>
+  </PropertyGroup>
 </Project>

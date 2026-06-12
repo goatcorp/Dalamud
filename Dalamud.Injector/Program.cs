@@ -650,6 +650,8 @@ namespace Dalamud.Injector
             string? gamePath = null;
             List<string> gameArguments = new();
             string? mode = null;
+            string? wrap = null;
+            List<string> wrapArguments = new();
             var useFakeArguments = false;
             var showHelp = args.Count <= 2;
             var handleOwner = IntPtr.Zero;
@@ -706,6 +708,14 @@ namespace Dalamud.Injector
                 else if (args[i].StartsWith("--handle-owner="))
                 {
                     handleOwner = IntPtr.Parse(args[i].Split('=', 2)[1]);
+                }
+                else if (args[i].StartsWith("--wrap="))
+                {
+                    wrap = args[i].Split('=', 2)[1];
+                }
+                else if (args[i].StartsWith("--wraparg="))
+                {
+                    wrapArguments.Add(args[i].Split('=', 2)[1]);
                 }
                 else if (args[i] == "--")
                 {
@@ -906,6 +916,8 @@ namespace Dalamud.Injector
                 gamePath,
                 gameArgumentString,
                 noFixAcl,
+                wrap,
+                wrapArguments,
                 p =>
                 {
                     if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.Entrypoint)

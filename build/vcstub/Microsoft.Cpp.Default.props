@@ -1,0 +1,6 @@
+<Project>
+    <!-- Some standard props aren't set by MSBuild but by the toolchain. -->
+    <PropertyGroup>
+        <TargetName Condition="'$(TargetName)'==''">$(MSBuildProjectName)</TargetName>
+    </PropertyGroup>
+</Project>

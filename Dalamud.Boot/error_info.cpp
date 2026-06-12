@@ -1,7 +1,7 @@
 #include "error_info.h"
 
 #define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include <windows.h>
 
 DalamudBootError::DalamudBootError(DalamudBootErrorDescription dalamudErrorDescription, long hresult) noexcept
     : m_dalamudErrorDescription(dalamudErrorDescription)
