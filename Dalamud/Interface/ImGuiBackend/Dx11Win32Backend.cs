@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImGuizmo;
@@ -7,6 +8,7 @@ using Dalamud.Interface.ImGuiBackend.Delegates;
 using Dalamud.Interface.ImGuiBackend.Helpers;
 using Dalamud.Interface.ImGuiBackend.InputHandler;
 using Dalamud.Interface.ImGuiBackend.Renderers;
+using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 
 using TerraFX.Interop.DirectX;
@@ -26,10 +28,15 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private readonly Dx11Renderer imguiRenderer;
     private readonly Win32InputHandler imguiInput;
 
+    private readonly Lock frameLock = new();
+
     private ComPtr<IDXGISwapChain> swapChainPossiblyWrapped;
     private ComPtr<IDXGISwapChain> swapChain;
     private ComPtr<ID3D11Device> device;
     private ComPtr<ID3D11DeviceContext> deviceContext;
+
+    private ImDrawData drawData;
+    private bool hasDrawData;
 
     private int targetWidth;
     private int targetHeight;
@@ -53,6 +60,14 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
             fixed (ID3D11DeviceContext** pp = &this.deviceContext.GetPinnableReference())
                 this.device.Get()->GetImmediateContext(pp);
+
+            if (SwapChainHelper.IsNvPresentUnwrapped)
+            {
+                if (EnableD3D11MultithreadProtection(this.deviceContext.Get()))
+                    Serilog.Log.Information("Enabled D3D11 multithread protection for NvPresent");
+                else
+                    Serilog.Log.Warning("Could not enable D3D11 multithread protection for NvPresent");
+            }
 
             using var buffer = default(ComPtr<ID3D11Resource>);
             fixed (Guid* guid = &IID.IID_ID3D11Resource)
@@ -152,32 +167,47 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         this.imguiInput.ProcessWndProcW(hWnd, msg, wParam, lParam);
 
     /// <inheritdoc/>
+    public void Step()
+    {
+        using var frameLockScope = this.frameLock.EnterScope();
+        this.StepInternal();
+        ImGui.UpdatePlatformWindows();
+    }
+
+    /// <inheritdoc/>
     public void Render()
     {
-        this.imguiRenderer.OnNewFrame();
-        this.NewRenderFrame?.Invoke();
-        this.imguiInput.NewFrame(this.targetWidth, this.targetHeight);
-        this.NewInputFrame?.Invoke();
+        // Smooth Motion and other frame-generation layers can call Present outside the
+        // normal game frame cadence. Reuse the last frame prepared by Step for those calls.
+        using var frameLockScope = this.frameLock.EnterScope();
+        this.RenderInternal();
+    }
 
-        ImGui.NewFrame();
-        ImGuizmo.BeginFrame();
-
-        this.BuildUi?.Invoke();
-
-        ImGui.Render();
-
-        this.imguiRenderer.RenderDrawData(ImGui.GetDrawData());
-
+    /// <inheritdoc/>
+    public void RenderFrame()
+    {
+        using var frameLockScope = this.frameLock.EnterScope();
+        this.StepInternal();
+        this.RenderMainViewportInternal();
         ImGui.UpdatePlatformWindows();
         ImGui.RenderPlatformWindowsDefault();
     }
 
     /// <inheritdoc/>
-    public void OnPreResize() => this.imguiRenderer.OnPreResize();
+    public void OnPreResize()
+    {
+        using var frameLockScope = this.frameLock.EnterScope();
+        this.hasDrawData = false;
+        this.drawData = default;
+        this.imguiRenderer.OnPreResize();
+    }
 
     /// <inheritdoc/>
     public void OnPostResize(int newWidth, int newHeight)
     {
+        using var frameLockScope = this.frameLock.EnterScope();
+        this.hasDrawData = false;
+        this.drawData = default;
         this.imguiRenderer.OnPostResize(newWidth, newHeight);
         this.targetWidth = newWidth;
         this.targetHeight = newHeight;
@@ -225,6 +255,66 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
             return u1.Get() == u2.Get();
         }
+    }
+
+    private static bool EnableD3D11MultithreadProtection(ID3D11DeviceContext* context)
+    {
+        // ID3D11Multithread is not currently exposed by TerraFX. Query it directly
+        // from the immediate context and enable its built-in serialization.
+        var iid = new Guid(0x9B7E4E00, 0x342C, 0x4106, 0xA1, 0x9F, 0x4F, 0x27, 0x04, 0xF6, 0x89, 0xF0);
+        void* multithread = null;
+        if (context->QueryInterface(&iid, &multithread).FAILED)
+            return false;
+
+        try
+        {
+            var vtable = *(void***)multithread;
+            var setProtected = (delegate* unmanaged[Stdcall]<void*, BOOL, BOOL>)vtable[5];
+            var getProtected = (delegate* unmanaged[Stdcall]<void*, BOOL>)vtable[6];
+            setProtected(multithread, BOOL.TRUE);
+            return getProtected(multithread);
+        }
+        finally
+        {
+            ((IUnknown*)multithread)->Release();
+        }
+    }
+
+    private void StepInternal()
+    {
+        this.imguiRenderer.OnNewFrame();
+        this.NewRenderFrame?.Invoke();
+        this.imguiInput.NewFrame(this.targetWidth, this.targetHeight);
+        this.NewInputFrame?.Invoke();
+
+        ImGui.NewFrame();
+        ImGuizmo.BeginFrame();
+
+        this.BuildUi?.Invoke();
+
+        ImGui.Render();
+
+        var drawData = ImGui.GetDrawData();
+        this.hasDrawData = !drawData.IsNull;
+        this.drawData = this.hasDrawData ? *drawData.Handle : default;
+    }
+
+    private void RenderInternal()
+    {
+        if (!this.hasDrawData)
+            return;
+
+        this.RenderMainViewportInternal();
+        ImGui.RenderPlatformWindowsDefault();
+    }
+
+    private void RenderMainViewportInternal()
+    {
+        if (!this.hasDrawData)
+            return;
+
+        fixed (ImDrawData* pDrawData = &this.drawData)
+            this.imguiRenderer.RenderDrawData(new ImDrawDataPtr(pDrawData));
     }
 
     private void ReleaseUnmanagedResources()

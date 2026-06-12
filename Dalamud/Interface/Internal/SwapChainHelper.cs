@@ -1,6 +1,7 @@
 using System.Threading;
 
 using Dalamud.Interface.Internal.ReShadeHandling;
+using Dalamud.Interface.Internal.Unwrapper;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 
@@ -23,6 +24,11 @@ internal static unsafe class SwapChainHelper
         /// <summary>Hooks by providing an alternative vtable.</summary>
         VTable,
     }
+
+    /// <summary>
+    /// Gets a value indicating whether the game swap chain was unwrapped from NvPresent.
+    /// </summary>
+    public static bool IsNvPresentUnwrapped { get; private set; }
 
     /// <summary>Gets the game's active instance of IDXGISwapChain that is initialized.</summary>
     /// <value>Address of the game's instance of IDXGISwapChain, or <c>null</c> if not available (yet.)</value>
@@ -107,10 +113,28 @@ internal static unsafe class SwapChainHelper
     public static bool UnwrapReShade()
     {
         using var swapChain = new ComPtr<IDXGISwapChain>(GameDeviceSwapChain);
-        if (!ReShadeUnwrapper.Unwrap(&swapChain))
+        var reShadeUnwrapper = new ReShadeUnwrapper();
+        if (!reShadeUnwrapper.Unwrap(&swapChain))
             return false;
 
         foundGameDeviceSwapChain = swapChain.Get();
+        return true;
+    }
+
+    /// <summary>
+    /// Make <see cref="GameDeviceSwapChain"/> store address of unwrapped swap chain, if it was wrapped by NvPresent.
+    /// This can happen when some NVIDIA features are enabled, like Smooth Motion (frame generation).
+    /// </summary>
+    /// <returns><c>true</c> if it was wrapped with NvPresent.</returns>
+    public static bool UnwrapNvPresent()
+    {
+        using var swapChain = new ComPtr<IDXGISwapChain>(GameDeviceSwapChain);
+        var nvPresentUnwrapper = new NvPresentUnwrapper();
+        if (!nvPresentUnwrapper.Unwrap(&swapChain))
+            return false;
+
+        foundGameDeviceSwapChain = swapChain.Get();
+        IsNvPresentUnwrapped = true;
         return true;
     }
 }
