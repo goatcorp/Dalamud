@@ -51,6 +51,11 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     {
         get
         {
+            if (Service<Framework>.Get().IsFrameworkUnloading)
+            {
+                return nint.Zero;
+            }
+
             ThreadSafety.AssertMainThread();
 
             return (nint)(&CSGameObjectManager.Instance()->Objects);
@@ -86,6 +91,11 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     {
         get
         {
+            if (Service<Framework>.Get().IsFrameworkUnloading)
+            {
+                return null;
+            }
+
             ThreadSafety.AssertMainThread();
 
             return (index >= objectTableLength || index < 0) ? null : this.cachedObjectTable[index].Update();
@@ -95,6 +105,11 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     /// <inheritdoc/>
     public IGameObject? SearchById(ulong gameObjectId)
     {
+        if (Service<Framework>.Get().IsFrameworkUnloading)
+        {
+            return null;
+        }
+
         ThreadSafety.AssertMainThread();
 
         if (gameObjectId is 0)
@@ -112,6 +127,11 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     /// <inheritdoc/>
     public IGameObject? SearchByEntityId(uint entityId)
     {
+        if (Service<Framework>.Get().IsFrameworkUnloading)
+        {
+            return null;
+        }
+
         ThreadSafety.AssertMainThread();
 
         if (entityId is 0 or 0xE0000000)
@@ -129,6 +149,11 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     /// <inheritdoc/>
     public unsafe nint GetObjectAddress(int index)
     {
+        if (Service<Framework>.Get().IsFrameworkUnloading)
+        {
+            return nint.Zero;
+        }
+
         ThreadSafety.AssertMainThread();
 
         return (index >= objectTableLength || index < 0) ? nint.Zero : (nint)this.cachedObjectTable[index].Address;
@@ -137,6 +162,11 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     /// <inheritdoc/>
     public unsafe IGameObject? CreateObjectReference(nint address)
     {
+        if (Service<Framework>.Get().IsFrameworkUnloading)
+        {
+            return null;
+        }
+
         ThreadSafety.AssertMainThread();
 
         if (address == nint.Zero)
@@ -235,12 +265,27 @@ internal sealed partial class ObjectTable
     /// <inheritdoc/>
     public IEnumerator<IGameObject> GetEnumerator()
     {
+        if (Service<Framework>.Get().IsFrameworkUnloading)
+        {
+            return EmptyEnumerator();
+        }
+
         ThreadSafety.AssertMainThread();
         return new Enumerator(this);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+    /// <summary>
+    /// An empty enumerator that returns the default value of IGameObject.
+    /// For use when the game is unloading to return empty object data safely.
+    /// </summary>
+    /// <returns>An enumerator of empty objects.</returns>
+    private static IEnumerator<IGameObject> EmptyEnumerator()
+    {
+        yield return default;
+    }
 
     private struct Enumerator(ObjectTable owner) : IEnumerator<IGameObject>
     {
