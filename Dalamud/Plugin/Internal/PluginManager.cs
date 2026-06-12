@@ -54,7 +54,7 @@ internal class PluginManager : IInternalDisposableService
 
     private static readonly ModuleLog Log = ModuleLog.Create<PluginManager>();
 
-    private readonly object pluginListLock = new();
+    private readonly Lock pluginListLock = new();
     private readonly DirectoryInfo pluginDirectory;
     private readonly BannedPlugin[]? bannedPlugins;
 
@@ -171,7 +171,7 @@ internal class PluginManager : IInternalDisposableService
         get
         {
             var res = 0;
-            lock (this.pluginListLock)
+            using (this.pluginListLock.EnterScope())
             {
                 foreach (var p in this.installedPluginsList)
                 {
@@ -191,10 +191,8 @@ internal class PluginManager : IInternalDisposableService
     {
         get
         {
-            lock (this.pluginListLock)
-            {
+            using (this.pluginListLock.EnterScope())
                 return this.installedPluginsList.ToList();
-            }
         }
     }
 
@@ -205,10 +203,8 @@ internal class PluginManager : IInternalDisposableService
     {
         get
         {
-            lock (this.pluginListLock)
-            {
+            using (this.pluginListLock.EnterScope())
                 return this.availablePluginsList.ToList();
-            }
         }
     }
 
@@ -219,10 +215,8 @@ internal class PluginManager : IInternalDisposableService
     {
         get
         {
-            lock (this.pluginListLock)
-            {
+            using (this.pluginListLock.EnterScope())
                 return this.updatablePluginsList.ToList();
-            }
         }
     }
 
@@ -282,7 +276,7 @@ internal class PluginManager : IInternalDisposableService
     /// You must NEVER use this in async code.
     /// </summary>
     /// <returns>The aforementioned disposable.</returns>
-    public IDisposable GetSyncScope() => new ScopedSyncRoot(this.pluginListLock);
+    public Lock.Scope GetSyncScope() => this.pluginListLock.EnterScope();
 
     /// <summary>
     /// Print to chat any plugin updates and whether they were successful.
@@ -771,7 +765,7 @@ internal class PluginManager : IInternalDisposableService
             Log.Verbose("Scanned dev plugin at {Path}", loadLocation.Path);
 
             // This file is already known to us
-            lock (this.pluginListLock)
+            using (this.pluginListLock.EnterScope())
             {
                 if (this.installedPluginsList.Any(lp => lp.DllFile.FullName == fileInfo.FullName))
                     continue;
@@ -835,10 +829,8 @@ internal class PluginManager : IInternalDisposableService
         if (plugin.State != PluginState.Unloaded && plugin.HasEverStartedLoad)
             throw new InvalidPluginOperationException($"Unable to remove {plugin.Name}, not unloaded and had loaded before");
 
-        lock (this.pluginListLock)
-        {
+        using (this.pluginListLock.EnterScope())
             this.installedPluginsList.Remove(plugin);
-        }
 
         this.NotifyInstalledPluginsChanged();
         this.NotifyAvailablePluginsChanged();
@@ -1213,7 +1205,7 @@ internal class PluginManager : IInternalDisposableService
             if (declaringType == null)
                 continue;
 
-            lock (this.pluginListLock)
+            using (this.pluginListLock.EnterScope())
             {
                 foreach (var plugin in this.installedPluginsList)
                 {
@@ -1234,7 +1226,7 @@ internal class PluginManager : IInternalDisposableService
     /// <param name="affectedInternalNames">The affected plugins.</param>
     public void NotifyPluginsForStateChange(PluginListInvalidationKind kind, IEnumerable<string> affectedInternalNames)
     {
-        lock (this.pluginListLock)
+        using (this.pluginListLock.EnterScope())
         {
             foreach (var installedPlugin in this.installedPluginsList)
             {
@@ -1570,7 +1562,7 @@ internal class PluginManager : IInternalDisposableService
 
         // Track the plugin as soon as it is instantiated to prevent it from being loaded twice,
         // if the installer or DevPlugin scanner is attempting to add plugins while we are still loading boot plugins
-        lock (this.pluginListLock)
+        using (this.pluginListLock.EnterScope())
         {
             // Check if this plugin is already loaded
             if (this.installedPluginsList.Any(lp => lp.DllFile.FullName == dllFile.FullName))
@@ -1760,46 +1752,45 @@ internal class PluginManager : IInternalDisposableService
     {
         Log.Debug("Starting plugin update check...");
 
-        lock (this.pluginListLock)
+        using var scope = this.pluginListLock.EnterScope();
+
+        this.updatablePluginsList.Clear();
+
+        foreach (var plugin in this.installedPluginsList)
         {
-            this.updatablePluginsList.Clear();
+            var installedVersion = plugin.Manifest.AssemblyVersion;
 
-            foreach (var plugin in this.installedPluginsList)
+            var updates = this.AvailablePlugins
+                              .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
+                              .Where(remoteManifest => plugin.Manifest.InstalledFromUrl == remoteManifest.SourceRepo.PluginMasterUrl || !remoteManifest.SourceRepo.IsThirdParty)
+                              .Where(remoteManifest => remoteManifest.MinimumDalamudVersion == null || Versioning.GetAssemblyVersionParsed() >= remoteManifest.MinimumDalamudVersion)
+                              .Where(remoteManifest => !remoteManifest.IsTestingExclusive || this.UseTesting(remoteManifest))
+                              .Where(remoteManifest =>
+                              {
+                                  var useTesting = this.UseTesting(remoteManifest);
+                                  var candidateApiLevel = useTesting && remoteManifest.TestingDalamudApiLevel != null
+                                                              ? remoteManifest.TestingDalamudApiLevel.Value
+                                                              : remoteManifest.DalamudApiLevel;
+
+                                  return candidateApiLevel == DalamudApiLevel;
+                              })
+                              .Select(remoteManifest =>
+                              {
+                                  var useTesting = this.UseTesting(remoteManifest);
+                                  var candidateVersion = useTesting
+                                                              ? remoteManifest.TestingAssemblyVersion
+                                                              : remoteManifest.AssemblyVersion;
+                                  var isUpdate = candidateVersion > installedVersion;
+
+                                  return (isUpdate, useTesting, candidateVersion, remoteManifest);
+                              })
+                              .Where(tpl => tpl.isUpdate)
+                              .ToList();
+
+            if (updates.Count > 0)
             {
-                var installedVersion = plugin.Manifest.AssemblyVersion;
-
-                var updates = this.AvailablePlugins
-                                  .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
-                                  .Where(remoteManifest => plugin.Manifest.InstalledFromUrl == remoteManifest.SourceRepo.PluginMasterUrl || !remoteManifest.SourceRepo.IsThirdParty)
-                                  .Where(remoteManifest => remoteManifest.MinimumDalamudVersion == null || Versioning.GetAssemblyVersionParsed() >= remoteManifest.MinimumDalamudVersion)
-                                  .Where(remoteManifest => !remoteManifest.IsTestingExclusive || this.UseTesting(remoteManifest))
-                                  .Where(remoteManifest =>
-                                  {
-                                      var useTesting = this.UseTesting(remoteManifest);
-                                      var candidateApiLevel = useTesting && remoteManifest.TestingDalamudApiLevel != null
-                                                                  ? remoteManifest.TestingDalamudApiLevel.Value
-                                                                  : remoteManifest.DalamudApiLevel;
-
-                                      return candidateApiLevel == DalamudApiLevel;
-                                  })
-                                  .Select(remoteManifest =>
-                                  {
-                                      var useTesting = this.UseTesting(remoteManifest);
-                                      var candidateVersion = useTesting
-                                                                 ? remoteManifest.TestingAssemblyVersion
-                                                                 : remoteManifest.AssemblyVersion;
-                                      var isUpdate = candidateVersion > installedVersion;
-
-                                      return (isUpdate, useTesting, candidateVersion, remoteManifest);
-                                  })
-                                  .Where(tpl => tpl.isUpdate)
-                                  .ToList();
-
-                if (updates.Count > 0)
-                {
-                    var update = updates.Aggregate((t1, t2) => t1.candidateVersion > t2.candidateVersion ? t1 : t2);
-                    this.updatablePluginsList.Add(new AvailablePluginUpdate(plugin, update.remoteManifest, update.useTesting));
-                }
+                var update = updates.Aggregate((t1, t2) => t1.candidateVersion > t2.candidateVersion ? t1 : t2);
+                this.updatablePluginsList.Add(new AvailablePluginUpdate(plugin, update.remoteManifest, update.useTesting));
             }
         }
 
@@ -1838,18 +1829,17 @@ internal class PluginManager : IInternalDisposableService
     /// <param name="notify">Whether to notify that available plugins have changed afterwards.</param>
     private void RefilterAvailablePlugins(bool notify = true)
     {
-        lock (this.pluginListLock)
-        {
-            this.availablePluginsList.Clear();
-            this.availablePluginsList.AddRange(this.Repos
-                                                   .SelectMany(repo => repo.PluginMaster)
-                                                   .Where(this.IsManifestEligible)
-                                                   .Where(IsManifestVisible));
+        using var scope = this.pluginListLock.EnterScope();
 
-            if (notify)
-            {
-                this.NotifyAvailablePluginsChanged();
-            }
+        this.availablePluginsList.Clear();
+        this.availablePluginsList.AddRange(this.Repos
+                                                .SelectMany(repo => repo.PluginMaster)
+                                                .Where(this.IsManifestEligible)
+                                                .Where(IsManifestVisible));
+
+        if (notify)
+        {
+            this.NotifyAvailablePluginsChanged();
         }
     }
 

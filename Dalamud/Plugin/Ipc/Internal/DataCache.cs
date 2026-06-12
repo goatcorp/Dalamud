@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 
 using Dalamud.Plugin.Ipc.Exceptions;
 
@@ -24,6 +25,9 @@ internal readonly struct DataCache
     /// <remarks> Also used as a reference count tracker. </remarks>
     internal readonly List<DataCachePluginId> UserPluginIds;
 
+    /// <summary> A lock for the distinct list of plugin IDs that are using this data. </summary>
+    internal readonly Lock UserPluginIdsLock;
+
     /// <summary> The type the data was registered as. </summary>
     internal readonly Type Type;
 
@@ -42,6 +46,7 @@ internal readonly struct DataCache
         this.Tag = tag;
         this.CreatorPluginId = creatorPluginId;
         this.UserPluginIds = [];
+        this.UserPluginIdsLock = new();
         this.Data = data;
         this.Type = type;
     }
@@ -100,7 +105,7 @@ internal readonly struct DataCache
                 ex = null;
 
                 // Register the access history. The effective working ID is unique per plugin and persists between reloads, so only add it once.
-                lock (this.UserPluginIds)
+                using (this.UserPluginIdsLock.EnterScope())
                 {
                     if (this.UserPluginIds.All(c => c.EffectiveWorkingId != callingPluginId.EffectiveWorkingId))
                     {

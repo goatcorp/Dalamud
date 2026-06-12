@@ -142,7 +142,7 @@ internal class GamePrebakedFontHandle : FontHandle
         {
             var handle = new GamePrebakedFontHandle(this, style);
             bool suggestRebuild;
-            lock (this.syncRoot)
+            using (this.syncRoot.EnterScope())
             {
                 this.handles.Add(handle);
                 this.gameFontsRc[style] = this.gameFontsRc.GetValueOrDefault(style, 0) + 1;
@@ -161,7 +161,7 @@ internal class GamePrebakedFontHandle : FontHandle
             if (handle is not GamePrebakedFontHandle ggfh)
                 return;
 
-            lock (this.syncRoot)
+            using (this.syncRoot.EnterScope())
             {
                 this.handles.Remove(ggfh);
                 if (!this.gameFontsRc.ContainsKey(ggfh.FontStyle))
@@ -175,7 +175,7 @@ internal class GamePrebakedFontHandle : FontHandle
         /// <inheritdoc/>
         public IFontHandleSubstance NewSubstance(IRefCountable dataRoot)
         {
-            lock (this.syncRoot)
+            using (this.syncRoot.EnterScope())
                 return new HandleSubstance(this, dataRoot, this.handles.ToArray(), this.gameFontsRc.Keys);
         }
     }

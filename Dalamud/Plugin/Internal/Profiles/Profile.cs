@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.Player;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
@@ -21,6 +21,7 @@ internal class Profile
     private readonly ProfileModelV1 modelV1;
 
     private readonly Dictionary<Guid, bool> ephemeralWantOverrides = new();
+    private readonly Lock profileLock = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Profile"/> class.
@@ -170,7 +171,7 @@ internal class Profile
     /// <returns>Null if this profile does not declare the plugin, true if the profile declares the plugin and wants it enabled, false if the profile declares the plugin and does not want it enabled.</returns>
     public bool? WantsPlugin(Guid workingPluginId)
     {
-        lock (this)
+        using (this.profileLock.EnterScope())
         {
             if (this.ephemeralWantOverrides.TryGetValue(workingPluginId, out var overrideState))
             {
@@ -213,7 +214,7 @@ internal class Profile
     {
         Debug.Assert(workingPluginId != Guid.Empty, "Trying to add plugin with empty guid");
 
-        lock (this)
+        using (this.profileLock.EnterScope())
         {
             var existing = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
             if (existing != null)
@@ -262,7 +263,7 @@ internal class Profile
     public async Task RemoveAsync(Guid workingPluginId, bool apply = true, bool checkDefault = true)
     {
         ProfileModelV1.ProfileModelV1Plugin entry;
-        lock (this)
+        using (this.profileLock.EnterScope())
         {
             entry = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
             if (entry == null)
@@ -319,7 +320,7 @@ internal class Profile
     /// <param name="newGuid">Guid to use.</param>
     public void MigrateProfilesToGuidsForPlugin(string internalName, Guid newGuid)
     {
-        lock (this)
+        using (this.profileLock.EnterScope())
         {
             foreach (var plugin in this.modelV1.Plugins)
             {

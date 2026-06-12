@@ -45,6 +45,7 @@ internal static class ServiceManager
 
     [SuppressMessage("ReSharper", "CollectionNeverQueried.Local", Justification = "Debugging purposes")]
     private static readonly List<Type> LoadedServices = [];
+    private static readonly Lock LoadedServicesLock = new();
 #endif
 
     private static readonly TaskCompletionSource BlockingServicesLoadedTaskCompletionSource =
@@ -153,7 +154,7 @@ internal static class ServiceManager
         }
 
 #if DEBUG
-        lock (LoadedServices)
+        using (LoadedServicesLock.EnterScope())
         {
             ProvideAllServices();
         }
@@ -375,7 +376,7 @@ internal static class ServiceManager
                     {
                         if (task.IsFaulted)
                             return;
-                        lock (LoadedServices)
+                        using (LoadedServicesLock.EnterScope())
                         {
                             LoadedServices.Add(serviceType);
                         }
@@ -516,7 +517,7 @@ internal static class ServiceManager
         }
 
 #if DEBUG
-        lock (LoadedServices)
+        using (LoadedServicesLock.EnterScope())
         {
             LoadedServices.Clear();
         }
