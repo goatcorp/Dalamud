@@ -37,8 +37,8 @@ internal class ConsoleWindow : Window, IDisposable
     private const int HistorySize = 50;
 
     // Fields below should be touched only from the main thread.
-    private readonly RollingList<LogEntry> logText;
-    private readonly RollingList<LogEntry> filteredLogEntries;
+    private readonly RollingList<LogLine> logText;
+    private readonly RollingList<LogLine> filteredLogEntries;
 
     private readonly List<PluginFilterEntry> pluginFilters = [];
 
@@ -208,7 +208,7 @@ internal class ConsoleWindow : Window, IDisposable
                     0); // Prevents flicker effect. Also workaround to avoid negative indexes.
                 var line = this.filteredLogEntries[index];
 
-                if (!line.IsMultiline)
+                if (line.IsFirstLine)
                     ImGui.Separator();
 
                 if (line.SelectedForCopy)
@@ -236,7 +236,7 @@ internal class ConsoleWindow : Window, IDisposable
 
                 ImGui.PopStyleColor(3);
 
-                if (!line.IsMultiline)
+                if (line.IsFirstLine)
                 {
                     ImGui.Text(line.TimestampString);
                     ImGui.SameLine();
@@ -376,21 +376,22 @@ internal class ConsoleWindow : Window, IDisposable
         {
             this.pendingRefilter = false;
             this.filteredLogEntries.Clear();
-            foreach (var log in this.logText)
+
+            // group log lines by their entry, if any line of the entry is in the filter, include them all
+            foreach (var entry in this.logText.GroupBy(log => log.Entry).Where(entry => entry.Any(this.IsFilterApplicable)))
             {
-                if (this.IsFilterApplicable(log))
-                    this.filteredLogEntries.Add(log);
+                this.filteredLogEntries.AddRange(entry);
             }
         }
 
         var numPrevFilteredLogEntries = this.filteredLogEntries.Count;
         var addedLines = 0;
-        while (NewLogEntries.TryDequeue(out var logLine))
-            addedLines += this.HandleLogLine(logLine.Line, logLine.LogEvent);
+        while (NewLogEntries.TryDequeue(out var logTuple))
+            addedLines += this.HandleLogEvent(logTuple.Line, logTuple.LogEvent);
         this.newRolledLines = addedLines - (this.filteredLogEntries.Count - numPrevFilteredLogEntries);
     }
 
-    private void HandleCopyMode(int i, LogEntry line)
+    private void HandleCopyMode(int i, LogLine line)
     {
         var selectionChanged = false;
 
@@ -926,10 +927,10 @@ internal class ConsoleWindow : Window, IDisposable
     }
 
     /// <summary>Add a log entry to the display.</summary>
-    /// <param name="line">The line to add.</param>
+    /// <param name="line">The line to add. If it is multi-line, so it has line separators, multiple lines will be created in the log window for it.</param>
     /// <param name="logEvent">The Serilog event associated with this line.</param>
     /// <returns>Number of lines added to <see cref="filteredLogEntries"/>.</returns>
-    private int HandleLogLine(string line, LogEvent logEvent)
+    private int HandleLogEvent(string line, LogEvent logEvent)
     {
         ThreadSafety.DebugAssertMainThread();
 
@@ -937,71 +938,87 @@ internal class ConsoleWindow : Window, IDisposable
         if (line.StartsWith("TROUBLESHOOTING:") || line.StartsWith("LASTEXCEPTION:"))
             return 0;
 
-        // Create a log entry template.
-        var entry = new LogEntry
-        {
-            Level = logEvent.Level,
-            TimeStamp = logEvent.Timestamp,
-            HasException = logEvent.Exception != null,
-        };
+        // create a collection to temporarily store the lines in
+        List<LogLine> lines = [];
 
+        // create a LogEntry with this collection
+        var logEntry = new LogEntry();
+
+        // try to get the source of the line, null otherwise
+        string? source = null;
         if (logEvent.Properties.ContainsKey("Dalamud.ModuleName"))
         {
-            entry.Source = "DalamudInternal";
+            source = "DalamudInternal";
         }
         else if (logEvent.Properties.TryGetValue("Dalamud.PluginName", out var sourceProp) &&
                  sourceProp is ScalarValue { Value: string sourceValue })
         {
-            entry.Source = sourceValue;
+            source = sourceValue;
         }
 
+        var first = true;
+
         var ssp = line.AsSpan();
-        var numLines = 0;
         while (true)
         {
-            var next = ssp.IndexOfAny('\r', '\n');
-            if (next == -1)
+            // for each line, create a LogLine object
+            var logLine = new LogLine
+            {
+                Level = logEvent.Level,
+                Entry = logEntry,
+                TimeStamp = logEvent.Timestamp,
+                HasException = logEvent.Exception != null,
+                Source = source,
+                IsFirstLine = first,
+            };
+
+            first = false;
+
+            var nextLineSeparator = ssp.IndexOfAny('\r', '\n');
+            if (nextLineSeparator == -1)
             {
                 // Last occurrence; transfer the ownership of the new entry to the queue.
-                entry.Line = ssp.ToString();
-                numLines += this.AddAndFilter(entry);
+                logLine.Line = ssp.ToString();
+                // push the line into the lines list
+                lines.Add(logLine);
                 break;
             }
 
             // There will be more; create a clone of the entry with the current line.
-            numLines += this.AddAndFilter(entry with { Line = ssp[..next].ToString() });
-
-            // Mark further lines as multiline.
-            entry.IsMultiline = true;
+            logLine = logLine with { Line = ssp[..nextLineSeparator].ToString() };
+            // push the line into the lines list
+            lines.Add(logLine);
 
             // Skip the detected line break.
-            ssp = ssp[next..];
+            ssp = ssp[nextLineSeparator..];
             ssp = ssp.StartsWith("\r\n") ? ssp[2..] : ssp[1..];
         }
 
-        return numLines;
+        return this.AddAndFilter(lines);
     }
 
     /// <summary>Adds a line to the log list and the filtered log list accordingly.</summary>
-    /// <param name="entry">The new log entry to add.</param>
+    /// <param name="lines">The new log entry to add.</param>
     /// <returns>Number of lines added to <see cref="filteredLogEntries"/>.</returns>
-    private int AddAndFilter(LogEntry entry)
+    private int AddAndFilter(List<LogLine> lines)
     {
         ThreadSafety.DebugAssertMainThread();
 
-        this.logText.Add(entry);
+        this.logText.AddRange(lines);
 
-        if (!this.IsFilterApplicable(entry))
+        if (!lines.Any(this.IsFilterApplicable))
+        {
             return 0;
+        }
 
-        this.filteredLogEntries.Add(entry);
-        return 1;
+        this.filteredLogEntries.AddRange(lines);
+        return lines.Count;
     }
 
     /// <summary>Determines if a log entry passes the user-specified filter.</summary>
-    /// <param name="entry">The entry to test.</param>
+    /// <param name="line">The entry to test.</param>
     /// <returns><c>true</c> if it passes the filter.</returns>
-    private bool IsFilterApplicable(LogEntry entry)
+    private bool IsFilterApplicable(LogLine line)
     {
         ThreadSafety.DebugAssertMainThread();
 
@@ -1009,12 +1026,12 @@ internal class ConsoleWindow : Window, IDisposable
             return false;
 
         // If this entry is below a newly set minimum level, fail it
-        if (EntryPoint.LogLevelSwitch.MinimumLevel > entry.Level)
+        if (EntryPoint.LogLevelSwitch.MinimumLevel > line.Level)
             return false;
 
         // Show exceptions that weren't properly tagged with a Source (generally meaning they were uncaught)
         // After log levels because uncaught exceptions should *never* fall below Error.
-        if (this.filterShowUncaughtExceptions && entry.HasException && entry.Source == null)
+        if (this.filterShowUncaughtExceptions && line.HasException && line.Source == null)
             return true;
 
         // (global filter) && (plugin filter) must be satisfied.
@@ -1024,8 +1041,8 @@ internal class ConsoleWindow : Window, IDisposable
         if (this.compiledLogFilter is { } logFilter)
         {
             // Someone will definitely try to just text filter a source without using the actual filters, should allow that.
-            var matchesSource = entry.Source is not null && logFilter.IsMatch(entry.Source);
-            var matchesContent = logFilter.IsMatch(entry.Line);
+            var matchesSource = line.Source is not null && logFilter.IsMatch(line.Source);
+            var matchesContent = logFilter.IsMatch(line.Line);
 
             wholeCond &= matchesSource || matchesContent;
         }
@@ -1037,11 +1054,11 @@ internal class ConsoleWindow : Window, IDisposable
 
             foreach (var filterEntry in this.pluginFilters)
             {
-                if (!string.Equals(filterEntry.Source, entry.Source, StringComparison.InvariantCultureIgnoreCase))
+                if (!string.Equals(filterEntry.Source, line.Source, StringComparison.InvariantCultureIgnoreCase))
                     continue;
 
-                var allowedLevel = filterEntry.Level <= entry.Level;
-                var matchesContent = filterEntry.FilterRegex?.IsMatch(entry.Line) is not false;
+                var allowedLevel = filterEntry.Level <= line.Level;
+                var matchesContent = filterEntry.FilterRegex?.IsMatch(line.Line) is not false;
 
                 matchesAny |= allowedLevel && matchesContent;
                 if (matchesAny)
@@ -1138,21 +1155,38 @@ internal class ConsoleWindow : Window, IDisposable
         ImGui.Dummy(screenPos - ImGui.GetCursorScreenPos());
     }
 
-    private record LogEntry
+
+    /// <summary>
+    /// This class is only used to differentiate the entry a log line belongs to.
+    /// Cannot be a record, because a record would have value equality instead of referential equality.
+    /// </summary>
+    private class LogEntry
+    {
+    }
+
+    private record LogLine
     {
         public string Line { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the corresponding log entry for the line, used to group lines when filtering.
+        /// </summary>
+        public LogEntry Entry { get; init; }
 
         public LogEventLevel Level { get; init; }
 
         public DateTimeOffset TimeStamp { get; init; }
 
-        public bool IsMultiline { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether this line is the first line in its LogEntry. If true, it may or may not be the only line.
+        /// </summary>
+        public bool IsFirstLine { get; set; }
 
         /// <summary>
         /// Gets or sets the system responsible for generating this log entry. Generally will be a plugin's
         /// InternalName.
         /// </summary>
-        public string? Source { get; set; }
+        public string? Source { get; init; }
 
         public bool SelectedForCopy { get; set; }
 
@@ -1163,9 +1197,9 @@ internal class ConsoleWindow : Window, IDisposable
         public string TimestampString => this.TimeStamp.ToString("HH:mm:ss.fff");
 
         public override string ToString() =>
-            this.IsMultiline
-                ? $"\t{this.Line}"
-                : $"{this.TimestampString} | {GetTextForLogEventLevel(this.Level)} | {this.Line}";
+            this.IsFirstLine
+                ? $"{this.TimestampString} | {GetTextForLogEventLevel(this.Level)} | {this.Line}"
+                : $"\t{this.Line}";
     }
 
     private class PluginFilterEntry
