@@ -40,6 +40,9 @@ public interface IWindow
     /// <summary>
     /// Gets or sets a value indicating whether this window inhibits the game cursor from interacting with native elements underneath the hovered window.
     /// </summary>
+    /// <remarks>
+    /// This is feature is disabled when Gamepad Mode is enabled.
+    /// </remarks>
     bool InhibitAtkCollision { get; set; }
 
     /// <summary>

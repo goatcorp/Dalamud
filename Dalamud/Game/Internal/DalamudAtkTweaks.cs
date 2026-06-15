@@ -235,7 +235,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 
     private void RaptureAtkUnitManagerGetAddonCollisionDetour(RaptureAtkUnitManager* thisPtr, AddonCollision* collisionInfo, short x, short y)
     {
-        if (WindowSystem.ShouldInhibitAtkCollisions)
+        if (WindowSystem.ShouldInhibitAtkCollisions && !UIModule.Instance()->IsPadModeEnabled())
         {
             if (collisionInfo != null)
             {
