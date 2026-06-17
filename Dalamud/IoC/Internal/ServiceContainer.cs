@@ -35,7 +35,7 @@ internal class ServiceContainer : IServiceType
         // For all other services, this is done through the static constructor of Service{T}.
         this.instances.Add(
             typeof(IServiceContainer),
-            new(new Task<WeakReference>(() => new WeakReference(this), TaskCreationOptions.RunContinuationsAsynchronously), typeof(ServiceContainer), ObjectInstanceVisibility.Internal));
+            new(Task.FromResult(new WeakReference(this)), typeof(ServiceContainer), ObjectInstanceVisibility.Internal));
     }
 
     /// <summary>
