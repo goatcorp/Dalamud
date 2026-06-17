@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game;
 using Dalamud.Interface.ImGuiBackend.Helpers;
 using Dalamud.Interface.ImGuiBackend.Helpers.D3D11;
 using Dalamud.Interface.Textures;
@@ -738,6 +739,9 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         ObjectDisposedException.ThrowIf(this.device.IsEmpty(), this);
 
         if (this.fontTextures.Count != 0)
+            return;
+
+        if (Service<Framework>.GetNullable() is not { IsFrameworkUnloading: false })
             return;
 
         var io = ImGui.GetIO();
