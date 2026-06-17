@@ -446,7 +446,7 @@ internal static class ServiceManager
     {
         UnloadCancellationTokenSource.Cancel();
 
-        var framework = Service<Framework>.GetNullable(Service<Framework>.ExceptionPropagationMode.None);
+        var framework = Service<Framework>.GetNullable(ExceptionPropagationMode.None);
         if (framework is { IsInFrameworkUpdateThread: false, IsFrameworkUnloading: false })
         {
             framework.RunOnFrameworkThread(UnloadAllServices).Wait();
