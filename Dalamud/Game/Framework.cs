@@ -456,21 +456,27 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
     private unsafe bool HandleFrameworkDestroy(CSFramework* thisPtr)
     {
-        this.frameworkDestroy.Cancel();
-        this.DispatchUpdateEvents = false;
-        foreach (var k in this.tickDelayedTaskCompletionSources.Keys)
-            k.SetCanceled(this.frameworkDestroy.Token);
-        this.tickDelayedTaskCompletionSources.Clear();
+        if (!this.frameworkDestroy.IsCancellationRequested)
+        {
+            Log.Information("Framework::Destroy!");
 
-        // All the same, for now...
-        this.lifecycle.SetShuttingDown();
-        this.lifecycle.SetUnloading();
+            this.frameworkDestroy.Cancel();
+            this.DispatchUpdateEvents = false;
+            foreach (var k in this.tickDelayedTaskCompletionSources.Keys)
+                k.SetCanceled(this.frameworkDestroy.Token);
+            this.tickDelayedTaskCompletionSources.Clear();
 
-        Log.Information("Framework::Destroy!");
-        Service<Dalamud>.Get().Unload();
-        this.frameworkThreadTaskScheduler.Run();
-        ServiceManager.WaitForServiceUnload();
-        Log.Information("Framework::Destroy OK!");
+            // All the same, for now...
+            this.lifecycle.SetShuttingDown();
+            this.lifecycle.SetUnloading();
+
+            this.frameworkThreadTaskScheduler.Run();
+
+            Service<Dalamud>.Get().Unload();
+        }
+
+        if (!ServiceManager.IsUnloaded)
+            return false;
 
         return this.destroyHook.OriginalDisposeSafe(thisPtr);
     }
