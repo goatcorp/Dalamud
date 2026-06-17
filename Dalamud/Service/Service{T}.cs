@@ -39,6 +39,9 @@ internal static class Service<T> where T : IServiceType
             ?? throw new InvalidOperationException(
                 $"{nameof(T)} is missing {nameof(ServiceManager.ServiceAttribute)} annotations.");
 
+        ServiceManager.UnloadCancellationToken.Register(()
+            => instanceTcs.TrySetException(new UnloadedException()));
+
         var exposeToPlugins = Attribute.IsDefined(type, typeof(PluginInterfaceAttribute));
         if (exposeToPlugins)
             ServiceManager.Log.Debug("Service<{0}>: Static ctor called; will be exposed to plugins", type.Name);
@@ -391,7 +394,12 @@ internal static class Service<T> where T : IServiceType
     /// Pull the instance out of the service locator, waiting if necessary.
     /// </summary>
     /// <returns>The object.</returns>
-    private static Task<object> GetAsyncAsObject() => instanceTcs.Task.ContinueWith(r => (object)r.Result);
+    private static Task<object> GetAsyncAsObject() =>
+        instanceTcs.Task.ContinueWith(
+            r => (object)r.Result,
+            ServiceManager.UnloadCancellationToken,
+            TaskContinuationOptions.RunContinuationsAsynchronously,
+            TaskScheduler.Default);
 
     /// <summary>
     /// Exception thrown when service is attempted to be retrieved when it's unloaded.
