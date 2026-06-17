@@ -219,7 +219,7 @@ internal sealed partial class TextureManager
 
                 try
                 {
-                    this.textureManager.framework.DelayTicks(60).Wait(this.disposingCancellationTokenSource.Token);
+                    this.disposingCancellationTokenSource.Token.WaitHandle.WaitOne(1000);
                 }
                 catch (Exception)
                 {
