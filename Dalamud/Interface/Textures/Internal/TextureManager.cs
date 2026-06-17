@@ -49,6 +49,9 @@ internal sealed partial class TextureManager
     private readonly Framework framework = Service<Framework>.Get();
 
     [ServiceManager.ServiceDependency]
+    private readonly GameLifecycle gameLifecycle = Service<GameLifecycle>.Get();
+
+    [ServiceManager.ServiceDependency]
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
 
     private readonly CancellationTokenSource disposeCts = new();
