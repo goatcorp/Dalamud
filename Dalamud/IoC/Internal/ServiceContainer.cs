@@ -68,6 +68,17 @@ internal class ServiceContainer : IServiceType
     }
 
     /// <summary>
+    /// Unregisters a singleton service from the container.
+    /// </summary>
+    /// <param name="serviceType">The type of the service to remove.</param>
+    public void UnregisterSingleton(Type serviceType)
+    {
+        ArgumentNullException.ThrowIfNull(serviceType);
+
+        this.instances.Remove(serviceType);
+    }
+
+    /// <summary>
     /// Register the interfaces that can resolve this type.
     /// </summary>
     /// <param name="type">The type to register.</param>

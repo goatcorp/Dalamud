@@ -300,6 +300,18 @@ internal static class Service<T> where T : IServiceType
         if (!instanceTcs.Task.IsCompletedSuccessfully)
             return;
 
+        try
+        {
+            if (Service<ServiceContainer>.GetNullable(ExceptionPropagationMode.None) is { } container)
+            {
+                container.UnregisterSingleton(typeof(T));
+            }
+        }
+        catch (Exception e)
+        {
+            ServiceManager.Log.Warning(e, "Service<{0}>: Failed to notify ServiceContainer during Unset", typeof(T).Name);
+        }
+
         switch (instanceTcs.Task.Result)
         {
             case IInternalDisposableService d:
