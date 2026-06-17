@@ -58,7 +58,13 @@ internal class ServiceContainer : IServiceType
     {
         ArgumentNullException.ThrowIfNull(instance);
 
-        this.instances[typeof(T)] = new(instance.ContinueWith(x => new WeakReference(x.Result)), typeof(T), visibility);
+        var continuation = instance.ContinueWith(
+            x => new WeakReference(x.Result),
+            ServiceManager.UnloadCancellationToken,
+            TaskContinuationOptions.RunContinuationsAsynchronously,
+            TaskScheduler.Default);
+
+        this.instances[typeof(T)] = new(continuation, typeof(T), visibility);
     }
 
     /// <summary>
