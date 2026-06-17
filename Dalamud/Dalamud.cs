@@ -195,6 +195,7 @@ internal sealed unsafe class Dalamud : IServiceType
     public void WaitForUnload()
     {
         this.unloadSignal.WaitOne();
+        this.unloadSignal.Dispose();
     }
 
     /// <summary>
