@@ -33,7 +33,7 @@ internal sealed partial class FontAtlasFactory
     : IInternalDisposableService, GamePrebakedFontHandle.IGameFontTextureProvider
 {
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
-    private readonly CancellationTokenSource cancellationTokenSource = new();
+    private readonly CancellationTokenSource cancellationTokenSource;
     private readonly IReadOnlyDictionary<GameFontFamilyAndSize, Task<byte[]>> fdtFiles;
     private readonly IReadOnlyDictionary<string, Task<Task<TexFile>[]>> texFiles;
     private readonly IReadOnlyDictionary<string, Task<IDalamudTextureWrap?[]>> prebakedTextureWraps;
@@ -44,12 +44,14 @@ internal sealed partial class FontAtlasFactory
     private FontAtlasFactory(
         DataManager dataManager,
         Framework framework,
+        GameLifecycle gameLifecycle,
         InterfaceManager interfaceManager,
         DalamudAssetManager dalamudAssetManager)
     {
         this.Framework = framework;
         this.InterfaceManager = interfaceManager;
         this.dalamudAssetManager = dalamudAssetManager;
+        this.cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(gameLifecycle.GameShuttingDownToken);
         this.BackendTask = Service<InterfaceManager.InterfaceManagerWithScene>
                          .GetAsync()
                          .ContinueWith(r => r.Result.Manager.Backend);
