@@ -375,42 +375,44 @@ internal class PluginManager : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        DisposeAsync(
-            this.installedPluginsList
-                .Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError)
-                .ToArray(),
-            this.configuration).Wait();
-        return;
+        this.UnloadAllPlugins().Wait();
+    }
 
-        static async Task DisposeAsync(LocalPlugin[] disposablePlugins, DalamudConfiguration configuration)
-        {
-            if (disposablePlugins.Length == 0)
-                return;
+    /// <summary>
+    /// Unloads all loaded plugins.
+    /// </summary>
+    /// <returns>Task that will resolve once all plugins are unloaded.</returns>
+    public async Task UnloadAllPlugins()
+    {
+        var disposablePlugins = this.installedPluginsList
+                .Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError);
 
-            // Any unload/dispose operation called from this function log errors on their own.
-            // Ignore all errors.
+        if (!disposablePlugins.Any())
+            return;
 
-            // Unload plugins that requires to be unloaded synchronously,
-            // just in case some plugin codes are still running via callbacks initiated externally.
-            foreach (var plugin in disposablePlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
-                await plugin.UnloadAsync(PluginLoaderDisposalMode.None).SuppressException();
+        // Any unload/dispose operation called from this function log errors on their own.
+        // Ignore all errors.
 
-            // Unload plugins that can be unloaded from any thread.
-            await Task.WhenAll(
-                          disposablePlugins.Where(plugin => plugin.Manifest.CanUnloadAsync)
-                                           .Select(plugin => plugin.UnloadAsync(PluginLoaderDisposalMode.None)))
-                      .SuppressException();
+        // Unload plugins that requires to be unloaded synchronously,
+        // just in case some plugin codes are still running via callbacks initiated externally.
+        foreach (var plugin in disposablePlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
+            await plugin.UnloadAsync(PluginLoaderDisposalMode.None).SuppressException();
 
-            // Just in case plugins still have tasks running that they didn't cancel when they should have,
-            // give them some time to complete it.
-            // This helps avoid plugins being reloaded from conflicting with itself of previous instance.
-            await Task.Delay(configuration.PluginWaitBeforeFree ?? PluginWaitBeforeFreeDefault);
+        // Unload plugins that can be unloaded from any thread.
+        await Task.WhenAll(
+                      disposablePlugins.Where(plugin => plugin.Manifest.CanUnloadAsync)
+                                       .Select(plugin => plugin.UnloadAsync(PluginLoaderDisposalMode.None)))
+                  .SuppressException();
 
-            // Now that we've waited enough, dispose the whole plugin.
-            // Since plugins should have been unloaded above, this should complete quickly.
-            await Task.WhenAll(disposablePlugins.Select(plugin => plugin.DisposeAsync().AsTask()))
-                      .SuppressException();
-        }
+        // Just in case plugins still have tasks running that they didn't cancel when they should have,
+        // give them some time to complete it.
+        // This helps avoid plugins being reloaded from conflicting with itself of previous instance.
+        await Task.Delay(this.configuration.PluginWaitBeforeFree ?? PluginWaitBeforeFreeDefault);
+
+        // Now that we've waited enough, dispose the whole plugin.
+        // Since plugins should have been unloaded above, this should complete quickly.
+        await Task.WhenAll(disposablePlugins.Select(plugin => plugin.DisposeAsync().AsTask()))
+                  .SuppressException();
     }
 
     /// <summary>

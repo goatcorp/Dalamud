@@ -10,6 +10,7 @@ using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Hooking.Internal.Verification;
+using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
@@ -33,7 +34,7 @@ namespace Dalamud;
 /// The main Dalamud class containing all subsystems.
 /// </summary>
 [ServiceManager.ProvidedService]
-internal sealed unsafe class Dalamud : IServiceType
+internal sealed class Dalamud : IServiceType
 {
     #region Internals
 
@@ -187,7 +188,15 @@ internal sealed unsafe class Dalamud : IServiceType
             Windows.Win32.PInvoke.CreateMutex(attribs, false, "DALAMUD_CRASHES_NO_MORE");
         }
 
-        this.unloadSignal.Set();
+        Task.Run(() =>
+        {
+            if (Service<PluginManager>.GetNullable() is { } pluginManager)
+                pluginManager.UnloadAllPlugins().Wait();
+
+            ServiceManager.UnloadAllServices();
+
+            this.unloadSignal.Set();
+        });
     }
 
     /// <summary>
@@ -220,7 +229,7 @@ internal sealed unsafe class Dalamud : IServiceType
     /// <summary>
     /// Helper function to set the exception handler.
     /// </summary>
-    private static nint SetExceptionHandler(nint newFilter)
+    private static unsafe nint SetExceptionHandler(nint newFilter)
     {
         var oldFilter =
             Windows.Win32.PInvoke.SetUnhandledExceptionFilter((delegate* unmanaged[Stdcall]<global::Windows.Win32.System.Diagnostics.Debug.EXCEPTION_POINTERS*, int>)newFilter);
