@@ -56,7 +56,7 @@ public sealed class EntryPoint
         if ((info.BootWaitMessageBox & 4) != 0)
             Windows.Win32.PInvoke.MessageBox(HWND.Null, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MESSAGEBOX_STYLE.MB_OK);
 
-        new Thread(() => RunThread(info, mainThreadContinueEvent)).Start();
+        new Thread(() => RunThread(info, mainThreadContinueEvent)) { Name = "Dalamud EntryPoint" }.Start();
     }
 
     /// <summary>
