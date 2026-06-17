@@ -54,27 +54,6 @@ internal static class Service<T> where T : IServiceType
         }
     }
 
-    /// <summary>
-    /// Specifies how to handle the cases of failed services when calling <see cref="Service{T}.GetNullable"/>.
-    /// </summary>
-    public enum ExceptionPropagationMode
-    {
-        /// <summary>
-        /// Propagate all exceptions.
-        /// </summary>
-        PropagateAll,
-
-        /// <summary>
-        /// Propagate all exceptions, except for <see cref="UnloadedException"/>.
-        /// </summary>
-        PropagateNonUnloaded,
-
-        /// <summary>
-        /// Treat all exceptions as null.
-        /// </summary>
-        None,
-    }
-
     /// <summary>Does nothing.</summary>
     /// <remarks>Used to invoke the static ctor.</remarks>
     public static void Nop()
