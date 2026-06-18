@@ -390,6 +390,8 @@ internal class PluginManager : IInternalDisposableService
         if (!disposablePlugins.Any())
             return;
 
+        Log.Information("==== UNLOADING ALL PLUGINS ====");
+
         // Any unload/dispose operation called from this function log errors on their own.
         // Ignore all errors.
 
