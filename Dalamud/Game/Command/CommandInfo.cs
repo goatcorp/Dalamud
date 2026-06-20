@@ -34,7 +34,6 @@ public interface IReadOnlyCommandInfo
 
     /// <summary>
     /// Gets a value indicating whether this command is permitted to run in macros. Defaults to true.
-    /// API16 WARNING - THIS WILL DEFAULT TO FALSE.
     /// </summary>
     bool AllowedInMacros { get; }
 }
