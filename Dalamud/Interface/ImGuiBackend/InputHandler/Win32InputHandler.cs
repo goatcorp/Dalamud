@@ -526,7 +526,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             {
                 // Use game window, otherwise, positions are calculated based on the focused window which might not be the game.
                 // Leads to offsets.
-                ClientToScreen(this.hWnd, &mousePos);
+                ScreenToClient(this.hWnd, &mousePos);
             }
 
             io.AddMousePosEvent(mousePos.x, mousePos.y);
