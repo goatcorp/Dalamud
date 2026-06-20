@@ -115,7 +115,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
                 Service<ToastGui>.Get().ShowError(msg);
             }
 
-            // We handled the command, just refused to run it. Suppress the game's failure message.
+            // We handled the command, just refused to run it. Suppress the game's failure message
             return true;
         }
 
