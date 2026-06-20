@@ -378,9 +378,9 @@ public partial class FileDialog
 
             if (this.filteredFiles.Count > 0)
             {
-                var clipper = ImGui.ImGuiListClipper();
-
                 using var scope = this.filesLock.EnterScope();
+
+                var clipper = ImGui.ImGuiListClipper();
 
                 clipper.Begin(this.filteredFiles.Count);
                 while (clipper.Step())
@@ -437,10 +437,10 @@ public partial class FileDialog
 
                         if (needToBreak) break;
                     }
-
-                    clipper.End();
-                    clipper.Destroy();
                 }
+
+                clipper.End();
+                clipper.Destroy();
             }
 
             if (this.pathInputActivated)
