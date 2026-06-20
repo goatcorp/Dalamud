@@ -22,9 +22,19 @@ public static class Timings
     internal static readonly SortedList<TimingHandle, TimingHandle> AllTimings = [];
 
     /// <summary>
+    /// A lock scope for all concluded timings.
+    /// </summary>
+    internal static readonly Lock AllTimingsLock = new();
+
+    /// <summary>
     /// List of all timing events.
     /// </summary>
     internal static readonly List<TimingEvent> Events = [];
+
+    /// <summary>
+    /// A lock for the list of all timing events.
+    /// </summary>
+    internal static readonly Lock EventsLock = new();
 
     private static readonly AsyncLocal<Tuple<int?, List<TimingHandle>>> TaskTimingHandleStorage = new();
 
@@ -123,7 +133,7 @@ public static class Timings
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
-        lock (Events)
+        using (EventsLock.EnterScope())
         {
             Events.Add(new TimingEvent(name)
             {

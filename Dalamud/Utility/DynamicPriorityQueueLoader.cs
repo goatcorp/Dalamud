@@ -16,6 +16,7 @@ internal class DynamicPriorityQueueLoader : IDisposable
     private readonly Channel<WorkItem> newItemChannel;
     private readonly Channel<object?> workTokenChannel;
     private readonly List<WorkItem> workItemPending = [];
+    private readonly Lock workItemPendingLock = new();
 
     private bool disposing;
 
@@ -104,7 +105,7 @@ internal class DynamicPriorityQueueLoader : IDisposable
             while (newWorks.Count < batchAddSize && reader.TryRead(out var newWork))
                 newWorks.Add(newWork);
 
-            lock (this.workItemPending)
+            using (this.workItemPendingLock.EnterScope())
                 this.workItemPending.AddRange(newWorks);
 
             for (var i = newWorks.Count; i > 0; i--)
@@ -137,7 +138,7 @@ internal class DynamicPriorityQueueLoader : IDisposable
     /// <remarks>The order of items of <see cref="workItemPending"/> is undefined after this function.</remarks>
     private WorkItem? ExtractHighestPriorityWorkItem()
     {
-        lock (this.workItemPending)
+        using (this.workItemPendingLock.EnterScope())
         {
             for (var startIndex = 0; startIndex < this.workItemPending.Count - 1;)
             {

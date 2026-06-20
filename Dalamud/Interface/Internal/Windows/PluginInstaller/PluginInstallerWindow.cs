@@ -55,7 +55,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private readonly DateTime timeLoaded;
 
-    private readonly object listLock = new();
+    private readonly Lock listLock = new();
 
     private readonly ProfileManagerWidget profileManagerWidget;
 
@@ -342,18 +342,17 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void Draw()
     {
-        lock (this.listLock)
-        {
-            this.DrawHeader();
-            this.DrawPluginCategories();
-            this.DrawFooter();
-            this.DrawErrorModal();
-            this.DrawUpdateModal();
-            this.DrawTestingWarningModal();
-            this.DrawDeletePluginConfigWarningModal();
-            this.DrawFeedbackModal();
-            this.DrawProgressOverlay();
-        }
+        using var scope = this.listLock.EnterScope();
+
+        this.DrawHeader();
+        this.DrawPluginCategories();
+        this.DrawFooter();
+        this.DrawErrorModal();
+        this.DrawUpdateModal();
+        this.DrawTestingWarningModal();
+        this.DrawDeletePluginConfigWarningModal();
+        this.DrawFeedbackModal();
+        this.DrawProgressOverlay();
     }
 
     /// <summary>
@@ -839,7 +838,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         this.filterText = selectable.Localization;
                         this.adaptiveSort = false;
 
-                        lock (this.listLock)
+                        using (this.listLock.EnterScope())
                         {
                             this.ResortPlugins();
 
@@ -4112,7 +4111,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var pluginManager = Service<PluginManager>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
-        lock (this.listLock)
+        using (this.listLock.EnterScope())
         {
             // By removing installed plugins only when the available plugin list changes (basically when the window is
             // opened), plugins that have been newly installed remain in the available plugin list as installed.
@@ -4131,7 +4130,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var pluginManager = Service<PluginManager>.Get();
         using var pmLock = pluginManager.GetSyncScope();
 
-        lock (this.listLock)
+        using (this.listLock.EnterScope())
         {
             this.pluginListInstalled = pluginManager.InstalledPlugins.ToList();
             this.pluginListUpdatable = pluginManager.UpdatablePlugins.ToList();

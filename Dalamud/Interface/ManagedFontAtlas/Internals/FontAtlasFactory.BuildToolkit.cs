@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
@@ -26,6 +27,7 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 internal sealed partial class FontAtlasFactory
 {
     private static readonly Dictionary<ulong, List<(char Left, char Right, float Distance)>> PairAdjustmentsCache = [];
+    private static readonly Lock PairAdjustmentsCacheLock = new();
 
     /// <summary>
     /// Implementations for <see cref="IFontAtlasBuildToolkitPreBuild"/> and
@@ -184,7 +186,7 @@ internal sealed partial class FontAtlasFactory
                 var hashIdent = (uint)dataHash.ToHashCode() | ((ulong)dataSize << 32);
 
                 List<(char Left, char Right, float Distance)> pairAdjustments;
-                lock (PairAdjustmentsCache)
+                using (PairAdjustmentsCacheLock.EnterScope())
                 {
                     if (!PairAdjustmentsCache.TryGetValue(hashIdent, out pairAdjustments))
                     {

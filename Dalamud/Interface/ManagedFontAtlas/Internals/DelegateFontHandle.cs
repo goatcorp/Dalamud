@@ -56,7 +56,7 @@ internal sealed class DelegateFontHandle : FontHandle
         /// <inheritdoc/>
         public void Dispose()
         {
-            lock (this.syncRoot)
+            using (this.syncRoot.EnterScope())
                 this.handles.Clear();
         }
 
@@ -64,7 +64,7 @@ internal sealed class DelegateFontHandle : FontHandle
         public IFontHandle NewFontHandle(FontAtlasBuildStepDelegate buildStepDelegate)
         {
             var key = new DelegateFontHandle(this, buildStepDelegate);
-            lock (this.syncRoot)
+            using (this.syncRoot.EnterScope())
                 this.handles.Add(key);
             this.RebuildRecommend.InvokeSafely();
             return key;
@@ -76,14 +76,14 @@ internal sealed class DelegateFontHandle : FontHandle
             if (handle is not DelegateFontHandle cgfh)
                 return;
 
-            lock (this.syncRoot)
+            using (this.syncRoot.EnterScope())
                 this.handles.Remove(cgfh);
         }
 
         /// <inheritdoc/>
         public IFontHandleSubstance NewSubstance(IRefCountable dataRoot)
         {
-            lock (this.syncRoot)
+            using (this.syncRoot.EnterScope())
                 return new HandleSubstance(this, dataRoot, this.handles.ToArray());
         }
     }

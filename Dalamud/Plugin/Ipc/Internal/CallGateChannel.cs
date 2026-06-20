@@ -20,6 +20,7 @@ namespace Dalamud.Plugin.Ipc.Internal;
 internal class CallGateChannel
 {
     private readonly ThreadLocal<IpcContext> ipcExecutionContext = new();
+    private readonly Lock subscriptionsLock = new();
 
     /// <summary>
     /// The actual storage.
@@ -56,7 +57,7 @@ internal class CallGateChannel
             var copy = this.subscriptionsCopy;
             if (copy is not null)
                 return copy;
-            lock (this.subscriptions)
+            using (this.subscriptionsLock.EnterScope())
                 return this.subscriptionsCopy ??= this.subscriptions.ToImmutableList();
         }
     }
@@ -79,7 +80,7 @@ internal class CallGateChannel
     /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
     internal void Subscribe(Delegate action)
     {
-        lock (this.subscriptions)
+        using (this.subscriptionsLock.EnterScope())
         {
             this.subscriptionsCopy = null;
             this.subscriptions.Add(action);
@@ -89,7 +90,7 @@ internal class CallGateChannel
     /// <inheritdoc cref="CallGatePubSubBase.Unsubscribe"/>
     internal void Unsubscribe(Delegate action)
     {
-        lock (this.subscriptions)
+        using (this.subscriptionsLock.EnterScope())
         {
             this.subscriptionsCopy = null;
             this.subscriptions.Remove(action);
