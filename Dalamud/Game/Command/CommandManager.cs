@@ -1,10 +1,15 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 
+using CheapLoc;
+
 using Dalamud.Console;
+using Dalamud.Game.Gui;
+using Dalamud.Game.Gui.Toast;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -15,6 +20,7 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using FFXIVClientStructs.FFXIV.Component.Shell;
 
 namespace Dalamud.Game.Command;
@@ -97,6 +103,22 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 
         if (!this.commandMap.TryGetValue(command, out var handler)) // Command was not found.
             return false;
+
+        if (!handler.AllowedInMacros &&
+            (this.GetCurrentMacroLine()?.StartsWith($"/{command}", StringComparison.OrdinalIgnoreCase) ?? false))
+        {
+            Log.Warning("Command {CommandName} is not allowed to be run in macros.", command);
+
+            if (!RaptureShellModule.Instance()->SuppressMacroErrors)
+            {
+                var msg = Loc.Localize("CommandHandlerMacroBlocked", $"Command {command} cannot be run in a macro.");
+                Service<ChatGui>.Get().PrintError(msg);
+                Service<ToastGui>.Get().ShowError(msg);
+            }
+
+            // We handled the command, just refused to run it. Suppress the game's failure message
+            return true;
+        }
 
         this.DispatchCommand(command, argument, handler);
         return true;
@@ -236,6 +258,12 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         if (result != -1) return result;
 
         return this.ProcessCommand(command->ToString()) ? 0 : result;
+    }
+
+    private unsafe string? GetCurrentMacroLine()
+    {
+        var shellModule = RaptureShellModule.Instance();
+        return shellModule->MacroCurrentLine == 0 ? null : shellModule->MacroLineText.ToString();
     }
 
     /// <inheritdoc />

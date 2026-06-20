@@ -31,6 +31,11 @@ public interface IReadOnlyCommandInfo
     /// Gets the display order of this command. Defaults to alphabetical ordering.
     /// </summary>
     int DisplayOrder { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this command is permitted to run in macros. Defaults to true.
+    /// </summary>
+    bool AllowedInMacros { get; }
 }
 
 /// <summary>
@@ -59,4 +64,7 @@ public sealed class CommandInfo : IReadOnlyCommandInfo
 
     /// <inheritdoc/>
     public int DisplayOrder { get; set; } = -1;
+
+    /// <inheritdoc/>
+    public bool AllowedInMacros { get; set; } = true;
 }
