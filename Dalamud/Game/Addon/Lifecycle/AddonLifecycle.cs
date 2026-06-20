@@ -144,47 +144,51 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     internal void InvokeListenersSafely(AddonEvent eventType, AddonArgs args, [CallerMemberName] string blame = "")
     {
         this.isInvokingListeners = true;
-
-        // Early return if we don't have any listeners of this type
-        if (!this.EventListeners.TryGetValue(eventType, out var addonListeners)) return;
-
-        // Handle listeners for this event type that don't care which addon is triggering it
-        if (addonListeners.TryGetValue(string.Empty, out var globalListeners))
+        try
         {
-            foreach (var listener in globalListeners)
-            {
-                if (listener.IsRequestedToClear) continue;
+            // Early return if we don't have any listeners of this type
+            if (!this.EventListeners.TryGetValue(eventType, out var addonListeners)) return;
 
-                try
+            // Handle listeners for this event type that don't care which addon is triggering it
+            if (addonListeners.TryGetValue(string.Empty, out var globalListeners))
+            {
+                foreach (var listener in globalListeners)
                 {
-                    listener.FunctionDelegate.Invoke(eventType, args);
+                    if (listener.IsRequestedToClear) continue;
+
+                    try
+                    {
+                        listener.FunctionDelegate.Invoke(eventType, args);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, $"Exception in {blame} during {eventType} invoke, for global addon event listener.");
+                    }
                 }
-                catch (Exception e)
+            }
+
+            // Handle listeners that are listening for this addon and event type specifically
+            if (addonListeners.TryGetValue(args.AddonName, out var addonListener))
+            {
+                foreach (var listener in addonListener)
                 {
-                    Log.Error(e, $"Exception in {blame} during {eventType} invoke, for global addon event listener.");
+                    if (listener.IsRequestedToClear) continue;
+
+                    try
+                    {
+                        listener.FunctionDelegate.Invoke(eventType, args);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, $"Exception in {blame} during {eventType} invoke, for specific addon {args.AddonName}.");
+                    }
                 }
             }
         }
-
-        // Handle listeners that are listening for this addon and event type specifically
-        if (addonListeners.TryGetValue(args.AddonName, out var addonListener))
+        finally
         {
-            foreach (var listener in addonListener)
-            {
-                if (listener.IsRequestedToClear) continue;
-
-                try
-                {
-                    listener.FunctionDelegate.Invoke(eventType, args);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, $"Exception in {blame} during {eventType} invoke, for specific addon {args.AddonName}.");
-                }
-            }
+            this.isInvokingListeners = false;
         }
-
-        this.isInvokingListeners = false;
     }
 
     private void RegisterListenerMethod(AddonLifecycleEventListener listener)
