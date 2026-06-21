@@ -123,6 +123,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     {
         if (ServiceManager.UnloadCancellationToken.IsCancellationRequested) // Gone
             return Task.FromCanceled(this.frameworkDestroy.Token);
+
         if (numTicks <= 0 || this.frameworkThreadTaskScheduler.BoundThread == null) // Nonsense or before first tick
             return Task.CompletedTask;
 
@@ -204,9 +205,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             if (delay == default && delayTicks == default)
                 return this.RunOnFrameworkThread(func);
 
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
-            return Task.FromCanceled<T>(cts.Token);
+            return Task.FromCanceled<T>(ServiceManager.UnloadCancellationToken);
         }
 
         if (cancellationToken == default)
@@ -230,9 +229,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             if (delay == default && delayTicks == default)
                 return this.RunOnFrameworkThread(action);
 
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
-            return Task.FromCanceled(cts.Token);
+            return Task.FromCanceled(ServiceManager.UnloadCancellationToken);
         }
 
         if (cancellationToken == default)
@@ -256,9 +253,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             if (delay == default && delayTicks == default)
                 return this.RunOnFrameworkThread(func);
 
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
-            return Task.FromCanceled<T>(cts.Token);
+            return Task.FromCanceled<T>(ServiceManager.UnloadCancellationToken);
         }
 
         if (cancellationToken == default)
@@ -282,9 +277,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             if (delay == default && delayTicks == default)
                 return this.RunOnFrameworkThread(func);
 
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
-            return Task.FromCanceled(cts.Token);
+            return Task.FromCanceled(ServiceManager.UnloadCancellationToken);
         }
 
         if (cancellationToken == default)
