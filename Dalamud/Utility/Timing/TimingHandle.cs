@@ -11,7 +11,7 @@ namespace Dalamud.Utility.Timing;
 [DebuggerDisplay("{Name} - {Duration}")]
 public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingHandle>
 {
-    private readonly Lock stackLock = new();
+    private readonly Lock stackLock;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TimingHandle"/> class.
@@ -20,7 +20,7 @@ public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingH
     internal TimingHandle(string name)
         : base(name)
     {
-        this.Stack = Timings.TaskTimingHandles;
+        (this.stackLock, this.Stack) = Timings.TaskTimingHandles;
 
         using (this.StackLockScope)
             this.Parent = this.Stack.LastOrDefault();

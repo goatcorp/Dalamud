@@ -36,18 +36,18 @@ public static class Timings
     /// </summary>
     internal static readonly Lock EventsLock = new();
 
-    private static readonly AsyncLocal<Tuple<int?, List<TimingHandle>>> TaskTimingHandleStorage = new();
+    private static readonly AsyncLocal<Tuple<int?, Tuple<Lock, List<TimingHandle>>>> TaskTimingHandleStorage = new();
 
     /// <summary>
     /// Gets or sets all active timings of current thread.
     /// </summary>
-    internal static List<TimingHandle> TaskTimingHandles
+    internal static Tuple<Lock, List<TimingHandle>> TaskTimingHandles
     {
         get
         {
             if (TaskTimingHandleStorage.Value == null || TaskTimingHandleStorage.Value.Item1 != Task.CurrentId)
-                TaskTimingHandleStorage.Value = Tuple.Create<int?, List<TimingHandle>>(Task.CurrentId, []);
-            return TaskTimingHandleStorage.Value!.Item2!;
+                TaskTimingHandleStorage.Value = Tuple.Create(Task.CurrentId, Tuple.Create<Lock, List<TimingHandle>>(new Lock(), []));
+            return TaskTimingHandleStorage.Value.Item2;
         }
         set => TaskTimingHandleStorage.Value = Tuple.Create(Task.CurrentId, value);
     }
