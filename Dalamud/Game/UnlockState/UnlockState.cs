@@ -389,7 +389,11 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             case ItemActionAction.Glasses:
                 return CSPlayerState.Instance()->IsGlassesUnlocked((ushort)row.AdditionalData.RowId);
 
-            case ItemActionAction.SoulShards when PublicContentOccultCrescent.GetState() is var occultCrescentState && occultCrescentState != null:
+            case ItemActionAction.SoulShards:
+                var occultCrescentState = PublicContentOccultCrescent.GetState();
+                if (occultCrescentState == null)
+                    return false;
+
                 var supportJobId = (byte)row.ItemAction.Value.Data[0];
                 return supportJobId < occultCrescentState->SupportJobLevels.Length && occultCrescentState->SupportJobLevels[supportJobId] != 0;
 
