@@ -345,14 +345,14 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     /// <inheritdoc/>
     public unsafe bool IsItemUnlocked(Item row)
     {
-        if (row.ItemAction.RowId == 0)
-            return false;
-
         if (!this.IsLoaded)
             return false;
 
-        // To avoid the ExdModule.GetItemRowById call, which can return null if the excel page
-        // is not loaded, we're going to imitate the IsItemActionUnlocked call first:
+        if (!this.IsItemUnlockable(row))
+            return false;
+
+        // To avoid the ExdModule.GetItemRowById call, which can take quite long and might return null
+        // if the excel page is not loaded, we're going to imitate the IsItemActionUnlocked call first:
         switch ((ItemActionAction)row.ItemAction.Value.Action.RowId)
         {
             case ItemActionAction.Companion:
