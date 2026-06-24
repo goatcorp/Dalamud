@@ -542,7 +542,7 @@ public class GameConfigSection
         }
 
         if (enumObject == null) return null;
-        var eventArgs = new ConfigChangeEvent<TEnum>((TEnum)enumObject);
+        var eventArgs = new ConfigChangeEvent<TEnum>((TEnum)enumObject, entry->Name.ToString());
         this.Changed?.InvokeSafely(this, eventArgs);
         return eventArgs;
     }
