@@ -8,6 +8,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
@@ -41,11 +42,15 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();
 
     [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
+
+    [ServiceManager.ServiceDependency]
     private readonly GameGui gameGui = Service<GameGui>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly RecipeData recipeData = Service<RecipeData>.Get();
 
+    private readonly Debouncer updateDebouncer;
     private readonly ConcurrentDictionary<Type, HashSet<uint>> cachedUnlockedRowIds = [];
     private readonly Hook<CSAchievement.Delegates.SetAchievementCompleted> setAchievementCompletedHook;
     private readonly Hook<TitleList.Delegates.SetTitleUnlocked> setTitleUnlockedHook;
@@ -55,6 +60,8 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     [ServiceManager.ServiceConstructor]
     private UnlockState()
     {
+        this.updateDebouncer = this.framework.CreateDebouncer(TimeSpan.FromMilliseconds(500), this.Update);
+
         this.clientState.Login += this.OnLogin;
         this.clientState.Logout += this.OnLogout;
         this.gameGui.AgentUpdate += this.OnAgentUpdate;
@@ -103,6 +110,8 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.setTitleUnlockedHook.Dispose();
         this.setOrnamentUnlockedHook.Dispose();
         this.setGlassesStyleUnlockedHook.Dispose();
+
+        this.updateDebouncer.Dispose();
     }
 
     /// <inheritdoc/>
@@ -732,7 +741,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
     private void OnLogin()
     {
-        this.Update();
+        this.updateDebouncer.Debounce();
     }
 
     private void OnLogout(int type, int code)
@@ -743,7 +752,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     private void OnAgentUpdate(AgentUpdateFlag agentUpdateFlag)
     {
         if (agentUpdateFlag.HasFlag(AgentUpdateFlag.UnlocksUpdate))
-            this.Update();
+            this.updateDebouncer.Debounce();
     }
 
     private void SetAchievementCompletedDetour(CSAchievement* thisPtr, uint id)
