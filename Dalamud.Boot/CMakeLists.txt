@@ -1,11 +1,3 @@
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_link_options(Dalamud.Boot PRIVATE
-        "/OPT:ICF"  # EnableCOMDATFolding = true
-        "/OPT:REF") # OptimizeReferences = true
-endif()
-
 add_library(Dalamud.Boot SHARED
     DalamudStartInfo.cpp
     error_info.cpp

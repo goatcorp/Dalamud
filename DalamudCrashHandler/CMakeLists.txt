@@ -1,5 +1,3 @@
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-
 add_library(DalamudCrashHandler SHARED
     DalamudCrashHandler.cpp
     ../shared/logging.cpp

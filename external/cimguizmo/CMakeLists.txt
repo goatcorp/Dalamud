@@ -1,11 +1,3 @@
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_link_options(cimguizmo PRIVATE
-        "/OPT:ICF"  # EnableCOMDATFolding = true
-        "/OPT:REF") # OptimizeReferences = true
-endif()
-
 include_directories(
     ../../lib/cimgui/imgui
     ../../lib/cimguizmo/ImGuizmo
