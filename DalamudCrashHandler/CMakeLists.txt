@@ -1,4 +1,4 @@
-add_library(DalamudCrashHandler SHARED
+add_executable(DalamudCrashHandler
     DalamudCrashHandler.cpp
     ../shared/logging.cpp
     ../shared/unicode.cpp
