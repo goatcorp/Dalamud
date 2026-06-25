@@ -68,7 +68,7 @@ Write-Output "Microsoft (R) .NET Core SDK version $(& $env:DOTNET_EXE --version)
 
 Set-Location $BuildDirectory
 cmake .. -A x64
-cmake --build . --config Release
+cmake --build . --config Release --parallel $env:NUMBER_OF_PROCESSORS
 Set-Location $PSScriptRoot
 
 ExecSafe { & $env:DOTNET_EXE build Dalamud.Injector/Dalamud.Injector.csproj -c Release }

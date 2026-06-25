@@ -60,7 +60,7 @@ echo "Microsoft (R) .NET Core SDK version $("$DOTNET_EXE" --version)"
 
 cd "$BUILD_DIRECTORY"
 cmake .. -A x64
-cmake --build . --config Release
+cmake --build . --config Release --parallel $(nproc)
 cd "$SCRIPT_DIR"
 
 "$DOTNET_EXE" build Dalamud.Injector/Dalamud.Injector.csproj -c Release
