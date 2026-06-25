@@ -13,11 +13,7 @@ include_directories(
 add_library(cimgui SHARED
     ../../lib/cimgui/cimgui.cpp
     ../../lib/cimgui/cimgui_impl.cpp
-    ../../lib/cimgui/imgui/imgui.cpp
-    ../../lib/cimgui/imgui/imgui_demo.cpp
-    ../../lib/cimgui/imgui/imgui_draw.cpp
-    ../../lib/cimgui/imgui/imgui_tables.cpp
-    ../../lib/cimgui/imgui/imgui_widgets.cpp)
+    $<TARGET_OBJECTS:imgui>)
 
 target_compile_definitions(cimgui PRIVATE
     UNICODE

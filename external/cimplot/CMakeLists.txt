@@ -12,16 +12,12 @@ include_directories(
     ../../lib/cimgui)
 
 add_library(cimplot SHARED
-    ../../lib/cimgui/imgui/imgui.cpp
-    ../../lib/cimgui/imgui/imgui_demo.cpp
-    ../../lib/cimgui/imgui/imgui_draw.cpp
-    ../../lib/cimgui/imgui/imgui_tables.cpp
-    ../../lib/cimgui/imgui/imgui_widgets.cpp
     ../../lib/cimplot/cimplot.cpp
     ../../lib/cimplot/cimplot_impl.cpp
     ../../lib/cimplot/implot/implot.cpp
     ../../lib/cimplot/implot/implot_demo.cpp
-    ../../lib/cimplot/implot/implot_items.cpp)
+    ../../lib/cimplot/implot/implot_items.cpp
+    $<TARGET_OBJECTS:imgui>)
 
 target_compile_definitions(cimplot PRIVATE
     UNICODE

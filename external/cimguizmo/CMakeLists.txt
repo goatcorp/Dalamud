@@ -19,11 +19,7 @@ add_library(cimguizmo SHARED
     ../../lib/cimguizmo/ImGuizmo/ImGradient.cpp
     ../../lib/cimguizmo/ImGuizmo/ImGuizmo.cpp
     ../../lib/cimguizmo/ImGuizmo/ImSequencer.cpp
-    ../../lib/cimgui/imgui/imgui.cpp
-    ../../lib/cimgui/imgui/imgui_demo.cpp
-    ../../lib/cimgui/imgui/imgui_draw.cpp
-    ../../lib/cimgui/imgui/imgui_tables.cpp
-    ../../lib/cimgui/imgui/imgui_widgets.cpp)
+    $<TARGET_OBJECTS:imgui>)
 
 target_compile_definitions(cimguizmo PRIVATE
     UNICODE
