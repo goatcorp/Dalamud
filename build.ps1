@@ -13,8 +13,7 @@ $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent
 # CONFIGURATION
 ###########################################################################
 
-$BuildProjectFile = "$PSScriptRoot\build\build.csproj"
-$TempDirectory = "$PSScriptRoot\\.nuke\temp"
+$BuildDirectory = "$PSScriptRoot\\build"
 
 $DotNetGlobalFile = "$PSScriptRoot\\global.json"
 $DotNetInstallUrl = "https://dot.net/v1/dotnet-install.ps1"
@@ -33,6 +32,8 @@ function ExecSafe([scriptblock] $cmd) {
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
 }
 
+New-Item -ItemType Directory -Path "$BuildDirectory" -Force | Out-Null
+
 # If dotnet CLI is installed globally and it matches requested version, use for execution
 if ($null -ne (Get-Command "dotnet" -ErrorAction SilentlyContinue) -and `
      $(dotnet --version) -and $LASTEXITCODE -eq 0) {
@@ -40,8 +41,8 @@ if ($null -ne (Get-Command "dotnet" -ErrorAction SilentlyContinue) -and `
 }
 else {
     # Download install script
-    $DotNetInstallFile = "$TempDirectory\dotnet-install.ps1"
-    New-Item -ItemType Directory -Path $TempDirectory -Force | Out-Null
+    $DotNetInstallFile = "$BuildDirectory\dotnet-install.ps1"
+    New-Item -ItemType Directory -Path $BuildDirectory -Force | Out-Null
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     (New-Object System.Net.WebClient).DownloadFile($DotNetInstallUrl, $DotNetInstallFile)
 
@@ -54,7 +55,7 @@ else {
     }
 
     # Install by channel or version
-    $DotNetDirectory = "$TempDirectory\dotnet-win"
+    $DotNetDirectory = "$BuildDirectory\dotnet-win"
     if (!(Test-Path variable:DotNetVersion)) {
         ExecSafe { & $DotNetInstallFile -InstallDir $DotNetDirectory -Channel $DotNetChannel -NoPath }
     } else {
@@ -65,5 +66,10 @@ else {
 
 Write-Output "Microsoft (R) .NET Core SDK version $(& $env:DOTNET_EXE --version)"
 
-ExecSafe { & $env:DOTNET_EXE build $BuildProjectFile /nodeReuse:false /p:UseSharedCompilation=false -nologo -clp:NoSummary --verbosity quiet }
-ExecSafe { & $env:DOTNET_EXE run --project $BuildProjectFile --no-build -- $BuildArguments }
+Set-Location $BuildDirectory
+cmake .. -A x64
+cmake --build . --config Release
+Set-Location $PSScriptRoot
+
+ExecSafe { & $env:DOTNET_EXE build Dalamud.Injector/Dalamud.Injector.csproj -c Release }
+ExecSafe { & $env:DOTNET_EXE build Dalamud/Dalamud.csproj -c Release }

@@ -9,10 +9,9 @@ SCRIPT_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 # CONFIGURATION
 ###########################################################################
 
-BUILD_PROJECT_FILE="$SCRIPT_DIR/build/build.csproj"
-TEMP_DIRECTORY="$SCRIPT_DIR//.nuke/temp"
+BUILD_DIRECTORY="$SCRIPT_DIR/build"
 
-DOTNET_GLOBAL_FILE="$SCRIPT_DIR//global.json"
+DOTNET_GLOBAL_FILE="$SCRIPT_DIR/global.json"
 DOTNET_INSTALL_URL="https://dot.net/v1/dotnet-install.sh"
 DOTNET_CHANNEL="Current"
 
@@ -28,13 +27,14 @@ function FirstJsonValue {
     perl -nle 'print $1 if m{"'"$1"'": "([^"]+)",?}' <<< "${@:2}"
 }
 
+mkdir -p "$BUILD_DIRECTORY"
+
 # If dotnet CLI is installed globally and it matches requested version, use for execution
 if [ -x "$(command -v dotnet)" ] && dotnet --version &>/dev/null; then
     export DOTNET_EXE="$(command -v dotnet)"
 else
     # Download install script
-    DOTNET_INSTALL_FILE="$TEMP_DIRECTORY/dotnet-install.sh"
-    mkdir -p "$TEMP_DIRECTORY"
+    DOTNET_INSTALL_FILE="$BUILD_DIRECTORY/dotnet-install.sh"
     curl -Lsfo "$DOTNET_INSTALL_FILE" "$DOTNET_INSTALL_URL"
     chmod +x "$DOTNET_INSTALL_FILE"
 
@@ -47,7 +47,7 @@ else
     fi
 
     # Install by channel or version
-    DOTNET_DIRECTORY="$TEMP_DIRECTORY/dotnet-unix"
+    DOTNET_DIRECTORY="$BUILD_DIRECTORY/dotnet-unix"
     if [[ -z ${DOTNET_VERSION+x} ]]; then
         "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --channel "$DOTNET_CHANNEL" --no-path
     else
@@ -58,5 +58,10 @@ fi
 
 echo "Microsoft (R) .NET Core SDK version $("$DOTNET_EXE" --version)"
 
-"$DOTNET_EXE" build "$BUILD_PROJECT_FILE" /nodeReuse:false /p:UseSharedCompilation=false /p:EnableWindowsTargeting=true -nologo -clp:NoSummary --verbosity quiet
-"$DOTNET_EXE" run --project "$BUILD_PROJECT_FILE" --no-build -- "$@"
+cd "$BUILD_DIRECTORY"
+cmake .. -A x64
+cmake --build . --config Release
+cd "$SCRIPT_DIR"
+
+"$DOTNET_EXE" build Dalamud.Injector/Dalamud.Injector.csproj -c Release
+"$DOTNET_EXE" build Dalamud/Dalamud.csproj -c Release
