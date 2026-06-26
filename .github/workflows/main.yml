@@ -34,7 +34,7 @@ jobs:
           ($env:BRANCH) >> VERSION
           ($env:COMMIT) >> VERSION
       - name: Build and Test Dalamud
-        run: .\build.ps1 ci
+        run: .\build.ps1
       - name: Sign Dalamud
         if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
         env:
