@@ -1,6 +1,12 @@
+# Example: .\build.ps1 -Config Debug -Clean
 [CmdletBinding()]
 Param(
-    [Parameter(Position=0,Mandatory=$false,ValueFromRemainingArguments=$true)]
+    [ValidateSet("Debug", "Release")]
+    [String]$Config = "Release",
+
+    [Switch]$Clean,
+
+    [Parameter(Position=1, Mandatory=$false, ValueFromRemainingArguments=$true)]
     [string[]]$BuildArguments
 )
 
@@ -13,6 +19,7 @@ $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent
 # CONFIGURATION
 ###########################################################################
 
+$BinDirectory = "$PSScriptRoot\\bin"
 $BuildDirectory = "$PSScriptRoot\\build"
 
 $DotNetGlobalFile = "$PSScriptRoot\\global.json"
@@ -27,12 +34,25 @@ $env:DOTNET_MULTILEVEL_LOOKUP = 0
 # EXECUTION
 ###########################################################################
 
+if ($Clean -and (Test-Path $BinDirectory)) {
+    Write-Output "Cleaning up previous bin directory..."
+    Remove-Item -Path $BinDirectory -Recurse -Force
+}
+
+if ($Clean -and (Test-Path $BuildDirectory)) {
+    Write-Output "Cleaning up previous build directory..."
+    Remove-Item -Path $BuildDirectory -Recurse -Force
+}
+
+# Ensure build directory exists
+if (!(Test-Path $BuildDirectory)) {
+    New-Item -ItemType Directory -Path $BuildDirectory -Force | Out-Null
+}
+
 function ExecSafe([scriptblock] $cmd) {
     & $cmd
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
 }
-
-New-Item -ItemType Directory -Path "$BuildDirectory" -Force | Out-Null
 
 # If dotnet CLI is installed globally and it matches requested version, use for execution
 if ($null -ne (Get-Command "dotnet" -ErrorAction SilentlyContinue) -and `
@@ -69,10 +89,10 @@ Write-Output "Microsoft (R) .NET Core SDK version $(& $env:DOTNET_EXE --version)
 Push-Location $BuildDirectory
 try {
     cmake .. -A x64
-    cmake --build . --config Release --parallel $env:NUMBER_OF_PROCESSORS
+    cmake --build . --config $Config --parallel $env:NUMBER_OF_PROCESSORS @BuildArguments
 } finally {
     Pop-Location
 }
 
-ExecSafe { & $env:DOTNET_EXE build Dalamud.Injector/Dalamud.Injector.csproj -c Release }
-ExecSafe { & $env:DOTNET_EXE build Dalamud/Dalamud.csproj -c Release }
+ExecSafe { & $env:DOTNET_EXE build Dalamud.Injector/Dalamud.Injector.csproj -c $Config }
+ExecSafe { & $env:DOTNET_EXE build Dalamud/Dalamud.csproj -c $Config }

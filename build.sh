@@ -9,6 +9,7 @@ SCRIPT_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 # CONFIGURATION
 ###########################################################################
 
+BIN_DIRECTORY="$SCRIPT_DIR/bin"
 BUILD_DIRECTORY="$SCRIPT_DIR/build"
 
 DOTNET_GLOBAL_FILE="$SCRIPT_DIR/global.json"
@@ -20,14 +21,47 @@ export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 export DOTNET_MULTILEVEL_LOOKUP=0
 
 ###########################################################################
+# PARSE ARGUMENTS
+###########################################################################
+
+CLEAN=0
+CONFIG="Release"
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -c|--config) CONFIG="$2"; shift ;;
+        -C|--clean) CLEAN=1 ;;
+        *)
+            # Break out of flag parsing to collect remaining build arguments
+            # If you want to pass extra flags to CMake/dotnet, they will be captured here.
+            break
+            ;;
+    esac
+    shift
+done
+
+# Store any trailing arguments that should be passed down to build tools
+REMAINING_ARGS=("$@")
+
+###########################################################################
 # EXECUTION
 ###########################################################################
+
+if [ "$CLEAN" -eq 1 ] && [ -d "$BIN_DIRECTORY" ]; then
+    echo "Cleaning up previous bin directory..."
+    rm -r "$BIN_DIRECTORY"
+fi
+
+if [ "$CLEAN" -eq 1 ] && [ -d "$BUILD_DIRECTORY" ]; then
+    echo "Cleaning up previous build directory..."
+    rm -r "$BUILD_DIRECTORY"
+fi
+
+mkdir -p "$BUILD_DIRECTORY"
 
 function FirstJsonValue {
     perl -nle 'print $1 if m{"'"$1"'": "([^"]+)",?}' <<< "${@:2}"
 }
-
-mkdir -p "$BUILD_DIRECTORY"
 
 # If dotnet CLI is installed globally and it matches requested version, use for execution
 if [ -x "$(command -v dotnet)" ] && dotnet --version &>/dev/null; then
@@ -60,8 +94,8 @@ echo "Microsoft (R) .NET Core SDK version $("$DOTNET_EXE" --version)"
 
 cd "$BUILD_DIRECTORY"
 cmake .. -A x64
-cmake --build . --config Release --parallel $(nproc)
+cmake --build . --config "$CONFIG" --parallel $(nproc) "${REMAINING_ARGS[@]}"
 cd "$SCRIPT_DIR"
 
-"$DOTNET_EXE" build Dalamud.Injector/Dalamud.Injector.csproj -c Release
-"$DOTNET_EXE" build Dalamud/Dalamud.csproj -c Release
+"$DOTNET_EXE" build Dalamud.Injector/Dalamud.Injector.csproj -c "$CONFIG"
+"$DOTNET_EXE" build Dalamud/Dalamud.csproj -c "$CONFIG"
