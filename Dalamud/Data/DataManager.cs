@@ -103,6 +103,7 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
             }
 
             this.IsDataReady = true;
+            this.DataReady.InvokeSafely();
 
             this.luminaCancellationTokenSource = new();
 
@@ -129,6 +130,11 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
             throw;
         }
     }
+
+    /// <summary>
+    /// Gets an event whenever Game Data is ready to be read.
+    /// </summary>
+    internal event Action DataReady;
 
     /// <inheritdoc/>
     public ClientLanguage Language { get; private set; }

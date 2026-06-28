@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -74,10 +75,19 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     private readonly ConcurrentDictionary<StringCacheKey<ActionKind>, string> actStrCache = [];
     private readonly ConcurrentDictionary<StringCacheKey<ObjectKind>, string> objStrCache = [];
+    private HashSet<string> sheetNames = [];
 
     [ServiceManager.ServiceConstructor]
     private SeStringEvaluator()
     {
+        if (this.dataManager.IsDataReady)
+        {
+            this.LoadSheetNames();
+        }
+        else
+        {
+            this.dataManager.DataReady += this.OnDataReady;
+        }
     }
 
     /// <inheritdoc/>
@@ -194,17 +204,28 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             this);
 
     // TODO: move this to MapUtil?
-    private static uint ConvertRawToMapPos(Lumina.Excel.Sheets.Map map, short offset, float value)
+    private static uint ConvertRawToMapPos(Map map, short offset, float value)
     {
         var scale = map.SizeFactor / 100.0f;
         return (uint)(10 - (int)(((((value + offset) * scale) + 1024f) * -0.2f) / scale));
     }
 
-    private static uint ConvertRawToMapPosX(Lumina.Excel.Sheets.Map map, float x)
+    private static uint ConvertRawToMapPosX(Map map, float x)
         => ConvertRawToMapPos(map, map.OffsetX, x);
 
-    private static uint ConvertRawToMapPosY(Lumina.Excel.Sheets.Map map, float y)
+    private static uint ConvertRawToMapPosY(Map map, float y)
         => ConvertRawToMapPos(map, map.OffsetY, y);
+
+    private void OnDataReady()
+    {
+        this.dataManager.DataReady -= this.OnDataReady;
+        this.LoadSheetNames();
+    }
+
+    private void LoadSheetNames()
+    {
+        this.sheetNames = [.. this.dataManager.Excel.SheetNames];
+    }
 
     private ClientLanguage GetEffectiveClientLanguage()
     {
@@ -777,7 +798,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     private int GetSubrowSheetIntValue(ClientLanguage language, string sheetName, uint rowId, ushort subrowId, uint colIndex)
     {
-        if (!this.dataManager.Excel.SheetNames.Contains(sheetName))
+        if (!this.sheetNames.Contains(sheetName))
             return -1;
 
         if (!this.dataManager.GetSubrowExcelSheet<RawSubrow>(language, sheetName)
@@ -801,7 +822,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     private ReadOnlySeString FormatSheetValue(ClientLanguage language, string sheetName, uint rowId, uint colIndex, uint colParam)
     {
-        if (!this.dataManager.Excel.SheetNames.Contains(sheetName))
+        if (!this.sheetNames.Contains(sheetName))
             return default;
 
         if (!this.dataManager.GetExcelSheet<RawRow>(language, sheetName)
@@ -1223,7 +1244,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                          out var placeNameRow))
                 return false;
 
-            if (!this.dataManager.GetExcelSheet<Lumina.Excel.Sheets.Map>().TryGetRow(mapId, out var mapRow))
+            if (!this.dataManager.GetExcelSheet<Map>().TryGetRow(mapId, out var mapRow))
                 return false;
 
             using var rssb = new RentedSeStringBuilder();
@@ -1360,7 +1381,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!enu.MoveNext() || !this.TryResolveBool(in context, enu.Current, out var hasOverride))
             return false;
 
-        if (!this.dataManager.GetExcelSheet<Lumina.Excel.Sheets.Status>(context.Language)
+        if (!this.dataManager.GetExcelSheet<StatusSheet>(context.Language)
                  .TryGetRow(statusId, out var statusRow))
             return false;
 
