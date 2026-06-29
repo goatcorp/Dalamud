@@ -102,9 +102,6 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
                 }
             }
 
-            this.IsDataReady = true;
-            this.DataReady.InvokeSafely();
-
             this.luminaCancellationTokenSource = new();
 
             var luminaCancellationToken = this.luminaCancellationTokenSource.Token;
@@ -131,11 +128,6 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
         }
     }
 
-    /// <summary>
-    /// Gets an event whenever Game Data is ready to be read.
-    /// </summary>
-    internal event Action DataReady;
-
     /// <inheritdoc/>
     public ClientLanguage Language { get; private set; }
 
@@ -147,11 +139,6 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
 
     /// <inheritdoc/>
     public bool HasModifiedGameDataFiles { get; private set; }
-
-    /// <summary>
-    /// Gets a value indicating whether Game Data is ready to be read.
-    /// </summary>
-    internal bool IsDataReady { get; private set; }
 
     #region Lumina Wrappers
 

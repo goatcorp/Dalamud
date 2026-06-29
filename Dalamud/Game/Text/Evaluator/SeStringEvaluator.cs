@@ -80,14 +80,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     [ServiceManager.ServiceConstructor]
     private SeStringEvaluator()
     {
-        if (this.dataManager.IsDataReady)
-        {
-            this.LoadSheetNames();
-        }
-        else
-        {
-            this.dataManager.DataReady += this.OnDataReady;
-        }
+        this.sheetNames = [.. this.dataManager.Excel.SheetNames];
     }
 
     /// <inheritdoc/>
@@ -215,17 +208,6 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     private static uint ConvertRawToMapPosY(Map map, float y)
         => ConvertRawToMapPos(map, map.OffsetY, y);
-
-    private void OnDataReady()
-    {
-        this.dataManager.DataReady -= this.OnDataReady;
-        this.LoadSheetNames();
-    }
-
-    private void LoadSheetNames()
-    {
-        this.sheetNames = [.. this.dataManager.Excel.SheetNames];
-    }
 
     private ClientLanguage GetEffectiveClientLanguage()
     {
