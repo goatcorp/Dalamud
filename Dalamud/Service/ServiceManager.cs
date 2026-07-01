@@ -53,8 +53,6 @@ internal static class ServiceManager
 
     private static readonly CancellationTokenSource UnloadCancellationTokenSource = new();
 
-    private static ManualResetEvent unloadResetEvent = new(false);
-
     private static LoadingDialog loadingDialog = new();
 
     /// <summary>
@@ -124,6 +122,11 @@ internal static class ServiceManager
     /// during initialization or during regular operation.
     /// </summary>
     public static CancellationToken UnloadCancellationToken => UnloadCancellationTokenSource.Token;
+
+    /// <summary>
+    /// Gets a value indicating whether all services have been unloaded.
+    /// </summary>
+    public static bool IsUnloaded { get; private set; }
 
     /// <summary>
     /// Initializes Provided Services and FFXIVClientStructs.
@@ -444,77 +447,78 @@ internal static class ServiceManager
     /// </summary>
     public static void UnloadAllServices()
     {
-        UnloadCancellationTokenSource.Cancel();
-
-        var framework = Service<Framework>.GetNullable(Service<Framework>.ExceptionPropagationMode.None);
-        if (framework is { IsInFrameworkUpdateThread: false, IsFrameworkUnloading: false })
+        try
         {
-            framework.RunOnFrameworkThread(UnloadAllServices).Wait();
-            return;
-        }
+            if (!UnloadCancellationTokenSource.IsCancellationRequested)
+                UnloadCancellationTokenSource.Cancel();
 
-        unloadResetEvent.Reset();
-
-        var dependencyServicesMap = new Dictionary<Type, IReadOnlyCollection<Type>>();
-        var allToUnload = new HashSet<Type>();
-        var unloadOrder = new List<Type>();
-
-        Log.Information("==== COLLECTING SERVICES TO UNLOAD ====");
-
-        foreach (var serviceType in GetConcreteServiceTypes())
-        {
-            if (!serviceType.IsAssignableTo(typeof(IServiceType)))
-                continue;
-
-            // Scoped services shall never be unloaded here.
-            // Their lifetime must be managed by the IServiceScope that owns them. If it leaks, it's their fault.
-            if (serviceType.GetServiceKind() == ServiceKind.ScopedService)
-                continue;
-
-            Log.Verbose("Calling GetDependencyServices for '{ServiceName}'", serviceType.FullName!);
-
-            var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
-            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT, true);
-
-            allToUnload.Add(serviceType);
-        }
-
-        void UnloadService(Type serviceType)
-        {
-            if (unloadOrder.Contains(serviceType))
-                return;
-
-            var deps = dependencyServicesMap[serviceType];
-            foreach (var dep in deps)
+            var framework = Service<Framework>.GetNullable(ExceptionPropagationMode.None);
+            if (framework is { IsInFrameworkUpdateThread: false, IsFrameworkUnloading: false })
             {
-                UnloadService(dep);
+                framework.RunOnFrameworkThread(UnloadAllServices).Wait();
+                return;
             }
 
-            unloadOrder.Add(serviceType);
-            Log.Information("Queue for unload {Type}", serviceType.FullName!);
-        }
+            var dependencyServicesMap = new Dictionary<Type, IReadOnlyCollection<Type>>();
+            var allToUnload = new HashSet<Type>();
+            var unloadOrder = new List<Type>();
 
-        foreach (var serviceType in allToUnload)
-        {
-            UnloadService(serviceType);
-        }
+            Log.Information("==== COLLECTING SERVICES TO UNLOAD ====");
 
-        Log.Information("==== UNLOADING ALL SERVICES ====");
+            foreach (var serviceType in GetConcreteServiceTypes())
+            {
+                if (!serviceType.IsAssignableTo(typeof(IServiceType)))
+                    continue;
 
-        unloadOrder.Reverse();
-        foreach (var type in unloadOrder)
-        {
-            Log.Verbose("Unload {Type}", type.FullName!);
+                // Scoped services shall never be unloaded here.
+                // Their lifetime must be managed by the IServiceScope that owns them. If it leaks, it's their fault.
+                if (serviceType.GetServiceKind() == ServiceKind.ScopedService)
+                    continue;
 
-            typeof(Service<>)
-                    .MakeGenericType(type)
-                    .InvokeMember(
-                        "Unset",
-                        BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.NonPublic,
-                        null,
-                        null,
-                        null);
-        }
+                Log.Verbose("Calling GetDependencyServices for '{ServiceName}'", serviceType.FullName!);
+
+                var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
+                dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT, true);
+
+                allToUnload.Add(serviceType);
+            }
+
+            void UnloadService(Type serviceType)
+            {
+                if (unloadOrder.Contains(serviceType))
+                    return;
+
+                var deps = dependencyServicesMap[serviceType];
+                foreach (var dep in deps)
+                {
+                    UnloadService(dep);
+                }
+
+                unloadOrder.Add(serviceType);
+                Log.Information("Queue for unload {Type}", serviceType.FullName!);
+            }
+
+            foreach (var serviceType in allToUnload)
+            {
+                UnloadService(serviceType);
+            }
+
+            Log.Information("==== UNLOADING ALL SERVICES ====");
+
+            unloadOrder.Reverse();
+            foreach (var type in unloadOrder)
+            {
+                Log.Verbose("Unload {Type}", type.FullName!);
+
+                typeof(Service<>)
+                        .MakeGenericType(type)
+                        .InvokeMember(
+                            "Unset",
+                            BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.NonPublic,
+                            null,
+                            null,
+                            null);
+            }
 
 #if DEBUG
         using (LoadedServicesLock.EnterScope())
@@ -522,16 +526,13 @@ internal static class ServiceManager
             LoadedServices.Clear();
         }
 #endif
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Unexpected error while unloading services");
+        }
 
-        unloadResetEvent.Set();
-    }
-
-    /// <summary>
-    /// Wait until all services have been unloaded.
-    /// </summary>
-    public static void WaitForServiceUnload()
-    {
-        unloadResetEvent.WaitOne();
+        IsUnloaded = true;
     }
 
     /// <summary>
