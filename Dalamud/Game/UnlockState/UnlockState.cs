@@ -8,6 +8,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
@@ -41,11 +42,15 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();
 
     [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
+
+    [ServiceManager.ServiceDependency]
     private readonly GameGui gameGui = Service<GameGui>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly RecipeData recipeData = Service<RecipeData>.Get();
 
+    private readonly Debouncer updateDebouncer;
     private readonly ConcurrentDictionary<Type, HashSet<uint>> cachedUnlockedRowIds = [];
     private readonly Hook<CSAchievement.Delegates.SetAchievementCompleted> setAchievementCompletedHook;
     private readonly Hook<TitleList.Delegates.SetTitleUnlocked> setTitleUnlockedHook;
@@ -55,6 +60,8 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     [ServiceManager.ServiceConstructor]
     private UnlockState()
     {
+        this.updateDebouncer = this.framework.CreateDebouncer(TimeSpan.FromMilliseconds(500), this.Update);
+
         this.clientState.Login += this.OnLogin;
         this.clientState.Logout += this.OnLogout;
         this.gameGui.AgentUpdate += this.OnAgentUpdate;
@@ -103,6 +110,8 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.setTitleUnlockedHook.Dispose();
         this.setOrnamentUnlockedHook.Dispose();
         this.setGlassesStyleUnlockedHook.Dispose();
+
+        this.updateDebouncer.Dispose();
     }
 
     /// <inheritdoc/>
@@ -336,14 +345,14 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     /// <inheritdoc/>
     public unsafe bool IsItemUnlocked(Item row)
     {
-        if (row.ItemAction.RowId == 0)
-            return false;
-
         if (!this.IsLoaded)
             return false;
 
-        // To avoid the ExdModule.GetItemRowById call, which can return null if the excel page
-        // is not loaded, we're going to imitate the IsItemActionUnlocked call first:
+        if (!this.IsItemUnlockable(row))
+            return false;
+
+        // To avoid the ExdModule.GetItemRowById call, which can take quite long and might return null
+        // if the excel page is not loaded, we're going to imitate the IsItemActionUnlocked call first:
         switch ((ItemActionAction)row.ItemAction.Value.Action.RowId)
         {
             case ItemActionAction.Companion:
@@ -380,7 +389,11 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             case ItemActionAction.Glasses:
                 return CSPlayerState.Instance()->IsGlassesUnlocked((ushort)row.AdditionalData.RowId);
 
-            case ItemActionAction.SoulShards when PublicContentOccultCrescent.GetState() is var occultCrescentState && occultCrescentState != null:
+            case ItemActionAction.SoulShards:
+                var occultCrescentState = PublicContentOccultCrescent.GetState();
+                if (occultCrescentState == null)
+                    return false;
+
                 var supportJobId = (byte)row.ItemAction.Value.Data[0];
                 return supportJobId < occultCrescentState->SupportJobLevels.Length && occultCrescentState->SupportJobLevels[supportJobId] != 0;
 
@@ -732,7 +745,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
     private void OnLogin()
     {
-        this.Update();
+        this.updateDebouncer.Debounce();
     }
 
     private void OnLogout(int type, int code)
@@ -743,7 +756,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     private void OnAgentUpdate(AgentUpdateFlag agentUpdateFlag)
     {
         if (agentUpdateFlag.HasFlag(AgentUpdateFlag.UnlocksUpdate))
-            this.Update();
+            this.updateDebouncer.Debounce();
     }
 
     private void SetAchievementCompletedDetour(CSAchievement* thisPtr, uint id)

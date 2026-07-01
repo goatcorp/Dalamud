@@ -6,8 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.Gui;
-using Dalamud.Game.Gui.Toast;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -300,6 +298,12 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             this.frameworkThreadTaskScheduler).Unwrap();
     }
 
+    /// <inheritdoc/>
+    public Debouncer CreateDebouncer(TimeSpan delay, Action action)
+    {
+        return new Debouncer(this, delay, action);
+    }
+
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
@@ -581,6 +585,10 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
         => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
+
+    /// <inheritdoc/>
+    public Debouncer CreateDebouncer(TimeSpan delay, Action action)
+        => this.frameworkService.CreateDebouncer(delay, action);
 
     private void OnUpdateForward(IFramework framework)
     {
