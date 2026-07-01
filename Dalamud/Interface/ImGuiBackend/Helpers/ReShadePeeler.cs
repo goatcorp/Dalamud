@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -32,9 +33,16 @@ internal static unsafe class ReShadePeeler
     private static bool PeelIUnknown<T>(ComPtr<T>* comptr, nint vtblSize)
         where T : unmanaged, IUnknown.Interface
     {
-        var changed = false;
+        var peeledAny = false;
+        var visitedObjects = new HashSet<nint>();
         while (comptr->Get() != null && IsReShadedComObject(comptr->Get()))
         {
+            var currentObject = (nint)comptr->Get();
+            if (!visitedObjects.Add(currentObject))
+                break;
+
+            var peeledCurrent = false;
+
             // Expectation: the pointer to the underlying object should come early after the overriden vtable.
             for (nint i = 8; i <= 0x20; i += 8)
             {
@@ -72,16 +80,20 @@ internal static unsafe class ReShadePeeler
                 if (punk.As(&comptr2).FAILED)
                     continue;
 
+                if ((nint)comptr2.Get() == currentObject)
+                    continue;
+
                 comptr2.Swap(comptr);
-                changed = true;
+                peeledAny = true;
+                peeledCurrent = true;
                 break;
             }
 
-            if (!changed)
+            if (!peeledCurrent)
                 break;
         }
 
-        return changed;
+        return peeledAny;
     }
 
     private static bool BelongsInReShadeDll(nint ptr)
@@ -165,6 +177,9 @@ internal static unsafe class ReShadePeeler
 
     private static bool IsValidReadableMemoryAddress(nint p, nint size)
     {
+        if (size < 0)
+            return false;
+
         while (size > 0)
         {
             if (!IsValidUserspaceMemoryAddress(p))
@@ -182,8 +197,12 @@ internal static unsafe class ReShadePeeler
                 })
                 return false;
 
-            var regionSize = (nint)((mbi.RegionSize + 0xFFFUL) & ~0x1000UL);
-            var checkedSize = ((nint)mbi.BaseAddress + regionSize) - p;
+            var regionEnd = (nint)mbi.BaseAddress + (nint)mbi.RegionSize;
+            var checkedSize = regionEnd - p;
+            if (checkedSize <= 0)
+                return false;
+
+            checkedSize = Math.Min(checkedSize, size);
             size -= checkedSize;
             p += checkedSize;
         }
@@ -193,6 +212,9 @@ internal static unsafe class ReShadePeeler
 
     private static bool IsValidExecutableMemoryAddress(nint p, nint size)
     {
+        if (size < 0)
+            return false;
+
         while (size > 0)
         {
             if (!IsValidUserspaceMemoryAddress(p))
@@ -210,8 +232,12 @@ internal static unsafe class ReShadePeeler
                 })
                 return false;
 
-            var regionSize = (nint)((mbi.RegionSize + 0xFFFUL) & ~0x1000UL);
-            var checkedSize = ((nint)mbi.BaseAddress + regionSize) - p;
+            var regionEnd = (nint)mbi.BaseAddress + (nint)mbi.RegionSize;
+            var checkedSize = regionEnd - p;
+            if (checkedSize <= 0)
+                return false;
+
+            checkedSize = Math.Min(checkedSize, size);
             size -= checkedSize;
             p += checkedSize;
         }

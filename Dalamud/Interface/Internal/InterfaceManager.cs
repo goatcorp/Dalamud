@@ -106,8 +106,13 @@ internal partial class InterfaceManager : IInternalDisposableService
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
 
     private readonly AssertHandler assertHandler = new();
+    private readonly Lock imGuiFrameLock = new();
 
     private IWin32Backend? backend;
+
+    private bool hooksInitialized;
+    private bool hasPreparedImGuiFrame;
+    private bool imGuiResizeInProgress;
 
     private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<ReShadeDxgiSwapChainPresentDelegate>? reShadeDxgiSwapChainPresentHook;
@@ -314,6 +319,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     {
         this.clientState.Login -= this.OnLogin;
         this.assertHandler.Dispose();
+        this.framework.Update -= this.FrameworkOnUpdate;
 
         // Unload hooks from the framework thread if possible.
         // We're currently off the framework thread, as this function can only be called from
@@ -602,17 +608,40 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private unsafe void FrameworkOnUpdate(IFramework framework1)
     {
-        // We now delay hooking until Framework is set up and has fired its first update.
-        // Some graphics drivers seem to consider the game's shader cache as invalid if we hook too early.
-        // The game loads shader packages on the file thread and then compiles them. It will show the logo once it is done.
-        // This is a workaround, but it fixes an issue where the game would take a very long time to get to the title screen.
-        // NetworkModuleProxy is set up after lua scripts are loaded (EventFramework.LoadState >= 5), which can only happen
-        // after the shaders are compiled (if necessary) and loaded. AgentLobby.Update doesn't do much until this condition is met.
-        if (CSFramework.Instance()->GetNetworkModuleProxy() == null)
+        if (!this.hooksInitialized)
+        {
+            // We now delay hooking until Framework is set up and has fired its first update.
+            // Some graphics drivers seem to consider the game's shader cache as invalid if we hook too early.
+            // The game loads shader packages on the file thread and then compiles them. It will show the logo once it is done.
+            // This is a workaround, but it fixes an issue where the game would take a very long time to get to the title screen.
+            // NetworkModuleProxy is set up after lua scripts are loaded (EventFramework.LoadState >= 5), which can only happen
+            // after the shaders are compiled (if necessary) and loaded. AgentLobby.Update doesn't do much until this condition is met.
+            if (CSFramework.Instance()->GetNetworkModuleProxy() == null)
+                return;
+
+            this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
+            this.hooksInitialized = true;
+        }
+
+        if (this.backend is null || !this.dalamudAtlas!.HasBuiltAtlas)
             return;
 
-        this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
-        this.framework.Update -= this.FrameworkOnUpdate;
+        if (!SwapChainHelper.IsNvPresentUnwrapped)
+            return;
+
+        using var frameLockScope = this.imGuiFrameLock.EnterScope();
+        if (this.imGuiResizeInProgress)
+            return;
+
+        // Smooth Motion may render the prepared frame multiple times. Keep everything
+        // referenced by that frame alive until no Present is using it and it is replaced.
+        this.InvalidatePreparedImGuiFrame();
+
+        this.PrepareImGuiFrame(this.backend);
+
+        // Plugin UI and ImGui frame construction must remain on the framework thread.
+        this.backend.Step();
+        this.hasPreparedImGuiFrame = true;
     }
 
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
@@ -658,6 +687,35 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.CumulativePresentCalls++;
         this.IsMainThreadInPresent = true;
 
+        try
+        {
+            using var frameLockScope = this.imGuiFrameLock.EnterScope();
+
+            if (this.imGuiResizeInProgress)
+                return;
+
+            if (SwapChainHelper.IsNvPresentUnwrapped)
+            {
+                if (!this.hasPreparedImGuiFrame)
+                    return;
+
+                activeBackend.Render();
+            }
+            else
+            {
+                this.PrepareImGuiFrame(activeBackend);
+                activeBackend.RenderFrame();
+                this.PostImGuiRender();
+            }
+        }
+        finally
+        {
+            this.IsMainThreadInPresent = false;
+        }
+    }
+
+    private void PrepareImGuiFrame(IImGuiBackend activeBackend)
+    {
         while (this.runBeforeImGuiRender.TryDequeue(out var action))
             action.InvokeSafely();
 
@@ -669,12 +727,6 @@ internal partial class InterfaceManager : IInternalDisposableService
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
         else
             ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
-
-        // Call drawing functions, which in turn will call Draw event.
-        activeBackend.Render();
-
-        this.PostImGuiRender();
-        this.IsMainThreadInPresent = false;
     }
 
     private unsafe IImGuiBackend InitBackend(IDXGISwapChain* swapChain)
@@ -845,6 +897,15 @@ internal partial class InterfaceManager : IInternalDisposableService
         }
     }
 
+    private void InvalidatePreparedImGuiFrame()
+    {
+        if (!this.hasPreparedImGuiFrame)
+            return;
+
+        this.hasPreparedImGuiFrame = false;
+        this.PostImGuiRender();
+    }
+
     private unsafe void SetupHooks(
         TargetSigScanner sigScanner,
         FontAtlasFactory fontAtlasFactory)
@@ -976,6 +1037,15 @@ internal partial class InterfaceManager : IInternalDisposableService
         }
 
         Log.Information("===== S W A P C H A I N =====");
+
+        // Some NVIDIA driver features, including Smooth Motion frame generation, wrap the
+        // game's swap chain. Hook the underlying swap chain so injected presents do not
+        // bypass Dalamud and leave the visible frame stuck.
+        if (SwapChainHelper.UnwrapNvPresent())
+            Log.Information("Unwrapped NvPresent");
+        else
+            Log.Information("No NvPresent wrap detected");
+
         var sb = new StringBuilder();
         foreach (var m in ReShadeAddonInterface.AllReShadeModules)
         {
@@ -1010,9 +1080,17 @@ internal partial class InterfaceManager : IInternalDisposableService
             case ReShadeHandlingMode.Default:
             case ReShadeHandlingMode.UnwrapReShade:
                 if (SwapChainHelper.UnwrapReShade())
+                {
                     Log.Information("Unwrapped ReShade");
+
+                    if (SwapChainHelper.UnwrapNvPresent())
+                        Log.Information("Unwrapped NvPresent after ReShade");
+                }
                 else
+                {
                     Log.Warning("Could not unwrap ReShade");
+                }
+
                 goto default;
 
             // Do no special ReShade handling.
