@@ -1889,15 +1889,43 @@ void get_cpu_info(wchar_t *vendor, wchar_t *brand)
     }
 }
 
-std::wstring get_registry_value(HKEY hKeyRoot, const std::wstring& subKey, const std::wstring& valueName) {
+std::wstring get_registry_value_bin(HKEY hKeyRoot, const std::string &subKey, const std::string &valueName)
+{
+    HKEY hKey;
+    std::wstring hexStr;
+    if (RegOpenKeyExA(hKeyRoot, subKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+    {
+        DWORD bufferSize = 0;
+        if (RegQueryValueExA(hKey, valueName.c_str(), NULL, NULL, NULL, &bufferSize) == ERROR_SUCCESS)
+        {
+            std::vector<char> buffer(bufferSize);
+
+            if (RegQueryValueExA(hKey, valueName.c_str(), NULL, NULL, reinterpret_cast<LPBYTE>(buffer.data()), &bufferSize) == ERROR_SUCCESS)
+            {
+                hexStr.reserve(buffer.size() * 3);
+                for (int i = 0; i < buffer.size(); i++)
+                {
+                    hexStr += std::format(L"{:02X} ", buffer[i]);
+                }
+            }
+        }
+        RegCloseKey(hKey);
+    }
+    return hexStr;
+}
+
+std::wstring get_registry_value_str(HKEY hKeyRoot, const std::wstring &subKey, const std::wstring &valueName)
+{
     HKEY hKey;
     std::wstring value;
-    
-    if (RegOpenKeyExW(hKeyRoot, subKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+
+    if (RegOpenKeyExW(hKeyRoot, subKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+    {
         wchar_t buffer[512];
         DWORD bufferSize = sizeof(buffer);
-        
-        if (RegQueryValueExW(hKey, valueName.c_str(), NULL, NULL, reinterpret_cast<LPBYTE>(buffer), &bufferSize) == ERROR_SUCCESS) {
+
+        if (RegQueryValueExW(hKey, valueName.c_str(), NULL, NULL, reinterpret_cast<LPBYTE>(buffer), &bufferSize) == ERROR_SUCCESS)
+        {
             value = buffer;
         }
         RegCloseKey(hKey);
@@ -2222,11 +2250,15 @@ int main() {
         log << std::format(L"CPU Vendor: {}", vendor) << std::endl;
         log << std::format(L"CPU Brand: {}", brand) << std::endl;
 
-        std::wstring bios_description_path = "HARDWARE\\DESCRIPTION\\System\\BIOS";
+        std::wstring bios_description_path = L"HARDWARE\\DESCRIPTION\\System\\BIOS";
 
-        log << std::format(L"BIOS Vendor: {}", get_registry_value(HKEY_LOCAL_MACHINE, bios_description_path, L"BIOSVendor")) << std::endl;
-        log << std::format(L"BIOS Version: {}", get_registry_value(HKEY_LOCAL_MACHINE, bios_description_path, L"BIOSVersion")) << std::endl;
-        log << std::format(L"BIOS Release Date: {}", get_registry_value(HKEY_LOCAL_MACHINE, bios_description_path, L"BIOSReleaseDate")) << std::endl;
+        log << std::format(L"BIOS Vendor: {}", get_registry_value_str(HKEY_LOCAL_MACHINE, bios_description_path, L"BIOSVendor")) << std::endl;
+        log << std::format(L"BIOS Version: {}", get_registry_value_str(HKEY_LOCAL_MACHINE, bios_description_path, L"BIOSVersion")) << std::endl;
+        log << std::format(L"BIOS Release Date: {}", get_registry_value_str(HKEY_LOCAL_MACHINE, bios_description_path, L"BIOSReleaseDate")) << std::endl;
+        log << std::format(L"Base Board Manufacurer: {}", get_registry_value_str(HKEY_LOCAL_MACHINE, bios_description_path, L"BaseBoardManufacturer")) << std::endl;
+        log << std::format(L"Base Board Product: {}", get_registry_value_str(HKEY_LOCAL_MACHINE, bios_description_path, L"BaseBoardProduct")) << std::endl;
+        log << std::format(L"Central Processor Identifier: {}", get_registry_value_str(HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", L"Identifier")) << std::endl;
+        log << std::format(L"Central Processor Update Revision: {}", get_registry_value_bin(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", "Update Revision")) << std::endl;
 
         for (IDXGIAdapter1* adapter : enum_dxgi_adapters()) {
             DXGI_ADAPTER_DESC1 adapterDescription{};
