@@ -1889,6 +1889,22 @@ void get_cpu_info(wchar_t *vendor, wchar_t *brand)
     }
 }
 
+std::wstring get_registry_value(HKEY hKeyRoot, const std::wstring& subKey, const std::wstring& valueName) {
+    HKEY hKey;
+    std::wstring value;
+    
+    if (RegOpenKeyExW(hKeyRoot, subKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        wchar_t buffer[512];
+        DWORD bufferSize = sizeof(buffer);
+        
+        if (RegQueryValueExW(hKey, valueName.c_str(), NULL, NULL, reinterpret_cast<LPBYTE>(buffer), &bufferSize) == ERROR_SUCCESS) {
+            value = buffer;
+        }
+        RegCloseKey(hKey);
+    }
+    return value;
+}
+
 int main() {
     logging::set_tag("CRASHHANDLER");
     logging::update_dll_load_status(true);
@@ -2205,6 +2221,12 @@ int main() {
         log << std::format(L"System Time: {0:%F} {0:%T} {0:%Ez}", std::chrono::system_clock::now()) << std::endl;
         log << std::format(L"CPU Vendor: {}", vendor) << std::endl;
         log << std::format(L"CPU Brand: {}", brand) << std::endl;
+
+        std::wstring bios_description_path = "HARDWARE\\DESCRIPTION\\System\\BIOS";
+
+        log << std::format(L"BIOS Vendor: {}", get_registry_value(HKEY_LOCAL_MACHINE, bios_description_path, L"BIOSVendor")) << std::endl;
+        log << std::format(L"BIOS Version: {}", get_registry_value(HKEY_LOCAL_MACHINE, bios_description_path, L"BIOSVersion")) << std::endl;
+        log << std::format(L"BIOS Release Date: {}", get_registry_value(HKEY_LOCAL_MACHINE, bios_description_path, L"BIOSReleaseDate")) << std::endl;
 
         for (IDXGIAdapter1* adapter : enum_dxgi_adapters()) {
             DXGI_ADAPTER_DESC1 adapterDescription{};
