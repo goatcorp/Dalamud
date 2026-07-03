@@ -1,4 +1,6 @@
-﻿using Dalamud.Utility;
+﻿using Dalamud.NativeUi.BaseTypes.Component;
+using Dalamud.NativeUi.Classes;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Enums;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -13,6 +15,9 @@ namespace Dalamud.NativeUi.BaseTypes.Node;
 /// </summary>
 internal unsafe partial class NodeBase
 {
+    private AtkTooltipType tooltipType = AtkTooltipType.None;
+    private bool tooltipEventsRegistered;
+
     /// <summary>
     /// Gets or sets the Text Tooltip for this node.
     /// </summary>
@@ -110,7 +115,7 @@ internal unsafe partial class NodeBase
     }
 
     /// <summary>
-    /// Property that indicates if a tooltip is already registered.
+    /// Gets or sets a value indicating whether property that indicates if a tooltip is already registered.
     /// </summary>
     /// <remarks>
     /// Used by inherited nodes if they want to override the tooltip behavior.
@@ -122,7 +127,7 @@ internal unsafe partial class NodeBase
     /// </summary>
     public virtual void ShowTooltip()
     {
-        if (ParentAddon is null) return; // Shouldn't be possible
+        if (this.ParentAddon is null) return; // Shouldn't be possible
         if (this.tooltipType is AtkTooltipType.None) return;
 
         using var stringBuilder = new RentedSeStringBuilder();
@@ -132,7 +137,7 @@ internal unsafe partial class NodeBase
             stringBuffer[0].SetManagedString(stringBuilder.Builder.Append(this.TextTooltip).GetViewAsSpan());
         }
 
-        var tooltipArgs = new AtkTooltipManager.AtkTooltipArgs();
+        var tooltipArgs = default(AtkTooltipManager.AtkTooltipArgs);
 
         if (this.tooltipType.HasFlag(AtkTooltipType.Text))
         {
@@ -169,6 +174,7 @@ internal unsafe partial class NodeBase
     /// <summary>
     /// Shows the specified text as a tooltip for this node.
     /// </summary>
+    /// <param name="tooltip">Text tooltip to show.</param>
     public void ShowTextTooltip(ReadOnlySeString tooltip)
     {
         if (tooltip.IsEmpty) return;
@@ -184,7 +190,7 @@ internal unsafe partial class NodeBase
     /// </remarks>
     public void HideTooltip()
     {
-        if (ParentAddon is null) return;
+        if (this.ParentAddon is null) return;
 
         AtkStage.Instance()->TooltipManager.HideTooltip(ParentAddon->Id);
     }
@@ -193,10 +199,10 @@ internal unsafe partial class NodeBase
     {
         if (this.tooltipEventsRegistered) return;
 
-        AddEvent(AtkEventType.MouseOver, this.ShowTooltip);
-        AddEvent(AtkEventType.MouseOut, this.HideTooltip);
-        OnVisibilityToggled += this.ToggleCollisionFlag;
-        this.ToggleCollisionFlag(IsVisible);
+        this.AddEvent(AtkEventType.MouseOver, this.ShowTooltip);
+        this.AddEvent(AtkEventType.MouseOut, this.HideTooltip);
+        this.OnVisibilityToggled += this.ToggleCollisionFlag;
+        this.ToggleCollisionFlag(this.IsVisible);
 
         this.tooltipEventsRegistered = true;
     }
@@ -205,27 +211,24 @@ internal unsafe partial class NodeBase
     {
         if (this.tooltipEventsRegistered)
         {
-            RemoveEvent(AtkEventType.MouseOver, this.ShowTooltip);
-            RemoveEvent(AtkEventType.MouseOut, this.HideTooltip);
-            OnVisibilityToggled -= this.ToggleCollisionFlag;
+            this.RemoveEvent(AtkEventType.MouseOver, this.ShowTooltip);
+            this.RemoveEvent(AtkEventType.MouseOut, this.HideTooltip);
+            this.OnVisibilityToggled -= this.ToggleCollisionFlag;
             this.tooltipEventsRegistered = false;
         }
     }
 
     private void ToggleCollisionFlag(bool isVisible)
     {
-        if (this is ComponentNode.ComponentNode) return;
+        if (this is ComponentNode) return;
 
         if (isVisible)
         {
-            AddNodeFlags(NodeFlags.HasCollision);
+            this.AddNodeFlags(NodeFlags.HasCollision);
         }
         else
         {
-            RemoveNodeFlags(NodeFlags.HasCollision);
+            this.RemoveNodeFlags(NodeFlags.HasCollision);
         }
     }
-
-    private AtkTooltipType tooltipType = AtkTooltipType.None;
-    private bool tooltipEventsRegistered;
 }

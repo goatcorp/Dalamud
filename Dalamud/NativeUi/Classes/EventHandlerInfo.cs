@@ -3,7 +3,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 namespace Dalamud.NativeUi.Classes;
 
 /// <summary>
-/// Simple helper class for unioning a action with a recieve event delegate.
+/// Simple helper class for union an action with a receiveEvent delegate.
 /// </summary>
 internal class EventHandlerInfo
 {

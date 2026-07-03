@@ -20,7 +20,6 @@ internal abstract unsafe class NodeBase<T> : NodeBase where T : unmanaged, ICrea
     {
         ThreadSafety.AssertMainThread();
 
-        Log.Verbose("Creating new node {Name}", this.GetType().Name);
         this.Node = IMemorySpace.GetUISpace()->Create<T>();
 
         if (this.ResNode is null)
@@ -66,7 +65,7 @@ internal abstract unsafe class NodeBase<T> : NodeBase where T : unmanaged, ICrea
             }
             catch (Exception e)
             {
-                Log.Error(e, "Exception occurred while disposing node {GetType} with address [{ResNode:X8}].", this.GetType().Name, $"0x{(nint)this.ResNode:X8}");
+                this.Log.Error(e, "Exception occurred while disposing node {GetType} with address [{ResNode:X8}].", this.GetType().Name, $"0x{(nint)this.ResNode:X8}");
             }
             finally
             {

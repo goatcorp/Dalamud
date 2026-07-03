@@ -49,7 +49,7 @@ internal abstract unsafe partial class NodeBase
 
         if (this.eventHandlers.TryAdd(eventType, new EventHandlerInfo { OnActionDelegate = callback }))
         {
-            Log.Verbose("[{AtkEventType}] Registered for {GetType} [{ResNode:X}]", eventType, this.GetType(), (nint)this.ResNode);
+            this.Log.Verbose("[{AtkEventType}] Registered for {GetType} [{ResNode:X}]", eventType, this.GetType(), (nint)this.ResNode);
             ResNode->AtkEventManager.RegisterEvent(eventType, 0, this, this, this.nodeEventListener, false);
         }
         else
@@ -71,7 +71,7 @@ internal abstract unsafe partial class NodeBase
 
         if (this.eventHandlers.TryAdd(eventType, new EventHandlerInfo { OnReceiveEventDelegate = callback }))
         {
-            Log.Verbose("[{AtkEventType}] Registered for {GetType} [{ResNode:X}]", eventType, this.GetType(), (nint)this.ResNode);
+            this.Log.Verbose("[{AtkEventType}] Registered for {GetType} [{ResNode:X}]", eventType, this.GetType(), (nint)this.ResNode);
             ResNode->AtkEventManager.RegisterEvent(eventType, 0, this, this, this.nodeEventListener, false);
         }
         else
@@ -90,7 +90,7 @@ internal abstract unsafe partial class NodeBase
 
         if (this.eventHandlers.Remove(eventType))
         {
-            Log.Verbose("[{AtkEventType}] Unregistered from {GetType} [{ResNode:X}]", eventType, this.GetType(), (nint)this.ResNode);
+            this.Log.Verbose("[{AtkEventType}] Unregistered from {GetType} [{ResNode:X}]", eventType, this.GetType(), (nint)this.ResNode);
             ResNode->AtkEventManager.UnregisterEvent(eventType, 0, this.nodeEventListener, false);
         }
 
@@ -161,6 +161,7 @@ internal abstract unsafe partial class NodeBase
 
         if (this.eventHandlers.TryGetValue(eventType, out var handler))
         {
+            // Process event handlers that use the no-arg callback action.
             foreach (var noArgHandler in Delegate.EnumerateInvocationList(handler.OnActionDelegate))
             {
                 try
@@ -169,10 +170,11 @@ internal abstract unsafe partial class NodeBase
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, "Exception while handing an event callback using no arg callback.");
+                    this.Log.Error(e, "Exception while handing an event callback using no arg callback.");
                 }
             }
 
+            // Process event handlers that use the full-args callback.
             foreach (var argHandler in Delegate.EnumerateInvocationList(handler.OnReceiveEventDelegate))
             {
                 try
@@ -181,12 +183,15 @@ internal abstract unsafe partial class NodeBase
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, "Exception while handling an event callback using full args callback.");
+                    this.Log.Error(e, "Exception while handling an event callback using full args callback.");
                 }
             }
         }
     }
 
+    /// <summary>
+    /// Sets the flags required depending on the event type.
+    /// </summary>
     private void SetNodeEventFlags(AtkEventType eventType)
     {
         switch (eventType)

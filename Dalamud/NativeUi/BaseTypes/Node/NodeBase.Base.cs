@@ -21,11 +21,6 @@ internal abstract unsafe partial class NodeBase : IDisposable
     internal const uint NodeIdBase = 100_000_000;
 
     /// <summary>
-    /// Module log instance for NodeBase.
-    /// </summary>
-    protected static readonly ModuleLog Log = new("NodeBase");
-
-    /// <summary>
     /// Pinned AtkResNode.Destroy function for use in the replaced virtual table.
     /// </summary>
     private AtkResNode.Delegates.Destroy destroyFunction = null!;
@@ -46,7 +41,7 @@ internal abstract unsafe partial class NodeBase : IDisposable
     /// </summary>
     ~NodeBase()
     {
-        Log.Warning("Finalizer has disposed node {nodeType}, node was allocated but not attached to native.", this.GetType());
+        this.Log.Warning("Finalizer has disposed node {nodeType}, node was allocated but not attached to native.", this.GetType());
         this.Dispose(false, false);
     }
 
@@ -67,6 +62,14 @@ internal abstract unsafe partial class NodeBase : IDisposable
     /// This is base type of the contained node, all nodes can be represented as this base type.
     /// </summary>
     internal abstract AtkResNode* ResNode { get; }
+
+    /// <summary>
+    /// Gets module log instance for NodeBase.
+    /// </summary>
+    /// <remarks>
+    /// This is virtual so that ComponentNode can override it for more accurate logging.
+    /// </remarks>
+    protected virtual ModuleLog Log { get; } = new("NodeBase");
 
     /// <summary>
     /// Gets a value indicating whether this instance has already been disposed.
@@ -119,7 +122,7 @@ internal abstract unsafe partial class NodeBase : IDisposable
 
             this.ChildNodes.Clear();
 
-            UnregisterTooltipEvents();
+            this.UnregisterTooltipEvents();
 
             AtkStage.Instance()->ClearNodeFocus(this.ResNode);
 
@@ -133,12 +136,12 @@ internal abstract unsafe partial class NodeBase : IDisposable
         }
         catch (Exception e)
         {
-            Log.Error(e, "Exception occurred while disposing node {GetType} with address [{ResNode:X8}].", this.GetType().Name, $"0x{(nint)this.ResNode:X8}");
+            this.Log.Error(e, "Exception occurred while disposing node {GetType} with address [{ResNode:X8}].", this.GetType().Name, $"0x{(nint)this.ResNode:X8}");
         }
     }
 
     /// <summary>
-    /// Dispose associated resources. If a resource modifies native state directly guard it with isNativeDestructor
+    /// Dispose associated resources. If a resource modifies native state directly guard it with isNativeDestructor.
     /// </summary>
     /// <param name="disposing">
     /// Indicates if this specific call should dispose resources or not. This protects against double dispose,
@@ -152,7 +155,7 @@ internal abstract unsafe partial class NodeBase : IDisposable
     protected virtual void Dispose(bool disposing, bool isNativeDestructor)
     {
         // Dispose of managed resources that must be disposed regardless of how dispose is invoked
-        DisposeEvents();
+        this.DisposeEvents();
     }
 
     /// <summary>

@@ -2,14 +2,14 @@
 using System.Runtime.CompilerServices;
 
 using Dalamud.NativeUi.BaseTypes.Addon;
+using Dalamud.NativeUi.BaseTypes.Component;
 using Dalamud.NativeUi.Classes;
 using Dalamud.NativeUi.Enums;
 using Dalamud.NativeUi.Extensions;
+using Dalamud.NativeUi.Nodes;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using Lumina.Data.Parsing.Uld;
 
 namespace Dalamud.NativeUi.BaseTypes.Node;
 
@@ -26,12 +26,12 @@ internal abstract unsafe partial class NodeBase
     internal List<NodeBase> ChildNodes { get; } = [];
 
     /// <summary>
-    /// Gets the AtkUldManager that is managing this node.
+    /// Gets or sets the AtkUldManager that is managing this node.
     /// </summary>
     /// <remarks>
     /// This can be null.
     /// </remarks>
-    internal AtkUldManager* ParentUldManager { get; private set; }
+    internal AtkUldManager* ParentUldManager { get; set; }
 
     /// <summary>
     /// Gets the AtkUnitBase that currently owns this node.
@@ -123,20 +123,19 @@ internal abstract unsafe partial class NodeBase
     /// <returns>Enumerable containing all child nodes.</returns>
     internal static IEnumerable<NodeBase> GetLocalChildren(NodeBase parent)
     {
-        if (parent is NodeData.ComponentNode) yield break;
+        if (parent is ComponentNode) yield break;
 
         foreach (var child in parent.ChildNodes)
         {
             yield return child;
 
-            if (child is NodeData.ComponentNode) continue;
+            if (child is ComponentNode) continue;
             foreach (var childNode in GetLocalChildren(child))
             {
                 yield return childNode;
             }
         }
     }
-
 
     private static IEnumerable<NodeBase> GetAllChildren(NodeBase parent)
     {
@@ -155,7 +154,7 @@ internal abstract unsafe partial class NodeBase
         ThreadSafety.AssertMainThread();
         if (targetAddon is null) return;
 
-        PerformNativeAttach(targetAddon.RootNode, targetPosition);
+        this.PerformNativeAttach(targetAddon.RootNode, targetPosition);
 
         this.parentNode = targetAddon.RootNode;
         this.parentNode.ChildNodes.Add(this);
@@ -165,7 +164,7 @@ internal abstract unsafe partial class NodeBase
     {
         if (this == targetNode)
         {
-            Log.Warning("Attempted to attach self to self, attach was aborted.");
+            this.Log.Warning("Attempted to attach self to self, attach was aborted.");
             return;
         }
 
@@ -182,7 +181,7 @@ internal abstract unsafe partial class NodeBase
     {
         if (this.ResNode == targetNode)
         {
-            Log.Warning("Attempted to attach self to self, attach was aborted.");
+            this.Log.Warning("Attempted to attach self to self, attach was aborted.");
             return;
         }
 
@@ -307,7 +306,7 @@ internal abstract unsafe partial class NodeBase
                 child.ParentUldManager = this.ParentUldManager;
             }
 
-            if (this is NodeData.TextNode { TextId: not 0 })
+            if (this is TextNode { TextId: not 0 })
             {
                 ParentUldManager->SetupText();
             }
