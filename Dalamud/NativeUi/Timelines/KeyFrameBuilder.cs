@@ -5,7 +5,7 @@ using FFXIVClientStructs.FFXIV.Common.Math;
 namespace Dalamud.NativeUi.Timelines;
 
 /// <summary>
-/// Represents a builder for keyframes by use from <see cref="FrameSetBuilder"/>
+/// Represents a builder for keyframes by use from <see cref="FrameSetBuilder"/>.
 /// </summary>
 internal class KeyFrameBuilder(FrameSetBuilder parent, int frame)
 {

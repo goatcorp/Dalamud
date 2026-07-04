@@ -8,7 +8,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 namespace Dalamud.NativeUi.Timelines;
 
 /// <summary>
-/// Conversion class used to convert between a managed object and <see cref="AtkTimelineNodeTint"/>
+/// Conversion class used to convert between a managed object and <see cref="AtkTimelineNodeTint"/>.
 /// </summary>
 /// <remarks>
 /// There's some nonsense with how the conversion has to happen that this just solves.

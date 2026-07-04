@@ -58,7 +58,7 @@ internal static unsafe class AtkUldManagerExtensions
         }
 
         /// <summary>
-        /// Removes node and all children nodes from this UldManager's Object List
+        /// Removes node and all children nodes from this UldManager's Object List.
         /// </summary>
         public void RemoveNodeFromObjectList(NodeBase node)
         {

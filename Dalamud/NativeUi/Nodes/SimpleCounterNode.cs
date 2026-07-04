@@ -7,11 +7,11 @@ namespace Dalamud.NativeUi.Nodes;
 /// <summary>
 /// A simplified implementation of a <see cref="CounterNode"/>, with default font set to Money font.
 /// </summary>
-internal unsafe class SimpleCounterNode : CounterNode
+internal class SimpleCounterNode : CounterNode
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="SimpleCounterNode"/> class.
-    /// Constructs a new <see cref="SimpleCounterNode"/>
+    /// Constructs a new <see cref="SimpleCounterNode"/>.
     /// </summary>
     public SimpleCounterNode()
     {

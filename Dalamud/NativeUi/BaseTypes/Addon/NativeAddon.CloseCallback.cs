@@ -1,9 +1,9 @@
-﻿using Dalamud.Hooking;
-using Dalamud.Hooking.Internal;
-
-using FFXIVClientStructs.FFXIV.Component.GUI;
-
-namespace Dalamud.NativeUi.BaseTypes.Addon;
+﻿// using Dalamud.Hooking;
+// using Dalamud.Hooking.Internal;
+//
+// using FFXIVClientStructs.FFXIV.Component.GUI;
+//
+// namespace Dalamud.NativeUi.BaseTypes.Addon;
 
 // todo: need to consider a more dalamud-y way of creating and using this hook.
 // /// <summary>

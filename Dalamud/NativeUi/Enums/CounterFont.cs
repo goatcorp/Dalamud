@@ -3,7 +3,7 @@
 namespace Dalamud.NativeUi.Enums;
 
 /// <summary>
-/// Enumeration of available pre-defined fonts to use for <see cref="CounterNode"/>
+/// Enumeration of available pre-defined fonts to use for <see cref="CounterNode"/>.
 /// </summary>
 internal enum CounterFont
 {

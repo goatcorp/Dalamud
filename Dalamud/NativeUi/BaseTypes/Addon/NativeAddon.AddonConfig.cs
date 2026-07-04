@@ -1,13 +1,13 @@
-﻿using System.IO;
-using System.Numerics;
-using System.Text.Json;
-
-using Dalamud.Utility;
-
-using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using FFXIVClientStructs.FFXIV.Component.GUI;
-
-namespace Dalamud.NativeUi.BaseTypes.Addon;
+﻿// using System.IO;
+// using System.Numerics;
+// using System.Text.Json;
+//
+// using Dalamud.Utility;
+//
+// using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+// using FFXIVClientStructs.FFXIV.Component.GUI;
+//
+// namespace Dalamud.NativeUi.BaseTypes.Addon;
 
 // todo: consider a dalamud-y way to save and load addon position and size information.
 // internal unsafe partial class NativeAddon {

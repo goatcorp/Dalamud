@@ -121,8 +121,10 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// Unregisters the listener from events.
     /// </summary>
     /// <param name="listener">The listener to unregister.</param>
-    internal void UnregisterListener(AddonLifecycleEventListener listener)
+    internal void UnregisterListener(AddonLifecycleEventListener? listener)
     {
+        if (listener is null) return;
+
         listener.IsRequestedToClear = true;
 
         if (this.isInvokingListeners)

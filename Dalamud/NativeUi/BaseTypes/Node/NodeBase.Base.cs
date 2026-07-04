@@ -89,6 +89,12 @@ internal abstract unsafe partial class NodeBase : IDisposable
     public static implicit operator AtkEventTarget*(NodeBase node) => &node.ResNode->AtkEventTarget;
 
     /// <summary>
+    /// Implicit operator to convert this instance to a nint node pointer.
+    /// </summary>
+    /// <param name="node">The node instance to extract the AtkEventTarget* from.</param>
+    public static implicit operator nint(NodeBase node) => (nint)node.ResNode;
+
+    /// <summary>
     /// Disposes this instance. Has double dispose guards.
     /// </summary>
     /// <remarks>
