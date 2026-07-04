@@ -77,7 +77,7 @@ internal class OverlayAddon : NativeAddon
 
         foreach (var node in this.queuedNodes)
         {
-            node.PerformAttach((nint)this.InternalAddon);
+            node.PerformAttach(this.InternalAddon);
             this.attachedNodes.Add(node);
         }
 
