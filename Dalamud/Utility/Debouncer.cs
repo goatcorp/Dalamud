@@ -14,9 +14,8 @@ public class Debouncer : IDisposable
     private readonly TimeSpan delay;
     private readonly Action action;
     private readonly Lock debouncerLock = new();
-    private CancellationTokenSource cts = new();
+    private CancellationTokenSource? cts;
     private DateTime targetTime = DateTime.MinValue;
-    private bool isPending;
     private bool isDisposed;
 
     /// <summary>
@@ -35,6 +34,11 @@ public class Debouncer : IDisposable
         this.action = action;
     }
 
+    /// <summary>
+    /// Gets a value indicating whether the action is queued to be executed.
+    /// </summary>
+    public bool IsPending => this.cts != null;
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -43,9 +47,9 @@ public class Debouncer : IDisposable
         if (this.isDisposed)
             return;
 
+        this.Cancel();
+
         this.isDisposed = true;
-        this.cts.Cancel();
-        this.cts.Dispose();
     }
 
     /// <summary>
@@ -60,15 +64,23 @@ public class Debouncer : IDisposable
 
         this.targetTime = DateTime.UtcNow + this.delay;
 
-        if (this.isPending)
+        if (this.IsPending)
             return;
 
-        this.cts.Cancel();
-        this.cts.Dispose();
         this.cts = new();
-
-        this.isPending = true;
         this.framework.RunOnTick(this.OnTick, this.delay, cancellationToken: this.cts.Token);
+    }
+
+    /// <summary>
+    /// Cancels the pending execution of the action.
+    /// </summary>
+    public void Cancel()
+    {
+        using var scope = this.debouncerLock.EnterScope();
+
+        this.cts?.Cancel();
+        this.cts?.Dispose();
+        this.cts = null;
     }
 
     private void OnTick()
@@ -81,12 +93,13 @@ public class Debouncer : IDisposable
             var now = DateTime.UtcNow;
             if (now < this.targetTime)
             {
-                this.isPending = true;
                 this.framework.RunOnTick(this.OnTick, this.targetTime - now, cancellationToken: this.cts.Token);
                 return;
             }
 
-            this.isPending = false;
+            this.cts?.Cancel();
+            this.cts?.Dispose();
+            this.cts = null;
         }
 
         this.action();
