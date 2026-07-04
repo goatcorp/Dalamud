@@ -12,6 +12,7 @@ namespace Dalamud.Game.NativeUi;
 internal class OverlayAddon : NativeAddon
 {
     private readonly List<IOverlayNode> attachedNodes = [];
+    private readonly List<IOverlayNode> queuedNodes = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OverlayAddon"/> class.
@@ -23,46 +24,50 @@ internal class OverlayAddon : NativeAddon
 
     /// <summary>
     /// Attach a node to this overlay addon.
+    /// If the addon isn't ready yet, the nodes will be attached when it is.
     /// </summary>
     /// <param name="node">Node to attach.</param>
-    /// <returns>true if the node was attached.</returns>
-    public unsafe bool AttachNode(IOverlayNode node)
+    public unsafe void AttachNode(IOverlayNode node)
     {
+        if (!this.IsOpen)
+        {
+            this.queuedNodes.Add(node);
+            return;
+        }
+
         if (!this.attachedNodes.Contains(node))
         {
-            this.attachedNodes.Add(node);
-
             var nodePointer = node.GetAsAtkResNode();
-            if (nodePointer is null) return false;
+            if (node.GetAsAtkResNode() is null) return;
 
             nodePointer->NodeId = (uint)this.attachedNodes.Count + 1;
-            node.PerformAttach((nint)this.InternalAddon);
+
+            node.PerformAttach(this.InternalAddon);
+
+            this.attachedNodes.Add(node);
 
             this.InternalAddon->UldManager.UpdateDrawNodeList();
             this.InternalAddon->UpdateCollisionNodeList(false);
-            return true;
         }
-
-        return false;
     }
 
     /// <summary>
     /// Removes the specified node.
     /// </summary>
     /// <param name="node">Node to detach.</param>
-    /// <returns>true if the node was removed.</returns>
-    public unsafe bool DetachNode(IOverlayNode node)
+    public unsafe void DetachNode(IOverlayNode node)
     {
+        // If this node hasn't been attached yet, remove it from queue.
+        this.queuedNodes.Remove(node);
+
+        // If it has been attached, remove and actually detach it.
         if (this.attachedNodes.Remove(node))
         {
-            node.PerformDetach();
+            node.PerformDetach(this.InternalAddon);
 
             this.InternalAddon->UldManager.UpdateDrawNodeList();
             this.InternalAddon->UpdateCollisionNodeList(false);
-            return true;
         }
-
-        return false;
     }
 
     /// <inheritdoc/>
@@ -70,10 +75,13 @@ internal class OverlayAddon : NativeAddon
     {
         base.OnSetup(addon, atkValueSpan);
 
-        foreach (var node in this.attachedNodes)
+        foreach (var node in this.queuedNodes)
         {
             node.PerformAttach((nint)this.InternalAddon);
+            this.attachedNodes.Add(node);
         }
+
+        this.queuedNodes.Clear();
 
         this.InternalAddon->UldManager.UpdateDrawNodeList();
         this.InternalAddon->UpdateCollisionNodeList(false);
@@ -97,9 +105,14 @@ internal class OverlayAddon : NativeAddon
         // We will need to re-attach these nodes once the overlay is reopened.
         foreach (var node in this.attachedNodes)
         {
-            node.PerformDetach();
+            node.PerformDetach(this.InternalAddon);
+            this.queuedNodes.Add(node);
         }
 
+        this.attachedNodes.Clear();
+
+        // Update native state to ensure all draw lists have all nodes fully removed
+        // Else the game will call .Destructor(true) on them.
         this.InternalAddon->UldManager.UpdateDrawNodeList();
         this.InternalAddon->UpdateCollisionNodeList(false);
 

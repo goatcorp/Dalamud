@@ -5,7 +5,6 @@ using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -20,8 +19,6 @@ namespace Dalamud.Game.NativeUi;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class NativeOverlay : IInternalDisposableService, INativeOverlay
 {
-    private static readonly ModuleLog Log = ModuleLog.Create<NativeOverlay>();
-
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
@@ -39,7 +36,7 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
         this.addonLifecycle.RegisterListener(this.addonNameplateSetupListener);
         this.addonLifecycle.RegisterListener(this.addonNameplateFinalizeListener);
 
-        // If dalamud is injected after login... build overlays asap.
+        // If dalamud is injected after login, build overlays asap.
         var unitManager = RaptureAtkUnitManager.Instance();
         if (unitManager is not null)
         {
@@ -66,35 +63,29 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
     }
 
     /// <inheritdoc/>
-    public bool AddNode(IOverlayNode node, int depthLayer)
+    public void AddNode(IOverlayNode node, int depthLayer)
     {
-        var nodePointer = node.GetAsAtkResNode();
-        if (nodePointer is null) return false;
+        if (node.GetAsAtkResNode() is null) return;
 
         ThreadSafety.AssertMainThread();
 
         if (this.overlayAddons.TryGetValue(depthLayer, out var addon))
         {
-            return addon.AttachNode(node);
+            addon.AttachNode(node);
         }
-
-        return false;
     }
 
     /// <inheritdoc/>
-    public bool RemoveNode(IOverlayNode node, int depthLayer)
+    public void RemoveNode(IOverlayNode node, int depthLayer)
     {
-        var nodePointer = node.GetAsAtkResNode();
-        if (nodePointer is null) return false;
+        if (node.GetAsAtkResNode() is null) return;
 
         ThreadSafety.AssertMainThread();
 
         if (this.overlayAddons.TryGetValue(depthLayer, out var addon))
         {
-            return addon.DetachNode(node);
+            addon.DetachNode(node);
         }
-
-        return false;
     }
 
     private void OnNameplateSetup(AddonEvent type, AddonArgs args)
@@ -124,7 +115,7 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
             {
                 var newAddon = new OverlayAddon
                 {
-                    InternalName = $"DalamudOverlay_{index}",
+                    InternalName = $"_DalamudOverlay_Layer{index}",
                     Title = "Dalamud Overlay Addon",
                     Subtitle = $"Layer {index}",
                     Size = AtkStage.Instance()->ScreenSize,
@@ -183,37 +174,27 @@ internal class NativeOverlayPluginScoped : IInternalDisposableService, INativeOv
     }
 
     /// <inheritdoc/>
-    public bool AddNode(IOverlayNode node, int depthLayer)
+    public void AddNode(IOverlayNode node, int depthLayer)
     {
         ThreadSafety.AssertMainThread();
 
-        if (this.nativeOverlayService.AddNode(node, depthLayer))
-        {
-            // Probably unnecessary, but IDE complains that attachedNodes is unused if it's not here.
-            this.attachedNodes.TryAdd(depthLayer, []);
+        this.nativeOverlayService.AddNode(node, depthLayer);
 
-            this.attachedNodes[depthLayer].Add(node);
-            return true;
-        }
+        // Probably unnecessary, but IDE complains that attachedNodes is unused if it's not here.
+        this.attachedNodes.TryAdd(depthLayer, []);
 
-        return false;
+        this.attachedNodes[depthLayer].Add(node);
     }
 
     /// <inheritdoc/>
-    public bool RemoveNode(IOverlayNode node, int depthLayer)
+    public void RemoveNode(IOverlayNode node, int depthLayer)
     {
         ThreadSafety.AssertMainThread();
 
         if (this.attachedNodes.TryGetValue(depthLayer, out var nodes) && nodes.Contains(node))
         {
+            this.nativeOverlayService.RemoveNode(node, depthLayer);
             nodes.Remove(node);
-            if (this.nativeOverlayService.RemoveNode(node, depthLayer))
-            {
-                nodes.Remove(node);
-                return true;
-            }
         }
-
-        return false;
     }
 }

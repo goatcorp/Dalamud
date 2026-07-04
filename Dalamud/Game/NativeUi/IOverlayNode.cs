@@ -1,4 +1,5 @@
-﻿using Dalamud.Plugin.Services;
+﻿using Dalamud.Game.NativeWrapper;
+using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -21,12 +22,13 @@ public interface IOverlayNode
     /// Your node's nodeId will be set to an appropriate value prior to this call.
     /// </remarks>
     /// <param name="atkUnitBase">Pointer to AtkUnitBase.</param>
-    void PerformAttach(nint atkUnitBase);
+    void PerformAttach(AtkUnitBasePtr atkUnitBase);
 
     /// <summary>
-    /// Function that is invoked when this node is detached from an overlay addon.
+    /// Callback to have you actually detach your node from this addon.
     /// </summary>
-    void PerformDetach();
+    /// <param name="atkUnitBase">Pointer to AtkUnitBase.</param>
+    void PerformDetach(AtkUnitBasePtr atkUnitBase);
 
     /// <summary>
     /// Function that is invoked when the overlay addon updates.
