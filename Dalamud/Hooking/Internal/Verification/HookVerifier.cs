@@ -1,6 +1,5 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -45,8 +44,6 @@ internal static class HookVerifier
     {
         var csAssembly = Assembly.GetAssembly(typeof(ZoneClient))!;
         var csTypes = csAssembly.GetTypes();
-
-        var sw = Stopwatch.StartNew();
 
         var totalEntriesLists = csTypes
             .AsParallel()
@@ -207,8 +204,7 @@ internal static class HookVerifier
 
         allToVerify = grouping.ToFrozenDictionary(kv => kv.Key, kv => kv.Value.ToArray());
 
-        sw.Stop();
-        Log.Verbose("Initialized HookVerifier with {Count} entries to verify in {ms}ms", allToVerify.Sum(kv => kv.Value.Length), sw.ElapsedMilliseconds);
+        Log.Verbose("Initialized HookVerifier with {Count} entries to verify", allToVerify.Sum(kv => kv.Value.Length));
     }
 
     /// <summary>
