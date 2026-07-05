@@ -1,17 +1,15 @@
-using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 
 using FFXIVClientStructs.FFXIV.Application.Network;
+
 using InteropGenerator.Runtime;
 using InteropGenerator.Runtime.Attributes;
 
@@ -22,9 +20,14 @@ namespace Dalamud.Hooking.Internal.Verification;
 /// Initialized out-of-band, since Hook is instantiated all over the place without a service, so this cannot be
 /// a service either.
 /// </summary>
-internal static partial class HookVerifier
+internal static class HookVerifier
 {
     private static readonly ModuleLog Log = new("HookVerifier");
+
+    private static readonly string PrefixFfxiv = $"{nameof(FFXIVClientStructs)}.{nameof(FFXIVClientStructs.FFXIV)}.";
+    private static readonly string PrefixHavok = $"{nameof(FFXIVClientStructs)}.{nameof(FFXIVClientStructs.Havok)}.";
+    private static readonly string PrefixInterop = $"{nameof(FFXIVClientStructs)}.{nameof(FFXIVClientStructs.Interop)}.";
+    private static readonly string PrefixStd = $"{nameof(FFXIVClientStructs)}.{nameof(FFXIVClientStructs.STD)}.";
 
     /// <summary>
     /// Hook verification targets that don't exist in ClientStructs.
@@ -43,77 +46,103 @@ internal static partial class HookVerifier
         var csAssembly = Assembly.GetAssembly(typeof(ZoneClient))!;
         var csTypes = csAssembly.GetTypes();
 
-        var verifyContainer = new ConcurrentBag<VerificationEntry>();
+        var sw = Stopwatch.StartNew();
 
-        Parallel.ForEach(
-            csTypes,
-            csType =>
+        var totalEntriesLists = csTypes
+            .AsParallel()
+            .Where(csType => csType.IsValueType && !csType.IsEnum && Attribute.IsDefined(csType, typeof(GenerateInteropAttribute)))
+            .Select(csType =>
             {
-                var methods = csType.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public);
+                var methods = csType.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly);
                 if (methods.Length == 0)
-                    return;
+                    return [];
 
-                var fullName = ClientStructsNamespaceTrim().Replace(csType.FullName!, string.Empty).Replace(".", "::");
+                var addressesType = csType.GetNestedType("Addresses", BindingFlags.Public | BindingFlags.NonPublic);
+                if (addressesType == null)
+                {
+#if DEBUG
+                    Log.Warning(
+                        "Could not find Addresses type for {Type}, skipping verification for all members",
+                        csType.FullName);
+#endif
+                    return [];
+                }
 
-                Type? addressesType = null;
-                Type? delegateType = null;
+                var addressesFields = addressesType.GetFields(BindingFlags.Static | BindingFlags.Public);
+                var addressLookup = new Dictionary<string, Address>(addressesFields.Length, StringComparer.Ordinal);
+                foreach (var fieldInfo in addressesFields)
+                {
+                    if (fieldInfo.GetValue(null) is Address addr)
+                        addressLookup[fieldInfo.Name] = addr;
+                }
+
+                var delegateType = csType.GetNestedType("Delegates", BindingFlags.Public | BindingFlags.NonPublic);
+                Dictionary<string, Type>? delegateLookup = null;
+                if (delegateType != null)
+                {
+                    var nestedTypes = delegateType.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic);
+                    delegateLookup = new Dictionary<string, Type>(nestedTypes.Length, StringComparer.Ordinal);
+                    foreach (var type in nestedTypes)
+                        delegateLookup[type.Name] = type;
+                }
+
+                string? fullName = null;
+                var list = new List<VerificationEntry>(methods.Length);
+
                 foreach (var method in methods)
                 {
-                    if (Attribute.IsDefined(method, typeof(ObsoleteAttribute))) continue;
-
-                    if (!Attribute.IsDefined(method, typeof(MemberFunctionAttribute)) &&
-                        !Attribute.IsDefined(method, typeof(StaticAddressAttribute)))
+                    if (method.IsDefined(typeof(ObsoleteAttribute), false))
                         continue;
 
-                    addressesType ??= csAssembly.GetType(csType.FullName + "+Addresses");
+                    var memberFunctionAttribute = method.GetCustomAttribute<MemberFunctionAttribute>(false);
+                    var staticAddressAttribute = memberFunctionAttribute == null
+                        ? method.GetCustomAttribute<StaticAddressAttribute>(false)
+                        : null;
 
-                    if (addressesType == null)
-                    {
-                        Log.Warning(
-                            "Could not find Addresses type for {Type}, skipping verification for all members",
-                            csType.FullName);
+                    if (memberFunctionAttribute == null && staticAddressAttribute == null)
                         continue;
-                    }
 
-                    var address = addressesType.GetField(method.Name, BindingFlags.Static | BindingFlags.Public)
-                                               ?.GetValue(null);
-                    if (address is not Address addressValue)
+                    if (!addressLookup.TryGetValue(method.Name, out var addressValue))
                     {
+#if DEBUG
                         Log.Warning(
                             "Could not find address for {Type}.{Member}, skipping verification",
                             csType.FullName,
                             method.Name);
+#endif
                         continue;
                     }
 
+                    fullName ??= GetTrimmedFullName(csType.FullName!);
                     var name = fullName + "." + method.Name;
-                    if (method.GetCustomAttribute<MemberFunctionAttribute>() is { } memberFunctionAttribute)
+
+                    if (memberFunctionAttribute != null)
                     {
                         if (!method.IsStatic)
                         {
-                            delegateType ??= csAssembly.GetType(csType.FullName + "+Delegates");
                             if (delegateType == null)
                             {
+#if DEBUG
                                 Log.Warning(
                                     "Could not find delegate type for {Type}.{Member}, skipping verification",
                                     csType.FullName,
                                     method.Name);
+#endif
                                 continue;
                             }
 
-                            var delegateMember = delegateType.GetMember(method.Name);
-                            if (delegateMember.Length != 0)
+                            if (delegateLookup?.TryGetValue(method.Name, out var delegateMemberType) == true)
                             {
-                                verifyContainer.Add(
+                                list.Add(
                                     new VerificationEntry(
                                         name,
                                         memberFunctionAttribute.Signature,
                                         addressValue.Value,
-                                        (Type)delegateMember[0]));
+                                        delegateMemberType));
                             }
                             else
                             {
-                                verifyContainer.Add(
+                                list.Add(
                                     new VerificationEntry(
                                         name,
                                         memberFunctionAttribute.Signature,
@@ -124,7 +153,7 @@ internal static partial class HookVerifier
                         }
                         else
                         {
-                            verifyContainer.Add(
+                            list.Add(
                                 new VerificationEntry(
                                     name,
                                     memberFunctionAttribute.Signature,
@@ -133,9 +162,9 @@ internal static partial class HookVerifier
                                     ReturnType: method.ReturnType));
                         }
                     }
-                    else if (method.GetCustomAttribute<StaticAddressAttribute>() is { } staticAddressAttribute)
+                    else if (staticAddressAttribute != null)
                     {
-                        verifyContainer.Add(
+                        list.Add(
                             new VerificationEntry(
                                 name,
                                 staticAddressAttribute.Signature,
@@ -144,17 +173,42 @@ internal static partial class HookVerifier
                                 ReturnType: method.ReturnType));
                     }
                 }
-            });
+
+                return list;
+            })
+            .ToArray();
+
+        var grouping = new Dictionary<nint, List<VerificationEntry>>();
+
+        foreach (var list in totalEntriesLists)
+        {
+            if (list.Count == 0)
+                continue;
+
+            foreach (var entry in list)
+            {
+                ref var group = ref CollectionsMarshal.GetValueRefOrAddDefault(grouping, entry.Address, out var exists);
+
+                if (!exists)
+                    group = [];
+
+                group.Add(entry);
+            }
+        }
 
         foreach (var entry in ExternalVerificationTargets)
         {
-            verifyContainer.Add(entry);
+            ref var group = ref CollectionsMarshal.GetValueRefOrAddDefault(grouping, entry.Address, out var exists);
+            if (!exists)
+                group = [];
+
+            group.Add(entry);
         }
 
-        allToVerify = verifyContainer.GroupBy(v => v.Address).ToFrozenDictionary(v => v.Key, v => v.ToArray());
-        Log.Verbose("Initialized HookVerifier with {Count} entries to verify", allToVerify.Sum(kv => kv.Value.Length));
+        allToVerify = grouping.ToFrozenDictionary(kv => kv.Key, kv => kv.Value.ToArray());
 
-        verifyContainer.Clear();
+        sw.Stop();
+        Log.Verbose("Initialized HookVerifier with {Count} entries to verify in {ms}ms", allToVerify.Sum(kv => kv.Value.Length), sw.ElapsedMilliseconds);
     }
 
     /// <summary>
@@ -174,7 +228,7 @@ internal static partial class HookVerifier
             return true;
 
         var passedType = typeof(T);
-        var isAssemblyMarshaled = !Attribute.IsDefined(passedType.Assembly, typeof(DisableRuntimeMarshallingAttribute));
+        var isAssemblyMarshaled = !passedType.Assembly.IsDefined(typeof(DisableRuntimeMarshallingAttribute), false);
         string? failContext = null;
 
         var passedInvoke = passedType.GetMethod("Invoke")!;
@@ -246,8 +300,43 @@ internal static partial class HookVerifier
         return ret;
     }
 
-    [GeneratedRegex($@"^{nameof(FFXIVClientStructs)}\.({nameof(FFXIVClientStructs.FFXIV)}|{nameof(FFXIVClientStructs.Havok)}|{nameof(FFXIVClientStructs.Interop)}|{nameof(FFXIVClientStructs.STD)})\.", RegexOptions.Singleline)]
-    private static partial Regex ClientStructsNamespaceTrim();
+    private static string GetTrimmedFullName(string originalName)
+    {
+        var startIdx = 0;
+
+        if (originalName.StartsWith(PrefixFfxiv))
+            startIdx = PrefixFfxiv.Length;
+        else if (originalName.StartsWith(PrefixHavok))
+            startIdx = PrefixHavok.Length;
+        else if (originalName.StartsWith(PrefixInterop))
+            startIdx = PrefixInterop.Length;
+        else if (originalName.StartsWith(PrefixStd))
+            startIdx = PrefixStd.Length;
+
+        var dotCount = originalName.AsSpan()[startIdx..].Count('.');
+        var sliceLength = originalName.Length - startIdx;
+        var finalLength = sliceLength + dotCount; // every '.' adds 1 extra character for '::'
+
+        return string.Create(finalLength, (originalName, startIdx, sliceLength), static (dest, state) =>
+        {
+            var src = state.originalName.AsSpan(state.startIdx, state.sliceLength);
+            var destIdx = 0;
+
+            for (var i = 0; i < src.Length; i++)
+            {
+                var c = src[i];
+                if (c == '.')
+                {
+                    dest[destIdx++] = ':';
+                    dest[destIdx++] = ':';
+                }
+                else
+                {
+                    dest[destIdx++] = c;
+                }
+            }
+        });
+    }
 
     private static bool CheckParam(Type paramLeft, Type paramRight, bool isMarshaled)
     {
