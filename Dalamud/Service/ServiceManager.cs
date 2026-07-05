@@ -126,7 +126,7 @@ internal static class ServiceManager
     public static CancellationToken UnloadCancellationToken => UnloadCancellationTokenSource.Token;
 
     /// <summary>
-    /// Initializes Provided Services and FFXIVClientStructs.
+    /// Initializes provided Services.
     /// </summary>
     /// <param name="dalamud">Instance of <see cref="Dalamud"/>.</param>
     /// <param name="fs">Instance of <see cref="ReliableFileStorage"/>.</param>

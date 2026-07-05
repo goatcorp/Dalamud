@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
 using Iced.Intel;
 
