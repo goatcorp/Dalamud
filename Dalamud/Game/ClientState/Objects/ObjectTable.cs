@@ -267,7 +267,7 @@ internal sealed partial class ObjectTable
     {
         if (Service<Framework>.Get().IsFrameworkUnloading)
         {
-            return EmptyEnumerator();
+            return Enumerable.Empty<IGameObject>().GetEnumerator();
         }
 
         ThreadSafety.AssertMainThread();
@@ -276,16 +276,6 @@ internal sealed partial class ObjectTable
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-
-    /// <summary>
-    /// An empty enumerator that returns the default value of IGameObject.
-    /// For use when the game is unloading to return empty object data safely.
-    /// </summary>
-    /// <returns>An enumerator of empty objects.</returns>
-    private static IEnumerator<IGameObject> EmptyEnumerator()
-    {
-        yield return default;
-    }
 
     private struct Enumerator(ObjectTable owner) : IEnumerator<IGameObject>
     {
