@@ -8,7 +8,26 @@ namespace Dalamud.Utility;
 /// Provides a thread-safe mechanism to debounce actions, ensuring that a rapid succession 
 /// of calls only triggers the action after a specified delay has elapsed since the last call.
 /// </summary>
-public class Debouncer : IDisposable
+public interface IDebouncer : IDisposable
+{
+    /// <summary>
+    /// Gets a value indicating whether the action is queued to be executed.
+    /// </summary>
+    bool IsPending { get; }
+
+    /// <summary>
+    /// Requests the execution of the action.
+    /// </summary>
+    void Debounce();
+
+    /// <summary>
+    /// Cancels the pending execution of the action.
+    /// </summary>
+    void Cancel();
+}
+
+/// <inheritdoc/>
+internal class Debouncer : IDebouncer
 {
     private readonly IFramework framework;
     private readonly TimeSpan delay;
@@ -34,9 +53,7 @@ public class Debouncer : IDisposable
         this.action = action;
     }
 
-    /// <summary>
-    /// Gets a value indicating whether the action is queued to be executed.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsPending => this.cts != null;
 
     /// <inheritdoc/>
@@ -52,9 +69,7 @@ public class Debouncer : IDisposable
         this.isDisposed = true;
     }
 
-    /// <summary>
-    /// Requests the execution of the action.
-    /// </summary>
+    /// <inheritdoc/>
     public void Debounce()
     {
         using var scope = this.debouncerLock.EnterScope();
@@ -71,9 +86,7 @@ public class Debouncer : IDisposable
         this.framework.RunOnTick(this.OnTick, this.delay, cancellationToken: this.cts.Token);
     }
 
-    /// <summary>
-    /// Cancels the pending execution of the action.
-    /// </summary>
+    /// <inheritdoc/>
     public void Cancel()
     {
         using var scope = this.debouncerLock.EnterScope();

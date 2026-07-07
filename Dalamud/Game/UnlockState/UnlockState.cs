@@ -50,7 +50,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     [ServiceManager.ServiceDependency]
     private readonly RecipeData recipeData = Service<RecipeData>.Get();
 
-    private readonly Debouncer updateDebouncer;
+    private readonly IDebouncer updateDebouncer;
     private readonly ConcurrentDictionary<Type, HashSet<uint>> cachedUnlockedRowIds = [];
     private readonly Hook<CSAchievement.Delegates.SetAchievementCompleted> setAchievementCompletedHook;
     private readonly Hook<TitleList.Delegates.SetTitleUnlocked> setTitleUnlockedHook;

@@ -293,11 +293,11 @@ public interface IFramework : IDalamudService
     public Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Creates a new <see cref="Debouncer"/> instance.
+    /// Creates a new <see cref="IDebouncer"/> instance.
     /// </summary>
     /// <param name="delay">The delay to wait after the last request before executing the action.</param>
     /// <param name="action">The delegate to execute when the debounce period elapses.</param>
     /// <returns>A new, thread-safe <see cref="Debouncer"/> instance. The caller is responsible for disposing of this instance.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="action"/> is <see langword="null"/>.</exception>
-    public Debouncer CreateDebouncer(TimeSpan delay, Action action);
+    public IDebouncer CreateDebouncer(TimeSpan delay, Action action);
 }

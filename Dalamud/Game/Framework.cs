@@ -299,7 +299,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     }
 
     /// <inheritdoc/>
-    public Debouncer CreateDebouncer(TimeSpan delay, Action action)
+    public IDebouncer CreateDebouncer(TimeSpan delay, Action action)
     {
         return new Debouncer(this, delay, action);
     }
@@ -587,7 +587,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
         => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
 
     /// <inheritdoc/>
-    public Debouncer CreateDebouncer(TimeSpan delay, Action action)
+    public IDebouncer CreateDebouncer(TimeSpan delay, Action action)
         => this.frameworkService.CreateDebouncer(delay, action);
 
     private void OnUpdateForward(IFramework framework)
