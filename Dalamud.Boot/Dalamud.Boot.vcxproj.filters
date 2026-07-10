@@ -17,141 +17,112 @@
     <Filter Include="MinHook">
       <UniqueIdentifier>{6ec5597d-e293-4d2a-a307-7444c8fac04b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="mimalloc">
+      <UniqueIdentifier>{1E4B70BD-38DD-4AA2-8EB1-01B64F11CD5D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libdeflate">
+      <UniqueIdentifier>{B0159F79-D6C0-4E8B-8DEF-9AC03F822A6B}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="veh.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="rewrite_entrypoint.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\CoreCLR\CoreCLR.cpp">
-      <Filter>CoreCLR</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\CoreCLR\boot.cpp">
-      <Filter>CoreCLR</Filter>
-    </ClCompile>
-    <ClCompile Include="pch_nmd_assembly_impl.cpp">
-      <Filter>Project Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Project Files</Filter>
-    </ClCompile>
-    <ClCompile Include="utils.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="xivfixes.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="logging.cpp">
-      <Filter>Common Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="unicode.cpp">
-      <Filter>Common Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\buffer.c">
-      <Filter>MinHook</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\HDE\hde32.c">
-      <Filter>MinHook</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.c">
-      <Filter>MinHook</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\hook.c">
-      <Filter>MinHook</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\trampoline.c">
-      <Filter>MinHook</Filter>
-    </ClCompile>
-    <ClCompile Include="hooks.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="DalamudStartInfo.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="ntdll.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="error_info.cpp">
-      <Filter>Common Boot</Filter>
-    </ClCompile>
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\alloc.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\alloc-aligned.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\alloc-posix.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\arena.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\bitmap.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\heap.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\init.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\libc.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\options.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\os.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\page.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\random.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\segment.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\segment-map.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\stats.c" />
+    <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\prim\prim.c" />
+    <ClCompile Filter="libdeflate" Include="..\lib\libdeflate\lib\adler32.c" />
+    <ClCompile Filter="libdeflate" Include="..\lib\libdeflate\lib\crc32.c" />
+    <ClCompile Filter="libdeflate" Include="..\lib\libdeflate\lib\deflate_compress.c" />
+    <ClCompile Filter="libdeflate" Include="..\lib\libdeflate\lib\deflate_decompress.c" />
+    <ClCompile Filter="libdeflate" Include="..\lib\libdeflate\lib\gzip_compress.c" />
+    <ClCompile Filter="libdeflate" Include="..\lib\libdeflate\lib\gzip_decompress.c" />
+    <ClCompile Filter="libdeflate" Include="..\lib\libdeflate\lib\utils.c" />
+    <ClCompile Filter="libdeflate" Include="..\lib\libdeflate\lib\zlib_compress.c" />
+    <ClCompile Filter="libdeflate" Include="..\lib\libdeflate\lib\zlib_decompress.c" />
+    <ClCompile Filter="libdeflate" Include="..\lib\libdeflate\lib\x86\cpu_features.c" />
+    <ClCompile Filter="CoreCLR" Include="..\lib\CoreCLR\CoreCLR.cpp" />
+    <ClCompile Filter="CoreCLR" Include="..\lib\CoreCLR\boot.cpp" />
+    <ClCompile Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\buffer.c" />
+    <ClCompile Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.c" />
+    <ClCompile Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\hook.c" />
+    <ClCompile Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\trampoline.c" />
+    <ClCompile Filter="Common Boot" Include="error_info.cpp" />
+    <ClCompile Filter="Common Boot" Include="logging.cpp" />
+    <ClCompile Filter="Common Boot" Include="unicode.cpp" />
+    <ClCompile Filter="Dalamud.Boot DLL" Include="DalamudStartInfo.cpp" />
+    <ClCompile Filter="Dalamud.Boot DLL" Include="dllmain.cpp" />
+    <ClCompile Filter="Dalamud.Boot DLL" Include="hooks.cpp" />
+    <ClCompile Filter="Dalamud.Boot DLL" Include="ntdll.cpp" />
+    <ClCompile Filter="Dalamud.Boot DLL" Include="rewrite_entrypoint.cpp" />
+    <ClCompile Filter="Dalamud.Boot DLL" Include="utils.cpp" />
+    <ClCompile Filter="Dalamud.Boot DLL" Include="veh.cpp" />
+    <ClCompile Filter="Dalamud.Boot DLL" Include="xivfixes.cpp" />
+    <ClCompile Filter="Project Files" Include="pch.cpp" />
+    <ClCompile Filter="Project Files" Include="pch_nmd_assembly_impl.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\lib\CoreCLR\CoreCLR.h">
-      <Filter>CoreCLR</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\CoreCLR\boot.h">
-      <Filter>CoreCLR</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h">
-      <Filter>CoreCLR</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\CoreCLR\core\hostfxr.h">
-      <Filter>CoreCLR</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\CoreCLR\nethost\nethost.h">
-      <Filter>CoreCLR</Filter>
-    </ClInclude>
-    <ClInclude Include="veh.h">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Project Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils.h">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClInclude>
-    <ClInclude Include="hooks.h">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClInclude>
-    <ClInclude Include="DalamudStartInfo.h">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClInclude>
-    <ClInclude Include="xivfixes.h">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClInclude>
-    <ClInclude Include="logging.h">
-      <Filter>Common Boot</Filter>
-    </ClInclude>
-    <ClInclude Include="unicode.h">
-      <Filter>Common Boot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\trampoline.h">
-      <Filter>MinHook</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\buffer.h">
-      <Filter>MinHook</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\hde32.h">
-      <Filter>MinHook</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.h">
-      <Filter>MinHook</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\include\MinHook.h">
-      <Filter>MinHook</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\pstdint.h">
-      <Filter>MinHook</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table32.h">
-      <Filter>MinHook</Filter>
-    </ClInclude>
-    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table64.h">
-      <Filter>MinHook</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h" />
+    <ClInclude Filter="CoreCLR" Include="..\lib\CoreCLR\CoreCLR.h" />
+    <ClInclude Filter="CoreCLR" Include="..\lib\CoreCLR\boot.h" />
+    <ClInclude Filter="CoreCLR" Include="..\lib\CoreCLR\core\coreclr_delegates.h" />
+    <ClInclude Filter="CoreCLR" Include="..\lib\CoreCLR\core\hostfxr.h" />
+    <ClInclude Filter="CoreCLR" Include="..\lib\CoreCLR\nethost\nethost.h" />
+    <ClInclude Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\trampoline.h" />
+    <ClInclude Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\buffer.h" />
+    <ClInclude Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.h" />
+    <ClInclude Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\include\MinHook.h" />
+    <ClInclude Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\HDE\pstdint.h" />
+    <ClInclude Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\HDE\table32.h" />
+    <ClInclude Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\HDE\table64.h" />
+    <ClInclude Filter="mimalloc" Include="..\lib\mimalloc\include\mimalloc.h" />
+    <ClInclude Filter="mimalloc" Include="..\lib\mimalloc\include\mimalloc\atomic.h" />
+    <ClInclude Filter="mimalloc" Include="..\lib\mimalloc\include\mimalloc\internal.h" />
+    <ClInclude Filter="mimalloc" Include="..\lib\mimalloc\include\mimalloc\prim.h" />
+    <ClInclude Filter="mimalloc" Include="..\lib\mimalloc\include\mimalloc\track.h" />
+    <ClInclude Filter="mimalloc" Include="..\lib\mimalloc\include\mimalloc\types.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\libdeflate.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\bt_matchfinder.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\cpu_features_common.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\crc32_multipliers.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\crc32_tables.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\decompress_template.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\deflate_compress.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\deflate_constants.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\gzip_constants.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\hc_matchfinder.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\ht_matchfinder.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\lib_common.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\matchfinder_common.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\zlib_constants.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\x86\adler32_impl.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\x86\adler32_template.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\x86\cpu_features.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\x86\crc32_impl.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\x86\crc32_pclmul_template.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\x86\decompress_impl.h" />
+    <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\x86\matchfinder_impl.h" />
+    <ClInclude Filter="Common Boot" Include="error_info.h" />
+    <ClInclude Filter="Common Boot" Include="logging.h" />
+    <ClInclude Filter="Common Boot" Include="unicode.h" />
+    <ClInclude Filter="Dalamud.Boot DLL" Include="DalamudStartInfo.h" />
+    <ClInclude Filter="Dalamud.Boot DLL" Include="hooks.h" />
+    <ClInclude Filter="Dalamud.Boot DLL" Include="ntdll.h" />
+    <ClInclude Filter="Dalamud.Boot DLL" Include="utils.h" />
+    <ClInclude Filter="Dalamud.Boot DLL" Include="veh.h" />
+    <ClInclude Filter="Dalamud.Boot DLL" Include="xivfixes.h" />
+    <ClInclude Filter="Project Files" Include="pch.h" />
     <ClInclude Include="crashhandler_shared.h" />
-    <ClInclude Include="ntdll.h">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClInclude>
-    <ClInclude Include="error_info.h">
-      <Filter>Common Boot</Filter>
-    </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Dalamud.Boot.rc" />

@@ -660,6 +660,66 @@ void xivfixes::disable_game_debugging_protection(bool bApply) {
     }
 }
 
+using TFnUncompress = int(unsigned char* dest, size_t* destLen, const unsigned char* source, size_t sourceLen);
+
+static int __fastcall detour_uncompress(unsigned char* dest, size_t* destLen, const unsigned char* source, size_t sourceLen) {
+    thread_local std::unique_ptr<libdeflate_decompressor, decltype(&libdeflate_free_decompressor)>
+        decompressor(libdeflate_alloc_decompressor(), &libdeflate_free_decompressor);
+
+    if (!decompressor)
+        return -1;
+
+    size_t actual_out = 0;
+
+    int result = libdeflate_deflate_decompress(
+        decompressor.get(),
+        source,
+        sourceLen,
+        dest,
+        *destLen,
+        &actual_out
+    );
+
+    if (result == LIBDEFLATE_SUCCESS)
+        *destLen = actual_out;
+
+    return result;
+}
+
+void xivfixes::faster_decompression(bool bApply) {
+    static const char* LogTag = "[xivfixes:faster_decompression]";
+    static std::optional<hooks::direct_hook<TFnUncompress>> s_hook;
+
+    if (bApply) {
+        if (!g_startInfo.BootEnabledGameFixes.contains("faster_decompression")) {
+            logging::I("{} Turned off via environment variable.", LogTag);
+            return;
+        }
+
+        try {
+            auto pfnTarget = utils::signature_finder()
+                .look_in(utils::loaded_module(g_hGameInstance), ".text")
+                .look_for_hex("E8 ?? ?? ?? ?? 8B 5C 24 ?? 44 8B C3")
+                .find_one()
+                .resolve_jump_target<TFnUncompress*>();
+
+            logging::I("{} Found target function at 0x{:X}", LogTag, reinterpret_cast<size_t>(pfnTarget));
+
+            s_hook.emplace("faster_decompression", pfnTarget);
+            s_hook->set_detour(detour_uncompress);
+
+            logging::I("{} Enable", LogTag);
+        } catch (const std::exception& e) {
+            logging::W("{} Failed to apply hook: {}", LogTag, e.what());
+        }
+    } else {
+        if (s_hook) {
+            logging::I("{} Disable", LogTag);
+            s_hook.reset();
+        }
+    }
+}
+
 void xivfixes::apply_all(bool bApply) {
     for (const auto& [taskName, taskFunction] : std::initializer_list<std::pair<const char*, void(*)(bool)>>
         {
@@ -671,6 +731,7 @@ void xivfixes::apply_all(bool bApply) {
             { "prevent_icmphandle_crashes", &prevent_icmphandle_crashes },
             { "symbol_load_patches", &symbol_load_patches },
             { "disable_game_debugging_protection", &disable_game_debugging_protection },
+            { "faster_decompression", &faster_decompression },
         }
         ) {
         try {

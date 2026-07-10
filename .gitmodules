@@ -22,3 +22,9 @@
 [submodule "lib/Lumina.Excel"]
 	path = lib/Lumina.Excel
 	url = https://github.com/NotAdam/Lumina.Excel.git
+[submodule "lib/mimalloc"]
+	path = lib/mimalloc
+	url = https://github.com/microsoft/mimalloc.git
+[submodule "lib/libdeflate"]
+	path = lib/libdeflate
+	url = https://github.com/ebiggers/libdeflate.git

@@ -188,6 +188,15 @@ Dual-Kawase-Blur-Demo
 Copyright (c) 2023 Baedrick
 Licensed under the MIT License
 
+mimalloc
+Copyright (c) 2018-2025 Microsoft Corporation, Daan Leijen
+Licensed under the MIT License
+
+libdeflate
+Copyright 2016 Eric Biggers
+Copyright 2024 Google LLC
+Licensed under the MIT License
+
 Please see licenses.txt for more information.
 
 
