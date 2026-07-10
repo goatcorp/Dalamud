@@ -21,14 +21,6 @@ namespace Dalamud.NativeUi.Extensions;
 [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1101:Prefix local calls with this", Justification = "Stylecop doesn't understand Extension Blocks, you cant prefix with 'this'.")]
 internal static unsafe class AtkUldPartExtensions
 {
-    private static readonly ModuleLog Log = new("AtkUldPartExtensions");
-
-    /// <summary>
-    /// Cache to reduce cost of repeated lookups on if a specific file exists.
-    /// File existence is not expected to change after the game is launched.
-    /// </summary>
-    private static readonly Dictionary<string, bool> FileExistsCache = [];
-
     extension(ref AtkUldPart part) {
 
         /// <summary>
@@ -166,6 +158,14 @@ internal static unsafe class AtkUldPartExtensions
             return new Vector2(width, height);
         }
     }
+
+    private static readonly ModuleLog Log = new("AtkUldPartExtensions");
+
+    /// <summary>
+    /// Cache to reduce cost of repeated lookups on if a specific file exists.
+    /// File existence is not expected to change after the game is launched.
+    /// </summary>
+    private static readonly Dictionary<string, bool> FileExistsCache = [];
 
     private static IconSubFolder GetIconSubFolder(uint iconId)
     {
