@@ -685,14 +685,13 @@ static void __fastcall ReadSqpkChunkDetour(uintptr_t srcData, uintptr_t dstData)
         thread_local std::unique_ptr<libdeflate_decompressor, decltype(&libdeflate_free_decompressor)>
             decompressor(libdeflate_alloc_decompressor(), &libdeflate_free_decompressor);
 
-        size_t actual_out = 0;
         libdeflate_deflate_decompress(
             decompressor.get(),
             source + header.header_size,
             header.compressed_size,
             dest,
             header.decompressed_size,
-            &actual_out);
+            nullptr);
     }
 }
 
