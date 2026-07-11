@@ -660,35 +660,49 @@ void xivfixes::disable_game_debugging_protection(bool bApply) {
     }
 }
 
-using TFnUncompress = int(unsigned char* dest, size_t* destLen, const unsigned char* source, size_t sourceLen);
+using TReadSqpkChunk = void(uint64_t srcData, uint64_t dstData);
 
-static int __fastcall detour_uncompress(unsigned char* dest, size_t* destLen, const unsigned char* source, size_t sourceLen) {
-    thread_local std::unique_ptr<libdeflate_decompressor, decltype(&libdeflate_free_decompressor)>
-        decompressor(libdeflate_alloc_decompressor(), &libdeflate_free_decompressor);
+struct SqpkBlockHeader {
+    uint32_t header_size;
+    uint32_t padding;
+    uint32_t compressed_size;
+    uint32_t decompressed_size;
+};
 
-    if (!decompressor)
-        return -1;
+static void __fastcall ReadSqpkChunkDetour(uintptr_t srcData, uintptr_t dstData) {
+    uint8_t* source = *reinterpret_cast<uint8_t**>(srcData + 8);
+    uint8_t* dest = *reinterpret_cast<uint8_t**>(dstData + 0x78);
 
-    size_t actual_out = 0;
+    SqpkBlockHeader header;
+    std::memcpy(&header, source, sizeof(SqpkBlockHeader));
 
-    int result = libdeflate_deflate_decompress(
-        decompressor.get(),
-        source,
-        sourceLen,
-        dest,
-        *destLen,
-        &actual_out
-    );
+    if (header.decompressed_size == 0)
+        return;
 
-    if (result == LIBDEFLATE_SUCCESS)
-        *destLen = actual_out;
+    if (header.compressed_size == 32000) {
+        std::memcpy(dest, source + header.header_size, header.decompressed_size);
+    }
+    else {
+        thread_local std::unique_ptr<libdeflate_decompressor, decltype(&libdeflate_free_decompressor)>
+            decompressor(libdeflate_alloc_decompressor(), &libdeflate_free_decompressor);
 
-    return result;
+        if (!decompressor)
+            return;
+
+        size_t actual_out = 0;
+        libdeflate_deflate_decompress(
+            decompressor.get(),
+            source + header.header_size,
+            header.compressed_size,
+            dest,
+            header.decompressed_size,
+            &actual_out);
+    }
 }
 
 void xivfixes::faster_decompression(bool bApply) {
     static const char* LogTag = "[xivfixes:faster_decompression]";
-    static std::optional<hooks::direct_hook<TFnUncompress>> s_hook;
+    static std::optional<hooks::direct_hook<TReadSqpkChunk>> s_hook;
 
     if (bApply) {
         if (!g_startInfo.BootEnabledGameFixes.contains("faster_decompression")) {
@@ -699,14 +713,14 @@ void xivfixes::faster_decompression(bool bApply) {
         try {
             auto pfnTarget = utils::signature_finder()
                 .look_in(utils::loaded_module(g_hGameInstance), ".text")
-                .look_for_hex("E8 ?? ?? ?? ?? 8B 5C 24 ?? 44 8B C3")
+                .look_for_hex("48 89 5C 24 ?? 57 B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 4C 8B 49")
                 .find_one()
-                .resolve_jump_target<TFnUncompress*>();
+                .get_as<TReadSqpkChunk*>();
 
             logging::I("{} Found target function at 0x{:X}", LogTag, reinterpret_cast<size_t>(pfnTarget));
 
             s_hook.emplace("faster_decompression", pfnTarget);
-            s_hook->set_detour(detour_uncompress);
+            s_hook->set_detour(ReadSqpkChunkDetour);
 
             logging::I("{} Enable", LogTag);
         } catch (const std::exception& e) {
