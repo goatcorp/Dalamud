@@ -673,8 +673,7 @@ static void __fastcall ReadSqpkChunkDetour(uintptr_t srcData, uintptr_t dstData)
     uint8_t* source = *reinterpret_cast<uint8_t**>(srcData + 8);
     uint8_t* dest = *reinterpret_cast<uint8_t**>(dstData + 0x78);
 
-    SqpkBlockHeader header;
-    std::memcpy(&header, source, sizeof(SqpkBlockHeader));
+    const auto header = *reinterpret_cast<SqpkBlockHeader*>(source);
 
     if (header.decompressed_size == 0)
         return;
@@ -685,9 +684,6 @@ static void __fastcall ReadSqpkChunkDetour(uintptr_t srcData, uintptr_t dstData)
     else {
         thread_local std::unique_ptr<libdeflate_decompressor, decltype(&libdeflate_free_decompressor)>
             decompressor(libdeflate_alloc_decompressor(), &libdeflate_free_decompressor);
-
-        if (!decompressor)
-            return;
 
         size_t actual_out = 0;
         libdeflate_deflate_decompress(
