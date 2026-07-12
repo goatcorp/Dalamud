@@ -660,6 +660,75 @@ void xivfixes::disable_game_debugging_protection(bool bApply) {
     }
 }
 
+using TReadSqpkChunk = void(uintptr_t srcData, uintptr_t dstData);
+
+struct SqPackChunkInfo {
+    uint32_t header_size;
+    uint32_t unknown;
+    uint32_t compressed_size;
+    uint32_t decompressed_size;
+};
+
+static void __fastcall ReadSqpkChunkDetour(uintptr_t srcData, uintptr_t dstData) {
+    uint8_t* source = *reinterpret_cast<uint8_t**>(srcData + 8);
+    uint8_t* dest = *reinterpret_cast<uint8_t**>(dstData + 0x78);
+
+    const SqPackChunkInfo header = *reinterpret_cast<SqPackChunkInfo*>(source);
+
+    if (header.decompressed_size == 0)
+        return;
+
+    if (header.compressed_size == 32000) {
+        std::memcpy(dest, source + header.header_size, header.decompressed_size);
+    }
+    else {
+        thread_local std::unique_ptr<libdeflate_decompressor, decltype(&libdeflate_free_decompressor)>
+            decompressor(libdeflate_alloc_decompressor(), &libdeflate_free_decompressor);
+
+        libdeflate_deflate_decompress(
+            decompressor.get(),
+            source + header.header_size,
+            header.compressed_size,
+            dest,
+            header.decompressed_size,
+            nullptr);
+    }
+}
+
+void xivfixes::faster_decompression(bool bApply) {
+    static const char* LogTag = "[xivfixes:faster_decompression]";
+    static std::optional<hooks::direct_hook<TReadSqpkChunk>> s_hook;
+
+    if (bApply) {
+        if (!g_startInfo.BootEnabledGameFixes.contains("faster_decompression")) {
+            logging::I("{} Turned off via environment variable.", LogTag);
+            return;
+        }
+
+        try {
+            auto pfnTarget = utils::signature_finder()
+                .look_in(utils::loaded_module(g_hGameInstance), ".text")
+                .look_for_hex("48 89 5C 24 ?? 57 B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 4C 8B 49")
+                .find_one()
+                .get_as<TReadSqpkChunk*>();
+
+            logging::I("{} Found target function at 0x{:X}", LogTag, reinterpret_cast<size_t>(pfnTarget));
+
+            s_hook.emplace("faster_decompression", pfnTarget);
+            s_hook->set_detour(ReadSqpkChunkDetour);
+
+            logging::I("{} Enable", LogTag);
+        } catch (const std::exception& e) {
+            logging::W("{} Failed to apply hook: {}", LogTag, e.what());
+        }
+    } else {
+        if (s_hook) {
+            logging::I("{} Disable", LogTag);
+            s_hook.reset();
+        }
+    }
+}
+
 void xivfixes::apply_all(bool bApply) {
     for (const auto& [taskName, taskFunction] : std::initializer_list<std::pair<const char*, void(*)(bool)>>
         {
@@ -671,6 +740,7 @@ void xivfixes::apply_all(bool bApply) {
             { "prevent_icmphandle_crashes", &prevent_icmphandle_crashes },
             { "symbol_load_patches", &symbol_load_patches },
             { "disable_game_debugging_protection", &disable_game_debugging_protection },
+            { "faster_decompression", &faster_decompression },
         }
         ) {
         try {
