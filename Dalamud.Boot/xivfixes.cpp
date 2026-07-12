@@ -660,11 +660,11 @@ void xivfixes::disable_game_debugging_protection(bool bApply) {
     }
 }
 
-using TReadSqpkChunk = void(uint64_t srcData, uint64_t dstData);
+using TReadSqpkChunk = void(uintptr_t srcData, uintptr_t dstData);
 
-struct SqpkBlockHeader {
+struct SqPackChunkInfo {
     uint32_t header_size;
-    uint32_t padding;
+    uint32_t unknown;
     uint32_t compressed_size;
     uint32_t decompressed_size;
 };
@@ -673,7 +673,7 @@ static void __fastcall ReadSqpkChunkDetour(uintptr_t srcData, uintptr_t dstData)
     uint8_t* source = *reinterpret_cast<uint8_t**>(srcData + 8);
     uint8_t* dest = *reinterpret_cast<uint8_t**>(dstData + 0x78);
 
-    const auto header = *reinterpret_cast<SqpkBlockHeader*>(source);
+    const SqPackChunkInfo header = *reinterpret_cast<SqPackChunkInfo*>(source);
 
     if (header.decompressed_size == 0)
         return;
