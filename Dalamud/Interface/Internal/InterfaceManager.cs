@@ -110,7 +110,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
-    private readonly object renderDalamudLock = new();
+    private readonly Lock renderDalamudLock = new();
 
     private readonly AssertHandler assertHandler = new();
 
