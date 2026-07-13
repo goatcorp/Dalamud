@@ -104,7 +104,7 @@ internal class Debouncer : IDebouncer
                 return;
 
             var now = DateTime.UtcNow;
-            if (now < this.targetTime)
+            if (now < this.targetTime && this.cts != null)
             {
                 this.framework.RunOnTick(this.OnTick, this.targetTime - now, cancellationToken: this.cts.Token);
                 return;
