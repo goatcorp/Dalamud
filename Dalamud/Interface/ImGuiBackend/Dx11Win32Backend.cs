@@ -49,7 +49,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     // Motion can invoke our present hook from multiple threads, so renderLock must be acquired before the read
     // lock. This keeps render calls waiting outside drawDataLock instead of making them active readers that block
     // Step() or a swap-chain resize.
-    private readonly object renderLock = new();
+    private readonly Lock renderLock = new();
     private readonly ReaderWriterLockSlim drawDataLock = new(LockRecursionPolicy.NoRecursion);
     private readonly DrawDataSnapshot snapshot = new();
 
