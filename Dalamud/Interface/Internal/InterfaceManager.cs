@@ -726,9 +726,9 @@ internal partial class InterfaceManager : IInternalDisposableService
         }
     }
 
-    private unsafe IImGuiBackend InitBackend(IDXGISwapChain* swapChain)
+    private unsafe Dx11Win32Backend InitBackend(IDXGISwapChain* swapChain)
     {
-        IWin32Backend newBackend;
+        Dx11Win32Backend newBackend;
         using (Timings.Start("IM Scene Init"))
         {
             try
