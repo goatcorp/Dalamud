@@ -11,11 +11,9 @@ namespace Dalamud.Plugin.Ipc.Internal;
 /// </summary>
 internal static class IpcBinder
 {
-    private const BindingFlags InstanceFlags =
-        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+    private const BindingFlags InstanceFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-    private const BindingFlags StaticFlags =
-        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+    private const BindingFlags StaticFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
     /// <summary>
     /// Creates subscriber bindings for an instance type.
@@ -25,11 +23,7 @@ internal static class IpcBinder
     /// <param name="instance">The instance to bind.</param>
     /// <param name="prefix">The name prefix, or null for none.</param>
     /// <returns>The registration for this binding batch.</returns>
-    public static IpcRegistrationImpl<T> CreateSubscribers<T>(
-        IDalamudPluginInterface pi,
-        T instance,
-        string? prefix)
-        where T : class
+    public static IpcRegistrationImpl<T> CreateSubscribers<T>(IDalamudPluginInterface pi, T instance, string? prefix) where T : class
     {
         var reg = new IpcRegistrationImpl<T>(instance);
         BindSubscribers(pi, typeof(T), instance, prefix ?? string.Empty, InstanceFlags, reg);
@@ -43,10 +37,7 @@ internal static class IpcBinder
     /// <param name="staticType">The type whose static members should be bound.</param>
     /// <param name="prefix">The name prefix, or null for none.</param>
     /// <returns>The registration for this binding batch.</returns>
-    public static IpcRegistrationImpl CreateSubscribersStatic(
-        IDalamudPluginInterface pi,
-        Type staticType,
-        string? prefix)
+    public static IpcRegistrationImpl CreateSubscribersStatic(IDalamudPluginInterface pi, Type staticType, string? prefix)
     {
         var reg = new IpcRegistrationImpl();
         BindSubscribers(pi, staticType, null, prefix ?? string.Empty, StaticFlags, reg);
@@ -61,11 +52,7 @@ internal static class IpcBinder
     /// <param name="instance">The instance to register.</param>
     /// <param name="prefix">The name prefix, or null to use <see cref="IDalamudPluginInterface.InternalName"/>.</param>
     /// <returns>The registration for this binding batch.</returns>
-    public static IpcRegistrationImpl<T> CreateProviders<T>(
-        IDalamudPluginInterface pi,
-        T instance,
-        string? prefix)
-        where T : class
+    public static IpcRegistrationImpl<T> CreateProviders<T>(IDalamudPluginInterface pi, T instance, string? prefix) where T : class
     {
         var reg = new IpcRegistrationImpl<T>(instance);
         BindProviders(pi, typeof(T), instance, prefix ?? pi.InternalName, InstanceFlags, reg);
@@ -79,10 +66,7 @@ internal static class IpcBinder
     /// <param name="staticType">The type whose static members should be registered.</param>
     /// <param name="prefix">The name prefix, or null to use <see cref="IDalamudPluginInterface.InternalName"/>.</param>
     /// <returns>The registration for this binding batch.</returns>
-    public static IpcRegistrationImpl CreateProvidersStatic(
-        IDalamudPluginInterface pi,
-        Type staticType,
-        string? prefix)
+    public static IpcRegistrationImpl CreateProvidersStatic(IDalamudPluginInterface pi, Type staticType, string? prefix)
     {
         var reg = new IpcRegistrationImpl();
         BindProviders(pi, staticType, null, prefix ?? pi.InternalName, StaticFlags, reg);
@@ -119,22 +103,19 @@ internal static class IpcBinder
                 var memberType = member.GetMemberType();
                 if (!IsIpcCallableType(memberType, out var isAction, out var typeArgs))
                 {
-                    throw new InvalidOperationException(
-                        $"[Ipc] {type.Name}.{member.Name} must be an IpcFunc or IpcAction type.");
+                    throw new InvalidOperationException($"[Ipc] {type.Name}.{member.Name} must be an IpcFunc or IpcAction type.");
                 }
 
                 object wrapper;
                 if (isAction)
                 {
-                    var gate = GetSubscriber(pi, typeArgs.Append(typeof(object)).ToArray(), tag);
-                    wrapper = Activator.CreateInstance(memberType, gate)
-                              ?? throw new InvalidOperationException($"Failed to create {memberType}");
+                    var gate = GetSubscriber(pi, [.. typeArgs, typeof(object)], tag);
+                    wrapper = Activator.CreateInstance(memberType, gate) ?? throw new InvalidOperationException($"Failed to create {memberType}");
                 }
                 else
                 {
                     var gate = GetSubscriber(pi, typeArgs, tag);
-                    wrapper = Activator.CreateInstance(memberType, gate)
-                              ?? throw new InvalidOperationException($"Failed to create {memberType}");
+                    wrapper = Activator.CreateInstance(memberType, gate) ?? throw new InvalidOperationException($"Failed to create {memberType}");
                 }
 
                 member.SetValue(instance, wrapper);
@@ -158,13 +139,7 @@ internal static class IpcBinder
 
             try
             {
-                var tag = IpcNameResolver.Resolve(
-                    attr.Name,
-                    attr.ApplyPrefix,
-                    method.Name,
-                    typePrefix,
-                    createPrefix,
-                    pluginName);
+                var tag = IpcNameResolver.Resolve(attr.Name, attr.ApplyPrefix, method.Name, typePrefix, createPrefix, pluginName);
 
                 var paramTypes = method.GetParameters().Select(p => p.ParameterType).ToArray();
                 if (paramTypes.Length > 8)
@@ -191,13 +166,7 @@ internal static class IpcBinder
         }
     }
 
-    private static void BindProviders(
-        IDalamudPluginInterface pi,
-        Type type,
-        object? instance,
-        string createPrefix,
-        BindingFlags flags,
-        IpcRegistrationImpl reg)
+    private static void BindProviders(IDalamudPluginInterface pi, Type type, object? instance, string createPrefix, BindingFlags flags, IpcRegistrationImpl reg)
     {
         var typePrefix = type.GetCustomAttribute<IpcPrefixAttribute>()?.Prefix;
         var pluginName = pi.InternalName;
@@ -210,27 +179,16 @@ internal static class IpcBinder
 
             try
             {
-                var tag = IpcNameResolver.Resolve(
-                    attr.Name,
-                    attr.ApplyPrefix,
-                    method.Name,
-                    typePrefix,
-                    createPrefix,
-                    pluginName);
+                var tag = IpcNameResolver.Resolve(attr.Name, attr.ApplyPrefix, method.Name, typePrefix, createPrefix, pluginName);
 
                 var isAction = method.ReturnType == typeof(void);
                 var paramTypes = method.GetParameters().Select(p => p.ParameterType).ToArray();
                 if (paramTypes.Length > 8)
                     throw new InvalidOperationException("[Ipc] At most 8 parameters are supported.");
 
-                var gateTypes = isAction
-                    ? paramTypes.Append(typeof(object)).ToArray()
-                    : paramTypes.Append(method.ReturnType).ToArray();
-
+                var gateTypes = isAction ? [.. paramTypes, typeof(object)] : paramTypes.Append(method.ReturnType).ToArray();
                 var gate = GetProvider(pi, gateTypes, tag);
-                var delType = isAction
-                    ? GetActionType(paramTypes)
-                    : GetFuncType(paramTypes, method.ReturnType);
+                var delType = isAction ? GetActionType(paramTypes) : GetFuncType(paramTypes, method.ReturnType);
                 var del = method.CreateDelegate(delType, method.IsStatic ? null : instance);
 
                 if (isAction)
@@ -281,12 +239,7 @@ internal static class IpcBinder
                 var sendMethod = gate.GetType().GetMethod("SendMessage")!;
                 var sendDel = Delegate.CreateDelegate(GetActionType(typeArgs), gate, sendMethod);
 
-                var createSender = memberType.GetMethod(
-                    "CreateSender",
-                    BindingFlags.Public | BindingFlags.Static,
-                    null,
-                    [GetActionType(typeArgs)],
-                    null)!;
+                var createSender = memberType.GetMethod("CreateSender", BindingFlags.Public | BindingFlags.Static, null, [GetActionType(typeArgs)], null)!;
                 var wrapper = createSender.Invoke(null, [sendDel])!;
 
                 member.SetValue(instance, wrapper);
@@ -322,8 +275,7 @@ internal static class IpcBinder
     {
         foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public))
         {
-            if (method.Name == name && method.IsGenericMethodDefinition
-                                    && method.GetGenericArguments().Length == genericArgCount)
+            if (method.Name == name && method.IsGenericMethodDefinition && method.GetGenericArguments().Length == genericArgCount)
             {
                 return method;
             }
@@ -443,8 +395,7 @@ internal static class IpcBinder
             case PropertyInfo p:
                 if (!p.CanWrite)
                 {
-                    throw new InvalidOperationException(
-                        $"Property {p.DeclaringType?.Name}.{p.Name} must have a setter to receive an IPC binding.");
+                    throw new InvalidOperationException($"Property {p.DeclaringType?.Name}.{p.Name} must have a setter to receive an IPC binding.");
                 }
 
                 p.SetValue(instance, value);

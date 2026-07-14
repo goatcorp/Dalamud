@@ -15,13 +15,7 @@ internal static class IpcNameResolver
     /// <param name="createPrefix">Prefix from CreateIpc* (or plugin internal name).</param>
     /// <param name="pluginInternalName">Calling plugin internal name for %p / {plugin}.</param>
     /// <returns>The full IPC tag.</returns>
-    public static string Resolve(
-        string? attributeName,
-        bool applyPrefix,
-        string memberName,
-        string? typePrefix,
-        string createPrefix,
-        string pluginInternalName)
+    public static string Resolve(string? attributeName, bool applyPrefix, string memberName, string? typePrefix, string createPrefix, string pluginInternalName)
     {
         var name = attributeName;
         if (string.IsNullOrEmpty(name))

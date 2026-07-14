@@ -35,7 +35,6 @@ internal class IpcRegistrationImpl : IpcRegistration
             }
             catch
             {
-                // ignore individual failures
             }
         }
 
@@ -47,7 +46,6 @@ internal class IpcRegistrationImpl : IpcRegistration
             }
             catch
             {
-                // ignore individual failures
             }
         }
     }
@@ -55,17 +53,12 @@ internal class IpcRegistrationImpl : IpcRegistration
 
 /// <inheritdoc cref="IpcRegistration{T}"/>
 /// <typeparam name="T">The IPC type.</typeparam>
-internal sealed class IpcRegistrationImpl<T> : IpcRegistrationImpl, IpcRegistration<T>
+/// <summary>
+/// Initializes a new instance of the <see cref="IpcRegistrationImpl{T}"/> class.
+/// </summary>
+/// <param name="instance">The bound instance.</param>
+internal sealed class IpcRegistrationImpl<T>(T instance) : IpcRegistrationImpl, IpcRegistration<T>
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="IpcRegistrationImpl{T}"/> class.
-    /// </summary>
-    /// <param name="instance">The bound instance.</param>
-    public IpcRegistrationImpl(T instance)
-    {
-        this.Instance = instance;
-    }
-
     /// <inheritdoc/>
-    public T Instance { get; }
+    public T Instance { get; } = instance;
 }
