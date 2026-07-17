@@ -18,6 +18,9 @@
     <ClCompile Include="DalamudCrashHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\hardware_info.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\logging.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -30,6 +33,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Dalamud.Boot\crashhandler_shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\hardware_info.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\logging.h">

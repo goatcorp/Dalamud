@@ -210,6 +210,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="hooks.cpp" />
+    <ClCompile Include="..\shared\hardware_info.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\shared\logging.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -266,6 +270,7 @@
     <ClInclude Include="DalamudStartInfo.h" />
     <ClInclude Include="error_info.h" />
     <ClInclude Include="hooks.h" />
+    <ClInclude Include="..\shared\hardware_info.h" />
     <ClInclude Include="..\shared\logging.h" />
     <ClInclude Include="..\shared\unicode.h" />
     <ClInclude Include="logging.h" />

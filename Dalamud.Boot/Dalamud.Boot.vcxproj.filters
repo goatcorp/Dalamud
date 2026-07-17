@@ -50,6 +50,7 @@
     <ClCompile Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.c" />
     <ClCompile Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\hook.c" />
     <ClCompile Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\trampoline.c" />
+    <ClCompile Filter="Common Boot" Include="..\shared\hardware_info.cpp" />
     <ClCompile Filter="Common Boot" Include="error_info.cpp" />
     <ClCompile Filter="Common Boot" Include="logging.cpp" />
     <ClCompile Filter="Common Boot" Include="unicode.cpp" />
@@ -91,6 +92,7 @@
     <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\x86\cpu_features.h" />
     <ClInclude Filter="libdeflate" Include="..\lib\libdeflate\lib\x86\decompress_impl.h" />
     <ClInclude Filter="Common Boot" Include="error_info.h" />
+    <ClInclude Filter="Common Boot" Include="..\shared\hardware_info.h" />
     <ClInclude Filter="Common Boot" Include="logging.h" />
     <ClInclude Filter="Common Boot" Include="unicode.h" />
     <ClInclude Filter="Dalamud.Boot DLL" Include="DalamudStartInfo.h" />
