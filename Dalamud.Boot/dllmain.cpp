@@ -414,7 +414,6 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
 
     switch (dwReason) {
         case DLL_PROCESS_ATTACH:
-            libdeflate_set_memory_allocator(mi_malloc, mi_free);
             g_hModule = hModule;
             break;
 

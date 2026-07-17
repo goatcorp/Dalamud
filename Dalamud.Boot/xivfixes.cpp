@@ -222,7 +222,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             // <pointer to new wndproc>
             memcpy(s_pfnBinder, "\xFF\x35\x01\x00\x00\x00\xC3", 7);
             *reinterpret_cast<void**>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnAlternativeWndProc;
-            
+
             s_pfnGameWndProc = pWndClassExA->lpfnWndProc;
 
             WNDCLASSEXA wndClassExA = *pWndClassExA;
@@ -452,7 +452,7 @@ void xivfixes::backup_userdata_save(bool bApply) {
 
             const auto lock = std::lock_guard(s_mtx);
             s_handles.try_emplace(handle, std::move(temporaryPath), std::move(path));
-            
+
             return handle;
         });
 
@@ -599,7 +599,7 @@ void xivfixes::symbol_load_patches(bool bApply) {
         }
 
         for (const auto& mod : utils::loaded_module::all_modules())
-           RemoveFullPathPdbInfo(mod); 
+           RemoveFullPathPdbInfo(mod);
 
         if (!s_dllNotificationCookie) {
             const auto res = LdrRegisterDllNotification(
@@ -700,6 +700,8 @@ void xivfixes::faster_decompression(bool bApply) {
     static std::optional<hooks::direct_hook<TReadSqpkChunk>> s_hook;
 
     if (bApply) {
+        libdeflate_set_memory_allocator(mi_malloc, mi_free);
+
         if (!g_startInfo.BootEnabledGameFixes.contains("faster_decompression")) {
             logging::I("{} Turned off via environment variable.", LogTag);
             return;
