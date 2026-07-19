@@ -470,6 +470,7 @@ namespace Dalamud.Injector
                 "prevent_icmphandle_crashes",
                 "symbol_load_patches",
                 "disable_game_debugging_protection",
+                "faster_decompression",
             };
             startInfo.BootDotnetOpenProcessHookMode = 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;

@@ -55,7 +55,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private readonly DateTime timeLoaded;
 
-    private readonly object listLock = new();
+    private readonly Lock listLock = new();
 
     private readonly ProfileManagerWidget profileManagerWidget;
 
@@ -141,7 +141,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private LoadingIndicatorKind loadingIndicatorKind = LoadingIndicatorKind.Unknown;
 
-    private string verifiedCheckmarkHoveredPlugin = string.Empty;
+    private string currentlyHoveredPlugin = string.Empty;
+    private string currentlyHoveredObject = string.Empty;
 
     private string? staleDalamudNewVersion = null;
 
@@ -244,6 +245,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         Enabled,
         Disabled,
         Incompatible,
+        Favorite,
     }
 
     private bool AnyOperationInProgress => this.installStatus == OperationStatus.InProgress ||
@@ -340,18 +342,17 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void Draw()
     {
-        lock (this.listLock)
-        {
-            this.DrawHeader();
-            this.DrawPluginCategories();
-            this.DrawFooter();
-            this.DrawErrorModal();
-            this.DrawUpdateModal();
-            this.DrawTestingWarningModal();
-            this.DrawDeletePluginConfigWarningModal();
-            this.DrawFeedbackModal();
-            this.DrawProgressOverlay();
-        }
+        using var scope = this.listLock.EnterScope();
+
+        this.DrawHeader();
+        this.DrawPluginCategories();
+        this.DrawFooter();
+        this.DrawErrorModal();
+        this.DrawUpdateModal();
+        this.DrawTestingWarningModal();
+        this.DrawDeletePluginConfigWarningModal();
+        this.DrawFeedbackModal();
+        this.DrawProgressOverlay();
     }
 
     /// <summary>
@@ -837,7 +838,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         this.filterText = selectable.Localization;
                         this.adaptiveSort = false;
 
-                        lock (this.listLock)
+                        using (this.listLock.EnterScope())
                         {
                             this.ResortPlugins();
 
@@ -854,6 +855,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void DrawPluginFilterPopup()
     {
+        var configuration = Service<DalamudConfiguration>.Get();
+
         var filtersChanged = false;
         var isInstalledDevPluginsCategory = this.IsInstalledDevPluginsCategory();
         var installedFilterDisabled = this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Installed || isInstalledDevPluginsCategory;
@@ -873,12 +876,15 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
         }
 
-        using (ImRaii.Disabled(thirdPartyFilterDisabled))
+        if (configuration.ThirdRepoList.Any(repo => repo.IsEnabled))
         {
-            if (ImGui.Checkbox($"{Locs.Filter_Unverified}###XlPluginInstaller_FilterThirdParty", ref includeThirdParty) && !thirdPartyFilterDisabled)
+            using (ImRaii.Disabled(thirdPartyFilterDisabled))
             {
-                this.showThirdPartyPlugins = includeThirdParty;
-                filtersChanged = true;
+                if (ImGui.Checkbox($"{Locs.Filter_Unverified}###XlPluginInstaller_FilterThirdParty", ref includeThirdParty) && !thirdPartyFilterDisabled)
+                {
+                    this.showThirdPartyPlugins = includeThirdParty;
+                    filtersChanged = true;
+                }
             }
         }
 
@@ -1547,10 +1553,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         var applyPluginFilters = filter != InstalledPluginListFilter.Dev;
+        var configuration = Service<DalamudConfiguration>.Get();
+        var favoriteList = configuration.FavoritePluginInternalName;
         var filteredList = pluginList
-                   .Where(plugin => !this.IsManifestFiltered(plugin.Manifest))
-                   .Where(plugin => !applyPluginFilters || !this.IsInstalledPluginFiltered(plugin, false))
-                           .ToList();
+                           // Filter out plugins that don't match the search if any
+                          .Where(plugin => !this.IsManifestFiltered(plugin.Manifest))
+                          .Where(plugin => !applyPluginFilters || !this.IsInstalledPluginFiltered(plugin, false))
+                          .ToList();
 
         if (filteredList.Count == 0)
         {
@@ -1572,6 +1581,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                 continue;
 
             if (filter == InstalledPluginListFilter.Incompatible && !(plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned || plugin.IsDecommissioned))
+                continue;
+
+            if (filter == InstalledPluginListFilter.Favorite && !favoriteList.Contains(plugin.Manifest.InternalName))
                 continue;
 
             // Find applicable update and manifest, if we have them
@@ -1609,6 +1621,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 InstalledPluginListFilter.Enabled => Locs.TabBody_NoPluginsEnabled,
                 InstalledPluginListFilter.Disabled => Locs.TabBody_NoPluginsDisabled,
                 InstalledPluginListFilter.Incompatible => Locs.TabBody_NoPluginsIncompatible,
+                InstalledPluginListFilter.Favorite => Locs.TabBody_NoPluginsFavorite,
                 _ => throw new ArgumentException(null, nameof(filter)),
             };
 
@@ -1856,6 +1869,10 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                     case PluginCategoryManager.CategoryKind.IncompatiblePlugins:
                         this.DrawInstalledPluginList(InstalledPluginListFilter.Incompatible);
+                        break;
+
+                    case PluginCategoryManager.CategoryKind.FavoritePlugins:
+                        this.DrawInstalledPluginList(InstalledPluginListFilter.Favorite);
                         break;
 
                     case PluginCategoryManager.CategoryKind.PluginProfiles:
@@ -2373,21 +2390,55 @@ internal class PluginInstallerWindow : Window, IDisposable
             var devIconOutlineColor = KnownColor.White.Vector();
             var devIconColor = KnownColor.MediumOrchid.Vector();
 
+            const string tooltipIdentifier = "VerifiedCheckmarkIcon";
+
             if (plugin is LocalDevPlugin)
             {
                 this.DrawFontawesomeIconOutlined(FontAwesomeIcon.Wrench, devIconOutlineColor, devIconColor);
-                this.VerifiedCheckmarkFadeTooltip(label, "This is a dev plugin. You added it.");
+                this.IconFadeTooltip(label, tooltipIdentifier, "This is a dev plugin. You added it.");
             }
             else if (!flags.HasFlag(PluginHeaderFlags.IsThirdParty))
             {
                 this.DrawFontawesomeIconOutlined(FontAwesomeIcon.CheckCircle, verifiedOutlineColor, verifiedIconColor);
-                this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_VerifiedTooltip);
+                this.IconFadeTooltip(label, tooltipIdentifier, Locs.VerifiedCheckmark_VerifiedTooltip);
             }
             else
             {
                 this.DrawFontawesomeIconOutlined(FontAwesomeIcon.ExclamationCircle, unverifiedOutlineColor, unverifiedIconColor);
-                this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_UnverifiedTooltip);
+                this.IconFadeTooltip(label, tooltipIdentifier, Locs.VerifiedCheckmark_UnverifiedTooltip);
             }
+        }
+
+        // Pinned indicator
+        if (plugin != null && Service<DalamudConfiguration>.Get().PinnedPluginInternalName.Contains(plugin.Manifest.InternalName))
+        {
+            ImGui.SameLine();
+            ImGui.Text(" "u8);
+            ImGui.SameLine();
+
+            var pinIconOutlineColor = KnownColor.Crimson.Vector();
+            var pinIconColor = KnownColor.White.Vector() with { W = 0.75f };
+
+            const string tooltipIdentifier = "PinnedIcon";
+
+            this.DrawFontawesomeIconOutlined(FontAwesomeIcon.Thumbtack, pinIconOutlineColor, pinIconColor);
+            this.IconFadeTooltip(label, tooltipIdentifier, Locs.PluginIconToolTip_PinnedIconTooltip);
+        }
+
+        // Favorite star indicator
+        if (plugin != null && Service<DalamudConfiguration>.Get().FavoritePluginInternalName.Contains(plugin.Manifest.InternalName))
+        {
+            ImGui.SameLine();
+            ImGui.Text(" "u8);
+            ImGui.SameLine();
+
+            var starIconOutlineColor = KnownColor.Black.Vector();
+            var starIconColor = KnownColor.Gold.Vector();
+
+            const string tooltipIdentifier = "FavoriteIcon";
+
+            this.DrawFontawesomeIconOutlined(FontAwesomeIcon.Star, starIconOutlineColor, starIconColor);
+            this.IconFadeTooltip(label, tooltipIdentifier, Locs.PluginIconToolTip_FavoriteIconTooltip);
         }
 
         // Download count
@@ -3170,6 +3221,32 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
             }
 
+            // Favorite
+            var isFavorite = configuration.FavoritePluginInternalName.Contains(plugin.Manifest.InternalName);
+            if (ImGui.MenuItem(isFavorite ? Locs.PluginContext_RemoveFavorite : Locs.PluginContext_AddFavorite))
+            {
+                if (isFavorite)
+                    configuration.FavoritePluginInternalName.Remove(plugin.Manifest.InternalName);
+                else
+                    configuration.FavoritePluginInternalName.Add(plugin.Manifest.InternalName);
+                configuration.QueueSave();
+            }
+
+            // Pinned
+            var isPinned = configuration.PinnedPluginInternalName.Contains(plugin.Manifest.InternalName);
+            if (ImGui.MenuItem(isPinned ? Locs.PluginContext_UnpinPlugin : Locs.PluginContext_PinPlugin))
+            {
+                if (isPinned)
+                    configuration.PinnedPluginInternalName.Remove(plugin.Manifest.InternalName);
+                else
+                    configuration.PinnedPluginInternalName.Add(plugin.Manifest.InternalName);
+                configuration.QueueSave();
+                // Resort plugins to update pinned order
+                this.ResortPlugins();
+            }
+
+            ImGui.Separator();
+
             if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
             {
                 this.ShowDeletePluginConfigWarningModal(plugin.Manifest.Name, optIn != null).ContinueWith(t =>
@@ -3298,7 +3375,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var inSingleNonDefaultProfileWhichDoesNotWantActive =
             isInSingleProfile && !profilesThatWantThisPlugin.First().CheckWantsActiveFromGameState(Service<PlayerState>.Get().ContentId);
 
-        if (plugin.State is PluginState.UnloadError or PluginState.LoadError or PluginState.DependencyResolutionFailed && !plugin.IsDev && !plugin.IsOutdated)
+        if (plugin.State is PluginState.UnloadError or PluginState.LoadError or PluginState.DependencyResolutionFailed && config.DevMode.GetValueOrDefault(false) && !plugin.IsOutdated)
         {
             ImGuiComponents.DisabledToggleButton(toggleId, false);
 
@@ -4034,7 +4111,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var pluginManager = Service<PluginManager>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
-        lock (this.listLock)
+        using (this.listLock.EnterScope())
         {
             // By removing installed plugins only when the available plugin list changes (basically when the window is
             // opened), plugins that have been newly installed remain in the available plugin list as installed.
@@ -4053,7 +4130,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var pluginManager = Service<PluginManager>.Get();
         using var pmLock = pluginManager.GetSyncScope();
 
-        lock (this.listLock)
+        using (this.listLock.EnterScope())
         {
             this.pluginListInstalled = pluginManager.InstalledPlugins.ToList();
             this.pluginListUpdatable = pluginManager.UpdatablePlugins.ToList();
@@ -4124,6 +4201,18 @@ internal class PluginInstallerWindow : Window, IDisposable
             default:
                 throw new InvalidEnumArgumentException("Unknown plugin sort type.");
         }
+
+        this.SortPluginsByPinnedStatus();
+    }
+
+    private void SortPluginsByPinnedStatus()
+    {
+        var configuration = Service<DalamudConfiguration>.Get();
+        var pinnedList = new HashSet<string>(configuration.PinnedPluginInternalName);
+
+        this.pluginListInstalled = this.pluginListInstalled
+                                       .OrderByDescending(p => pinnedList.Contains(p.Manifest.InternalName))
+                                       .ToList();
     }
 
     private bool WasPluginSeen(string internalName) =>
@@ -4210,23 +4299,26 @@ internal class PluginInstallerWindow : Window, IDisposable
     }
 
     // Animates a tooltip when hovering over the ImGui Item before this call.
-    private void VerifiedCheckmarkFadeTooltip(string source, string tooltip)
+    private void IconFadeTooltip(string plugin, string identifier, string tooltip)
     {
         const float fadeInStartDelay = 250.0f;
 
-        var isHoveringSameItem = this.verifiedCheckmarkHoveredPlugin == source;
+        var isHoveringSameItem = this.currentlyHoveredPlugin == plugin
+                                 && this.currentlyHoveredObject == identifier;
 
         // If we just started a hover, start the timer
         if (ImGui.IsItemHovered() && !this.tooltipFadeInStopwatch.IsRunning)
         {
-            this.verifiedCheckmarkHoveredPlugin = source;
+            this.currentlyHoveredPlugin = plugin;
+            this.currentlyHoveredObject = identifier;
             this.tooltipFadeInStopwatch.Restart();
         }
 
         // If we were last hovering this plugins item and are no longer hovered over that item, reset the timer
         if (!ImGui.IsItemHovered() && isHoveringSameItem)
         {
-            this.verifiedCheckmarkHoveredPlugin = string.Empty;
+            this.currentlyHoveredPlugin = string.Empty;
+            this.currentlyHoveredObject = string.Empty;
             this.tooltipFadeInStopwatch.Stop();
             this.tooltipFadeEasing.Reset();
         }
@@ -4272,7 +4364,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string Filter_Installed => Loc.Localize("InstallerFilterInstalled", "Installed");
 
-        public static string Filter_Unverified => Loc.Localize("InstallerFilterUnverified", "Unverified");
+        public static string Filter_Unverified => Loc.Localize("InstallerFilterUnverified", "Custom Repository");
 
         public static string Filter_Incompatible => Loc.Localize("InstallerFilterIncompatible", "Incompatible");
 
@@ -4322,6 +4414,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string TabBody_NoPluginsDisabled => Loc.Localize("InstallerNoPluginsDisabled", "You don't have any disabled plugins.");
 
         public static string TabBody_NoPluginsIncompatible => Loc.Localize("InstallerNoPluginsIncompatible", "You don't have any incompatible plugins.");
+
+        public static string TabBody_NoPluginsFavorite => Loc.Localize("InstallerNoPluginsFavorite", "You don't have any favorite plugins.\nYou can mark plugins as favorite in the plugin context menu.");
 
         #endregion
 
@@ -4398,6 +4492,14 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginContext_DeletePluginConfig => Loc.Localize("InstallerDeletePluginConfig", "Reset plugin data");
 
         public static string PluginContext_DeletePluginConfigReload => Loc.Localize("InstallerDeletePluginConfigReload", "Reset plugin data and reload");
+
+        public static string PluginContext_AddFavorite => Loc.Localize("InstallerAddFavorite", "Add to favorites");
+
+        public static string PluginContext_RemoveFavorite => Loc.Localize("InstallerRemoveFavorite", "Remove from favorites");
+
+        public static string PluginContext_PinPlugin => Loc.Localize("InstallerPinPlugin", "Pin to top");
+
+        public static string PluginContext_UnpinPlugin => Loc.Localize("InstallerUnpinPlugin", "Unpin from top");
 
         #endregion
 
@@ -4505,6 +4607,14 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginButtonToolTip_SingleProfileDisabled(string name) => Loc.Localize("InstallerSingleProfileDisabled", "The collection '{0}' which contains this plugin is disabled.\nPlease enable it in the collections manager to toggle the plugin individually.").Format(name);
 
         public static string PluginButtonToolTip_SingleProfileDoesNotWantActive(string name) => Loc.Localize("InstallerSingleProfileDoesNotWantActive", "The collection '{0}' which contains this plugin is active, but is not set to activate on this character.\nPlease change the collection's settings or remove the plugin from that collection to toggle the plugin individually.").Format(name);
+
+        #endregion
+
+        #region Plugin icon tooltips
+
+        public static string PluginIconToolTip_FavoriteIconTooltip => Loc.Localize("InstallerFavoriteTooltip", "This plugin is in your favorites.");
+
+        public static string PluginIconToolTip_PinnedIconTooltip => Loc.Localize("InstallerPinnedTooltip", "This plugin is pinned to the top.");
 
         #endregion
 

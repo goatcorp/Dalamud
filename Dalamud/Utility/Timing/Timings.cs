@@ -22,22 +22,32 @@ public static class Timings
     internal static readonly SortedList<TimingHandle, TimingHandle> AllTimings = [];
 
     /// <summary>
+    /// A lock scope for all concluded timings.
+    /// </summary>
+    internal static readonly Lock AllTimingsLock = new();
+
+    /// <summary>
     /// List of all timing events.
     /// </summary>
     internal static readonly List<TimingEvent> Events = [];
 
-    private static readonly AsyncLocal<Tuple<int?, List<TimingHandle>>> TaskTimingHandleStorage = new();
+    /// <summary>
+    /// A lock for the list of all timing events.
+    /// </summary>
+    internal static readonly Lock EventsLock = new();
+
+    private static readonly AsyncLocal<Tuple<int?, Tuple<Lock, List<TimingHandle>>>> TaskTimingHandleStorage = new();
 
     /// <summary>
     /// Gets or sets all active timings of current thread.
     /// </summary>
-    internal static List<TimingHandle> TaskTimingHandles
+    internal static Tuple<Lock, List<TimingHandle>> TaskTimingHandles
     {
         get
         {
             if (TaskTimingHandleStorage.Value == null || TaskTimingHandleStorage.Value.Item1 != Task.CurrentId)
-                TaskTimingHandleStorage.Value = Tuple.Create<int?, List<TimingHandle>>(Task.CurrentId, []);
-            return TaskTimingHandleStorage.Value!.Item2!;
+                TaskTimingHandleStorage.Value = Tuple.Create(Task.CurrentId, Tuple.Create<Lock, List<TimingHandle>>(new Lock(), []));
+            return TaskTimingHandleStorage.Value.Item2;
         }
         set => TaskTimingHandleStorage.Value = Tuple.Create(Task.CurrentId, value);
     }
@@ -123,7 +133,7 @@ public static class Timings
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
-        lock (Events)
+        using (EventsLock.EnterScope())
         {
             Events.Add(new TimingEvent(name)
             {

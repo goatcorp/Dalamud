@@ -1,3 +1,5 @@
+using Dalamud.Utility;
+
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
@@ -376,6 +378,15 @@ public interface IUnlockState : IDalamudService
     /// <param name="unlockLink">The unlock link id or quest id (quest ids in this case are over 65536).</param>
     /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
     bool IsUnlockLinkUnlocked(uint unlockLink);
+
+    /// <summary>
+    /// Determines whether the specified unlock link is unlocked or quest is completed.
+    /// </summary>
+    /// <param name="unlockLink">The unlock link id or quest id (quest ids in this case are over 65536).</param>
+    /// <param name="minimumQuestSequence">The minimum progression (sequence) of a quest.</param>
+    /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
+    [Api16ToDo("Remove overload without second parameter, give this minimumQuestSequence a default of 0.")]
+    bool IsUnlockLinkUnlocked(uint unlockLink, byte minimumQuestSequence);
 
     /// <summary>
     /// Determines whether the specified unlock link is unlocked.

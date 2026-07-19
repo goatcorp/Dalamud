@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 using Dalamud.Game.Agent.AgentArgTypes;
 using Dalamud.Hooking;
@@ -312,10 +313,13 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     private readonly AgentLifecycle agentLifecycleService = Service<AgentLifecycle>.Get();
 
     private readonly List<AgentLifecycleEventListener> eventListeners = [];
+    private readonly Lock listenerLock = new();
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        using var scope = this.listenerLock.EnterScope();
+
         foreach (var listener in this.eventListeners)
         {
             this.agentLifecycleService.UnregisterListener(listener);
@@ -335,6 +339,9 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     public void RegisterListener(AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate handler)
     {
         var listener = new AgentLifecycleEventListener(eventType, agentId, handler);
+
+        using var scope = this.listenerLock.EnterScope();
+
         this.eventListeners.Add(listener);
         this.agentLifecycleService.RegisterListener(listener);
     }
@@ -357,6 +364,8 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     /// <inheritdoc/>
     public void UnregisterListener(AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate? handler = null)
     {
+        using var scope = this.listenerLock.EnterScope();
+
         this.eventListeners.RemoveAll(entry =>
         {
             if (entry.EventType != eventType) return false;
@@ -377,6 +386,8 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     /// <inheritdoc/>
     public void UnregisterListener(params IAgentLifecycle.AgentEventDelegate[] handlers)
     {
+        using var scope = this.listenerLock.EnterScope();
+
         foreach (var handler in handlers)
         {
             this.eventListeners.RemoveAll(entry =>

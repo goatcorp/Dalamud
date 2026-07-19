@@ -1,9 +1,15 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+
+using CheapLoc;
 
 using Dalamud.Console;
+using Dalamud.Game.Gui;
+using Dalamud.Game.Gui.Toast;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -14,6 +20,7 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using FFXIVClientStructs.FFXIV.Component.Shell;
 
 namespace Dalamud.Game.Command;
@@ -96,6 +103,22 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 
         if (!this.commandMap.TryGetValue(command, out var handler)) // Command was not found.
             return false;
+
+        if (!handler.AllowedInMacros &&
+            (this.GetCurrentMacroLine()?.StartsWith($"/{command}", StringComparison.OrdinalIgnoreCase) ?? false))
+        {
+            Log.Warning("Command {CommandName} is not allowed to be run in macros.", command);
+
+            if (!RaptureShellModule.Instance()->SuppressMacroErrors)
+            {
+                var msg = Loc.Localize("CommandHandlerMacroBlocked", $"Command {command} cannot be run in a macro.");
+                Service<ChatGui>.Get().PrintError(msg);
+                Service<ToastGui>.Get().ShowError(msg);
+            }
+
+            // We handled the command, just refused to run it. Suppress the game's failure message
+            return true;
+        }
 
         this.DispatchCommand(command, argument, handler);
         return true;
@@ -237,6 +260,12 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         return this.ProcessCommand(command->ToString()) ? 0 : result;
     }
 
+    private unsafe string? GetCurrentMacroLine()
+    {
+        var shellModule = RaptureShellModule.Instance();
+        return shellModule->MacroCurrentLine == 0 ? null : shellModule->MacroLineText.ToString();
+    }
+
     /// <inheritdoc />
     public class CommandEventArgs : EventArgs
     {
@@ -270,6 +299,8 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     private readonly List<string> pluginRegisteredCommands = [];
     private readonly LocalPlugin pluginInfo;
 
+    private readonly Lock commandListLock = new();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CommandManagerPluginScoped"/> class.
     /// </summary>
@@ -285,6 +316,8 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        using var scope = this.commandListLock.EnterScope();
+
         foreach (var command in this.pluginRegisteredCommands)
         {
             this.commandManagerService.RemoveHandler(command);
@@ -304,6 +337,8 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     /// <inheritdoc/>
     public bool AddHandler(string command, CommandInfo info)
     {
+        using var scope = this.commandListLock.EnterScope();
+
         if (!this.pluginRegisteredCommands.Contains(command))
         {
             if (this.commandManagerService.AddHandler(command, info, this.pluginInfo.InternalName))
@@ -323,6 +358,8 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     /// <inheritdoc/>
     public bool RemoveHandler(string command)
     {
+        using var scope = this.commandListLock.EnterScope();
+
         if (this.pluginRegisteredCommands.Contains(command))
         {
             if (this.commandManagerService.RemoveHandler(command))

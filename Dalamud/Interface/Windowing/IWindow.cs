@@ -28,9 +28,22 @@ public interface IWindow
     bool IsFocused { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the window is hovered.
+    /// </summary>
+    bool IsHovered { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether this window is to be closed with a hotkey, like Escape, and keep game addons open in turn if it is closed.
     /// </summary>
     bool RespectCloseHotkey { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this window inhibits the game cursor from interacting with native elements underneath the hovered window.
+    /// </summary>
+    /// <remarks>
+    /// This is feature is disabled when Gamepad Mode is enabled.
+    /// </remarks>
+    bool InhibitAtkCollision { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this window should not generate sound effects when opening and closing.

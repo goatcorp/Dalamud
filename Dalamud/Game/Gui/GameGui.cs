@@ -174,7 +174,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
             return false;
         }
 
-        var ray = camera->ScreenPointToRay(screenPos);
+        var ray = camera->ScreenPointToRay(screenPos - windowPos);
         var result = BGCollisionModule.RaycastMaterialFilter(ray.Origin, ray.Direction, out var hit);
         worldPos = hit.Point;
         return result;

@@ -132,8 +132,7 @@ internal sealed unsafe class Dalamud : IServiceType
         SetExceptionHandler(this.DefaultExceptionFilter);
         Log.Debug($"SE default exception filter at {new IntPtr(this.DefaultExceptionFilter):X}");
 
-        var debugSig = "40 55 53 57 48 8D AC 24 70 AD FF FF";
-        this.DebugExceptionFilter = Service<TargetSigScanner>.Get().ScanText(debugSig);
+        this.DebugExceptionFilter = scanner.ScanText("40 55 53 57 48 8D AC 24 70 AD FF FF");
         Log.Debug($"SE debug exception filter at {this.DebugExceptionFilter.ToInt64():X}");
     }
 

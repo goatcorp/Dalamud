@@ -19,24 +19,23 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
     internal MinHookHook(IntPtr address, T detour, Assembly callingAssembly)
         : base(address)
     {
-        lock (HookManager.HookEnableSyncRoot)
-        {
-            var unhooker = HookManager.RegisterUnhooker(this.Address);
+        using var scope = HookManager.HookEnableSyncRoot.EnterScope();
 
-            if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
-                indexList = HookManager.MultiHookTracker[this.Address] = [];
+        var unhooker = HookManager.RegisterUnhooker(this.Address);
 
-            var index = (ulong)indexList.Count;
+        if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
+            indexList = HookManager.MultiHookTracker[this.Address] = [];
 
-            this.minHookImpl = new MinSharp.Hook<T>(this.Address, detour, index);
+        var index = (ulong)indexList.Count;
 
-            // Add afterwards, so the hookIdent starts at 0.
-            indexList.Add(this);
+        this.minHookImpl = new MinSharp.Hook<T>(this.Address, detour, index);
 
-            unhooker.TrimAfterHook();
+        // Add afterwards, so the hookIdent starts at 0.
+        indexList.Add(this);
 
-            HookManager.TrackedHooks.TryAdd(this.HookId, new HookInfo(this, detour, callingAssembly));
-        }
+        unhooker.TrimAfterHook();
+
+        HookManager.TrackedHooks.TryAdd(this.HookId, new HookInfo(this, detour, callingAssembly));
     }
 
     /// <inheritdoc/>
@@ -61,13 +60,12 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
         if (this.IsDisposed)
             return;
 
-        lock (HookManager.HookEnableSyncRoot)
-        {
-            this.minHookImpl.Dispose();
+        using var scope = HookManager.HookEnableSyncRoot.EnterScope();
 
-            var index = HookManager.MultiHookTracker[this.Address].IndexOf(this);
-            HookManager.MultiHookTracker[this.Address][index] = null;
-        }
+        this.minHookImpl.Dispose();
+
+        var index = HookManager.MultiHookTracker[this.Address].IndexOf(this);
+        HookManager.MultiHookTracker[this.Address][index] = null;
 
         HookManager.TrackedHooks.TryRemove(this.HookId, out _);
 
@@ -77,29 +75,27 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
     /// <inheritdoc/>
     public override void Enable()
     {
-        lock (HookManager.HookEnableSyncRoot)
-        {
-            this.CheckDisposed();
+        using var scope = HookManager.HookEnableSyncRoot.EnterScope();
 
-            if (!this.minHookImpl.Enabled)
-                return;
+        this.CheckDisposed();
 
-            this.minHookImpl.Enable();
-        }
+        if (!this.minHookImpl.Enabled)
+            return;
+
+        this.minHookImpl.Enable();
     }
 
     /// <inheritdoc/>
     public override void Disable()
     {
-        lock (HookManager.HookEnableSyncRoot)
-        {
-            if (this.IsDisposed)
-                return;
+        using var scope = HookManager.HookEnableSyncRoot.EnterScope();
 
-            if (!this.minHookImpl.Enabled)
-                return;
+        if (this.IsDisposed)
+            return;
 
-            this.minHookImpl.Disable();
-        }
+        if (!this.minHookImpl.Enabled)
+            return;
+
+        this.minHookImpl.Disable();
     }
 }

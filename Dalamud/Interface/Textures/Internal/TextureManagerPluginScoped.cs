@@ -400,6 +400,15 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
+    public async Task<(int MipLevels, (RawImageSpecification Specification, byte[] RawData)[] Images)>
+        GetAllRawImagesAsync(
+            IDalamudTextureWrap wrap, bool leaveWrapOpen = false, CancellationToken cancellationToken = default)
+    {
+        var manager = await this.ManagerTask;
+        return await manager.GetAllRawImagesAsync(wrap, leaveWrapOpen, cancellationToken);
+    }
+
+    /// <inheritdoc/>
     public IEnumerable<IBitmapCodecInfo> GetSupportedImageEncoderInfos() =>
         this.ManagerOrThrow.Wic.GetSupportedEncoderInfos();
 

@@ -18,7 +18,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.Network;
 using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
 using Lumina.Excel.Sheets;
 
@@ -222,22 +221,19 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public bool IsClientIdle(out ConditionFlag blockingFlag)
     {
         blockingFlag = 0;
-        if (this.objectTable.LocalPlayer is null)
+        if (!this.IsLoggedIn)
             return true;
-
-        unsafe
-        {
-            var inputTimerModule = InputTimerModule.Instance();
-            if (inputTimerModule != null && inputTimerModule->Status == 1 && inputTimerModule->InputTimer < 30)
-                return false;
-        }
 
         var condition = Service<Conditions.Condition>.GetNullable();
 
         var blockingConditions = condition.AsReadOnlySet().Except([
             ConditionFlag.NormalConditions,
+            ConditionFlag.Emoting,
             ConditionFlag.Jumping,
             ConditionFlag.Mounted,
+            ConditionFlag.InFlight,
+            ConditionFlag.Swimming,
+            ConditionFlag.Diving,
             ConditionFlag.UsingFashionAccessory,
             ConditionFlag.OnFreeTrial]);
 

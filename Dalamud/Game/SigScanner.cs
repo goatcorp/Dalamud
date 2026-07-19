@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
 using Iced.Intel;
 
@@ -28,8 +27,6 @@ namespace Dalamud.Game;
 /// </summary>
 public class SigScanner : IDisposable, ISigScanner
 {
-    private static byte[]? fileBytes;
-
     private readonly FileInfo? cacheFile;
 
     private nint moduleCopyPtr;
@@ -62,8 +59,6 @@ public class SigScanner : IDisposable, ISigScanner
         if (this.IsCopy)
         {
             this.SetupCopiedSegments();
-
-            fileBytes ??= File.ReadAllBytes(module.FileName);
         }
 
         // Limit the search space to .text section.
@@ -493,9 +488,10 @@ public class SigScanner : IDisposable, ISigScanner
 
                     if (this.IsCopy)
                     {
-                        var source = fileBytes.AsSpan((int)section->PointerToRawData, this.TextSectionSize);
+                        using var stream = new FileStream(module.FileName, FileMode.Open, FileAccess.Read, FileShare.Read);
                         var destination = new Span<byte>((void*)(this.moduleCopyPtr + (nint)this.TextSectionOffset), this.TextSectionSize);
-                        source.CopyTo(destination);
+                        stream.Position = (int)section->PointerToRawData;
+                        stream.ReadExactly(destination);
                     }
 
                     break;

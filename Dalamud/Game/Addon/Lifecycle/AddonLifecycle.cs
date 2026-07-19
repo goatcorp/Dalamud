@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Hooking;
@@ -257,10 +258,13 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     private readonly AddonLifecycle addonLifecycleService = Service<AddonLifecycle>.Get();
 
     private readonly List<AddonLifecycleEventListener> eventListeners = [];
+    private readonly Lock listenerLock = new();
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        using var scope = this.listenerLock.EnterScope();
+
         foreach (var listener in this.eventListeners)
         {
             this.addonLifecycleService.UnregisterListener(listener);
@@ -280,6 +284,9 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     public void RegisterListener(AddonEvent eventType, string addonName, IAddonLifecycle.AddonEventDelegate handler)
     {
         var listener = new AddonLifecycleEventListener(eventType, addonName, handler);
+
+        using var scope = this.listenerLock.EnterScope();
+
         this.eventListeners.Add(listener);
         this.addonLifecycleService.RegisterListener(listener);
     }
@@ -302,6 +309,8 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     /// <inheritdoc/>
     public void UnregisterListener(AddonEvent eventType, string addonName, IAddonLifecycle.AddonEventDelegate? handler = null)
     {
+        using var scope = this.listenerLock.EnterScope();
+
         this.eventListeners.RemoveAll(entry =>
         {
             if (entry.EventType != eventType) return false;
@@ -322,6 +331,8 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     /// <inheritdoc/>
     public void UnregisterListener(params IAddonLifecycle.AddonEventDelegate[] handlers)
     {
+        using var scope = this.listenerLock.EnterScope();
+
         foreach (var handler in handlers)
         {
             this.eventListeners.RemoveAll(entry =>

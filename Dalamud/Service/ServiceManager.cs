@@ -45,6 +45,7 @@ internal static class ServiceManager
 
     [SuppressMessage("ReSharper", "CollectionNeverQueried.Local", Justification = "Debugging purposes")]
     private static readonly List<Type> LoadedServices = [];
+    private static readonly Lock LoadedServicesLock = new();
 #endif
 
     private static readonly TaskCompletionSource BlockingServicesLoadedTaskCompletionSource =
@@ -125,7 +126,7 @@ internal static class ServiceManager
     public static CancellationToken UnloadCancellationToken => UnloadCancellationTokenSource.Token;
 
     /// <summary>
-    /// Initializes Provided Services and FFXIVClientStructs.
+    /// Initializes provided Services.
     /// </summary>
     /// <param name="dalamud">Instance of <see cref="Dalamud"/>.</param>
     /// <param name="fs">Instance of <see cref="ReliableFileStorage"/>.</param>
@@ -153,7 +154,7 @@ internal static class ServiceManager
         }
 
 #if DEBUG
-        lock (LoadedServices)
+        using (LoadedServicesLock.EnterScope())
         {
             ProvideAllServices();
         }
@@ -375,7 +376,7 @@ internal static class ServiceManager
                     {
                         if (task.IsFaulted)
                             return;
-                        lock (LoadedServices)
+                        using (LoadedServicesLock.EnterScope())
                         {
                             LoadedServices.Add(serviceType);
                         }
@@ -516,7 +517,7 @@ internal static class ServiceManager
         }
 
 #if DEBUG
-        lock (LoadedServices)
+        using (LoadedServicesLock.EnterScope())
         {
             LoadedServices.Clear();
         }

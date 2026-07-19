@@ -124,7 +124,7 @@ internal class ReliableFileStorage : IInternalDisposableService
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
 
-        lock (this.syncRoot)
+        using (this.syncRoot.EnterScope())
         {
             if (this.db == null)
             {

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace Dalamud.Plugin.Ipc.Internal;
 
@@ -10,6 +11,7 @@ namespace Dalamud.Plugin.Ipc.Internal;
 internal class CallGate : IServiceType
 {
     private readonly Dictionary<string, CallGateChannel> gates = [];
+    private readonly Lock gatesLock = new();
 
     private ImmutableDictionary<string, CallGateChannel>? gatesCopy;
 
@@ -28,7 +30,7 @@ internal class CallGate : IServiceType
             var copy = this.gatesCopy;
             if (copy is not null)
                 return copy;
-            lock (this.gates)
+            using (this.gatesLock.EnterScope())
                 return this.gatesCopy ??= this.gates.ToImmutableDictionary(x => x.Key, x => x.Value);
         }
     }
@@ -40,7 +42,7 @@ internal class CallGate : IServiceType
     /// <returns>A CallGate registered under the given name.</returns>
     public CallGateChannel GetOrCreateChannel(string name)
     {
-        lock (this.gates)
+        using (this.gatesLock.EnterScope())
         {
             if (!this.gates.TryGetValue(name, out var gate))
             {
@@ -57,7 +59,7 @@ internal class CallGate : IServiceType
     /// </summary>
     public void PurgeEmptyGates()
     {
-        lock (this.gates)
+        using (this.gatesLock.EnterScope())
         {
             var changed = false;
             foreach (var (k, v) in this.Gates)

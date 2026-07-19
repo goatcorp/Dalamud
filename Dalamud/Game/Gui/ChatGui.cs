@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Chat;
@@ -42,6 +43,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
     private readonly Queue<XivChatEntry> chatQueue = new();
     private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = [];
+    private readonly Lock dalamudLinkHandlersLock = new();
     private readonly List<nint> seenLogMessageObjects = [];
 
     private readonly Hook<RaptureLogModule.Delegates.PrintMessage> printMessageHook;
@@ -105,7 +107,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             if (copy is not null)
                 return copy;
 
-            lock (this.dalamudLinkHandlers)
+            using (this.dalamudLinkHandlersLock.EnterScope())
             {
                 return this.dalamudLinkHandlersCopy ??=
                            this.dalamudLinkHandlers.ToImmutableDictionary(x => x.Key, x => x.Value);
@@ -222,7 +224,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction)
     {
         var payload = new DalamudLinkPayload { Plugin = pluginName, CommandId = commandId };
-        lock (this.dalamudLinkHandlers)
+
+        using (this.dalamudLinkHandlersLock.EnterScope())
         {
             this.dalamudLinkHandlers.Add((pluginName, commandId), commandAction);
             this.dalamudLinkHandlersCopy = null;
@@ -237,7 +240,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// <param name="pluginName">The name of the plugin handling the links.</param>
     internal void RemoveChatLinkHandler(string pluginName)
     {
-        lock (this.dalamudLinkHandlers)
+        using (this.dalamudLinkHandlersLock.EnterScope())
         {
             var changed = false;
 
@@ -255,7 +258,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// <param name="commandId">The ID of the command to be removed.</param>
     internal void RemoveChatLinkHandler(string pluginName, uint commandId)
     {
-        lock (this.dalamudLinkHandlers)
+        using (this.dalamudLinkHandlersLock.EnterScope())
         {
             if (this.dalamudLinkHandlers.Remove((pluginName, commandId)))
                 this.dalamudLinkHandlersCopy = null;

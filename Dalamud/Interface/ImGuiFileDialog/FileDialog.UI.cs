@@ -378,70 +378,69 @@ public partial class FileDialog
 
             if (this.filteredFiles.Count > 0)
             {
+                using var scope = this.filesLock.EnterScope();
+
                 var clipper = ImGui.ImGuiListClipper();
 
-                lock (this.filesLock)
+                clipper.Begin(this.filteredFiles.Count);
+                while (clipper.Step())
                 {
-                    clipper.Begin(this.filteredFiles.Count);
-                    while (clipper.Step())
+                    for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                     {
-                        for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+                        if (i < 0) continue;
+
+                        var file = this.filteredFiles[i];
+                        var selected = this.selectedFileNames.Contains(file.FileName);
+                        var needToBreak = false;
+
+                        var dir = file.Type == FileStructType.Directory;
+                        var item = !dir ? GetIcon(file.Ext) : new IconColorItem
                         {
-                            if (i < 0) continue;
+                            Color = dirTextColor,
+                            Icon = FontAwesomeIcon.Folder,
+                        };
 
-                            var file = this.filteredFiles[i];
-                            var selected = this.selectedFileNames.Contains(file.FileName);
-                            var needToBreak = false;
+                        ImGui.PushStyleColor(ImGuiCol.Text, selected ? selectedTextColor : item.Color);
 
-                            var dir = file.Type == FileStructType.Directory;
-                            var item = !dir ? GetIcon(file.Ext) : new IconColorItem
-                            {
-                                Color = dirTextColor,
-                                Icon = FontAwesomeIcon.Folder,
-                            };
+                        ImGui.TableNextRow();
 
-                            ImGui.PushStyleColor(ImGuiCol.Text, selected ? selectedTextColor : item.Color);
-
-                            ImGui.TableNextRow();
-
-                            if (ImGui.TableNextColumn())
-                            {
-                                needToBreak = this.SelectableItem(file, selected, item.Icon);
-                            }
-
-                            if (ImGui.TableNextColumn())
-                            {
-                                ImGui.Text(file.Ext);
-                            }
-
-                            if (ImGui.TableNextColumn())
-                            {
-                                if (file.Type == FileStructType.File)
-                                {
-                                    ImGui.Text(file.FormattedFileSize + " ");
-                                }
-                                else
-                                {
-                                    ImGui.Text(" "u8);
-                                }
-                            }
-
-                            if (ImGui.TableNextColumn())
-                            {
-                                var sz = ImGui.CalcTextSize(file.FileModifiedDate);
-                                ImGui.SetNextItemWidth(sz.X + Scaled(5));
-                                ImGui.Text(file.FileModifiedDate + " ");
-                            }
-
-                            ImGui.PopStyleColor();
-
-                            if (needToBreak) break;
+                        if (ImGui.TableNextColumn())
+                        {
+                            needToBreak = this.SelectableItem(file, selected, item.Icon);
                         }
-                    }
 
-                    clipper.End();
-                    clipper.Destroy();
+                        if (ImGui.TableNextColumn())
+                        {
+                            ImGui.Text(file.Ext);
+                        }
+
+                        if (ImGui.TableNextColumn())
+                        {
+                            if (file.Type == FileStructType.File)
+                            {
+                                ImGui.Text(file.FormattedFileSize + " ");
+                            }
+                            else
+                            {
+                                ImGui.Text(" "u8);
+                            }
+                        }
+
+                        if (ImGui.TableNextColumn())
+                        {
+                            var sz = ImGui.CalcTextSize(file.FileModifiedDate);
+                            ImGui.SetNextItemWidth(sz.X + Scaled(5));
+                            ImGui.Text(file.FileModifiedDate + " ");
+                        }
+
+                        ImGui.PopStyleColor();
+
+                        if (needToBreak) break;
+                    }
                 }
+
+                clipper.End();
+                clipper.Destroy();
             }
 
             if (this.pathInputActivated)

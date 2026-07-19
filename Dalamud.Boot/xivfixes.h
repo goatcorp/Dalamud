@@ -9,6 +9,7 @@ namespace xivfixes {
     void prevent_icmphandle_crashes(bool bApply);
     void symbol_load_patches(bool bApply);
     void disable_game_debugging_protection(bool bApply);
+    void faster_decompression(bool bApply);
 
     void apply_all(bool bApply);
 }

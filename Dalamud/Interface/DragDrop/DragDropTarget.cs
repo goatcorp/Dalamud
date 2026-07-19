@@ -44,6 +44,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         if (pDataObj.QueryGetData(ref this.formatEtc) != 0)
         {
             pdwEffect = 0;
+            (this.Files, this.Directories, this.Extensions) = ([], [], new HashSet<string>());
         }
         else
         {

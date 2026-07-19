@@ -145,6 +145,7 @@ public class WindowHost
                 this.Window.OnClose();
 
                 this.Window.IsFocused = false;
+                this.Window.IsHovered = false;
 
                 if (internalDrawParams.Flags.HasFlag(WindowDrawFlags.UseSoundEffects) && !this.Window.DisableWindowSounds)
                 {
@@ -179,8 +180,13 @@ public class WindowHost
             this.fadeInTimer = FadeInOutTime;
 
         this.Window.Update();
+
         if (!this.Window.DrawConditions())
+        {
+            this.Window.IsFocused = false;
+            this.Window.IsHovered = false;
             return;
+        }
 
         var hasNamespace = !string.IsNullOrEmpty(this.Window.Namespace);
 
@@ -533,6 +539,7 @@ public class WindowHost
         }
 
         this.Window.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
+        this.Window.IsHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows);
 
         if (internalDrawParams.Flags.HasFlag(WindowDrawFlags.UseFocusManagement) && !this.Window.IsPinned)
         {
