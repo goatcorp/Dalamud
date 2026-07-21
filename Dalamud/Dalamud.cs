@@ -188,9 +188,6 @@ internal sealed class Dalamud : IServiceType
 
         Task.Run(() =>
         {
-            if (Service<PluginManager>.GetNullable() is { } pluginManager)
-                pluginManager.UnloadAllPlugins().Wait();
-
             ServiceManager.UnloadAllServices();
 
             this.unloadSignal.Set();
