@@ -12,6 +12,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImPlot;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
+using Dalamud.Game;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Agent;
 using Dalamud.Game.ClientState;
@@ -43,11 +44,12 @@ using Dalamud.Plugin.SelfTest.Internal;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
-using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using Serilog.Events;
+
+using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 
 namespace Dalamud.Interface.Internal;
 
@@ -908,7 +910,7 @@ internal class DalamudInterface : IInternalDisposableService
 
                     if (ImGui.MenuItem("Unload Dalamud"u8))
                     {
-                        Service<Dalamud>.Get().Unload();
+                        Service<Framework>.Get().UnloadDalamud();
                     }
 
                     if (ImGui.MenuItem("Restart game"u8))
@@ -961,13 +963,13 @@ internal class DalamudInterface : IInternalDisposableService
 
                         if (ImGui.MenuItem("Set UiModule to NULL"u8))
                         {
-                            var framework = Framework.Instance();
+                            var framework = CSFramework.Instance();
                             framework->UIModule = (UIModule*)0;
                         }
 
                         if (ImGui.MenuItem("Set UiModule to invalid ptr"u8))
                         {
-                            var framework = Framework.Instance();
+                            var framework = CSFramework.Instance();
                             framework->UIModule = (UIModule*)0x12345678;
                         }
 
