@@ -12,6 +12,12 @@ using Dalamud.Plugin.Services;
 
 namespace Dalamud.IoC.Internal;
 
+// NOTE: Every await in this class has to use ConfigureAwait(false). IServiceProvider forces the scope's GetService to
+// block synchronously on these async methods, and that call may originate from a callback running on the framework
+// thread via Framework.Run, where TaskScheduler.Current is the framework's ThreadBoundTaskScheduler. An unconfigured
+// await would post its continuation to that scheduler, which only drains on the next framework tick which can never
+// happen while the framework thread is blocked waiting for the resolution to finish.
+
 /// <summary>
 /// A simple singleton-only IOC container that provides (optional) version-based dependency resolution.
 ///
@@ -107,16 +113,18 @@ internal class ServiceContainer : IServiceType
                 await Task.WhenAll(
                     ctor.GetParameters()
                         .Select(p => p.ParameterType)
-                        .Select(type => this.GetService(type, scopeImpl, scopedObjects)));
+                        .Select(type => this.GetService(type, scopeImpl, scopedObjects))).ConfigureAwait(false);
 
             var instance = RuntimeHelpers.GetUninitializedObject(objectType);
 
             errorStep = "property injection";
-            await this.InjectProperties(instance, scopedObjects, scope);
+            await this.InjectProperties(instance, scopedObjects, scope).ConfigureAwait(false);
 
             // Invoke ctor from a separate thread (LongRunning will spawn a new one)
             // so that it does not count towards thread pool active threads cap.
-            // Plugin ctor can block to wait for Tasks, as we currently do not support asynchronous plugin init.
+            // Legacy (IDalamudPlugin) plugin ctors can block to wait for Tasks, as the ctor is their only init.
+            // IAsyncDalamudPlugin plugins should do such work in LoadAsync instead, but their ctors are invoked
+            // through this same path.
             errorStep = "ctor invocation";
             await Task.Factory.StartNew(
                 () => ctor.Invoke(instance, resolvedParams),
@@ -153,7 +161,7 @@ internal class ServiceContainer : IServiceType
                 .ToArray();
 
         foreach (var prop in props)
-            prop.SetValue(instance, await this.GetService(prop.PropertyType, scopeImpl, publicScopes));
+            prop.SetValue(instance, await this.GetService(prop.PropertyType, scopeImpl, publicScopes).ConfigureAwait(false));
     }
 
     /// <summary>
@@ -189,10 +197,10 @@ internal class ServiceContainer : IServiceType
                     $"Failed to create {serviceType.FullName ?? serviceType.Name}, is scoped but no scope provided");
             }
 
-            return await scope.CreatePrivateScopedObject(serviceType, scopedObjects);
+            return await scope.CreatePrivateScopedObject(serviceType, scopedObjects).ConfigureAwait(false);
         }
 
-        var singletonService = await this.GetSingletonService(serviceType, false);
+        var singletonService = await this.GetSingletonService(serviceType, false).ConfigureAwait(false);
         if (singletonService != null)
             return singletonService;
 
@@ -210,7 +218,7 @@ internal class ServiceContainer : IServiceType
         if (!this.instances.TryGetValue(serviceType, out var service))
             return null;
 
-        var instance = await service.InstanceTask;
+        var instance = await service.InstanceTask.ConfigureAwait(false);
         return instance.Target;
     }
 
