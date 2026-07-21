@@ -10,7 +10,6 @@ using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Hooking.Internal.Verification;
-using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;

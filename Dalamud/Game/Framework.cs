@@ -326,6 +326,21 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     }
 
     /// <summary>
+    /// Cancels CancellationTokenSources, sets GameLifecycle to shutting down and unloads Dalamud services.
+    /// </summary>
+    internal void UnloadDalamud()
+    {
+        this.frameworkDestroy.Cancel();
+        this.DispatchUpdateEvents = false;
+
+        // All the same, for now...
+        this.lifecycle.SetShuttingDown();
+        this.lifecycle.SetUnloading();
+
+        Service<Dalamud>.Get().Unload();
+    }
+
+    /// <summary>
     /// Profiles each sub-delegate in the eventDelegate and logs to StatsHistory.
     /// </summary>
     /// <param name="eventDelegate">The Delegate to Profile.</param>
@@ -451,15 +466,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         if (!this.frameworkDestroy.IsCancellationRequested)
         {
             Log.Information("Framework::Destroy!");
-
-            this.frameworkDestroy.Cancel();
-            this.DispatchUpdateEvents = false;
-
-            // All the same, for now...
-            this.lifecycle.SetShuttingDown();
-            this.lifecycle.SetUnloading();
-
-            Service<Dalamud>.Get().Unload();
+            this.UnloadDalamud();
         }
 
         if (!ServiceManager.IsUnloaded)
