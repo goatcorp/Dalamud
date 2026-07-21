@@ -385,9 +385,10 @@ internal class PluginManager : IInternalDisposableService
     public async Task UnloadAllPlugins()
     {
         var disposablePlugins = this.installedPluginsList
-                .Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError);
+                .Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError)
+                .ToArray();
 
-        if (!disposablePlugins.Any())
+        if (disposablePlugins.Length == 0)
             return;
 
         Log.Information("==== UNLOADING ALL PLUGINS ====");
