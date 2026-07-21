@@ -472,13 +472,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             this.UnloadDalamud();
         }
 
-        if (!ServiceManager.IsUnloaded)
-        {
-            this.RunFrameworkTick();
-            return false; // keep looping until we have unloaded every service
-        }
-
-        return this.destroyHook.OriginalDisposeSafe(thisPtr);
+        return ServiceManager.IsUnloaded && this.destroyHook.OriginalDisposeSafe(thisPtr);
     }
 }
 
