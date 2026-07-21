@@ -166,6 +166,29 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     public void RenderDrawData(ImDrawDataPtr drawData) =>
         this.mainViewport.Draw(drawData, this.mainViewport.SwapChain == null);
 
+    /// <inheritdoc/>
+    public void RenderViewportSnapshot(nint rendererUserData, ImDrawDataPtr drawData)
+    {
+        // Defensively skip if the viewport handle is null/invalid. ViewportData destruction only happens inside
+        // UpdatePlatformWindows() (under the backend's write lock), so a read-lock Render() should never observe
+        // a freed handle; this guard is belt-and-suspenders against unexpected teardown ordering.
+        if (rendererUserData == nint.Zero)
+            return;
+
+        ViewportData vp;
+        try
+        {
+            vp = ViewportData.Attach((void*)rendererUserData);
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        vp.Draw(drawData, true);
+        vp.PresentIfSwapChainAvailable();
+    }
+
     /// <summary>
     /// Rebuilds font texture.
     /// </summary>
@@ -416,7 +439,6 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                             var tintColor = data->TintColor;
                             var luminosityColor = data->LuminosityColor;
                             var noiseOpacity = data->NoiseOpacity;
-                            BlurCallbackDataPool.Return(data);
 
                             var blurV4 = cmd.ClipRect - clipOff;
                             if (blurV4.X >= blurV4.Z || blurV4.Y >= blurV4.W)
