@@ -330,6 +330,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// </summary>
     internal void UnloadDalamud()
     {
+        if (!this.frameworkDestroy.IsCancellationRequested)
+            return;
+
         this.frameworkDestroy.Cancel();
         this.DispatchUpdateEvents = false;
 
