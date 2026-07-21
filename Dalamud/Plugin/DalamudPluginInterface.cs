@@ -38,6 +38,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     private readonly LocalPlugin plugin;
     private readonly PluginConfigurations configs;
     private readonly UiBuilder uiBuilder;
+    private readonly List<IpcRegistration> ipcRegistrations = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DalamudPluginInterface"/> class.
@@ -327,6 +328,30 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     public ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(string name)
         => new CallGatePubSub<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(name, this.plugin);
 
+    /// <inheritdoc/>
+    public IpcRegistration<T> CreateIpcSubscribers<T>(string? prefix = null) where T : class, new()
+        => this.Track(IpcBinder.CreateSubscribers(this, new T(), prefix));
+
+    /// <inheritdoc/>
+    public IpcRegistration<T> CreateIpcSubscribers<T>(T instance, string? prefix = null) where T : class
+        => this.Track(IpcBinder.CreateSubscribers(this, instance, prefix));
+
+    /// <inheritdoc/>
+    public IpcRegistration CreateIpcSubscribers(Type staticType, string? prefix = null)
+        => this.Track(IpcBinder.CreateSubscribersStatic(this, staticType, prefix));
+
+    /// <inheritdoc/>
+    public IpcRegistration<T> CreateIpcProviders<T>(string? prefix = null) where T : class, new()
+        => this.Track(IpcBinder.CreateProviders(this, new T(), prefix));
+
+    /// <inheritdoc/>
+    public IpcRegistration<T> CreateIpcProviders<T>(T instance, string? prefix = null) where T : class
+        => this.Track(IpcBinder.CreateProviders(this, instance, prefix));
+
+    /// <inheritdoc/>
+    public IpcRegistration CreateIpcProviders(Type staticType, string? prefix = null)
+        => this.Track(IpcBinder.CreateProvidersStatic(this, staticType, prefix));
+
     #endregion
 
     #region Configuration
@@ -443,6 +468,10 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <inheritdoc/>
     public void Dispose()
     {
+        foreach (var registration in this.ipcRegistrations)
+            registration.Dispose();
+        this.ipcRegistrations.Clear();
+
         Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
         Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;
         Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
@@ -493,5 +522,11 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     private object[] GetPublicIocScopes(IEnumerable<object> scopedObjects)
     {
         return scopedObjects.Append(this).ToArray();
+    }
+
+    private TRegistration Track<TRegistration>(TRegistration registration) where TRegistration : IpcRegistration
+    {
+        this.ipcRegistrations.Add(registration);
+        return registration;
     }
 }
