@@ -6,8 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.Gui;
-using Dalamud.Game.Gui.Toast;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -298,14 +296,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
-        this.RunOnFrameworkThread(() =>
-        {
-            // ReSharper disable once AccessToDisposedClosure
-            this.updateHook.Disable();
-
-            // ReSharper disable once AccessToDisposedClosure
-            this.destroyHook.Disable();
-        }).Wait();
+        foreach (var k in this.tickDelayedTaskCompletionSources.Keys)
+            k.SetCanceled(this.frameworkDestroy.Token);
+        this.tickDelayedTaskCompletionSources.Clear();
 
         this.updateHook.Dispose();
         this.destroyHook.Dispose();
@@ -472,14 +465,10 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         if (!ServiceManager.IsUnloaded)
         {
             this.RunFrameworkTick();
-            return false;
+            return false; // keep looping until we have unloaded every service
         }
 
-        foreach (var k in this.tickDelayedTaskCompletionSources.Keys)
-            k.SetCanceled(this.frameworkDestroy.Token);
-        this.tickDelayedTaskCompletionSources.Clear();
-
-        return this.destroyHook.OriginalDisposeSafe(thisPtr); // once this returns true, it exits the loop
+        return this.destroyHook.OriginalDisposeSafe(thisPtr);
     }
 }
 
