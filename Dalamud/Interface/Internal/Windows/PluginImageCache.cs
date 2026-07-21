@@ -268,6 +268,28 @@ internal class PluginImageCache : IInternalDisposableService
         return false;
     }
 
+    private static bool IsSupportedImagePayload(ReadOnlySpan<byte> bytes)
+    {
+        if (bytes.Length < 4)
+            return false;
+
+        // WIC-supported image formats we expect from plugin repositories.
+        if (bytes is [0x89, 0x50, 0x4E, 0x47, ..]) // PNG
+            return true;
+        if (bytes is [0xFF, 0xD8, 0xFF, ..]) // JPEG
+            return true;
+        if (bytes is [0x47, 0x49, 0x46, 0x38, ..]) // GIF
+            return true;
+        if (bytes is [0x42, 0x4D, ..]) // BMP
+            return true;
+        if (bytes is [0x49, 0x49, 0x2A, 0x00, ..] or [0x4D, 0x4D, 0x00, 0x2A, ..]) // TIFF
+            return true;
+        if (bytes is [0x00, 0x00, 0x01, 0x00, ..]) // ICO
+            return true;
+
+        return TexFileExtensions.IsPossiblyTexFile2D(bytes);
+    }
+
     private async Task<IDalamudTextureWrap?> TryLoadImage(
         byte[]? bytes,
         string name,
@@ -279,6 +301,12 @@ internal class PluginImageCache : IInternalDisposableService
     {
         if (bytes == null)
             return null;
+
+        if (!IsSupportedImagePayload(bytes))
+        {
+            Log.Error($"Could not load {name} for {manifest.InternalName} at {loc}: response did not look like a supported image.");
+            return null;
+        }
 
         var textureManager = await Service<TextureManager>.GetAsync();
 
