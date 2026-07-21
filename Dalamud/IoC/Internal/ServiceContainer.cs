@@ -122,7 +122,9 @@ internal class ServiceContainer : IServiceType
 
             // Invoke ctor from a separate thread (LongRunning will spawn a new one)
             // so that it does not count towards thread pool active threads cap.
-            // Plugin ctor can block to wait for Tasks, as we currently do not support asynchronous plugin init.
+            // Legacy (IDalamudPlugin) plugin ctors can block to wait for Tasks, as the ctor is their only init.
+            // IAsyncDalamudPlugin plugins should do such work in LoadAsync instead, but their ctors are invoked
+            // through this same path.
             errorStep = "ctor invocation";
             await Task.Factory.StartNew(
                 () => ctor.Invoke(instance, resolvedParams),
