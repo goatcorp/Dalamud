@@ -658,6 +658,7 @@ namespace Dalamud.Injector
             var noFixAcl = false;
             var waitForGameWindow = true;
             var encryptArguments = false;
+            var pauseAfterInit = false;
 
             var parsingGameArgument = false;
             for (var i = 2; i < args.Count; i++)
@@ -707,6 +708,10 @@ namespace Dalamud.Injector
                 else if (args[i].StartsWith("--handle-owner="))
                 {
                     handleOwner = IntPtr.Parse(args[i].Split('=', 2)[1]);
+                }
+                else if (args[i] == "--pause-after-process-init")
+                {
+                    pauseAfterInit = true;
                 }
                 else if (args[i] == "--")
                 {
@@ -916,6 +921,11 @@ namespace Dalamud.Injector
                         Marshal.ThrowExceptionForHR(
                             RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)));
                         Log.Verbose("RewriteRemoteEntryPointW called!");
+                    }
+
+                    if (pauseAfterInit)
+                    {
+                        Windows.Win32.PInvoke.MessageBox(HWND.Null, $"Press OK to continue\r\nffxiv_dx11.exe PID is {p.Id}.", "Dalamud Boot", MESSAGEBOX_STYLE.MB_OK);
                     }
                 },
                 waitForGameWindow);
