@@ -670,6 +670,8 @@ struct SqPackChunkInfo {
 };
 
 static void __fastcall ReadSqpkChunkDetour(uintptr_t srcData, uintptr_t dstData) {
+    static const char* LogTag = "[xivfixes:faster_decompression]";
+
     uint8_t* source = *reinterpret_cast<uint8_t**>(srcData + 8);
     uint8_t* dest = *reinterpret_cast<uint8_t**>(dstData + 0x78);
 
@@ -685,13 +687,17 @@ static void __fastcall ReadSqpkChunkDetour(uintptr_t srcData, uintptr_t dstData)
         thread_local std::unique_ptr<libdeflate_decompressor, decltype(&libdeflate_free_decompressor)>
             decompressor(libdeflate_alloc_decompressor(), &libdeflate_free_decompressor);
 
-        libdeflate_deflate_decompress(
+        libdeflate_result result = libdeflate_deflate_decompress(
             decompressor.get(),
             source + header.header_size,
             header.compressed_size,
             dest,
             header.decompressed_size,
             nullptr);
+
+        if (result == LIBDEFLATE_BAD_DATA) {
+            logging::E("{} Decompression failed: Compressed data was invalid, corrupt, or otherwise unsupported.", LogTag);
+        }
     }
 }
 
