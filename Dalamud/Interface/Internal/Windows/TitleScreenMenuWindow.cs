@@ -7,10 +7,8 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
 using Dalamud.Game.Addon.Lifecycle;
-using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
-using Dalamud.Game.Text;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -18,12 +16,9 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
-using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using Lumina.Text.ReadOnly;
 
@@ -48,7 +43,6 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private readonly IFontAtlas privateAtlas;
     private readonly Lazy<IFontHandle> myFontHandle;
     private readonly Lazy<IDalamudTextureWrap> shadeTexture;
-    private readonly AddonLifecycleEventListener versionStringListener;
 
     private readonly Dictionary<Guid, InOutCubic> shadeEasings = [];
     private readonly Dictionary<Guid, InOutQuint> moveEasings = [];
@@ -59,8 +53,6 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private InOutCubic? fadeOutEasing;
 
     private State state = State.Hide;
-
-    private int lastLoadedPluginCount = -1;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TitleScreenMenuWindow"/> class.
@@ -126,10 +118,6 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         framework.Update += this.FrameworkOnUpdate;
         this.scopedFinalizer.Add(() => framework.Update -= this.FrameworkOnUpdate);
-
-        this.versionStringListener = new AddonLifecycleEventListener(AddonEvent.PreDraw, "_TitleRevision", this.OnVersionStringDraw);
-        addonLifecycle.RegisterListener(this.versionStringListener);
-        this.scopedFinalizer.Add(() => addonLifecycle.UnregisterListener(this.versionStringListener));
     }
 
     private enum State
@@ -471,53 +459,6 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         var titleDcWorldMap = this.gameGui.GetAddonByName("TitleDCWorldMap", 1);
         if (charaMake != IntPtr.Zero || charaSelect != IntPtr.Zero || titleDcWorldMap != IntPtr.Zero)
             this.IsOpen = false;
-    }
-
-    private unsafe void OnVersionStringDraw(AddonEvent ev, AddonArgs args)
-    {
-        if (ev is not (AddonEvent.PostDraw or AddonEvent.PreDraw)) return;
-
-        var addon = args.Addon.Struct;
-        var textNode = addon->GetTextNodeById(3);
-
-        // look and feel init. should be harmless to set.
-        textNode->TextFlags |= TextFlags.MultiLine;
-        textNode->AlignmentType = AlignmentType.TopLeft;
-
-        var containsDalamudVersionString = textNode->OriginalTextPointer.Value == textNode->NodeText.StringPtr.Value;
-        if (!this.configuration.ShowTsm || !this.showTsm.Value)
-        {
-            if (containsDalamudVersionString)
-                textNode->SetText(addon->AtkValues[1].String);
-            this.lastLoadedPluginCount = -1;
-            return;
-        }
-
-        var pm = Service<PluginManager>.GetNullable();
-        var count = pm?.LoadedPluginCount ?? 0;
-
-        // Avoid rebuilding the string every frame.
-        if (containsDalamudVersionString && count == this.lastLoadedPluginCount)
-            return;
-        this.lastLoadedPluginCount = count;
-
-        using var rssb = new RentedSeStringBuilder();
-
-        rssb.Builder
-            .Append(new ReadOnlySeStringSpan(addon->AtkValues[1].String.Value))
-            .Append("\n\n")
-            .PushEdgeColorType(701)
-            .PushColorType(539)
-            .Append(SeIconChar.BoxedLetterD.ToIconChar())
-            .PopColorType()
-            .PopEdgeColorType()
-            .Append($" Dalamud: {Versioning.GetScmVersion()}")
-            .Append($" - {count} {(count != 1 ? "plugins" : "plugin")} loaded");
-
-        if (pm?.SafeMode is true)
-            rssb.Builder.PushColorType(17).Append(" [SAFE MODE]").PopColorType();
-
-        textNode->SetText(rssb.Builder.GetViewAsSpan());
     }
 
     private void TitleScreenMenuEntryListChange() => this.privateAtlas.BuildFontsAsync();
