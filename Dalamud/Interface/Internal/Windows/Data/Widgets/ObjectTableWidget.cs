@@ -105,11 +105,11 @@ internal class ObjectTableWidget : IDataWindowWidget
                     screenCoords.Y + windowSize.Y > screenPos.Y + screenSize.Y)
                     continue;
 
-                if (obj.YalmDistanceX > this.maxCharaDrawDistance)
+                if (obj.CurrentDistance > this.maxCharaDrawDistance)
                     continue;
 
                 ImGui.SetNextWindowPos(new Vector2(screenCoords.X, screenCoords.Y));
-                ImGui.SetNextWindowBgAlpha(Math.Max(1f - (obj.YalmDistanceX / this.maxCharaDrawDistance), 0.2f));
+                ImGui.SetNextWindowBgAlpha(Math.Max(1f - (obj.CurrentDistance / this.maxCharaDrawDistance), 0.2f));
 
                 if (ImGui.Begin($"Actor{i}##ActorWindow{i}", CharacterWindowFlags))
                     ImGui.Text(objectText);
