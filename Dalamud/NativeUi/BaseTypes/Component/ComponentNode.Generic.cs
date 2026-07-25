@@ -178,22 +178,26 @@ internal abstract unsafe class ComponentNode<T, TU> : ComponentNode where T : un
             return;
         }
 
-        try
+        if (!isNativeDestructor)
         {
-            if (!isNativeDestructor && this.Node is not null && Node->Component is not null)
-            {
-                Node->Component->Deinitialize();
-                Node->Component->Dtor(1);
-                Node->Component = null;
-            }
+            ref var uldManager = ref Node->Component->UldManager;
+
+            IMemorySpace.GetUISpace()->AlignedFree(uldManager.Objects->NodeList);
+            uldManager.Objects->NodeList = null;
+            uldManager.Objects->NodeCount = 0;
+
+            IMemorySpace.GetUISpace()->AlignedFree(uldManager.Objects);
+            uldManager.Objects = null;
+            uldManager.ObjectCount = 0;
+
+            IMemorySpace.GetUISpace()->AlignedFree(uldManager.ComponentData);
+            uldManager.ComponentData = null;
+
+            Node->Component->Deinitialize();
+            Node->Component->Dtor(1);
+            Node->Component = null;
         }
-        catch (Exception e)
-        {
-            this.Log.Error(e, "Exception occured during ComponentNode dispose.");
-        }
-        finally
-        {
-            base.Dispose(isNativeDestructor);
-        }
+
+        base.Dispose(isNativeDestructor);
     }
 }
