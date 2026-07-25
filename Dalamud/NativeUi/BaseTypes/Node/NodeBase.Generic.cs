@@ -55,30 +55,32 @@ internal abstract unsafe class NodeBase<T> : NodeBase where T : unmanaged, ICrea
     public static implicit operator T*(NodeBase<T> node) => node.Node;
 
     /// <inheritdoc />
-    protected override void Dispose(bool disposing, bool isNativeDestructor)
+    protected override void Dispose(bool isNativeDestructor)
     {
-        if (disposing && !this.IsDisposed)
+        if (this.IsDisposed)
         {
-            try
-            {
-                base.Dispose(disposing, isNativeDestructor);
-            }
-            catch (Exception e)
-            {
-                this.Log.Error(e, "Exception occurred while disposing node {GetType} with address [{ResNode:X8}].", this.GetType().Name, $"0x{(nint)this.ResNode:X8}");
-            }
-            finally
-            {
-                if (!isNativeDestructor)
-                {
-                    this.OriginalDestroy(this, true);
-                }
+            return;
+        }
 
-                // todo: maybe use a static data share?
-                // KamiToolKitLibrary.AllocatedNodes?.Remove((nint)this.Node, out _);
-
-                this.Node = null;
+        try
+        {
+            base.Dispose(isNativeDestructor);
+        }
+        catch (Exception e)
+        {
+            this.Log.Error(e, "Exception occurred while disposing node {GetType} with address [{ResNode:X8}].", this.GetType().Name, $"0x{(nint)this.ResNode:X8}");
+        }
+        finally
+        {
+            if (!isNativeDestructor)
+            {
+                this.OriginalDestroy(this, true);
             }
+
+            // todo: maybe use a static data share?
+            // KamiToolKitLibrary.AllocatedNodes?.Remove((nint)this.Node, out _);
+
+            this.Node = null;
         }
     }
 }

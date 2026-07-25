@@ -171,27 +171,29 @@ internal abstract unsafe class ComponentNode<T, TU> : ComponentNode where T : un
     }
 
     /// <inheritdoc />
-    protected override void Dispose(bool disposing, bool isNativeDestructor)
+    protected override void Dispose(bool isNativeDestructor)
     {
-        if (disposing && !this.IsDisposed)
+        if (this.IsDisposed)
         {
-            try
+            return;
+        }
+
+        try
+        {
+            if (!isNativeDestructor && this.Node is not null && Node->Component is not null)
             {
-                if (!isNativeDestructor && this.Node is not null && Node->Component is not null)
-                {
-                    Node->Component->Deinitialize();
-                    Node->Component->Dtor(1);
-                    Node->Component = null;
-                }
+                Node->Component->Deinitialize();
+                Node->Component->Dtor(1);
+                Node->Component = null;
             }
-            catch (Exception e)
-            {
-                this.Log.Error(e, "Exception occured during ComponentNode dispose.");
-            }
-            finally
-            {
-                base.Dispose(disposing, isNativeDestructor);
-            }
+        }
+        catch (Exception e)
+        {
+            this.Log.Error(e, "Exception occured during ComponentNode dispose.");
+        }
+        finally
+        {
+            base.Dispose(isNativeDestructor);
         }
     }
 }

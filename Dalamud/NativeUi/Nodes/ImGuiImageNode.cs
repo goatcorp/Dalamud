@@ -94,19 +94,21 @@ internal class ImGuiImageNode : SimpleImageNode
     }
 
     /// <inheritdoc />
-    protected override void Dispose(bool disposing, bool isNativeDestructor)
+    protected override void Dispose(bool isNativeDestructor)
     {
-        if (disposing && !this.IsDisposed)
+        if (this.IsDisposed)
         {
-            base.Dispose(disposing, isNativeDestructor);
-
-            if (this.LoadedTexture is not null)
-            {
-                this.Log.Verbose("Disposing texture: {DalamudTextureWrap}", this.LoadedTexture);
-            }
-
-            this.LoadedTexture?.Dispose();
-            this.LoadedTexture = null;
+            return;
         }
+
+        if (this.LoadedTexture is not null)
+        {
+            this.Log.Verbose("Disposing texture: {DalamudTextureWrap}", this.LoadedTexture);
+        }
+
+        this.LoadedTexture?.Dispose();
+        this.LoadedTexture = null;
+
+        base.Dispose(isNativeDestructor);
     }
 }

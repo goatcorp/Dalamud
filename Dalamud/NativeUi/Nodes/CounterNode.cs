@@ -181,18 +181,20 @@ internal unsafe class CounterNode : NodeBase<AtkCounterNode>
     }
 
     /// <inheritdoc />
-    protected override void Dispose(bool disposing, bool isNativeDestructor)
+    protected override void Dispose(bool isNativeDestructor)
     {
-        if (disposing && !this.IsDisposed)
+        if (this.IsDisposed)
         {
-            if (!isNativeDestructor)
-            {
-                this.PartsList.Dispose();
-                Node->PartsList = null;
-            }
-
-            base.Dispose(disposing, isNativeDestructor);
+            return;
         }
+
+        if (!isNativeDestructor)
+        {
+            this.PartsList.Dispose();
+            Node->PartsList = null;
+        }
+
+        base.Dispose(isNativeDestructor);
     }
 
     private static ReadOnlySeString ParseString(ReadOnlySeString value)

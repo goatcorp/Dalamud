@@ -42,7 +42,7 @@ internal abstract unsafe partial class NodeBase : IDisposable
     ~NodeBase()
     {
         this.Log.Warning("Finalizer has disposed node {nodeType}, node was allocated but not attached to native.", this.GetType());
-        this.Dispose(false, false);
+        this.Dispose(false);
     }
 
     /// <summary>
@@ -119,8 +119,6 @@ internal abstract unsafe partial class NodeBase : IDisposable
                 return;
             }
 
-            this.IsDisposed = true;
-
             foreach (var child in this.ChildNodes.ToList())
             {
                 child.Dispose();
@@ -137,7 +135,7 @@ internal abstract unsafe partial class NodeBase : IDisposable
             this.Timeline?.Dispose();
             this.ResNode->Timeline = null;
 
-            this.Dispose(true, false);
+            this.Dispose(false);
             GC.SuppressFinalize(this);
         }
         catch (Exception e)
@@ -149,16 +147,12 @@ internal abstract unsafe partial class NodeBase : IDisposable
     /// <summary>
     /// Dispose associated resources. If a resource modifies native state directly guard it with isNativeDestructor.
     /// </summary>
-    /// <param name="disposing">
-    /// Indicates if this specific call should dispose resources or not. This protects against double dispose,
-    /// or incorrectly manipulating native state too many times.
-    /// </param>
     /// <param name="isNativeDestructor">
-    /// Indicates if the dispose call should try to completely clean up all resources,
-    /// or if it should only clean up managed resources. When false, be sure to only dispose
-    /// resources that exist in managed spaces, as the game has already cleaned up everything else.
+    ///     Indicates if the dispose call should try to completely clean up all resources,
+    ///     or if it should only clean up managed resources. When false, be sure to only dispose
+    ///     resources that exist in managed spaces, as the game has already cleaned up everything else.
     /// </param>
-    protected virtual void Dispose(bool disposing, bool isNativeDestructor)
+    protected virtual void Dispose(bool isNativeDestructor)
     {
         // Dispose of managed resources that must be disposed regardless of how dispose is invoked
         this.DisposeEvents();
@@ -192,7 +186,7 @@ internal abstract unsafe partial class NodeBase : IDisposable
     /// <param name="free">Free flags, these are provided by the game, generally expect this to be 1 / true.</param>
     protected void Destroy(AtkResNode* thisPtr, bool free)
     {
-        this.Dispose(true, true);
+        this.Dispose(true);
 
         this.originalVirtualTable->Destroy(thisPtr, free);
 
