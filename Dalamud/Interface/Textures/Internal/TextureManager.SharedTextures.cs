@@ -69,13 +69,16 @@ internal sealed partial class TextureManager
 
         private readonly Thread sharedTextureReleaseThread;
 
-        private readonly CancellationTokenSource disposingCancellationTokenSource = new();
+        private readonly CancellationTokenSource disposingCancellationTokenSource;
 
         /// <summary>Initializes a new instance of the <see cref="SharedTextureManager"/> class.</summary>
         /// <param name="textureManager">An instance of <see cref="Interface.Textures.Internal.TextureManager"/>.</param>
         public SharedTextureManager(TextureManager textureManager)
         {
             this.textureManager = textureManager;
+
+            this.disposingCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                textureManager.gameLifecycle.GameShuttingDownToken);
 
             this.sharedTextureReleaseThread = new(this.ReleaseSharedTextures)
             {
@@ -216,7 +219,7 @@ internal sealed partial class TextureManager
 
                 try
                 {
-                    this.textureManager.framework.DelayTicks(60).Wait(this.disposingCancellationTokenSource.Token);
+                    this.disposingCancellationTokenSource.Token.WaitHandle.WaitOne(1000);
                 }
                 catch (Exception)
                 {

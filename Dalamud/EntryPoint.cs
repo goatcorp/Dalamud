@@ -56,7 +56,7 @@ public sealed class EntryPoint
         if ((info.BootWaitMessageBox & 4) != 0)
             Windows.Win32.PInvoke.MessageBox(HWND.Null, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MESSAGEBOX_STYLE.MB_OK);
 
-        new Thread(() => RunThread(info, mainThreadContinueEvent)).Start();
+        new Thread(() => RunThread(info, mainThreadContinueEvent)) { Name = "Dalamud EntryPoint" }.Start();
     }
 
     /// <summary>
@@ -144,8 +144,6 @@ public sealed class EntryPoint
 
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
-        var unloadFailed = false;
-
         try
         {
             if (info.DelayInitializeMs > 0)
@@ -176,16 +174,6 @@ public sealed class EntryPoint
                             FFXIVClientStructs.ThisAssembly.Git.Commits);
 
             dalamud.WaitForUnload();
-
-            try
-            {
-                ServiceManager.UnloadAllServices();
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Could not unload services.");
-                unloadFailed = true;
-            }
         }
         catch (Exception ex)
         {
@@ -209,11 +197,6 @@ public sealed class EntryPoint
             Log.CloseAndFlush();
             SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
         }
-
-        // If we didn't unload services correctly, we need to kill the process.
-        // We will never signal to Framework.
-        if (unloadFailed)
-            Environment.Exit(-1);
     }
 
     private static void SerilogOnLogLine(object? sender, (string Line, LogEvent LogEvent) ev)

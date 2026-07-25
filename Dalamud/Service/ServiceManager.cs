@@ -53,8 +53,6 @@ internal static class ServiceManager
 
     private static readonly CancellationTokenSource UnloadCancellationTokenSource = new();
 
-    private static ManualResetEvent unloadResetEvent = new(false);
-
     private static LoadingDialog loadingDialog = new();
 
     /// <summary>
@@ -124,6 +122,11 @@ internal static class ServiceManager
     /// during initialization or during regular operation.
     /// </summary>
     public static CancellationToken UnloadCancellationToken => UnloadCancellationTokenSource.Token;
+
+    /// <summary>
+    /// Gets a value indicating whether all services have been unloaded.
+    /// </summary>
+    public static bool IsUnloaded { get; private set; }
 
     /// <summary>
     /// Initializes provided Services.
@@ -446,14 +449,12 @@ internal static class ServiceManager
     {
         UnloadCancellationTokenSource.Cancel();
 
-        var framework = Service<Framework>.GetNullable(Service<Framework>.ExceptionPropagationMode.None);
+        var framework = Service<Framework>.GetNullable(ExceptionPropagationMode.None);
         if (framework is { IsInFrameworkUpdateThread: false, IsFrameworkUnloading: false })
         {
             framework.RunOnFrameworkThread(UnloadAllServices).Wait();
             return;
         }
-
-        unloadResetEvent.Reset();
 
         var dependencyServicesMap = new Dictionary<Type, IReadOnlyCollection<Type>>();
         var allToUnload = new HashSet<Type>();
@@ -523,15 +524,7 @@ internal static class ServiceManager
         }
 #endif
 
-        unloadResetEvent.Set();
-    }
-
-    /// <summary>
-    /// Wait until all services have been unloaded.
-    /// </summary>
-    public static void WaitForServiceUnload()
-    {
-        unloadResetEvent.WaitOne();
+        IsUnloaded = true;
     }
 
     /// <summary>
