@@ -52,7 +52,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>CPPDLLTEMPLATE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\lib\mimalloc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\lib\mimalloc\include;..\lib\safetyhook;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -204,6 +204,17 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\lib\safetyhook\Zydis.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\lib\safetyhook\safetyhook.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <!-- Must match pch.h, or std::mutex would be laid out differently here than in the rest of the DLL. -->
+      <PreprocessorDefinitions>_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="safetyhook_api.cpp" />
     <ClCompile Include="DalamudStartInfo.cpp" />
     <ClCompile Include="error_info.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -266,6 +277,9 @@
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table32.h" />
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table64.h" />
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\trampoline.h" />
+    <ClInclude Include="..\lib\safetyhook\safetyhook.hpp" />
+    <ClInclude Include="..\lib\safetyhook\Zydis.h" />
+    <ClInclude Include="safetyhook_api.h" />
     <ClInclude Include="crashhandler_shared.h" />
     <ClInclude Include="DalamudStartInfo.h" />
     <ClInclude Include="error_info.h" />
