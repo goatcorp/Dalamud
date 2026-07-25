@@ -2,7 +2,6 @@ using Dalamud.Data;
 using Dalamud.Game.ClientState.Customize;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Utility;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -211,8 +210,8 @@ internal unsafe class Character : GameObject, ICharacter
     {
         get
         {
-            if (this.Struct->CompanionObject != null)
-                return LuminaUtils.CreateRef<Companion>(this.Struct->CompanionObject->BaseId);
+            if (this.Struct->CompanionData.CompanionObject != null)
+                return LuminaUtils.CreateRef<Companion>(this.Struct->CompanionData.CompanionObject->BaseId);
 
             // this is only present if a minion is summoned but hidden (e.g. the player's on a mount).
             var hiddenCompanionId = this.Struct->CompanionData.CompanionId;

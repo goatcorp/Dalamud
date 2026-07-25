@@ -66,12 +66,24 @@ public interface IGameObject : IEquatable<IGameObject>
     /// <summary>
     /// Gets the X distance from the local player in yalms.
     /// </summary>
+    [Obsolete("Use CurrentDistance.")]
     public byte YalmDistanceX { get; }
 
     /// <summary>
     /// Gets the Y distance from the local player in yalms.
     /// </summary>
+    [Obsolete("This property did not represent the Z-axis. It is the next distance value that will replace CurrentDistance on the next update tick. Use CurrentDistance instead.")]
     public byte YalmDistanceZ { get; }
+
+    /// <summary>
+    /// Gets the current distance from the local player, in yalms.
+    /// </summary>
+    public byte CurrentDistance { get; }
+
+    /// <summary>
+    /// Gets the next distance value that will replace <see cref="CurrentDistance"/> on the next update tick.
+    /// </summary>
+    public byte NextDistance { get; }
 
     /// <summary>
     /// Gets a value indicating whether the object is dead or alive.
@@ -225,10 +237,18 @@ internal unsafe partial class GameObject : IGameObject
     public byte SubKind => this.Struct->SubKind;
 
     /// <inheritdoc/>
+    [Obsolete]
     public byte YalmDistanceX => this.Struct->YalmDistanceFromPlayerX;
 
     /// <inheritdoc/>
+    [Obsolete]
     public byte YalmDistanceZ => this.Struct->YalmDistanceFromPlayerZ;
+
+    /// <inheritdoc/>
+    public byte CurrentDistance => this.Struct->CurrentDistance;
+
+    /// <inheritdoc/>
+    public byte NextDistance => this.Struct->NextDistance;
 
     /// <inheritdoc/>
     public bool IsDead => this.Struct->IsDead();
