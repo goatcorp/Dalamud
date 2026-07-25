@@ -1,6 +1,7 @@
 using System.Diagnostics;
 
 using Dalamud.Hooking;
+using Dalamud.Utility;
 using Dalamud.Utility.Signatures;
 
 namespace Dalamud.Plugin.Services;
@@ -8,6 +9,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Service responsible for the creation of hooks.
 /// </summary>
+[Api16ToDo("Remove backend selection")]
 public interface IGameInteropProvider : IDalamudService
 {
     /// <summary>
@@ -19,19 +21,19 @@ public interface IGameInteropProvider : IDalamudService
         /// Choose the best backend automatically.
         /// </summary>
         Automatic,
-        
+
         /// <summary>
         /// Use Reloaded hooks.
         /// </summary>
         Reloaded,
-        
+
         /// <summary>
         /// Use MinHook.
         /// You should never have to use this without talking to us first.
         /// </summary>
         MinHook,
     }
-    
+
     /// <summary>
     /// Initialize <see cref="Hook{T}"/> members decorated with the <see cref="SignatureAttribute"/>.
     /// Initialize any delegate members decorated with the <see cref="SignatureAttribute"/>.
@@ -40,7 +42,7 @@ public interface IGameInteropProvider : IDalamudService
     /// </summary>
     /// <param name="self">The object to initialize.</param>
     public void InitializeFromAttributes(object self);
-    
+
     /// <summary>
     /// Creates a hook by replacing the original address with an address pointing to a newly created jump to the detour.
     /// </summary>
@@ -49,7 +51,7 @@ public interface IGameInteropProvider : IDalamudService
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
     public Hook<T> HookFromFunctionPointerVariable<T>(nint address, T detour) where T : Delegate;
-    
+
     /// <summary>
     /// Creates a hook by rewriting import table address.
     /// </summary>
@@ -86,7 +88,7 @@ public interface IGameInteropProvider : IDalamudService
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
     Hook<T> HookFromAddress<T>(nint procAddress, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
-    
+
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
     /// The hook is not activated until Enable() method is called.
@@ -98,7 +100,7 @@ public interface IGameInteropProvider : IDalamudService
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
     Hook<T> HookFromAddress<T>(nuint procAddress, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
-    
+
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
     /// The hook is not activated until Enable() method is called.
@@ -110,7 +112,7 @@ public interface IGameInteropProvider : IDalamudService
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
     unsafe Hook<T> HookFromAddress<T>(void* procAddress, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
-    
+
     /// <summary>
     /// Creates a hook from a signature into the Dalamud target module.
     /// </summary>

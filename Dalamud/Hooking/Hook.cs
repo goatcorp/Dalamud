@@ -181,10 +181,7 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
             throw new Exception($"Could not get the address of {moduleName}::{exportName}");
 
         var address = HookManager.FollowJmp(procAddress.Value);
-        if (useMinHook)
-            return new MinHookHook<T>(address, detour, callingAssembly ?? Assembly.GetCallingAssembly());
-        else
-            return new ReloadedHook<T>(address, detour, callingAssembly ?? Assembly.GetCallingAssembly());
+        return CreateBackend(address, detour, useMinHook, callingAssembly ?? Assembly.GetCallingAssembly());
     }
 
     /// <summary>
@@ -212,10 +209,7 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         }
 
         procAddress = HookManager.FollowJmp(procAddress);
-        if (useMinHook)
-            return new MinHookHook<T>(procAddress, detour, assembly);
-        else
-            return new ReloadedHook<T>(procAddress, detour, assembly);
+        return CreateBackend(procAddress, detour, useMinHook, assembly);
     }
 
     /// <summary>
@@ -224,6 +218,25 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     protected void CheckDisposed()
     {
         ObjectDisposedException.ThrowIf(this.IsDisposed, this);
+    }
+
+    /// <summary>
+    /// Instantiates the hooking backend to use for an already resolved address.
+    /// </summary>
+    /// <param name="address">A memory address to install a hook.</param>
+    /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="useMinHook">Use the MinHook hooking library instead of the default one.</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
+    /// <returns>The hook with the supplied parameters.</returns>
+    private static Hook<T> CreateBackend(IntPtr address, T detour, bool useMinHook, Assembly callingAssembly)
+    {
+        if (useMinHook)
+            return new MinHookHook<T>(address, detour, callingAssembly);
+
+        if (EnvironmentConfiguration.DalamudUseSafetyHook)
+            return new SafetyHookHook<T>(address, detour, callingAssembly);
+
+        return new ReloadedHook<T>(address, detour, callingAssembly);
     }
 
     private static unsafe IntPtr FromImportHelper(IntPtr baseAddress, ref IMAGE_IMPORT_DESCRIPTOR desc, ref IMAGE_DATA_DIRECTORY dir, string functionName, uint hintOrOrdinal)

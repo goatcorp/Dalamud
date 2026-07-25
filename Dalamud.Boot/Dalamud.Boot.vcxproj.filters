@@ -23,6 +23,9 @@
     <Filter Include="libdeflate">
       <UniqueIdentifier>{B0159F79-D6C0-4E8B-8DEF-9AC03F822A6B}</UniqueIdentifier>
     </Filter>
+    <Filter Include="safetyhook">
+      <UniqueIdentifier>{2E0B3A5C-6C4F-4B9B-9A62-C1D1F4E2A7B3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Filter="mimalloc" Include="..\lib\mimalloc\src\alloc.c" />
@@ -50,6 +53,8 @@
     <ClCompile Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.c" />
     <ClCompile Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\hook.c" />
     <ClCompile Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\trampoline.c" />
+    <ClCompile Filter="safetyhook" Include="..\lib\safetyhook\safetyhook.cpp" />
+    <ClCompile Filter="safetyhook" Include="..\lib\safetyhook\Zydis.c" />
     <ClCompile Filter="Common Boot" Include="..\shared\hardware_info.cpp" />
     <ClCompile Filter="Common Boot" Include="error_info.cpp" />
     <ClCompile Filter="Common Boot" Include="logging.cpp" />
@@ -61,6 +66,7 @@
     <ClCompile Filter="Dalamud.Boot DLL" Include="rewrite_entrypoint.cpp" />
     <ClCompile Filter="Dalamud.Boot DLL" Include="utils.cpp" />
     <ClCompile Filter="Dalamud.Boot DLL" Include="veh.cpp" />
+    <ClCompile Filter="Dalamud.Boot DLL" Include="safetyhook_api.cpp" />
     <ClCompile Filter="Dalamud.Boot DLL" Include="xivfixes.cpp" />
     <ClCompile Filter="Project Files" Include="pch.cpp" />
     <ClCompile Filter="Project Files" Include="pch_nmd_assembly_impl.cpp" />
@@ -78,6 +84,8 @@
     <ClInclude Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\HDE\pstdint.h" />
     <ClInclude Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\HDE\table32.h" />
     <ClInclude Filter="MinHook" Include="..\lib\TsudaKageyu-minhook\src\HDE\table64.h" />
+    <ClInclude Filter="safetyhook" Include="..\lib\safetyhook\safetyhook.hpp" />
+    <ClInclude Filter="safetyhook" Include="..\lib\safetyhook\Zydis.h" />
     <ClInclude Filter="mimalloc" Include="..\lib\mimalloc\include\mimalloc.h" />
     <ClInclude Filter="mimalloc" Include="..\lib\mimalloc\include\mimalloc\atomic.h" />
     <ClInclude Filter="mimalloc" Include="..\lib\mimalloc\include\mimalloc\internal.h" />
@@ -100,6 +108,7 @@
     <ClInclude Filter="Dalamud.Boot DLL" Include="ntdll.h" />
     <ClInclude Filter="Dalamud.Boot DLL" Include="utils.h" />
     <ClInclude Filter="Dalamud.Boot DLL" Include="veh.h" />
+    <ClInclude Filter="Dalamud.Boot DLL" Include="safetyhook_api.h" />
     <ClInclude Filter="Dalamud.Boot DLL" Include="xivfixes.h" />
     <ClInclude Filter="Project Files" Include="pch.h" />
     <ClInclude Include="crashhandler_shared.h" />
