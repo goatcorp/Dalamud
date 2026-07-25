@@ -472,6 +472,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             this.UnloadDalamud();
         }
 
+        // BUG: This service gets unloaded during Dalamud unload, which theoretically stops this hook from being called
+        // This would be problematic if Framework wasn't one of the last services to unload, but it's a race we should look into fixing
+
         return ServiceManager.IsUnloaded && this.destroyHook.OriginalDisposeSafe(thisPtr);
     }
 }
