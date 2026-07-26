@@ -12,6 +12,9 @@
         <!-- Disable Intel CET. Causes crashes on unpatched Windows 10 systems. -->
         <!-- https://github.com/dotnet/runtime/issues/108589 -->
         <CETCompat>false</CETCompat>
+
+        <!-- Full nullability -->
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <!-- Code analysis settings for all Dalamud projects. -->

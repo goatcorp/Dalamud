@@ -53,9 +53,9 @@ namespace Dalamud.CorePlugin
 #else
 
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
-        private readonly PluginWindow window;
+        private readonly PluginWindow? window;
 
-        private Localization localization;
+        private Localization? localization;
 
         private IPluginLog pluginLog;
 
@@ -66,11 +66,12 @@ namespace Dalamud.CorePlugin
         /// <param name="log">Logging service.</param>
         public PluginImpl(IDalamudPluginInterface pluginInterface, IPluginLog log)
         {
+            this.Interface = pluginInterface;
+            this.pluginLog = log;
+
             try
             {
                 // this.InitLoc();
-                this.Interface = pluginInterface;
-                this.pluginLog = log;
 
                 this.window = new PluginWindow();
                 this.windowSystem.AddWindow(this.window);
@@ -155,12 +156,12 @@ namespace Dalamud.CorePlugin
         {
             this.pluginLog.Information("Command called!");
 
-            this.window.IsOpen ^= true;
+            this.window?.IsOpen ^= true;
         }
 
         private void OnOpenConfigUi()
         {
-            this.window.IsOpen = true;
+            this.window?.IsOpen = true;
         }
 
         private void OnOpenMainUi()

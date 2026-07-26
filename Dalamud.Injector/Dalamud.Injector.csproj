@@ -32,7 +32,6 @@
         <DebugSymbols>true</DebugSymbols>
         <DebugType>portable</DebugType>
         <Deterministic>true</Deterministic>
-        <Nullable>annotations</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 

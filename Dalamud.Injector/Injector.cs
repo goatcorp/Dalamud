@@ -54,7 +54,7 @@ namespace Dalamud.Injector
 
             using var kernel32Module = this.GetProcessModule("KERNEL32.DLL");
             var kernel32PeFile = new PeFile(kernel32Module.FileName);
-            var kernel32Exports = kernel32PeFile.ExportedFunctions;
+            var kernel32Exports = kernel32PeFile.ExportedFunctions ?? throw new Exception("Could not get Kernel32 exports");
 
             this.SetupLoadLibrary(kernel32Module, kernel32Exports);
             this.SetupGetProcAddress(kernel32Module, kernel32Exports);

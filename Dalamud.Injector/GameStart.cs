@@ -30,7 +30,7 @@ namespace Dalamud.Injector
         /// <exception cref="GameStartException">Thrown when the process did not start correctly.</exception>
         public static Process LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, Action<Process> beforeResume, bool waitForGameWindow = true)
         {
-            Process process = null;
+            Process? process = null;
 
             var psecDesc = IntPtr.Zero;
             if (!dontFixAcl)
@@ -469,8 +469,8 @@ namespace Dalamud.Injector
 
             [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
             public static extern bool CreateProcess(
-               string lpApplicationName,
-               string lpCommandLine,
+               string? lpApplicationName,
+               string? lpCommandLine,
                ref SECURITY_ATTRIBUTES lpProcessAttributes,
                IntPtr lpThreadAttributes,
                bool bInheritHandles,
@@ -504,7 +504,7 @@ namespace Dalamud.Injector
                 out IntPtr tokenHandle);
 
             [DllImport("advapi32.dll", SetLastError = true)]
-            public static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, ref LUID lpLuid);
+            public static extern bool LookupPrivilegeValue(string? lpSystemName, string lpName, ref LUID lpLuid);
 
             [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool PrivilegeCheck(
