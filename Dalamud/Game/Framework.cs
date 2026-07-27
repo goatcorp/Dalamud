@@ -32,7 +32,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     private readonly HitchDetector hitchDetector;
 
     private readonly Hook<CSFramework.Delegates.Tick> updateHook;
-    private readonly Hook<CSFramework.Delegates.Destroy> destroyHook;
 
     [ServiceManager.ServiceDependency]
     private readonly GameLifecycle lifecycle = Service<GameLifecycle>.Get();
@@ -62,10 +61,8 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             this.frameworkThreadTaskScheduler);
 
         this.updateHook = Hook<CSFramework.Delegates.Tick>.FromAddress((nint)CSFramework.StaticVirtualTablePointer->Tick, this.HandleFrameworkUpdate);
-        this.destroyHook = Hook<CSFramework.Delegates.Destroy>.FromAddress((nint)CSFramework.StaticVirtualTablePointer->Destroy, this.HandleFrameworkDestroy);
 
         this.updateHook.Enable();
-        this.destroyHook.Enable();
     }
 
     /// <inheritdoc/>
@@ -307,7 +304,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         this.tickDelayedTaskCompletionSources.Clear();
 
         this.updateHook.Dispose();
-        this.destroyHook.Dispose();
 
         this.updateStopwatch.Reset();
         StatsStopwatch.Reset();
@@ -468,20 +464,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         }
 
         this.hitchDetector.Stop();
-    }
-
-    private unsafe bool HandleFrameworkDestroy(CSFramework* thisPtr)
-    {
-        if (!this.frameworkDestroy.IsCancellationRequested)
-        {
-            Log.Information("Framework::Destroy!");
-            this.UnloadDalamud();
-        }
-
-        // BUG: This service gets unloaded during Dalamud unload, which theoretically stops this hook from being called
-        // This would be problematic if Framework wasn't one of the last services to unload, but it's a race we should look into fixing
-
-        return ServiceManager.IsUnloaded && this.destroyHook.OriginalDisposeSafe(thisPtr);
     }
 }
 
