@@ -41,6 +41,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     private readonly CancellationTokenSource frameworkDestroy;
+    private readonly CancellationTokenSource frameworkDestroyed;
     private readonly ThreadBoundTaskScheduler frameworkThreadTaskScheduler;
 
     private readonly ConcurrentDictionary<TaskCompletionSource, (ulong Expire, CancellationToken CancellationToken)>
@@ -54,9 +55,10 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
 
         this.frameworkDestroy = new();
+        this.frameworkDestroyed = new();
         this.frameworkThreadTaskScheduler = new();
         this.FrameworkThreadTaskFactory = new(
-            ServiceManager.UnloadCancellationToken,
+            this.frameworkDestroyed.Token,
             TaskCreationOptions.None,
             TaskContinuationOptions.None,
             this.frameworkThreadTaskScheduler);
@@ -119,8 +121,8 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default)
     {
-        if (ServiceManager.UnloadCancellationToken.IsCancellationRequested) // Gone
-            return Task.FromCanceled(this.frameworkDestroy.Token);
+        if (this.frameworkDestroyed.IsCancellationRequested) // Gone
+            return Task.FromCanceled(this.frameworkDestroyed.Token);
 
         if (numTicks <= 0 || this.frameworkThreadTaskScheduler.BoundThread == null) // Nonsense or before first tick
             return Task.CompletedTask;
@@ -164,12 +166,12 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
     /// <inheritdoc/>
     public Task<T> RunOnFrameworkThread<T>(Func<T> func) =>
-        this.IsInFrameworkUpdateThread || ServiceManager.UnloadCancellationToken.IsCancellationRequested ? Task.FromResult(func()) : this.RunOnTick(func);
+        this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested ? Task.FromResult(func()) : this.RunOnTick(func);
 
     /// <inheritdoc/>
     public Task RunOnFrameworkThread(Action action)
     {
-        if (this.IsInFrameworkUpdateThread || ServiceManager.UnloadCancellationToken.IsCancellationRequested)
+        if (this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested)
         {
             try
             {
@@ -189,21 +191,21 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
     /// <inheritdoc/>
     public Task<T> RunOnFrameworkThread<T>(Func<Task<T>> func) =>
-        this.IsInFrameworkUpdateThread || ServiceManager.UnloadCancellationToken.IsCancellationRequested ? func() : this.RunOnTick(func);
+        this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested ? func() : this.RunOnTick(func);
 
     /// <inheritdoc/>
     public Task RunOnFrameworkThread(Func<Task> func) =>
-        this.IsInFrameworkUpdateThread || ServiceManager.UnloadCancellationToken.IsCancellationRequested ? func() : this.RunOnTick(func);
+        this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested ? func() : this.RunOnTick(func);
 
     /// <inheritdoc/>
     public Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
     {
-        if (ServiceManager.UnloadCancellationToken.IsCancellationRequested)
+        if (this.frameworkDestroyed.IsCancellationRequested)
         {
             if (delay == default && delayTicks == default)
                 return this.RunOnFrameworkThread(func);
 
-            return Task.FromCanceled<T>(ServiceManager.UnloadCancellationToken);
+            return Task.FromCanceled<T>(this.frameworkDestroyed.Token);
         }
 
         if (cancellationToken == default)
@@ -222,12 +224,12 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
     {
-        if (ServiceManager.UnloadCancellationToken.IsCancellationRequested)
+        if (this.frameworkDestroyed.IsCancellationRequested)
         {
             if (delay == default && delayTicks == default)
                 return this.RunOnFrameworkThread(action);
 
-            return Task.FromCanceled(ServiceManager.UnloadCancellationToken);
+            return Task.FromCanceled(this.frameworkDestroyed.Token);
         }
 
         if (cancellationToken == default)
@@ -246,12 +248,12 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
     {
-        if (ServiceManager.UnloadCancellationToken.IsCancellationRequested)
+        if (this.frameworkDestroyed.IsCancellationRequested)
         {
             if (delay == default && delayTicks == default)
                 return this.RunOnFrameworkThread(func);
 
-            return Task.FromCanceled<T>(ServiceManager.UnloadCancellationToken);
+            return Task.FromCanceled<T>(this.frameworkDestroyed.Token);
         }
 
         if (cancellationToken == default)
@@ -270,12 +272,12 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
     {
-        if (ServiceManager.UnloadCancellationToken.IsCancellationRequested)
+        if (this.frameworkDestroyed.IsCancellationRequested)
         {
             if (delay == default && delayTicks == default)
                 return this.RunOnFrameworkThread(func);
 
-            return Task.FromCanceled(ServiceManager.UnloadCancellationToken);
+            return Task.FromCanceled(this.frameworkDestroyed.Token);
         }
 
         if (cancellationToken == default)
@@ -306,6 +308,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             k.SetCanceled(this.frameworkDestroy.Token);
         this.tickDelayedTaskCompletionSources.Clear();
 
+        this.frameworkDestroyed.Cancel();
         this.updateHook.Dispose();
         this.destroyHook.Dispose();
 
