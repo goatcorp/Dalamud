@@ -1,5 +1,5 @@
+using Dalamud.NativeUi.Extensions;
 using Dalamud.NativeUi.Nodes;
-
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -20,7 +20,7 @@ internal abstract unsafe class ComponentNode<T, TU> : ComponentNode where T : un
         : base(NodeType.Component)
     {
         Node->Component = (AtkComponentBase*)IMemorySpace.GetUISpace()->Create<T>();
-        Node->Component->UldManager.ComponentData = (AtkUldComponentDataBase*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkUldComponentDataBase), 8);
+        Node->Component->UldManager.ComponentData = (AtkUldComponentDataBase*)IMemorySpace.GetUISpace()->MallocZeroed<TU>();
 
         this.RegisterVirtualTable();
 
@@ -46,13 +46,13 @@ internal abstract unsafe class ComponentNode<T, TU> : ComponentNode where T : un
 
         ref var uldManager = ref this.ComponentBase->UldManager;
 
-        uldManager.Objects = (AtkUldObjectInfo*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkUldObjectInfo), 8);
+        uldManager.Objects = (AtkUldObjectInfo*)IMemorySpace.GetUISpace()->MallocZeroed<AtkUldComponentInfo>();
         ref var objects = ref uldManager.Objects;
         uldManager.ObjectCount = 1;
 
         this.SetInternalComponentType(ComponentType.Base);
 
-        objects->NodeList = (AtkResNode**)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkResNode*), 8);
+        objects->NodeList = (AtkResNode**)IMemorySpace.GetUISpace()->MallocZeroed<nint>();
         objects->NodeList[0] = this.CollisionNode;
         objects->NodeCount = 1;
         objects->Id = 1000;
@@ -182,15 +182,17 @@ internal abstract unsafe class ComponentNode<T, TU> : ComponentNode where T : un
         {
             ref var uldManager = ref Node->Component->UldManager;
 
-            IMemorySpace.GetUISpace()->AlignedFree(uldManager.Objects->NodeList);
+            // Note: Free doesn't actually have a size argument. Pending update in CS on next API break.
+
+            IMemorySpace.Free(uldManager.Objects->NodeList, 0);
             uldManager.Objects->NodeList = null;
             uldManager.Objects->NodeCount = 0;
 
-            IMemorySpace.GetUISpace()->AlignedFree(uldManager.Objects);
+            IMemorySpace.Free(uldManager.Objects);
             uldManager.Objects = null;
             uldManager.ObjectCount = 0;
 
-            IMemorySpace.GetUISpace()->AlignedFree(uldManager.ComponentData);
+            IMemorySpace.Free(uldManager.ComponentData);
             uldManager.ComponentData = null;
 
             Node->Component->Deinitialize();

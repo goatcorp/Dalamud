@@ -1,5 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 
+using Dalamud.NativeUi.Extensions;
+
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -34,7 +36,7 @@ internal unsafe partial class NativeAddon
 
         // Overwrite virtual table with a custom copy,
         // Note: currently there are 73 virtual functions, but there's no harm in copying more for when they add new virtual functions to the game
-        this.modifiedVirtualTable = (AtkUnitBase.AtkUnitBaseVirtualTable*)IMemorySpace.GetUISpace()->Malloc(0x8 * VirtualTableEntryCount, 8);
+        this.modifiedVirtualTable = (AtkUnitBase.AtkUnitBaseVirtualTable*)IMemorySpace.GetUISpace()->AllocateZeroedArray<nint>(VirtualTableEntryCount);
         NativeMemory.Copy(this.InternalAddon->VirtualTable, this.modifiedVirtualTable, 0x8 * VirtualTableEntryCount);
         this.InternalAddon->VirtualTable = this.modifiedVirtualTable;
 

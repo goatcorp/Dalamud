@@ -50,7 +50,7 @@ internal static unsafe class AtkUldManagerExtensions
             var oldSize = manager.Objects->NodeCount;
             var newSize = oldSize + 1;
 
-            var newBuffer = (AtkResNode**)IMemorySpace.GetUISpace()->AlignedRealloc(manager.Objects->NodeList, (ulong)(newSize * 8), 0x10);
+            var newBuffer = (AtkResNode**)IMemorySpace.GetUISpace()->Realloc<nint>(manager.Objects->NodeList, newSize);
             newBuffer[newSize - 1] = newNode;
 
             manager.Objects->NodeList = newBuffer;
@@ -96,7 +96,7 @@ internal static unsafe class AtkUldManagerExtensions
 
             var oldSize = manager.Objects->NodeCount;
             var newSize = oldSize - 1;
-            var newBuffer = (AtkResNode**)IMemorySpace.GetUISpace()->Malloc((ulong)(newSize * 8), 8);
+            var newBuffer = (AtkResNode**)IMemorySpace.GetUISpace()->AllocateZeroedArray<nint>(newSize);
 
             var newIndex = 0;
             foreach (var index in Enumerable.Range(0, oldSize))
@@ -108,7 +108,8 @@ internal static unsafe class AtkUldManagerExtensions
                 }
             }
 
-            IMemorySpace.Free(manager.Objects->NodeList, (ulong)(oldSize * 8));
+            // Note: Free doesn't actually have a size arg, pending update in CS on next API break.
+            IMemorySpace.Free(manager.Objects->NodeList, 0);
             manager.Objects->NodeList = newBuffer;
             manager.Objects->NodeCount = newSize;
         }

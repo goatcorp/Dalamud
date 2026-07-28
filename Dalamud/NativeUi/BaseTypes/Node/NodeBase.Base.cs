@@ -168,7 +168,7 @@ internal abstract unsafe partial class NodeBase : IDisposable
 
         // Overwrite virtual table with a custom copy,
         // Note: Currently there are only 2 virtual functions, but there's no harm in copying more for if they ever add more virtual functions to the game.
-        this.modifiedVirtualTable = (AtkResNode.AtkResNodeVirtualTable*)IMemorySpace.GetUISpace()->Malloc(0x8 * 4, 8);
+        this.modifiedVirtualTable = (AtkResNode.AtkResNodeVirtualTable*)IMemorySpace.GetUISpace()->AllocateZeroedArray<nint>(4);
         NativeMemory.Copy(this.ResNode->VirtualTable, this.modifiedVirtualTable, 0x8 * 4);
         this.ResNode->VirtualTable = this.modifiedVirtualTable;
 
@@ -190,7 +190,8 @@ internal abstract unsafe partial class NodeBase : IDisposable
 
         this.originalVirtualTable->Destroy(thisPtr, free);
 
-        IMemorySpace.Free(this.modifiedVirtualTable, 0x8 * 4);
+        // Note, Free doesn't actualy have a size argument, pending update in CS on next API break.
+        IMemorySpace.Free(this.modifiedVirtualTable, 0);
         this.modifiedVirtualTable = null;
 
         // Suppress GC here as at this point the node is considered fully disposed.
@@ -212,7 +213,8 @@ internal abstract unsafe partial class NodeBase : IDisposable
     {
         this.originalVirtualTable->Destroy(thisPtr, free);
 
-        IMemorySpace.Free(this.modifiedVirtualTable, 0x8 * 4);
+        // Note, Free doesn't actualy have a size argument, pending update in CS on next API break.
+        IMemorySpace.Free(this.modifiedVirtualTable, 0);
         this.modifiedVirtualTable = null;
 
         // Suppress GC here as at this point the node is considered fully disposed.

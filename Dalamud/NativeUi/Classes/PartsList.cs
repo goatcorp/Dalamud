@@ -21,7 +21,7 @@ internal unsafe class PartsList : IDisposable
     /// </summary>
     public PartsList()
     {
-        this.InternalPartsList = (AtkUldPartsList*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkUldPartsList), 8);
+        this.InternalPartsList = IMemorySpace.GetUISpace()->MallocZeroed<AtkUldPartsList>();
 
         this.InternalPartsList->Parts = null;
         this.InternalPartsList->PartCount = 0;
@@ -101,7 +101,7 @@ internal unsafe class PartsList : IDisposable
 
             if (this.InternalPartsList->Parts is not null)
             {
-                IMemorySpace.Free(this.InternalPartsList->Parts, (ulong)sizeof(AtkUldPart) * this.partCapacity);
+                IMemorySpace.Free(this.InternalPartsList->Parts);
                 this.InternalPartsList->Parts = null;
             }
 
@@ -130,12 +130,12 @@ internal unsafe class PartsList : IDisposable
             newCapacity *= 2;
         }
 
-        var newBuffer = (AtkUldPart*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkUldPart) * newCapacity, 8);
+        var newBuffer = IMemorySpace.GetUISpace()->AllocateZeroedArray<AtkUldPart>(newCapacity);
 
         if (this.InternalPartsList->Parts is not null)
         {
             NativeMemory.Copy(this.InternalPartsList->Parts, newBuffer, (nuint)(sizeof(AtkUldPart) * this.PartCount));
-            IMemorySpace.Free(this.InternalPartsList->Parts, (ulong)sizeof(AtkUldPart) * this.partCapacity);
+            IMemorySpace.Free(this.InternalPartsList->Parts);
         }
 
         this.InternalPartsList->Parts = newBuffer;
@@ -151,7 +151,7 @@ internal unsafe class PartsList : IDisposable
         newPart.U = (ushort)item.U;
         newPart.V = (ushort)item.V;
 
-        newPart.UldAsset = (AtkUldAsset*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkUldAsset), 8);
+        newPart.UldAsset = IMemorySpace.GetUISpace()->MallocZeroed<AtkUldAsset>();
         newPart.UldAsset->Id = item.Id;
         newPart.UldAsset->AtkTexture.Ctor();
         newPart.LoadTexture(item.TexturePath);

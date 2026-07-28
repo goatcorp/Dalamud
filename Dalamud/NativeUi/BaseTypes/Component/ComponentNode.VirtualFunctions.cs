@@ -139,7 +139,8 @@ internal abstract unsafe partial class ComponentNode
         if ((freeFlags & 1) == 1)
         {
             // Free our custom virtual table, the game doesn't know this exists and won't clear it on its own.
-            IMemorySpace.Free(this.modifiedVirtualTable, 0x8 * VirtualTableEntryCount);
+            // Note: Free doesn't actually have a size argument. Pending update in CS on next API break.
+            IMemorySpace.Free(this.modifiedVirtualTable, 0);
             this.modifiedVirtualTable = null;
         }
 

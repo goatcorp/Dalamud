@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 
+using Dalamud.NativeUi.Extensions;
+
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -17,7 +19,7 @@ internal unsafe class TimelineLabelSet : IDisposable
     /// </summary>
     public TimelineLabelSet()
     {
-        this.InternalLabelSet = (AtkTimelineLabelSet*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkTimelineLabelSet), 8);
+        this.InternalLabelSet = IMemorySpace.GetUISpace()->MallocZeroed<AtkTimelineLabelSet>();
 
         this.InternalLabelSet->StartFrameIdx = 0;
         this.InternalLabelSet->EndFrameIdx = 0;
@@ -74,12 +76,12 @@ internal unsafe class TimelineLabelSet : IDisposable
         // Free existing array, we will completely rebuild it
         if (keyGroup.KeyFrames is null)
         {
-            IMemorySpace.Free(keyGroup.KeyFrames, (ulong)sizeof(AtkTimelineKeyFrame) * keyGroup.KeyFrameCount);
+            IMemorySpace.Free(keyGroup.KeyFrames);
             keyGroup.KeyFrames = null;
         }
 
         // Allocate new array
-        keyGroup.KeyFrames = (AtkTimelineKeyFrame*)IMemorySpace.GetUISpace()->Malloc((ulong)(sizeof(AtkTimelineKeyFrame) * this.internalKeyFrames.Count), 8);
+        keyGroup.KeyFrames = IMemorySpace.GetUISpace()->AllocateZeroedArray<AtkTimelineKeyFrame>(this.internalKeyFrames.Count);
 
         var index = 0;
         foreach (var keyFrame in this.internalKeyFrames)

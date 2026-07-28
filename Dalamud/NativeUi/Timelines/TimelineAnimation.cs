@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.NativeUi.Extensions;
+
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -18,7 +20,7 @@ internal unsafe class TimelineAnimation : IDisposable
     /// </summary>
     public TimelineAnimation()
     {
-        this.InternalAnimation = (AtkTimelineAnimation*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkTimelineAnimation), 8);
+        this.InternalAnimation = IMemorySpace.GetUISpace()->MallocZeroed<AtkTimelineAnimation>();
 
         this.InternalAnimation->StartFrameIdx = 0;
         this.InternalAnimation->EndFrameIdx = 0;
@@ -103,7 +105,7 @@ internal unsafe class TimelineAnimation : IDisposable
                 keyFrameGroup.KeyFrames = null;
             }
 
-            keyFrameGroup.KeyFrames = (AtkTimelineKeyFrame*)IMemorySpace.GetUISpace()->Malloc((ulong)(sizeof(AtkTimelineKeyFrame) * keyFrameSet.Count()), 8);
+            keyFrameGroup.KeyFrames = IMemorySpace.GetUISpace()->AllocateZeroedArray<AtkTimelineKeyFrame>(keyFrameSet.Count());
 
             var index = 0;
             foreach (var keyframe in keyFrameSet)

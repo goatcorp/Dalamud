@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 
+using Dalamud.NativeUi.Extensions;
+
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -18,7 +20,7 @@ internal unsafe class TimelineResource : IDisposable
     /// </summary>
     public TimelineResource()
     {
-        this.InternalResource = (AtkTimelineResource*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkTimelineResource), 8);
+        this.InternalResource = IMemorySpace.GetUISpace()->MallocZeroed<AtkTimelineResource>();
 
         this.InternalResource->Id = 2;
         this.InternalResource->AnimationCount = 0;

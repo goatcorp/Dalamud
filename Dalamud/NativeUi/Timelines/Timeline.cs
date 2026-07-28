@@ -2,6 +2,7 @@
 using System.Numerics;
 
 using Dalamud.NativeUi.Enums;
+using Dalamud.NativeUi.Extensions;
 
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -21,7 +22,7 @@ internal unsafe class Timeline : IDisposable
     /// </summary>
     public Timeline()
     {
-        this.InternalTimeline = (AtkTimeline*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkTimeline), 8);
+        this.InternalTimeline = IMemorySpace.GetUISpace()->MallocZeroed<AtkTimeline>();
 
         this.internalTimelineResource = new TimelineResource();
         this.InternalTimeline->Resource = this.internalTimelineResource.InternalResource;

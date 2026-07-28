@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.NativeUi.Extensions;
+
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -44,7 +46,7 @@ internal unsafe class TimelineLabelSetArray : IDisposable
             labelSet.Dispose();
         }
 
-        IMemorySpace.Free(this.InternalLabelSetArray, (ulong)sizeof(AtkTimelineLabelSet) * this.Count);
+        IMemorySpace.Free(this.InternalLabelSetArray);
         this.InternalLabelSetArray = null;
     }
 
@@ -53,12 +55,12 @@ internal unsafe class TimelineLabelSetArray : IDisposable
         // Free existing array, we will completely rebuild it
         if (this.InternalLabelSetArray is not null)
         {
-            IMemorySpace.Free(this.InternalLabelSetArray, (ulong)sizeof(AtkTimelineLabelSet) * this.Count);
+            IMemorySpace.Free(this.InternalLabelSetArray);
             this.InternalLabelSetArray = null;
         }
 
         // Allocate new array
-        this.InternalLabelSetArray = (AtkTimelineLabelSet*)IMemorySpace.GetUISpace()->Malloc((ulong)(sizeof(AtkTimelineLabelSet) * this.labelSets.Count), 8);
+        this.InternalLabelSetArray = IMemorySpace.GetUISpace()->AllocateZeroedArray<AtkTimelineLabelSet>(this.labelSets.Count);
 
         // Copy all Animations into it
         foreach (var index in Enumerable.Range(0, this.labelSets.Count))

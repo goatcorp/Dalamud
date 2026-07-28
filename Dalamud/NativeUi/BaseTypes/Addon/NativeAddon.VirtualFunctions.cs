@@ -92,7 +92,7 @@ internal unsafe partial class NativeAddon
     {
         this.originalVirtualTable->Initialize(thisPtr);
 
-        var widgetInfo = (AtkUldWidgetInfo*)IMemorySpace.GetUISpace()->Malloc((ulong)sizeof(AtkUldWidgetInfo), 16);
+        var widgetInfo = IMemorySpace.GetUISpace()->MallocZeroed<AtkUldWidgetInfo>();
         widgetInfo->Id = 1;
         widgetInfo->NodeCount = 0;
         widgetInfo->NodeList = null;
@@ -278,7 +278,8 @@ internal unsafe partial class NativeAddon
             this.CreatedAddons.Remove(this);
 
             // Free our custom virtual table, the game doesn't know this exists and won't clear it on its own.
-            IMemorySpace.Free(this.modifiedVirtualTable, 0x8 * VirtualTableEntryCount);
+            // Note: Free doesn't actually have a size argument. Pending update in CS on next API break.
+            IMemorySpace.Free(this.modifiedVirtualTable, 0);
         }
 
         return result;

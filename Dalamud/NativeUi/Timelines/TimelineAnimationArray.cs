@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.NativeUi.Extensions;
+
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -44,7 +46,7 @@ internal unsafe class TimelineAnimationArray : IDisposable
             animation.Dispose();
         }
 
-        IMemorySpace.Free(this.InternalTimelineArray, (ulong)sizeof(AtkTimelineAnimation) * this.Count);
+        IMemorySpace.Free(this.InternalTimelineArray);
         this.InternalTimelineArray = null;
     }
 
@@ -53,12 +55,12 @@ internal unsafe class TimelineAnimationArray : IDisposable
         // Free existing array, we will completely rebuild it
         if (this.InternalTimelineArray is not null)
         {
-            IMemorySpace.Free(this.InternalTimelineArray, (ulong)sizeof(AtkTimelineKeyFrame) * this.Count);
+            IMemorySpace.Free(this.InternalTimelineArray);
             this.InternalTimelineArray = null;
         }
 
         // Allocate new array
-        this.InternalTimelineArray = (AtkTimelineAnimation*)IMemorySpace.GetUISpace()->Malloc((ulong)(sizeof(AtkTimelineAnimation) * this.timelineAnimations.Count), 8);
+        this.InternalTimelineArray = IMemorySpace.GetUISpace()->AllocateZeroedArray<AtkTimelineAnimation>(this.timelineAnimations.Count);
 
         // Copy all Animations into it
         foreach (var index in Enumerable.Range(0, this.timelineAnimations.Count))

@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 
+using Dalamud.NativeUi.Extensions;
+
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -36,7 +38,7 @@ internal abstract unsafe partial class ComponentNode
     {
         this.originalVirtualTable = this.ComponentBase->VirtualTable;
 
-        this.modifiedVirtualTable = (AtkComponentBase.AtkComponentBaseVirtualTable*)IMemorySpace.GetUISpace()->Malloc(0x8 * VirtualTableEntryCount, 8);
+        this.modifiedVirtualTable = (AtkComponentBase.AtkComponentBaseVirtualTable*)IMemorySpace.GetUISpace()->AllocateZeroedArray<nint>(VirtualTableEntryCount);
         NativeMemory.Copy(this.ComponentBase->VirtualTable, this.modifiedVirtualTable, 0x8 * VirtualTableEntryCount);
         this.ComponentBase->VirtualTable = this.modifiedVirtualTable;
 
