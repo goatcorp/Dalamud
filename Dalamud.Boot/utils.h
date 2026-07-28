@@ -104,6 +104,11 @@ namespace utils {
             T resolve_jump_target(size_t instructionOffset = 0) const {
                 return reinterpret_cast<T>(const_cast<char*>(resolve_jump_target(instructionOffset)));
             }
+
+            template<typename T>
+            T get_as(size_t offset = 0) const {
+                return reinterpret_cast<T>(const_cast<char*>(&Match[offset]));
+            }
         };
 
         std::vector<result> find(size_t minCount, size_t maxCount, bool bErrorOnMoreThanMaximum) const;

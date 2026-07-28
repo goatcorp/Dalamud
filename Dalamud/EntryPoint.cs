@@ -14,13 +14,13 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Support;
 using Dalamud.Utility;
-
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Newtonsoft.Json;
-
+using Reloaded.Hooks;
+using Reloaded.Hooks.Definitions;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
@@ -35,6 +35,8 @@ public sealed class EntryPoint
     /// Log level switch for runtime log level change.
     /// </summary>
     public static readonly LoggingLevelSwitch LogLevelSwitch = new(LogEventLevel.Verbose);
+
+    private static IHook<Framework.Delegates.Destroy>? globalFrameworkDestroyHook;
 
     /// <summary>
     /// A delegate used during initialization of the CLR from Dalamud.Boot.
@@ -56,7 +58,7 @@ public sealed class EntryPoint
         if ((info.BootWaitMessageBox & 4) != 0)
             Windows.Win32.PInvoke.MessageBox(HWND.Null, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MESSAGEBOX_STYLE.MB_OK);
 
-        new Thread(() => RunThread(info, mainThreadContinueEvent)).Start();
+        new Thread(() => RunThread(info, mainThreadContinueEvent)) { Name = "Dalamud EntryPoint" }.Start();
     }
 
     /// <summary>
@@ -109,6 +111,20 @@ public sealed class EntryPoint
     }
 
     /// <summary>
+    /// Sets up the global hook for the Framework.Destroy function, which is called when the game is shutting down.
+    /// We need to do this out of band here, since we block shutdown until all services are unloaded, so we can't
+    /// hook this inside a service.
+    /// Depends on the CS address resolver being set up.
+    /// </summary>
+    internal static unsafe void SetupGlobalDestroyHook()
+    {
+        globalFrameworkDestroyHook = ReloadedHooks.Instance.CreateHook<Framework.Delegates.Destroy>(
+            GlobalFrameworkDestroyDetour,
+            (long)Framework.StaticVirtualTablePointer->Destroy);
+        globalFrameworkDestroyHook.Activate();
+    }
+
+    /// <summary>
     /// Initialize all Dalamud subsystems and start running on the main thread.
     /// </summary>
     /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
@@ -144,8 +160,6 @@ public sealed class EntryPoint
 
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
-        var unloadFailed = false;
-
         try
         {
             if (info.DelayInitializeMs > 0)
@@ -176,16 +190,6 @@ public sealed class EntryPoint
                             FFXIVClientStructs.ThisAssembly.Git.Commits);
 
             dalamud.WaitForUnload();
-
-            try
-            {
-                ServiceManager.UnloadAllServices();
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Could not unload services.");
-                unloadFailed = true;
-            }
         }
         catch (Exception ex)
         {
@@ -209,11 +213,6 @@ public sealed class EntryPoint
             Log.CloseAndFlush();
             SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
         }
-
-        // If we didn't unload services correctly, we need to kill the process.
-        // We will never signal to Framework.
-        if (unloadFailed)
-            Environment.Exit(-1);
     }
 
     private static void SerilogOnLogLine(object? sender, (string Line, LogEvent LogEvent) ev)
@@ -311,5 +310,18 @@ public sealed class EntryPoint
     {
         if (!args.Observed)
             Log.Error(args.Exception, "Unobserved exception in Task.");
+    }
+
+    private static unsafe bool GlobalFrameworkDestroyDetour(Framework* thisPtr)
+    {
+        var dalamudFramework = Service<Game.Framework>.GetNullable();
+        if (dalamudFramework is { IsFrameworkUnloading: false })
+        {
+            Log.Information("Framework::Destroy!");
+            dalamudFramework.UnloadDalamud();
+        }
+
+        // Don't need to revert the hook, the game is going away now
+        return ServiceManager.IsUnloaded && globalFrameworkDestroyHook!.OriginalFunction(thisPtr);
     }
 }

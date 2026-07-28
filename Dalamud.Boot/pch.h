@@ -58,6 +58,12 @@
 #include <string_view>
 #include <type_traits>
 
+// https://github.com/microsoft/mimalloc
+#include "../lib/mimalloc/include/mimalloc.h"
+
+// https://github.com/ebiggers/libdeflate
+#include "../lib/libdeflate/libdeflate.h"
+
 // https://www.akenotsuki.com/misc/srell/en/
 #include "../lib/srell3_009/single-header/srell.hpp"
 

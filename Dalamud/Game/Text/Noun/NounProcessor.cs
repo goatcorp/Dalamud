@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Logging.Internal;
@@ -81,7 +80,7 @@ internal class NounProcessor : IServiceType
     private const int PluralColumnIdx = 2;
     private const int PossessivePronounColumnIdx = 3;
     private const int StartsWithVowelColumnIdx = 4;
-    private const int Unknown5ColumnIdx = 5; // probably used in Chinese texts
+    private const int Unknown5ColumnIdx = 5;
     private const int PronounColumnIdx = 6;
     private const int ArticleColumnIdx = 7;
 
@@ -89,9 +88,6 @@ internal class NounProcessor : IServiceType
 
     [ServiceManager.ServiceDependency]
     private readonly DataManager dataManager = Service<DataManager>.Get();
-
-    [ServiceManager.ServiceDependency]
-    private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
 
     private readonly ConcurrentDictionary<NounParams, ReadOnlySeString> cache = [];
 

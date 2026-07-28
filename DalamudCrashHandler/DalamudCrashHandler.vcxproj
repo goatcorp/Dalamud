@@ -79,12 +79,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DalamudCrashHandler.cpp" />
+    <ClCompile Include="..\shared\hardware_info.cpp" />
     <ClCompile Include="..\shared\logging.cpp" />
     <ClCompile Include="..\shared\unicode.cpp" />
     <ClCompile Include="miniz.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Dalamud.Boot\crashhandler_shared.h" />
+    <ClInclude Include="..\shared\hardware_info.h" />
     <ClInclude Include="..\shared\logging.h" />
     <ClInclude Include="..\shared\unicode.h" />
     <ClInclude Include="dac_interfaces.h" />

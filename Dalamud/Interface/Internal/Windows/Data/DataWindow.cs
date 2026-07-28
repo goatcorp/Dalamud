@@ -24,6 +24,7 @@ internal class DataWindow : Window, IDisposable
         new AddonLifecycleWidget(),
         new AddonWidget(),
         new AddressesWidget(),
+        new AddressSpaceWidget(),
         new AetherytesWidget(),
         new AtkArrayDataBrowserWidget(),
         new BuddyListWidget(),

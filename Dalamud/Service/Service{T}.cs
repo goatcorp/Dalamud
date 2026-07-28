@@ -39,6 +39,9 @@ internal static class Service<T> where T : IServiceType
             ?? throw new InvalidOperationException(
                 $"{nameof(T)} is missing {nameof(ServiceManager.ServiceAttribute)} annotations.");
 
+        ServiceManager.UnloadCancellationToken.Register(()
+            => instanceTcs.TrySetException(new UnloadedException()));
+
         var exposeToPlugins = Attribute.IsDefined(type, typeof(PluginInterfaceAttribute));
         if (exposeToPlugins)
             ServiceManager.Log.Debug("Service<{0}>: Static ctor called; will be exposed to plugins", type.Name);
@@ -52,27 +55,6 @@ internal static class Service<T> where T : IServiceType
                 instanceTcs.Task,
                 exposeToPlugins ? ObjectInstanceVisibility.ExposedToPlugins : ObjectInstanceVisibility.Internal);
         }
-    }
-
-    /// <summary>
-    /// Specifies how to handle the cases of failed services when calling <see cref="Service{T}.GetNullable"/>.
-    /// </summary>
-    public enum ExceptionPropagationMode
-    {
-        /// <summary>
-        /// Propagate all exceptions.
-        /// </summary>
-        PropagateAll,
-
-        /// <summary>
-        /// Propagate all exceptions, except for <see cref="UnloadedException"/>.
-        /// </summary>
-        PropagateNonUnloaded,
-
-        /// <summary>
-        /// Treat all exceptions as null.
-        /// </summary>
-        None,
     }
 
     /// <summary>Does nothing.</summary>
@@ -318,6 +300,18 @@ internal static class Service<T> where T : IServiceType
         if (!instanceTcs.Task.IsCompletedSuccessfully)
             return;
 
+        try
+        {
+            if (Service<ServiceContainer>.GetNullable(ExceptionPropagationMode.None) is { } container)
+            {
+                container.UnregisterSingleton(typeof(T));
+            }
+        }
+        catch (Exception e)
+        {
+            ServiceManager.Log.Warning(e, "Service<{0}>: Failed to notify ServiceContainer during Unset", typeof(T).Name);
+        }
+
         switch (instanceTcs.Task.Result)
         {
             case IInternalDisposableService d:
@@ -412,7 +406,12 @@ internal static class Service<T> where T : IServiceType
     /// Pull the instance out of the service locator, waiting if necessary.
     /// </summary>
     /// <returns>The object.</returns>
-    private static Task<object> GetAsyncAsObject() => instanceTcs.Task.ContinueWith(r => (object)r.Result);
+    private static Task<object> GetAsyncAsObject() =>
+        instanceTcs.Task.ContinueWith(
+            r => (object)r.Result,
+            ServiceManager.UnloadCancellationToken,
+            TaskContinuationOptions.RunContinuationsAsynchronously,
+            TaskScheduler.Default);
 
     /// <summary>
     /// Exception thrown when service is attempted to be retrieved when it's unloaded.

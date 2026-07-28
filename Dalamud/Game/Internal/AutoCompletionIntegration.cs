@@ -17,7 +17,7 @@ namespace Dalamud.Game.Internal;
 /// This class adds Dalamud and plugin commands to the chat box's autocompletion.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed unsafe class DalamudCompletion : IInternalDisposableService
+internal sealed unsafe class AutoCompletionIntegration : IInternalDisposableService
 {
     // 0xFF is a magic group number that causes CompletionModule's internals to treat entries
     // as raw strings instead of as lookups into an EXD sheet
@@ -37,10 +37,10 @@ internal sealed unsafe class DalamudCompletion : IInternalDisposableService
     private Hook<CompletionModule.Delegates.GetSelection>? getSelectionHook;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DalamudCompletion"/> class.
+    /// Initializes a new instance of the <see cref="AutoCompletionIntegration"/> class.
     /// </summary>
     [ServiceManager.ServiceConstructor]
-    internal DalamudCompletion()
+    internal AutoCompletionIntegration()
     {
         this.framework.RunOnTick(this.Setup);
     }
