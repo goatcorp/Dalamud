@@ -14,9 +14,7 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
-
 using Serilog;
-
 using Windows.Win32.Foundation;
 using Windows.Win32.Security;
 
@@ -78,6 +76,9 @@ internal sealed class Dalamud : IServiceType
 
         // Set up FFXIVClientStructs
         this.SetupClientStructsResolver(cacheDir);
+
+        // Initialize global framework destroy hook
+        EntryPoint.SetupGlobalDestroyHook();
 
         // Set up hook verification if Developer Mode is enabled. It takes a little while at the moment
         if (configuration.DevMode == true)

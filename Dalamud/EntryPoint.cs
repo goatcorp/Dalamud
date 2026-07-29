@@ -14,13 +14,13 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Support;
 using Dalamud.Utility;
-
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Newtonsoft.Json;
-
+using Reloaded.Hooks;
+using Reloaded.Hooks.Definitions;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
@@ -35,6 +35,8 @@ public sealed class EntryPoint
     /// Log level switch for runtime log level change.
     /// </summary>
     public static readonly LoggingLevelSwitch LogLevelSwitch = new(LogEventLevel.Verbose);
+
+    private static IHook<Framework.Delegates.Destroy>? globalFrameworkDestroyHook;
 
     /// <summary>
     /// A delegate used during initialization of the CLR from Dalamud.Boot.
@@ -106,6 +108,20 @@ public sealed class EntryPoint
             config = config.WriteTo.Console();
 
         Log.Logger = config.CreateLogger();
+    }
+
+    /// <summary>
+    /// Sets up the global hook for the Framework.Destroy function, which is called when the game is shutting down.
+    /// We need to do this out of band here, since we block shutdown until all services are unloaded, so we can't
+    /// hook this inside a service.
+    /// Depends on the CS address resolver being set up.
+    /// </summary>
+    internal static unsafe void SetupGlobalDestroyHook()
+    {
+        globalFrameworkDestroyHook = ReloadedHooks.Instance.CreateHook<Framework.Delegates.Destroy>(
+            GlobalFrameworkDestroyDetour,
+            (long)Framework.StaticVirtualTablePointer->Destroy);
+        globalFrameworkDestroyHook.Activate();
     }
 
     /// <summary>
@@ -294,5 +310,18 @@ public sealed class EntryPoint
     {
         if (!args.Observed)
             Log.Error(args.Exception, "Unobserved exception in Task.");
+    }
+
+    private static unsafe bool GlobalFrameworkDestroyDetour(Framework* thisPtr)
+    {
+        var dalamudFramework = Service<Game.Framework>.GetNullable();
+        if (dalamudFramework is { IsFrameworkUnloading: false })
+        {
+            Log.Information("Framework::Destroy!");
+            dalamudFramework.UnloadDalamud();
+        }
+
+        // Don't need to revert the hook, the game is going away now
+        return ServiceManager.IsUnloaded && globalFrameworkDestroyHook!.OriginalFunction(thisPtr);
     }
 }
