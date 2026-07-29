@@ -282,6 +282,12 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     /// <inheritdoc/>
     public bool IsEmoteUnlocked(Emote row)
     {
+        if (row.EmoteCategory.RowId == 0 || !row.EmoteCategory.IsValid)
+            return false;
+
+        if (row.UnlockLink == 0)
+            return true;
+
         return this.IsUnlockLinkUnlocked(row.UnlockLink);
     }
 
