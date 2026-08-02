@@ -80,9 +80,7 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
         this.CheckDisposed();
 
         if (!this.minHookImpl.Enabled)
-            return;
-
-        this.minHookImpl.Enable();
+            this.minHookImpl.Enable();
     }
 
     /// <inheritdoc/>
