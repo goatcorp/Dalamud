@@ -67,7 +67,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     {
         WarnForDeprecatedBackend(backend);
 
-        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, this.plugin.Assembly);
+        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, callingAssembly: this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
@@ -77,7 +77,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     {
         WarnForDeprecatedBackend(backend);
 
-        var hook = Hook<T>.FromAddress(procAddress, detour, this.plugin.Assembly);
+        var hook = Hook<T>.FromAddress(procAddress, detour, callingAssembly: this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }

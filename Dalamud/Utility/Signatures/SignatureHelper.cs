@@ -191,5 +191,5 @@ internal static class SignatureHelper
 
     private static IDalamudHook CreateHook<T>(IntPtr address, Delegate detour, Assembly? callingAssembly)
         where T : Delegate
-        => Hook<T>.FromAddress(address, (T)detour, callingAssembly);
+        => Hook<T>.FromAddress(address, (T)detour, callingAssembly: callingAssembly);
 }
