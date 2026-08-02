@@ -783,7 +783,7 @@ internal class DalamudInterface : IInternalDisposableService
 
             ImGui.End();
 
-            if (EnvironmentConfiguration.DalamudForceMinHook || EnvironmentConfiguration.DalamudUseSafetyHook)
+            if (EnvironmentConfiguration.DalamudUseSafetyHook)
             {
                 ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
                 ImGui.SetNextWindowBgAlpha(1);
@@ -795,11 +795,7 @@ internal class DalamudInterface : IInternalDisposableService
                         ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMouseInputs |
                         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
                 {
-                    if (EnvironmentConfiguration.DalamudForceMinHook)
-                        ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "mh!"u8);
-
-                    if (EnvironmentConfiguration.DalamudUseSafetyHook)
-                        ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "sh!"u8);
+                    ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "sh!"u8);
                 }
 
                 ImGui.End();

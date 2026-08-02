@@ -11,11 +11,6 @@ internal class EnvironmentConfiguration
     public static bool DalamudNoPlugins { get; } = GetEnvironmentVariable("DALAMUD_NOT_HAVE_PLUGINS");
 
     /// <summary>
-    /// Gets a value indicating whether the DalamudForceMinHook setting has been enabled.
-    /// </summary>
-    public static bool DalamudForceMinHook { get; } = GetEnvironmentVariable("DALAMUD_FORCE_MINHOOK");
-
-    /// <summary>
     /// Gets a value indicating whether the DalamudUseSafetyHook setting has been enabled.
     /// </summary>
     public static bool DalamudUseSafetyHook { get; } = GetEnvironmentVariable("DALAMUD_USE_SAFETYHOOK");

@@ -164,14 +164,10 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
     /// <param name="exportName">A name of the exported function name (e.g. send).</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
     /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook = false, Assembly? callingAssembly = null)
+    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour, Assembly? callingAssembly = null)
     {
-        if (EnvironmentConfiguration.DalamudForceMinHook)
-            useMinHook = true;
-
         var moduleHandle = Windows.Win32.PInvoke.GetModuleHandle(moduleName);
         if (moduleHandle.IsNull)
             throw new Exception($"Could not get a handle to module {moduleName}");
@@ -181,7 +177,7 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
             throw new Exception($"Could not get the address of {moduleName}::{exportName}");
 
         var address = HookManager.FollowJmp(procAddress.Value);
-        return CreateBackend(address, detour, useMinHook, callingAssembly ?? Assembly.GetCallingAssembly());
+        return CreateBackend(address, detour, callingAssembly ?? Assembly.GetCallingAssembly());
     }
 
     /// <summary>
@@ -191,14 +187,10 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// </summary>
     /// <param name="procAddress">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
     /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false, Assembly? callingAssembly = null)
+    internal static Hook<T> FromAddress(IntPtr procAddress, T detour, Assembly? callingAssembly = null)
     {
-        if (EnvironmentConfiguration.DalamudForceMinHook)
-            useMinHook = true;
-
         var assembly = callingAssembly ?? Assembly.GetCallingAssembly();
 
         // TODO: Only log verification exceptions for now, figure out how to handle this
@@ -209,7 +201,7 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         }
 
         procAddress = HookManager.FollowJmp(procAddress);
-        return CreateBackend(procAddress, detour, useMinHook, assembly);
+        return CreateBackend(procAddress, detour, assembly);
     }
 
     /// <summary>
@@ -225,14 +217,10 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// </summary>
     /// <param name="address">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="useMinHook">Use the MinHook hooking library instead of the default one.</param>
     /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    private static Hook<T> CreateBackend(IntPtr address, T detour, bool useMinHook, Assembly callingAssembly)
+    private static Hook<T> CreateBackend(IntPtr address, T detour, Assembly callingAssembly)
     {
-        if (useMinHook)
-            return new MinHookHook<T>(address, detour, callingAssembly);
-
         if (EnvironmentConfiguration.DalamudUseSafetyHook)
             return new SafetyHookHook<T>(address, detour, callingAssembly);
 
