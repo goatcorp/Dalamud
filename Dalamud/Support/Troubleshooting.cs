@@ -87,7 +87,6 @@ public static class Troubleshooting
                 LoadAllApiLevels = false,
                 InterfaceLoaded = interfaceManager?.IsReady ?? false,
                 HasThirdRepo = configuration.ThirdRepoList is { Count: > 0 },
-                ForcedMinHook = EnvironmentConfiguration.DalamudForceMinHook,
                 UsingSafetyHook = EnvironmentConfiguration.DalamudUseSafetyHook,
             };
 
@@ -176,8 +175,6 @@ public static class Troubleshooting
         public bool LoadAllApiLevels { get; set; }
 
         public bool InterfaceLoaded { get; set; }
-
-        public bool ForcedMinHook { get; set; }
 
         public bool UsingSafetyHook { get; set; }
 

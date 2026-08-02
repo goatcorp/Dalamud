@@ -25,12 +25,14 @@ public interface IGameInteropProvider : IDalamudService
         /// <summary>
         /// Use Reloaded hooks.
         /// </summary>
+        [Obsolete("Backend selection is no longer supported and will be removed. Please do not specify a backend.")]
         Reloaded,
 
         /// <summary>
         /// Use MinHook.
         /// You should never have to use this without talking to us first.
         /// </summary>
+        [Obsolete("Backend selection is no longer supported and will be removed. Please do not specify a backend.")]
         MinHook,
     }
 
