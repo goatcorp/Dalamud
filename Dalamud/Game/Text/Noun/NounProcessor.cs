@@ -397,7 +397,7 @@ internal class NounProcessor : IServiceType
         }
         else if (countability != 0) // Countable Nouns
         {
-            if (nounParams.Quantity <= 1 && countability != 2) // Plural-only Nouns
+            if (nounParams.Quantity <= 1 && countability != 2)
             {
                 var attr = articleRow.ReadStringColumn(attributiveColumn + 1);
                 if (!attr.IsEmpty)
@@ -405,7 +405,7 @@ internal class NounProcessor : IServiceType
 
                 numerusColumnIndex = SingularColumnIdx;
             }
-            else
+            else // Plural-only Nouns
             {
                 var attr = articleRow.ReadStringColumn(attributiveColumn + 2);
                 if (!attr.IsEmpty)
