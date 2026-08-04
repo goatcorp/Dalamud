@@ -528,7 +528,7 @@ namespace Dalamud.Injector
                 Console.WriteLine("{0}        [--handle-owner=inherited-handle-value]", exeSpaces);
                 Console.WriteLine("{0}        [--without-dalamud] [--no-fix-acl]", exeSpaces);
                 Console.WriteLine("{0}        [--no-wait]", exeSpaces);
-                Console.WriteLine("{0}        [--sandbox] [--sandbox-config=path/to/dalamudSandbox.json]", exeSpaces);
+                Console.WriteLine("{0}        [--sandbox] [--no-sandbox] [--sandbox-config=path/to/dalamudSandbox.json]", exeSpaces);
                 Console.WriteLine("{0}        [-- game_arg1=value1 game_arg2=value2 ...]", exeSpaces);
             }
 
@@ -538,6 +538,8 @@ namespace Dalamud.Injector
                 Console.WriteLine("{0}                 [--sandbox-config=path/to/dalamudSandbox.json]", exeSpaces);
                 Console.WriteLine("{0}   Prepares the environment to properly run with --sandbox. Run once from an", exeSpaces);
                 Console.WriteLine("{0}   elevated command prompt. Paths you don't own and the loopback excemption require running with this at least once.", exeSpaces);
+                Console.WriteLine("{0}   Sandboxing applies to every launch when \"enabled\" is set in the sandbox configuration.", exeSpaces);
+                Console.WriteLine("{0}   --no-sandbox opts a single launch out of that.", exeSpaces);
             }
 
             Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory=path] [--dalamud-configuration-path=path]");
@@ -679,7 +681,9 @@ namespace Dalamud.Injector
             var noFixAcl = false;
             var waitForGameWindow = true;
             var encryptArguments = false;
-            var useSandbox = false;
+
+            // null = not specified on command line, use config
+            bool? useSandbox = null;
             string? sandboxConfigPath = null;
 
             var parsingGameArgument = false;
@@ -715,9 +719,14 @@ namespace Dalamud.Injector
                 {
                     useSandbox = true;
                 }
+                else if (args[i] == "--no-sandbox")
+                {
+                    useSandbox = false;
+                }
                 else if (args[i].StartsWith("--sandbox-config="))
                 {
-                    useSandbox = true;
+                    // When using --sandbox-config assume sandboxing, but never when --no-sandbox
+                    useSandbox ??= true;
                     sandboxConfigPath = args[i].Split('=', 2)[1];
                 }
                 else if (args[i] == "-g")
@@ -895,8 +904,18 @@ namespace Dalamud.Injector
             }
 
             AppContainerLaunchContext? sandboxContext = null;
-            if (useSandbox)
-                sandboxContext = SetupSandbox(dalamudStartInfo, sandboxConfigPath, gamePath);
+            if (useSandbox != false)
+            {
+                var sandboxConfig = SandboxConfiguration.Load(
+                    sandboxConfigPath ?? SandboxConfiguration.DefaultPath,
+                    sandboxConfigPath != null);
+
+                if (useSandbox != true && sandboxConfig.EnabledGlobally)
+                    Log.Information("[SANDBOX] Enabled by configuration at '{DefaultConfigPath}'. Pass --no-sandbox to disable.", SandboxConfiguration.DefaultPath);
+
+                if (useSandbox == true || sandboxConfig.EnabledGlobally)
+                    sandboxContext = SetupSandbox(dalamudStartInfo, sandboxConfig, gamePath);
+            }
 
             Process process;
             try
@@ -962,12 +981,10 @@ namespace Dalamud.Injector
         /// <summary>
         /// Prepare the AppContainer sandbox by loading the config and changing/migrating paths as necessary.
         /// </summary>
-        private static SandboxLayout BuildSandboxLayout(DalamudStartInfo startInfo, string? sandboxConfigPath, string gamePath)
+        private static SandboxLayout BuildSandboxLayout(DalamudStartInfo startInfo, SandboxConfiguration config, string gamePath)
         {
             var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
-
-            var config = SandboxConfiguration.Load(sandboxConfigPath ?? Path.Combine(xivlauncherDir, "dalamudSandbox.json"));
 
             // XL root must never be readable or writable from the sandbox, so we need to move all data
             // into a subfolder that we can grant access to
@@ -1107,15 +1124,15 @@ namespace Dalamud.Injector
             return denied;
         }
 
-        private static AppContainerLaunchContext? SetupSandbox(DalamudStartInfo startInfo, string? sandboxConfigPath, string gamePath)
+        private static AppContainerLaunchContext? SetupSandbox(DalamudStartInfo startInfo, SandboxConfiguration config, string gamePath)
         {
             if (startInfo.Platform != OSPlatform.Windows)
             {
-                Log.Warning("[SANDBOX] AppContainer sandboxing is only supported on Windows, ignoring --sandbox");
+                Log.Warning("[SANDBOX] AppContainer sandboxing is only supported on Windows, launching without a sandbox");
                 return null;
             }
 
-            var layout = BuildSandboxLayout(startInfo, sandboxConfigPath, gamePath);
+            var layout = BuildSandboxLayout(startInfo, config, gamePath);
 
             var ctx = AppContainerHelper.CreateContext(
                 layout.Config.ContainerName,
@@ -1191,7 +1208,10 @@ namespace Dalamud.Injector
             var elevated = AppContainerHelper.IsElevated();
             Log.Information("Running {Elevated}elevated.", elevated ? string.Empty : "un");
 
-            var layout = BuildSandboxLayout(startInfo, sandboxConfigPath, gamePath);
+            var config = SandboxConfiguration.Load(
+                sandboxConfigPath ?? SandboxConfiguration.DefaultPath,
+                sandboxConfigPath != null);
+            var layout = BuildSandboxLayout(startInfo, config, gamePath);
 
             using var ctx = AppContainerHelper.CreateContext(
                 layout.Config.ContainerName,
@@ -1223,6 +1243,14 @@ namespace Dalamud.Injector
             }
 
             Log.Information("Sandbox preparation complete! You can now launch with --sandbox (no elevation needed).");
+
+            if (!config.EnabledGlobally)
+            {
+                Log.Information(
+                    "Launches that don't pass --sandbox will still be unsandboxed. Set \"enabledGlobally\": true in {Path} to sandbox every launch.",
+                    sandboxConfigPath ?? SandboxConfiguration.DefaultPath);
+            }
+
             return 0;
         }
 

@@ -13,6 +13,22 @@ namespace Dalamud.Injector
     internal sealed class SandboxConfiguration
     {
         /// <summary>
+        /// Gets the default location of the sandbox configuration, read even when no sandbox arguments were
+        /// passed on the command line.
+        /// </summary>
+        public static string DefaultPath => Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "XIVLauncher",
+            "dalamudSandbox.json");
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the game should be launched in the sandbox without command line
+        /// arguments.
+        /// </summary>
+        [JsonProperty("enabledGlobally")]
+        public bool EnabledGlobally { get; set; }
+
+        /// <summary>
         /// Gets or sets the AppContainer profile name.
         /// </summary>
         [JsonProperty("containerName")]
@@ -38,30 +54,44 @@ namespace Dalamud.Injector
         public List<SandboxAllowedPath> AllowedPaths { get; set; } = new();
 
         /// <summary>
-        /// Load a configuration from the given path, falling back to defaults if it doesn't exist or can't be parsed.
+        /// Load a configuration from the given path, or defaults if mustExist is false.
         /// </summary>
         /// <param name="path">Path to the JSON configuration file.</param>
+        /// <param name="mustExist">Whether a missing file is an error.</param>
         /// <returns>The configuration.</returns>
-        public static SandboxConfiguration Load(string path)
+        public static SandboxConfiguration Load(string path, bool mustExist)
         {
+            if (!File.Exists(path))
+            {
+                if (mustExist)
+                    throw new FileNotFoundException($"No sandbox configuration at {path}.", path);
+
+                Log.Verbose("[SANDBOX] No sandbox configuration at {Path}, using defaults", path);
+                return new SandboxConfiguration();
+            }
+
+            SandboxConfiguration? loaded;
             try
             {
-                if (File.Exists(path))
-                {
-                    var loaded = JsonConvert.DeserializeObject<SandboxConfiguration>(File.ReadAllText(path));
-                    if (loaded != null)
-                    {
-                        Log.Information("[SANDBOX] Loaded sandbox configuration from {Path}", path);
-                        return loaded;
-                    }
-                }
+                loaded = JsonConvert.DeserializeObject<SandboxConfiguration>(File.ReadAllText(path));
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "[SANDBOX] Could not read sandbox configuration at {Path}, using defaults", path);
+                throw new InvalidDataException(
+                    $"Could not read the sandbox configuration at {path}. " +
+                    "Fix the file or pass --no-sandbox to launch without a sandbox.",
+                    ex);
             }
 
-            return new SandboxConfiguration();
+            if (loaded == null)
+            {
+                throw new InvalidDataException(
+                    $"The sandbox configuration at {path} is empty. " +
+                    "Fix the file or pass --no-sandbox to launch without a sandbox.");
+            }
+
+            Log.Information("[SANDBOX] Loaded sandbox configuration from {Path}", path);
+            return loaded;
         }
 
         /// <summary>
