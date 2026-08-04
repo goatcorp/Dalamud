@@ -42,23 +42,23 @@ Attributive sheet:
     Unknown22 = Accusative Neutral
     Unknown23 = Accusative Plural
   French (unsure):
-    Unknown24 = Singular Article
-    Unknown25 = Singular Masculine Article
-    Unknown26 = Plural Masculine Article
-    Unknown27 = ?
-    Unknown28 = ?
-    Unknown29 = Singular Masculine/Feminine Article, before a noun beginning in a vowel or an h
-    Unknown30 = Plural Masculine/Feminine Article, before a noun beginning in a vowel or an h
-    Unknown31 = ?
-    Unknown32 = ?
-    Unknown33 = Singular Feminine Article
-    Unknown34 = Plural Feminine Article
-    Unknown35 = ?
-    Unknown36 = ?
-    Unknown37 = Singular Masculine/Feminine Article, before a noun beginning in a vowel or an h
-    Unknown38 = Plural Masculine/Feminine Article, before a noun beginning in a vowel or an h
-    Unknown39 = ?
-    Unknown40 = ?
+    Unknown24 = Masculine Consonant Base
+    Unknown25 = Masculine Consonant Singular
+    Unknown26 = Masculine Consonant Plural
+    Unknown27 = Masculine Consonant Mass
+    Unknown28 = Masculine Vowel Base
+    Unknown29 = Masculine Vowel Singular
+    Unknown30 = Masculine Vowel Plural
+    Unknown31 = Masculine Vowel Mass
+    Unknown32 = Feminine Consonant Base
+    Unknown33 = Feminine Consonant Singular
+    Unknown34 = Feminine Consonant Plural
+    Unknown35 = Feminine Consonant Mass
+    Unknown36 = Feminine Vowel Base
+    Unknown37 = Feminine Vowel Singular
+    Unknown38 = Feminine Vowel Plural
+    Unknown39 = Feminine Vowel Mass
+    Unknown40 = N/A
 
 Placeholders:
     [t] = article or grammatical gender (EN: the, DE: der, die, das)
@@ -80,7 +80,7 @@ internal class NounProcessor : IServiceType
     private const int PluralColumnIdx = 2;
     private const int PossessivePronounColumnIdx = 3;
     private const int StartsWithVowelColumnIdx = 4;
-    private const int Unknown5ColumnIdx = 5;
+    private const int CountabilityColumnIdx = 5;
     private const int PronounColumnIdx = 6;
     private const int ArticleColumnIdx = 7;
 
@@ -240,7 +240,7 @@ internal class NounProcessor : IServiceType
              a1->Offsets[2] = PronounColumnIdx
              a1->Offsets[3] = AdjectiveColumnIdx
              a1->Offsets[4] = PossessivePronounColumnIdx
-             a1->Offsets[5] = Unknown5ColumnIdx
+             a1->Offsets[5] = CountabilityColumnIdx
              a1->Offsets[6] = ArticleColumnIdx
          */
 
@@ -350,10 +350,11 @@ internal class NounProcessor : IServiceType
         /*
             a1->Offsets[0] = SingularColumnIdx
             a1->Offsets[1] = PluralColumnIdx
-            a1->Offsets[2] = StartsWithVowelColumnIdx
-            a1->Offsets[3] = PronounColumnIdx
-            a1->Offsets[4] = Unknown5ColumnIdx
-            a1->Offsets[5] = ArticleColumnIdx
+            a1->Offsets[2] = PronounColumnIdx
+            a1->Offsets[3] = AdjectiveColumnIdx
+            a1->Offsets[4] = PossessivePronounColumnIdx
+            a1->Offsets[5] = CountabilityColumnIdx
+            a1->Offsets[6] = ArticleColumnIdx
         */
 
         var sheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nounParams.SheetName);
@@ -364,70 +365,70 @@ internal class NounProcessor : IServiceType
         }
 
         var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(LSheets.Attributive));
+        var articleRow = attributiveSheet.GetRow((uint)nounParams.ArticleType);
 
         using var rssb = new RentedSeStringBuilder();
 
         var startsWithVowelColumn = nounParams.ColumnOffset + StartsWithVowelColumnIdx;
-        var startsWithVowel = startsWithVowelColumn >= 0
-                                  ? row.ReadInt8Column(startsWithVowelColumn)
-                                  : ~startsWithVowelColumn;
+        var startsWithVowel = startsWithVowelColumn < 0 ? ~startsWithVowelColumn : row.ReadInt8Column(startsWithVowelColumn);
 
         var pronounColumn = nounParams.ColumnOffset + PronounColumnIdx;
-        var pronoun = pronounColumn >= 0 ? row.ReadInt8Column(pronounColumn) : ~pronounColumn;
+        var pronoun = pronounColumn < 0 ? ~pronounColumn : row.ReadInt8Column(pronounColumn);
+
+        var countabilityColumn = nounParams.ColumnOffset + CountabilityColumnIdx;
+        var countability = countabilityColumn < 0 ? ~countabilityColumn : row.ReadInt8Column(countabilityColumn);
 
         var articleColumn = nounParams.ColumnOffset + ArticleColumnIdx;
-        var article = articleColumn >= 0 ? row.ReadInt8Column(articleColumn) : ~articleColumn;
+        var article = articleColumn < 0 ? ~articleColumn : row.ReadInt8Column(articleColumn);
 
-        var v20 = 4 * (startsWithVowel + 6 + (2 * pronoun));
+        var attributiveColumn = 4 * (startsWithVowel + 2 * (pronoun + 3));
+        var numerusColumnIndex = SingularColumnIdx;
 
         if (article != 0)
         {
-            var v21 = attributiveSheet.GetRow((uint)nounParams.ArticleType).ReadStringColumn(v20);
-            if (!v21.IsEmpty)
-                rssb.Builder.Append(v21);
-
-            if (!nounParams.LinkMarker.IsEmpty)
-                rssb.Builder.Append(nounParams.LinkMarker);
-
-            var text = row.ReadStringColumn(nounParams.ColumnOffset + (nounParams.Quantity <= 1 ? SingularColumnIdx : PluralColumnIdx));
-            if (!text.IsEmpty)
-                rssb.Builder.Append(text);
+            var attr = articleRow.ReadStringColumn(attributiveColumn);
+            if (!attr.IsEmpty)
+                rssb.Builder.Append(attr);
 
             if (nounParams.Quantity <= 1)
-                rssb.Builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
-
-            return rssb.Builder.ToReadOnlySeString();
+                numerusColumnIndex = SingularColumnIdx;
+            else
+                numerusColumnIndex = PluralColumnIdx;
         }
-
-        var v17 = row.ReadInt8Column(nounParams.ColumnOffset + Unknown5ColumnIdx);
-        if (v17 != 0 && (nounParams.Quantity > 1 || v17 == 2))
+        else if (countability != 0) // Countable Nouns
         {
-            var v29 = attributiveSheet.GetRow((uint)nounParams.ArticleType).ReadStringColumn(v20 + 2);
-            if (!v29.IsEmpty)
+            if (nounParams.Quantity <= 1 && countability != 2) // Plural-only Nouns
             {
-                rssb.Builder.Append(v29);
+                var attr = articleRow.ReadStringColumn(attributiveColumn + 1);
+                if (!attr.IsEmpty)
+                    rssb.Builder.Append(attr);
 
-                if (!nounParams.LinkMarker.IsEmpty)
-                    rssb.Builder.Append(nounParams.LinkMarker);
+                numerusColumnIndex = SingularColumnIdx;
+            }
+            else
+            {
+                var attr = articleRow.ReadStringColumn(attributiveColumn + 2);
+                if (!attr.IsEmpty)
+                    rssb.Builder.Append(attr);
 
-                var text = row.ReadStringColumn(nounParams.ColumnOffset + PluralColumnIdx);
-                if (!text.IsEmpty)
-                    rssb.Builder.Append(text);
+                numerusColumnIndex = PluralColumnIdx;
             }
         }
-        else
+        else // Mass Nouns / Uncountable Nouns
         {
-            var v27 = attributiveSheet.GetRow((uint)nounParams.ArticleType).ReadStringColumn(v20 + (v17 != 0 ? 1 : 3));
-            if (!v27.IsEmpty)
-                rssb.Builder.Append(v27);
+            var attr = articleRow.ReadStringColumn(attributiveColumn + 3);
+            if (!attr.IsEmpty)
+                rssb.Builder.Append(attr);
 
-            if (!nounParams.LinkMarker.IsEmpty)
-                rssb.Builder.Append(nounParams.LinkMarker);
-
-            var text = row.ReadStringColumn(nounParams.ColumnOffset + SingularColumnIdx);
-            if (!text.IsEmpty)
-                rssb.Builder.Append(text);
+            numerusColumnIndex = SingularColumnIdx;
         }
+
+        if (!nounParams.LinkMarker.IsEmpty)
+            rssb.Builder.Append(nounParams.LinkMarker);
+
+        var numerus = row.ReadStringColumn(nounParams.ColumnOffset + numerusColumnIndex);
+        if (!numerus.IsEmpty)
+            rssb.Builder.Append(numerus);
 
         rssb.Builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
 
