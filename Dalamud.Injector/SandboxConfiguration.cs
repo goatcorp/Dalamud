@@ -95,6 +95,24 @@ namespace Dalamud.Injector
         }
 
         /// <summary>
+        /// Write this configuration to the given path, unless a file is already there.
+        /// </summary>
+        /// <param name="path">Path to the JSON configuration file to create.</param>
+        /// <returns>Whether the file was written.</returns>
+        public bool TryWrite(string path)
+        {
+            if (File.Exists(path))
+                return false;
+
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory))
+                Directory.CreateDirectory(directory);
+
+            File.WriteAllText(path, JsonConvert.SerializeObject(this, Formatting.Indented));
+            return true;
+        }
+
+        /// <summary>
         /// An additional path grant for the sandboxed process.
         /// </summary>
         internal sealed class SandboxAllowedPath

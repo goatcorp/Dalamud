@@ -535,11 +535,12 @@ namespace Dalamud.Injector
             if (particularCommand is null or "sandbox-prepare")
             {
                 Console.WriteLine("{0} sandbox-prepare [-h/--help] [-g path/to/ffxiv_dx11.exe] [--game=path/to/ffxiv_dx11.exe]", exeName);
-                Console.WriteLine("{0}                 [--sandbox-config=path/to/dalamudSandbox.json]", exeSpaces);
+                Console.WriteLine("{0}                 [--sandbox-config=path/to/dalamudSandbox.json] [--write-config]", exeSpaces);
                 Console.WriteLine("{0}   Prepares the environment to properly run with --sandbox. Run once from an", exeSpaces);
                 Console.WriteLine("{0}   elevated command prompt. Paths you don't own and the loopback excemption require running with this at least once.", exeSpaces);
-                Console.WriteLine("{0}   Sandboxing applies to every launch when \"enabled\" is set in the sandbox configuration.", exeSpaces);
+                Console.WriteLine("{0}   Sandboxing applies to every launch when \"enabledGlobally\" is set in the sandbox configuration.", exeSpaces);
                 Console.WriteLine("{0}   --no-sandbox opts a single launch out of that.", exeSpaces);
+                Console.WriteLine("{0}   --write-config creates a configuration at the default location, if there isn't one yet.", exeSpaces);
             }
 
             Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory=path] [--dalamud-configuration-path=path]");
@@ -1174,6 +1175,7 @@ namespace Dalamud.Injector
             string? gamePath = null;
             string? sandboxConfigPath = null;
             var showHelp = false;
+            var writeConfig = false;
 
             for (var i = 2; i < args.Count; i++)
             {
@@ -1185,6 +1187,8 @@ namespace Dalamud.Injector
                     gamePath = args[i].Split('=', 2)[1];
                 else if (args[i].StartsWith("--sandbox-config="))
                     sandboxConfigPath = args[i].Split('=', 2)[1];
+                else if (args[i] == "--write-config")
+                    writeConfig = true;
                 else
                     Log.Warning($"\"{args[i]}\" is not a valid command line argument, ignoring.");
             }
@@ -1211,6 +1215,21 @@ namespace Dalamud.Injector
             var config = SandboxConfiguration.Load(
                 sandboxConfigPath ?? SandboxConfiguration.DefaultPath,
                 sandboxConfigPath != null);
+
+            if (writeConfig)
+            {
+                if (config.TryWrite(SandboxConfiguration.DefaultPath))
+                {
+                    Log.Information("Wrote a sandbox configuration to {Path}", SandboxConfiguration.DefaultPath);
+                }
+                else
+                {
+                    Log.Warning(
+                        "Not writing a sandbox configuration, {Path} already exists. Delete it first if you want a fresh one.",
+                        SandboxConfiguration.DefaultPath);
+                }
+            }
+
             var layout = BuildSandboxLayout(startInfo, config, gamePath);
 
             using var ctx = AppContainerHelper.CreateContext(
@@ -1248,7 +1267,7 @@ namespace Dalamud.Injector
             {
                 Log.Information(
                     "Launches that don't pass --sandbox will still be unsandboxed. Set \"enabledGlobally\": true in {Path} to sandbox every launch.",
-                    sandboxConfigPath ?? SandboxConfiguration.DefaultPath);
+                    SandboxConfiguration.DefaultPath);
             }
 
             return 0;
