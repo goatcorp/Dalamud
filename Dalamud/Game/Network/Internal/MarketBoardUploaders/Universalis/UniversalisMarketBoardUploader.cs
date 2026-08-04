@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,6 +9,7 @@ using Dalamud.Game.Network.Structures;
 using Dalamud.Networking.Http;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 using Serilog;
 
@@ -32,7 +35,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
         this.httpClient = happyHttpClient.SharedHttpClient;
 
     /// <inheritdoc/>
-    public async Task Upload(MarketBoardItemRequest request, ulong uploaderId, uint worldId)
+    public async Task Upload(MarketBoardItemRequest request, ulong uploaderId, uint worldId, ulong? activeRetainerId)
     {
         Log.Verbose("Starting Universalis upload");
 
@@ -91,6 +94,11 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
                 Quantity = marketBoardHistoryListing.Quantity,
                 Timestamp = ((DateTimeOffset)marketBoardHistoryListing.PurchaseTime).ToUnixTimeSeconds(),
             });
+        }
+
+        if (activeRetainerId is { } retainerId)
+        {
+            await this.RestoreHiddenListings(uploadObject, retainerId);
         }
 
         var uploadPath = "/upload";
@@ -176,5 +184,57 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
         // ====================================================================================
 
         Log.Verbose("Universalis purchase upload completed");
+    }
+
+    /// <summary>
+    /// A summoned retainer's listings are withheld from the price comparison window, so a
+    /// snapshot taken there reads as a removal for listings that are still live. Restores
+    /// them from Universalis' own rows: the game never tells a client what listing IDs its
+    /// listings were assigned, and a reconstructed ID would post as an add and a remove
+    /// rather than as a no-op.
+    /// </summary>
+    /// <param name="uploadObject">The upload being assembled.</param>
+    /// <param name="retainerId">The summoned retainer.</param>
+    /// <returns>An async task.</returns>
+    private async Task RestoreHiddenListings(UniversalisItemUploadRequest uploadObject, ulong retainerId)
+    {
+        JToken listings;
+        try
+        {
+            var response = await this.httpClient.GetAsync(
+                $"{ApiBase}/api/v2/{uploadObject.WorldId}/{uploadObject.ItemId}?entries=0&statsWithin=0&fields=listings");
+            response.EnsureSuccessStatusCode();
+            listings = JObject.Parse(await response.Content.ReadAsStringAsync())["listings"];
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not fetch listings for item#{CatalogId}; uploading unmodified", uploadObject.ItemId);
+            return;
+        }
+
+        if (listings == null)
+        {
+            Log.Warning("Listings response for item#{CatalogId} had no listings key; uploading unmodified", uploadObject.ItemId);
+            return;
+        }
+
+        var retainer = retainerId.ToString();
+        var known = listings.ToObject<List<UniversalisItemListingsEntry>>();
+
+        // Add rejects a listing the snapshot already carries, and a second copy of one the
+        // API returned twice - which it does, so filtering against the snapshot is not enough.
+        var present = uploadObject.Listings.Select(l => l.ListingId).ToHashSet();
+        var hidden = known.Where(l => l.RetainerId == retainer && present.Add(l.ListingId)).ToList();
+
+        Log.Verbose(
+            "item#{CatalogId}: snapshot has {SnapshotCount}, Universalis has {KnownCount}, " +
+            "restoring {HiddenCount} hidden from retainer#{RetainerId}",
+            uploadObject.ItemId,
+            present.Count,
+            known.Count,
+            hidden.Count,
+            retainerId);
+
+        uploadObject.Listings.AddRange(hidden);
     }
 }

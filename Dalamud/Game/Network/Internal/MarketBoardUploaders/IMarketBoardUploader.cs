@@ -15,8 +15,9 @@ internal interface IMarketBoardUploader
     /// <param name="item">The item request data being uploaded.</param>
     /// <param name="uploaderId">The uploaders ContentId.</param>
     /// <param name="worldId">The uploaders WorldId.</param>
+    /// <param name="activeRetainerId">The retainer summoned when the listings were observed, or null if none was.</param>
     /// <returns>An async task.</returns>
-    Task Upload(MarketBoardItemRequest item, ulong uploaderId, uint worldId);
+    Task Upload(MarketBoardItemRequest item, ulong uploaderId, uint worldId, ulong? activeRetainerId);
 
     /// <summary>
     /// Upload tax rate data.

@@ -17,6 +17,7 @@ using Dalamud.Networking.Http;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Enums;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Network;
 using FFXIVClientStructs.FFXIV.Client.Network;
@@ -255,6 +256,18 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         return (playerState.ContentId, playerState.CurrentWorld.RowId);
     }
 
+    /// <summary>
+    /// Gets the summoned retainer, or null if none is summoned. Read when a listings
+    /// batch resolves rather than when it uploads, since the upload is deferred and the
+    /// player may have dismissed the retainer by the time it runs.
+    /// </summary>
+    /// <returns>The summoned retainer's content id, or null.</returns>
+    private static ulong? GetActiveRetainerId()
+    {
+        var retainer = RetainerManager.Instance()->GetActiveRetainer();
+        return retainer == null || retainer->RetainerId == 0 ? null : retainer->RetainerId;
+    }
+
     private void HandleContentsFinderNotificationPacketDetour(ContentsFinderNotificationPacket* packet)
     {
         this.cfPopHook.OriginalDisposeSafe(packet);
@@ -407,14 +420,14 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                              startObservable
                                  .And(this.OnMarketBoardSalesBatch(startObservable))
                                  .And(this.OnMarketBoardListingsBatch(startObservable))
-                                 .Then((request, sales, listings) => (request, sales, listings, GetUploaderInfo())))
+                                 .Then((request, sales, listings) => (request, sales, listings, GetUploaderInfo(), GetActiveRetainerId())))
                          .Where(this.ShouldUpload)
                          .SubscribeOn(ThreadPoolScheduler.Instance)
                          .Subscribe(
                              data =>
                              {
-                                 var (request, sales, listings, uploaderInfo) = data;
-                                 this.UploadMarketBoardData(request, sales, listings, uploaderInfo.UploaderId, uploaderInfo.WorldId);
+                                 var (request, sales, listings, uploaderInfo, activeRetainerId) = data;
+                                 this.UploadMarketBoardData(request, sales, listings, uploaderInfo.UploaderId, uploaderInfo.WorldId, activeRetainerId);
                              },
                              ex => Log.Error(ex, "Failed to handle Market Board item request event"));
     }
@@ -424,7 +437,8 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         (uint CatalogId, ICollection<MarketBoardHistory.MarketBoardHistoryListing> Sales) sales,
         List<MarketBoardCurrentOfferings.MarketBoardItemListing> listings,
         ulong uploaderId,
-        uint worldId)
+        uint worldId,
+        ulong? activeRetainerId)
     {
         var catalogId = sales.CatalogId;
         if (listings.Count != request.AmountToArrive)
@@ -436,16 +450,17 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         }
 
         Log.Verbose(
-            "Market Board request resolved, starting upload: item#{CatalogId} listings#{ListingsObserved} sales#{SalesObserved}",
+            "Market Board request resolved, starting upload: item#{CatalogId} listings#{ListingsObserved} sales#{SalesObserved} retainer#{ActiveRetainerId}",
             catalogId,
             listings.Count,
-            sales.Sales.Count);
+            sales.Sales.Count,
+            activeRetainerId);
 
         request.CatalogId = catalogId;
         request.Listings.AddRange(listings);
         request.History.AddRange(sales.Sales);
 
-        Task.Run(() => this.uploader.Upload(request, uploaderId, worldId))
+        Task.Run(() => this.uploader.Upload(request, uploaderId, worldId, activeRetainerId))
             .ContinueWith(
                 task => Log.Error(task.Exception, "Market Board offerings data upload failed"),
                 TaskContinuationOptions.OnlyOnFaulted);
