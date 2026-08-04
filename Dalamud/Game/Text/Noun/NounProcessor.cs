@@ -15,50 +15,50 @@ namespace Dalamud.Game.Text.Noun;
 /*
 Attributive sheet:
   Japanese:
-    Unknown0 = Singular Demonstrative
-    Unknown1 = Plural Demonstrative
+    Column 0 = Singular Demonstrative
+    Column 1 = Plural Demonstrative
   English:
-    Unknown2 = Article before a singular noun beginning with a consonant sound
-    Unknown3 = Article before a generic noun beginning with a consonant sound
-    Unknown4 = N/A
-    Unknown5 = Article before a singular noun beginning with a vowel sound
-    Unknown6 = Article before a generic noun beginning with a vowel sound
-    Unknown7 = N/A
+    Column 2 = Singular Consonant
+    Column 3 = Generic Consonant
+    Column 4 = Plural Consonant
+    Column 5 = Singular Vowel
+    Column 6 = Generic Vowel
+    Column 7 = Plural Vowel
   German:
-    Unknown8 = Nominative Masculine
-    Unknown9 = Nominative Feminine
-    Unknown10 = Nominative Neutral
-    Unknown11 = Nominative Plural
-    Unknown12 = Genitive Masculine
-    Unknown13 = Genitive Feminine
-    Unknown14 = Genitive Neutral
-    Unknown15 = Genitive Plural
-    Unknown16 = Dative Masculine
-    Unknown17 = Dative Feminine
-    Unknown18 = Dative Neutral
-    Unknown19 = Dative Plural
-    Unknown20 = Accusative Masculine
-    Unknown21 = Accusative Feminine
-    Unknown22 = Accusative Neutral
-    Unknown23 = Accusative Plural
-  French (unsure):
-    Unknown24 = Masculine Consonant Base
-    Unknown25 = Masculine Consonant Singular
-    Unknown26 = Masculine Consonant Plural
-    Unknown27 = Masculine Consonant Mass
-    Unknown28 = Masculine Vowel Base
-    Unknown29 = Masculine Vowel Singular
-    Unknown30 = Masculine Vowel Plural
-    Unknown31 = Masculine Vowel Mass
-    Unknown32 = Feminine Consonant Base
-    Unknown33 = Feminine Consonant Singular
-    Unknown34 = Feminine Consonant Plural
-    Unknown35 = Feminine Consonant Mass
-    Unknown36 = Feminine Vowel Base
-    Unknown37 = Feminine Vowel Singular
-    Unknown38 = Feminine Vowel Plural
-    Unknown39 = Feminine Vowel Mass
-    Unknown40 = N/A
+    Column 8 = Nominative Masculine
+    Column 9 = Nominative Feminine
+    Column 10 = Nominative Neutral
+    Column 11 = Nominative Plural
+    Column 12 = Genitive Masculine
+    Column 13 = Genitive Feminine
+    Column 14 = Genitive Neutral
+    Column 15 = Genitive Plural
+    Column 16 = Dative Masculine
+    Column 17 = Dative Feminine
+    Column 18 = Dative Neutral
+    Column 19 = Dative Plural
+    Column 20 = Accusative Masculine
+    Column 21 = Accusative Feminine
+    Column 22 = Accusative Neutral
+    Column 23 = Accusative Plural
+  French:
+    Column 24 = Masculine Consonant Base
+    Column 25 = Masculine Consonant Singular
+    Column 26 = Masculine Consonant Plural
+    Column 27 = Masculine Consonant Mass
+    Column 28 = Masculine Vowel Base
+    Column 29 = Masculine Vowel Singular
+    Column 30 = Masculine Vowel Plural
+    Column 31 = Masculine Vowel Mass
+    Column 32 = Feminine Consonant Base
+    Column 33 = Feminine Consonant Singular
+    Column 34 = Feminine Consonant Plural
+    Column 35 = Feminine Consonant Mass
+    Column 36 = Feminine Vowel Base
+    Column 37 = Feminine Vowel Singular
+    Column 38 = Feminine Vowel Plural
+    Column 39 = Feminine Vowel Mass
+    Column 40 = N/A
 
 Placeholders:
     [t] = article or grammatical gender (EN: the, DE: der, die, das)
