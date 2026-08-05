@@ -15,7 +15,7 @@ namespace Dalamud.Game.Text.Noun;
 /*
 Attributive sheet:
   Japanese:
-    Column 0 = Demonstrative Singular
+    Column 0 = Demonstrative
     Column 1 = Demonstrative Plural
   English:
     Column 2 = Consonant Singular
