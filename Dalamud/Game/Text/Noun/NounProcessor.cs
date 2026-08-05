@@ -176,14 +176,6 @@ internal class NounProcessor : IServiceType
     /// </remarks>
     private ReadOnlySeString ResolveNounEn(NounParams nounParams)
     {
-        /*
-          a1->Offsets[0] = SingularColumnIdx
-          a1->Offsets[1] = PluralColumnIdx
-          a1->Offsets[2] = StartsWithVowelColumnIdx
-          a1->Offsets[3] = PossessivePronounColumnIdx
-          a1->Offsets[4] = ArticleColumnIdx
-        */
-
         var sheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nounParams.SheetName);
         if (!sheet.TryGetRow(nounParams.RowId, out var row))
         {
@@ -234,16 +226,6 @@ internal class NounProcessor : IServiceType
     /// </remarks>
     private ReadOnlySeString ResolveNounDe(NounParams nounParams)
     {
-        /*
-             a1->Offsets[0] = SingularColumnIdx
-             a1->Offsets[1] = PluralColumnIdx
-             a1->Offsets[2] = PronounColumnIdx
-             a1->Offsets[3] = AdjectiveColumnIdx
-             a1->Offsets[4] = PossessivePronounColumnIdx
-             a1->Offsets[5] = CountabilityColumnIdx
-             a1->Offsets[6] = ArticleColumnIdx
-         */
-
         var sheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nounParams.SheetName);
         if (!sheet.TryGetRow(nounParams.RowId, out var row))
         {
@@ -346,16 +328,6 @@ internal class NounProcessor : IServiceType
     /// </remarks>
     private ReadOnlySeString ResolveNounFr(NounParams nounParams)
     {
-        /*
-            a1->Offsets[0] = SingularColumnIdx
-            a1->Offsets[1] = PluralColumnIdx
-            a1->Offsets[2] = PronounColumnIdx
-            a1->Offsets[3] = AdjectiveColumnIdx
-            a1->Offsets[4] = PossessivePronounColumnIdx
-            a1->Offsets[5] = CountabilityColumnIdx
-            a1->Offsets[6] = ArticleColumnIdx
-        */
-
         var sheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nounParams.SheetName);
         if (!sheet.TryGetRow(nounParams.RowId, out var row))
         {
