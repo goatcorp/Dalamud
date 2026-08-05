@@ -263,26 +263,26 @@ internal class NounProcessor : IServiceType
         }
 
         var genderIndexColumn = nounParams.ColumnOffset + PronounColumnIdx;
-        var genderIndex = genderIndexColumn >= 0 ? row.ReadInt8Column(genderIndexColumn) : ~genderIndexColumn;
+        var genderIndex = genderIndexColumn < 0 ? ~genderIndexColumn : row.ReadInt8Column(genderIndexColumn);
 
         var articleIndexColumn = nounParams.ColumnOffset + ArticleColumnIdx;
-        var articleIndex = articleIndexColumn >= 0 ? row.ReadInt8Column(articleIndexColumn) : ~articleIndexColumn;
+        var articleIndex = articleIndexColumn < 0 ? ~articleIndexColumn : row.ReadInt8Column(articleIndexColumn);
 
         var caseColumnOffset = (4 * nounParams.GrammaticalCase) + 8;
 
         var caseRowOffsetColumn = nounParams.ColumnOffset + (nounParams.Quantity == 1 ? AdjectiveColumnIdx : PossessivePronounColumnIdx);
-        var caseRowOffset = caseRowOffsetColumn >= 0
-                                ? row.ReadInt8Column(caseRowOffsetColumn)
-                                : (sbyte)~caseRowOffsetColumn;
+        var caseRowOffset = caseRowOffsetColumn < 0 ? ~caseRowOffsetColumn : row.ReadInt8Column(caseRowOffsetColumn);
+
+        var numerusColumnIndex = nounParams.ColumnOffset + (nounParams.Quantity == 1 ? SingularColumnIdx : PluralColumnIdx);
+        var numerus = row.ReadStringColumn(numerusColumnIndex);
 
         if (nounParams.Quantity != 1)
             genderIndex = 3;
 
         var hasT = false;
-        var text = row.ReadStringColumn(nounParams.ColumnOffset + (nounParams.Quantity == 1 ? SingularColumnIdx : PluralColumnIdx));
-        if (!text.IsEmpty)
+        if (!numerus.IsEmpty)
         {
-            hasT = text.ContainsText("[t]"u8);
+            hasT = numerus.ContainsText("[t]"u8);
 
             if (articleIndex == 0 && !hasT)
             {
@@ -295,7 +295,7 @@ internal class NounProcessor : IServiceType
             if (!nounParams.LinkMarker.IsEmpty)
                 rssb.Builder.Append(nounParams.LinkMarker);
 
-            rssb.Builder.Append(text);
+            rssb.Builder.Append(numerus);
 
             var plural = attributiveSheet.GetRow((uint)(caseRowOffset + 26))
                                          .ReadStringColumn(caseColumnOffset + genderIndex);
@@ -316,18 +316,17 @@ internal class NounProcessor : IServiceType
 
         var declensionRow = (GermanArticleType)nounParams.ArticleType switch
         {
-            // Schwache Flexion eines Adjektivs?!
-            GermanArticleType.Possessive or GermanArticleType.Demonstrative => attributiveSheet.GetRow(25),
+            // Bestimmter Artikel oder Demonstrativpronomen
+            GermanArticleType.Definite or GermanArticleType.Demonstrative when !hasT => attributiveSheet.GetRow(25),
             _ when hasT => attributiveSheet.GetRow(25),
 
-            // Starke Deklination
+            // Starke Adjektivdeklination
             GermanArticleType.ZeroArticle => attributiveSheet.GetRow(38),
 
-            // Gemischte Deklination
-            GermanArticleType.Definite => attributiveSheet.GetRow(37),
+            // Starke Adjektivdeklination
+            GermanArticleType.Indefinite => attributiveSheet.GetRow(37),
 
-            // Starke Flexion eines Artikels?!
-            GermanArticleType.Indefinite or GermanArticleType.Negative => attributiveSheet.GetRow(26),
+            // Gemischte Deklination
             _ => attributiveSheet.GetRow(26),
         };
 
