@@ -15,15 +15,15 @@ namespace Dalamud.Game.Text.Noun;
 /*
 Attributive sheet:
   Japanese:
-    Column 0 = Singular Demonstrative
-    Column 1 = Plural Demonstrative
+    Column 0 = Demonstrative Singular
+    Column 1 = Demonstrative Plural
   English:
-    Column 2 = Singular Consonant
-    Column 3 = Generic Consonant
-    Column 4 = Plural Consonant
-    Column 5 = Singular Vowel
-    Column 6 = Generic Vowel
-    Column 7 = Plural Vowel
+    Column 2 = Consonant Singular
+    Column 3 = Consonant Generic
+    Column 4 = Consonant Plural
+    Column 5 = Vowel Singular
+    Column 6 = Vowel Generic
+    Column 7 = Vowel Plural
   German:
     Column 8 = Nominative Masculine
     Column 9 = Nominative Feminine
