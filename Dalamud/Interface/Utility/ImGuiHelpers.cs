@@ -14,6 +14,7 @@ using Dalamud.Interface.ImGuiBackend.InputHandler;
 using Dalamud.Interface.ImGuiBackend.Renderers;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
@@ -152,6 +153,11 @@ public static partial class ImGuiHelpers
             (delegate*<ImDrawList*, ImDrawCmd*, void>)(nint)(long)CustomImDrawCallbackEnum.Blur,
             data);
         drawList.PopClipRect();
+
+        // Return the pool slot once all render passes for this frame are done
+        var dataAddr = (nint)data;
+        Service<InterfaceManager>.Get().DeferUntilFrameRetired(
+            () => BlurCallbackDataPool.Return((BlurCallbackData*)dataAddr));
     }
 
     /// <summary>
@@ -216,6 +222,11 @@ public static partial class ImGuiHelpers
 
         var cmdVec = new ImVectorWrapper<ImDrawCmd>(drawList.Handle->CmdBuffer.ToUntyped());
         cmdVec.Insert(0, blurCmd);
+
+        // Return the pool slot once all render passes for this frame are done
+        var dataAddr = (nint)data;
+        Service<InterfaceManager>.Get().DeferUntilFrameRetired(
+            () => BlurCallbackDataPool.Return((BlurCallbackData*)dataAddr));
     }
 
     /// <summary>

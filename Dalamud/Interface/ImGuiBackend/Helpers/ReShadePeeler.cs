@@ -1,7 +1,10 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+using Dalamud.Support;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -33,9 +36,18 @@ internal static unsafe class ReShadePeeler
         where T : unmanaged, IUnknown.Interface
     {
         var changed = false;
+
+        // Track objects we've already peeled so a wrapper whose pointer scan resolves back to an
+        // already-visited object (or to itself) cannot spin forever -> game hang.
+        var visited = new HashSet<nint>();
         while (comptr->Get() != null && IsReShadedComObject(comptr->Get()))
         {
+            var currentObject = (nint)comptr->Get();
+            if (!visited.Add(currentObject))
+                break; // already seen this object -> cycle, stop to avoid infinite loop
+
             // Expectation: the pointer to the underlying object should come early after the overriden vtable.
+            var peeled = false;
             for (nint i = 8; i <= 0x20; i += 8)
             {
                 var ppObjectBehind = (nint)comptr->Get() + i;
@@ -72,12 +84,20 @@ internal static unsafe class ReShadePeeler
                 if (punk.As(&comptr2).FAILED)
                     continue;
 
+                // The candidate resolved back to the object we're currently peeling; swapping to
+                // self is not real progress and would let the outer loop spin. Skip it.
+                if ((nint)comptr2.Get() == currentObject)
+                    continue;
+
                 comptr2.Swap(comptr);
                 changed = true;
+                peeled = true;
                 break;
             }
 
-            if (!changed)
+            // Use a per-iteration flag: once 'changed' is true it stays true, so the outer
+            // loop exit condition must track whether *this* iteration succeeded, not any prior one.
+            if (!peeled)
                 break;
         }
 
@@ -86,7 +106,7 @@ internal static unsafe class ReShadePeeler
 
     private static bool BelongsInReShadeDll(nint ptr)
     {
-        foreach (ProcessModule processModule in Process.GetCurrentProcess().Modules)
+        foreach (ProcessModule processModule in CurrentProcessModules.ModuleCollection)
         {
             if (ptr < processModule.BaseAddress)
                 continue;
@@ -165,6 +185,9 @@ internal static unsafe class ReShadePeeler
 
     private static bool IsValidReadableMemoryAddress(nint p, nint size)
     {
+        if (size < 0)
+            return false;
+
         while (size > 0)
         {
             if (!IsValidUserspaceMemoryAddress(p))
@@ -182,8 +205,12 @@ internal static unsafe class ReShadePeeler
                 })
                 return false;
 
-            var regionSize = (nint)((mbi.RegionSize + 0xFFFUL) & ~0x1000UL);
-            var checkedSize = ((nint)mbi.BaseAddress + regionSize) - p;
+            // Advance by the actual region remaining from p, clamped to what's left to check.
+            var regionEnd = (nint)mbi.BaseAddress + (nint)mbi.RegionSize;
+            var checkedSize = regionEnd - p;          // bytes validated in this region from p
+            if (checkedSize <= 0)
+                return false;                          // no forward progress -> bail instead of looping
+            checkedSize = Math.Min(checkedSize, size); // never advance past the requested range
             size -= checkedSize;
             p += checkedSize;
         }
@@ -193,6 +220,9 @@ internal static unsafe class ReShadePeeler
 
     private static bool IsValidExecutableMemoryAddress(nint p, nint size)
     {
+        if (size < 0)
+            return false;
+
         while (size > 0)
         {
             if (!IsValidUserspaceMemoryAddress(p))
@@ -210,8 +240,12 @@ internal static unsafe class ReShadePeeler
                 })
                 return false;
 
-            var regionSize = (nint)((mbi.RegionSize + 0xFFFUL) & ~0x1000UL);
-            var checkedSize = ((nint)mbi.BaseAddress + regionSize) - p;
+            // Advance by the actual region remaining from p, clamped to what's left to check.
+            var regionEnd = (nint)mbi.BaseAddress + (nint)mbi.RegionSize;
+            var checkedSize = regionEnd - p;          // bytes validated in this region from p
+            if (checkedSize <= 0)
+                return false;                          // no forward progress -> bail instead of looping
+            checkedSize = Math.Min(checkedSize, size); // never advance past the requested range
             size -= checkedSize;
             p += checkedSize;
         }
