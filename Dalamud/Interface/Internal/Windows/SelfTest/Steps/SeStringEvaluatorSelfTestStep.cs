@@ -1,10 +1,11 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.ClientState;
+using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin.SelfTest;
+
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
@@ -33,7 +34,7 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                 // that MacroDecoder.GetMacroTime()->SetTime() has been called
                 // and that local and global parameters have been read correctly.
 
-                ImGui.Text(seStringEvaluator.EvaluateFromAddon(31, [(uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()]).ExtractText());
+                ImGui.Text(seStringEvaluator.EvaluateFromAddon(31, [(uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()]).ToString());
 
                 if (ImGui.Button("Yes"u8))
                     this.step++;
@@ -64,7 +65,7 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                     return SelfTestStepResult.Waiting;
                 }
 
-                var evaluatedPlayerName = seStringEvaluator.Evaluate(ReadOnlySeString.FromMacroString("<pcname(lnum1)>"), [localPlayer.EntityId]).ExtractText();
+                var evaluatedPlayerName = seStringEvaluator.Evaluate(ReadOnlySeString.FromMacroString("<pcname(lnum1)>"), [localPlayer.EntityId]).ToString();
                 var localPlayerName = localPlayer.Name.TextValue;
 
                 if (evaluatedPlayerName != localPlayerName)
@@ -126,6 +127,27 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                 finally
                 {
                     config.LanguageOverride = originalLanguageOverride;
+                }
+
+                this.step++;
+                break;
+
+            case 3:
+                // This tests that the result of the inner sheet macro is interpreted correctly as uint.
+                // Addon#8509: <sheet(PlaceName,<sheet(TerritoryType,lnum1,5)>,0)>
+
+                const string expectedPlaceName = "Southern Thanalan";
+                var evaluatedPlaceName = seStringEvaluator.EvaluateFromAddon(8509, [146], ClientLanguage.English).ToString();
+                if (evaluatedPlaceName != expectedPlaceName)
+                {
+                    ImGui.Text($"Test failed for nested sheet payload");
+                    ImGui.Text($"Expected: {expectedPlaceName}");
+                    ImGui.Text($"Got: {evaluatedPlaceName}");
+
+                    if (ImGui.Button("Continue"u8))
+                        return SelfTestStepResult.Fail;
+
+                    return SelfTestStepResult.Waiting;
                 }
 
                 return SelfTestStepResult.Pass;

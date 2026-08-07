@@ -2073,6 +2073,11 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         {
             var evaluatedStr = this.Evaluate(str, context.LocalParameters, context.Language);
 
+            if (evaluatedStr.IsTextOnly())
+            {
+                return uint.TryParse(evaluatedStr, out value);
+            }
+
             foreach (var payload in evaluatedStr)
             {
                 if (!payload.TryGetExpression(out var expr))
