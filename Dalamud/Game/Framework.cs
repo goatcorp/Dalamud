@@ -387,20 +387,23 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     }
 
     /// <summary>
-    /// Adds a update time to the stats history.
+    /// Adds a update time to the stat's history.
     /// </summary>
     /// <param name="key">Delegate Name.</param>
     /// <param name="ms">Runtime.</param>
     internal static void AddToStats(string key, double ms)
     {
-        if (!StatsHistory.ContainsKey(key))
-            StatsHistory.Add(key, []);
-
-        StatsHistory[key].Add(ms);
-
-        if (StatsHistory[key].Count > 1000)
+        if (!StatsHistory.TryGetValue(key, out var value))
         {
-            StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
+            value = [];
+            StatsHistory.Add(key, value);
+        }
+
+        value.Add(ms);
+
+        if (value.Count > 1000)
+        {
+            value.RemoveRange(0, value.Count - 1000);
         }
     }
 
