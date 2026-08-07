@@ -1041,7 +1041,19 @@ internal class ConsoleWindow : Window, IDisposable
                     continue;
 
                 var allowedLevel = filterEntry.Level <= entry.Level;
-                var matchesContent = filterEntry.FilterRegex?.IsMatch(entry.Line) is not false;
+
+                var contentForMatch = entry.Line;
+                if (entry.Source is not null)
+                {
+                    var sourceTag = $"[{entry.Source}]";
+                    var tagIndex = contentForMatch.IndexOf(sourceTag, StringComparison.InvariantCultureIgnoreCase);
+                    if (tagIndex >= 0)
+                    {
+                        contentForMatch = contentForMatch.Remove(tagIndex, sourceTag.Length);
+                    }
+                }
+
+                var matchesContent = filterEntry.FilterRegex?.IsMatch(contentForMatch) is not false;
 
                 matchesAny |= allowedLevel && matchesContent;
                 if (matchesAny)
