@@ -660,7 +660,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
         if (runInFrameworkThread)
         {
             return this.InterfaceManagerWithSceneAsync
-                       .ContinueWith(_ => this.framework.RunOnFrameworkThread(func))
+                       .ContinueWith(_ => this.framework.Run(func))
                        .Unwrap();
         }
         else

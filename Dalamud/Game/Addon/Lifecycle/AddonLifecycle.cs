@@ -109,7 +109,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     {
         if (this.isInvokingListeners)
         {
-            this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
+            _ = this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
         }
         else
         {
@@ -127,7 +127,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
         if (this.isInvokingListeners)
         {
-            this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
+            _ = this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
         }
         else
         {
