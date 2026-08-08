@@ -71,7 +71,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.uiModuleHandlePacketHook.Enable();
         this.setCurrentInstanceHook.Enable();
 
-        this.framework.RunOnTick(this.Setup);
+        _ = this.framework.RunOnTick(this.Setup);
     }
 
     private unsafe delegate void SetCurrentInstanceDelegate(NetworkModuleProxy* thisPtr, short instanceId);

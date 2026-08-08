@@ -994,7 +994,7 @@ internal class DalamudInterface : IInternalDisposableService
                                 texture.TextureType = TextureType.Crest;
                             }
 
-                            Service<Game.Framework>.Get().RunOnTick(CauseFastFail);
+                            _ = Service<Framework>.Get().RunOnTick(CauseFastFail);
                         }
 
                         if (ImGui.MenuItem("Cause ImGui assert"u8))
