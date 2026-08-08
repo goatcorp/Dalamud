@@ -181,6 +181,10 @@ public interface IFramework : IDalamudService
     /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
     /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
     /// <returns>Task representing the pending function.</returns>
+    /// <remarks>
+    /// If you await this call, after awaiting completes you are guaranteed to no longer be on the games framework thread,
+    /// even if nested inside another Run or RunOnTick.
+    /// </remarks>
     Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -191,6 +195,10 @@ public interface IFramework : IDalamudService
     /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
     /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
     /// <returns>Task representing the pending function.</returns>
+    /// <remarks>
+    /// If you await this call, after awaiting completes you are guaranteed to no longer be on the games framework thread,
+    /// even if nested inside another Run or RunOnTick.
+    /// </remarks>
     Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -202,6 +210,10 @@ public interface IFramework : IDalamudService
     /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
     /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
     /// <returns>Task representing the pending function.</returns>
+    /// <remarks>
+    /// If you await this call, after awaiting completes you are guaranteed to no longer be on the games framework thread,
+    /// even if nested inside another Run or RunOnTick.
+    /// </remarks>
     Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -212,6 +224,10 @@ public interface IFramework : IDalamudService
     /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
     /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
     /// <returns>Task representing the pending function.</returns>
+    /// <remarks>
+    /// If you await this call, after awaiting completes you are guaranteed to no longer be on the games framework thread,
+    /// even if nested inside another Run or RunOnTick.
+    /// </remarks>
     Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default);
 
     /// <summary>
