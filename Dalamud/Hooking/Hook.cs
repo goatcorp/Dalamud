@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Configuration.Internal;
 using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.Internal.Verification;
+using Dalamud.Memory;
 using Dalamud.Utility;
 
 using Serilog;
@@ -237,10 +238,30 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <returns>The hook with the supplied parameters.</returns>
     private static Hook<T> CreateBackend(IntPtr address, T detour, Assembly callingAssembly)
     {
-        if (EnvironmentConfiguration.DalamudUseSafetyHook)
-            return new SafetyHookHook<T>(address, detour, callingAssembly);
+        try
+        {
+            if (EnvironmentConfiguration.DalamudUseSafetyHook)
+                return new SafetyHookHook<T>(address, detour, callingAssembly);
 
-        return new ReloadedHook<T>(address, detour, callingAssembly);
+            return new ReloadedHook<T>(address, detour, callingAssembly);
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                Log.Error(
+                    ex,
+                    "Could not set up a hook at {Address}\n{Report}",
+                    Util.DescribeAddress(address),
+                    AddressSpaceAnalysis.BuildReport(address));
+            }
+            catch (Exception reportEx)
+            {
+                Log.Error(reportEx, "Could not build an address space report for the failed hook");
+            }
+
+            throw;
+        }
     }
 
     private static void ThrowMinHookRemoved()
