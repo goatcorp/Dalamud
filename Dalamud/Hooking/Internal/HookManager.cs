@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 
+using Dalamud.Game;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Utility;
@@ -22,6 +23,9 @@ internal class HookManager : IInternalDisposableService
     /// Logger shared with <see cref="Unhooker"/>.
     /// </summary>
     internal static readonly ModuleLog Log = ModuleLog.Create<HookManager>();
+
+    [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
 
     [ServiceManager.ServiceConstructor]
     private HookManager()
@@ -78,9 +82,13 @@ internal class HookManager : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        RevertHooks();
-        TrackedHooks.Clear();
-        Unhookers.Clear();
+        // Reduce chances of trampling code that is currently executing by reverting on main thread
+        this.framework.Run(() =>
+        {
+            RevertHooks();
+            TrackedHooks.Clear();
+            Unhookers.Clear();
+        }).Wait();
     }
 
     /// <summary>
