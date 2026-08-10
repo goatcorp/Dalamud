@@ -13,7 +13,6 @@
     <!-- Misc Libraries -->
     <PackageVersion Include="BitFaster.Caching" Version="2.5.4" />
     <PackageVersion Include="CheapLoc" Version="1.1.8" />
-    <PackageVersion Include="MinSharp" Version="1.0.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Lumina" Version="7.6.0" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.0" />

@@ -187,7 +187,7 @@ internal unsafe class Character : GameObject, ICharacter
         (this.Struct->IsHostile ? StatusFlags.Hostile : StatusFlags.None) |
         (this.Struct->InCombat ? StatusFlags.InCombat : StatusFlags.None) |
         (this.Struct->IsWeaponDrawn ? StatusFlags.WeaponOut : StatusFlags.None) |
-        (this.Struct->IsOffhandDrawn ? StatusFlags.OffhandOut : StatusFlags.None) |
+        (this.Struct->LifeSkillContainer.IsOffhandDrawn ? StatusFlags.OffhandOut : StatusFlags.None) |
         (this.Struct->IsPartyMember ? StatusFlags.PartyMember : StatusFlags.None) |
         (this.Struct->IsAllianceMember ? StatusFlags.AllianceMember : StatusFlags.None) |
         (this.Struct->IsFriend ? StatusFlags.Friend : StatusFlags.None) |
