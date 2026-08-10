@@ -82,6 +82,7 @@ internal class HookManager : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        // Reduce chances of trampling code that is currently executing by reverting on main thread
         this.framework.Run(() =>
         {
             RevertHooks();
