@@ -116,114 +116,80 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     public TaskFactory GetTaskFactory() => this.FrameworkThreadTaskFactory;
 
     /// <inheritdoc/>
-    public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default)
+    public async Task DelayTicks(long numTicks, CancellationToken cancellationToken = default)
     {
-        if (this.frameworkDestroyed.IsCancellationRequested) // Gone
-        {
-            return Task.FromCanceled(this.frameworkDestroyed.Token);
-        }
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
 
-        if (numTicks <= 0 || this.frameworkThreadTaskScheduler.BoundThread == null) // Nonsense or before first tick
+        // Cancellation has already been requested either by provided token, or by framework token,
+        // as this function is async this will return a Task.FromCancelled(...) automatically.
+        linkedCts.Token.ThrowIfCancellationRequested();
+
+        // Nonsense or before first tick
+        if (numTicks <= 0 || this.frameworkThreadTaskScheduler.BoundThread == null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        this.tickDelayedTaskCompletionSources[tcs] = (this.tickCounter + (ulong)numTicks, cancellationToken);
-        return tcs.Task;
+        this.tickDelayedTaskCompletionSources[tcs] = (this.tickCounter + (ulong)numTicks, linkedCts.Token);
+
+        await tcs.Task;
     }
 
     /// <inheritdoc/>
-    public Task Run(Action action, CancellationToken cancellationToken = default)
+    public async Task Run(Action action, CancellationToken cancellationToken = default)
     {
-        if (this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested)
-        {
-            try
-            {
-                action();
-                return Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                return Task.FromException(ex);
-            }
-        }
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
 
-        if (cancellationToken == CancellationToken.None)
+        if (this.IsInFrameworkUpdateThread || linkedCts.IsCancellationRequested)
         {
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+            action();
         }
-
-        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken);
+        else
+        {
+            await this.FrameworkThreadTaskFactory.StartNew(action, linkedCts.Token);
+        }
     }
 
     /// <inheritdoc/>
-    public Task<T> Run<T>(Func<T> action, CancellationToken cancellationToken = default)
+    public async Task<T> Run<T>(Func<T> action, CancellationToken cancellationToken = default)
     {
-        if (this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested)
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
+
+        if (this.IsInFrameworkUpdateThread || linkedCts.IsCancellationRequested)
         {
-            try
-            {
-                return Task.FromResult(action());
-            }
-            catch (Exception ex)
-            {
-                return Task.FromException<T>(ex);
-            }
+            return action();
         }
 
-        if (cancellationToken == CancellationToken.None)
-        {
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-        }
-
-        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken);
+        return await this.FrameworkThreadTaskFactory.StartNew(action, linkedCts.Token);
     }
 
     /// <inheritdoc/>
-    public Task Run(Func<Task> action, CancellationToken cancellationToken = default)
+    public async Task Run(Func<Task> action, CancellationToken cancellationToken = default)
     {
-        if (this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested)
-        {
-            try
-            {
-                return Task.FromResult(action());
-            }
-            catch (Exception ex)
-            {
-                return Task.FromException(ex);
-            }
-        }
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
 
-        if (cancellationToken == CancellationToken.None)
+        if (this.IsInFrameworkUpdateThread || linkedCts.IsCancellationRequested)
         {
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+            await action();
         }
-
-        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken).Unwrap();
+        else
+        {
+            await this.FrameworkThreadTaskFactory.StartNew(action, linkedCts.Token).Unwrap();
+        }
     }
 
     /// <inheritdoc/>
-    public Task<T> Run<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
+    public async Task<T> Run<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
     {
-        if (this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested)
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
+
+        if (this.IsInFrameworkUpdateThread || linkedCts.IsCancellationRequested)
         {
-            try
-            {
-                return action();
-            }
-            catch (Exception ex)
-            {
-                return Task.FromException<T>(ex);
-            }
+            return await action();
         }
 
-        if (cancellationToken == CancellationToken.None)
-        {
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-        }
-
-        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken).Unwrap();
+        return await this.FrameworkThreadTaskFactory.StartNew(action, linkedCts.Token).Unwrap();
     }
 
     /// <inheritdoc/>
@@ -264,24 +230,16 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
+
         if (delay != TimeSpan.Zero || delayTicks is not 0)
         {
-            this.frameworkDestroyed.Token.ThrowIfCancellationRequested();
-
-            if (cancellationToken == CancellationToken.None)
-            {
-                cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-            }
-
-            await Task.WhenAll(Task.Delay(delay, cancellationToken), this.DelayTicks(delayTicks, cancellationToken)).ConfigureAwait(false);
-
-            this.frameworkDestroyed.Token.ThrowIfCancellationRequested();
-            cancellationToken.ThrowIfCancellationRequested();
+            await Task.WhenAll(Task.Delay(delay, linkedCts.Token), this.DelayTicks(delayTicks, linkedCts.Token)).ConfigureAwait(false);
         }
 
         return await Task.Factory.StartNew(
                    func,
-                   cancellationToken,
+                   linkedCts.Token,
                    TaskCreationOptions.HideScheduler | TaskCreationOptions.RunContinuationsAsynchronously,
                    this.frameworkThreadTaskScheduler).ConfigureAwait(false);
     }
@@ -289,24 +247,16 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
+
         if (delay != TimeSpan.Zero || delayTicks is not 0)
         {
-            this.frameworkDestroyed.Token.ThrowIfCancellationRequested();
-
-            if (cancellationToken == CancellationToken.None)
-            {
-                cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-            }
-
-            await Task.WhenAll(Task.Delay(delay, cancellationToken), this.DelayTicks(delayTicks, cancellationToken)).ConfigureAwait(false);
-
-            this.frameworkDestroyed.Token.ThrowIfCancellationRequested();
-            cancellationToken.ThrowIfCancellationRequested();
+            await Task.WhenAll(Task.Delay(delay, linkedCts.Token), this.DelayTicks(delayTicks, linkedCts.Token)).ConfigureAwait(false);
         }
 
         await Task.Factory.StartNew(
             action,
-            cancellationToken,
+            linkedCts.Token,
             TaskCreationOptions.HideScheduler | TaskCreationOptions.RunContinuationsAsynchronously,
             this.frameworkThreadTaskScheduler).ConfigureAwait(false);
     }
@@ -314,24 +264,16 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
+
         if (delay != TimeSpan.Zero || delayTicks is not 0)
         {
-            this.frameworkDestroyed.Token.ThrowIfCancellationRequested();
-
-            if (cancellationToken == CancellationToken.None)
-            {
-                cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-            }
-
-            await Task.WhenAll(Task.Delay(delay, cancellationToken), this.DelayTicks(delayTicks, cancellationToken)).ConfigureAwait(false);
-
-            this.frameworkDestroyed.Token.ThrowIfCancellationRequested();
-            cancellationToken.ThrowIfCancellationRequested();
+            await Task.WhenAll(Task.Delay(delay, linkedCts.Token), this.DelayTicks(delayTicks, linkedCts.Token)).ConfigureAwait(false);
         }
 
         return await Task.Factory.StartNew(
                    func,
-                   cancellationToken,
+                   linkedCts.Token,
                    TaskCreationOptions.HideScheduler | TaskCreationOptions.RunContinuationsAsynchronously,
                    this.frameworkThreadTaskScheduler).Unwrap().ConfigureAwait(false);
     }
@@ -339,24 +281,16 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
+
         if (delay != TimeSpan.Zero || delayTicks is not 0)
         {
-            this.frameworkDestroyed.Token.ThrowIfCancellationRequested();
-
-            if (cancellationToken == CancellationToken.None)
-            {
-                cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-            }
-
-            await Task.WhenAll(Task.Delay(delay, cancellationToken), this.DelayTicks(delayTicks, cancellationToken)).ConfigureAwait(false);
-
-            this.frameworkDestroyed.Token.ThrowIfCancellationRequested();
-            cancellationToken.ThrowIfCancellationRequested();
+            await Task.WhenAll(Task.Delay(delay, linkedCts.Token), this.DelayTicks(delayTicks, linkedCts.Token)).ConfigureAwait(false);
         }
 
         await Task.Factory.StartNew(
             func,
-            cancellationToken,
+            linkedCts.Token,
             TaskCreationOptions.HideScheduler | TaskCreationOptions.RunContinuationsAsynchronously,
             this.frameworkThreadTaskScheduler).ConfigureAwait(false);
     }
