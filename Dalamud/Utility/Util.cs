@@ -367,6 +367,16 @@ public static partial class Util
     /// <returns>Human readable version.</returns>
     public static string FormatBytes(long bytes)
     {
+        return FormatBytes((ulong)bytes);
+    }
+
+    /// <summary>
+    /// Transform byte count to human readable format.
+    /// </summary>
+    /// <param name="bytes">Number of bytes.</param>
+    /// <returns>Human readable version.</returns>
+    public static string FormatBytes(ulong bytes)
+    {
         string[] suffix = ["B", "KB", "MB", "GB", "TB"];
         int i;
         double dblSByte = bytes;

@@ -1,3 +1,17 @@
-<!-- This is left empty on purpose to avoid having Directory.Build.props in the root of the repository leak into dependencies. -->
+<!-- This is left almost empty on purpose to avoid having Directory.Build.props in the root of the repository leak into dependencies. -->
 <Project>
+
+    <!--
+    Lumina.Excel versions itself from git tags via MinVer, which we don't want when building it as a submodule.
+    It breaks edit and continue and isn't really useful since Dalamud.dll already has git info.
+    -->
+    <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Lumina.Excel'">
+        <MinVerSkip>true</MinVerSkip>
+        <Version>7.5.1</Version>
+        <AssemblyVersion>7.0.0.0</AssemblyVersion>
+        <FileVersion>7.5.1.0</FileVersion>
+        <InformationalVersion>7.5.1</InformationalVersion>
+        <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    </PropertyGroup>
+
 </Project>
