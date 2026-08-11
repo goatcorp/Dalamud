@@ -37,7 +37,7 @@ namespace Dalamud.Injector
         /// <summary>
         /// Gets or sets the capabilities granted to the container token.
         /// </summary>
-        [JsonProperty("capabilities")]
+        [JsonProperty("capabilities", ObjectCreationHandling = ObjectCreationHandling.Replace)]
         public List<string> Capabilities { get; set; } = ["internetClient", "privateNetworkClientServer"];
 
         /// <summary>

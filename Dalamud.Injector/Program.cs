@@ -42,6 +42,7 @@ namespace Dalamud.Injector
 
                 Init(args);
                 args.Remove("-v"); // Remove "verbose" flag
+                args.Remove("--verbose");
 
                 if (args.Count >= 2 && args[1].ToLowerInvariant() == "launch-test")
                 {
@@ -136,7 +137,7 @@ namespace Dalamud.Injector
 
         private static void Init(List<string> args)
         {
-            InitLogging(args.Any(x => x == "-v"), args);
+            InitLogging(args.Any(x => x is "-v" or "--verbose"), args);
             InitUnhandledException(args);
 
             var cwd = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory
@@ -1137,6 +1138,8 @@ namespace Dalamud.Injector
             }
 
             var layout = BuildSandboxLayout(startInfo, config, gamePath);
+
+            Log.Verbose("[SANDBOX] Using sandbox layout: {Layout}", JsonConvert.SerializeObject(layout));
 
             var ctx = AppContainerHelper.CreateContext(
                 layout.Config.ContainerName,
