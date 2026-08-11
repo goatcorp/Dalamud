@@ -1041,6 +1041,9 @@ namespace Dalamud.Injector
             Add(startInfo.AssetDirectory, AppContainerHelper.AccessReadExecute);
 
             // Modify for state
+            if (!string.IsNullOrEmpty(startInfo.AssetDirectory))
+                Add(Path.Combine(startInfo.AssetDirectory, "..", "local"),  AppContainerHelper.AccessModify, true);
+
             Add(startInfo.PluginDirectory, AppContainerHelper.AccessModify, true);
             Add(dataDir, AppContainerHelper.AccessModify);
             Add(Path.GetDirectoryName(startInfo.ConfigurationPath!), AppContainerHelper.AccessModify);
