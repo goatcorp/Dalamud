@@ -737,6 +737,60 @@ void xivfixes::faster_decompression(bool bApply) {
     }
 }
 
+void xivfixes::appcontainer_known_folders(bool bApply) {
+    static const char* LogTag = "[xivfixes:appcontainer_known_folders]";
+    static std::optional<hooks::import_hook<decltype(SHGetSpecialFolderLocation)>> s_hookSHGetSpecialFolderLocation;
+
+    if (bApply) {
+        if (!g_startInfo.BootEnabledGameFixes.contains("appcontainer_known_folders")) {
+            logging::I("{} Turned off via environment variable.", LogTag);
+            return;
+        }
+
+        BOOL isAppContainer = FALSE;
+        if (HANDLE hToken; OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
+            DWORD returnLength = 0;
+            if (!GetTokenInformation(hToken, TokenIsAppContainer, &isAppContainer, sizeof isAppContainer, &returnLength))
+                isAppContainer = FALSE;
+            CloseHandle(hToken);
+        }
+
+        if (!isAppContainer) {
+            logging::I("{} Not running in an AppContainer; skipping.", LogTag);
+            return;
+        }
+
+        // Inside an AppContainer, SHGetSpecialFolderLocation(CSIDL_PERSONAL) fails with E_ACCESSDENIED
+        s_hookSHGetSpecialFolderLocation.emplace(
+            "shell32.dll!SHGetSpecialFolderLocation (import, appcontainer_known_folders)",
+            "shell32.dll", "SHGetSpecialFolderLocation", 0);
+
+        s_hookSHGetSpecialFolderLocation->set_detour([](HWND hwnd, int csidl, PIDLIST_ABSOLUTE* ppidl) noexcept -> HRESULT {
+            const auto result = s_hookSHGetSpecialFolderLocation->call_original(hwnd, csidl, ppidl);
+            if (SUCCEEDED(result) || (csidl & CSIDL_FLAG_DONT_VERIFY))
+                return result;
+
+            const auto retried = s_hookSHGetSpecialFolderLocation->call_original(hwnd, csidl | CSIDL_FLAG_DONT_VERIFY, ppidl);
+            if (SUCCEEDED(retried)) {
+                logging::I("{} csidl=0x{:X} failed with 0x{:X}. Resolved with CSIDL_FLAG_DONT_VERIFY",
+                    LogTag, csidl, static_cast<uint32_t>(result));
+            } else {
+                logging::W("{} csidl=0x{:X} failed with 0x{:X}. Retry with CSIDL_FLAG_DONT_VERIFY also failed with 0x{:X}",
+                    LogTag, csidl, static_cast<uint32_t>(result), static_cast<uint32_t>(retried));
+            }
+
+            return retried;
+        });
+
+        logging::I("{} Enable", LogTag);
+    } else {
+        if (s_hookSHGetSpecialFolderLocation) {
+            logging::I("{} Disable", LogTag);
+            s_hookSHGetSpecialFolderLocation.reset();
+        }
+    }
+}
+
 void xivfixes::apply_all(bool bApply) {
     for (const auto& [taskName, taskFunction] : std::initializer_list<std::pair<const char*, void(*)(bool)>>
         {
@@ -749,6 +803,7 @@ void xivfixes::apply_all(bool bApply) {
             { "symbol_load_patches", &symbol_load_patches },
             { "disable_game_debugging_protection", &disable_game_debugging_protection },
             { "faster_decompression", &faster_decompression },
+            { "appcontainer_known_folders", &appcontainer_known_folders },
         }
         ) {
         try {
