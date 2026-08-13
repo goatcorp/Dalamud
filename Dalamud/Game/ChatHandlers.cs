@@ -118,9 +118,9 @@ internal partial class ChatHandlers : IServiceType
 
             using var rssb = new RentedSeStringBuilder();
 
-            chatGui.Print(new XivChatEntry
+            chatGui.Print(new PrintableChatMessage
             {
-                Type = XivChatType.Notice,
+                LogKind = XivChatType.Notice,
                 Message = rssb.Builder
                     .Append(Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully!"))
                     .PushColorType(500)

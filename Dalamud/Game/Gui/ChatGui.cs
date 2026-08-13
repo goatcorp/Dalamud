@@ -35,7 +35,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 {
     private static readonly ModuleLog Log = ModuleLog.Create<ChatGui>();
 
-    private readonly Queue<XivChatEntry> chatQueue = new();
+    private readonly Queue<IPrintableChatMessage> messageQueue = new();
     private readonly Dictionary<(string PluginName, uint CommandId), Action<DalamudLinkPayload>> dalamudLinkHandlers = [];
     private readonly Lock dalamudLinkHandlersLock = new();
     private readonly List<nint> seenLogMessageObjects = [];
@@ -123,9 +123,9 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     }
 
     /// <inheritdoc/>
-    public void Print(XivChatEntry chat)
+    public void Print(IPrintableChatMessage message)
     {
-        this.chatQueue.Enqueue(chat);
+        this.messageQueue.Enqueue(message);
     }
 
     /// <inheritdoc/>
@@ -245,19 +245,19 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// <param name="framework">The Framework instance.</param>
     private void UpdateQueue(IFramework framework)
     {
-        if (this.chatQueue.Count == 0)
+        if (this.messageQueue.Count == 0)
             return;
 
         using var rssb = new RentedSeStringBuilder();
         using var sender = new Utf8String();
         using var message = new Utf8String();
 
-        while (this.chatQueue.TryDequeue(out var chat))
+        while (this.messageQueue.TryDequeue(out var chat))
         {
             // set sender
             sender.SetString(rssb.Builder
                 .Clear()
-                .Append(chat.Name)
+                .Append(chat.Sender)
                 .GetViewAsSpan());
 
             // set message
@@ -275,11 +275,14 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
             message.SetString(rssb.Builder.GetViewAsSpan());
 
-            var targetChannel = chat.Type ?? this.configuration.GeneralChatType;
-
             this.HandlePrintMessageDetour(
                 RaptureLogModule.Instance(),
-                new LogInfo { LogKind = (ushort)targetChannel },
+                new LogInfo
+                {
+                    LogKind = (ushort)chat.LogKind,
+                    SourceKind = (EntityRelationKind)chat.SourceKind,
+                    TargetKind = (EntityRelationKind)chat.TargetKind,
+                },
                 &sender,
                 &message,
                 chat.Timestamp,
@@ -306,10 +309,10 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             }
         }
 
-        this.Print(new XivChatEntry
+        this.Print(new PrintableChatMessage
         {
+            LogKind = channel,
             Message = rssb.Builder.Append(message).ToReadOnlySeString(),
-            Type = channel,
         });
     }
 
@@ -605,8 +608,8 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
         => this.chatGuiService.RemoveChatLinkHandler(this.plugin.InternalName);
 
     /// <inheritdoc/>
-    public void Print(XivChatEntry chat)
-        => this.chatGuiService.Print(chat);
+    public void Print(IPrintableChatMessage message)
+        => this.chatGuiService.Print(message);
 
     /// <inheritdoc/>
     public void Print(ReadOnlySeString message, string? messageTag = null, ushort? tagColor = null)

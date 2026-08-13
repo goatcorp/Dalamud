@@ -25,16 +25,6 @@ public interface IChatMessage
     XivChatRelationKind TargetKind { get; }
 
     /// <summary>
-    /// Gets the original sender name, before any plugin might have changed it.
-    /// </summary>
-    ReadOnlySeString OriginalSender { get; }
-
-    /// <summary>
-    /// Gets the original message, before any plugin might have changed it.
-    /// </summary>
-    ReadOnlySeString OriginalMessage { get; }
-
-    /// <summary>
     /// Gets the sender name.
     /// </summary>
     ReadOnlySeString Sender { get; }
@@ -48,11 +38,6 @@ public interface IChatMessage
     /// Gets the timestamp of when the message was sent.
     /// </summary>
     int Timestamp { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether the message was handled by a plugin.
-    /// </summary>
-    bool IsHandled { get; }
 }
 
 /// <summary>
@@ -60,6 +45,16 @@ public interface IChatMessage
 /// </summary>
 public interface IMutableChatMessage : IChatMessage
 {
+    /// <summary>
+    /// Gets the original sender name, before any plugin might have changed it.
+    /// </summary>
+    ReadOnlySeString OriginalSender { get; }
+
+    /// <summary>
+    /// Gets the original message, before any plugin might have changed it.
+    /// </summary>
+    ReadOnlySeString OriginalMessage { get; }
+
     /// <summary>
     /// Gets or sets the sender name.
     /// </summary>
@@ -87,7 +82,12 @@ public interface IMutableChatMessage : IChatMessage
 public interface IHandleableChatMessage : IMutableChatMessage
 {
     /// <summary>
-    /// Marks this message as handled (<see cref="IChatMessage.IsHandled"/> = <see langword="true"/>) and prevents it from being processed by the game any further.
+    /// Gets a value indicating whether the message was handled by a plugin.
+    /// </summary>
+    bool IsHandled { get; }
+
+    /// <summary>
+    /// Marks this message as handled (<see cref="IsHandled"/> = <see langword="true"/>) and prevents it from being processed by the game any further.
     /// </summary>
     void PreventOriginal();
 }

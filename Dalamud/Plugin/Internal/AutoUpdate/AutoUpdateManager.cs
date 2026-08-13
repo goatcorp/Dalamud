@@ -429,9 +429,9 @@ internal class AutoUpdateManager : IServiceType
         }
 
         using var rssb = new RentedSeStringBuilder();
-        chatGui.Print(new XivChatEntry
+        chatGui.Print(new PrintableChatMessage
         {
-            Type = XivChatType.Urgent,
+            LogKind = XivChatType.Urgent,
             Message = rssb.Builder
                 .Append(Locs.NotificationContentUpdatesAvailableMinimized(updatablePlugins.Count))
                 .Append("  [")

@@ -289,9 +289,9 @@ internal class PluginManager : IInternalDisposableService
                 {
                     using var rssb = new RentedSeStringBuilder();
                     chatGui.Print(
-                        new XivChatEntry
+                        new PrintableChatMessage
                         {
-                            Type = this.configuration.GeneralChatType,
+                            LogKind = this.configuration.GeneralChatType,
                             Message = rssb.Builder
                                 .Append(header)
                                 .Append("  [")
@@ -313,13 +313,13 @@ internal class PluginManager : IInternalDisposableService
                         else
                         {
                             chatGui.Print(
-                                new XivChatEntry
+                                new PrintableChatMessage
                                 {
                                     Message = Locs.DalamudPluginUpdateFailed(
                                         metadata.Name,
                                         metadata.Version,
                                         PluginUpdateStatus.LocalizeUpdateStatusKind(metadata.Status)),
-                                    Type = XivChatType.Urgent,
+                                    LogKind = XivChatType.Urgent,
                                 });
                         }
                     }

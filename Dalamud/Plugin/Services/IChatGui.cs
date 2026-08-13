@@ -2,7 +2,6 @@ using System.Collections.Generic;
 
 using Dalamud.Game.Chat;
 using Dalamud.Game.Text;
-using Dalamud.Utility;
 
 using Lumina.Text.ReadOnly;
 
@@ -94,8 +93,8 @@ public interface IChatGui : IDalamudService
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
     /// </summary>
-    /// <param name="chat">A message to send.</param>
-    void Print(XivChatEntry chat);
+    /// <param name="message">A message to send.</param>
+    void Print(IPrintableChatMessage message);
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
