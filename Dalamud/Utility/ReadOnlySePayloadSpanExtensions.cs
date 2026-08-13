@@ -8,9 +8,9 @@ using Newtonsoft.Json;
 namespace Dalamud.Utility;
 
 /// <summary>
-/// Extension functions for <see cref="ReadOnlySePayload"/> and <see cref="ReadOnlySePayloadSpan"/>.
+/// Extension functions for <see cref="ReadOnlySePayloadSpan"/>.
 /// </summary>
-public static class SeStringPayloadExtensions
+public static class ReadOnlySePayloadSpanExtensions
 {
     /// <summary>
     /// Determines whether the payload is a macro payload matching the specified macro code.
@@ -22,12 +22,6 @@ public static class SeStringPayloadExtensions
     {
         return payload.Type == ReadOnlySePayloadType.Macro
             && payload.MacroCode == macroCode;
-    }
-
-    /// <inheritdoc cref="IsMacro(ReadOnlySePayloadSpan, MacroCode)"/>
-    public static bool IsMacro(this ReadOnlySePayload payload, MacroCode macroCode)
-    {
-        return IsMacro(payload.AsSpan(), macroCode);
     }
 
     /// <summary>
@@ -42,12 +36,6 @@ public static class SeStringPayloadExtensions
             && payload.TryGetExpression(out var linkTypeExpression)
             && linkTypeExpression.TryGetInt(out var payloadLinkType)
             && payloadLinkType == (int)linkType;
-    }
-
-    /// <inheritdoc cref="IsLink(ReadOnlySePayloadSpan, LinkMacroPayloadType)"/>
-    public static bool IsLink(this ReadOnlySePayload payload, LinkMacroPayloadType linkType)
-    {
-        return IsLink(payload.AsSpan(), linkType);
     }
 
     /// <summary>
@@ -111,11 +99,5 @@ public static class SeStringPayloadExtensions
         payload = new DalamudLinkPayload(commandId, extraData[0], extra1, extra2, extraData[1]);
 
         return true;
-    }
-
-    /// <inheritdoc cref="TryParseDalamudLink(ReadOnlySePayloadSpan, out DalamudLinkPayload)"/>
-    public static bool TryParseDalamudLink(this ReadOnlySePayload rosps, out DalamudLinkPayload payload)
-    {
-        return TryParseDalamudLink(rosps.AsSpan(), out payload);
     }
 }

@@ -1,10 +1,14 @@
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 
+using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 using Newtonsoft.Json;
+
+using SeString = Dalamud.Game.Text.SeString;
 
 namespace Dalamud.Utility;
 
@@ -137,5 +141,104 @@ public static class SeStringBuilderExtensions
     public static SeStringBuilder PushDalamudLink(this SeStringBuilder builder, DalamudLinkPayload payload)
     {
         return PushDalamudLink(builder, payload.CommandId, payload.PluginName, payload.Extra1, payload.Extra2, payload.ExtraString);
+    }
+
+    /// <summary>
+    /// Appends a formatted item link payload using a combined raw item Id.
+    /// </summary>
+    /// <param name="builder">The builder to append the item link to.</param>
+    /// <param name="itemId">The Id of the Item or EventItem to link. Automatically extracted into its base Id and <see cref="ItemKind"/>.</param>
+    /// <param name="displayNameOverride">An optional name override to display instead of the actual item name.</param>
+    /// <returns>The <see cref="SeStringBuilder"/> instance with the item link appended for method chaining.</returns>
+    public static SeStringBuilder PushItemLink(this SeStringBuilder builder, uint itemId, string? displayNameOverride = null)
+    {
+        var (baseItemId, itemKind) = ItemUtil.GetBaseId(itemId);
+        return builder.Append(SeString.CreateItemLink(baseItemId, itemKind, displayNameOverride));
+    }
+
+    /// <summary>
+    /// Appends a formatted item link payload.
+    /// </summary>
+    /// <param name="builder">The builder to append the item link to.</param>
+    /// <param name="baseItemId">The base Id of the item to link.</param>
+    /// <param name="itemKind">The <see cref="ItemKind"/> variant of the item (e.g., normal, high-quality, collectable).</param>
+    /// <param name="displayNameOverride">An optional name override to display instead of the actual item name.</param>
+    /// <returns>The <see cref="SeStringBuilder"/> instance with the item link appended for method chaining.</returns>
+    public static SeStringBuilder PushItemLink(this SeStringBuilder builder, uint baseItemId, ItemKind itemKind, string? displayNameOverride = null)
+    {
+        return builder.Append(SeString.CreateItemLink(baseItemId, itemKind, displayNameOverride));
+    }
+
+    /// <summary>
+    /// Appends a formatted item link payload.
+    /// </summary>
+    /// <param name="builder">The builder to append the item link to.</param>
+    /// <param name="item">The Lumina <see cref="Item"/> data object to link.</param>
+    /// <param name="isHq">Whether to link the high-quality variant of the item.</param>
+    /// <param name="displayNameOverride">An optional name override to display instead of the actual item name.</param>
+    /// <returns>The <see cref="SeStringBuilder"/> instance with the item link appended for method chaining.</returns>
+    public static SeStringBuilder PushItemLink(this SeStringBuilder builder, Item item, bool isHq, string? displayNameOverride = null)
+    {
+        return builder.Append(SeString.CreateItemLink(item, isHq, displayNameOverride));
+    }
+
+    /// <summary>
+    /// Appends a formatted map link payload for the position of a <see cref="IGameObject"/>.
+    /// </summary>
+    /// <param name="builder">The builder to append the map link to.</param>
+    /// <param name="obj">The game object whose current position should be linked.</param>
+    /// <returns>The <see cref="SeStringBuilder"/> instance with the map link appended for method chaining.</returns>
+    public static SeStringBuilder PushMapLink(this SeStringBuilder builder, IGameObject obj)
+    {
+        return builder.Append(SeString.CreateMapLink(obj));
+    }
+
+    /// <summary>
+    /// Appends a formatted map link payload.
+    /// </summary>
+    /// <param name="builder">The builder to append the map link to.</param>
+    /// <param name="territoryId">The Id of the <c>TerritoryType</c> for this map link.</param>
+    /// <param name="mapId">The Id of the <c>Map</c> for this map link.</param>
+    /// <param name="xCoord">The human-readable X-coordinate for this link.</param>
+    /// <param name="yCoord">The human-readable Y-coordinate for this link.</param>
+    /// <param name="zCoord">An optional human-readable Z-coordinate for this link.</param>
+    /// <param name="instanceId">An optional area instance number to be included in this link.</param>
+    /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
+    /// <returns>The <see cref="SeStringBuilder"/> instance with the map link appended for method chaining.</returns>
+    public static SeStringBuilder PushMapLink(
+        this SeStringBuilder builder,
+        uint territoryId,
+        uint mapId,
+        float xCoord,
+        float yCoord,
+        float zCoord = 0,
+        int instanceId = 0,
+        float fudgeFactor = 0.05f)
+    {
+        return builder.Append(SeString.CreateMapLink(territoryId, mapId, xCoord, yCoord, zCoord, instanceId, fudgeFactor));
+    }
+
+    /// <summary>
+    /// Appends a formatted party finder listing link payload.
+    /// </summary>
+    /// <param name="builder">The builder to append the party finder link to.</param>
+    /// <param name="listingId">The listing Id of the party finder entry.</param>
+    /// <param name="recruiterName">The name of the recruiter.</param>
+    /// <param name="isCrossWorld">Whether the listing is limited to the current world or not.</param>
+    /// <returns>The <see cref="SeStringBuilder"/> instance with the party finder link appended for method chaining.</returns>
+    public static SeStringBuilder PushPartyFinderLink(this SeStringBuilder builder, uint listingId, string recruiterName, bool isCrossWorld = false)
+    {
+        return builder.Append(SeString.CreatePartyFinderLink(listingId, recruiterName, isCrossWorld));
+    }
+
+    /// <summary>
+    /// Appends a formatted party finder search conditions link payload.
+    /// </summary>
+    /// <param name="builder">The builder to append the search conditions link to.</param>
+    /// <param name="message">The text that should be displayed for the link.</param>
+    /// <returns>The <see cref="SeStringBuilder"/> instance with the search conditions link appended for method chaining.</returns>
+    public static SeStringBuilder PushPartyFinderSearchConditionsLink(this SeStringBuilder builder, string message)
+    {
+        return builder.Append(SeString.CreatePartyFinderSearchConditionsLink(message));
     }
 }

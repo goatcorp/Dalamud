@@ -13,10 +13,10 @@ using Lumina.Text.ReadOnly;
 using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 using MapSheet = Lumina.Excel.Sheets.Map;
 
-namespace Dalamud.Game.Text.SeStringHandling;
+namespace Dalamud.Game.Text;
 
 /// <summary>
-/// This class represents a parsed SeString.
+/// This class provices static utility functions for ReadOnlySeStrings.
 /// </summary>
 public static class SeString
 {
