@@ -27,7 +27,8 @@ internal class GamepadModeNotifierWindow : Window
         this.Size = Vector2.Zero;
         this.SizeCondition = ImGuiCond.Always;
         this.IsOpen = false;
-
+        this.OnOpenSfxId = 51;
+        this.OnCloseSfxId = 52;
         this.RespectCloseHotkey = false;
     }
 
