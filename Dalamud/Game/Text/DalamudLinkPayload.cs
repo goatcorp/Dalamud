@@ -5,7 +5,7 @@ namespace Dalamud.Game.Text;
 /// <summary>
 /// Represents a custom chat link payload used within the Dalamud framework to trigger plugin-specific commands or actions when clicked.
 /// </summary>
-public class DalamudLinkPayload
+public sealed class DalamudLinkPayload
 {
     /// <summary>
     /// Represents the custom <see cref="LinkMacroPayloadType"/> identifier reserved for Dalamud links.
@@ -17,7 +17,7 @@ public class DalamudLinkPayload
     /// </summary>
     /// <param name="commandId">The unique identifier for the command to be executed upon clicking the link.</param>
     /// <param name="pluginName">The internal name of the plugin associated with this link payload.</param>
-    public DalamudLinkPayload(uint commandId, string pluginName)
+    internal DalamudLinkPayload(uint commandId, string pluginName)
     {
         this.CommandId = commandId;
         this.PluginName = pluginName;
@@ -31,7 +31,7 @@ public class DalamudLinkPayload
     /// <param name="extra1">An optional integer parameter for custom payload data.</param>
     /// <param name="extra2">A second optional integer parameter for custom payload data.</param>
     /// <param name="extraString">An optional string parameter for custom payload data.</param>
-    public DalamudLinkPayload(uint commandId, string pluginName, int extra1, int extra2, string extraString)
+    internal DalamudLinkPayload(uint commandId, string pluginName, int extra1, int extra2, string extraString)
     {
         this.CommandId = commandId;
         this.PluginName = pluginName;

@@ -1,9 +1,9 @@
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.Chat;
+using Dalamud.Game.Text;
 
 using Lumina.Text.ReadOnly;
 
-namespace Dalamud.Game.Text;
+namespace Dalamud.Game.Chat;
 
 /// <summary>
 /// This interface represents a single chat message sent from a plugin.
@@ -37,8 +37,6 @@ public sealed class PrintableChatMessage : IPrintableChatMessage
     /// <inheritdoc />
     public int Timestamp { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether new message sounds should be silenced or not.
-    /// </summary>
+    /// <inheritdoc />
     public bool Silent { get; set; }
 }

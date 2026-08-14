@@ -1,7 +1,6 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
-using Dalamud.Game.Text;
 using Dalamud.Plugin.SelfTest;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;

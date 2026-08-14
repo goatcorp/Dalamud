@@ -95,7 +95,7 @@ public interface IHandleableChatMessage : IMutableChatMessage
 /// <summary>
 /// This struct represents an intercepted chat message.
 /// </summary>
-internal unsafe class ChatMessage : IHandleableChatMessage
+internal class ChatMessage : IHandleableChatMessage
 {
     /// <inheritdoc />
     public XivChatType LogKind { get; private set; }

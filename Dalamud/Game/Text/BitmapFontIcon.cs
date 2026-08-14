@@ -1,4 +1,4 @@
-namespace Dalamud.Game.Text.SeStringHandling;
+namespace Dalamud.Game.Text;
 
 /// <summary>
 /// This class represents special icons that can appear in chat naturally or as IconPayloads.

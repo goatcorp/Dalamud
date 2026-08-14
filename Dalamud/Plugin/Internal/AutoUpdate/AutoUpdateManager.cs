@@ -8,6 +8,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
+using Dalamud.Game.Chat;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;

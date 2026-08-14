@@ -6,7 +6,6 @@ using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
-using Dalamud.Game.Text;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
@@ -46,7 +45,7 @@ internal partial class ChatHandlers : IServiceType
     public bool IsAutoUpdateComplete { get; private set; }
 
     [GeneratedRegex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", RegexOptions.Compiled)]
-    private static partial Regex CompiledUrlRegex();
+    private static partial Regex CompiledUrlRegex { get; }
 
     private void OnCheckMessageHandled(IHandleableChatMessage message)
     {
@@ -83,7 +82,7 @@ internal partial class ChatHandlers : IServiceType
                 return;
 #endif
 
-        var linkMatch = CompiledUrlRegex().Match(message.Message.ToString());
+        var linkMatch = CompiledUrlRegex.Match(message.Message.ToString());
         if (linkMatch.Value.Length > 0)
             this.LastLink = linkMatch.Value;
     }

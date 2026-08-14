@@ -9,7 +9,7 @@ using BitFaster.Caching.Lru;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game;
-using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
@@ -22,8 +22,6 @@ using Lumina.Text;
 using Lumina.Text.Parse;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
-
-using static Dalamud.Game.Text.SeStringHandling.BitmapFontIcon;
 
 namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 
@@ -514,7 +512,7 @@ internal class SeStringRenderer : IServiceType
                 if (state.HandleStyleAdjustingPayloads(enu.Current.Payload))
                     continue;
 
-                if (this.GetBitmapFontIconFor(span[c.ByteOffset..]) is var icon and not None &&
+                if (this.GetBitmapFontIconFor(span[c.ByteOffset..]) is var icon and not BitmapFontIcon.None &&
                     this.gfd.TryGetEntry((uint)icon, out var gfdEntry) &&
                     !gfdEntry.IsEmpty)
                 {
@@ -584,12 +582,12 @@ internal class SeStringRenderer : IServiceType
 
     /// <summary>Determines a bitmap icon to display for the given SeString payload.</summary>
     /// <param name="sss">Byte span that should include a SeString payload.</param>
-    /// <returns>Icon to display, or <see cref="None"/> if it should not be displayed as an icon.</returns>
+    /// <returns>Icon to display, or <see cref="BitmapFontIcon.None"/> if it should not be displayed as an icon.</returns>
     private unsafe BitmapFontIcon GetBitmapFontIconFor(ReadOnlySpan<byte> sss)
     {
         var e = new ReadOnlySeStringSpan(sss).GetEnumerator();
         if (!e.MoveNext() || e.Current.MacroCode is not MacroCode.Icon and not MacroCode.Icon2)
-            return None;
+            return BitmapFontIcon.None;
 
         var payload = e.Current;
         switch (payload.MacroCode)
@@ -614,7 +612,7 @@ internal class SeStringRenderer : IServiceType
                 return (BitmapFontIcon)iconId;
         }
 
-        return None;
+        return BitmapFontIcon.None;
     }
 
     /// <summary>Creates a text fragment.</summary>
@@ -675,7 +673,7 @@ internal class SeStringRenderer : IServiceType
             var effectiveRune = c.EffectiveRune;
             Rune displayRune;
             if (c is { IsSeStringPayload: true, MacroCode: MacroCode.Icon or MacroCode.Icon2 } &&
-                this.GetBitmapFontIconFor(state.Span[byteOffset..]) is var icon and not None &&
+                this.GetBitmapFontIconFor(state.Span[byteOffset..]) is var icon and not BitmapFontIcon.None &&
                 this.gfd.TryGetEntry((uint)icon, out var gfdEntry) &&
                 !gfdEntry.IsEmpty)
             {

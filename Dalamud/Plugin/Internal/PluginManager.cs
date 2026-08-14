@@ -15,6 +15,7 @@ using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Interface;
