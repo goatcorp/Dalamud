@@ -508,7 +508,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             if (io.WantSetMousePos)
             {
                 var pos = new POINT((int)io.MousePos.X, (int)io.MousePos.Y);
-                if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
+                if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) == 0)
                     ClientToScreen(this.hWnd, &pos);
                 SetCursorPos(pos.x, pos.y);
             }
