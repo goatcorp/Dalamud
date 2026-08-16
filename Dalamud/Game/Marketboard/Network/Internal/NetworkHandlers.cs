@@ -5,11 +5,12 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.Network.Internal.MarketBoardUploaders;
-using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
+using Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders;
+using Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders.Universalis;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Game.Player;
 using Dalamud.Hooking;
+using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 using Dalamud.Utility;
 
@@ -17,16 +18,19 @@ using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
-using Serilog;
-
-namespace Dalamud.Game.Network.Internal;
+namespace Dalamud.Game.Marketboard.Network.Internal;
 
 /// <summary>
-/// This class handles network notifications and uploading market board data.
+/// This class handles market board hooks and uploads.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
 internal unsafe class NetworkHandlers : IInternalDisposableService
 {
+    private static readonly ModuleLog Log = ModuleLog.Create<NetworkHandlers>();
+
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
     private readonly UniversalisMarketBoardUploader uploader;
 
     private readonly IDisposable handleMarketBoardItemRequest;
@@ -39,11 +43,6 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private readonly Hook<PacketDispatcher.Delegates.HandleMarketBoardItemRequestStartPacket> mbItemRequestStartHook;
     private readonly Hook<InfoProxyItemSearch.Delegates.AddPage> mbOfferingsHook;
     private readonly Hook<InfoProxyItemSearch.Delegates.SendPurchaseRequestPacket> mbSendPurchaseRequestHook;
-
-    [ServiceManager.ServiceDependency]
-    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
-
-    private bool disposing;
 
     [ServiceManager.ServiceConstructor]
     private NetworkHandlers(HappyHttpClient happyHttpClient)
@@ -203,19 +202,6 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
-        this.disposing = true;
-        this.Dispose(this.disposing);
-    }
-
-    /// <summary>
-    /// Disposes of managed and unmanaged resources.
-    /// </summary>
-    /// <param name="shouldDispose">Whether to execute the disposal.</param>
-    protected void Dispose(bool shouldDispose)
-    {
-        if (!shouldDispose)
-            return;
-
         this.handleMarketBoardItemRequest.Dispose();
         this.handleMarketTaxRates.Dispose();
         this.handleMarketBoardPurchaseHandler.Dispose();

@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types;
+using Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders.Universalis.Types;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Networking.Http;
 
@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 using Serilog;
 
-namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
+namespace Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders.Universalis;
 
 /// <summary>
 /// This class represents an uploader for contributing data to Universalis.
