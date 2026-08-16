@@ -179,9 +179,9 @@ public abstract partial class Payload
                         reader.BaseStream.Seek(-1, SeekOrigin.Current);
                         break;
                 }
-            }
 
-            break;
+                break;
+            }
 
             case SeStringChunkType.AutoTranslateKey:
                 payload = new AutoTranslatePayload();

@@ -35,7 +35,7 @@ public interface IGameObject : IEquatable<IGameObject>
     /// Gets the data ID for linking to other respective game data.
     /// </summary>
     [Obsolete("Renamed to BaseId")]
-uint DataId { get; }
+    uint DataId { get; }
 
     /// <summary>
     /// Gets the base ID for linking to other respective game data.
@@ -67,13 +67,13 @@ uint DataId { get; }
     /// Gets the X distance from the local player in yalms.
     /// </summary>
     [Obsolete("Use CurrentDistance.")]
-byte YalmDistanceX { get; }
+    byte YalmDistanceX { get; }
 
     /// <summary>
     /// Gets the Y distance from the local player in yalms.
     /// </summary>
     [Obsolete("This property did not represent the Z-axis. It is the next distance value that will replace CurrentDistance on the next update tick. Use CurrentDistance instead.")]
-byte YalmDistanceZ { get; }
+    byte YalmDistanceZ { get; }
 
     /// <summary>
     /// Gets the current distance from the local player, in yalms.
