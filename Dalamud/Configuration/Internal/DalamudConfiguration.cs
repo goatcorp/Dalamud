@@ -553,12 +553,9 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         {
             await fs.ReadAllTextAsync(path, text =>
             {
-                deserialized =
-                    JsonConvert.DeserializeObject<DalamudConfiguration>(text, SerializerSettings);
-
                 // If this reads as null, the file was empty, that's no good
-                if (deserialized == null)
-                    throw new Exception("Read config was null.");
+                deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(text, SerializerSettings)
+                    ?? throw new Exception("Read config was null.");
             });
         }
         catch (FileNotFoundException)
