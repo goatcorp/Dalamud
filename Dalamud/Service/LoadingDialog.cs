@@ -124,19 +124,20 @@ internal sealed class LoadingDialog
 
     private unsafe void UpdateMainInstructionText(HWND hwnd)
     {
-        fixed (void* pszText = this.CurrentState switch
-               {
-                   State.LoadingDalamud => Loc.Localize(
-                       "LoadingDialogMainInstructionLoadingDalamud",
-                       "Dalamud is loading..."),
-                   State.LoadingPlugins => Loc.Localize(
-                       "LoadingDialogMainInstructionLoadingPlugins",
-                       "Waiting for plugins to load..."),
-                   State.AutoUpdatePlugins => Loc.Localize(
-                       "LoadingDialogMainInstructionAutoUpdatePlugins",
-                       "Updating plugins..."),
-                   _ => string.Empty, // should not happen
-               })
+        var text = this.CurrentState switch
+        {
+            State.LoadingDalamud => Loc.Localize(
+                "LoadingDialogMainInstructionLoadingDalamud",
+                "Dalamud is loading..."),
+            State.LoadingPlugins => Loc.Localize(
+                "LoadingDialogMainInstructionLoadingPlugins",
+                "Waiting for plugins to load..."),
+            State.AutoUpdatePlugins => Loc.Localize(
+                "LoadingDialogMainInstructionAutoUpdatePlugins",
+                "Updating plugins..."),
+            _ => string.Empty, // should not happen
+        };
+        fixed (void* pszText = text)
         {
             SendMessageW(
                 hwnd,

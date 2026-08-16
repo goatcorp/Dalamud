@@ -164,39 +164,39 @@ internal class DataShareWidget : IDataWindowWidget
         }
 
         static string ReprType(Type? t) => t switch
-            {
-                null => "null",
-                _ when t == typeof(string) => "string",
-                _ when t == typeof(object) => "object",
-                _ when t == typeof(void) => "void",
-                _ when t == typeof(decimal) => "decimal",
-                _ when t == typeof(bool) => "bool",
-                _ when t == typeof(double) => "double",
-                _ when t == typeof(float) => "float",
-                _ when t == typeof(char) => "char",
-                _ when t == typeof(ulong) => "ulong",
-                _ when t == typeof(long) => "long",
-                _ when t == typeof(uint) => "uint",
-                _ when t == typeof(int) => "int",
-                _ when t == typeof(ushort) => "ushort",
-                _ when t == typeof(short) => "short",
-                _ when t == typeof(byte) => "byte",
-                _ when t == typeof(sbyte) => "sbyte",
-                _ when t == typeof(nint) => "nint",
-                _ when t == typeof(nuint) => "nuint",
-                _ when t.IsArray && t.HasElementType => ReprType(t.GetElementType()) + "[]",
-                _ when t.IsPointer && t.HasElementType => ReprType(t.GetElementType()) + "*",
-                _ when t.IsGenericTypeDefinition =>
-                    t.Assembly == typeof(object).Assembly
-                        ? t.Name + "<>"
-                        : (t.FullName ?? t.Name) + "<>",
-                _ when t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>) =>
-                    ReprType(t.GetGenericArguments()[0]) + "?",
-                _ when t.IsGenericType =>
-                    WithoutGeneric(ReprType(t.GetGenericTypeDefinition())) +
-                    "<" + string.Join(", ", t.GetGenericArguments().Select(ReprType)) + ">",
-                _ => t.Assembly == typeof(object).Assembly ? t.Name : t.FullName ?? t.Name,
-            };
+        {
+            null => "null",
+            _ when t == typeof(string) => "string",
+            _ when t == typeof(object) => "object",
+            _ when t == typeof(void) => "void",
+            _ when t == typeof(decimal) => "decimal",
+            _ when t == typeof(bool) => "bool",
+            _ when t == typeof(double) => "double",
+            _ when t == typeof(float) => "float",
+            _ when t == typeof(char) => "char",
+            _ when t == typeof(ulong) => "ulong",
+            _ when t == typeof(long) => "long",
+            _ when t == typeof(uint) => "uint",
+            _ when t == typeof(int) => "int",
+            _ when t == typeof(ushort) => "ushort",
+            _ when t == typeof(short) => "short",
+            _ when t == typeof(byte) => "byte",
+            _ when t == typeof(sbyte) => "sbyte",
+            _ when t == typeof(nint) => "nint",
+            _ when t == typeof(nuint) => "nuint",
+            _ when t.IsArray && t.HasElementType => ReprType(t.GetElementType()) + "[]",
+            _ when t.IsPointer && t.HasElementType => ReprType(t.GetElementType()) + "*",
+            _ when t.IsGenericTypeDefinition =>
+                t.Assembly == typeof(object).Assembly
+                    ? t.Name + "<>"
+                    : (t.FullName ?? t.Name) + "<>",
+            _ when t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>) =>
+                ReprType(t.GetGenericArguments()[0]) + "?",
+            _ when t.IsGenericType =>
+                WithoutGeneric(ReprType(t.GetGenericTypeDefinition())) +
+                "<" + string.Join(", ", t.GetGenericArguments().Select(ReprType)) + ">",
+            _ => t.Assembly == typeof(object).Assembly ? t.Name : t.FullName ?? t.Name,
+        };
     }
 
     private void DrawTextCell(string s, Func<string>? tooltip = null, bool framepad = false)

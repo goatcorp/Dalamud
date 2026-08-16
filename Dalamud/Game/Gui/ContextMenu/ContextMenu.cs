@@ -436,18 +436,18 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         switch (this.SelectedMenuType)
         {
             case ContextMenuType.Default:
-                {
-                    var ownerAddonId = ((AgentContext*)this.SelectedAgent)->OwnerAddon;
-                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 71, checked((ushort)ownerAddonId), 4);
-                    break;
-                }
+            {
+                var ownerAddonId = ((AgentContext*)this.SelectedAgent)->OwnerAddon;
+                module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 71, checked((ushort)ownerAddonId), 4);
+                break;
+            }
 
             case ContextMenuType.Inventory:
-                {
-                    var ownerAddonId = ((AgentInventoryContext*)this.SelectedAgent)->OwnerAddonId;
-                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 0, checked((ushort)ownerAddonId), 4);
-                    break;
-                }
+            {
+                var ownerAddonId = ((AgentInventoryContext*)this.SelectedAgent)->OwnerAddonId;
+                module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 0, checked((ushort)ownerAddonId), 4);
+                break;
+            }
 
             default:
                 Log.Warning($"Unknown context menu type (agent: {(nint)this.SelectedAgent}, cannot open submenu");
