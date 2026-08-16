@@ -40,7 +40,6 @@ internal unsafe sealed class ClientState : IInternalDisposableService, IClientSt
     private readonly GameLifecycle lifecycle;
     private readonly ClientStateAddressResolver address;
     private readonly Hook<UIModule.Delegates.HandlePacket> uiModuleHandlePacketHook;
-    private readonly Hook<SetCurrentInstanceDelegate> setCurrentInstanceHook;
     private readonly Hook<PacketDispatcher.Delegates.HandleContentsFinderNotificationPacket> cfPopHook;
 
     [ServiceManager.ServiceDependency]
@@ -74,16 +73,11 @@ internal unsafe sealed class ClientState : IInternalDisposableService, IClientSt
             (nint)UIModule.StaticVirtualTablePointer->HandlePacket,
             this.UIModuleHandlePacketDetour);
 
-        this.setCurrentInstanceHook = Hook<SetCurrentInstanceDelegate>.FromAddress(
-            this.AddressResolver.SetCurrentInstance,
-            this.SetCurrentInstanceDetour);
-
         this.cfPopHook = Hook<PacketDispatcher.Delegates.HandleContentsFinderNotificationPacket>.FromAddress(
             PacketDispatcher.Addresses.HandleContentsFinderNotificationPacket.Value,
             this.HandleContentsFinderNotificationPacketDetour);
 
         this.uiModuleHandlePacketHook.Enable();
-        this.setCurrentInstanceHook.Enable();
         this.cfPopHook.Enable();
 
         this.framework.RunOnTick(this.Setup);
@@ -265,7 +259,6 @@ internal unsafe sealed class ClientState : IInternalDisposableService, IClientSt
     void IInternalDisposableService.DisposeService()
     {
         this.uiModuleHandlePacketHook.Dispose();
-        this.setCurrentInstanceHook.Dispose();
         this.cfPopHook.Dispose();
         this.onLogoutHook?.Dispose();
 
@@ -339,16 +332,11 @@ internal unsafe sealed class ClientState : IInternalDisposableService, IClientSt
                 Log.Debug($"ZoneInit: {eventArgs}");
                 this.ZoneInit?.InvokeSafely(eventArgs);
                 this.TerritoryType = eventArgs.TerritoryType.RowId;
+                this.Instance = eventArgs.Instance;
                 this.IsPvP = eventArgs.TerritoryType.Value.IsPvpZone;
                 break;
             }
         }
-    }
-
-    private void SetCurrentInstanceDetour(NetworkModuleProxy* thisPtr, short instanceId)
-    {
-        this.setCurrentInstanceHook.Original(thisPtr, instanceId);
-        this.Instance = (uint)instanceId;
     }
 
     private void HandleContentsFinderNotificationPacketDetour(ContentsFinderNotificationPacket* packet)
