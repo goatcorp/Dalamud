@@ -168,8 +168,10 @@ internal sealed class DevPluginsSettingsEntry : SettingsEntry
             ImGui.Text(locNumber.ToString());
             ImGui.NextColumn();
 
-            ImGui.SetNextItemWidth(-1);
             var path = devPluginLocationSetting.Path;
+            var exists = File.Exists(path);
+            var inputWidth = exists ? -1 : ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeight() - ImGui.GetStyle().ItemSpacing.X;
+            ImGui.SetNextItemWidth(inputWidth);
             if (ImGui.InputText($"##devPluginLocationInput", ref path, 65535, ImGuiInputTextFlags.EnterReturnsTrue))
             {
                 var contains = this.devPluginLocations.Select(loc => loc.Path).Contains(path);
@@ -192,6 +194,15 @@ internal sealed class DevPluginsSettingsEntry : SettingsEntry
                     devPluginLocationSetting.Path = path;
                     this.devPluginLocationsChanged = path != devPluginLocationSetting.Path;
                 }
+            }
+
+            if (!exists)
+            {
+                ImGui.SameLine();
+                ImGuiComponents.HelpMarker(
+                    Loc.Localize("DalamudDevPluginLocationFileDoesNotExist", "File does not exist."),
+                    FontAwesomeIcon.ExclamationTriangle,
+                    Colors.ImGuiColors.WarningForeground);
             }
 
             ImGui.NextColumn();
