@@ -37,10 +37,8 @@ internal unsafe sealed class ClientState : IInternalDisposableService, IClientSt
 {
     private static readonly ModuleLog Log = ModuleLog.Create<ClientState>();
 
-    private readonly GameLifecycle lifecycle;
-    private readonly ClientStateAddressResolver address;
-    private readonly Hook<UIModule.Delegates.HandlePacket> uiModuleHandlePacketHook;
-    private readonly Hook<PacketDispatcher.Delegates.HandleContentsFinderNotificationPacket> cfPopHook;
+    [ServiceManager.ServiceDependency]
+    private readonly GameLifecycle gameLifecycle = Service<GameLifecycle>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -54,17 +52,16 @@ internal unsafe sealed class ClientState : IInternalDisposableService, IClientSt
     [ServiceManager.ServiceDependency]
     private readonly ChatGui chatGui = Service<ChatGui>.Get();
 
+    private readonly Hook<UIModule.Delegates.HandlePacket> uiModuleHandlePacketHook;
+    private readonly Hook<PacketDispatcher.Delegates.HandleContentsFinderNotificationPacket> cfPopHook;
+
     private Hook<LogoutCallbackInterface.Delegates.OnLogout>? onLogoutHook;
     private bool initialized;
     private bool lastConditionNone = true;
 
     [ServiceManager.ServiceConstructor]
-    private ClientState(TargetSigScanner sigScanner, Dalamud dalamud, GameLifecycle lifecycle)
+    private ClientState(Dalamud dalamud)
     {
-        this.lifecycle = lifecycle;
-        this.address = new ClientStateAddressResolver();
-        this.address.Setup(sigScanner);
-
         Log.Verbose("===== C L I E N T  S T A T E =====");
 
         this.ClientLanguage = (ClientLanguage)dalamud.StartInfo.Language;
@@ -220,11 +217,6 @@ internal unsafe sealed class ClientState : IInternalDisposableService, IClientSt
 
     /// <inheritdoc />
     public bool IsGPosing => GameMain.IsInGPose();
-
-    /// <summary>
-    /// Gets client state address resolver.
-    /// </summary>
-    internal ClientStateAddressResolver AddressResolver => this.address;
 
     /// <inheritdoc/>
     public bool IsClientIdle(out ConditionFlag blockingFlag)
@@ -403,7 +395,7 @@ internal unsafe sealed class ClientState : IInternalDisposableService, IClientSt
             this.Login?.InvokeSafely();
             gameGui.ResetUiHideState();
 
-            this.lifecycle.ResetLogout();
+            this.gameLifecycle.ResetLogout();
         }
     }
 
@@ -435,7 +427,7 @@ internal unsafe sealed class ClientState : IInternalDisposableService, IClientSt
                 gameGui?.ResetUiHideState();
                 this.lastConditionNone = true; // unblock login flag
 
-                this.lifecycle.SetLogout();
+                this.gameLifecycle.SetLogout();
             }
             catch (Exception ex)
             {

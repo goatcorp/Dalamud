@@ -36,17 +36,20 @@ internal class KeyState : IServiceType, IKeyState
 
     private static readonly ModuleLog Log = ModuleLog.Create<KeyState>();
 
+    private readonly KeyStateAddressResolver addressResolver;
     private readonly IntPtr bufferBase;
     private readonly IntPtr indexBase;
     private VirtualKey[]? validVirtualKeyCache;
 
     [ServiceManager.ServiceConstructor]
-    private KeyState(TargetSigScanner sigScanner, ClientState clientState)
+    private KeyState(TargetSigScanner sigScanner)
     {
+        this.addressResolver = new KeyStateAddressResolver();
+        this.addressResolver.Setup(sigScanner);
+
         var moduleBaseAddress = sigScanner.Module.BaseAddress;
-        var addressResolver = clientState.AddressResolver;
-        this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardState);
-        this.indexBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardStateIndexArray);
+        this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(this.addressResolver.KeyboardState);
+        this.indexBase = moduleBaseAddress + Marshal.ReadInt32(this.addressResolver.KeyboardStateIndexArray);
 
         Log.Verbose($"Keyboard state buffer address {Util.DescribeAddress(this.bufferBase)}");
     }

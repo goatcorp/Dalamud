@@ -1,11 +1,11 @@
 using Dalamud.Plugin.Services;
 
-namespace Dalamud.Game.ClientState;
+namespace Dalamud.Game.ClientState.Keys;
 
 /// <summary>
 /// Client state memory address resolver.
 /// </summary>
-internal sealed class ClientStateAddressResolver : BaseAddressResolver
+internal sealed class KeyStateAddressResolver : BaseAddressResolver
 {
     // Static offsets
 
