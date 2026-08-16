@@ -154,7 +154,7 @@ public static partial class ImGuiHelpers
             data);
         drawList.PopClipRect();
 
-        // Return the pool slot once all render passes for this frame are done
+        // A snapshot may render repeatedly; retain callback data until every pass using it has drained.
         var dataAddr = (nint)data;
         Service<InterfaceManager>.Get().DeferUntilFrameRetired(
             () => BlurCallbackDataPool.Return((BlurCallbackData*)dataAddr));
@@ -223,7 +223,7 @@ public static partial class ImGuiHelpers
         var cmdVec = new ImVectorWrapper<ImDrawCmd>(drawList.Handle->CmdBuffer.ToUntyped());
         cmdVec.Insert(0, blurCmd);
 
-        // Return the pool slot once all render passes for this frame are done
+        // A snapshot may render repeatedly; retain callback data until every pass using it has drained.
         var dataAddr = (nint)data;
         Service<InterfaceManager>.Get().DeferUntilFrameRetired(
             () => BlurCallbackDataPool.Return((BlurCallbackData*)dataAddr));

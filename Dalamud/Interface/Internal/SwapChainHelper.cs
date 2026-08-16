@@ -24,10 +24,11 @@ internal static unsafe class SwapChainHelper
         VTable,
     }
 
-    /// <summary>Gets the IDXGISwapChain that is used to display to the game window.</summary>
-    /// <value>Address of the IDXGISwapChain that displays to the game window, or <c>null</c> if not available (yet.)</value>
+    /// <summary>Gets the effective <see cref="IDXGISwapChain"/> that presents to the game window.</summary>
+    /// <value>The display swap chain, or <c>null</c> until the game initializes its back buffer.</value>
     /// <remarks>
-    /// This is NOT NECESSARILY the same as the game's <see cref="SwapChain.DXGISwapChain"/> in certain cases (i.e. smooth motion).
+    /// After unwrapping graphics middleware, the cached display pointer may differ from
+    /// <see cref="SwapChain.DXGISwapChain"/>.
     /// </remarks>
     public static IDXGISwapChain* GameDisplaySwapChain
     {
@@ -104,9 +105,9 @@ internal static unsafe class SwapChainHelper
     }
 
     /// <summary>
-    /// Make <see cref="GameDisplaySwapChain"/> store address of unwrapped swap chain, if it was wrapped with ReShade.
+    /// Replaces <see cref="GameDisplaySwapChain"/> with the underlying swap chain after removing ReShade wrappers.
     /// </summary>
-    /// <returns><c>true</c> if it was wrapped with ReShade.</returns>
+    /// <returns><c>true</c> if at least one ReShade wrapper was removed.</returns>
     public static bool UnwrapReShade()
     {
         using var swapChain = new ComPtr<IDXGISwapChain>(GameDisplaySwapChain);
@@ -119,10 +120,9 @@ internal static unsafe class SwapChainHelper
     }
 
     /// <summary>
-    /// Make <see cref="GameDisplaySwapChain"/> store address of unwrapped swap chain, if it was wrapped by NvPresent.
-    /// This can happen when some NVIDIA features are enabled, like Smooth Motion (frame generation).
+    /// Replaces <see cref="GameDisplaySwapChain"/> with the underlying swap chain after removing NvPresent wrappers.
     /// </summary>
-    /// <returns><c>true</c> if it was wrapped with ReShade.</returns>
+    /// <returns><c>true</c> if an NvPresent wrapper was removed.</returns>
     public static bool UnwrapNvPresent()
     {
         using var swapChain = new ComPtr<IDXGISwapChain>(GameDisplaySwapChain);

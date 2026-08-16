@@ -16,7 +16,8 @@ public static class ThreadSafety
     public static bool IsMainThread => threadStaticIsMainThread;
 
     /// <summary>
-    /// Gets a shared lock used to keep cross-thread renderer work from overlapping the native framework tick.
+    /// Gets the shared lock that prevents worker-thread rendering from overlapping the original native framework
+    /// update.
     /// </summary>
     internal static object NativeFrameworkRenderSyncRoot { get; } = new();
 

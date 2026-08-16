@@ -397,7 +397,8 @@ internal sealed partial class TextureManager
 
     /// <summary>Runs the given action in IDXGISwapChain.Present immediately or waiting as needed.</summary>
     /// <param name="action">The action to run.</param>
-    // Not sure why this and the below can't be unconditional RunOnFrameworkThread
+    // Presentation may run on a worker thread; execute inline when already inside the serialized callback instead
+    // of queuing work behind that same callback.
     private async Task RunDuringPresent(Action action)
     {
         if (this.interfaceManager.IsAnyThreadInPresent)

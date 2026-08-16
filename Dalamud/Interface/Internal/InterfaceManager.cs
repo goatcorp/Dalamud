@@ -83,11 +83,8 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private static readonly ModuleLog Log = ModuleLog.Create<InterfaceManager>();
 
-    // Accumulates callbacks enqueued by BuildUi() during the current frame.
-    // Inside the write lock, PostImGuiCopy() drains frameRetireActions (previous frame's callbacks)
-    // and swaps pendingRetireQueue into frameRetireActions for the next real frame.
-    // This is all to avoid doing per-resource refcounts and double-buffering, which we can't nicely expose
-    // to plugins and makes things complicated.
+    // Delay cleanup by one completed snapshot generation so repeated generated-frame renders cannot reference
+    // resources that BuildUi has already released. This avoids exposing render reference counting to plugins.
     private readonly ConcurrentQueue<Action> pendingRetireQueue = new();
     private readonly List<Action> frameRetireActions = [];
 
@@ -115,6 +112,8 @@ internal partial class InterfaceManager : IInternalDisposableService
     private readonly AssertHandler assertHandler = new();
 
     private IWin32Backend? backend;
+
+    // Treat an NvPresent wrapper as the Smooth Motion signal used to enable D3D11 runtime serialization.
     private bool isSmoothMotionDetected;
 
     private Hook<SetCursorDelegate>? setCursorHook;
@@ -140,8 +139,8 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.clientState.Login += this.OnLogin;
     }
 
-    // Must match Client::Graphics::Kernel::SwapChain::Present()
-    // TODO: CS?
+    // Must match Client::Graphics::Kernel::SwapChain::Present(). This is the per-game-frame Step source; frame
+    // generation may invoke DXGI Present repeatedly for the same Step.
     private delegate void PresentDelegate(nint thisPtr);
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
@@ -261,8 +260,8 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// </summary>
     public bool IsDispatchingEvents { get; set; } = true;
 
-    /// <summary>Gets a value indicating whether the main thread is executing <see cref="DxgiSwapChainPresentDetour"/>.</summary>
-    /// <remarks>This still will be <c>true</c> even when queried off the main thread.</remarks>
+    /// <summary>Gets a value indicating whether Dalamud is executing a serialized presentation callback.</summary>
+    /// <remarks>The callback may run on a presentation worker thread when frame generation is active.</remarks>
     public bool IsAnyThreadInPresent { get; private set; }
 
     /// <summary>
@@ -393,15 +392,12 @@ internal partial class InterfaceManager : IInternalDisposableService
     }
 
     /// <summary>
-    /// Defers an action until the write lock in the next Step() confirms
-    /// that all render passes of the current frame have completed. Safe to call from any thread.
+    /// Defers an action until all render passes that could reference the current frame have completed.
     /// </summary>
     /// <remarks>
-    /// Use this instead of disposing resources you needed to render the last frame immediately when inside BuildUi.
-    /// The action is guaranteed to run while no render pass is active, so releasing an SRV,
-    /// freeing an unmanaged command buffer, or any other render-thread-sensitive cleanup is safe.
-    /// Plugins with custom ImDrawCmd.UserCallbackData buffers can call this method to
-    /// schedule their cleanup without needing per-resource reference counting.
+    /// The action runs under snapshot write exclusion, making it suitable for releasing shader-resource views,
+    /// unmanaged callback data, and other resources captured by ImGui draw commands. It is safe to call from any
+    /// thread.
     /// </remarks>
     /// <param name="action">
     /// The cleanup action to run when the current frame is fully retired.
@@ -872,9 +868,8 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private void KernelDeviceSwapChainPresentDetour(nint thisPtr)
     {
-        // Step the backend here, at a fixed point in time.
-        // Makes sure that we do it at the same point in time, no matter what is going on
-        // with the presentation side.
+        // Build UI from the game's swap-chain step so frame generation cannot run plugin callbacks more than once
+        // per game UI frame.
 
         try
         {
@@ -908,13 +903,8 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private void PostImGuiCopy()
     {
-        // This is called from Dx11Win32Backend.Step() while the write lock is held, after CopyFrom().
-        // The write lock guarantees no render pass is active, so it is safe to release any
-        // D3D/unmanaged resource that was used by the previous frame.
-
-        // First we drain the PREVIOUS frame's retire actions.
-        // These were enqueued during the previous BuildUi() and deferred exactly one frame so that
-        // all renders using the previous snapshot had a chance to complete first.
+        // Step invokes this under snapshot write exclusion. Retire the prior generation, then promote currently
+        // pending cleanup into the next retirement batch.
         if (this.frameRetireActions.Count > 0)
         {
             foreach (var action in this.frameRetireActions)
@@ -922,17 +912,14 @@ internal partial class InterfaceManager : IInternalDisposableService
             this.frameRetireActions.Clear();
         }
 
-        // Then we move the CURRENT frame's pending actions into frameRetireActions.
-        // They will be drained at the next PostImGuiCopy, once all renders of THIS frame are done.
         while (this.pendingRetireQueue.TryDequeue(out var action))
             this.frameRetireActions.Add(action);
     }
 
-    /// <summary>Retires everything that was sized for the current swap chain, in preparation for a resize.</summary>
+    /// <summary>Drains all deferred render cleanup before a swap-chain resize.</summary>
     /// <remarks>Must be called while the backend's resize write lock is held (i.e. between
     /// <see cref="IImGuiBackend.EnterResize"/> and <see cref="IImGuiBackend.ExitResize"/>), so that no render
-    /// pass is active. This mirrors the <see cref="PostImGuiCopy"/> drain so anything sized for the old swap
-    /// chain is released before the back buffers are reallocated.</remarks>
+    /// pass is active.</remarks>
     private void RetireResourcesForResize()
     {
         foreach (var action in this.frameRetireActions)
@@ -1120,6 +1107,8 @@ internal partial class InterfaceManager : IInternalDisposableService
                 var unwrappedReShade = false;
                 var unwrappedNvPresent = false;
                 bool changed;
+
+                // Either wrapper may contain the other, so peel both repeatedly until the display chain is stable.
                 do
                 {
                     changed = false;

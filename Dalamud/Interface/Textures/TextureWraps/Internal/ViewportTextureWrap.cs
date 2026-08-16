@@ -70,7 +70,7 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
     /// <summary>Gets the task representing the first <see cref="Update"/> call.</summary>
     public Task<IDalamudTextureWrap> FirstUpdateTask => this.firstUpdateTaskCompletionSource.Task;
 
-    /// <summary>Queues a call to <see cref="Update"/>.</summary>
+    /// <summary>Queues a viewport copy before or after the next serialized ImGui render, as configured.</summary>
     public void QueueUpdate() =>
         Service<Framework>.Get().RunOnTick(
             () =>
@@ -82,14 +82,14 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
             },
             cancellationToken: this.cancellationToken);
 
-    /// <summary>Queue the texture to be disposed once the frame ends. </summary>
+    /// <summary>Queues the texture for disposal after all render passes using the current frame complete.</summary>
     public void Dispose()
     {
         this.Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>Actually dispose the wrapped texture.</summary>
+    /// <summary>Releases the wrapped D3D resources.</summary>
     void IDeferredDisposable.RealDispose()
     {
         _ = this.FirstUpdateTask.Exception;
@@ -121,6 +121,7 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
         Debug.Assert(viewports[0].ID == ImGui.GetMainViewport().ID, "ImGui has changed");
         if (viewportId == viewports[0].ID)
         {
+            // The game may store a middleware wrapper, so copy from Dalamud's effective display chain.
             fixed (Guid* piid = &IID.IID_ID3D11Texture2D)
             {
                 SwapChainHelper.GameDisplaySwapChain->GetBuffer(0, piid, (void**)texture.GetAddressOf())
@@ -142,7 +143,7 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
         return texture;
     }
 
-    /// <summary>Updates the texture from the source viewport.</summary>
+    /// <summary>Copies the source viewport within the serialized presentation callback.</summary>
     private unsafe void Update()
     {
         if (this.disposed)

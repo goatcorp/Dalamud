@@ -16,7 +16,7 @@ internal interface IImGuiBackend : IDisposable
     /// <summary>User methods invoked every ImGui frame on handling renders.</summary>
     event ImGuiNewRenderFrameDelegate? NewRenderFrame;
 
-    /// <summary>User methods invoked after copying ImGui data for the current step.</summary>
+    /// <summary>Invoked under snapshot write exclusion after the current step replaces the previous draw snapshot.</summary>
     event Action? PostCopy;
 
     /// <summary>Gets or sets a value indicating whether the cursor should be overridden with the ImGui cursor.

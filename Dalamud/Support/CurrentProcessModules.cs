@@ -6,9 +6,9 @@ using Serilog;
 namespace Dalamud.Support;
 
 /// <summary>
-/// Tracks the loaded process modules.
-/// Cached, but kept up-to-date through support code in Dalamud.Boot. A lot faster than Process.GetCurrentProcess().Modules.
+/// Provides a cached list of loaded process modules, invalidated by notifications from Dalamud.Boot.
 /// </summary>
+/// <remarks>Avoids repeatedly enumerating <see cref="Process.Modules"/>.</remarks>
 internal static unsafe partial class CurrentProcessModules
 {
     /// <summary>Gets all the loaded modules, up to date.</summary>

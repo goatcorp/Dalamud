@@ -170,9 +170,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     /// <inheritdoc/>
     public void RenderViewportSnapshot(nint rendererUserData, ImDrawDataPtr drawData)
     {
-        // Defensively skip if the viewport handle is null/invalid. ViewportData destruction only happens inside
-        // UpdatePlatformWindows() (under the backend's write lock), so a read-lock Render() should never observe
-        // a freed handle; this guard is belt-and-suspenders against unexpected teardown ordering.
+        // Capture normally records only initialized handles, and snapshot locking keeps them alive; retain
+        // defensive validation at the renderer boundary.
         if (rendererUserData == nint.Zero)
             return;
 

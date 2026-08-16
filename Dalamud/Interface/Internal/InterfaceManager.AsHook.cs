@@ -117,13 +117,11 @@ internal unsafe partial class InterfaceManager
             $"Calling resizebuffers swap@{(nint)swapChain:X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
 #endif
 
-        // Take the backend's resize write lock for the whole reallocation window. Because every Render() takes
-        // the read lock, this guarantees no pacer-thread render is compositing to the swap chain while its back
-        // buffers are reallocated.
+        // Exclude frame capture and worker-thread rendering for the complete back-buffer reallocation.
         this.backend?.EnterResize();
         try
         {
-            // Retire anything sized for the old swap chain while the write lock is held (no render pass active).
+            // Drain deferred render cleanup while no render pass is active.
             this.RetireResourcesForResize();
 
             this.ResizeBuffers?.InvokeSafely();

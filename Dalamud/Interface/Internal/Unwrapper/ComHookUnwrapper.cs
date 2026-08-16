@@ -7,10 +7,10 @@ using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.Interface.Internal.Unwrapper;
 
-/// <summary>Unwraps IUnknown wrapped by other graphics injector.</summary>
+/// <summary>Locates the underlying COM object stored by a graphics-middleware wrapper.</summary>
 internal abstract unsafe class ComHookUnwrapper
 {
-    /// <summary>Unwraps <typeparamref name="T"/> if it is wrapped by ReShade.</summary>
+    /// <summary>Removes consecutive wrappers recognized by <see cref="IsRelevantComObject{T}"/>.</summary>
     /// <param name="comptr">[inout] The COM pointer to an instance of <typeparamref name="T"/>.</param>
     /// <typeparam name="T">A COM type that is or extends <see cref="IUnknown"/>.</typeparam>
     /// <returns><c>true</c> if peeled.</returns>
@@ -23,55 +23,48 @@ internal abstract unsafe class ComHookUnwrapper
         nint vtblSize = vtblType.GetFields().Length * sizeof(nint);
         var changed = false;
 
-        // Track objects we've already peeled so a wrapper whose pointer scan resolves back to an
-        // already-visited object (or to itself) cannot spin forever -> game hang.
+        // Unknown wrapper layouts may contain cycles; stop instead of repeatedly following the same object.
         var visited = new HashSet<nint>();
         while (comptr->Get() != null && this.IsRelevantComObject(comptr->Get()))
         {
             var currentObject = (nint)comptr->Get();
             if (!visited.Add(currentObject))
-                break; // already seen this object -> cycle, stop to avoid infinite loop
+                break;
 
-            // Expectation: the pointer to the underlying object should come early after the overriden vtable.
+            // Known wrappers store the underlying interface near their vtable pointer.
             var peeled = false;
             for (nint i = sizeof(nint); i <= 0x20; i += sizeof(nint))
             {
                 var ppObjectBehind = (nint)comptr->Get() + i;
 
-                // Is the thing directly pointed from the address an actual something in the memory?
+                // Validate every pointer before dereferencing an undocumented wrapper layout.
                 if (!IsValidReadableMemoryAddress(ppObjectBehind, 8))
                     continue;
 
                 var pObjectBehind = *(nint*)ppObjectBehind;
 
-                // Is the address of vtable readable?
                 if (!IsValidReadableMemoryAddress(pObjectBehind, sizeof(nint)))
                     continue;
                 var pObjectBehindVtbl = *(nint*)pObjectBehind;
 
-                // Is the vtable itself readable?
                 if (!IsValidReadableMemoryAddress(pObjectBehindVtbl, vtblSize))
                     continue;
 
-                // Are individual functions in vtable executable?
                 var valid = true;
                 for (var j = 0; valid && j < vtblSize; j += sizeof(nint))
                     valid &= IsValidExecutableMemoryAddress(*(nint*)(pObjectBehindVtbl + j), 1);
                 if (!valid)
                     continue;
 
-                // Interpret the object as an IUnknown.
-                // Note that `using` is not used, and `Attach` is used. We do not alter the reference count yet.
+                // Attach without changing the candidate's reference count; As owns the reference it acquires.
                 var punk = default(ComPtr<IUnknown>);
                 punk.Attach((IUnknown*)pObjectBehind);
 
-                // Is the IUnknown object also the type we want?
                 using var comptr2 = default(ComPtr<T>);
                 if (punk.As(&comptr2).FAILED)
                     continue;
 
-                // The candidate resolved back to the object we're currently peeling; swapping to
-                // self is not real progress and would let the outer loop spin. Skip it.
+                // A self-reference is not a successfully removed wrapper.
                 if ((nint)comptr2.Get() == currentObject)
                     continue;
 
@@ -81,8 +74,7 @@ internal abstract unsafe class ComHookUnwrapper
                 break;
             }
 
-            // Use a per-iteration flag: once 'changed' is true it stays true, so the outer
-            // loop exit condition must track whether *this* iteration succeeded, not any prior one.
+            // Stop when this wrapper matches but exposes no valid underlying interface.
             if (!peeled)
                 break;
         }
@@ -118,12 +110,11 @@ internal abstract unsafe class ComHookUnwrapper
                 })
                 return false;
 
-            // Advance by the actual region remaining from p, clamped to what's left to check.
             var regionEnd = (nint)mbi.BaseAddress + (nint)mbi.RegionSize;
-            var checkedSize = regionEnd - p;          // bytes validated in this region from p
+            var checkedSize = regionEnd - p;
             if (checkedSize <= 0)
-                return false;                          // no forward progress -> bail instead of looping
-            checkedSize = Math.Min(checkedSize, size); // never advance past the requested range
+                return false;
+            checkedSize = Math.Min(checkedSize, size);
             size -= checkedSize;
             p += checkedSize;
         }
@@ -159,12 +150,11 @@ internal abstract unsafe class ComHookUnwrapper
                 })
                 return false;
 
-            // Advance by the actual region remaining from p, clamped to what's left to check.
             var regionEnd = (nint)mbi.BaseAddress + (nint)mbi.RegionSize;
-            var checkedSize = regionEnd - p;          // bytes validated in this region from p
+            var checkedSize = regionEnd - p;
             if (checkedSize <= 0)
-                return false;                          // no forward progress -> bail instead of looping
-            checkedSize = Math.Min(checkedSize, size); // never advance past the requested range
+                return false;
+            checkedSize = Math.Min(checkedSize, size);
             size -= checkedSize;
             p += checkedSize;
         }

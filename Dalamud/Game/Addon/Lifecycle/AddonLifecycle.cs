@@ -144,6 +144,9 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     internal void InvokeListenersSafely(AddonEvent eventType, AddonArgs args, [CallerMemberName] string blame = "")
     {
         this.isInvokingListeners = true;
+
+        // Always restore this guard, including on the no-listener early return, so later registrations and removals
+        // are not indefinitely treated as re-entrant listener changes.
         try
         {
             // Early return if we don't have any listeners of this type

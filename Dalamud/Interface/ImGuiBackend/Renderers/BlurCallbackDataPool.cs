@@ -14,6 +14,7 @@ internal static unsafe class BlurCallbackDataPool
     private static readonly BlurCallbackData* Pool =
         (BlurCallbackData*)NativeMemory.AllocZeroed((nuint)(sizeof(BlurCallbackData) * PoolSize));
 
+    // Frame-retirement callbacks may run on a different thread from Rent(), so slot ownership is atomic.
     private static long freeMask = -1L;
 
     /// <summary>

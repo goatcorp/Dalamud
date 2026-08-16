@@ -29,11 +29,8 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private readonly Dx11Renderer imguiRenderer;
     private readonly Win32InputHandler imguiInput;
 
-    // When using nvidia smooth motion, Render() through our present hook is called multiple times per Step() to render interpolated frames.
-    // We need to decouple creating our draw datas from actually rendering them, so we deep-copy the draw data so that we can render it while
-    // Dalamud and plugin code is potentially mutating the next frame's draw data for the next Render() call.
-    // Otherwise, we would be updating ImGui multiple times per game-tick which causes large problems with plugin (and our own) code,
-    // which relies on executing in-step with the game tick.
+    // Smooth Motion may call Render() several times, from several threads, for one game-thread Step(). Snapshots
+    // keep those renders independent from the live ImGui state that plugins mutate during the following Step().
     //
     // Lock-acquisition order / contract for drawDataLock:
     //   - Render() is serialized by renderLock, then takes the READ lock to render the stable snapshot.
@@ -53,19 +50,15 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private readonly ReaderWriterLockSlim drawDataLock = new(LockRecursionPolicy.NoRecursion);
     private readonly DrawDataSnapshot snapshot = new();
 
-    // Deep copies of every secondary (multi-viewport / pop-out) window's draw data captured under the write lock
-    // during Step(), so the pacer thread can render and present them in Render() without ever touching the live,
-    // single-buffered ImGui platform-IO viewport state (which ImGui.RenderPlatformWindowsDefault() would walk and
-    // which the game-present thread mutates each Step() via NewFrame()/UpdatePlatformWindows()).
+    // Secondary viewports also need snapshots because ImGui's platform viewport list is single-buffered and may
+    // be mutated by the next Step() while an NVIDIA pacing thread renders the current frame.
     private readonly ViewportSnapshot viewportSnapshots = new();
 
-    // Set true for the whole swap-chain resize window (see EnterResize/ExitResize). Checked lock-free as a
-    // fast-path skip in Step()/Render().
+    // Lock-free early-out for a resize; drawDataLock remains the synchronization mechanism.
     private volatile bool resizeInProgress;
 
-    // Managed thread id holding the resize-exclusive section (0 = none). Guards EnterResize()/ExitResize()
-    // against unbalanced calls from the asymmetric resize detours, which would otherwise either self-deadlock
-    // the NoRecursion write lock (double-enter) or throw / wedge the lock forever (exit-without-enter).
+    // Tracks resize ownership so asymmetric ReShade callbacks cannot recursively enter or incorrectly release
+    // the non-recursive write lock.
     private int resizeOwnerThreadId;
 
     private ComPtr<IDXGISwapChain> swapChainPossiblyWrapped;
@@ -75,7 +68,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     private ComPtr<ID3D11Multithread> deviceMultithread;
     private bool restoreMultithreadProtection;
 
-    // 0 = RenderPlatformWindowsDefault() still needs to be called for the current step, 1 = already done
+    // Secondary swap chains are presented once per Step, even when the main snapshot is composited repeatedly.
     private int platformWindowsRenderedForStep = 1;
 
     private int targetWidth;
@@ -234,8 +227,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void Step()
     {
-        // Skip frame construction/snapshotting while a swap-chain resize holds (or is about to hold) the write
-        // lock. This also avoids blocking the game-present thread behind a resize.
+        // Avoid constructing a frame that cannot be captured while resize owns the snapshot write lock.
         if (this.resizeInProgress)
             return;
 
@@ -247,17 +239,13 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         ImGui.NewFrame();
         ImGuizmo.BeginFrame();
 
-        // BuildUi (dalamud and plugin draw logic) can run outside the lock and doesn't need to block rendering
+        // Plugin UI does not touch snapshot storage, so it need not block an in-flight render.
         this.BuildUi?.Invoke();
 
         ImGui.Render();
 
-        // Snapshot the draw data under the write lock and signal that we want to render our viewports.
-        // UpdatePlatformWindows() is moved INSIDE the write lock: it only lays out viewports and
-        // creates/destroys/resizes their secondary windows (no GPU work), so it is safe on the game-present thread,
-        // and holding the write lock across it guarantees a viewport create/destroy cannot race an in-flight
-        // pacer-thread Render() (which holds the read lock). This is what lets us safely snapshot the live
-        // per-viewport draw data immediately afterwards.
+        // Keep platform-window mutation and capture in one write transaction so pacing-thread renders cannot
+        // observe a viewport being created, resized, or destroyed.
         this.drawDataLock.EnterWriteLock();
         try
         {
@@ -265,8 +253,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
             this.snapshot.CopyFrom(ImGui.GetDrawData().Handle);
 
-            // Capture a stable, owned copy of EVERY viewport's draw data so the pacer thread never has to walk the
-            // live ImGui platform-IO viewport list (which the next Step() mutates). Entry 0 is the main viewport.
+            // Entry 0 mirrors the main snapshot; later entries are secondary platform windows.
             this.viewportSnapshots.BeginCapture();
             this.viewportSnapshots.Capture(ImGui.GetDrawData().Handle, nint.Zero, isMainViewport: true);
 
@@ -275,7 +262,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             {
                 var viewport = viewports[i];
 
-                // Skip viewports we don't own a renderer-side handle for (not yet created / being torn down).
+                // A missing renderer handle means the platform window is not ready to present.
                 var rendererUserData = (nint)viewport.RendererUserData;
                 if (rendererUserData == nint.Zero)
                     continue;
@@ -283,12 +270,10 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
                 this.viewportSnapshots.Capture(viewport.DrawData.Handle, rendererUserData, isMainViewport: false);
             }
 
-            // PostCopy fires while the write lock is held (guaranteeing no render pass is active with the resources from the previous frame),
-            // giving InterfaceManager a chance to retire the previous frame's resources
+            // Retire resources only after readers of the previous snapshot have drained.
             this.PostCopy?.Invoke();
 
-            // Signal that external viewports need to be rendered for this step. We can't do that here, it causes driver crashes
-            // (nvidia code is rendering from other threads)
+            // Defer secondary presentation to Render(); presenting it here can race NVIDIA's worker threads.
             Volatile.Write(ref this.platformWindowsRenderedForStep, 0);
         }
         finally
@@ -311,20 +296,15 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             if (this.resizeInProgress)
                 return;
 
-            // Prevent Step() from mutating the draw data copy.
+            // Hold the snapshot stable for the complete main and secondary render pass.
             this.drawDataLock.EnterReadLock();
             try
             {
-                // Render the main viewport (entry 0) through the existing main-viewport composite path.
+                // The main snapshot may be composited once for every generated frame.
                 this.imguiRenderer.RenderDrawData(new ImDrawDataPtr(this.snapshot.Handle));
 
-                // Render the secondary (multi-viewport / pop-out) windows exactly once per Step(). We deliberately do
-                // NOT call ImGui.RenderPlatformWindowsDefault() here: that walks the live, single-buffered
-                // ImGui.GetPlatformIO().Viewports list and reads each viewport's live DrawData, which the game-present
-                // thread mutates in the next Step() (NewFrame()/UpdatePlatformWindows()) - enumerating/rendering that
-                // while it is being mutated throws on the pacer thread. Instead we iterate the stable, owned snapshots
-                // captured under the write lock in Step(), mirroring what RenderPlatformWindowsDefault() does per
-                // viewport (RendererRenderWindow + RendererSwapBuffers) but against isolated copies.
+                // Secondary windows should not advance at Smooth Motion's generated-frame rate. Present their stable
+                // snapshots once instead of walking ImGui's live platform viewport list from a pacing thread.
                 if (Interlocked.CompareExchange(ref this.platformWindowsRenderedForStep, 1, 0) == 0)
                 {
                     for (var i = 1; i < this.viewportSnapshots.Count; i++)
@@ -346,10 +326,8 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void EnterResize()
     {
-        // Defensive: the asymmetric resize detours (especially the ReShade OnDestroy/OnInitSwapChain split) can
-        // theoretically call EnterResize() twice without an intervening ExitResize(). Because drawDataLock is
-        // NoRecursion, a second EnterWriteLock() on the SAME thread would self-deadlock and freeze the rendered
-        // image forever (Step()/Render() keep early-returning on resizeInProgress). Ignore the nested enter.
+        // ReShade splits resize across destroy/init callbacks; ignore a duplicate enter rather than deadlocking
+        // this non-recursive lock and permanently suppressing Step()/Render().
         var currentThreadId = Environment.CurrentManagedThreadId;
         if (this.resizeOwnerThreadId == currentThreadId)
         {
@@ -359,27 +337,21 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             return;
         }
 
-        // Set the flag BEFORE taking the lock so an in-flight Step() that just missed the lock will early-out
-        // next time, rather than racing to snapshot against the swap-chain reallocation.
+        // Publish intent before waiting so new Step()/Render() calls do not queue behind the resize writer.
         this.resizeInProgress = true;
 
-        // Blocks until all current read-lock Render() passes drain, then prevents Step()/Render() for the
-        // duration of the resize window.
+        // Wait for active snapshot readers, then exclude frame capture and rendering until ExitResize().
         this.drawDataLock.EnterWriteLock();
         this.resizeOwnerThreadId = currentThreadId;
 
-        // Drop any captured secondary-viewport snapshots: they are sized for the OLD swap chain and must not be
-        // re-presented after the resize. The next Step() will recapture against the new swap chain.
+        // Do not present viewport snapshots captured against the old swap-chain buffers.
         this.viewportSnapshots.BeginCapture();
     }
 
     /// <inheritdoc/>
     public void ExitResize()
     {
-        // Defensive: only release the write lock if THIS backend believes the section is actually held. An
-        // unbalanced ExitResize() (e.g. a detour that exits without ever entering) would otherwise throw
-        // SynchronizationLockException, and a missing ExitResize() would leave the lock wedged forever. Clearing
-        // state unconditionally keeps Step()/Render() from being frozen if the section was already released.
+        // An unmatched ReShade init callback must not throw or leave rendering disabled.
         if (this.resizeOwnerThreadId == 0)
         {
             Log.Warning("ExitResize() called without a matching EnterResize(); ignoring.");

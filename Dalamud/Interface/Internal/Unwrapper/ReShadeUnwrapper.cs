@@ -9,7 +9,7 @@ using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.Interface.Internal.Unwrapper;
 
-/// <inheritdoc />
+/// <summary>Recognizes COM wrappers implemented by a module that exports the ReShade addon API.</summary>
 internal unsafe class ReShadeUnwrapper : ComHookUnwrapper
 {
     /// <inheritdoc/>

@@ -37,7 +37,7 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
     private int[] vtxCapacities = [];
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DrawDataSnapshot"/> class and allocate internal resources.
+    /// Initializes a new instance of the <see cref="DrawDataSnapshot"/> class and allocates its native header.
     /// </summary>
     public DrawDataSnapshot()
     {
@@ -62,9 +62,11 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
     }
 
     /// <summary>
-    /// Deep-copies all draw data referenced by <paramref name="src"/> into this snapshot's
-    /// owned unmanaged buffers.  The source ImGui memory is not accessed after this method returns.
+    /// Copies the draw-data header and each command, index, and vertex buffer into owned unmanaged storage.
     /// </summary>
+    /// <remarks>
+    /// External pointers embedded in draw commands, such as texture handles and callback data, remain borrowed.
+    /// </remarks>
     /// <param name="src">
     /// The live draw-data pointer obtained immediately after ImGui.Render().
     /// </param>
@@ -72,7 +74,7 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
     {
         var count = src->CmdListsCount;
 
-        // Grow the draw-list arrays if necessary
+        // Retain draw-list storage until a frame needs more lists.
         if (count > this.listCapacity)
         {
             if (this.drawListArray is not null)
@@ -105,7 +107,7 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
             this.listCapacity = count;
         }
 
-        // Shallow-copy all scalar fields of ImDrawData, then override the pointer fields
+        // Copy scalar frame metadata, redirect CmdLists to owned storage, and clear the unused OwnerViewport.
         NativeMemory.Copy(src, this.header, (nuint)sizeof(ImDrawData));
         this.header->CmdLists = count > 0 ? this.cmdListPtrArray : null;
         this.header->OwnerViewport = null; // viewport pointer is not used by the renderer
@@ -114,32 +116,29 @@ internal sealed unsafe class DrawDataSnapshot : IDisposable
         {
             var srcList = src->CmdLists[i];
 
-            // CmdBuffer
             var cmdCount = srcList->CmdBuffer.Size;
             GrowBuffer(ref this.cmdBuffers[i], ref this.cmdCapacities[i], cmdCount, sizeof(ImDrawCmd));
             new Span<ImDrawCmd>(srcList->CmdBuffer.Data, cmdCount)
                 .CopyTo(new Span<ImDrawCmd>((ImDrawCmd*)this.cmdBuffers[i], cmdCount));
 
-            // IdxBuffer
             var idxCount = srcList->IdxBuffer.Size;
             GrowBuffer(ref this.idxBuffers[i], ref this.idxCapacities[i], idxCount, sizeof(ushort));
             new Span<ushort>(srcList->IdxBuffer.Data, idxCount)
                 .CopyTo(new Span<ushort>((ushort*)this.idxBuffers[i], idxCount));
 
-            // VtxBuffer
             var vtxCount = srcList->VtxBuffer.Size;
             GrowBuffer(ref this.vtxBuffers[i], ref this.vtxCapacities[i], vtxCount, sizeof(ImDrawVert));
             new Span<ImDrawVert>(srcList->VtxBuffer.Data, vtxCount)
                 .CopyTo(new Span<ImDrawVert>((ImDrawVert*)this.vtxBuffers[i], vtxCount));
 
-            // Reconstruct a minimal ImDrawList that only has the three fields the renderer reads
+            // Reconstruct only the ImDrawList fields consumed by the DX11 renderer.
             var dstList = this.drawListArray + i;
             *dstList = default;
             dstList->CmdBuffer = new ImVector<ImDrawCmd>(cmdCount, this.cmdCapacities[i], (ImDrawCmd*)this.cmdBuffers[i]);
             dstList->IdxBuffer = new ImVector<ushort>(idxCount, this.idxCapacities[i], (ushort*)this.idxBuffers[i]);
             dstList->VtxBuffer = new ImVector<ImDrawVert>(vtxCount, this.vtxCapacities[i], (ImDrawVert*)this.vtxBuffers[i]);
 
-            // cmdListPtrArray is non-null whenever count > 0, which is the only time we enter this loop
+            // The pointer array is allocated whenever this loop can run.
             this.cmdListPtrArray![i] = dstList;
         }
     }

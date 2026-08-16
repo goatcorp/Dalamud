@@ -11,10 +11,7 @@ namespace Dalamud.Interface.Internal;
 /// </summary>
 internal unsafe partial class InterfaceManager
 {
-    // The ReShade-addon resize path is split across two asymmetric callbacks (OnDestroySwapChain ->
-    // OnInitSwapChain). This tracks whether we entered the backend's resize-exclusive section in
-    // OnDestroySwapChain so the matching ExitResize in OnInitSwapChain is balanced exactly once, even when a
-    // callback early-outs.
+    // ReShade splits a resize across destroy and init callbacks; retain ownership across that callback boundary.
     private bool reShadeResizeEntered;
 
     private void ReShadeAddonInterfaceOnDestroySwapChain(ref ReShadeAddonInterface.ApiObject swapChain)
@@ -23,12 +20,11 @@ internal unsafe partial class InterfaceManager
         if (this.backend?.IsAttachedToPresentationTarget((nint)swapChainNative) is not true)
             return;
 
-        // Enter the resize-exclusive section so no pacer-thread render composites to the swap chain while its
-        // back buffers are reallocated. ExitResize is balanced in OnInitSwapChain via reShadeResizeEntered.
+        // OnInitSwapChain releases this exclusion after ReShade has recreated the target.
         this.backend?.EnterResize();
         this.reShadeResizeEntered = true;
 
-        // Retire anything sized for the old swap chain while the write lock is held (no render pass active).
+        // Drain deferred render cleanup while no render pass is active.
         this.RetireResourcesForResize();
 
         this.backend?.OnPreResize();
@@ -36,11 +32,7 @@ internal unsafe partial class InterfaceManager
 
     private void ReShadeAddonInterfaceOnInitSwapChain(ref ReShadeAddonInterface.ApiObject swapChain)
     {
-        // IMPORTANT: This callback is responsible for balancing the EnterResize() taken in
-        // OnDestroySwapChain. We must NOT early-return before the finally below, or the backend's resize
-        // write lock would be held forever and Step()/Render() would early-return on resizeInProgress for the
-        // rest of the session - freezing the rendered image while the game keeps running (audio/input still
-        // work). So the whole body, including the attached-target check, runs inside the try/finally.
+        // Keep all validation inside the try so every path balances the exclusion acquired by the destroy callback.
         try
         {
             var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
@@ -55,9 +47,7 @@ internal unsafe partial class InterfaceManager
         }
         finally
         {
-            // Balance the EnterResize from OnDestroySwapChain, even on the attached-target/GetDesc early-outs.
-            // ExitResize() is itself defensive (no-ops if the section is not actually held), so calling it here
-            // is always safe.
+            // Balance OnDestroySwapChain even when target validation or GetDesc fails.
             if (this.reShadeResizeEntered)
             {
                 this.reShadeResizeEntered = false;
@@ -99,8 +89,7 @@ internal unsafe partial class InterfaceManager
         if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
             return this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
-        // Take the backend's resize write lock for the whole reallocation window, same as the DXGI path, so no
-        // pacer-thread render composites to the swap chain while its back buffers are reallocated.
+        // Exclude frame capture and worker-thread rendering for the complete back-buffer reallocation.
         this.backend?.EnterResize();
         try
         {

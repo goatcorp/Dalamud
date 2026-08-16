@@ -5,7 +5,7 @@ using Dalamud.Support;
 
 namespace Dalamud.Interface.Internal.Unwrapper;
 
-/// <inheritdoc />
+/// <summary>Recognizes COM wrappers whose IUnknown methods are implemented by NvPresent.</summary>
 internal class NvPresentUnwrapper : ComHookUnwrapper
 {
     /// <inheritdoc/>
