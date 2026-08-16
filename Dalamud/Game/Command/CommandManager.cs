@@ -41,7 +41,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     private readonly ConsoleManager console = Service<ConsoleManager>.Get();
 
     [ServiceManager.ServiceConstructor]
-    private CommandManager(Dalamud dalamud)
+    private CommandManager()
     {
         this.tryInvokeDebugCommandHook = Hook<ShellCommands.Delegates.TryInvokeDebugCommand>.FromAddress(
             (nint)ShellCommands.MemberFunctionPointers.TryInvokeDebugCommand,

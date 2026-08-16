@@ -31,10 +31,11 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
     private readonly Hook<AddonFlyText.Delegates.CreateFlyText> createFlyTextHook;
 
     [ServiceManager.ServiceConstructor]
-    private unsafe FlyTextGui(TargetSigScanner sigScanner)
+    private unsafe FlyTextGui()
     {
-        this.createFlyTextHook = Hook<AddonFlyText.Delegates.CreateFlyText>.FromAddress(AddonFlyText.Addresses.CreateFlyText.Value, this.CreateFlyTextDetour);
-
+        this.createFlyTextHook = Hook<AddonFlyText.Delegates.CreateFlyText>.FromAddress(
+            AddonFlyText.Addresses.CreateFlyText.Value,
+            this.CreateFlyTextDetour);
         this.createFlyTextHook.Enable();
     }
 
