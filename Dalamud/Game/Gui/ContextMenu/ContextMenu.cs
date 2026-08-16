@@ -148,7 +148,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         if (oldValues.Length >= newSize)
             return (AtkValue*)Unsafe.AsPointer(ref oldValues[0]);
 
-        var size = (sizeof(AtkValue) * newSize) + 8;
+        var size = (AtkValue.StructSize * newSize) + 8;
         var newArray = (nint)IMemorySpace.GetUISpace()->Malloc((ulong)size, 0);
         if (newArray == nint.Zero)
             throw new OutOfMemoryException();
@@ -164,7 +164,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     }
 
     private void FreeExpandedContextMenuArray(AtkValue* newValues, int newSize) =>
-        IMemorySpace.Free((void*)((nint)newValues - 8), (ulong)((newSize * sizeof(AtkValue)) + 8));
+        IMemorySpace.Free((void*)((nint)newValues - 8), (ulong)((newSize * AtkValue.StructSize) + 8));
 
     private AtkValue* CreateEmptySubmenuContextMenuArray(SeString name, int x, int y, out int valueCount)
     {

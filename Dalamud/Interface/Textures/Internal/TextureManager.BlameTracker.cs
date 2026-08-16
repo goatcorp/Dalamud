@@ -320,7 +320,7 @@ internal sealed partial class TextureManager
 
             fixed (Guid* pMyGuid = &MyGuid)
             {
-                var dataSize = (uint)sizeof(nint);
+                var dataSize = (uint)nint.Size;
                 IUnknown* existingTag;
                 if (deviceChild.Get()->GetPrivateData(pMyGuid, &dataSize, &existingTag).SUCCEEDED)
                 {
