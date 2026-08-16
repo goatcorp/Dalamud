@@ -6,6 +6,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -13,8 +14,6 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using InteropGenerator.Runtime;
-
-using Serilog;
 
 namespace Dalamud.Game.Gui.FlyText;
 
@@ -24,6 +23,8 @@ namespace Dalamud.Game.Gui.FlyText;
 [ServiceManager.EarlyLoadedService]
 internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 {
+    private static readonly ModuleLog Log = ModuleLog.Create<FlyTextGui>();
+
     /// <summary>
     /// The hook that fires when the game creates a fly text element.
     /// </summary>
@@ -96,8 +97,6 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
         var retVal = nint.Zero;
         try
         {
-            Log.Verbose("[FlyText] Enter CreateFlyText detour!");
-
             var handled = false;
 
             var tmpKind = (FlyTextKind)kind;
@@ -113,11 +112,11 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
             var originalText1 = tmpText1.EncodeWithNullTerminator();
             var originalText2 = tmpText2.EncodeWithNullTerminator();
 
-            Log.Verbose($"[FlyText] Called with addonFlyText({(nint)thisPtr:X}) " +
+            Log.Verbose($"CreateFlyTextDetour called with addonFlyText({(nint)thisPtr:X}) " +
                         $"kind({kind}) val1({val1}) val2({val2}) damageTypeIcon({damageTypeIcon}) " +
                         $"text1({(nint)text1.Value:X}, \"{tmpText1}\") text2({(nint)text2.Value:X}, \"{tmpText2}\") " +
                         $"color({color:X}) icon({icon}) yOffset({yOffset})");
-            Log.Verbose("[FlyText] Calling flytext events!");
+
             foreach (var d in Delegate.EnumerateInvocationList(this.FlyTextCreated))
             {
                 try
@@ -143,8 +142,6 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
             // If handled, ignore the original call
             if (handled)
             {
-                Log.Verbose("[FlyText] FlyText was handled.");
-
                 // Returning null to AddFlyText from CreateFlyText will result
                 // in the operation being dropped entirely.
                 return IntPtr.Zero;
@@ -167,7 +164,6 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
             // If not dirty, make the original call
             if (!dirty)
             {
-                Log.Verbose("[FlyText] Calling flytext with original args.");
                 return this.createFlyTextHook.Original(thisPtr, kind, val1, val2, text2, color, icon,
                                                        damageTypeIcon, text1, yOffset);
             }
@@ -176,7 +172,6 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
             var pText2 = Marshal.AllocHGlobal(maybeModifiedText2.Length);
             Marshal.Copy(maybeModifiedText1, 0, pText1, maybeModifiedText1.Length);
             Marshal.Copy(maybeModifiedText2, 0, pText2, maybeModifiedText2.Length);
-            Log.Verbose("[FlyText] Allocated and set strings.");
 
             retVal = this.createFlyTextHook.Original(
                 thisPtr,
@@ -190,19 +185,16 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
                 (byte*)pText1,
                 tmpYOffset);
 
-            Log.Verbose("[FlyText] Returned from original. Delaying free task.");
-
             Task.Delay(2000).ContinueWith(_ =>
             {
                 try
                 {
                     Marshal.FreeHGlobal(pText1);
                     Marshal.FreeHGlobal(pText2);
-                    Log.Verbose("[FlyText] Freed strings.");
                 }
                 catch (Exception e)
                 {
-                    Log.Verbose(e, "[FlyText] Exception occurred freeing strings in task.");
+                    Log.Verbose(e, "Exception occurred freeing strings in task.");
                 }
             });
         }
