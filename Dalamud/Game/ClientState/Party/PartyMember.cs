@@ -112,7 +112,7 @@ public interface IPartyMember : IEquatable<IPartyMember>
 /// This struct represents a party member in the group manager.
 /// </summary>
 /// <param name="ptr">A pointer to the PartyMember.</param>
-internal unsafe readonly struct PartyMember(CSPartyMember* ptr) : IPartyMember
+internal readonly unsafe struct PartyMember(CSPartyMember* ptr) : IPartyMember
 {
     /// <inheritdoc/>
     public nint Address => (nint)ptr;

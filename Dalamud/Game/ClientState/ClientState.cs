@@ -33,7 +33,7 @@ namespace Dalamud.Game.ClientState;
 /// This class represents the state of the game client at the time of access.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal unsafe sealed class ClientState : IInternalDisposableService, IClientState
+internal sealed unsafe class ClientState : IInternalDisposableService, IClientState
 {
     private static readonly ModuleLog Log = ModuleLog.Create<ClientState>();
 
