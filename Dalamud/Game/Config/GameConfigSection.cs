@@ -26,7 +26,7 @@ public class GameConfigSection
     /// <param name="sectionName">Name of the section.</param>
     /// <param name="framework">The framework service.</param>
     /// <param name="configBase">Unmanaged ConfigBase instance.</param>
-    internal GameConfigSection(string sectionName, Framework framework, ConfigBase* configBase)
+    internal unsafe GameConfigSection(string sectionName, Framework framework, ConfigBase* configBase)
         : this(sectionName, framework, () => configBase)
     {
     }
