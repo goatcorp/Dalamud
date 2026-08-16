@@ -93,7 +93,7 @@ internal abstract unsafe class MenuArgs : IMenuArgs
     public MenuTarget Target { get; }
 
     /// <inheritdoc/>
-    public IReadOnlySet<nint> EventInterfaces 
+    public IReadOnlySet<nint> EventInterfaces
     {
         get
         {

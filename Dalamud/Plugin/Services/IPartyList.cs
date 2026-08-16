@@ -13,37 +13,37 @@ public interface IPartyList : IDalamudService, IReadOnlyCollection<IPartyMember>
     /// Gets the amount of party members the local player has.
     /// </summary>
     public int Length { get; }
-    
+
     /// <summary>
     /// Gets the index of the party leader.
     /// </summary>
     public uint PartyLeaderIndex { get; }
-    
+
     /// <summary>
     /// Gets a value indicating whether this group is an alliance.
     /// </summary>
     public bool IsAlliance { get; }
-    
+
     /// <summary>
     /// Gets the address of the Group Manager.
     /// </summary>
     public nint GroupManagerAddress { get; }
-    
+
     /// <summary>
     /// Gets the address of the party list within the group manager.
     /// </summary>
     public nint GroupListAddress { get; }
-    
+
     /// <summary>
     /// Gets the address of the alliance member list within the group manager.
     /// </summary>
     public nint AllianceListAddress { get; }
-    
+
     /// <summary>
     /// Gets the ID of the party.
     /// </summary>
     public long PartyId { get; }
-    
+
     /// <summary>
     /// Get a party member at the specified spawn index.
     /// </summary>
@@ -64,7 +64,7 @@ public interface IPartyList : IDalamudService, IReadOnlyCollection<IPartyMember>
     /// <param name="address">The address of the party member in memory.</param>
     /// <returns>The party member object containing the requested data.</returns>
     public IPartyMember? CreatePartyMemberReference(nint address);
-    
+
     /// <summary>
     /// Gets the address of the alliance member at the specified index of the alliance list.
     /// </summary>

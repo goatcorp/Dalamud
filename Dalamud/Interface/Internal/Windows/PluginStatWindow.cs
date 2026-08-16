@@ -81,7 +81,7 @@ internal class PluginStatWindow : Window
                     ImGui.SameLine();
                     ImGuiComponents.TextWithLabel("Total Average", $"{totalAverage / 10000f:F4}ms", "All average draw times added together");
                     ImGui.SameLine();
-                    ImGuiComponents.TextWithLabel("Collective Average",  $"{(loadedPlugins.Any() ? totalAverage / loadedPlugins.Count() / 10000f : 0):F4}ms",  "Average of all average draw times");
+                    ImGuiComponents.TextWithLabel("Collective Average", $"{(loadedPlugins.Any() ? totalAverage / loadedPlugins.Count() / 10000f : 0):F4}ms", "Average of all average draw times");
 
                     ImGui.InputTextWithHint(
                         "###PluginStatWindow_DrawSearch"u8,

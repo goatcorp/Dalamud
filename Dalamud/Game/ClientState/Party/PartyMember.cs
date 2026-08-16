@@ -7,8 +7,6 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Game.Text.SeStringHandling;
 
-using Dalamud.Utility;
-
 using Lumina.Excel;
 
 using CSPartyMember = FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember;

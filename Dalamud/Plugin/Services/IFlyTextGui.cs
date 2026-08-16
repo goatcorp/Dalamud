@@ -33,7 +33,7 @@ public interface IFlyTextGui : IDalamudService
         ref uint damageTypeIcon,
         ref float yOffset,
         ref bool handled);
-    
+
     /// <summary>
     /// The FlyText event that can be subscribed to.
     /// </summary>

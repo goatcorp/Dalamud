@@ -11,7 +11,7 @@ public interface ICallGateSubscriber
 {
     /// <inheritdoc cref="CallGatePubSubBase.HasAction"/>
     public bool HasAction { get; }
-    
+
     /// <inheritdoc cref="CallGatePubSubBase.HasFunction"/>
     public bool HasFunction { get; }
 }

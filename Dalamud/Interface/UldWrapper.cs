@@ -165,8 +165,8 @@ public class UldWrapper : IDisposable
         var substitution = Service<TextureManager>.Get();
         hrPath = substitution.GetSubstitutedPath(hrPath);
         var hd = true;
-        var tex = Path.IsPathRooted(hrPath) 
-                      ? this.data.GameData.GetFileFromDisk<TexFile>(hrPath) 
+        var tex = Path.IsPathRooted(hrPath)
+                      ? this.data.GameData.GetFileFromDisk<TexFile>(hrPath)
                       : this.data.GetFile<TexFile>(hrPath);
         if (tex == null)
         {

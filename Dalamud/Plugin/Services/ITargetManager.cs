@@ -1,5 +1,4 @@
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Plugin.Services;
 
 namespace Dalamud.Plugin.Services;
 

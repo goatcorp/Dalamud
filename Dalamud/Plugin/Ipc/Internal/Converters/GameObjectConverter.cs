@@ -30,13 +30,13 @@ internal sealed class GameObjectConverter : JsonConverter<IGameObject>
 
         if (reader.TokenType != JsonToken.String)
             throw new InvalidDataException("String is expected.");
-        
+
         if (!nint.TryParse(reader.Value as string, out var v))
             throw new InvalidDataException("Could not parse address.");
-        
+
         if (!ThreadSafety.IsMainThread)
             throw new InvalidOperationException("Cannot send GameObjects from non-main thread over IPC.");
-        
+
         var ot = Service<ObjectTable>.Get();
         foreach (var go in ot)
         {

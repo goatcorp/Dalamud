@@ -13,12 +13,12 @@ public interface IFateTable : IDalamudService, IReadOnlyCollection<IFate>
     /// Gets the address of the Fate table.
     /// </summary>
     public nint Address { get; }
-    
+
     /// <summary>
     /// Gets the amount of currently active Fates.
     /// </summary>
     public int Length { get; }
-    
+
     /// <summary>
     /// Get an actor at the specified spawn index.
     /// </summary>

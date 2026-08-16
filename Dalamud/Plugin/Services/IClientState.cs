@@ -1,8 +1,6 @@
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Services;
 

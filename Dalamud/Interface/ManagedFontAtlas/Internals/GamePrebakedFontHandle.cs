@@ -420,7 +420,7 @@ internal class GamePrebakedFontHandle : FontHandle
                     SizePx = sizePx,
                 });
             this.templatedFonts.Add(font);
-            return font; 
+            return font;
         }
 
         private unsafe void PatchFontMetricsIfNecessary(GameFontStyle style, ImFontPtr font, float atlasScale)

@@ -7,6 +7,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using Serilog;

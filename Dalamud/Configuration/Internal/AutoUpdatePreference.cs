@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Configuration.Internal;
+namespace Dalamud.Configuration.Internal;
 
 /// <summary>
 /// Class representing a plugin that has opted in to auto-updating.
@@ -13,7 +13,7 @@ internal class AutoUpdatePreference
     {
         this.WorkingPluginId = pluginId;
     }
-    
+
     /// <summary>
     /// The kind of opt-in.
     /// </summary>
@@ -23,13 +23,13 @@ internal class AutoUpdatePreference
         /// Never auto-update this plugin.
         /// </summary>
         NeverUpdate,
-        
+
         /// <summary>
         /// Always auto-update this plugin, regardless of the user's settings.
         /// </summary>
         AlwaysUpdate,
     }
-    
+
     /// <summary>
     /// Gets or sets the unique ID representing the plugin.
     /// </summary>

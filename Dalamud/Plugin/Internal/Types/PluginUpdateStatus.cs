@@ -16,33 +16,33 @@ internal class PluginUpdateStatus
         /// The update is pending.
         /// </summary>
         Pending,
-        
+
         /// <summary>
         /// The update failed to download.
         /// </summary>
         FailedDownload,
-        
+
         /// <summary>
         /// The outdated plugin did not unload correctly.
         /// </summary>
         FailedUnload,
-        
+
         /// <summary>
         /// The updated plugin did not load correctly.
         /// </summary>
         FailedLoad,
-        
+
         /// <summary>
         /// The updated plugin is already up to date.
         /// </summary>
         AlreadyUpToDate,
-        
+
         /// <summary>
         /// The update succeeded.
         /// </summary>
         Success,
     }
-    
+
     /// <summary>
     /// Gets the plugin internal name.
     /// </summary>

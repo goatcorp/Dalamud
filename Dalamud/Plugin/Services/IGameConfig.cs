@@ -27,28 +27,28 @@ public interface IGameConfig : IDalamudService
     /// <summary>
     /// Event which is fired when a system config option is changed.
     /// </summary>
-    public event EventHandler<ConfigChangeEvent> SystemChanged; 
-    
+    public event EventHandler<ConfigChangeEvent> SystemChanged;
+
     /// <summary>
     /// Event which is fired when a UiConfig option is changed.
     /// </summary>
-    public event EventHandler<ConfigChangeEvent> UiConfigChanged; 
-    
+    public event EventHandler<ConfigChangeEvent> UiConfigChanged;
+
     /// <summary>
     /// Event which is fired when a UiControl config option is changed.
     /// </summary>
-    public event EventHandler<ConfigChangeEvent> UiControlChanged; 
+    public event EventHandler<ConfigChangeEvent> UiControlChanged;
 
     /// <summary>
     /// Gets the collection of config options that persist between characters.
     /// </summary>
     public GameConfigSection System { get; }
-    
+
     /// <summary>
     /// Gets the collection of config options that are character specific.
     /// </summary>
     public GameConfigSection UiConfig { get; }
-    
+
     /// <summary>
     /// Gets the collection of config options that are control mode specific. (Mouse and Keyboard / Gamepad).
     /// </summary>
@@ -61,7 +61,7 @@ public interface IGameConfig : IDalamudService
     /// <param name="value">The returned value of the config option.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(SystemConfigOption option, out bool value);
-    
+
     /// <summary>
     /// Attempts to get a uint config value from the System section.
     /// </summary>
@@ -85,7 +85,7 @@ public interface IGameConfig : IDalamudService
     /// <param name="value">The returned value of the config option.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(SystemConfigOption option, out string value);
-    
+
     /// <summary>
     /// Attempts to get the properties of a UInt option from the System section.
     /// </summary>
@@ -93,7 +93,7 @@ public interface IGameConfig : IDalamudService
     /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(SystemConfigOption option, out UIntConfigProperties? properties);
-    
+
     /// <summary>
     /// Attempts to get the properties of a Float option from the System section.
     /// </summary>
@@ -157,7 +157,7 @@ public interface IGameConfig : IDalamudService
     /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(UiConfigOption option, out UIntConfigProperties? properties);
-    
+
     /// <summary>
     /// Attempts to get the properties of a Float option from the UiConfig section.
     /// </summary>
@@ -165,7 +165,7 @@ public interface IGameConfig : IDalamudService
     /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(UiConfigOption option, out FloatConfigProperties? properties);
-    
+
     /// <summary>
     /// Attempts to get the properties of a String option from the UiConfig section.
     /// </summary>
@@ -173,7 +173,7 @@ public interface IGameConfig : IDalamudService
     /// <param name="properties">Details of the option: Default Value.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(UiConfigOption option, out StringConfigProperties? properties);
-    
+
     /// <summary>
     /// Attempts to get a boolean config value from the UiControl section.
     /// </summary>
@@ -197,7 +197,7 @@ public interface IGameConfig : IDalamudService
     /// <param name="value">The returned value of the config option.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(UiControlOption option, out float value);
-    
+
     /// <summary>
     /// Attempts to get a string config value from the UiControl section.
     /// </summary>
@@ -213,7 +213,7 @@ public interface IGameConfig : IDalamudService
     /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(UiControlOption option, out UIntConfigProperties? properties);
-    
+
     /// <summary>
     /// Attempts to get the properties of a Float option from the UiControl section.
     /// </summary>
@@ -221,7 +221,7 @@ public interface IGameConfig : IDalamudService
     /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(UiControlOption option, out FloatConfigProperties? properties);
-    
+
     /// <summary>
     /// Attempts to get the properties of a String option from the UiControl section.
     /// </summary>

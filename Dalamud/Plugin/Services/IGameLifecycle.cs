@@ -11,7 +11,7 @@ public interface IGameLifecycle : IDalamudService
     /// Gets a token that is cancelled when Dalamud is unloading.
     /// </summary>
     public CancellationToken DalamudUnloadingToken { get; }
-    
+
     /// <summary>
     /// Gets a token that is cancelled when the game is shutting down.
     /// </summary>

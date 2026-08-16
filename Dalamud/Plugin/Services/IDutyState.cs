@@ -40,17 +40,17 @@ public interface IDutyState : IDalamudService
     /// Does not trigger when loading into a duty that was in progress, or from loading in after a disconnect.
     /// </summary>
     public event DutyStartedDelegate DutyStarted;
-    
+
     /// <summary>
     /// Event that gets fired when everyone in the party dies and the screen fades to black.
     /// </summary>
     public event DutyWipedDelegate DutyWiped;
-    
+
     /// <summary>
     /// Event that gets fired when the "Duty Recommence" message displays, and on the removal of the ring at duty's spawn.
     /// </summary>
     public event DutyRecommencedDelegate DutyRecommenced;
-    
+
     /// <summary>
     /// Event that gets fired when the duty is completed successfully.
     /// </summary>

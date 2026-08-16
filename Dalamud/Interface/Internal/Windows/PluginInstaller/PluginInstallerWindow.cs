@@ -1556,7 +1556,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var configuration = Service<DalamudConfiguration>.Get();
         var favoriteList = configuration.FavoritePluginInternalName;
         var filteredList = pluginList
-                           // Filter out plugins that don't match the search if any
+                          // Filter out plugins that don't match the search if any
                           .Where(plugin => !this.IsManifestFiltered(plugin.Manifest))
                           .Where(plugin => !applyPluginFilters || !this.IsInstalledPluginFiltered(plugin, false))
                           .ToList();

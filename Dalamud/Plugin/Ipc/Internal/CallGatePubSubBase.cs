@@ -1,11 +1,7 @@
 using System.Reactive.Disposables;
-using System.Threading;
 
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Ipc.Exceptions;
-using Dalamud.Utility;
-
-using Serilog;
 
 namespace Dalamud.Plugin.Ipc.Internal;
 

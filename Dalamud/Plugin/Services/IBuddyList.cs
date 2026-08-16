@@ -14,17 +14,17 @@ public interface IBuddyList : IDalamudService, IReadOnlyCollection<IBuddyMember>
     /// Gets the amount of battle buddies the local player has.
     /// </summary>
     public int Length { get; }
-    
+
     /// <summary>
     /// Gets the active companion buddy.
     /// </summary>
     public IBuddyMember? CompanionBuddy { get; }
-    
+
     /// <summary>
     /// Gets the active pet buddy.
     /// </summary>
     public IBuddyMember? PetBuddy { get; }
-    
+
     /// <summary>
     /// Gets a battle buddy at the specified spawn index.
     /// </summary>

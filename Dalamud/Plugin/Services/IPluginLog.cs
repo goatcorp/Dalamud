@@ -15,7 +15,7 @@ public interface IPluginLog : IDalamudService
     /// advanced logging functionality.
     /// </summary>
     public ILogger Logger { get; }
-    
+
     /// <summary>
     /// Gets or sets the minimum log level that will be recorded from this plugin to Dalamud's logs. This may be set
     /// by either the plugin or by Dalamud itself.
@@ -33,11 +33,11 @@ public interface IPluginLog : IDalamudService
     /// <param name="messageTemplate">Message template describing the event.</param>
     /// <param name="values">Objects positionally formatted into the message template.</param>
     void Fatal(string messageTemplate, params object[] values);
-    
+
     /// <inheritdoc cref="Fatal(string,object[])"/>
     /// <param name="exception">An (optional) exception that should be recorded alongside this event.</param>
     void Fatal(Exception? exception, string messageTemplate, params object[] values);
-    
+
     /// <summary>
     /// Log a <see cref="LogEventLevel.Error" /> message to the Dalamud log for this plugin. This log level should be
     /// used for recoverable errors or faults that impact plugin functionality.
@@ -45,11 +45,11 @@ public interface IPluginLog : IDalamudService
     /// <param name="messageTemplate">Message template describing the event.</param>
     /// <param name="values">Objects positionally formatted into the message template.</param>
     void Error(string messageTemplate, params object[] values);
-    
+
     /// <inheritdoc cref="Error(string,object[])"/>
     /// <param name="exception">An (optional) exception that should be recorded alongside this event.</param>
     void Error(Exception? exception, string messageTemplate, params object[] values);
-    
+
     /// <summary>
     /// Log a <see cref="LogEventLevel.Warning" /> message to the Dalamud log for this plugin. This log level should be
     /// used for user error, potential problems, or high-importance messages that should be logged. 
@@ -57,11 +57,11 @@ public interface IPluginLog : IDalamudService
     /// <param name="messageTemplate">Message template describing the event.</param>
     /// <param name="values">Objects positionally formatted into the message template.</param>
     void Warning(string messageTemplate, params object[] values);
-    
+
     /// <inheritdoc cref="Warning(string,object[])"/>
     /// <param name="exception">An (optional) exception that should be recorded alongside this event.</param>
     void Warning(Exception? exception, string messageTemplate, params object[] values);
-    
+
     /// <summary>
     /// Log an <see cref="LogEventLevel.Information" /> message to the Dalamud log for this plugin. This log level
     /// should be used for general plugin operations and other relevant information to track a plugin's behavior. 
@@ -69,7 +69,7 @@ public interface IPluginLog : IDalamudService
     /// <param name="messageTemplate">Message template describing the event.</param>
     /// <param name="values">Objects positionally formatted into the message template.</param>
     void Information(string messageTemplate, params object[] values);
-    
+
     /// <inheritdoc cref="Information(string,object[])"/>
     /// <param name="exception">An (optional) exception that should be recorded alongside this event.</param>
     void Information(Exception? exception, string messageTemplate, params object[] values);
@@ -79,7 +79,7 @@ public interface IPluginLog : IDalamudService
 
     /// <inheritdoc cref="Information(Exception?,string,object[])"/>
     void Info(Exception? exception, string messageTemplate, params object[] values);
-    
+
     /// <summary>
     /// Log a <see cref="LogEventLevel.Debug" /> message to the Dalamud log for this plugin. This log level should be
     /// used for messages or information that aid with debugging or tracing a plugin's operations, but should not be

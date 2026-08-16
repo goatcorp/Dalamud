@@ -32,12 +32,12 @@ public interface IFramework : IDalamudService
     /// </summary>
     /// <param name="framework">The Framework instance.</param>
     public delegate void OnUpdateDelegate(IFramework framework);
-    
+
     /// <summary>
     /// Event that gets fired every time the game framework updates.
     /// </summary>
     public event OnUpdateDelegate Update;
-    
+
     /// <summary>
     /// Gets the last time that the Framework Update event was triggered.
     /// </summary>
@@ -271,7 +271,7 @@ public interface IFramework : IDalamudService
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
     public Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Run given function in upcoming Framework.Tick call.
     /// </summary>

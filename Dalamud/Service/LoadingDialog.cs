@@ -206,7 +206,7 @@ internal sealed class LoadingDialog
 
         if (NewLogEntries.IsEmpty)
             return;
-        
+
         var sb = new StringBuilder();
         while (NewLogEntries.TryDequeue(out var e))
         {
@@ -219,7 +219,7 @@ internal sealed class LoadingDialog
                 t = i == -1 ? ReadOnlySpan<char>.Empty : t[(i + 1)..];
                 if (line.IsEmpty)
                     continue;
-                
+
                 sb.Clear();
                 if (first)
                     sb.Append($"{e.LogEvent.Timestamp:HH:mm:ss} | ");

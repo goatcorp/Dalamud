@@ -110,7 +110,7 @@ public sealed record MenuItem : IMenuItem
 
     /// <inheritdoc/>
     public ushort PrefixColor { get; set; }
-    
+
     /// <inheritdoc/>
     public bool UseDefaultPrefix { get; set; }
 

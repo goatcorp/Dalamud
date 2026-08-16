@@ -15,32 +15,32 @@ public interface ICondition : IDalamudService
     /// <param name="flag">The changed condition.</param>
     /// <param name="value">The value the condition is set to.</param>
     public delegate void ConditionChangeDelegate(ConditionFlag flag, bool value);
-    
+
     /// <summary>
     /// Event that gets fired when a condition is set.
     /// Should only get fired for actual changes, so the previous value will always be !value.
     /// </summary>
     public event ConditionChangeDelegate? ConditionChange;
-    
+
     /// <summary>
     /// Gets the current max number of conditions.
     /// </summary>
     public int MaxEntries { get; }
-    
+
     /// <summary>
     /// Gets the condition array base pointer.
     /// </summary>
     public nint Address { get; }
-    
+
     /// <summary>
     /// Check the value of a specific condition/state flag.
     /// </summary>
     /// <param name="flag">The condition flag to check.</param>
     public bool this[int flag] { get; }
-    
+
     /// <inheritdoc cref="this[int]"/>
     public bool this[ConditionFlag flag] => this[(int)flag];
-    
+
     /// <summary>
     /// Convert the conditions array to a set of all set condition flags.
     /// </summary>

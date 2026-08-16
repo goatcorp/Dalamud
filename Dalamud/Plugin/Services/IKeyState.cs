@@ -26,7 +26,7 @@ public interface IKeyState : IDalamudService
     /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">If the set value is non-zero.</exception>
     public bool this[int vkCode] { get; set; }
-    
+
     /// <inheritdoc cref="this[int]"/>
     public bool this[VirtualKey vkCode] { get; set; }
 

@@ -10,7 +10,6 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -509,7 +508,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             return false;
         }
 
-original:
+    original:
         // Eventually handled by inventory context here: 14022BBD0 (6.51)
         return this.addonContextMenuOnMenuSelectedHook.Original(addon, selectedIdx, a3);
     }

@@ -30,7 +30,7 @@ public interface IToastGui : IDalamudService
     /// <param name="message">The message displayed.</param>
     /// <param name="isHandled">Whether the toast has been handled or should be propagated.</param>
     public delegate void OnErrorToastDelegate(ref SeString message, ref bool isHandled);
-    
+
     /// <summary>
     /// Event that will be fired when a toast is sent by the game or a plugin.
     /// </summary>
