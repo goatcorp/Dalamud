@@ -11,41 +11,41 @@ public interface ITargetManager : IDalamudService
     /// Gets or sets the current target.
     /// Set to null to clear the target.
     /// </summary>
-    public IGameObject? Target { get; set; }
+    IGameObject? Target { get; set; }
 
     /// <summary>
     /// Gets or sets the mouseover target.
     /// Set to null to clear the target.
     /// </summary>
-    public IGameObject? MouseOverTarget { get; set; }
+    IGameObject? MouseOverTarget { get; set; }
 
     /// <summary>
     /// Gets or sets the focus target.
     /// Set to null to clear the target.
     /// </summary>
-    public IGameObject? FocusTarget { get; set; }
+    IGameObject? FocusTarget { get; set; }
 
     /// <summary>
     /// Gets or sets the previous target.
     /// Set to null to clear the target.
     /// </summary>
-    public IGameObject? PreviousTarget { get; set; }
+    IGameObject? PreviousTarget { get; set; }
 
     /// <summary>
     /// Gets or sets the soft target.
     /// Set to null to clear the target.
     /// </summary>
-    public IGameObject? SoftTarget { get; set; }
+    IGameObject? SoftTarget { get; set; }
 
     /// <summary>
     /// Gets or sets the gpose target.
     /// Set to null to clear the target.
     /// </summary>
-    public IGameObject? GPoseTarget { get; set; }
+    IGameObject? GPoseTarget { get; set; }
 
     /// <summary>
     /// Gets or sets the mouseover nameplate target.
     /// Set to null to clear the target.
     /// </summary>
-    public IGameObject? MouseOverNameplateTarget { get; set; }
+    IGameObject? MouseOverNameplateTarget { get; set; }
 }

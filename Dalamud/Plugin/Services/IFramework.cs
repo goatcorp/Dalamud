@@ -31,41 +31,41 @@ public interface IFramework : IDalamudService
     /// A delegate type used with the <see cref="Update"/> event.
     /// </summary>
     /// <param name="framework">The Framework instance.</param>
-    public delegate void OnUpdateDelegate(IFramework framework);
+    delegate void OnUpdateDelegate(IFramework framework);
 
     /// <summary>
     /// Event that gets fired every time the game framework updates.
     /// </summary>
-    public event OnUpdateDelegate Update;
+    event OnUpdateDelegate Update;
 
     /// <summary>
     /// Gets the last time that the Framework Update event was triggered.
     /// </summary>
-    public DateTime LastUpdate { get; }
+    DateTime LastUpdate { get; }
 
     /// <summary>
     /// Gets the last time in UTC that the Framework Update event was triggered.
     /// </summary>
-    public DateTime LastUpdateUTC { get; }
+    DateTime LastUpdateUTC { get; }
 
     /// <summary>
     /// Gets the delta between the last Framework Update and the currently executing one.
     /// </summary>
-    public TimeSpan UpdateDelta { get; }
+    TimeSpan UpdateDelta { get; }
 
     /// <summary>
     /// Gets a value indicating whether currently executing code is running in the game's framework update thread.
     /// </summary>
-    public bool IsInFrameworkUpdateThread { get; }
+    bool IsInFrameworkUpdateThread { get; }
 
     /// <summary>
     /// Gets a value indicating whether game Framework is unloading.
     /// </summary>
-    public bool IsFrameworkUnloading { get; }
+    bool IsFrameworkUnloading { get; }
 
     /// <summary>Gets a <see cref="TaskFactory"/> that runs tasks during Framework Update event.</summary>
     /// <returns>The task factory.</returns>
-    public TaskFactory GetTaskFactory();
+    TaskFactory GetTaskFactory();
 
     /// <summary>
     /// Returns a task that completes after the given number of ticks. 
@@ -74,7 +74,7 @@ public interface IFramework : IDalamudService
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A new <see cref="Task"/> that gets resolved after specified number of ticks happen.</returns>
     /// <remarks>The continuation will run on the framework thread by default.</remarks>
-    public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default);
+    Task DelayTicks(long numTicks, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
@@ -89,38 +89,7 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
-    public Task Run(Action action, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
-    /// </summary>
-    /// <typeparam name="T">Return type.</typeparam>
-    /// <param name="action">Function to call.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>Task representing the pending or already completed function.</returns>
-    /// <remarks>
-    /// <para>Starting new tasks and waiting on them <b>synchronously</b> from this callback will completely lock up
-    /// the game. Use <c>await</c> if you need to wait on something from an <c>async</c> callback.</para>
-    /// <para>See the remarks on <see cref="IFramework"/> if you need to choose which one to use, between
-    /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
-    /// version of <c>RunOnFrameworkThread</c>.</para>
-    /// </remarks>
-    public Task<T> Run<T>(Func<T> action, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
-    /// </summary>
-    /// <param name="action">Function to call.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>Task representing the pending or already completed function.</returns>
-    /// <remarks>
-    /// <para>Starting new tasks and waiting on them <b>synchronously</b> from this callback will completely lock up
-    /// the game. Use <c>await</c> if you need to wait on something from an <c>async</c> callback.</para>
-    /// <para>See the remarks on <see cref="IFramework"/> if you need to choose which one to use, between
-    /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
-    /// version of <c>RunOnFrameworkThread</c>.</para>
-    /// </remarks>
-    public Task Run(Func<Task> action, CancellationToken cancellationToken = default);
+    Task Run(Action action, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
@@ -136,7 +105,38 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
-    public Task<T> Run<T>(Func<Task<T>> action, CancellationToken cancellationToken = default);
+    Task<T> Run<T>(Func<T> action, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
+    /// </summary>
+    /// <param name="action">Function to call.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>Task representing the pending or already completed function.</returns>
+    /// <remarks>
+    /// <para>Starting new tasks and waiting on them <b>synchronously</b> from this callback will completely lock up
+    /// the game. Use <c>await</c> if you need to wait on something from an <c>async</c> callback.</para>
+    /// <para>See the remarks on <see cref="IFramework"/> if you need to choose which one to use, between
+    /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
+    /// version of <c>RunOnFrameworkThread</c>.</para>
+    /// </remarks>
+    Task Run(Func<Task> action, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
+    /// </summary>
+    /// <typeparam name="T">Return type.</typeparam>
+    /// <param name="action">Function to call.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>Task representing the pending or already completed function.</returns>
+    /// <remarks>
+    /// <para>Starting new tasks and waiting on them <b>synchronously</b> from this callback will completely lock up
+    /// the game. Use <c>await</c> if you need to wait on something from an <c>async</c> callback.</para>
+    /// <para>See the remarks on <see cref="IFramework"/> if you need to choose which one to use, between
+    /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
+    /// version of <c>RunOnFrameworkThread</c>.</para>
+    /// </remarks>
+    Task<T> Run<T>(Func<Task<T>> action, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
@@ -154,7 +154,7 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
-    public Task<T> RunOnFrameworkThread<T>(Func<T> func);
+    Task<T> RunOnFrameworkThread<T>(Func<T> func);
 
     /// <summary>
     /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
@@ -171,7 +171,7 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
-    public Task RunOnFrameworkThread(Action action);
+    Task RunOnFrameworkThread(Action action);
 
     /// <summary>
     /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
@@ -190,7 +190,7 @@ public interface IFramework : IDalamudService
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
     [Obsolete($"Use {nameof(RunOnTick)} instead.")]
-    public Task<T> RunOnFrameworkThread<T>(Func<Task<T>> func);
+    Task<T> RunOnFrameworkThread<T>(Func<Task<T>> func);
 
     /// <summary>
     /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
@@ -208,7 +208,7 @@ public interface IFramework : IDalamudService
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
     [Obsolete($"Use {nameof(RunOnTick)} instead.")]
-    public Task RunOnFrameworkThread(Func<Task> func);
+    Task RunOnFrameworkThread(Func<Task> func);
 
     /// <summary>
     /// Run given function in upcoming Framework.Tick call.
@@ -229,7 +229,7 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
-    public Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default);
+    Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Run given function in upcoming Framework.Tick call.
@@ -249,7 +249,7 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
-    public Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default);
+    Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Run given function in upcoming Framework.Tick call.
@@ -270,7 +270,7 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
-    public Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default);
+    Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Run given function in upcoming Framework.Tick call.
@@ -290,7 +290,7 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
-    public Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default);
+    Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new <see cref="IDebouncer"/> instance.
@@ -299,5 +299,5 @@ public interface IFramework : IDalamudService
     /// <param name="action">The delegate to execute when the debounce period elapses.</param>
     /// <returns>A new, thread-safe <see cref="Debouncer"/> instance. The caller is responsible for disposing of this instance.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="action"/> is <see langword="null"/>.</exception>
-    public IDebouncer CreateDebouncer(TimeSpan delay, Action action);
+    IDebouncer CreateDebouncer(TimeSpan delay, Action action);
 }

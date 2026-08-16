@@ -13,12 +13,12 @@ public interface IMenuItem
     /// <summary>
     /// The default prefix used if no specific preset is specified.
     /// </summary>
-    public const SeIconChar DalamudDefaultPrefix = SeIconChar.BoxedLetterD;
+    const SeIconChar DalamudDefaultPrefix = SeIconChar.BoxedLetterD;
 
     /// <summary>
     /// The default prefix color used if no specific preset is specified.
     /// </summary>
-    public const ushort DalamudDefaultPrefixColor = 539;
+    const ushort DalamudDefaultPrefixColor = 539;
 
     /// <summary>
     /// Gets or sets the display name of the menu item.

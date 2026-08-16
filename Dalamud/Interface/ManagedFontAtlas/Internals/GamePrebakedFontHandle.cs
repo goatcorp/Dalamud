@@ -63,14 +63,14 @@ internal class GamePrebakedFontHandle : FontHandle
         /// <param name="gffas">The font family and size.</param>
         /// <param name="fdtFileView">The view.</param>
         /// <returns>Dispose this after use..</returns>
-        public MemoryHandle CreateFdtFileView(GameFontFamilyAndSize gffas, out FdtFileView fdtFileView);
+        MemoryHandle CreateFdtFileView(GameFontFamilyAndSize gffas, out FdtFileView fdtFileView);
 
         /// <summary>
         /// Gets the number of font textures.
         /// </summary>
         /// <param name="texPathFormat">Format of .tex path.</param>
         /// <returns>The number of textures.</returns>
-        public int GetFontTextureCount(string texPathFormat);
+        int GetFontTextureCount(string texPathFormat);
 
         /// <summary>
         /// Gets the <see cref="TexFile"/> for the given index of a font.
@@ -78,7 +78,7 @@ internal class GamePrebakedFontHandle : FontHandle
         /// <param name="texPathFormat">Format of .tex path.</param>
         /// <param name="index">The index of .tex file.</param>
         /// <returns>The <see cref="TexFile"/>.</returns>
-        public TexFile GetTexFile(string texPathFormat, int index);
+        TexFile GetTexFile(string texPathFormat, int index);
 
         /// <summary>
         /// Gets a new reference of the font texture.
@@ -86,7 +86,7 @@ internal class GamePrebakedFontHandle : FontHandle
         /// <param name="texPathFormat">Format of .tex path.</param>
         /// <param name="textureIndex">Texture index.</param>
         /// <returns>The texture.</returns>
-        public IDalamudTextureWrap NewFontTextureRef(string texPathFormat, int textureIndex);
+        IDalamudTextureWrap NewFontTextureRef(string texPathFormat, int textureIndex);
     }
 
     /// <summary>

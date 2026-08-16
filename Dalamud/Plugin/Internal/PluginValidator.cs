@@ -42,13 +42,13 @@ internal static class PluginValidator
         /// <summary>
         /// Gets the severity of the validation.
         /// </summary>
-        public ValidationSeverity Severity { get; }
+        ValidationSeverity Severity { get; }
 
         /// <summary>
         /// Compute the localized description of the problem.
         /// </summary>
         /// <returns>Localized string to be shown to the developer.</returns>
-        public string GetLocalizedDescription();
+        string GetLocalizedDescription();
     }
 
     /// <summary>

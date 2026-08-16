@@ -23,19 +23,19 @@ internal sealed partial class TextureManager
     public interface IBlameableDalamudTextureWrap : IDalamudTextureWrap
     {
         /// <summary>Gets the address of the native resource.</summary>
-        public nint ResourceAddress { get; }
+        nint ResourceAddress { get; }
 
         /// <summary>Gets the name of the underlying resource of this texture wrap.</summary>
-        public string Name { get; }
+        string Name { get; }
 
         /// <summary>Gets the format of the texture.</summary>
-        public DXGI_FORMAT Format { get; }
+        DXGI_FORMAT Format { get; }
 
         /// <summary>Gets the list of owner plugins.</summary>
-        public List<LocalPlugin> OwnerPlugins { get; }
+        List<LocalPlugin> OwnerPlugins { get; }
 
         /// <summary>Gets the raw image specification.</summary>
-        public RawImageSpecification RawSpecs { get; }
+        RawImageSpecification RawSpecs { get; }
 
         /// <summary>Tests whether the tag and the underlying resource are released or should be released.</summary>
         /// <returns><c>true</c> if there are no more remaining references to this instance.</returns>

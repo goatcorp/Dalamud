@@ -23,7 +23,7 @@ public interface INotification
     INotificationIcon? Icon { get; set; }
 
     /// <summary>Gets or sets a texture that will be used in place of <see cref="Icon"/> if set.</summary>
-    public ISharedImmediateTexture? IconTexture { get; set; }
+    ISharedImmediateTexture? IconTexture { get; set; }
 
     /// <summary>Gets or sets the hard expiry.</summary>
     /// <remarks>

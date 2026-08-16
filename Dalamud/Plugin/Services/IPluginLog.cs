@@ -14,7 +14,7 @@ public interface IPluginLog : IDalamudService
     /// Gets a Serilog ILogger instance for this plugin. This is the entrypoint for plugins that wish to use more
     /// advanced logging functionality.
     /// </summary>
-    public ILogger Logger { get; }
+    ILogger Logger { get; }
 
     /// <summary>
     /// Gets or sets the minimum log level that will be recorded from this plugin to Dalamud's logs. This may be set

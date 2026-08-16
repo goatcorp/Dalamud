@@ -169,7 +169,7 @@ public interface IWindow
     /// <summary>
     /// Gets or sets a value indicating whether this window will request focus from the window system next frame.
     /// </summary>
-    public bool RequestFocus { get; set; }
+    bool RequestFocus { get; set; }
 
     /// <summary>
     /// Toggle window is open state.

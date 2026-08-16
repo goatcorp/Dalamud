@@ -14,7 +14,7 @@ public interface IGameObject : IEquatable<IGameObject>
     /// <summary>
     /// Gets the name of this <see cref="GameObject" />.
     /// </summary>
-    public SeString Name { get; }
+    SeString Name { get; }
 
     /// <summary>
     /// Gets the GameObjectID for this GameObject. The Game Object ID is a globally unique identifier that points to
@@ -22,99 +22,99 @@ public interface IGameObject : IEquatable<IGameObject>
     ///
     /// Not to be confused with <see cref="EntityId"/>.
     /// </summary>
-    public ulong GameObjectId { get; }
+    ulong GameObjectId { get; }
 
     /// <summary>
     /// Gets the Entity ID for this GameObject. Entity IDs are assigned to networked GameObjects.
     ///
     /// A value of <c>0xE000_0000</c> indicates that this entity is not networked and has specific interactivity rules.
     /// </summary>
-    public uint EntityId { get; }
+    uint EntityId { get; }
 
     /// <summary>
     /// Gets the data ID for linking to other respective game data.
     /// </summary>
     [Obsolete("Renamed to BaseId")]
-    public uint DataId { get; }
+uint DataId { get; }
 
     /// <summary>
     /// Gets the base ID for linking to other respective game data.
     /// </summary>
-    public uint BaseId { get; }
+    uint BaseId { get; }
 
     /// <summary>
     /// Gets the ID of this GameObject's owner.
     /// </summary>
-    public uint OwnerId { get; }
+    uint OwnerId { get; }
 
     /// <summary>
     /// Gets the index of this object in the object table.
     /// </summary>
-    public ushort ObjectIndex { get; }
+    ushort ObjectIndex { get; }
 
     /// <summary>
     /// Gets the entity kind of this <see cref="GameObject" />.
     /// See <see cref="ObjectKind">the ObjectKind enum</see> for possible values.
     /// </summary>
-    public ObjectKind ObjectKind { get; }
+    ObjectKind ObjectKind { get; }
 
     /// <summary>
     /// Gets the sub kind of this Actor.
     /// </summary>
-    public byte SubKind { get; }
+    byte SubKind { get; }
 
     /// <summary>
     /// Gets the X distance from the local player in yalms.
     /// </summary>
     [Obsolete("Use CurrentDistance.")]
-    public byte YalmDistanceX { get; }
+byte YalmDistanceX { get; }
 
     /// <summary>
     /// Gets the Y distance from the local player in yalms.
     /// </summary>
     [Obsolete("This property did not represent the Z-axis. It is the next distance value that will replace CurrentDistance on the next update tick. Use CurrentDistance instead.")]
-    public byte YalmDistanceZ { get; }
+byte YalmDistanceZ { get; }
 
     /// <summary>
     /// Gets the current distance from the local player, in yalms.
     /// </summary>
-    public byte CurrentDistance { get; }
+    byte CurrentDistance { get; }
 
     /// <summary>
     /// Gets the next distance value that will replace <see cref="CurrentDistance"/> on the next update tick.
     /// </summary>
-    public byte NextDistance { get; }
+    byte NextDistance { get; }
 
     /// <summary>
     /// Gets a value indicating whether the object is dead or alive.
     /// </summary>
-    public bool IsDead { get; }
+    bool IsDead { get; }
 
     /// <summary>
     /// Gets a value indicating whether the object is targetable.
     /// </summary>
-    public bool IsTargetable { get; }
+    bool IsTargetable { get; }
 
     /// <summary>
     /// Gets the position of this <see cref="GameObject" />.
     /// </summary>
-    public Vector3 Position { get; }
+    Vector3 Position { get; }
 
     /// <summary>
     /// Gets the rotation of this <see cref="GameObject" />.
     /// This ranges from -pi to pi radians.
     /// </summary>
-    public float Rotation { get; }
+    float Rotation { get; }
 
     /// <summary>
     /// Gets the hitbox radius of this <see cref="GameObject" />.
     /// </summary>
-    public float HitboxRadius { get; }
+    float HitboxRadius { get; }
 
     /// <summary>
     /// Gets the current target of the game object.
     /// </summary>
-    public ulong TargetObjectId { get; }
+    ulong TargetObjectId { get; }
 
     /// <summary>
     /// Gets the target object of the game object.
@@ -123,18 +123,18 @@ public interface IGameObject : IEquatable<IGameObject>
     /// This iterates the actor table, it should be used with care.
     /// </remarks>
     // TODO: Fix for non-networked GameObjects
-    public IGameObject? TargetObject { get; }
+    IGameObject? TargetObject { get; }
 
     /// <summary>
     /// Gets the address of the game object in memory.
     /// </summary>
-    public IntPtr Address { get; }
+    IntPtr Address { get; }
 
     /// <summary>
     /// Gets a value indicating whether this actor is still valid in memory.
     /// </summary>
     /// <returns>True or false.</returns>
-    public bool IsValid();
+    bool IsValid();
 }
 
 /// <summary>

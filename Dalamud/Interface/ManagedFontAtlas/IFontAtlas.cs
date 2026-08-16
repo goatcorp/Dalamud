@@ -79,7 +79,7 @@ public interface IFontAtlas : IDisposable
     /// }
     /// </code>
     /// </example>
-    public IDisposable SuppressAutoRebuild();
+    IDisposable SuppressAutoRebuild();
 
     /// <summary>Creates a new <see cref="IFontHandle"/> from game's built-in fonts.</summary>
     /// <param name="style">Font to use.</param>
@@ -90,7 +90,7 @@ public interface IFontAtlas : IDisposable
     /// <remarks>This function does not throw. <see cref="IFontHandle.LoadException"/> will be populated instead, if
     /// the build procedure has failed. <see cref="IFontHandle.Push"/> can be used regardless of the state of the font
     /// handle.</remarks>
-    public IFontHandle NewGameFontHandle(GameFontStyle style);
+    IFontHandle NewGameFontHandle(GameFontStyle style);
 
     /// <summary>Creates a new IFontHandle using your own callbacks.</summary>
     /// <param name="buildStepDelegate">Callback for <see cref="IFontAtlas.BuildStepChange"/>.</param>
@@ -132,7 +132,7 @@ public interface IFontAtlas : IDisposable
     ///     ImGui.Text("Example"u8);
     /// </code>
     /// </example>
-    public IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate buildStepDelegate);
+    IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate buildStepDelegate);
 
     /// <summary>
     /// Queues rebuilding fonts, on the main thread.<br />

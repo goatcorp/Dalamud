@@ -13,11 +13,11 @@ public interface IPartyFinderGui : IDalamudService
     /// </summary>
     /// <param name="listing">The listings received.</param>
     /// <param name="args">Additional arguments passed by the game.</param>
-    public delegate void PartyFinderListingEventDelegate(IPartyFinderListing listing, IPartyFinderListingEventArgs args);
+    delegate void PartyFinderListingEventDelegate(IPartyFinderListing listing, IPartyFinderListingEventArgs args);
 
     /// <summary>
     /// Event fired each time the game receives an individual Party Finder listing.
     /// Cannot modify listings but can hide them.
     /// </summary>
-    public event PartyFinderListingEventDelegate ReceiveListing;
+    event PartyFinderListingEventDelegate ReceiveListing;
 }

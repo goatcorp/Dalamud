@@ -12,62 +12,62 @@ public interface ISigScanner : IDalamudService
     /// <summary>
     /// Gets a value indicating whether the search on this module is performed on a copy.
     /// </summary>
-    public bool IsCopy { get; }
+    bool IsCopy { get; }
 
     /// <summary>
     /// Gets the base address of the search area. When copied, this will be the address of the copy.
     /// </summary>
-    public nint SearchBase { get; }
+    nint SearchBase { get; }
 
     /// <summary>
     /// Gets the base address of the .text section search area.
     /// </summary>
-    public nint TextSectionBase { get; }
+    nint TextSectionBase { get; }
 
     /// <summary>
     /// Gets the offset of the .text section from the base of the module.
     /// </summary>
-    public long TextSectionOffset { get; }
+    long TextSectionOffset { get; }
 
     /// <summary>
     /// Gets the size of the text section.
     /// </summary>
-    public int TextSectionSize { get; }
+    int TextSectionSize { get; }
 
     /// <summary>
     /// Gets the base address of the .data section search area.
     /// </summary>
-    public nint DataSectionBase { get; }
+    nint DataSectionBase { get; }
 
     /// <summary>
     /// Gets the offset of the .data section from the base of the module.
     /// </summary>
-    public long DataSectionOffset { get; }
+    long DataSectionOffset { get; }
 
     /// <summary>
     /// Gets the size of the .data section.
     /// </summary>
-    public int DataSectionSize { get; }
+    int DataSectionSize { get; }
 
     /// <summary>
     /// Gets the base address of the .rdata section search area.
     /// </summary>
-    public nint RDataSectionBase { get; }
+    nint RDataSectionBase { get; }
 
     /// <summary>
     /// Gets the offset of the .rdata section from the base of the module.
     /// </summary>
-    public long RDataSectionOffset { get; }
+    long RDataSectionOffset { get; }
 
     /// <summary>
     /// Gets the size of the .rdata section.
     /// </summary>
-    public int RDataSectionSize { get; }
+    int RDataSectionSize { get; }
 
     /// <summary>
     /// Gets the ProcessModule on which the search is performed.
     /// </summary>
-    public ProcessModule Module { get; }
+    ProcessModule Module { get; }
 
     /// <summary>
     /// Scan for a .data address using a .text function.
@@ -78,7 +78,7 @@ public interface ISigScanner : IDalamudService
     /// <param name="signature">The signature of the function using the data.</param>
     /// <param name="offset">The offset from function start of the instruction using the data.</param>
     /// <returns>An IntPtr to the static memory location.</returns>
-    public nint GetStaticAddressFromSig(string signature, int offset = 0);
+    nint GetStaticAddressFromSig(string signature, int offset = 0);
 
     /// <summary>
     /// Try scanning for a .data address using a .text function.
@@ -89,14 +89,14 @@ public interface ISigScanner : IDalamudService
     /// <param name="result">An IntPtr to the static memory location, if found.</param>
     /// <param name="offset">The offset from function start of the instruction using the data.</param>
     /// <returns>true if the signature was found.</returns>
-    public bool TryGetStaticAddressFromSig(string signature, out nint result, int offset = 0);
+    bool TryGetStaticAddressFromSig(string signature, out nint result, int offset = 0);
 
     /// <summary>
     /// Scan for a byte signature in the .data section.
     /// </summary>
     /// <param name="signature">The signature.</param>
     /// <returns>The real offset of the found signature.</returns>
-    public nint ScanData(string signature);
+    nint ScanData(string signature);
 
     /// <summary>
     /// Try scanning for a byte signature in the .data section.
@@ -104,14 +104,14 @@ public interface ISigScanner : IDalamudService
     /// <param name="signature">The signature.</param>
     /// <param name="result">The real offset of the signature, if found.</param>
     /// <returns>true if the signature was found.</returns>
-    public bool TryScanData(string signature, out nint result);
+    bool TryScanData(string signature, out nint result);
 
     /// <summary>
     /// Scan for a byte signature in the whole module search area.
     /// </summary>
     /// <param name="signature">The signature.</param>
     /// <returns>The real offset of the found signature.</returns>
-    public nint ScanModule(string signature);
+    nint ScanModule(string signature);
 
     /// <summary>
     /// Try scanning for a byte signature in the whole module search area.
@@ -119,7 +119,7 @@ public interface ISigScanner : IDalamudService
     /// <param name="signature">The signature.</param>
     /// <param name="result">The real offset of the signature, if found.</param>
     /// <returns>true if the signature was found.</returns>
-    public bool TryScanModule(string signature, out nint result);
+    bool TryScanModule(string signature, out nint result);
 
     /// <summary>
     /// Resolve a RVA address.
@@ -127,14 +127,14 @@ public interface ISigScanner : IDalamudService
     /// <param name="nextInstAddr">The address of the next instruction.</param>
     /// <param name="relOffset">The relative offset.</param>
     /// <returns>The calculated offset.</returns>
-    public nint ResolveRelativeAddress(nint nextInstAddr, int relOffset);
+    nint ResolveRelativeAddress(nint nextInstAddr, int relOffset);
 
     /// <summary>
     /// Scan for a byte signature in the .text section.
     /// </summary>
     /// <param name="signature">The signature.</param>
     /// <returns>The real offset of the found signature.</returns>
-    public nint ScanText(string signature);
+    nint ScanText(string signature);
 
     /// <summary>
     /// Try scanning for a byte signature in the .text section.
@@ -142,14 +142,14 @@ public interface ISigScanner : IDalamudService
     /// <param name="signature">The signature.</param>
     /// <param name="result">The real offset of the signature, if found.</param>
     /// <returns>true if the signature was found.</returns>
-    public bool TryScanText(string signature, out nint result);
+    bool TryScanText(string signature, out nint result);
 
     /// <summary>
     /// Scan for all matching byte signatures in the .text section.
     /// </summary>
     /// <param name="signature">The Signature.</param>
     /// <returns>The list of real offsets of the found elements based on signature.</returns>
-    public nint[] ScanAllText(string signature);
+    nint[] ScanAllText(string signature);
 
     /// <summary>
     /// Scan for all matching byte signatures in the .text section.
@@ -157,5 +157,5 @@ public interface ISigScanner : IDalamudService
     /// <param name="signature">The Signature.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Enumerable yielding the real offsets of the found elements based on signature.</returns>
-    public IEnumerable<nint> ScanAllText(string signature, CancellationToken cancellationToken);
+    IEnumerable<nint> ScanAllText(string signature, CancellationToken cancellationToken);
 }

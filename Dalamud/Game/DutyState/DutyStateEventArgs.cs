@@ -13,17 +13,17 @@ public interface IDutyStateEventArgs
     /// <summary>
     /// Gets a RowRef for the TerritoryType at the time the event was fired.
     /// </summary>
-    public RowRef<TerritoryType> TerritoryType { get; }
+    RowRef<TerritoryType> TerritoryType { get; }
 
     /// <summary>
     /// Gets a RowRef for the ContentFinderCondition at the time the event was fired.
     /// </summary>
-    public RowRef<ContentFinderCondition> ContentFinderCondition { get; }
+    RowRef<ContentFinderCondition> ContentFinderCondition { get; }
 
     /// <summary>
     /// Gets the EventHandler id for which this event was fired.
     /// </summary>
-    public uint EventHandlerId { get; }
+    uint EventHandlerId { get; }
 }
 
 /// <summary>
