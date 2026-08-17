@@ -2,6 +2,11 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
+
+using Action = System.Action;
+
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
@@ -12,15 +17,15 @@ public interface IClientState : IDalamudService
     /// <summary>
     /// A delegate type used for the <see cref="ClassJobChanged"/> event.
     /// </summary>
-    /// <param name="classJobId">The new ClassJob id.</param>
-    delegate void ClassJobChangeDelegate(uint classJobId);
+    /// <param name="classJob">A ref to the ClassJob row.</param>
+    delegate void ClassJobChangeDelegate(RowRef<ClassJob> classJob);
 
     /// <summary>
     /// A delegate type used for the <see cref="LevelChanged"/> event.
     /// </summary>
-    /// <param name="classJobId">The ClassJob id.</param>
+    /// <param name="classJob">A ref to the ClassJob row.</param>
     /// <param name="level">The level of the corresponding ClassJob.</param>
-    delegate void LevelChangeDelegate(uint classJobId, uint level);
+    delegate void LevelChangeDelegate(RowRef<ClassJob> classJob, uint level);
 
     /// <summary>
     /// A delegate type used for the <see cref="Logout"/> event.
@@ -37,12 +42,12 @@ public interface IClientState : IDalamudService
     /// <summary>
     /// Event that gets fired when the current Territory changes.
     /// </summary>
-    event Action<uint> TerritoryChanged;
+    event Action<RowRef<TerritoryType>> TerritoryChanged;
 
     /// <summary>
     /// Event that gets fired when the current Map changes.
     /// </summary>
-    event Action<uint> MapIdChanged;
+    event Action<RowRef<Map>> MapChanged;
 
     /// <summary>
     /// Event that gets fired when the current zone Instance changes.
@@ -83,7 +88,7 @@ public interface IClientState : IDalamudService
     /// <summary>
     /// Event that gets fired when a duty is ready.
     /// </summary>
-    event Action<Lumina.Excel.Sheets.ContentFinderCondition> CfPop;
+    event Action<RowRef<ContentFinderCondition>> CfPop;
 
     /// <summary>
     /// Gets the language of the client.
@@ -93,12 +98,12 @@ public interface IClientState : IDalamudService
     /// <summary>
     /// Gets the current Territory the player resides in.
     /// </summary>
-    uint TerritoryType { get; }
+    RowRef<TerritoryType> TerritoryType { get; }
 
     /// <summary>
     /// Gets the current Map the player resides in.
     /// </summary>
-    uint MapId { get; }
+    RowRef<Map> Map { get; }
 
     /// <summary>
     /// Gets the instance number of the current zone, used when multiple copies of an area are active.
