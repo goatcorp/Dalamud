@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -20,7 +20,7 @@ public static partial class ImRaii
         internal TabBarDisposable(ImU8String label)
         {
             this.Success = ImGui.BeginTabBar(label);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="TabBarDisposable"/> struct. </summary>
@@ -30,7 +30,7 @@ public static partial class ImRaii
         internal TabBarDisposable(ImU8String label, ImGuiTabBarFlags flags)
         {
             this.Success = ImGui.BeginTabBar(label, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(TabBarDisposable value)

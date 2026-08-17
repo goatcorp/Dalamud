@@ -14,7 +14,7 @@ public static class ImGuiClip
     // The height has to contain the spacing.
     public static int GetNecessarySkips(float height)
     {
-        var curY  = ImGui.GetScrollY();
+        var curY = ImGui.GetScrollY();
         var skips = (int)(curY / height);
         if (skips > 0)
             ImGui.Dummy(new Vector2(1, skips * height - ImGui.GetStyle().ItemSpacing.Y));
@@ -137,9 +137,9 @@ public static class ImGuiClip
         if (count != null && count.Value + startIndex <= skips)
             return ~(count.Value + startIndex);
 
-        using var it      = data.GetEnumerator();
-        var       visible = false;
-        var       idx     = startIndex;
+        using var it = data.GetEnumerator();
+        var visible = false;
+        var idx = startIndex;
         while (it.MoveNext())
         {
             if (idx >= skips)

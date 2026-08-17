@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Bindings.ImPlot;
 
@@ -23,14 +23,14 @@ public static partial class ImRaii
         internal PlotDisposable(string titleId, Vector2 size, ImPlotFlags flags)
         {
             this.Success = ImPlot.BeginPlot(titleId, size, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <inheritdoc cref="PlotDisposable(string,Vector2,ImPlotFlags)"/>
         internal PlotDisposable(ReadOnlySpan<byte> titleId, Vector2 size, ImPlotFlags flags)
         {
             this.Success = ImPlot.BeginPlot(titleId, size, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(PlotDisposable value)

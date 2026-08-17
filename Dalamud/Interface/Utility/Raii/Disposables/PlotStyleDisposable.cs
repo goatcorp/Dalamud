@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -90,7 +90,7 @@ public static partial class ImRaii
         /// <returns> A disposable object that can be used to push further style variables and pops those style variables after leaving scope. Use with using. </returns>
         public PlotStyleDisposable Pop(int num = 1)
         {
-            num   =  Math.Min(num, this.Count);
+            num = Math.Min(num, this.Count);
             if (num > 0)
             {
                 this.Count -= num;

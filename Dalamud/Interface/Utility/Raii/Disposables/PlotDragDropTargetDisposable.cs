@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImPlot;
+using Dalamud.Bindings.ImPlot;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -33,7 +33,7 @@ public static partial class ImRaii
         private PlotDragDropTargetDisposable(bool success)
         {
             this.Success = success;
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(PlotDragDropTargetDisposable value)
