@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 

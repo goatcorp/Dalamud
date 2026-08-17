@@ -1,4 +1,4 @@
-﻿namespace Dalamud.IoC.Internal;
+namespace Dalamud.IoC.Internal;
 
 /// <summary>
 /// Enum that declares the visibility of an object instance in the service container.
