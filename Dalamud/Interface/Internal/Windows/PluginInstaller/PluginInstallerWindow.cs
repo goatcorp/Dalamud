@@ -3247,6 +3247,22 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             ImGui.Separator();
 
+            // Open plugin folder
+            if (configuration.DevMode == true && ImGui.MenuItem(Locs.PluginContext_OpenPluginFolder))
+                Util.OpenLink(plugin.DllFile.Directory.ToString());
+
+            // Open config file
+            var configFile = pluginManager.PluginConfigs.GetConfigFile(plugin.InternalName);
+            if (configFile.Exists && ImGui.MenuItem(Locs.PluginContext_OpenConfigFile))
+                Util.OpenLink(configFile.ToString());
+
+            // Open config folder
+            var configDir = pluginManager.PluginConfigs.GetConfigDirectory(plugin.InternalName);
+            if (configDir.Exists && ImGui.MenuItem(Locs.PluginContext_OpenConfigFolder))
+                Util.OpenLink(configDir.ToString());
+
+            ImGui.Separator();
+
             if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
             {
                 this.ShowDeletePluginConfigWarningModal(plugin.Manifest.Name, optIn != null).ContinueWith(t =>
@@ -4501,6 +4517,12 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginContext_PinPlugin => Loc.Localize("InstallerPinPlugin", "Pin to top");
 
         public static string PluginContext_UnpinPlugin => Loc.Localize("InstallerUnpinPlugin", "Unpin from top");
+
+        public static string PluginContext_OpenConfigFile => Loc.Localize("InstallerUnpinPlugin", "Open config file");
+
+        public static string PluginContext_OpenConfigFolder => Loc.Localize("InstallerUnpinPlugin", "Open config folder");
+
+        public static string PluginContext_OpenPluginFolder => Loc.Localize("InstallerUnpinPlugin", "Open plugin folder");
 
         #endregion
 
