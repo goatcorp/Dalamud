@@ -3245,6 +3245,15 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.ResortPlugins();
             }
 
+            if (plugin is LocalDevPlugin)
+            {
+                ImGui.Separator();
+
+                // Reveal in File Explorer
+                if (ImGui.MenuItem(Locs.PluginContext_RevealInFileExplorer))
+                    Util.RevealInFileExplorer(plugin.DllFile.ToString());
+            }
+
             ImGui.Separator();
 
             if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
@@ -4501,6 +4510,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginContext_PinPlugin => Loc.Localize("InstallerPinPlugin", "Pin to top");
 
         public static string PluginContext_UnpinPlugin => Loc.Localize("InstallerUnpinPlugin", "Unpin from top");
+
+        public static string PluginContext_RevealInFileExplorer => Loc.Localize("InstallerUnpinPlugin", "Reveal in File Explorer");
 
         #endregion
 

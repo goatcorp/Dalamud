@@ -505,6 +505,26 @@ public static partial class Util
         }).Start(url);
 
     /// <summary>
+    /// Opens the native file explorer and highlights (selects) the specified file or folder.
+    /// </summary>
+    /// <param name="filePath">The absolute path to the file or directory to reveal.</param>
+    public static unsafe void RevealInFileExplorer(string filePath)
+    {
+        Task.Run(() =>
+        {
+            if (!Path.Exists(filePath))
+                return;
+
+            fixed (char* pFilePath = filePath)
+            {
+                ITEMIDLIST* list = TerraFX.Interop.Windows.Windows.ILCreateFromPathW(pFilePath);
+                TerraFX.Interop.Windows.Windows.SHOpenFolderAndSelectItems(list, 0, null, 0);
+                TerraFX.Interop.Windows.Windows.ILFree(list);
+            }
+        });
+    }
+
+    /// <summary>
     /// Perform a "zipper merge" (A, 1, B, 2, C, 3) of multiple enumerables, allowing for lists to end early.
     /// </summary>
     /// <param name="sources">A set of enumerable sources to combine.</param>
