@@ -4518,11 +4518,11 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginContext_UnpinPlugin => Loc.Localize("InstallerUnpinPlugin", "Unpin from top");
 
-        public static string PluginContext_OpenConfigFile => Loc.Localize("InstallerUnpinPlugin", "Open config file");
+        public static string PluginContext_OpenConfigFile => Loc.Localize("InstallerOpenConfigFile", "Open config file");
 
-        public static string PluginContext_OpenConfigFolder => Loc.Localize("InstallerUnpinPlugin", "Open config folder");
+        public static string PluginContext_OpenConfigFolder => Loc.Localize("InstallerOpenConfigFolder", "Open config folder");
 
-        public static string PluginContext_OpenPluginFolder => Loc.Localize("InstallerUnpinPlugin", "Open plugin folder");
+        public static string PluginContext_OpenPluginFolder => Loc.Localize("InstallerOpenPluginFolder", "Open plugin folder");
 
         #endregion
 
