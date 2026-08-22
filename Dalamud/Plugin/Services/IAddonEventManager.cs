@@ -13,7 +13,7 @@ public interface IAddonEventManager : IDalamudService
     /// </summary>
     /// <param name="atkEventType">The AtkEventType that triggered this event.</param>
     /// <param name="data">The event data object for use in handling this event.</param>
-    public delegate void AddonEventDelegate(AddonEventType atkEventType, AddonEventData data);
+    delegate void AddonEventDelegate(AddonEventType atkEventType, AddonEventData data);
 
     /// <summary>
     /// Registers an event handler for the specified addon, node, and type.

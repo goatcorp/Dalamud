@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Inventory.InventoryEventArgTypes;
+namespace Dalamud.Game.Inventory.InventoryEventArgTypes;
 
 /// <summary>
 /// Abstract base class representing inventory changed events.

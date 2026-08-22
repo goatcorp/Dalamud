@@ -82,8 +82,8 @@ internal partial class UiDebug : IDisposable
         PopoutWindows.RemoveAllWindows();
         this.elementSelector.Dispose();
 
-        Service<DataShare>.Get().RelinquishData(TypeMappedNodesDataShareName,  this.dalamudInternalId);
-        Service<DataShare>.Get().RelinquishData(StringMappedNodesDataShareName,  this.dalamudInternalId);
+        Service<DataShare>.Get().RelinquishData(TypeMappedNodesDataShareName, this.dalamudInternalId);
+        Service<DataShare>.Get().RelinquishData(StringMappedNodesDataShareName, this.dalamudInternalId);
     }
 
     /// <summary>

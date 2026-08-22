@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 
 using Serilog;
 
@@ -15,7 +15,7 @@ internal abstract class RetentionBehaviour
     /// <param name="logFile">The regular log file path.</param>
     /// <param name="rolloverFile">The rollover "old" log file path.</param>
     public abstract void Apply(FileInfo logFile, FileInfo rolloverFile);
-    
+
     /// <summary>
     /// Trim existing log file to a specified length, and optionally move the excess data to another file.
     /// </summary>

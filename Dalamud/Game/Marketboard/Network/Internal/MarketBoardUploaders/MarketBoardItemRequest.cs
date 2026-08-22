@@ -3,7 +3,7 @@ using System.IO;
 
 using Dalamud.Game.Network.Structures;
 
-namespace Dalamud.Game.Network.Internal.MarketBoardUploaders;
+namespace Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders;
 
 /// <summary>
 /// This represents a submission to a marketboard aggregation website.

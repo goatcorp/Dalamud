@@ -193,7 +193,7 @@ public interface ITextureProvider : IDalamudService
     /// <param name="debugName">Name for debug display purposes.</param>
     /// <returns>The new texture.</returns>
     /// <remarks>Can be only be used from the main thread.</remarks>
-    public IDalamudTextureWrap CreateTextureFromSeString(
+    IDalamudTextureWrap CreateTextureFromSeString(
         ReadOnlySpan<byte> text,
         scoped in SeStringDrawParams drawParams = default,
         string? debugName = null);

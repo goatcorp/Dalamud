@@ -87,11 +87,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\generators\Dalamud.EnumGenerator\Dalamud.EnumGenerator\Dalamud.EnumGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\generators\Dalamud.EnumGenerator\Dalamud.EnumGenerator\Dalamud.EnumGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="EnumCloneMap.txt"/>
+        <None Remove="EnumCloneMap.txt" />
         <AdditionalFiles Include="EnumCloneMap.txt" />
     </ItemGroup>
 

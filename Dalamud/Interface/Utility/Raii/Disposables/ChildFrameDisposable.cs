@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 
@@ -23,7 +23,7 @@ public static partial class ImRaii
         internal ChildFrameDisposable(uint id, Vector2 size)
         {
             this.Success = ImGui.BeginChildFrame(id, size);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="ChildFrameDisposable"/> struct. </summary>
@@ -34,7 +34,7 @@ public static partial class ImRaii
         internal ChildFrameDisposable(uint id, Vector2 size, ImGuiWindowFlags flags)
         {
             this.Success = ImGui.BeginChildFrame(id, size, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(ChildFrameDisposable value)

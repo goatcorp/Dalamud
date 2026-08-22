@@ -4,10 +4,9 @@ using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-
-using Serilog;
 
 namespace Dalamud.Game.ClientState.Keys;
 
@@ -34,17 +33,23 @@ internal class KeyState : IServiceType, IKeyState
     // but there is other state data past this point, and keys beyond here aren't
     // generally valid for most things anyway
     private const int MaxKeyCode = 0xF0;
+
+    private static readonly ModuleLog Log = ModuleLog.Create<KeyState>();
+
+    private readonly KeyStateAddressResolver addressResolver;
     private readonly IntPtr bufferBase;
     private readonly IntPtr indexBase;
     private VirtualKey[]? validVirtualKeyCache;
 
     [ServiceManager.ServiceConstructor]
-    private KeyState(TargetSigScanner sigScanner, ClientState clientState)
+    private KeyState(TargetSigScanner sigScanner)
     {
+        this.addressResolver = new KeyStateAddressResolver();
+        this.addressResolver.Setup(sigScanner);
+
         var moduleBaseAddress = sigScanner.Module.BaseAddress;
-        var addressResolver = clientState.AddressResolver;
-        this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardState);
-        this.indexBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardStateIndexArray);
+        this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(this.addressResolver.KeyboardState);
+        this.indexBase = moduleBaseAddress + Marshal.ReadInt32(this.addressResolver.KeyboardStateIndexArray);
 
         Log.Verbose($"Keyboard state buffer address {Util.DescribeAddress(this.bufferBase)}");
     }

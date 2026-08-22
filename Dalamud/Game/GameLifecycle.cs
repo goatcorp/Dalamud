@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;

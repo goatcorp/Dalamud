@@ -27,7 +27,7 @@ internal class LogMessageMonitorWidget : IDataWindowWidget
     private int trackedMessages;
     private Regex? filterRegex;
     private string filterString = string.Empty;
-    
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = ["logmessage"];
 

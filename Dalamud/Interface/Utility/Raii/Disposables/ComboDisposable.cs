@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -21,7 +21,7 @@ public static partial class ImRaii
         internal ComboDisposable(ImU8String label, ImU8String previewValue)
         {
             this.Success = ImGui.BeginCombo(label, previewValue);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="ComboDisposable"/> struct. </summary>
@@ -32,7 +32,7 @@ public static partial class ImRaii
         internal ComboDisposable(ImU8String label, ImU8String previewValue, ImGuiComboFlags flags)
         {
             this.Success = ImGui.BeginCombo(label, previewValue, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(ComboDisposable value)

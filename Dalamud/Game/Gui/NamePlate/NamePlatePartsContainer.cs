@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Gui.NamePlate;
+namespace Dalamud.Game.Gui.NamePlate;
 
 /// <summary>
 /// A container for parts.

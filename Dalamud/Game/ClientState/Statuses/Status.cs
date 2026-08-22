@@ -58,7 +58,7 @@ public interface IStatus : IEquatable<IStatus>
 /// This struct represents a status effect an actor is afflicted by.
 /// </summary>
 /// <param name="ptr">A pointer to the Status.</param>
-internal unsafe readonly struct Status(CSStatus* ptr) : IStatus
+internal readonly unsafe struct Status(CSStatus* ptr) : IStatus
 {
     /// <inheritdoc/>
     public nint Address => (nint)ptr;

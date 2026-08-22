@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Network.Structures;
+namespace Dalamud.Game.Network.Structures;
 
 /// <summary>
 /// An interface that represents market board purchase information. This message is received from the
@@ -9,10 +9,10 @@ public interface IMarketBoardPurchase
     /// <summary>
     /// Gets the item ID of the item that was purchased.
     /// </summary>
-    public uint CatalogId { get; }
+    uint CatalogId { get; }
 
     /// <summary>
     /// Gets the quantity of the item that was purchased.
     /// </summary>
-    public uint ItemQuantity { get; }
+    uint ItemQuantity { get; }
 }

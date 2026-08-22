@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Config;
 using Dalamud.Plugin.SelfTest;
 
@@ -66,33 +66,33 @@ internal class GameConfigSelfTestStep : ISelfTestStep
         }
         else
         {
-             if (!this.isSwitchedLegacy)
-             {
-                 if (isLegacy)
-                 {
-                     this.isSwitchedLegacy = true;
-                 }
-                 else
-                 {
-                     ImGui.Text("Switch Movement Type to Legacy"u8);
-                 }
+            if (!this.isSwitchedLegacy)
+            {
+                if (isLegacy)
+                {
+                    this.isSwitchedLegacy = true;
+                }
+                else
+                {
+                    ImGui.Text("Switch Movement Type to Legacy"u8);
+                }
 
-                 return SelfTestStepResult.Waiting;
-             }
+                return SelfTestStepResult.Waiting;
+            }
 
-             if (!this.isSwitchedStandard)
-             {
-                 if (!isLegacy)
-                 {
-                     this.isSwitchedStandard = true;
-                 }
-                 else
-                 {
-                     ImGui.Text("Switch Movement Type to Standard"u8);
-                 }
+            if (!this.isSwitchedStandard)
+            {
+                if (!isLegacy)
+                {
+                    this.isSwitchedStandard = true;
+                }
+                else
+                {
+                    ImGui.Text("Switch Movement Type to Standard"u8);
+                }
 
-                 return SelfTestStepResult.Waiting;
-             }
+                return SelfTestStepResult.Waiting;
+            }
         }
 
         return SelfTestStepResult.Pass;

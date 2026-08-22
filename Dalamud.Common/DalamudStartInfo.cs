@@ -66,7 +66,7 @@ public record DalamudStartInfo
     public ClientLanguage Language { get; set; } = ClientLanguage.English;
 
     /// <summary>
-    /// Gets or sets the underlying platform�Dalamud runs on.
+    /// Gets or sets the underlying platform Dalamud runs on.
     /// </summary>
     [JsonConverter(typeof(OSPlatformConverter))]
     public OSPlatform Platform { get; set; }

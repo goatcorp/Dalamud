@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -20,7 +20,7 @@ public static partial class ImRaii
         internal TreeNodeDisposable(ImU8String label)
         {
             this.Success = ImGui.TreeNodeEx(label);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="TreeNodeDisposable"/> struct. </summary>
@@ -30,7 +30,7 @@ public static partial class ImRaii
         internal TreeNodeDisposable(ImU8String label, ImGuiTreeNodeFlags flags)
         {
             this.Success = ImGui.TreeNodeEx(label, flags);
-            this.Alive   = !flags.HasFlag(ImGuiTreeNodeFlags.NoTreePushOnOpen);
+            this.Alive = !flags.HasFlag(ImGuiTreeNodeFlags.NoTreePushOnOpen);
         }
 
         public static implicit operator bool(TreeNodeDisposable value)

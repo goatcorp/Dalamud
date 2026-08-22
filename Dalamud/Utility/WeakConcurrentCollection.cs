@@ -12,13 +12,13 @@ namespace Dalamud.Utility;
 public class WeakConcurrentCollection<T> : ICollection<T> where T : class
 {
     private readonly ConditionalWeakTable<T, object> cwt = [];
-    
+
     /// <inheritdoc/>
     public int Count => this.cwt.Count();
 
     /// <inheritdoc/>
     public bool IsReadOnly => false;
-    
+
     private IEnumerable<T> Keys => this.cwt.Select(pair => pair.Key);
 
     /// <inheritdoc/>
@@ -29,7 +29,7 @@ public class WeakConcurrentCollection<T> : ICollection<T> where T : class
 
     /// <inheritdoc/>
     public void Add(T item) => this.cwt.AddOrUpdate(item, null);
-    
+
     /// <inheritdoc/>
     public void Clear() => this.cwt.Clear();
 

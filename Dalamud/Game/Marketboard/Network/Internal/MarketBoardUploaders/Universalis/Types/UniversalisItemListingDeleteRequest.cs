@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types;
+namespace Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders.Universalis.Types;
 
 /// <summary>
 /// Request payload for market board purchases.

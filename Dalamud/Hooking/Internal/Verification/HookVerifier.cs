@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -8,10 +7,10 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 
 using FFXIVClientStructs.FFXIV.Application.Network;
+
 using InteropGenerator.Runtime;
 using InteropGenerator.Runtime.Attributes;
 

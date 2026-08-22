@@ -9,7 +9,6 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;

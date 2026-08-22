@@ -146,13 +146,19 @@ internal class DalamudInterface : IInternalDisposableService
             gameGui,
             titleScreenMenu,
             consoleManager,
-            addonLifecycle) { IsOpen = false };
+            addonLifecycle)
+        {
+            IsOpen = false,
+        };
         this.changelogWindow = new ChangelogWindow(
             this.titleScreenMenuWindow,
             fontAtlasFactory,
             dalamudAssetManager,
             gameGui,
-            framework) { IsOpen = false };
+            framework)
+        {
+            IsOpen = false,
+        };
         this.profilerWindow = new ProfilerWindow() { IsOpen = false };
         this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
         this.hitchSettingsWindow = new HitchSettingsWindow() { IsOpen = false };

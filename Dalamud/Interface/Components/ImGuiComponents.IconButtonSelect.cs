@@ -12,7 +12,7 @@ namespace Dalamud.Interface.Components;
 /// </summary>
 public static partial class ImGuiComponents
 {
-   /// <summary>
+    /// <summary>
     /// A radio-like input that uses icon buttons.
     /// </summary>
     /// <typeparam name="T">The type of the value being set.</typeparam>

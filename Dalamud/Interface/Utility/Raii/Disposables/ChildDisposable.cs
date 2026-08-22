@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 
@@ -22,7 +22,7 @@ public static partial class ImRaii
         internal ChildDisposable(ImU8String strId)
         {
             this.Success = ImGui.BeginChild(strId);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="ChildDisposable"/> struct. </summary>
@@ -32,7 +32,7 @@ public static partial class ImRaii
         internal ChildDisposable(ImU8String strId, Vector2 size)
         {
             this.Success = ImGui.BeginChild(strId, size);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="ChildDisposable"/> struct. </summary>
@@ -43,7 +43,7 @@ public static partial class ImRaii
         internal ChildDisposable(ImU8String strId, Vector2 size, bool border)
         {
             this.Success = ImGui.BeginChild(strId, size, border);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="ChildDisposable"/> struct. </summary>
@@ -55,7 +55,7 @@ public static partial class ImRaii
         internal ChildDisposable(ImU8String strId, Vector2 size, bool border, ImGuiWindowFlags flags)
         {
             this.Success = ImGui.BeginChild(strId, size, border, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(ChildDisposable value)

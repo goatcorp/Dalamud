@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Bindings.ImPlot;
 
@@ -25,14 +25,14 @@ public static partial class ImRaii
         internal PlotSubDisposable(string titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags = ImPlotSubplotFlags.None)
         {
             this.Success = ImPlot.BeginSubplots(titleId, rows, cols, size, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <inheritdoc cref="PlotSubDisposable(string,int,int,Vector2,ImPlotSubplotFlags)"/>
         internal PlotSubDisposable(ReadOnlySpan<byte> titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags = ImPlotSubplotFlags.None)
         {
             this.Success = ImPlot.BeginSubplots(titleId, rows, cols, size, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="PlotSubDisposable"/> struct. </summary>
@@ -46,14 +46,14 @@ public static partial class ImRaii
         internal PlotSubDisposable(string titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags, ref float rowRatios, ref float colRatios)
         {
             this.Success = ImPlot.BeginSubplots(titleId, rows, cols, size, flags, ref rowRatios, ref colRatios);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <inheritdoc cref="PlotSubDisposable(string,int,int,Vector2,ImPlotSubplotFlags,ref float,ref float)"/>
         internal PlotSubDisposable(ReadOnlySpan<byte> titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags, ref float rowRatios, ref float colRatios)
         {
             this.Success = ImPlot.BeginSubplots(titleId, rows, cols, size, flags, ref rowRatios, ref colRatios);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(PlotSubDisposable value)

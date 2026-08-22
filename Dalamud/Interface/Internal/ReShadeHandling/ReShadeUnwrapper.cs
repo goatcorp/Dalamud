@@ -21,12 +21,12 @@ internal static unsafe class ReShadeUnwrapper
         if (typeof(T).GetNestedType("Vtbl`1") is not { } vtblType)
             return false;
 
-        nint vtblSize = vtblType.GetFields().Length * sizeof(nint);
+        nint vtblSize = vtblType.GetFields().Length * nint.Size;
         var changed = false;
         while (comptr->Get() != null && IsReShadedComObject(comptr->Get()))
         {
             // Expectation: the pointer to the underlying object should come early after the overriden vtable.
-            for (nint i = sizeof(nint); i <= 0x20; i += sizeof(nint))
+            for (nint i = nint.Size; i <= 0x20; i += nint.Size)
             {
                 var ppObjectBehind = (nint)comptr->Get() + i;
 
@@ -37,7 +37,7 @@ internal static unsafe class ReShadeUnwrapper
                 var pObjectBehind = *(nint*)ppObjectBehind;
 
                 // Is the address of vtable readable?
-                if (!IsValidReadableMemoryAddress(pObjectBehind, sizeof(nint)))
+                if (!IsValidReadableMemoryAddress(pObjectBehind, nint.Size))
                     continue;
                 var pObjectBehindVtbl = *(nint*)pObjectBehind;
 
@@ -47,7 +47,7 @@ internal static unsafe class ReShadeUnwrapper
 
                 // Are individual functions in vtable executable?
                 var valid = true;
-                for (var j = 0; valid && j < vtblSize; j += sizeof(nint))
+                for (var j = 0; valid && j < vtblSize; j += nint.Size)
                     valid &= IsValidExecutableMemoryAddress(*(nint*)(pObjectBehindVtbl + j), 1);
                 if (!valid)
                     continue;
@@ -101,13 +101,13 @@ internal static unsafe class ReShadeUnwrapper
     private static bool IsReShadedComObject<T>(T* obj)
         where T : unmanaged, IUnknown.Interface
     {
-        if (!IsValidReadableMemoryAddress((nint)obj, sizeof(nint)))
+        if (!IsValidReadableMemoryAddress((nint)obj, nint.Size))
             return false;
 
         try
         {
             var vtbl = (nint**)Marshal.ReadIntPtr((nint)obj);
-            if (!IsValidReadableMemoryAddress((nint)vtbl, sizeof(nint) * 3))
+            if (!IsValidReadableMemoryAddress((nint)vtbl, nint.Size * 3))
                 return false;
 
             for (var i = 0; i < 3; i++)

@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;

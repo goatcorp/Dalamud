@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 
@@ -42,7 +41,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     private readonly ConsoleManager console = Service<ConsoleManager>.Get();
 
     [ServiceManager.ServiceConstructor]
-    private CommandManager(Dalamud dalamud)
+    private CommandManager()
     {
         this.tryInvokeDebugCommandHook = Hook<ShellCommands.Delegates.TryInvokeDebugCommand>.FromAddress(
             (nint)ShellCommands.MemberFunctionPointers.TryInvokeDebugCommand,

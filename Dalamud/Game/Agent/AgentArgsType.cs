@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Agent;
+namespace Dalamud.Game.Agent;
 
 /// <summary>
 /// Enumeration for available AgentLifecycle arg data.

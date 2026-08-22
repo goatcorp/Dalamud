@@ -40,7 +40,7 @@ public unsafe class MNKGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// Gets the amount of available Opo-opo Fury stacks.
     /// </summary>
     public int OpoOpoFury => this.Struct->OpoOpoStacks;
-    
+
     /// <summary>
     /// Gets the amount of available Raptor Fury stacks.
     /// </summary>

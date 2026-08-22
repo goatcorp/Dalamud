@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -21,7 +21,7 @@ public static partial class ImRaii
         internal PopupDisposable(ImU8String id, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
         {
             this.Success = ImGui.BeginPopup(id, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary> Open a popup when clicking on the last drawn item and begin it. </summary>
@@ -54,7 +54,7 @@ public static partial class ImRaii
         private PopupDisposable(bool success)
         {
             this.Success = success;
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(PopupDisposable value)

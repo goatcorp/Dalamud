@@ -57,9 +57,7 @@ public sealed class PluginConfigurations
         {
             Service<ReliableFileStorage>.Get().ReadAllTextAsync(path.FullName, text =>
             {
-                config = DeserializeConfig(text);
-                if (config == null)
-                    throw new Exception("Read config was null.");
+                config = DeserializeConfig(text) ?? throw new Exception("Read config was null.");
             }, workingPluginId).GetAwaiter().GetResult();
         }
         catch (FileNotFoundException)
