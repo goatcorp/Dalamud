@@ -361,7 +361,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 using (this.MenuItemsLock.EnterScope())
                 {
                     if (this.MenuItems.TryGetValue(menuType, out var items))
-                        this.SelectedItems = [with(items)];
+                        this.SelectedItems = new(items);
                     else
                         this.SelectedItems = [];
                 }
