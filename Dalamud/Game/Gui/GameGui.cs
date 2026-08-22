@@ -122,9 +122,15 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos, out bool inView)
     {
-        // Read current ViewProjectionMatrix plus game window size
+        // Read current game window size
         var windowPos = ImGuiHelpers.MainViewport.Pos;
-        var viewProjectionMatrix = Control.Instance()->ViewProjectionMatrix;
+
+        // Calculate the projection matrix from the active camera. (Control->ViewProjectionMatrix is inaccurate with DLSS enabled.)
+        var camera = CameraManager.Instance()->GetActiveCamera()->SceneCamera.RenderCamera;
+        var view = camera->ViewMatrix;
+        var proj = camera->ProjectionMatrix;
+        var viewProjectionMatrix = view * proj;
+        
         var device = Device.Instance();
         float width = device->Width;
         float height = device->Height;
