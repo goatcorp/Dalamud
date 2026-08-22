@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Player;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
 
@@ -210,7 +211,7 @@ internal partial class GameObject
 internal unsafe partial class GameObject : IGameObject
 {
     /// <inheritdoc/>
-    public SeString Name => SeString.Parse(this.Struct->Name);
+    public SeString Name => this.Struct->GetName().AsDalamudSeString();
 
     /// <inheritdoc/>
     public ulong GameObjectId => this.Struct->GetGameObjectId();
