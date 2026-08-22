@@ -290,6 +290,64 @@ public interface IDalamudPluginInterface : IServiceProvider
     ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet> GetIpcSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet>(string name);
 
     /// <summary>
+    /// Creates an instance of <typeparamref name="T"/> and binds its <see cref="IpcAttribute"/> subscriber fields and <see cref="IpcEventAttribute"/> handler methods.
+    /// </summary>
+    /// <typeparam name="T">An IPC subscriber type with a public parameterless constructor.</typeparam>
+    /// <param name="prefix">
+    /// Name prefix for tagged members (typically the remote plugin's internal name). When null, no prefix is applied unless member attributes specify full tags.
+    /// </param>
+    /// <returns>A registration that owns the instance lifetime for IPC purposes.</returns>
+    IpcRegistration<T> CreateIpcSubscribers<T>(string? prefix = null)
+        where T : class, new();
+
+    /// <summary>
+    /// Binds <see cref="IpcAttribute"/> subscriber fields and <see cref="IpcEventAttribute"/> handler methods on an existing instance.
+    /// </summary>
+    /// <typeparam name="T">An IPC subscriber type.</typeparam>
+    /// <param name="instance">The instance to bind.</param>
+    /// <param name="prefix">Name prefix for tagged members.</param>
+    /// <returns>A registration for this binding batch.</returns>
+    IpcRegistration<T> CreateIpcSubscribers<T>(T instance, string? prefix = null)
+        where T : class;
+
+    /// <summary>
+    /// Binds static <see cref="IpcAttribute"/> subscriber fields and <see cref="IpcEventAttribute"/> handler methods.
+    /// </summary>
+    /// <param name="staticType">A type whose static IPC members should be bound.</param>
+    /// <param name="prefix">Name prefix for tagged members.</param>
+    /// <returns>A registration for this binding batch.</returns>
+    IpcRegistration CreateIpcSubscribers(Type staticType, string? prefix = null);
+
+    /// <summary>
+    /// Creates an instance of <typeparamref name="T"/> and registers its <see cref="IpcAttribute"/> provider methods and <see cref="IpcEventAttribute"/> sender fields.
+    /// </summary>
+    /// <typeparam name="T">An IPC provider type with a public parameterless constructor.</typeparam>
+    /// <param name="prefix">
+    /// Name prefix. When null, <see cref="InternalName"/> is used.
+    /// </param>
+    /// <returns>A registration that owns the instance lifetime for IPC purposes.</returns>
+    IpcRegistration<T> CreateIpcProviders<T>(string? prefix = null)
+        where T : class, new();
+
+    /// <summary>
+    /// Registers <see cref="IpcAttribute"/> provider methods and <see cref="IpcEventAttribute"/> sender fields on an existing instance.
+    /// </summary>
+    /// <typeparam name="T">An IPC provider type.</typeparam>
+    /// <param name="instance">The instance to register.</param>
+    /// <param name="prefix">Name prefix. When null, <see cref="InternalName"/> is used.</param>
+    /// <returns>A registration for this binding batch.</returns>
+    IpcRegistration<T> CreateIpcProviders<T>(T instance, string? prefix = null)
+        where T : class;
+
+    /// <summary>
+    /// Registers static <see cref="IpcAttribute"/> provider methods and <see cref="IpcEventAttribute"/> sender fields.
+    /// </summary>
+    /// <param name="staticType">A type whose static IPC members should be registered.</param>
+    /// <param name="prefix">Name prefix. When null, <see cref="InternalName"/> is used.</param>
+    /// <returns>A registration for this binding batch.</returns>
+    IpcRegistration CreateIpcProviders(Type staticType, string? prefix = null);
+
+    /// <summary>
     /// Save a plugin configuration(inheriting IPluginConfiguration).
     /// </summary>
     /// <param name="currentConfig">The current configuration.</param>
