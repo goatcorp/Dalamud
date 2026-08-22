@@ -741,12 +741,8 @@ public class WindowHost
         if (!flags.HasFlag(ImGuiWindowFlags.NoCollapse) && style.WindowMenuButtonPosition == ImGuiDir.Right)
             numNativeButtons++;
 
-        // If there are no native buttons, pad from the right to make some space
-        if (numNativeButtons == 0)
-            padR += style.FramePadding.X;
-
         // Pad to the left, to get out of the way of the native buttons
-        padR += numNativeButtons * (buttonSize + style.ItemInnerSpacing.X);
+        padR += style.FramePadding.X + numNativeButtons * (buttonSize + style.ItemInnerSpacing.X);
 
         Vector2 GetCenter(ImRect rect) => new((rect.Min.X + rect.Max.X) * 0.5f, (rect.Min.Y + rect.Max.Y) * 0.5f);
 
