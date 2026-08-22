@@ -16,6 +16,12 @@ public static class ThreadSafety
     public static bool IsMainThread => threadStaticIsMainThread;
 
     /// <summary>
+    /// Gets the shared lock that prevents worker-thread rendering from overlapping the original native framework
+    /// update.
+    /// </summary>
+    internal static object NativeFrameworkRenderSyncRoot { get; } = new();
+
+    /// <summary>
     /// Throws an exception when the current thread is not the main thread.
     /// </summary>
     /// <param name="message">The message to be passed into the exception, if one is to be thrown.</param>

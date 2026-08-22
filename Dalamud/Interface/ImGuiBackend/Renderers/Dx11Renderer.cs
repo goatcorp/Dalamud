@@ -167,6 +167,28 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     public void RenderDrawData(ImDrawDataPtr drawData) =>
         this.mainViewport.Draw(drawData, this.mainViewport.SwapChain == null);
 
+    /// <inheritdoc/>
+    public void RenderViewportSnapshot(nint rendererUserData, ImDrawDataPtr drawData)
+    {
+        // Capture normally records only initialized handles, and snapshot locking keeps them alive; retain
+        // defensive validation at the renderer boundary.
+        if (rendererUserData == nint.Zero)
+            return;
+
+        ViewportData vp;
+        try
+        {
+            vp = ViewportData.Attach((void*)rendererUserData);
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        vp.Draw(drawData, true);
+        vp.PresentIfSwapChainAvailable();
+    }
+
     /// <summary>
     /// Rebuilds font texture.
     /// </summary>
@@ -417,7 +439,6 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                             var tintColor = data->TintColor;
                             var luminosityColor = data->LuminosityColor;
                             var noiseOpacity = data->NoiseOpacity;
-                            BlurCallbackDataPool.Return(data);
 
                             var blurV4 = cmd.ClipRect - clipOff;
                             if (blurV4.X >= blurV4.Z || blurV4.Y >= blurV4.W)

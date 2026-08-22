@@ -5,11 +5,12 @@ using Serilog;
 
 namespace Dalamud.Support;
 
-/// <summary>Tracks the loaded process modules.</summary>
+/// <summary>
+/// Provides a cached list of loaded process modules, invalidated by notifications from Dalamud.Boot.
+/// </summary>
+/// <remarks>Avoids repeatedly enumerating <see cref="Process.Modules"/>.</remarks>
 internal static unsafe partial class CurrentProcessModules
 {
-    private static ProcessModuleCollection? moduleCollection;
-
     /// <summary>Gets all the loaded modules, up to date.</summary>
     public static ProcessModuleCollection ModuleCollection
     {
@@ -19,13 +20,13 @@ internal static unsafe partial class CurrentProcessModules
             if (t != 0)
             {
                 t = 0;
-                moduleCollection = null;
+                field = null;
                 Log.Verbose("{what}: Fetching fresh copy of current process modules.", nameof(CurrentProcessModules));
             }
 
             try
             {
-                return moduleCollection ??= Process.GetCurrentProcess().Modules;
+                return field ??= Process.GetCurrentProcess().Modules;
             }
             catch (Exception e)
             {
