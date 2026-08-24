@@ -11,6 +11,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -29,7 +30,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     private static readonly Stopwatch StatsStopwatch = new();
 
     private readonly Stopwatch updateStopwatch = new();
-    private readonly HitchDetector hitchDetector;
 
     private readonly Hook<CSFramework.Delegates.Tick> updateHook;
 
@@ -51,8 +51,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     [ServiceManager.ServiceConstructor]
     private unsafe Framework()
     {
-        this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
-
         this.frameworkDestroy = new();
         this.frameworkDestroyed = new();
         this.frameworkThreadTaskScheduler = new();
@@ -104,6 +102,11 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// Gets the list of update sub-delegates that didn't get updated this frame.
     /// </summary>
     internal List<string> NonUpdatedSubDelegates { get; private set; } = [];
+
+    /// <summary>
+    /// Gets the dictionary of delegates and hitch log time.
+    /// </summary>
+    internal Dictionary<string, DateTime> HitchLogHistory { get; private set; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether to dispatch update events.
@@ -353,27 +356,59 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// </summary>
     /// <param name="eventDelegate">The Delegate to Profile.</param>
     /// <param name="frameworkInstance">The Framework Instance to pass to delegate.</param>
-    internal void ProfileAndInvoke(IFramework.OnUpdateDelegate? eventDelegate, IFramework frameworkInstance)
+    /// <param name="errorHandler">A function that is called with the exception, if one arrises.</param>
+    /// <param name="logHitch">Whether to detect and log a hitch or not.</param>
+    internal void ProfileAndInvoke(IFramework.OnUpdateDelegate? eventDelegate, IFramework frameworkInstance, Action<Exception, string>? errorHandler = null, bool logHitch = true)
     {
         // Individually invoke OnUpdate handlers and time them.
         foreach (var d in Delegate.EnumerateInvocationList(eventDelegate))
         {
-            var stopwatch = Stopwatch.StartNew();
+            var key = $"{d.Target}::{d.Method.Name}";
+            var startTime = Stopwatch.GetTimestamp();
+
             try
             {
                 d(frameworkInstance);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Exception while dispatching Framework::Update event.");
+                if (errorHandler != null)
+                {
+                    errorHandler?.InvokeSafely(ex, key);
+                }
+                else
+                {
+                    Log.Error(ex, "Exception while dispatching Framework::Update event.");
+                }
             }
 
-            stopwatch.Stop();
+            var elapsedMilliseconds = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
 
-            var key = $"{d.Target}::{d.Method.Name}";
-            this.NonUpdatedSubDelegates.Remove(key);
+            if (StatsEnabled)
+            {
+                this.NonUpdatedSubDelegates.Remove(key);
+                AddToStats(key, elapsedMilliseconds);
+            }
 
-            AddToStats(key, stopwatch.Elapsed.TotalMilliseconds);
+            if (logHitch && elapsedMilliseconds > this.configuration.FrameworkUpdateHitch)
+            {
+                var now = DateTime.UtcNow;
+                var cooldownTimeSpan = TimeSpan.FromSeconds(30);
+
+                var hasCooldown = this.HitchLogHistory.TryGetValue(key, out DateTime lastLogTimestamp);
+                if (!hasCooldown || (hasCooldown && now - lastLogTimestamp > cooldownTimeSpan))
+                {
+                    this.HitchLogHistory[key] = now;
+                    Serilog.Log.Warning("[HITCH] Long {Name} detected, {Total}ms > {Max}ms", key, elapsedMilliseconds, this.configuration.FrameworkUpdateHitch);
+                }
+
+                // Clean up old entries in HitchLogHistory
+                var threshold = now - cooldownTimeSpan;
+                foreach (var rmKey in this.HitchLogHistory.Where(kvp => kvp.Value < threshold).Select(kvp => kvp.Key).ToArray())
+                {
+                    this.HitchLogHistory.Remove(rmKey);
+                }
+            }
         }
     }
 
@@ -390,9 +425,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
         ThreadSafety.MarkMainThread();
 
-        this.hitchDetector.Start();
-
-        this.BeforeUpdate?.InvokeSafely(this);
+        this.ProfileAndInvoke(this.BeforeUpdate, this);
 
         try
         {
@@ -442,7 +475,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             {
                 // Stat Tracking for Framework Updates
                 this.NonUpdatedSubDelegates = StatsHistory.Keys.ToList();
-                this.ProfileAndInvoke(this.Update, this);
+                this.ProfileAndInvoke(this.Update, this, null, false);
 
                 // Cleanup handlers that are no longer being called
                 foreach (var key in this.NonUpdatedSubDelegates)
@@ -465,8 +498,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 this.Update?.InvokeSafely(this);
             }
         }
-
-        this.hitchDetector.Stop();
     }
 }
 
@@ -480,6 +511,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 #pragma warning restore SA1015
 internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 {
+    private readonly LocalPlugin plugin;
     private readonly PluginErrorHandler pluginErrorHandler;
 
     [ServiceManager.ServiceDependency]
@@ -488,10 +520,13 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <summary>
     /// Initializes a new instance of the <see cref="FrameworkPluginScoped"/> class.
     /// </summary>
+    /// <param name="plugin">The plugin.</param>
     /// <param name="pluginErrorHandler">Error handler instance.</param>
-    internal FrameworkPluginScoped(PluginErrorHandler pluginErrorHandler)
+    internal FrameworkPluginScoped(LocalPlugin plugin, PluginErrorHandler pluginErrorHandler)
     {
+        this.plugin = plugin;
         this.pluginErrorHandler = pluginErrorHandler;
+
         this.frameworkService.Update += this.OnUpdateForward;
     }
 
@@ -582,13 +617,10 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 
     private void OnUpdateForward(IFramework framework)
     {
-        if (Framework.StatsEnabled && this.Update != null)
+        this.frameworkService.ProfileAndInvoke(this.Update, this, (ex, handlerName) =>
         {
-            this.frameworkService.ProfileAndInvoke(this.Update, framework);
-        }
-        else
-        {
-            this.pluginErrorHandler.InvokeAndCatch(this.Update, $"{nameof(IFramework)}::{nameof(IFramework.Update)}", framework);
-        }
+            Serilog.Log.Error(ex, "[{InternalName}] Exception in event handler {EventHandlerName}", this.plugin.InternalName, handlerName);
+            this.pluginErrorHandler.NotifyError();
+        });
     }
 }
