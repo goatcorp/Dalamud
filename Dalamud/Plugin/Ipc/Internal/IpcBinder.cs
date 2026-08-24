@@ -73,17 +73,9 @@ internal static class IpcBinder
         return reg;
     }
 
-    private static void BindSubscribers(
-        IDalamudPluginInterface pi,
-        Type type,
-        object? instance,
-        string createPrefix,
-        BindingFlags flags,
-        IpcRegistrationImpl reg)
+    private static void BindSubscribers(IDalamudPluginInterface pi, Type type, object? instance, string createPrefix, BindingFlags flags, IpcRegistrationImpl reg)
     {
         var typePrefix = type.GetCustomAttribute<IpcPrefixAttribute>()?.Prefix;
-        var pluginName = pi.InternalName;
-
         foreach (var member in EnumerateFieldsAndProperties(type, flags))
         {
             var attr = member.GetCustomAttribute<IpcAttribute>();
@@ -92,14 +84,7 @@ internal static class IpcBinder
 
             try
             {
-                var tag = IpcNameResolver.Resolve(
-                    attr.Name,
-                    attr.ApplyPrefix,
-                    member.Name,
-                    typePrefix,
-                    createPrefix,
-                    pluginName);
-
+                var tag = IpcNameResolver.Resolve(attr.Name, attr.ApplyPrefix, member.Name, typePrefix, createPrefix);
                 var memberType = member.GetMemberType();
                 if (!IsIpcCallableType(memberType, out var isAction, out var typeArgs))
                 {
@@ -139,7 +124,7 @@ internal static class IpcBinder
 
             try
             {
-                var tag = IpcNameResolver.Resolve(attr.Name, attr.ApplyPrefix, method.Name, typePrefix, createPrefix, pluginName);
+                var tag = IpcNameResolver.Resolve(attr.Name, attr.ApplyPrefix, method.Name, typePrefix, createPrefix);
 
                 var paramTypes = method.GetParameters().Select(p => p.ParameterType).ToArray();
                 if (paramTypes.Length > 8)
@@ -160,7 +145,7 @@ internal static class IpcBinder
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[Ipc] Failed to bind event subscriber {Type}.{Member}", type.Name, method.Name);
+                Log.Error(ex, $"[Ipc] Failed to bind event subscriber {type.Name}.{method.Name}");
                 throw;
             }
         }
@@ -169,8 +154,6 @@ internal static class IpcBinder
     private static void BindProviders(IDalamudPluginInterface pi, Type type, object? instance, string createPrefix, BindingFlags flags, IpcRegistrationImpl reg)
     {
         var typePrefix = type.GetCustomAttribute<IpcPrefixAttribute>()?.Prefix;
-        var pluginName = pi.InternalName;
-
         foreach (var method in type.GetMethods(flags))
         {
             var attr = method.GetCustomAttribute<IpcAttribute>();
@@ -179,7 +162,7 @@ internal static class IpcBinder
 
             try
             {
-                var tag = IpcNameResolver.Resolve(attr.Name, attr.ApplyPrefix, method.Name, typePrefix, createPrefix, pluginName);
+                var tag = IpcNameResolver.Resolve(attr.Name, attr.ApplyPrefix, method.Name, typePrefix, createPrefix);
 
                 var isAction = method.ReturnType == typeof(void);
                 var paramTypes = method.GetParameters().Select(p => p.ParameterType).ToArray();
@@ -206,7 +189,7 @@ internal static class IpcBinder
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[Ipc] Failed to bind provider {Type}.{Member}", type.Name, method.Name);
+                Log.Error(ex, $"[Ipc] Failed to bind provider {type.Name}.{method.Name}");
                 throw;
             }
         }
@@ -224,14 +207,12 @@ internal static class IpcBinder
                     attr.ApplyPrefix,
                     member.Name,
                     typePrefix,
-                    createPrefix,
-                    pluginName);
+                    createPrefix);
 
                 var memberType = member.GetMemberType();
                 if (!IsIpcActionType(memberType, out var typeArgs))
                 {
-                    throw new InvalidOperationException(
-                        $"[IpcEvent] {type.Name}.{member.Name} must be an IpcAction type.");
+                    throw new InvalidOperationException($"[IpcEvent] {type.Name}.{member.Name} must be an IpcAction type.");
                 }
 
                 var gateTypes = typeArgs.Append(typeof(object)).ToArray();
@@ -247,7 +228,7 @@ internal static class IpcBinder
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[Ipc] Failed to bind event provider {Type}.{Member}", type.Name, member.Name);
+                Log.Error(ex, $"[Ipc] Failed to bind event provider {type.Name}.{member.Name}");
                 throw;
             }
         }

@@ -8,45 +8,44 @@ internal static class IpcNameResolver
     /// <summary>
     /// Resolves the full IPC tag.
     /// </summary>
-    /// <param name="attributeName">Name from <see cref="IpcAttribute"/> or <see cref="IpcEventAttribute"/>.</param>
+    /// <param name="attributeName">
+    /// Name from <see cref="IpcAttribute"/> or <see cref="IpcEventAttribute"/>.
+    /// When set, this must be the full IPC tag and <paramref name="applyPrefix"/> must be <see langword="false"/>.
+    /// </param>
     /// <param name="applyPrefix">Whether to apply <paramref name="createPrefix"/>.</param>
     /// <param name="memberName">The member name.</param>
     /// <param name="typePrefix">Optional type-level prefix from <see cref="IpcPrefixAttribute"/>.</param>
     /// <param name="createPrefix">Prefix from CreateIpc* (or plugin internal name).</param>
-    /// <param name="pluginInternalName">Calling plugin internal name for %p / {plugin}.</param>
     /// <returns>The full IPC tag.</returns>
-    public static string Resolve(string? attributeName, bool applyPrefix, string memberName, string? typePrefix, string createPrefix, string pluginInternalName)
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="attributeName"/> is set and <paramref name="applyPrefix"/> is <see langword="true"/>.
+    /// </exception>
+    public static string Resolve(string? attributeName, bool applyPrefix, string memberName, string? typePrefix, string createPrefix)
     {
-        var name = attributeName;
-        if (string.IsNullOrEmpty(name))
+        if (!string.IsNullOrEmpty(attributeName))
         {
-            name = string.IsNullOrEmpty(typePrefix) ? memberName : $"{typePrefix}.{memberName}";
+            if (applyPrefix)
+            {
+                throw new ArgumentException("When specifying an IPC name override, applyPrefix must be false.");
+            }
+
+            return ApplyMemberTemplate(attributeName, memberName);
         }
 
-        name = ApplyTemplates(name, memberName, pluginInternalName);
+        var name = string.IsNullOrEmpty(typePrefix) ? memberName : $"{typePrefix}.{memberName}";
 
-        if (!applyPrefix)
-            return name;
-
-        if (string.IsNullOrEmpty(createPrefix))
+        if (!applyPrefix || string.IsNullOrEmpty(createPrefix))
             return name;
 
         return $"{createPrefix}.{name}";
     }
 
     /// <summary>
-    /// Applies <c>%m</c>/<c>{member}</c> and <c>%p</c>/<c>{plugin}</c> templates.
+    /// Replaces <c>%m</c> with the member name.
     /// </summary>
     /// <param name="name">The name or template.</param>
-    /// <param name="memberName">The member name for <c>%m</c>/<c>{member}</c>.</param>
-    /// <param name="pluginInternalName">The plugin internal name for <c>%p</c>/<c>{plugin}</c>.</param>
-    /// <returns>The name with templates applied.</returns>
-    public static string ApplyTemplates(string name, string memberName, string pluginInternalName)
-    {
-        return name
-            .Replace("%m", memberName, StringComparison.Ordinal)
-            .Replace("{member}", memberName, StringComparison.Ordinal)
-            .Replace("%p", pluginInternalName, StringComparison.Ordinal)
-            .Replace("{plugin}", pluginInternalName, StringComparison.Ordinal);
-    }
+    /// <param name="memberName">The member name for <c>%m</c>.</param>
+    /// <returns>The name with <c>%m</c> applied.</returns>
+    public static string ApplyMemberTemplate(string name, string memberName)
+        => name.Replace("%m", memberName, StringComparison.Ordinal);
 }

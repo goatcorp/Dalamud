@@ -4,13 +4,15 @@ namespace Dalamud.Plugin.Ipc;
 /// Marks a method as an IPC provider, or a field/property as an IPC subscriber binding.
 /// </summary>
 /// <remarks>
-/// Name templates support <c>%m</c>/<c>{member}</c> (member name) and <c>%p</c>/<c>{<see cref="IDalamudPluginInterface.InternalName"/>}</c>.
+/// When <paramref name="name"/> is null, the tag is built from the create-call prefix, optional <see cref="IpcPrefixAttribute"/>, and the member name.
+/// When <paramref name="name"/> is set, it must be the full IPC tag and <paramref name="applyPrefix"/> must be <see langword="false"/>.
+/// Name overrides may use <c>%m</c> for the member name.
 /// </remarks>
 /// <param name="name">
 /// IPC name or template. When null, the member name is used.
 /// </param>
 /// <param name="applyPrefix">
-/// When true, the create-call prefix (or plugin internal name) is prepended.
+/// When true, the create-call prefix (or plugin internal name) is prepended. Must be false when <paramref name="name"/> is specified.
 /// </param>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
 public sealed class IpcAttribute(string? name = null, bool applyPrefix = true) : Attribute
