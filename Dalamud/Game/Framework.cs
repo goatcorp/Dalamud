@@ -357,12 +357,12 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <param name="eventDelegate">The Delegate to Profile.</param>
     /// <param name="frameworkInstance">The Framework Instance to pass to delegate.</param>
     /// <param name="errorHandler">A function that is called with the exception, if one arrises.</param>
-    /// <param name="logHitch">Whether to detect and log a hitch or not.</param>
-    internal void ProfileAndInvoke(IFramework.OnUpdateDelegate? eventDelegate, IFramework frameworkInstance, Action<Exception, string>? errorHandler = null, bool logHitch = true)
+    internal void ProfileAndInvoke(IFramework.OnUpdateDelegate? eventDelegate, IFramework frameworkInstance, Action<Exception, string>? errorHandler = null)
     {
         // Individually invoke OnUpdate handlers and time them.
         foreach (var d in Delegate.EnumerateInvocationList(eventDelegate))
         {
+            var isScopedService = d.Method.DeclaringType == typeof(FrameworkPluginScoped); // ignore FrameworkPluginScoped.OnUpdateForward itself
             var key = $"{d.Target}::{d.Method.Name}";
             var startTime = Stopwatch.GetTimestamp();
 
@@ -376,7 +376,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 {
                     errorHandler?.InvokeSafely(ex, key);
                 }
-                else
+                else if (!isScopedService)
                 {
                     Log.Error(ex, "Exception while dispatching Framework::Update event.");
                 }
@@ -384,13 +384,13 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
             var elapsedMilliseconds = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
 
-            if (StatsEnabled)
+            if (!isScopedService && StatsEnabled)
             {
                 this.NonUpdatedSubDelegates.Remove(key);
                 AddToStats(key, elapsedMilliseconds);
             }
 
-            if (logHitch && elapsedMilliseconds > this.configuration.FrameworkUpdateHitch)
+            if (!isScopedService && elapsedMilliseconds > this.configuration.FrameworkUpdateHitch)
             {
                 var now = DateTime.UtcNow;
                 var cooldownTimeSpan = TimeSpan.FromSeconds(30);
@@ -471,13 +471,17 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         // Only call Update as long as we're in the actual Framework loop
         if (this.DispatchUpdateEvents)
         {
-            if (StatsEnabled && this.Update != null)
+            // Stat Tracking for Framework Updates
+            if (StatsEnabled)
             {
-                // Stat Tracking for Framework Updates
                 this.NonUpdatedSubDelegates = StatsHistory.Keys.ToList();
-                this.ProfileAndInvoke(this.Update, this, null, false);
+            }
 
-                // Cleanup handlers that are no longer being called
+            this.ProfileAndInvoke(this.Update, this);
+
+            // Cleanup handlers that are no longer being called
+            if (StatsEnabled)
+            {
                 foreach (var key in this.NonUpdatedSubDelegates)
                 {
                     if (key == nameof(this.FrameworkThreadTaskFactory))
@@ -492,10 +496,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                         StatsHistory.Remove(key);
                     }
                 }
-            }
-            else
-            {
-                this.Update?.InvokeSafely(this);
             }
         }
     }
