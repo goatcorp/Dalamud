@@ -265,10 +265,8 @@ internal class Profile
         ProfileModelV1.ProfileModelV1Plugin entry;
         using (this.profileLock.EnterScope())
         {
-            entry = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
-            if (entry == null)
-                throw new PluginNotFoundException(workingPluginId);
-
+            entry = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId)
+                ?? throw new PluginNotFoundException(workingPluginId);
             if (!this.modelV1.Plugins.Remove(entry))
                 throw new Exception("Couldn't remove plugin from model collection");
         }

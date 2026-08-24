@@ -42,13 +42,14 @@ namespace Dalamud.Injector
 
                 Init(args);
                 args.Remove("-v"); // Remove "verbose" flag
+                args.Remove("--verbose");
 
                 if (args.Count >= 2 && args[1].ToLowerInvariant() == "launch-test")
                 {
                     return ProcessLaunchTestCommand(args);
                 }
 
-                DalamudStartInfo startInfo = null;
+                DalamudStartInfo? startInfo = null;
                 if (args.Count == 1)
                 {
                     // No command defaults to inject
@@ -90,7 +91,11 @@ namespace Dalamud.Injector
                 args.Remove("--crash-handler-console");
 
                 var mainCommand = args[1].ToLowerInvariant();
-                if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
+                if (mainCommand == "sandbox-prepare")
+                {
+                    return ProcessSandboxPrepareCommand(args, startInfo);
+                }
+                else if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
                 {
                     return ProcessInjectCommand(args, startInfo);
                 }
@@ -132,10 +137,12 @@ namespace Dalamud.Injector
 
         private static void Init(List<string> args)
         {
-            InitLogging(args.Any(x => x == "-v"), args);
+            InitLogging(args.Any(x => x is "-v" or "--verbose"), args);
             InitUnhandledException(args);
 
-            var cwd = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory;
+            var cwd = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory
+                      ?? throw new DirectoryNotFoundException("Could not determine binary location.");
+
             if (cwd.FullName != Directory.GetCurrentDirectory())
             {
                 Log.Debug($"Changing cwd to {cwd}");
@@ -471,6 +478,7 @@ namespace Dalamud.Injector
                 "symbol_load_patches",
                 "disable_game_debugging_protection",
                 "faster_decompression",
+                "appcontainer_known_folders",
             };
             startInfo.BootDotnetOpenProcessHookMode = 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;
@@ -521,7 +529,19 @@ namespace Dalamud.Injector
                 Console.WriteLine("{0}        [--handle-owner=inherited-handle-value]", exeSpaces);
                 Console.WriteLine("{0}        [--without-dalamud] [--no-fix-acl]", exeSpaces);
                 Console.WriteLine("{0}        [--no-wait]", exeSpaces);
+                Console.WriteLine("{0}        [--sandbox] [--no-sandbox] [--sandbox-config=path/to/dalamudSandbox.json]", exeSpaces);
                 Console.WriteLine("{0}        [-- game_arg1=value1 game_arg2=value2 ...]", exeSpaces);
+            }
+
+            if (particularCommand is null or "sandbox-prepare")
+            {
+                Console.WriteLine("{0} sandbox-prepare [-h/--help] [-g path/to/ffxiv_dx11.exe] [--game=path/to/ffxiv_dx11.exe]", exeName);
+                Console.WriteLine("{0}                 [--sandbox-config=path/to/dalamudSandbox.json] [--write-config]", exeSpaces);
+                Console.WriteLine("{0}   Prepares the environment to properly run with --sandbox. Run once from an", exeSpaces);
+                Console.WriteLine("{0}   elevated command prompt. Paths you don't own and the loopback excemption require running with this at least once.", exeSpaces);
+                Console.WriteLine("{0}   Sandboxing applies to every launch when \"enabledGlobally\" is set in the sandbox configuration.", exeSpaces);
+                Console.WriteLine("{0}   --no-sandbox opts a single launch out of that.", exeSpaces);
+                Console.WriteLine("{0}   --write-config creates a configuration at the default location, if there isn't one yet.", exeSpaces);
             }
 
             Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory=path] [--dalamud-configuration-path=path]");
@@ -640,7 +660,12 @@ namespace Dalamud.Injector
             }
 
             foreach (var process in processes)
-                Inject(process, AdjustStartInfo(dalamudStartInfo, process.MainModule.FileName), tryFixAcl);
+            {
+                var processBinaryPath = process.MainModule?.FileName
+                    ?? throw new CommandLineException($"Could not determine binary path for process {process.Id}.");
+
+                Inject(process, AdjustStartInfo(dalamudStartInfo, processBinaryPath), tryFixAcl);
+            }
 
             Log.CloseAndFlush();
             return 0;
@@ -658,6 +683,10 @@ namespace Dalamud.Injector
             var noFixAcl = false;
             var waitForGameWindow = true;
             var encryptArguments = false;
+
+            // null = not specified on command line, use config
+            bool? useSandbox = null;
+            string? sandboxConfigPath = null;
 
             var parsingGameArgument = false;
             for (var i = 2; i < args.Count; i++)
@@ -687,6 +716,20 @@ namespace Dalamud.Injector
                 else if (args[i] == "--no-fix-acl" || args[i] == "--no-acl-fix")
                 {
                     noFixAcl = true;
+                }
+                else if (args[i] == "--sandbox")
+                {
+                    useSandbox = true;
+                }
+                else if (args[i] == "--no-sandbox")
+                {
+                    useSandbox = false;
+                }
+                else if (args[i].StartsWith("--sandbox-config="))
+                {
+                    // When using --sandbox-config assume sandboxing, but never when --no-sandbox
+                    useSandbox ??= true;
+                    sandboxConfigPath = args[i].Split('=', 2)[1];
                 }
                 else if (args[i] == "-g")
                 {
@@ -793,58 +836,18 @@ namespace Dalamud.Injector
 
             if (gamePath == null)
             {
-                try
-                {
-                    if (dalamudStartInfo.Platform == OSPlatform.Windows)
-                    {
-                        var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                        var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
-                        var launcherConfigPath = Path.Combine(xivlauncherDir, "launcherConfigV3.json");
-                        gamePath = Path.Combine(
-                            JsonSerializer.CreateDefault()
-                                .Deserialize<Dictionary<string, string>>(
-                                    new JsonTextReader(new StringReader(File.ReadAllText(launcherConfigPath))))["GamePath"],
-                            "game",
-                            "ffxiv_dx11.exe");
-                        Log.Information("Using game installation path configuration from from XIVLauncher: {0}", gamePath);
-                    }
-                    else if (dalamudStartInfo.Platform == OSPlatform.Linux)
-                    {
-                        var homeDir = $"Z:\\home\\{Environment.UserName}";
-                        var xivlauncherDir = Path.Combine(homeDir, ".xlcore");
-                        var launcherConfigPath = Path.Combine(xivlauncherDir, "launcher.ini");
-                        var config = File.ReadAllLines(launcherConfigPath)
-                            .Where(line => line.Contains('='))
-                            .ToDictionary(line => line.Split('=')[0], line => line.Split('=')[1]);
-                        gamePath = Path.Combine("Z:" + config["GamePath"].Replace('/', '\\'), "game", "ffxiv_dx11.exe");
-                        Log.Information("Using game installation path configuration from from XIVLauncher Core: {0}", gamePath);
-                    }
-                    else
-                    {
-                        var homeDir = $"Z:\\Users\\{Environment.UserName}";
-                        var xomlauncherDir = Path.Combine(homeDir, "Library", "Application Support", "XIV on Mac");
-                        // we could try to parse the binary plist file here if we really wanted to...
-                        gamePath = Path.Combine(xomlauncherDir, "ffxiv", "game", "ffxiv_dx11.exe");
-                        Log.Information("Using default game installation path from XOM: {0}", gamePath);
-                    }
-                }
-                catch (Exception)
-                {
-                    Log.Error("Failed to read launcher config to get the set-up game path, please specify one using -g");
+                gamePath = ResolveGamePath(dalamudStartInfo);
+                if (gamePath == null)
                     return -1;
-                }
-
-                if (!File.Exists(gamePath))
-                {
-                    Log.Error("File not found: {0}", gamePath);
-                    return -1;
-                }
             }
 
             if (useFakeArguments)
             {
-                var gameVersion = File.ReadAllText(Path.Combine(Directory.GetParent(gamePath).FullName, "ffxivgame.ver"));
-                var sqpackPath = Path.Combine(Directory.GetParent(gamePath).FullName, "sqpack");
+                var gameParent = Directory.GetParent(gamePath)?.FullName
+                    ?? throw new DirectoryNotFoundException($"Could not determine parent directory of {gamePath}.");
+
+                var gameVersion = File.ReadAllText(Path.Combine(gameParent, "ffxivgame.ver"));
+                var sqpackPath = Path.Combine(gameParent, "sqpack");
                 var maxEntitledExpansionId = 0;
                 while (File.Exists(Path.Combine(sqpackPath, $"ex{maxEntitledExpansionId + 1}", $"ex{maxEntitledExpansionId + 1}.ver")))
                     maxEntitledExpansionId++;
@@ -902,23 +905,46 @@ namespace Dalamud.Injector
                 gameArgumentString = string.Join(" ", gameArguments.Select(x => EncodeParameterArgument(x)));
             }
 
-            var process = GameStart.LaunchGame(
-                Path.GetDirectoryName(gamePath),
-                gamePath,
-                gameArgumentString,
-                noFixAcl,
-                p =>
-                {
-                    if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.Entrypoint)
+            AppContainerLaunchContext? sandboxContext = null;
+            if (useSandbox != false)
+            {
+                var sandboxConfig = SandboxConfiguration.Load(
+                    sandboxConfigPath ?? SandboxConfiguration.DefaultPath,
+                    sandboxConfigPath != null);
+
+                if (useSandbox != true && sandboxConfig.EnabledGlobally)
+                    Log.Information("[SANDBOX] Enabled by configuration at '{DefaultConfigPath}'. Pass --no-sandbox to disable.", SandboxConfiguration.DefaultPath);
+
+                if (useSandbox == true || sandboxConfig.EnabledGlobally)
+                    sandboxContext = SetupSandbox(dalamudStartInfo, sandboxConfig, gamePath);
+            }
+
+            Process process;
+            try
+            {
+                process = GameStart.LaunchGame(
+                    Path.GetDirectoryName(gamePath) ?? throw new DirectoryNotFoundException($"Could not determine parent directory of {gamePath}."),
+                    gamePath,
+                    gameArgumentString,
+                    noFixAcl,
+                    p =>
                     {
-                        var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
-                        Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
-                        Marshal.ThrowExceptionForHR(
-                            RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)));
-                        Log.Verbose("RewriteRemoteEntryPointW called!");
-                    }
-                },
-                waitForGameWindow);
+                        if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.Entrypoint)
+                        {
+                            var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
+                            Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
+                            Marshal.ThrowExceptionForHR(
+                                RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)));
+                            Log.Verbose("RewriteRemoteEntryPointW called!");
+                        }
+                    },
+                    waitForGameWindow,
+                    sandboxContext);
+            }
+            finally
+            {
+                sandboxContext?.Dispose();
+            }
 
             Log.Verbose("Game process started with PID {0}", process.Id);
 
@@ -954,6 +980,448 @@ namespace Dalamud.Injector
             return 0;
         }
 
+        /// <summary>
+        /// Prepare the AppContainer sandbox by loading the config and changing/migrating paths as necessary.
+        /// </summary>
+        private static SandboxLayout BuildSandboxLayout(DalamudStartInfo startInfo, SandboxConfiguration config, string gamePath)
+        {
+            var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
+
+            // XL root must never be readable or writable from the sandbox, so we need to move all data
+            // into a subfolder that we can grant access to
+            var dataDir = Path.Combine(xivlauncherDir, "dalamudUserData");
+            var logsDir = Path.Combine(dataDir, "logs");
+            var tempDir = Path.Combine(dataDir, "temp");
+            Directory.CreateDirectory(dataDir);
+            Directory.CreateDirectory(logsDir);
+            Directory.CreateDirectory(tempDir);
+
+            var configDir = Path.GetDirectoryName(Path.GetFullPath(startInfo.ConfigurationPath!));
+            if (PathsEqual(configDir, xivlauncherDir))
+            {
+                var configFileName = Path.GetFileName(startInfo.ConfigurationPath!);
+                MigrateFileToSandbox(Path.Combine(xivlauncherDir, configFileName), Path.Combine(dataDir, configFileName));
+                MigrateFileToSandbox(Path.Combine(xivlauncherDir, "dalamudVfs.db"), Path.Combine(dataDir, "dalamudVfs.db"));
+                MigrateFileToSandbox(Path.Combine(xivlauncherDir, "dalamudUI.ini"), Path.Combine(dataDir, "dalamudUI.ini"));
+                MigrateDirectoryToSandbox(Path.Combine(xivlauncherDir, "pluginConfigs"), Path.Combine(dataDir, "pluginConfigs"));
+
+                startInfo.ConfigurationPath = Path.Combine(dataDir, configFileName);
+                Log.Information("[SANDBOX] Redirected configuration path to {Path}", startInfo.ConfigurationPath);
+            }
+
+            if (PathsEqual(startInfo.LogPath, xivlauncherDir) ||
+                IsAtOrUnder(startInfo.LogPath, startInfo.WorkingDirectory))
+            {
+                startInfo.LogPath = logsDir;
+                Log.Information("[SANDBOX] Redirected log path to {Path}", startInfo.LogPath);
+            }
+
+            startInfo.BootLogPath = GetLogPath(startInfo.LogPath, "dalamud.boot", startInfo.LogName);
+
+            var grants = new List<SandboxGrant>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            void Add(string? path, uint access, bool create = false)
+            {
+                if (string.IsNullOrEmpty(path))
+                    return;
+
+                path = Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
+                if (!seen.Add($"{path}|{access}"))
+                    return;
+
+                grants.Add(new SandboxGrant(path, access, create));
+            }
+
+            // Read/execute for binaries and static data
+            var runtimeDir = Environment.GetEnvironmentVariable("DALAMUD_RUNTIME") ?? Path.Combine(xivlauncherDir, "runtime");
+            Add(Path.GetDirectoryName(gamePath), AppContainerHelper.AccessReadExecute);
+            Add(startInfo.WorkingDirectory, AppContainerHelper.AccessReadExecute);
+            Add(runtimeDir, AppContainerHelper.AccessReadExecute);
+            Add(startInfo.AssetDirectory, AppContainerHelper.AccessReadExecute);
+
+            // Modify for state
+            if (!string.IsNullOrEmpty(startInfo.AssetDirectory))
+                Add(Path.Combine(startInfo.AssetDirectory, "..", "local"),  AppContainerHelper.AccessModify, true);
+
+            Add(startInfo.PluginDirectory, AppContainerHelper.AccessModify, true);
+            Add(dataDir, AppContainerHelper.AccessModify);
+            Add(Path.GetDirectoryName(startInfo.ConfigurationPath!), AppContainerHelper.AccessModify);
+            Add(startInfo.LogPath, AppContainerHelper.AccessModify);
+            Add(Path.Combine(xivlauncherDir, "devPlugins"), AppContainerHelper.AccessModify);
+            Add(
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "FINAL FANTASY XIV - A Realm Reborn"),
+                AppContainerHelper.AccessModify,
+                true);
+            if (!string.IsNullOrEmpty(startInfo.TempDirectory))
+                Add(startInfo.TempDirectory, AppContainerHelper.AccessModify, true);
+
+            foreach (var allowed in config.AllowedPaths)
+            {
+                Add(
+                    Environment.ExpandEnvironmentVariables(allowed.Path),
+                    allowed.Write ? AppContainerHelper.AccessModify : AppContainerHelper.AccessReadExecute);
+            }
+
+            // Sanity check all grants against folders that we should absolutely never grant modify to
+            foreach (var grant in grants.Where(x => x.Access == AppContainerHelper.AccessModify))
+            {
+                string? violated = null;
+                if (PathsEqual(grant.Path, xivlauncherDir))
+                    violated = "the XIVLauncher root";
+                else if (IsAtOrUnder(grant.Path, startInfo.WorkingDirectory))
+                    violated = "Dalamud's working directory (holds Dalamud's own binaries)";
+                else if (IsAtOrUnder(grant.Path, runtimeDir))
+                    violated = "the .NET runtime directory";
+                else if (IsAtOrUnder(grant.Path, Path.GetDirectoryName(gamePath)))
+                    violated = "the game installation directory";
+
+                if (violated != null)
+                {
+                    throw new CommandLineException(
+                        $"Refusing to grant the sandbox write access to {grant.Path}: it is inside {violated}. " +
+                        "This must stay read-only for the sandbox to be meaningful.");
+                }
+            }
+
+            return new SandboxLayout(config, tempDir, runtimeDir, grants);
+        }
+
+        /// <summary>
+        /// Apply or verify the sandbox layout's grants against the actual container.
+        /// Paths whose DACL could not be written are returned rather than throwing, since we might not
+        /// have permissions to set DACLs on some objects and need to tell the user that elevation is required.
+        /// </summary>
+        private static List<SandboxGrant> ApplySandboxGrants(SandboxLayout layout, AppContainerLaunchContext ctx, bool verbose)
+        {
+            var denied = new List<SandboxGrant>();
+
+            foreach (var grant in layout.Grants)
+            {
+                if (grant.Create)
+                    Directory.CreateDirectory(grant.Path);
+
+                if (!Directory.Exists(grant.Path) && !File.Exists(grant.Path))
+                {
+                    Log.Verbose("[SANDBOX] Skipping nonexistent path {Path}", grant.Path);
+                    continue;
+                }
+
+                var access = grant.Access == AppContainerHelper.AccessModify ? "modify" : "read/execute";
+                switch (AppContainerHelper.EnsureAccess(grant.Path, ctx.ContainerSid, grant.Access))
+                {
+                    case GrantResult.AlreadyGranted:
+                        if (verbose)
+                            Log.Information("[SANDBOX] Already has {Access}: {Path}", access, grant.Path);
+                        break;
+
+                    case GrantResult.Granted:
+                        Log.Information("[SANDBOX] Granted {Access} on {Path}", access, grant.Path);
+                        break;
+
+                    case GrantResult.AccessDenied:
+                        denied.Add(grant);
+                        break;
+                }
+            }
+
+            return denied;
+        }
+
+        private static AppContainerLaunchContext? SetupSandbox(DalamudStartInfo startInfo, SandboxConfiguration config, string gamePath)
+        {
+            if (startInfo.Platform != OSPlatform.Windows)
+            {
+                Log.Warning("[SANDBOX] AppContainer sandboxing is only supported on Windows, launching without a sandbox");
+                return null;
+            }
+
+            var layout = BuildSandboxLayout(startInfo, config, gamePath);
+
+            Log.Verbose("[SANDBOX] Using sandbox layout: {Layout}", JsonConvert.SerializeObject(layout));
+
+            var ctx = AppContainerHelper.CreateContext(
+                layout.Config.ContainerName,
+                "Dalamud",
+                "FFXIV running under Dalamud's AppContainer sandbox",
+                layout.Config.Capabilities);
+
+            try
+            {
+                ctx.TempDirectoryOverride = layout.TempDirectory;
+                ctx.RuntimeDirectoryOverride = layout.RuntimeDirectory;
+                Log.Information("[SANDBOX] Using AppContainer {Name} ({Sid})", layout.Config.ContainerName, ctx.ContainerSidString);
+
+                var denied = ApplySandboxGrants(layout, ctx, false);
+                if (denied.Count > 0)
+                {
+                    throw new SandboxPreparationRequiredException(
+                        denied.Select(x => x.Path).ToList(),
+                        layout.Config.ContainerName);
+                }
+
+                if (layout.Config.LoopbackExempt)
+                    AppContainerHelper.TryAddLoopbackExemption(ctx);
+
+                return ctx;
+            }
+            catch
+            {
+                ctx.Dispose();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Prepares persistent filesystem ACLs and the loopback excemption, if necessary.
+        /// </summary>
+        private static int ProcessSandboxPrepareCommand(List<string> args, DalamudStartInfo startInfo)
+        {
+            string? gamePath = null;
+            string? sandboxConfigPath = null;
+            var showHelp = false;
+            var writeConfig = false;
+
+            for (var i = 2; i < args.Count; i++)
+            {
+                if (args[i] == "-h" || args[i] == "--help")
+                    showHelp = true;
+                else if (args[i] == "-g")
+                    gamePath = args[++i];
+                else if (args[i].StartsWith("--game="))
+                    gamePath = args[i].Split('=', 2)[1];
+                else if (args[i].StartsWith("--sandbox-config="))
+                    sandboxConfigPath = args[i].Split('=', 2)[1];
+                else if (args[i] == "--write-config")
+                    writeConfig = true;
+                else
+                    Log.Warning($"\"{args[i]}\" is not a valid command line argument, ignoring.");
+            }
+
+            if (showHelp)
+            {
+                ProcessHelpCommand(args, "sandbox-prepare");
+                return 0;
+            }
+
+            if (startInfo.Platform != OSPlatform.Windows)
+            {
+                Log.Error("AppContainer sandboxing is only supported on Windows.");
+                return -1;
+            }
+
+            gamePath ??= ResolveGamePath(startInfo);
+            if (gamePath == null)
+                return -1;
+
+            var elevated = AppContainerHelper.IsElevated();
+            Log.Information("Running {Elevated}elevated.", elevated ? string.Empty : "un");
+
+            var config = SandboxConfiguration.Load(
+                sandboxConfigPath ?? SandboxConfiguration.DefaultPath,
+                sandboxConfigPath != null);
+
+            if (writeConfig)
+            {
+                if (config.TryWrite(SandboxConfiguration.DefaultPath))
+                {
+                    Log.Information("Wrote a sandbox configuration to {Path}", SandboxConfiguration.DefaultPath);
+                }
+                else
+                {
+                    Log.Warning(
+                        "Not writing a sandbox configuration, {Path} already exists. Delete it first if you want a fresh one.",
+                        SandboxConfiguration.DefaultPath);
+                }
+            }
+
+            var layout = BuildSandboxLayout(startInfo, config, gamePath);
+
+            using var ctx = AppContainerHelper.CreateContext(
+                layout.Config.ContainerName,
+                "Dalamud",
+                "FFXIV running under Dalamud's AppContainer sandbox",
+                layout.Config.Capabilities);
+
+            Log.Information(
+                "[SANDBOX] AppContainer {Name} ({Sid})",
+                layout.Config.ContainerName,
+                ctx.ContainerSidString);
+
+            var denied = ApplySandboxGrants(layout, ctx, true);
+
+            if (layout.Config.LoopbackExempt)
+                AppContainerHelper.TryAddLoopbackExemption(ctx);
+
+            if (denied.Count > 0)
+            {
+                Log.Error(
+                    "Could not write the DACL on {Count} path(s):{Paths}",
+                    denied.Count,
+                    string.Concat(denied.Select(x => $"{Environment.NewLine}    {x.Path}")));
+                Log.Error(
+                    elevated
+                        ? "This is unexpected while elevated and probably a bug. Check that the paths are not read-only or on a filesystem without ACL support."
+                        : "Re-run this command from an elevated command prompt.");
+                return -1;
+            }
+
+            Log.Information("Sandbox preparation complete! You can now launch with --sandbox (no elevation needed).");
+
+            if (!config.EnabledGlobally)
+            {
+                Log.Information(
+                    "Launches that don't pass --sandbox will still be unsandboxed. Set \"enabledGlobally\": true in {Path} to sandbox every launch.",
+                    SandboxConfiguration.DefaultPath);
+            }
+
+            return 0;
+        }
+
+        private static bool PathsEqual(string? a, string? b)
+        {
+            if (a == null || b == null)
+                return false;
+
+            return string.Equals(
+                Path.TrimEndingDirectorySeparator(Path.GetFullPath(a)),
+                Path.TrimEndingDirectorySeparator(Path.GetFullPath(b)),
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsAtOrUnder(string? path, string? ancestor)
+        {
+            if (path == null || ancestor == null)
+                return false;
+
+            if (PathsEqual(path, ancestor))
+                return true;
+
+            var full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
+            var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(ancestor)) + Path.DirectorySeparatorChar;
+            return full.StartsWith(root, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void MigrateFileToSandbox(string source, string target)
+        {
+            try
+            {
+                if (!File.Exists(source) || File.Exists(target))
+                    return;
+
+                File.Copy(source, target);
+                Log.Information("[SANDBOX] Migrated {Source} to {Target}", source, target);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "[SANDBOX] Could not migrate {Source} to {Target}", source, target);
+            }
+        }
+
+        private static void MigrateDirectoryToSandbox(string source, string target)
+        {
+            try
+            {
+                if (!Directory.Exists(source) || Directory.Exists(target))
+                    return;
+
+                static void CopyRecursively(DirectoryInfo from, DirectoryInfo to)
+                {
+                    foreach (var dir in from.GetDirectories())
+                        CopyRecursively(dir, to.CreateSubdirectory(dir.Name));
+
+                    foreach (var file in from.GetFiles())
+                        file.CopyTo(Path.Combine(to.FullName, file.Name));
+                }
+
+                CopyRecursively(new DirectoryInfo(source), Directory.CreateDirectory(target));
+                Log.Information("[SANDBOX] Migrated {Source} to {Target}", source, target);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "[SANDBOX] Could not migrate {Source} to {Target}", source, target);
+            }
+        }
+
+        /// <summary>
+        /// Determine the game path from the platform's launcher configuration.
+        /// Logs and returns null when it could not be determined.
+        /// </summary>
+        private static string? ResolveGamePath(DalamudStartInfo dalamudStartInfo)
+        {
+            string? gamePath;
+            try
+            {
+                if (dalamudStartInfo.Platform == OSPlatform.Windows)
+                {
+                    gamePath = FindGamePathFromLauncherConfig();
+                    Log.Information("Using game installation path configuration from from XIVLauncher: {0}", gamePath);
+                }
+                else if (dalamudStartInfo.Platform == OSPlatform.Linux)
+                {
+                    var homeDir = $"Z:\\home\\{Environment.UserName}";
+                    var xivlauncherDir = Path.Combine(homeDir, ".xlcore");
+                    var launcherConfigPath = Path.Combine(xivlauncherDir, "launcher.ini");
+                    var config = File.ReadAllLines(launcherConfigPath)
+                        .Where(line => line.Contains('='))
+                        .ToDictionary(line => line.Split('=')[0], line => line.Split('=')[1]);
+                    gamePath = Path.Combine("Z:" + config["GamePath"].Replace('/', '\\'), "game", "ffxiv_dx11.exe");
+                    Log.Information("Using game installation path configuration from from XIVLauncher.Core: {0}", gamePath);
+                }
+                else
+                {
+                    var homeDir = $"Z:\\Users\\{Environment.UserName}";
+                    var xomlauncherDir = Path.Combine(homeDir, "Library", "Application Support", "XIV on Mac");
+                    // we could try to parse the binary plist file here if we really wanted to...
+                    gamePath = Path.Combine(xomlauncherDir, "ffxiv", "game", "ffxiv_dx11.exe");
+                    Log.Information("Using default game installation path from XOM: {0}", gamePath);
+                }
+            }
+            catch (Exception)
+            {
+                Log.Error("Failed to read launcher config to get the set-up game path, please specify one using -g");
+                return null;
+            }
+
+            if (gamePath == null)
+            {
+                Log.Error("Game path not specified and could not be determined from launcher config, please specify one using -g");
+                return null;
+            }
+
+            if (!File.Exists(gamePath))
+            {
+                Log.Error("File not found: {0}", gamePath);
+                return null;
+            }
+
+            return gamePath;
+        }
+
+        private static string? FindGamePathFromLauncherConfig()
+        {
+            var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
+            var launcherConfigPath = Path.Combine(xivlauncherDir, "launcherConfigV3.json");
+
+            if (!File.Exists(launcherConfigPath))
+                return null;
+
+            var deserializedConfig = JsonSerializer.CreateDefault()
+                                                   .Deserialize<Dictionary<string, string>>(
+                                                       new JsonTextReader(
+                                                           new StringReader(File.ReadAllText(launcherConfigPath))));
+
+            if (deserializedConfig == null)
+                return null;
+
+            return Path.Combine(
+                deserializedConfig["GamePath"],
+                "game",
+                "ffxiv_dx11.exe");
+        }
+
         private static unsafe Process GetInheritableCurrentProcessHandle()
         {
             var currentProcessHandle = new HANDLE(Process.GetCurrentProcess().Handle.ToPointer());
@@ -976,7 +1444,7 @@ namespace Dalamud.Injector
         private static int ProcessLaunchTestCommand(List<string> args)
         {
             Console.WriteLine("Testing launch command.");
-            args[0] = Process.GetCurrentProcess().MainModule.FileName;
+            args[0] = Process.GetCurrentProcess().MainModule!.FileName;
             args[1] = "launch";
 
             var inheritableCurrentProcess = GetInheritableCurrentProcessHandle(); // so that it closes the handle when it's done
@@ -1002,6 +1470,9 @@ namespace Dalamud.Injector
             }
 
             var result = JsonSerializer.CreateDefault().Deserialize<Dictionary<string, int>>(new JsonTextReader(helperProcess.StandardOutput));
+            if (result == null)
+                throw new Exception("Could not get result from game process");
+
             var pid = result["pid"];
             var handle = (IntPtr)result["handle"];
             var resultProcess = new ExistingProcess(handle);
@@ -1014,7 +1485,7 @@ namespace Dalamud.Injector
 
         private static DalamudStartInfo AdjustStartInfo(DalamudStartInfo startInfo, string gamePath)
         {
-            var ffxivDir = Path.GetDirectoryName(gamePath);
+            var ffxivDir = Path.GetDirectoryName(gamePath) ?? throw new DirectoryNotFoundException($"Could not determine parent directory of {gamePath}.");
             var gameVerStr = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver"));
             var gameVer = GameVersion.Parse(gameVerStr);
 
@@ -1150,6 +1621,27 @@ namespace Dalamud.Injector
             public CommandLineException(string cause)
                 : base(cause)
             {
+            }
+        }
+
+        private sealed record SandboxGrant(string Path, uint Access, bool Create);
+
+        private sealed record SandboxLayout(SandboxConfiguration Config, string TempDirectory, string RuntimeDirectory, List<SandboxGrant> Grants);
+
+        private sealed class SandboxPreparationRequiredException(List<string> paths, string containerName)
+            : Exception(BuildMessage(paths, containerName))
+        {
+            private static string BuildMessage(List<string> paths, string containerName)
+            {
+                var exeName = Path.GetFileNameWithoutExtension(Environment.ProcessPath) ?? "Dalamud.Injector";
+                var sb = new StringBuilder();
+                sb.AppendLine($"The sandbox ({containerName}) is missing filesystem permissions and they could not be granted:");
+                foreach (var path in paths)
+                    sb.AppendLine($" => {path}");
+                sb.AppendLine();
+                sb.AppendLine("Run this once from an elevated command prompt, then launch normally:");
+                sb.Append($"    {exeName}.exe sandbox-prepare");
+                return sb.ToString();
             }
         }
     }

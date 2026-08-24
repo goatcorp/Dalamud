@@ -1,11 +1,18 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin.SelfTest;
+
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.Interop;
+
 using Lumina.Text.ReadOnly;
+
+using CSPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -23,17 +30,19 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
     public SelfTestStepResult RunStep()
     {
         var seStringEvaluator = Service<SeStringEvaluator>.Get();
+        var clientState = Service<ClientState>.Get();
 
         switch (this.step)
         {
             case 0:
+            {
                 ImGui.Text("Is this the current time, and is it ticking?"u8);
 
                 // This checks that EvaluateFromAddon fetches the correct Addon row,
                 // that MacroDecoder.GetMacroTime()->SetTime() has been called
                 // and that local and global parameters have been read correctly.
 
-                ImGui.Text(seStringEvaluator.EvaluateFromAddon(31, [(uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()]).ExtractText());
+                ImGui.Text(seStringEvaluator.EvaluateFromAddon(31, [(uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()]).ToString());
 
                 if (ImGui.Button("Yes"u8))
                     this.step++;
@@ -44,8 +53,10 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                     return SelfTestStepResult.Fail;
 
                 break;
+            }
 
             case 1:
+            {
                 ImGui.Text("Checking pcname macro using the local player name..."u8);
 
                 // This makes sure that NameCache.Instance()->TryGetCharacterInfoByEntityId() has been called,
@@ -64,7 +75,7 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                     return SelfTestStepResult.Waiting;
                 }
 
-                var evaluatedPlayerName = seStringEvaluator.Evaluate(ReadOnlySeString.FromMacroString("<pcname(lnum1)>"), [localPlayer.EntityId]).ExtractText();
+                var evaluatedPlayerName = seStringEvaluator.Evaluate(ReadOnlySeString.FromMacroString("<pcname(lnum1)>"), [localPlayer.EntityId]).ToString();
                 var localPlayerName = localPlayer.Name.TextValue;
 
                 if (evaluatedPlayerName != localPlayerName)
@@ -81,8 +92,10 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
 
                 this.step++;
                 break;
+            }
 
             case 2:
+            {
                 ImGui.Text("Checking AutoTranslatePayload.Text results..."u8);
 
                 var config = Service<DalamudConfiguration>.Get();
@@ -90,17 +103,17 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
 
                 Span<(string Language, uint Group, uint Key, string ExpectedText)> tests = [
                     ("en", 49u, 209u, " albino karakul "), // Mount
-                    ("en", 62u, 116u, " /echo "), // TextCommand - testing Command
-                    ("en", 62u, 143u, " /dutyfinder "), // TextCommand - testing Alias over Command
-                    ("en", 65u, 67u, " Minion of Light "), // Companion - testing noun handling for the german language (special case)
-                    ("en", 71u, 7u, " Phantom Geomancer "), // MKDSupportJob
+                        ("en", 62u, 116u, " /echo "), // TextCommand - testing Command
+                        ("en", 62u, 143u, " /dutyfinder "), // TextCommand - testing Alias over Command
+                        ("en", 65u, 67u, " Minion of Light "), // Companion - testing noun handling for the german language (special case)
+                        ("en", 71u, 7u, " Phantom Geomancer "), // MKDSupportJob
 
-                    ("de", 49u, 209u, " Albino-Karakul "), // Mount
-                    ("de", 62u, 115u, " /freiegesellschaft "), // TextCommand - testing Alias over Command
-                    ("de", 62u, 116u, " /echo "), // TextCommand - testing Command
-                    ("de", 65u, 67u, " Begleiter des Lichts "), // Companion - testing noun handling for the german language (special case)
-                    ("de", 71u, 7u, " Phantom-Geomant "), // MKDSupportJob
-                ];
+                        ("de", 49u, 209u, " Albino-Karakul "), // Mount
+                        ("de", 62u, 115u, " /freiegesellschaft "), // TextCommand - testing Alias over Command
+                        ("de", 62u, 116u, " /echo "), // TextCommand - testing Command
+                        ("de", 65u, 67u, " Begleiter des Lichts "), // Companion - testing noun handling for the german language (special case)
+                        ("de", 71u, 7u, " Phantom-Geomant "), // MKDSupportJob
+                    ];
 
                 try
                 {
@@ -128,7 +141,101 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                     config.LanguageOverride = originalLanguageOverride;
                 }
 
+                this.step++;
+                break;
+            }
+
+            case 3:
+            {
+                // This tests that the result of the inner sheet macro is interpreted correctly as uint.
+                // Addon#8509: <sheet(PlaceName,<sheet(TerritoryType,lnum1,5)>,0)>
+
+                const string expectedPlaceName = "Southern Thanalan";
+                var evaluatedPlaceName = seStringEvaluator.EvaluateFromAddon(8509, [146], ClientLanguage.English).ToString();
+                if (evaluatedPlaceName != expectedPlaceName)
+                {
+                    ImGui.Text($"Test failed for nested sheet payload");
+                    ImGui.Text($"Expected: {expectedPlaceName}");
+                    ImGui.Text($"Got: {evaluatedPlaceName}");
+
+                    if (ImGui.Button("Continue"u8))
+                        return SelfTestStepResult.Fail;
+
+                    return SelfTestStepResult.Waiting;
+                }
+
+                this.step++;
+                break;
+            }
+
+            case 4:
+            {
+                // This tests that parameter expressions are properly evaluated within a binary expression.
+                // LogMessage#8244: <head(<if([gstr1=gstr2],you,<if(gnum7,<ennoun(ObjStr,2,gnum7,1,1)>,gstr2)>)>)> <if([gstr1=gstr2],perform,performs)> a fabulous magic trick.
+
+                if (!clientState.IsLoggedIn)
+                {
+                    ImGui.Text("You need to be logged in for this step."u8);
+
+                    if (ImGui.Button("Skip"u8))
+                        return SelfTestStepResult.NotRan;
+
+                    return SelfTestStepResult.Waiting;
+                }
+
+                unsafe
+                {
+                    var playerState = CSPlayerState.Instance();
+                    RaptureTextModule.Instance()->SetGlobalTempEntity1(playerState->CharacterName.GetPointer(0), playerState->Sex, 0);
+                }
+
+                const string expected = "You perform a fabulous magic trick.";
+                var evaluated = seStringEvaluator.EvaluateFromLogMessage(8244, default, ClientLanguage.English).ToString();
+                if (evaluated != expected)
+                {
+                    ImGui.Text("Test failed for string expressions in binary expression"u8);
+                    ImGui.Text($"Expected: {expected}");
+                    ImGui.Text($"Got: {evaluated}");
+
+                    if (ImGui.Button("Continue"u8))
+                        return SelfTestStepResult.Fail;
+
+                    return SelfTestStepResult.Waiting;
+                }
+
+                this.step++;
+                break;
+            }
+
+            case 5:
+            {
+                var testCases = new (string MacroString, SeStringParameter[] Parameters, ClientLanguage Language, string Expected)[]
+                {
+                        ("<if([lstr1==TRUE],EQUAL,NOTEQUAL)>", ["TRUE"], ClientLanguage.English, "EQUAL"),
+                        ("<if([lstr1==TRUE],EQUAL,NOTEQUAL)>", ["FALSE"], ClientLanguage.English, "NOTEQUAL"),
+                        ("<if([lstr1==lstr2],EQUAL,NOTEQUAL)>", ["TRUE", "TRUE"], ClientLanguage.English, "EQUAL"),
+                        ("<if([lstr1==lstr2],EQUAL,NOTEQUAL)>", ["TRUE", "FALSE"], ClientLanguage.English, "NOTEQUAL"),
+                };
+
+                foreach (var testCase in testCases)
+                {
+                    var evaluated = seStringEvaluator.EvaluateMacroString(testCase.MacroString, testCase.Parameters, testCase.Language).ToString();
+                    if (evaluated != testCase.Expected)
+                    {
+                        ImGui.Text("MacroString test failed"u8);
+                        ImGui.Text($"MacroString: {testCase.MacroString}");
+                        ImGui.Text($"Expected: {testCase.Expected}");
+                        ImGui.Text($"Got: {evaluated}");
+
+                        if (ImGui.Button("Continue"u8))
+                            return SelfTestStepResult.Fail;
+
+                        return SelfTestStepResult.Waiting;
+                    }
+                }
+
                 return SelfTestStepResult.Pass;
+            }
         }
 
         return SelfTestStepResult.Waiting;

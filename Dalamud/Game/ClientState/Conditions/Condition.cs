@@ -3,9 +3,8 @@ using System.Linq;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
-
-using Serilog;
 
 namespace Dalamud.Game.ClientState.Conditions;
 
@@ -19,6 +18,8 @@ internal sealed class Condition : IInternalDisposableService, ICondition
     /// Gets the current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
     /// </summary>
     internal const int MaxConditionEntries = 112;
+
+    private static readonly ModuleLog Log = ModuleLog.Create<Condition>();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();

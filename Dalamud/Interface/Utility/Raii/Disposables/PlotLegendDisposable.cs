@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImPlot;
 
 // ReSharper disable once CheckNamespace
@@ -21,14 +21,14 @@ public static partial class ImRaii
         internal PlotLegendDisposable(string labelId, ImGuiMouseButton mouseButton = ImGuiMouseButton.Right)
         {
             this.Success = ImPlot.BeginLegendPopup(labelId, mouseButton);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <inheritdoc cref="PlotLegendDisposable(string,ImGuiMouseButton)"/>
         internal PlotLegendDisposable(ReadOnlySpan<byte> labelId, ImGuiMouseButton mouseButton = ImGuiMouseButton.Right)
         {
             this.Success = ImPlot.BeginLegendPopup(labelId, mouseButton);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(PlotLegendDisposable value)

@@ -1,10 +1,11 @@
-using Dalamud.Game.Network.Internal;
+using Dalamud.Game.Marketboard.Network.Internal;
 using Dalamud.Game.Network.Structures;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using static Dalamud.Plugin.Services.IMarketBoard;
 
@@ -13,6 +14,7 @@ namespace Dalamud.Game.MarketBoard;
 /// <summary>
 /// This class provides access to market board events.
 /// </summary>
+[Api16ToDo("Update all namespaces in Marketboard/Network/Structures")]
 [ServiceManager.EarlyLoadedService]
 internal class MarketBoard : IInternalDisposableService, IMarketBoard
 {

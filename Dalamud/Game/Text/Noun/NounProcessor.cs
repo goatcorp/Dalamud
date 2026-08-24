@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Logging.Internal;
@@ -16,50 +15,50 @@ namespace Dalamud.Game.Text.Noun;
 /*
 Attributive sheet:
   Japanese:
-    Unknown0 = Singular Demonstrative
-    Unknown1 = Plural Demonstrative
+    Column 0 = Demonstrative
+    Column 1 = Demonstrative Plural
   English:
-    Unknown2 = Article before a singular noun beginning with a consonant sound
-    Unknown3 = Article before a generic noun beginning with a consonant sound
-    Unknown4 = N/A
-    Unknown5 = Article before a singular noun beginning with a vowel sound
-    Unknown6 = Article before a generic noun beginning with a vowel sound
-    Unknown7 = N/A
+    Column 2 = Consonant Singular
+    Column 3 = Consonant Generic
+    Column 4 = Consonant Plural
+    Column 5 = Vowel Singular
+    Column 6 = Vowel Generic
+    Column 7 = Vowel Plural
   German:
-    Unknown8 = Nominative Masculine
-    Unknown9 = Nominative Feminine
-    Unknown10 = Nominative Neutral
-    Unknown11 = Nominative Plural
-    Unknown12 = Genitive Masculine
-    Unknown13 = Genitive Feminine
-    Unknown14 = Genitive Neutral
-    Unknown15 = Genitive Plural
-    Unknown16 = Dative Masculine
-    Unknown17 = Dative Feminine
-    Unknown18 = Dative Neutral
-    Unknown19 = Dative Plural
-    Unknown20 = Accusative Masculine
-    Unknown21 = Accusative Feminine
-    Unknown22 = Accusative Neutral
-    Unknown23 = Accusative Plural
-  French (unsure):
-    Unknown24 = Singular Article
-    Unknown25 = Singular Masculine Article
-    Unknown26 = Plural Masculine Article
-    Unknown27 = ?
-    Unknown28 = ?
-    Unknown29 = Singular Masculine/Feminine Article, before a noun beginning in a vowel or an h
-    Unknown30 = Plural Masculine/Feminine Article, before a noun beginning in a vowel or an h
-    Unknown31 = ?
-    Unknown32 = ?
-    Unknown33 = Singular Feminine Article
-    Unknown34 = Plural Feminine Article
-    Unknown35 = ?
-    Unknown36 = ?
-    Unknown37 = Singular Masculine/Feminine Article, before a noun beginning in a vowel or an h
-    Unknown38 = Plural Masculine/Feminine Article, before a noun beginning in a vowel or an h
-    Unknown39 = ?
-    Unknown40 = ?
+    Column 8 = Nominative Masculine
+    Column 9 = Nominative Feminine
+    Column 10 = Nominative Neutral
+    Column 11 = Nominative Plural
+    Column 12 = Genitive Masculine
+    Column 13 = Genitive Feminine
+    Column 14 = Genitive Neutral
+    Column 15 = Genitive Plural
+    Column 16 = Dative Masculine
+    Column 17 = Dative Feminine
+    Column 18 = Dative Neutral
+    Column 19 = Dative Plural
+    Column 20 = Accusative Masculine
+    Column 21 = Accusative Feminine
+    Column 22 = Accusative Neutral
+    Column 23 = Accusative Plural
+  French:
+    Column 24 = Masculine Consonant Base
+    Column 25 = Masculine Consonant Singular
+    Column 26 = Masculine Consonant Plural
+    Column 27 = Masculine Consonant Mass
+    Column 28 = Masculine Vowel Base
+    Column 29 = Masculine Vowel Singular
+    Column 30 = Masculine Vowel Plural
+    Column 31 = Masculine Vowel Mass
+    Column 32 = Feminine Consonant Base
+    Column 33 = Feminine Consonant Singular
+    Column 34 = Feminine Consonant Plural
+    Column 35 = Feminine Consonant Mass
+    Column 36 = Feminine Vowel Base
+    Column 37 = Feminine Vowel Singular
+    Column 38 = Feminine Vowel Plural
+    Column 39 = Feminine Vowel Mass
+    Column 40 = N/A
 
 Placeholders:
     [t] = article or grammatical gender (EN: the, DE: der, die, das)
@@ -81,7 +80,7 @@ internal class NounProcessor : IServiceType
     private const int PluralColumnIdx = 2;
     private const int PossessivePronounColumnIdx = 3;
     private const int StartsWithVowelColumnIdx = 4;
-    private const int Unknown5ColumnIdx = 5; // probably used in Chinese texts
+    private const int CountabilityColumnIdx = 5;
     private const int PronounColumnIdx = 6;
     private const int ArticleColumnIdx = 7;
 
@@ -89,9 +88,6 @@ internal class NounProcessor : IServiceType
 
     [ServiceManager.ServiceDependency]
     private readonly DataManager dataManager = Service<DataManager>.Get();
-
-    [ServiceManager.ServiceDependency]
-    private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
 
     private readonly ConcurrentDictionary<NounParams, ReadOnlySeString> cache = [];
 
@@ -180,14 +176,6 @@ internal class NounProcessor : IServiceType
     /// </remarks>
     private ReadOnlySeString ResolveNounEn(NounParams nounParams)
     {
-        /*
-          a1->Offsets[0] = SingularColumnIdx
-          a1->Offsets[1] = PluralColumnIdx
-          a1->Offsets[2] = StartsWithVowelColumnIdx
-          a1->Offsets[3] = PossessivePronounColumnIdx
-          a1->Offsets[4] = ArticleColumnIdx
-        */
-
         var sheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nounParams.SheetName);
         if (!sheet.TryGetRow(nounParams.RowId, out var row))
         {
@@ -238,16 +226,6 @@ internal class NounProcessor : IServiceType
     /// </remarks>
     private ReadOnlySeString ResolveNounDe(NounParams nounParams)
     {
-        /*
-             a1->Offsets[0] = SingularColumnIdx
-             a1->Offsets[1] = PluralColumnIdx
-             a1->Offsets[2] = PronounColumnIdx
-             a1->Offsets[3] = AdjectiveColumnIdx
-             a1->Offsets[4] = PossessivePronounColumnIdx
-             a1->Offsets[5] = Unknown5ColumnIdx
-             a1->Offsets[6] = ArticleColumnIdx
-         */
-
         var sheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nounParams.SheetName);
         if (!sheet.TryGetRow(nounParams.RowId, out var row))
         {
@@ -267,26 +245,26 @@ internal class NounProcessor : IServiceType
         }
 
         var genderIndexColumn = nounParams.ColumnOffset + PronounColumnIdx;
-        var genderIndex = genderIndexColumn >= 0 ? row.ReadInt8Column(genderIndexColumn) : ~genderIndexColumn;
+        var genderIndex = genderIndexColumn < 0 ? ~genderIndexColumn : row.ReadInt8Column(genderIndexColumn);
 
         var articleIndexColumn = nounParams.ColumnOffset + ArticleColumnIdx;
-        var articleIndex = articleIndexColumn >= 0 ? row.ReadInt8Column(articleIndexColumn) : ~articleIndexColumn;
+        var articleIndex = articleIndexColumn < 0 ? ~articleIndexColumn : row.ReadInt8Column(articleIndexColumn);
 
         var caseColumnOffset = (4 * nounParams.GrammaticalCase) + 8;
 
         var caseRowOffsetColumn = nounParams.ColumnOffset + (nounParams.Quantity == 1 ? AdjectiveColumnIdx : PossessivePronounColumnIdx);
-        var caseRowOffset = caseRowOffsetColumn >= 0
-                                ? row.ReadInt8Column(caseRowOffsetColumn)
-                                : (sbyte)~caseRowOffsetColumn;
+        var caseRowOffset = caseRowOffsetColumn < 0 ? ~caseRowOffsetColumn : row.ReadInt8Column(caseRowOffsetColumn);
+
+        var numerusColumnIndex = nounParams.ColumnOffset + (nounParams.Quantity == 1 ? SingularColumnIdx : PluralColumnIdx);
+        var numerus = row.ReadStringColumn(numerusColumnIndex);
 
         if (nounParams.Quantity != 1)
             genderIndex = 3;
 
         var hasT = false;
-        var text = row.ReadStringColumn(nounParams.ColumnOffset + (nounParams.Quantity == 1 ? SingularColumnIdx : PluralColumnIdx));
-        if (!text.IsEmpty)
+        if (!numerus.IsEmpty)
         {
-            hasT = text.ContainsText("[t]"u8);
+            hasT = numerus.ContainsText("[t]"u8);
 
             if (articleIndex == 0 && !hasT)
             {
@@ -299,7 +277,7 @@ internal class NounProcessor : IServiceType
             if (!nounParams.LinkMarker.IsEmpty)
                 rssb.Builder.Append(nounParams.LinkMarker);
 
-            rssb.Builder.Append(text);
+            rssb.Builder.Append(numerus);
 
             var plural = attributiveSheet.GetRow((uint)(caseRowOffset + 26))
                                          .ReadStringColumn(caseColumnOffset + genderIndex);
@@ -320,18 +298,17 @@ internal class NounProcessor : IServiceType
 
         var declensionRow = (GermanArticleType)nounParams.ArticleType switch
         {
-            // Schwache Flexion eines Adjektivs?!
-            GermanArticleType.Possessive or GermanArticleType.Demonstrative => attributiveSheet.GetRow(25),
+            // Bestimmter Artikel oder Demonstrativpronomen
+            GermanArticleType.Definite or GermanArticleType.Demonstrative when !hasT => attributiveSheet.GetRow(25),
             _ when hasT => attributiveSheet.GetRow(25),
 
-            // Starke Deklination
+            // Starke Adjektivdeklination
             GermanArticleType.ZeroArticle => attributiveSheet.GetRow(38),
 
-            // Gemischte Deklination
-            GermanArticleType.Definite => attributiveSheet.GetRow(37),
+            // Starke Adjektivdeklination
+            GermanArticleType.Indefinite => attributiveSheet.GetRow(37),
 
-            // Starke Flexion eines Artikels?!
-            GermanArticleType.Indefinite or GermanArticleType.Negative => attributiveSheet.GetRow(26),
+            // Gemischte Deklination
             _ => attributiveSheet.GetRow(26),
         };
 
@@ -351,15 +328,6 @@ internal class NounProcessor : IServiceType
     /// </remarks>
     private ReadOnlySeString ResolveNounFr(NounParams nounParams)
     {
-        /*
-            a1->Offsets[0] = SingularColumnIdx
-            a1->Offsets[1] = PluralColumnIdx
-            a1->Offsets[2] = StartsWithVowelColumnIdx
-            a1->Offsets[3] = PronounColumnIdx
-            a1->Offsets[4] = Unknown5ColumnIdx
-            a1->Offsets[5] = ArticleColumnIdx
-        */
-
         var sheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nounParams.SheetName);
         if (!sheet.TryGetRow(nounParams.RowId, out var row))
         {
@@ -368,70 +336,70 @@ internal class NounProcessor : IServiceType
         }
 
         var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(LSheets.Attributive));
+        var articleRow = attributiveSheet.GetRow((uint)nounParams.ArticleType);
 
         using var rssb = new RentedSeStringBuilder();
 
         var startsWithVowelColumn = nounParams.ColumnOffset + StartsWithVowelColumnIdx;
-        var startsWithVowel = startsWithVowelColumn >= 0
-                                  ? row.ReadInt8Column(startsWithVowelColumn)
-                                  : ~startsWithVowelColumn;
+        var startsWithVowel = startsWithVowelColumn < 0 ? ~startsWithVowelColumn : row.ReadInt8Column(startsWithVowelColumn);
 
         var pronounColumn = nounParams.ColumnOffset + PronounColumnIdx;
-        var pronoun = pronounColumn >= 0 ? row.ReadInt8Column(pronounColumn) : ~pronounColumn;
+        var pronoun = pronounColumn < 0 ? ~pronounColumn : row.ReadInt8Column(pronounColumn);
+
+        var countabilityColumn = nounParams.ColumnOffset + CountabilityColumnIdx;
+        var countability = countabilityColumn < 0 ? ~countabilityColumn : row.ReadInt8Column(countabilityColumn);
 
         var articleColumn = nounParams.ColumnOffset + ArticleColumnIdx;
-        var article = articleColumn >= 0 ? row.ReadInt8Column(articleColumn) : ~articleColumn;
+        var article = articleColumn < 0 ? ~articleColumn : row.ReadInt8Column(articleColumn);
 
-        var v20 = 4 * (startsWithVowel + 6 + (2 * pronoun));
+        var attributiveColumn = 4 * (startsWithVowel + 2 * (pronoun + 3));
+        var numerusColumnIndex = SingularColumnIdx;
 
         if (article != 0)
         {
-            var v21 = attributiveSheet.GetRow((uint)nounParams.ArticleType).ReadStringColumn(v20);
-            if (!v21.IsEmpty)
-                rssb.Builder.Append(v21);
-
-            if (!nounParams.LinkMarker.IsEmpty)
-                rssb.Builder.Append(nounParams.LinkMarker);
-
-            var text = row.ReadStringColumn(nounParams.ColumnOffset + (nounParams.Quantity <= 1 ? SingularColumnIdx : PluralColumnIdx));
-            if (!text.IsEmpty)
-                rssb.Builder.Append(text);
+            var attr = articleRow.ReadStringColumn(attributiveColumn);
+            if (!attr.IsEmpty)
+                rssb.Builder.Append(attr);
 
             if (nounParams.Quantity <= 1)
-                rssb.Builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
-
-            return rssb.Builder.ToReadOnlySeString();
+                numerusColumnIndex = SingularColumnIdx;
+            else
+                numerusColumnIndex = PluralColumnIdx;
         }
-
-        var v17 = row.ReadInt8Column(nounParams.ColumnOffset + Unknown5ColumnIdx);
-        if (v17 != 0 && (nounParams.Quantity > 1 || v17 == 2))
+        else if (countability != 0) // Countable Nouns
         {
-            var v29 = attributiveSheet.GetRow((uint)nounParams.ArticleType).ReadStringColumn(v20 + 2);
-            if (!v29.IsEmpty)
+            if (nounParams.Quantity <= 1 && countability != 2)
             {
-                rssb.Builder.Append(v29);
+                var attr = articleRow.ReadStringColumn(attributiveColumn + 1);
+                if (!attr.IsEmpty)
+                    rssb.Builder.Append(attr);
 
-                if (!nounParams.LinkMarker.IsEmpty)
-                    rssb.Builder.Append(nounParams.LinkMarker);
+                numerusColumnIndex = SingularColumnIdx;
+            }
+            else // Plural-only Nouns
+            {
+                var attr = articleRow.ReadStringColumn(attributiveColumn + 2);
+                if (!attr.IsEmpty)
+                    rssb.Builder.Append(attr);
 
-                var text = row.ReadStringColumn(nounParams.ColumnOffset + PluralColumnIdx);
-                if (!text.IsEmpty)
-                    rssb.Builder.Append(text);
+                numerusColumnIndex = PluralColumnIdx;
             }
         }
-        else
+        else // Mass Nouns / Uncountable Nouns
         {
-            var v27 = attributiveSheet.GetRow((uint)nounParams.ArticleType).ReadStringColumn(v20 + (v17 != 0 ? 1 : 3));
-            if (!v27.IsEmpty)
-                rssb.Builder.Append(v27);
+            var attr = articleRow.ReadStringColumn(attributiveColumn + 3);
+            if (!attr.IsEmpty)
+                rssb.Builder.Append(attr);
 
-            if (!nounParams.LinkMarker.IsEmpty)
-                rssb.Builder.Append(nounParams.LinkMarker);
-
-            var text = row.ReadStringColumn(nounParams.ColumnOffset + SingularColumnIdx);
-            if (!text.IsEmpty)
-                rssb.Builder.Append(text);
+            numerusColumnIndex = SingularColumnIdx;
         }
+
+        if (!nounParams.LinkMarker.IsEmpty)
+            rssb.Builder.Append(nounParams.LinkMarker);
+
+        var numerus = row.ReadStringColumn(nounParams.ColumnOffset + numerusColumnIndex);
+        if (!numerus.IsEmpty)
+            rssb.Builder.Append(numerus);
 
         rssb.Builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));
 

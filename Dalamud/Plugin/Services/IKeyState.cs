@@ -25,10 +25,10 @@ public interface IKeyState : IDalamudService
     /// <returns>Whether the specified key is currently pressed.</returns>
     /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">If the set value is non-zero.</exception>
-    public bool this[int vkCode] { get; set; }
-    
+    bool this[int vkCode] { get; set; }
+
     /// <inheritdoc cref="this[int]"/>
-    public bool this[VirtualKey vkCode] { get; set; }
+    bool this[VirtualKey vkCode] { get; set; }
 
     /// <summary>
     /// Gets the value in the index array.
@@ -36,10 +36,10 @@ public interface IKeyState : IDalamudService
     /// <param name="vkCode">The virtual key to change.</param>
     /// <returns>The raw value stored in the index array.</returns>
     /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
-    public int GetRawValue(int vkCode);
+    int GetRawValue(int vkCode);
 
     /// <inheritdoc cref="GetRawValue(int)"/>
-    public int GetRawValue(VirtualKey vkCode);
+    int GetRawValue(VirtualKey vkCode);
 
     /// <summary>
     /// Sets the value in the index array.
@@ -48,29 +48,29 @@ public interface IKeyState : IDalamudService
     /// <param name="value">The raw value to set in the index array.</param>
     /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">If the set value is non-zero.</exception>
-    public void SetRawValue(int vkCode, int value);
+    void SetRawValue(int vkCode, int value);
 
     /// <inheritdoc cref="SetRawValue(int, int)"/>
-    public void SetRawValue(VirtualKey vkCode, int value);
+    void SetRawValue(VirtualKey vkCode, int value);
 
     /// <summary>
     /// Gets a value indicating whether the given VirtualKey code is regarded as valid input by the game.
     /// </summary>
     /// <param name="vkCode">Virtual key code.</param>
     /// <returns>If the code is valid.</returns>
-    public bool IsVirtualKeyValid(int vkCode);
+    bool IsVirtualKeyValid(int vkCode);
 
     /// <inheritdoc cref="IsVirtualKeyValid(int)"/>
-    public bool IsVirtualKeyValid(VirtualKey vkCode);
+    bool IsVirtualKeyValid(VirtualKey vkCode);
 
     /// <summary>
     /// Gets an array of virtual keys the game considers valid input.
     /// </summary>
     /// <returns>An array of valid virtual keys.</returns>
-    public IEnumerable<VirtualKey> GetValidVirtualKeys();
+    IEnumerable<VirtualKey> GetValidVirtualKeys();
 
     /// <summary>
     /// Clears the pressed state for all keys.
     /// </summary>
-    public void ClearAll();
+    void ClearAll();
 }

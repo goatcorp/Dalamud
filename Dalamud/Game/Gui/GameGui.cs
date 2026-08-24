@@ -11,7 +11,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
-using FFXIVClientStructs.FFXIV.Client.Enums;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;

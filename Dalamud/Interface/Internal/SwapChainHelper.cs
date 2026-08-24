@@ -85,7 +85,7 @@ internal static unsafe class SwapChainHelper
         DXGI_SWAP_CHAIN_DESC desc1;
         if (punk->GetDesc(&desc1).FAILED)
             return false;
-        
+
         DXGI_SWAP_CHAIN_DESC desc2;
         if (GameDeviceSwapChain->GetDesc(&desc2).FAILED)
             return false;

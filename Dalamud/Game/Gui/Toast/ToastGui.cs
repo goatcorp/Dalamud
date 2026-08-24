@@ -5,6 +5,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
@@ -12,8 +13,6 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI;
 
 using InteropGenerator.Runtime;
-
-using Serilog;
 
 namespace Dalamud.Game.Gui.Toast;
 
@@ -24,6 +23,8 @@ namespace Dalamud.Game.Gui.Toast;
 internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
 {
     private const uint QuestToastCheckmarkMagic = 60081;
+
+    private static readonly ModuleLog Log = ModuleLog.Create<ToastGui>();
 
     private readonly Queue<(byte[] Message, ToastOptions Options)> normalQueue = new();
     private readonly Queue<(byte[] Message, QuestToastOptions Options)> questQueue = new();

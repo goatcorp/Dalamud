@@ -18,47 +18,47 @@ public interface IReadOnlyDtrBarEntry
     /// <summary>
     /// Gets the title of this entry.
     /// </summary>
-    public string Title { get; }
+    string Title { get; }
 
     /// <summary>
     /// Gets a value indicating whether this entry has a click action.
     /// </summary>
-    public bool HasClickAction { get; }
+    bool HasClickAction { get; }
 
     /// <summary>
     /// Gets the text of this entry.
     /// </summary>
-    public SeString? Text { get; }
+    SeString? Text { get; }
 
     /// <summary>
     /// Gets a tooltip to be shown when the user mouses over the dtr entry.
     /// </summary>
-    public SeString? Tooltip { get; }
+    SeString? Tooltip { get; }
 
     /// <summary>
     /// Gets a value indicating whether this entry should be shown.
     /// </summary>
-    public bool Shown { get; }
+    bool Shown { get; }
 
     /// <summary>
     /// Gets a value indicating this entry's minimum width.
     /// </summary>
-    public ushort MinimumWidth { get; }
+    ushort MinimumWidth { get; }
 
     /// <summary>
     /// Gets a value indicating whether the user has hidden this entry from view through the Dalamud settings.
     /// </summary>
-    public bool UserHidden { get; }
+    bool UserHidden { get; }
 
     /// <summary>
     /// Gets an action to be invoked when the user clicks on the dtr entry.
     /// </summary>
-    public Action<DtrInteractionEvent>? OnClick { get; }
+    Action<DtrInteractionEvent>? OnClick { get; }
 
     /// <summary>
     /// Gets the axis-aligned bounding box of this entry, in screen coordinates.
     /// </summary>
-    public (Vector2 Min, Vector2 Max) ScreenBounds { get; }
+    (Vector2 Min, Vector2 Max) ScreenBounds { get; }
 }
 
 /// <summary>
@@ -69,33 +69,33 @@ public interface IDtrBarEntry : IReadOnlyDtrBarEntry
     /// <summary>
     /// Gets or sets the text of this entry.
     /// </summary>
-    public new SeString? Text { get; set; }
+    new SeString? Text { get; set; }
 
     /// <summary>
     /// Gets or sets a tooltip to be shown when the user mouses over the dtr entry.
     /// </summary>
-    public new SeString? Tooltip { get; set; }
+    new SeString? Tooltip { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this entry is visible.
     /// </summary>
-    public new bool Shown { get; set; }
+    new bool Shown { get; set; }
 
     /// <summary>
     /// Gets or sets a value specifying the requested minimum width to make this entry.
     /// </summary>
-    public new ushort MinimumWidth { get; set; }
+    new ushort MinimumWidth { get; set; }
 
     /// <summary>
     /// Gets or sets an action to be invoked when the user clicks on the dtr entry.
     /// </summary>
-    public new Action<DtrInteractionEvent>? OnClick { get; set; }
+    new Action<DtrInteractionEvent>? OnClick { get; set; }
 
     /// <summary>
     /// Remove this entry from the bar.
     /// You will need to re-acquire it from DtrBar to reuse it.
     /// </summary>
-    public void Remove();
+    void Remove();
 }
 
 /// <summary>

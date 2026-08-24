@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Gui.Dtr;
+namespace Dalamud.Game.Gui.Dtr;
 
 /// <summary>
 /// An enum representing the mouse click types.

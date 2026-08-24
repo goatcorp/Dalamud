@@ -737,7 +737,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             if (configuration.SavedStyles == null ||
                 configuration.SavedStyles.All(x => x.Name != builtInStyles[0].Name))
             {
-                configuration.SavedStyles = [..builtInStyles];
+                configuration.SavedStyles = [.. builtInStyles];
                 configuration.ChosenStyle = builtInStyles[0].Name;
             }
 
@@ -1231,6 +1231,9 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private void Display()
     {
+        if (this.framework.IsFrameworkUnloading)
+            return;
+
         // this is more or less part of what reshade/etc do to avoid having to manually
         // set the cursor inside the ui
         // This will just tell ImGui to draw its own software cursor instead of using the hardware cursor

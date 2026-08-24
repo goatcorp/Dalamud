@@ -119,9 +119,9 @@ public unsafe partial class AddonTree
         {
             try
             {
-                if (this.FieldNames.TryAdd(fieldAddr, [..path, name]) && fieldType.DeclaringType == baseType)
+                if (this.FieldNames.TryAdd(fieldAddr, [.. path, name]) && fieldType.DeclaringType == baseType)
                 {
-                    this.PopulateFieldNames(field.GetValue(obj), fieldAddr, [..path, name]);
+                    this.PopulateFieldNames(field.GetValue(obj), fieldAddr, [.. path, name]);
                 }
             }
             catch (Exception ex)
@@ -151,12 +151,12 @@ public unsafe partial class AddonTree
                         var itemAddr = fieldAddr + (size * i);
                         var itemName = $"{name}[{i}]";
 
-                        this.FieldNames.TryAdd(itemAddr, [..path, itemName]);
+                        this.FieldNames.TryAdd(itemAddr, [.. path, itemName]);
 
                         var item = Marshal.PtrToStructure(itemAddr, itemType);
                         if (itemType.DeclaringType == baseType)
                         {
-                            this.PopulateFieldNames(item, itemAddr, [..path, itemName]);
+                            this.PopulateFieldNames(item, itemAddr, [.. path, itemName]);
                         }
                     }
                 }
@@ -187,8 +187,8 @@ public unsafe partial class AddonTree
                     return;
                 }
 
-                this.FieldNames.TryAdd(fieldAddr, [..path, name]);
-                this.FieldNames.TryAdd(pointer, [..path, name]);
+                this.FieldNames.TryAdd(fieldAddr, [.. path, name]);
+                this.FieldNames.TryAdd(pointer, [.. path, name]);
 
                 if (itemType?.DeclaringType != baseType || itemType.IsPointer)
                 {
@@ -196,7 +196,7 @@ public unsafe partial class AddonTree
                 }
 
                 var item = Marshal.PtrToStructure(pointer, itemType);
-                this.PopulateFieldNames(item, pointer, [..path, name]);
+                this.PopulateFieldNames(item, pointer, [.. path, name]);
             }
             catch (Exception ex)
             {

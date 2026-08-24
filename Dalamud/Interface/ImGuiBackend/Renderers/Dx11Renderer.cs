@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game;
 using Dalamud.Interface.ImGuiBackend.Helpers;
 using Dalamud.Interface.ImGuiBackend.Helpers.D3D11;
 using Dalamud.Interface.Textures;
@@ -740,6 +741,9 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         if (this.fontTextures.Count != 0)
             return;
 
+        if (Service<Framework>.GetNullable() is not { IsFrameworkUnloading: false })
+            return;
+
         var io = ImGui.GetIO();
         if (io.Fonts.Textures.Size == 0)
             io.Fonts.Build();
@@ -1063,14 +1067,14 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
 
             using var wicFactory = default(ComPtr<IWICImagingFactory>);
             fixed (Guid* pclsid = &CLSID.CLSID_WICImagingFactory)
-                fixed (Guid* piid = &IID.IID_IWICImagingFactory)
-                    CoCreateInstance(pclsid, null, (uint)CLSCTX.CLSCTX_INPROC_SERVER, piid,
-                        (void**)wicFactory.GetAddressOf()).ThrowOnError();
+            fixed (Guid* piid = &IID.IID_IWICImagingFactory)
+                CoCreateInstance(pclsid, null, (uint)CLSCTX.CLSCTX_INPROC_SERVER, piid,
+                    (void**)wicFactory.GetAddressOf()).ThrowOnError();
 
             using var wicStream = default(ComPtr<IWICStream>);
             wicFactory.Get()->CreateStream(wicStream.GetAddressOf()).ThrowOnError();
             fixed (byte* pBytes = pngBytes)
-                    wicStream.Get()->InitializeFromMemory(pBytes, (uint)pngStream.Length).ThrowOnError();
+                wicStream.Get()->InitializeFromMemory(pBytes, (uint)pngStream.Length).ThrowOnError();
 
             using var decoder = default(ComPtr<IWICBitmapDecoder>);
             wicFactory.Get()->CreateDecoderFromStream(
@@ -1081,7 +1085,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             using var frame = default(ComPtr<IWICBitmapFrameDecode>);
             decoder.Get()->GetFrame(0, frame.GetAddressOf()).ThrowOnError();
 
-                // Convert to BGRA32 for easy D3D11 upload
+            // Convert to BGRA32 for easy D3D11 upload
             var targetFmt = GUID.GUID_WICPixelFormat32bppBGRA;
             using var converter = default(ComPtr<IWICFormatConverter>);
             wicFactory.Get()->CreateFormatConverter(converter.GetAddressOf()).ThrowOnError();
@@ -1118,8 +1122,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                     this.blurNoiseTexture,
                     D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
             fixed (ID3D11ShaderResourceView** pp = &this.blurNoiseSrv.GetPinnableReference())
-                    this.device.Get()->CreateShaderResourceView(
-                        (ID3D11Resource*)this.blurNoiseTexture.Get(), &noiseSrvDesc, pp).ThrowOnError();
+                this.device.Get()->CreateShaderResourceView(
+                    (ID3D11Resource*)this.blurNoiseTexture.Get(), &noiseSrvDesc, pp).ThrowOnError();
 
             ArrayPool<byte>.Shared.Return(pngBytes);
         }

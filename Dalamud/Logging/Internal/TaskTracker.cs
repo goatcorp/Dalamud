@@ -31,7 +31,7 @@ internal class TaskTracker : IInternalDisposableService
     private TaskTracker()
     {
 #if DEBUG
-            this.Enable();
+        this.Enable();
 #endif
     }
 

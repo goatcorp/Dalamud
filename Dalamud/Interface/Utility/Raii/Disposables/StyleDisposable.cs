@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -87,7 +87,7 @@ public static partial class ImRaii
         /// <returns> A disposable object that can be used to push further style variables and pops those style variables after leaving scope. Use with using. </returns>
         public StyleDisposable Pop(int num = 1)
         {
-            num   =  Math.Min(num, this.Count);
+            num = Math.Min(num, this.Count);
             if (num > 0)
             {
                 this.Count -= num;
@@ -117,32 +117,32 @@ public static partial class ImRaii
         {
             var shouldThrow = idx switch
             {
-                ImGuiStyleVar.Alpha               => type != typeof(float),
-                ImGuiStyleVar.WindowPadding       => type != typeof(Vector2),
-                ImGuiStyleVar.WindowRounding      => type != typeof(float),
-                ImGuiStyleVar.WindowBorderSize    => type != typeof(float),
-                ImGuiStyleVar.WindowMinSize       => type != typeof(Vector2),
-                ImGuiStyleVar.WindowTitleAlign    => type != typeof(Vector2),
-                ImGuiStyleVar.ChildRounding       => type != typeof(float),
-                ImGuiStyleVar.ChildBorderSize     => type != typeof(float),
-                ImGuiStyleVar.PopupRounding       => type != typeof(float),
-                ImGuiStyleVar.PopupBorderSize     => type != typeof(float),
-                ImGuiStyleVar.FramePadding        => type != typeof(Vector2),
-                ImGuiStyleVar.FrameRounding       => type != typeof(float),
-                ImGuiStyleVar.FrameBorderSize     => type != typeof(float),
-                ImGuiStyleVar.ItemSpacing         => type != typeof(Vector2),
-                ImGuiStyleVar.ItemInnerSpacing    => type != typeof(Vector2),
-                ImGuiStyleVar.IndentSpacing       => type != typeof(float),
-                ImGuiStyleVar.CellPadding         => type != typeof(Vector2),
-                ImGuiStyleVar.ScrollbarSize       => type != typeof(float),
-                ImGuiStyleVar.ScrollbarRounding   => type != typeof(float),
-                ImGuiStyleVar.GrabMinSize         => type != typeof(float),
-                ImGuiStyleVar.GrabRounding        => type != typeof(float),
-                ImGuiStyleVar.TabRounding         => type != typeof(float),
-                ImGuiStyleVar.ButtonTextAlign     => type != typeof(Vector2),
+                ImGuiStyleVar.Alpha => type != typeof(float),
+                ImGuiStyleVar.WindowPadding => type != typeof(Vector2),
+                ImGuiStyleVar.WindowRounding => type != typeof(float),
+                ImGuiStyleVar.WindowBorderSize => type != typeof(float),
+                ImGuiStyleVar.WindowMinSize => type != typeof(Vector2),
+                ImGuiStyleVar.WindowTitleAlign => type != typeof(Vector2),
+                ImGuiStyleVar.ChildRounding => type != typeof(float),
+                ImGuiStyleVar.ChildBorderSize => type != typeof(float),
+                ImGuiStyleVar.PopupRounding => type != typeof(float),
+                ImGuiStyleVar.PopupBorderSize => type != typeof(float),
+                ImGuiStyleVar.FramePadding => type != typeof(Vector2),
+                ImGuiStyleVar.FrameRounding => type != typeof(float),
+                ImGuiStyleVar.FrameBorderSize => type != typeof(float),
+                ImGuiStyleVar.ItemSpacing => type != typeof(Vector2),
+                ImGuiStyleVar.ItemInnerSpacing => type != typeof(Vector2),
+                ImGuiStyleVar.IndentSpacing => type != typeof(float),
+                ImGuiStyleVar.CellPadding => type != typeof(Vector2),
+                ImGuiStyleVar.ScrollbarSize => type != typeof(float),
+                ImGuiStyleVar.ScrollbarRounding => type != typeof(float),
+                ImGuiStyleVar.GrabMinSize => type != typeof(float),
+                ImGuiStyleVar.GrabRounding => type != typeof(float),
+                ImGuiStyleVar.TabRounding => type != typeof(float),
+                ImGuiStyleVar.ButtonTextAlign => type != typeof(Vector2),
                 ImGuiStyleVar.SelectableTextAlign => type != typeof(Vector2),
-                ImGuiStyleVar.DisabledAlpha       => type != typeof(float),
-                _                                 => throw new ArgumentOutOfRangeException(nameof(idx), idx, null),
+                ImGuiStyleVar.DisabledAlpha => type != typeof(float),
+                _ => throw new ArgumentOutOfRangeException(nameof(idx), idx, null),
             };
 
             if (shouldThrow)
@@ -154,32 +154,32 @@ public static partial class ImRaii
             var style = ImGui.GetStyle();
             return idx switch
             {
-                ImGuiStyleVar.Alpha               => new Vector2(style.Alpha, float.NaN),
-                ImGuiStyleVar.WindowPadding       => style.WindowPadding,
-                ImGuiStyleVar.WindowRounding      => new Vector2(style.WindowRounding,   float.NaN),
-                ImGuiStyleVar.WindowBorderSize    => new Vector2(style.WindowBorderSize, float.NaN),
-                ImGuiStyleVar.WindowMinSize       => style.WindowMinSize,
-                ImGuiStyleVar.WindowTitleAlign    => style.WindowTitleAlign,
-                ImGuiStyleVar.ChildRounding       => new Vector2(style.ChildRounding,   float.NaN),
-                ImGuiStyleVar.ChildBorderSize     => new Vector2(style.ChildBorderSize, float.NaN),
-                ImGuiStyleVar.PopupRounding       => new Vector2(style.PopupRounding,   float.NaN),
-                ImGuiStyleVar.PopupBorderSize     => new Vector2(style.PopupBorderSize, float.NaN),
-                ImGuiStyleVar.FramePadding        => style.FramePadding,
-                ImGuiStyleVar.FrameRounding       => new Vector2(style.FrameRounding,   float.NaN),
-                ImGuiStyleVar.FrameBorderSize     => new Vector2(style.FrameBorderSize, float.NaN),
-                ImGuiStyleVar.ItemSpacing         => style.ItemSpacing,
-                ImGuiStyleVar.ItemInnerSpacing    => style.ItemInnerSpacing,
-                ImGuiStyleVar.IndentSpacing       => new Vector2(style.IndentSpacing, float.NaN),
-                ImGuiStyleVar.CellPadding         => style.CellPadding,
-                ImGuiStyleVar.ScrollbarSize       => new Vector2(style.ScrollbarSize,     float.NaN),
-                ImGuiStyleVar.ScrollbarRounding   => new Vector2(style.ScrollbarRounding, float.NaN),
-                ImGuiStyleVar.GrabMinSize         => new Vector2(style.GrabMinSize,       float.NaN),
-                ImGuiStyleVar.GrabRounding        => new Vector2(style.GrabRounding,      float.NaN),
-                ImGuiStyleVar.TabRounding         => new Vector2(style.TabRounding,       float.NaN),
-                ImGuiStyleVar.ButtonTextAlign     => style.ButtonTextAlign,
+                ImGuiStyleVar.Alpha => new Vector2(style.Alpha, float.NaN),
+                ImGuiStyleVar.WindowPadding => style.WindowPadding,
+                ImGuiStyleVar.WindowRounding => new Vector2(style.WindowRounding, float.NaN),
+                ImGuiStyleVar.WindowBorderSize => new Vector2(style.WindowBorderSize, float.NaN),
+                ImGuiStyleVar.WindowMinSize => style.WindowMinSize,
+                ImGuiStyleVar.WindowTitleAlign => style.WindowTitleAlign,
+                ImGuiStyleVar.ChildRounding => new Vector2(style.ChildRounding, float.NaN),
+                ImGuiStyleVar.ChildBorderSize => new Vector2(style.ChildBorderSize, float.NaN),
+                ImGuiStyleVar.PopupRounding => new Vector2(style.PopupRounding, float.NaN),
+                ImGuiStyleVar.PopupBorderSize => new Vector2(style.PopupBorderSize, float.NaN),
+                ImGuiStyleVar.FramePadding => style.FramePadding,
+                ImGuiStyleVar.FrameRounding => new Vector2(style.FrameRounding, float.NaN),
+                ImGuiStyleVar.FrameBorderSize => new Vector2(style.FrameBorderSize, float.NaN),
+                ImGuiStyleVar.ItemSpacing => style.ItemSpacing,
+                ImGuiStyleVar.ItemInnerSpacing => style.ItemInnerSpacing,
+                ImGuiStyleVar.IndentSpacing => new Vector2(style.IndentSpacing, float.NaN),
+                ImGuiStyleVar.CellPadding => style.CellPadding,
+                ImGuiStyleVar.ScrollbarSize => new Vector2(style.ScrollbarSize, float.NaN),
+                ImGuiStyleVar.ScrollbarRounding => new Vector2(style.ScrollbarRounding, float.NaN),
+                ImGuiStyleVar.GrabMinSize => new Vector2(style.GrabMinSize, float.NaN),
+                ImGuiStyleVar.GrabRounding => new Vector2(style.GrabRounding, float.NaN),
+                ImGuiStyleVar.TabRounding => new Vector2(style.TabRounding, float.NaN),
+                ImGuiStyleVar.ButtonTextAlign => style.ButtonTextAlign,
                 ImGuiStyleVar.SelectableTextAlign => style.SelectableTextAlign,
-                ImGuiStyleVar.DisabledAlpha       => new Vector2(style.DisabledAlpha, float.NaN),
-                _                                 => throw new ArgumentOutOfRangeException(nameof(idx), idx, null),
+                ImGuiStyleVar.DisabledAlpha => new Vector2(style.DisabledAlpha, float.NaN),
+                _ => throw new ArgumentOutOfRangeException(nameof(idx), idx, null),
             };
         }
     }

@@ -16,6 +16,7 @@ using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
+using Dalamud.Utility;
 using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
@@ -168,30 +169,31 @@ internal sealed class DevPluginsSettingsEntry : SettingsEntry
             ImGui.Text(locNumber.ToString());
             ImGui.NextColumn();
 
-            ImGui.SetNextItemWidth(-1);
-            var path = devPluginLocationSetting.Path;
-            if (ImGui.InputText($"##devPluginLocationInput", ref path, 65535, ImGuiInputTextFlags.EnterReturnsTrue))
+            var dllPath = devPluginLocationSetting.Path;
+            var hasError = this.TryGetError(dllPath, out var error);
+
+            ImGui.SetNextItemWidth(!hasError ? -1 : ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeight() - ImGui.GetStyle().ItemSpacing.X);
+            if (ImGui.InputText($"##devPluginLocationInput", ref dllPath, 65535, ImGuiInputTextFlags.EnterReturnsTrue) && devPluginLocationSetting.Path != dllPath)
             {
-                var contains = this.devPluginLocations.Select(loc => loc.Path).Contains(path);
-                if (devPluginLocationSetting.Path == path)
+                if (!this.TryGetError(dllPath, out error))
                 {
-                    // no change.
+                    devPluginLocationSetting.Path = dllPath;
+                    this.devPluginLocationsChanged = true;
                 }
-                else if (contains && devPluginLocationSetting.Path != path)
+                else if (error.Loc.Key is "DalamudDevPluginLocationExists" or "DalamudDevPluginInvalid")
                 {
-                    this.devPluginLocationAddError = Loc.Localize("DalamudDevPluginLocationExists", "Location already exists.");
+                    this.devPluginLocationAddError = error.Loc.ToString();
                     Task.Delay(5000).ContinueWith(t => this.devPluginLocationAddError = string.Empty);
                 }
-                else if (!ValidDevPluginPath(path))
-                {
-                    this.devPluginLocationAddError = Loc.Localize("DalamudDevPluginInvalid", "The entered value is not a valid path to a potential Dev Plugin.\nDid you mean to enter it as a custom plugin repository in the fields below instead?");
-                    Task.Delay(5000).ContinueWith(t => this.devPluginLocationAddError = string.Empty);
-                }
-                else
-                {
-                    devPluginLocationSetting.Path = path;
-                    this.devPluginLocationsChanged = path != devPluginLocationSetting.Path;
-                }
+            }
+
+            if (hasError)
+            {
+                ImGui.SameLine();
+                ImGuiComponents.HelpMarker(
+                    error.Loc.ToString(),
+                    error.Icon,
+                    error.Color ?? Colors.ImGuiColors.WarningForeground);
             }
 
             ImGui.NextColumn();
@@ -297,4 +299,40 @@ internal sealed class DevPluginsSettingsEntry : SettingsEntry
         // Enable ImGui asserts if a dev plugin is added, if no choice was made prior
         Service<DalamudConfiguration>.Get().ImGuiAssertsEnabledAtStartup ??= true;
     }
+
+    private bool TryGetError(string dllPath, out LocationError error)
+    {
+        var dllExists = !dllPath.IsNullOrWhitespace() && File.Exists(dllPath);
+        if (!dllExists)
+        {
+            error = new(LazyLoc.Localize("DalamudDevPluginLocationFileDoesNotExist", "File does not exist."));
+            return true;
+        }
+
+        if (!ValidDevPluginPath(dllPath))
+        {
+            error = new(LazyLoc.Localize("DalamudDevPluginInvalid", "The entered value is not a valid path to a potential Dev Plugin.\nDid you mean to enter it as a custom plugin repository in the fields below instead?"));
+            return true;
+        }
+
+        var manifestPath = Path.ChangeExtension(dllPath, ".json");
+        var manifestExists = !manifestPath.IsNullOrWhitespace() && File.Exists(manifestPath);
+
+        if (!manifestExists)
+        {
+            error = new(LazyLoc.Localize("DalamudDevPluginLocationManifestDoesNotExist", "Manifest does not exist."));
+            return true;
+        }
+
+        if (this.devPluginLocations.Count(loc => loc.Path == dllPath) > 1)
+        {
+            error = new(LazyLoc.Localize("DalamudDevPluginLocationExists", "Location already exists."));
+            return true;
+        }
+
+        error = default;
+        return false;
+    }
+
+    private record struct LocationError(LazyLoc Loc, FontAwesomeIcon Icon = FontAwesomeIcon.ExclamationTriangle, Vector4? Color = null);
 }

@@ -1,4 +1,4 @@
-﻿using Dalamud.Interface.ImGuiBackend.Delegates;
+using Dalamud.Interface.ImGuiBackend.Delegates;
 using Dalamud.Interface.ImGuiBackend.InputHandler;
 using Dalamud.Interface.ImGuiBackend.Renderers;
 

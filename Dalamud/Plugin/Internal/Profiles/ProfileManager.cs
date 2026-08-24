@@ -255,7 +255,7 @@ internal partial class ProfileManager : IServiceType
             switch (wantThis)
             {
                 case true when !installedPlugin.IsLoaded:
-                    if (installedPlugin.ApplicableForLoad)
+                    if (installedPlugin.ApplicableForAutomaticLoads)
                     {
                         Log.Information("\t=> Enabling {Name}", installedPlugin.Manifest.InternalName);
                         tasks.Add(installedPlugin.LoadAsync(PluginLoadReason.Installer));

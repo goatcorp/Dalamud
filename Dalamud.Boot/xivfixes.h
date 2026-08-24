@@ -10,6 +10,7 @@ namespace xivfixes {
     void symbol_load_patches(bool bApply);
     void disable_game_debugging_protection(bool bApply);
     void faster_decompression(bool bApply);
+    void appcontainer_known_folders(bool bApply);
 
     void apply_all(bool bApply);
 }

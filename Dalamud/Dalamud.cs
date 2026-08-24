@@ -33,7 +33,7 @@ namespace Dalamud;
 /// The main Dalamud class containing all subsystems.
 /// </summary>
 [ServiceManager.ProvidedService]
-internal sealed unsafe class Dalamud : IServiceType
+internal sealed class Dalamud : IServiceType
 {
     #region Internals
 
@@ -58,8 +58,30 @@ internal sealed unsafe class Dalamud : IServiceType
 
         // Directory resolved signatures(CS, our own) will be cached in
         var cacheDir = new DirectoryInfo(Path.Combine(this.StartInfo.WorkingDirectory!, "cachedSigs"));
-        if (!cacheDir.Exists)
-            cacheDir.Create();
+
+        // When running sandboxed, we can't write to the working dir. Fall back to the config dir.
+        // TODO: Should this be the default?
+        try
+        {
+            if (!cacheDir.Exists)
+                cacheDir.Create();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            var configDir = Path.GetDirectoryName(this.StartInfo.ConfigurationPath!)
+                            ?? throw new DirectoryNotFoundException("Could not determine the configuration directory.");
+            var scope = new DirectoryInfo(this.StartInfo.WorkingDirectory!).Name;
+            var fallbackDir = new DirectoryInfo(Path.Combine(configDir, "cachedSigs", scope));
+
+            Log.Information(
+                "Signature cache directory {Path} is not writable, falling back to {Fallback}",
+                cacheDir.FullName,
+                fallbackDir.FullName);
+
+            cacheDir = fallbackDir;
+            if (!cacheDir.Exists)
+                cacheDir.Create();
+        }
 
         // Set up the SigScanner for our target module
         TargetSigScanner scanner;
@@ -78,6 +100,9 @@ internal sealed unsafe class Dalamud : IServiceType
 
         // Set up FFXIVClientStructs
         this.SetupClientStructsResolver(cacheDir);
+
+        // Initialize global framework destroy hook
+        EntryPoint.SetupGlobalDestroyHook();
 
         // Set up hook verification if Developer Mode is enabled. It takes a little while at the moment
         if (configuration.DevMode == true)
@@ -186,7 +211,12 @@ internal sealed unsafe class Dalamud : IServiceType
             Windows.Win32.PInvoke.CreateMutex(attribs, false, "DALAMUD_CRASHES_NO_MORE");
         }
 
-        this.unloadSignal.Set();
+        Task.Run(() =>
+        {
+            ServiceManager.UnloadAllServices();
+
+            this.unloadSignal.Set();
+        });
     }
 
     /// <summary>
@@ -195,6 +225,7 @@ internal sealed unsafe class Dalamud : IServiceType
     public void WaitForUnload()
     {
         this.unloadSignal.WaitOne();
+        this.unloadSignal.Dispose();
     }
 
     /// <summary>
@@ -218,7 +249,7 @@ internal sealed unsafe class Dalamud : IServiceType
     /// <summary>
     /// Helper function to set the exception handler.
     /// </summary>
-    private static nint SetExceptionHandler(nint newFilter)
+    private static unsafe nint SetExceptionHandler(nint newFilter)
     {
         var oldFilter =
             Windows.Win32.PInvoke.SetUnhandledExceptionFilter((delegate* unmanaged[Stdcall]<global::Windows.Win32.System.Diagnostics.Debug.EXCEPTION_POINTERS*, int>)newFilter);

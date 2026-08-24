@@ -4,11 +4,10 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.System.Input;
-
-using Serilog;
 
 namespace Dalamud.Game.ClientState.GamePad;
 
@@ -24,6 +23,8 @@ namespace Dalamud.Game.ClientState.GamePad;
 #pragma warning restore SA1015
 internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
 {
+    private static readonly ModuleLog Log = ModuleLog.Create<GamepadState>();
+
     private readonly Hook<PadDevice.Delegates.Poll>? gamepadPoll;
 
     private bool isDisposed;
@@ -169,7 +170,7 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
         }
         catch (Exception e)
         {
-            Log.Error(e, $"Gamepad Poll detour critical error! Gamepad navigation will not work!");
+            Log.Error(e, "Unexpected error in GamepadPollDetour. Gamepad navigation will not work!");
 
             // NOTE (Chiv) Explicitly deactivate on error
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;

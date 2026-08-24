@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Addon.Lifecycle;
+namespace Dalamud.Game.Addon.Lifecycle;
 
 /// <summary>
 /// Enumeration for available AddonLifecycle arg data.

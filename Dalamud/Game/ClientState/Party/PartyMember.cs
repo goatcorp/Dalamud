@@ -7,8 +7,6 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Game.Text.SeStringHandling;
 
-using Dalamud.Utility;
-
 using Lumina.Excel;
 
 using CSPartyMember = FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember;
@@ -114,7 +112,7 @@ public interface IPartyMember : IEquatable<IPartyMember>
 /// This struct represents a party member in the group manager.
 /// </summary>
 /// <param name="ptr">A pointer to the PartyMember.</param>
-internal unsafe readonly struct PartyMember(CSPartyMember* ptr) : IPartyMember
+internal readonly unsafe struct PartyMember(CSPartyMember* ptr) : IPartyMember
 {
     /// <inheritdoc/>
     public nint Address => (nint)ptr;

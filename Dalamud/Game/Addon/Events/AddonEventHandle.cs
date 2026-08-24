@@ -10,7 +10,7 @@ public class AddonEventHandle : IAddonEventHandle
 
     /// <inheritdoc/>
     public string AddonName { get; init; } = "NullAddon";
-    
+
     /// <inheritdoc/>
     public AddonEventType EventType { get; init; }
 

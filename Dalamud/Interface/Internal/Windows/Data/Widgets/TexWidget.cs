@@ -45,15 +45,15 @@ internal class TexWidget : IDataWindowWidget
     private static readonly Dictionary<
         DrawBlameTableColumnUserId,
         Func<TextureManager.IBlameableDalamudTextureWrap, IComparable>> DrawBlameTableColumnColumnComparers = new()
-    {
-        [DrawBlameTableColumnUserId.Plugins] = static x => string.Join(", ", x.OwnerPlugins.Select(y => y.Name)),
-        [DrawBlameTableColumnUserId.Name] = static x => x.Name,
-        [DrawBlameTableColumnUserId.Size] = static x => x.RawSpecs.EstimatedBytes,
-        [DrawBlameTableColumnUserId.Format] = static x => x.Format,
-        [DrawBlameTableColumnUserId.Width] = static x => x.Width,
-        [DrawBlameTableColumnUserId.Height] = static x => x.Height,
-        [DrawBlameTableColumnUserId.NativeAddress] = static x => x.ResourceAddress,
-    };
+        {
+            [DrawBlameTableColumnUserId.Plugins] = static x => string.Join(", ", x.OwnerPlugins.Select(y => y.Name)),
+            [DrawBlameTableColumnUserId.Name] = static x => x.Name,
+            [DrawBlameTableColumnUserId.Size] = static x => x.RawSpecs.EstimatedBytes,
+            [DrawBlameTableColumnUserId.Format] = static x => x.Format,
+            [DrawBlameTableColumnUserId.Width] = static x => x.Width,
+            [DrawBlameTableColumnUserId.Height] = static x => x.Height,
+            [DrawBlameTableColumnUserId.NativeAddress] = static x => x.ResourceAddress,
+        };
 
     private readonly List<TextureEntry> addedTextures = [];
 

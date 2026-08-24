@@ -71,6 +71,7 @@ public static partial class Util
 
     private static ulong moduleStartAddr;
     private static ulong moduleEndAddr;
+    private static bool? isAppContainer;
 
     /// <inheritdoc cref="DescribeAddress(nint)"/>
     public static unsafe string DescribeAddress(void* p) => DescribeAddress((nint)p);
@@ -367,6 +368,16 @@ public static partial class Util
     /// <returns>Human readable version.</returns>
     public static string FormatBytes(long bytes)
     {
+        return FormatBytes((ulong)bytes);
+    }
+
+    /// <summary>
+    /// Transform byte count to human readable format.
+    /// </summary>
+    /// <param name="bytes">Number of bytes.</param>
+    /// <returns>Human readable version.</returns>
+    public static string FormatBytes(ulong bytes)
+    {
         string[] suffix = ["B", "KB", "MB", "GB", "TB"];
         int i;
         double dblSByte = bytes;
@@ -608,6 +619,41 @@ public static partial class Util
     }
 
     /// <summary>
+    /// Determine if the current process is running inside an AppContainer sandbox.
+    /// </summary>
+    /// <returns>Returns true if running in an AppContainer.</returns>
+    internal static unsafe bool IsAppContainer()
+    {
+        if (isAppContainer is { } cached)
+            return cached;
+
+        var result = false;
+        HANDLE token;
+        if (TerraFX.Interop.Windows.Windows.OpenProcessToken(
+                TerraFX.Interop.Windows.Windows.GetCurrentProcess(),
+                TOKEN.TOKEN_QUERY,
+                &token))
+        {
+            BOOL value;
+            uint returnLength;
+            if (TerraFX.Interop.Windows.Windows.GetTokenInformation(
+                    token,
+                    TOKEN_INFORMATION_CLASS.TokenIsAppContainer,
+                    &value,
+                    (uint)sizeof(BOOL),
+                    &returnLength))
+            {
+                result = value;
+            }
+
+            TerraFX.Interop.Windows.Windows.CloseHandle(token);
+        }
+
+        isAppContainer = result;
+        return result;
+    }
+
+    /// <summary>
     /// Gets a random, inoffensive, human-friendly string.
     /// </summary>
     /// <returns>A random human-friendly name.</returns>
@@ -687,7 +733,7 @@ public static partial class Util
     internal static void PrintGameObject(IGameObject actor, string tag, bool resolveGameData)
     {
         var actorString =
-            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
+            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.CurrentDistance} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
 
         if (actor is Npc npc)
             actorString += $"       BaseId: {npc.BaseId}  NameId:{npc.NameId}\n";
@@ -721,7 +767,7 @@ public static partial class Util
     internal static void PrintGameObject(GameObject actor, string tag, bool resolveGameData)
     {
         var actorString =
-            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
+            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.CurrentDistance} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
 
         if (actor is Npc npc)
             actorString += $"       BaseId: {npc.BaseId}  NameId:{npc.NameId}\n";

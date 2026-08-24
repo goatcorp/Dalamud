@@ -222,7 +222,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             // <pointer to new wndproc>
             memcpy(s_pfnBinder, "\xFF\x35\x01\x00\x00\x00\xC3", 7);
             *reinterpret_cast<void**>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnAlternativeWndProc;
-            
+
             s_pfnGameWndProc = pWndClassExA->lpfnWndProc;
 
             WNDCLASSEXA wndClassExA = *pWndClassExA;
@@ -452,7 +452,7 @@ void xivfixes::backup_userdata_save(bool bApply) {
 
             const auto lock = std::lock_guard(s_mtx);
             s_handles.try_emplace(handle, std::move(temporaryPath), std::move(path));
-            
+
             return handle;
         });
 
@@ -599,7 +599,7 @@ void xivfixes::symbol_load_patches(bool bApply) {
         }
 
         for (const auto& mod : utils::loaded_module::all_modules())
-           RemoveFullPathPdbInfo(mod); 
+           RemoveFullPathPdbInfo(mod);
 
         if (!s_dllNotificationCookie) {
             const auto res = LdrRegisterDllNotification(
@@ -670,6 +670,8 @@ struct SqPackChunkInfo {
 };
 
 static void __fastcall ReadSqpkChunkDetour(uintptr_t srcData, uintptr_t dstData) {
+    static const char* LogTag = "[xivfixes:faster_decompression]";
+
     uint8_t* source = *reinterpret_cast<uint8_t**>(srcData + 8);
     uint8_t* dest = *reinterpret_cast<uint8_t**>(dstData + 0x78);
 
@@ -685,13 +687,17 @@ static void __fastcall ReadSqpkChunkDetour(uintptr_t srcData, uintptr_t dstData)
         thread_local std::unique_ptr<libdeflate_decompressor, decltype(&libdeflate_free_decompressor)>
             decompressor(libdeflate_alloc_decompressor(), &libdeflate_free_decompressor);
 
-        libdeflate_deflate_decompress(
+        libdeflate_result result = libdeflate_deflate_decompress(
             decompressor.get(),
             source + header.header_size,
             header.compressed_size,
             dest,
             header.decompressed_size,
             nullptr);
+
+        if (result == LIBDEFLATE_BAD_DATA) {
+            logging::E("{} Decompression failed: Compressed data was invalid, corrupt, or otherwise unsupported.", LogTag);
+        }
     }
 }
 
@@ -700,6 +706,8 @@ void xivfixes::faster_decompression(bool bApply) {
     static std::optional<hooks::direct_hook<TReadSqpkChunk>> s_hook;
 
     if (bApply) {
+        libdeflate_set_memory_allocator(mi_malloc, mi_free);
+
         if (!g_startInfo.BootEnabledGameFixes.contains("faster_decompression")) {
             logging::I("{} Turned off via environment variable.", LogTag);
             return;
@@ -729,6 +737,60 @@ void xivfixes::faster_decompression(bool bApply) {
     }
 }
 
+void xivfixes::appcontainer_known_folders(bool bApply) {
+    static const char* LogTag = "[xivfixes:appcontainer_known_folders]";
+    static std::optional<hooks::import_hook<decltype(SHGetSpecialFolderLocation)>> s_hookSHGetSpecialFolderLocation;
+
+    if (bApply) {
+        if (!g_startInfo.BootEnabledGameFixes.contains("appcontainer_known_folders")) {
+            logging::I("{} Turned off via environment variable.", LogTag);
+            return;
+        }
+
+        BOOL isAppContainer = FALSE;
+        if (HANDLE hToken; OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
+            DWORD returnLength = 0;
+            if (!GetTokenInformation(hToken, TokenIsAppContainer, &isAppContainer, sizeof isAppContainer, &returnLength))
+                isAppContainer = FALSE;
+            CloseHandle(hToken);
+        }
+
+        if (!isAppContainer) {
+            logging::I("{} Not running in an AppContainer; skipping.", LogTag);
+            return;
+        }
+
+        // Inside an AppContainer, SHGetSpecialFolderLocation(CSIDL_PERSONAL) fails with E_ACCESSDENIED
+        s_hookSHGetSpecialFolderLocation.emplace(
+            "shell32.dll!SHGetSpecialFolderLocation (import, appcontainer_known_folders)",
+            "shell32.dll", "SHGetSpecialFolderLocation", 0);
+
+        s_hookSHGetSpecialFolderLocation->set_detour([](HWND hwnd, int csidl, PIDLIST_ABSOLUTE* ppidl) noexcept -> HRESULT {
+            const auto result = s_hookSHGetSpecialFolderLocation->call_original(hwnd, csidl, ppidl);
+            if (SUCCEEDED(result) || (csidl & CSIDL_FLAG_DONT_VERIFY))
+                return result;
+
+            const auto retried = s_hookSHGetSpecialFolderLocation->call_original(hwnd, csidl | CSIDL_FLAG_DONT_VERIFY, ppidl);
+            if (SUCCEEDED(retried)) {
+                logging::I("{} csidl=0x{:X} failed with 0x{:X}. Resolved with CSIDL_FLAG_DONT_VERIFY",
+                    LogTag, csidl, static_cast<uint32_t>(result));
+            } else {
+                logging::W("{} csidl=0x{:X} failed with 0x{:X}. Retry with CSIDL_FLAG_DONT_VERIFY also failed with 0x{:X}",
+                    LogTag, csidl, static_cast<uint32_t>(result), static_cast<uint32_t>(retried));
+            }
+
+            return retried;
+        });
+
+        logging::I("{} Enable", LogTag);
+    } else {
+        if (s_hookSHGetSpecialFolderLocation) {
+            logging::I("{} Disable", LogTag);
+            s_hookSHGetSpecialFolderLocation.reset();
+        }
+    }
+}
+
 void xivfixes::apply_all(bool bApply) {
     for (const auto& [taskName, taskFunction] : std::initializer_list<std::pair<const char*, void(*)(bool)>>
         {
@@ -741,6 +803,7 @@ void xivfixes::apply_all(bool bApply) {
             { "symbol_load_patches", &symbol_load_patches },
             { "disable_game_debugging_protection", &disable_game_debugging_protection },
             { "faster_decompression", &faster_decompression },
+            { "appcontainer_known_folders", &appcontainer_known_folders },
         }
         ) {
         try {

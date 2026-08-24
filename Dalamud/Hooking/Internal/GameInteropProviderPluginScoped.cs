@@ -65,7 +65,9 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     /// <inheritdoc/>
     public Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
     {
-        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, backend == IGameInteropProvider.HookBackend.MinHook, this.plugin.Assembly);
+        WarnForDeprecatedBackend(backend);
+
+        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, callingAssembly: this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
@@ -73,7 +75,9 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     /// <inheritdoc/>
     public Hook<T> HookFromAddress<T>(nint procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
     {
-        var hook = Hook<T>.FromAddress(procAddress, detour, backend == IGameInteropProvider.HookBackend.MinHook, this.plugin.Assembly);
+        WarnForDeprecatedBackend(backend);
+
+        var hook = Hook<T>.FromAddress(procAddress, detour, callingAssembly: this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
@@ -102,7 +106,17 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
             Log.Warning("\t\t\tLeaked hook at +0x{Address:X}", hook.Address.ToInt64() - this.scanner.Module.BaseAddress.ToInt64());
             hook.Dispose();
         }
-        
+
         this.trackedHooks.Clear();
+    }
+
+    private static void WarnForDeprecatedBackend(IGameInteropProvider.HookBackend backend)
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (backend == IGameInteropProvider.HookBackend.MinHook)
+        {
+            Log.Warning("The MinHook backend is no longer available, and backend selection will be removed in a future version. Please specify 'Automatic' instead.");
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImPlot;
+using Dalamud.Bindings.ImPlot;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -20,14 +20,14 @@ public static partial class ImRaii
         internal PlotAlignedDisposable(string groupId, bool vertical = true)
         {
             this.Success = ImPlot.BeginAlignedPlots(groupId, vertical);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <inheritdoc cref="PlotAlignedDisposable(string,bool)"/>
         internal PlotAlignedDisposable(ReadOnlySpan<byte> groupId, bool vertical = true)
         {
             this.Success = ImPlot.BeginAlignedPlots(groupId, vertical);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(PlotAlignedDisposable value)
