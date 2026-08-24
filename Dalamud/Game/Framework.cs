@@ -619,7 +619,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     {
         this.frameworkService.ProfileAndInvoke(this.Update, this, (ex, handlerName) =>
         {
-            Serilog.Log.Error(ex, "[{InternalName}] Exception in event handler {EventHandlerName}", this.plugin.InternalName, handlerName);
+            Serilog.Log.Error(ex, $"[{this.plugin.InternalName}] Exception in event handler {{EventHandlerName}}", handlerName);
             this.pluginErrorHandler.NotifyError();
         });
     }
