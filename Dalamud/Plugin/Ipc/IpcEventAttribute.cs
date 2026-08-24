@@ -4,19 +4,20 @@ namespace Dalamud.Plugin.Ipc;
 /// Marks a method as an IPC event subscriber, or a field/property as an IPC event sender.
 /// </summary>
 /// <remarks>
-/// When <paramref name="name"/> is null, the tag is built from the create-call prefix, optional <see cref="IpcPrefixAttribute"/>, and the member name.
-/// When <paramref name="name"/> is set, it must be the full IPC tag and <paramref name="applyPrefix"/> must be <see langword="false"/>.
+/// When <paramref name="applyPrefix"/> is true, the tag is built from the create-call prefix, optional <see cref="IpcPrefixAttribute"/>, and <paramref name="name"/> (or the member name when null).
+/// When <paramref name="applyPrefix"/> is false and <paramref name="name"/> is set, <paramref name="name"/> is used as the full IPC tag.
 /// </remarks>
 /// <param name="name">
-/// IPC name or template. When null, the member name is used.
+/// IPC name segment or full tag. When null, the member name is used.
 /// </param>
 /// <param name="applyPrefix">
-/// When true, the create-call prefix (or plugin internal name) is prepended. Must be false when <paramref name="name"/> is specified.
+/// When true, the create-call prefix (or plugin internal name) and optional <see cref="IpcPrefixAttribute"/> are prepended.
+/// When false with a name, the name is the full IPC tag.
 /// </param>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
 public sealed class IpcEventAttribute(string? name = null, bool applyPrefix = true) : Attribute
 {
-    /// <summary>Gets the IPC name or template.</summary>
+    /// <summary>Gets the IPC name.</summary>
     public string? Name { get; } = name;
 
     /// <summary>Gets a value indicating whether to apply the prefix.</summary>
