@@ -6,7 +6,6 @@ namespace Dalamud.Plugin.Ipc;
 /// <remarks>
 /// When <paramref name="name"/> is null, the tag is built from the create-call prefix, optional <see cref="IpcPrefixAttribute"/>, and the member name.
 /// When <paramref name="name"/> is set, it must be the full IPC tag and <paramref name="applyPrefix"/> must be <see langword="false"/>.
-/// Name overrides may use <c>%m</c> for the member name.
 /// </remarks>
 /// <param name="name">
 /// IPC name or template. When null, the member name is used.

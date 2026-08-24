@@ -29,7 +29,7 @@ internal static class IpcNameResolver
                 throw new ArgumentException("When specifying an IPC name override, applyPrefix must be false.");
             }
 
-            return ApplyMemberTemplate(attributeName, memberName);
+            return attributeName;
         }
 
         var name = string.IsNullOrEmpty(typePrefix) ? memberName : $"{typePrefix}.{memberName}";
@@ -39,13 +39,4 @@ internal static class IpcNameResolver
 
         return $"{createPrefix}.{name}";
     }
-
-    /// <summary>
-    /// Replaces <c>%m</c> with the member name.
-    /// </summary>
-    /// <param name="name">The name or template.</param>
-    /// <param name="memberName">The member name for <c>%m</c>.</param>
-    /// <returns>The name with <c>%m</c> applied.</returns>
-    public static string ApplyMemberTemplate(string name, string memberName)
-        => name.Replace("%m", memberName, StringComparison.Ordinal);
 }
