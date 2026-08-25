@@ -131,30 +131,30 @@ public interface IUiBuilder
     /// <summary>
     /// Gets the default Dalamud font size in points.
     /// </summary>
-    public float FontDefaultSizePt { get; }
+    float FontDefaultSizePt { get; }
 
     /// <summary>
     /// Gets the default Dalamud font size in pixels.
     /// </summary>
-    public float FontDefaultSizePx { get; }
+    float FontDefaultSizePx { get; }
 
     /// <summary>
     /// Gets the default Dalamud font - supporting all game languages and icons.<br />
     /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
     /// </summary>
-    public ImFontPtr FontDefault { get; }
+    ImFontPtr FontDefault { get; }
 
     /// <summary>
     /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid.<br />
     /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
     /// </summary>
-    public ImFontPtr FontIcon { get; }
+    ImFontPtr FontIcon { get; }
 
     /// <summary>
     /// Gets the default Dalamud monospaced font based on Inconsolata Regular.<br />
     /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
     /// </summary>
-    public ImFontPtr FontMono { get; }
+    ImFontPtr FontMono { get; }
 
     /// <summary>
     /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid with a fixed width and vertically centered glyphs. <br />

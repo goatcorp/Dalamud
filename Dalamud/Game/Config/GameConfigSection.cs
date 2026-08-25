@@ -2,12 +2,10 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
-using Dalamud.Memory;
+using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Common.Configuration;
-
-using Serilog;
 
 namespace Dalamud.Game.Config;
 
@@ -16,6 +14,8 @@ namespace Dalamud.Game.Config;
 /// </summary>
 public class GameConfigSection
 {
+    private static readonly ModuleLog Log = ModuleLog.Create<GameConfigSection>();
+
     private readonly Framework framework;
     private readonly ConcurrentDictionary<string, uint> indexMap = new();
     private readonly ConcurrentDictionary<uint, object> enumMap = new();
@@ -42,7 +42,7 @@ public class GameConfigSection
         this.SectionName = sectionName;
         this.framework = framework;
         this.GetConfigBase = getConfigBase;
-        Log.Verbose("[GameConfig] Initalizing {SectionName} with {ConfigCount} entries.", this.SectionName, this.ConfigCount);
+        Log.Verbose("Initalizing {SectionName} with {ConfigCount} entries.", this.SectionName, this.ConfigCount);
     }
 
     /// <summary>

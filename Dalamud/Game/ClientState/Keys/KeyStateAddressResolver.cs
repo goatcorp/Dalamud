@@ -1,11 +1,11 @@
 using Dalamud.Plugin.Services;
 
-namespace Dalamud.Game.ClientState;
+namespace Dalamud.Game.ClientState.Keys;
 
 /// <summary>
 /// Client state memory address resolver.
 /// </summary>
-internal sealed class ClientStateAddressResolver : BaseAddressResolver
+internal sealed class KeyStateAddressResolver : BaseAddressResolver
 {
     // Static offsets
 
@@ -19,21 +19,12 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     /// </summary>
     public nint KeyboardStateIndexArray { get; private set; }
 
-    // Functions
-
-    /// <summary>
-    /// Gets the address of the method that sets the current public instance.
-    /// </summary>
-    public nint SetCurrentInstance { get; private set; }
-
     /// <summary>
     /// Scan for and setup any configured address pointers.
     /// </summary>
     /// <param name="sig">The signature scanner to facilitate setup.</param>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.SetCurrentInstance = sig.ScanText("E8 ?? ?? ?? ?? 0F B6 55 ?? 48 8D 0D ?? ?? ?? ?? C0 EA"); // NetworkModuleProxy.SetCurrentInstance
-
         // These resolve to fixed offsets only, without the base address added in, so GetStaticAddressFromSig() can't be used.
         // lea   rcx, ds:1DB9F74h[rax*4]          KeyboardState
         // movzx edx, byte ptr [rbx+rsi+1D5E0E0h] KeyboardStateIndexArray

@@ -5,42 +5,38 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Data;
-using Dalamud.Game.Gui;
-using Dalamud.Game.Network.Internal.MarketBoardUploaders;
-using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
+using Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders;
+using Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders.Universalis;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Game.Player;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
+using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 using Dalamud.Utility;
 
-using FFXIVClientStructs.FFXIV.Client.Enums;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
-using FFXIVClientStructs.FFXIV.Client.Game.Network;
 using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
-using Lumina.Excel.Sheets;
-
-using Serilog;
-
-namespace Dalamud.Game.Network.Internal;
+namespace Dalamud.Game.Marketboard.Network.Internal;
 
 /// <summary>
-/// This class handles network notifications and uploading market board data.
+/// This class handles market board hooks and uploads.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
 internal unsafe class NetworkHandlers : IInternalDisposableService
 {
+    private static readonly ModuleLog Log = ModuleLog.Create<NetworkHandlers>();
+
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
     private readonly UniversalisMarketBoardUploader uploader;
 
     private readonly IDisposable handleMarketBoardItemRequest;
     private readonly IDisposable handleMarketTaxRates;
     private readonly IDisposable handleMarketBoardPurchaseHandler;
 
-    private readonly Hook<PacketDispatcher.Delegates.HandleContentsFinderNotificationPacket> cfPopHook;
     private readonly Hook<PacketDispatcher.Delegates.HandleMarketBoardPurchasePacket> mbPurchaseHook;
     private readonly Hook<InfoProxyItemSearch.Delegates.ProcessItemHistory> mbHistoryHook;
     private readonly Hook<PacketDispatcher.Delegates.HandleEventYieldPacket> eventYieldHook; // used for marketboard taxes
@@ -48,17 +44,10 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private readonly Hook<InfoProxyItemSearch.Delegates.AddPage> mbOfferingsHook;
     private readonly Hook<InfoProxyItemSearch.Delegates.SendPurchaseRequestPacket> mbSendPurchaseRequestHook;
 
-    [ServiceManager.ServiceDependency]
-    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
-
-    private bool disposing;
-
     [ServiceManager.ServiceConstructor]
     private NetworkHandlers(HappyHttpClient happyHttpClient)
     {
         this.uploader = new UniversalisMarketBoardUploader(happyHttpClient);
-
-        this.CfPop = _ => { };
 
         this.MbPurchaseObservable = Observable.Create<MarketBoardPurchase>(observer =>
         {
@@ -164,17 +153,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             InfoProxyItemSearch.Addresses.SendPurchaseRequestPacket.Value,
             this.MarketBoardSendPurchaseRequestDetour);
         this.mbSendPurchaseRequestHook.Enable();
-
-        this.cfPopHook = Hook<PacketDispatcher.Delegates.HandleContentsFinderNotificationPacket>.FromAddress(
-            PacketDispatcher.Addresses.HandleContentsFinderNotificationPacket.Value,
-            this.HandleContentsFinderNotificationPacketDetour);
-        this.cfPopHook.Enable();
     }
-
-    /// <summary>
-    /// Event which gets fired when a duty is ready.
-    /// </summary>
-    public event Action<ContentFinderCondition> CfPop;
 
     private event Action<nint>? MarketBoardPurchaseReceived;
 
@@ -223,19 +202,6 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
-        this.disposing = true;
-        this.Dispose(this.disposing);
-    }
-
-    /// <summary>
-    /// Disposes of managed and unmanaged resources.
-    /// </summary>
-    /// <param name="shouldDispose">Whether to execute the disposal.</param>
-    protected void Dispose(bool shouldDispose)
-    {
-        if (!shouldDispose)
-            return;
-
         this.handleMarketBoardItemRequest.Dispose();
         this.handleMarketTaxRates.Dispose();
         this.handleMarketBoardPurchaseHandler.Dispose();
@@ -246,59 +212,12 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         this.mbItemRequestStartHook.Dispose();
         this.mbOfferingsHook.Dispose();
         this.mbSendPurchaseRequestHook.Dispose();
-        this.cfPopHook.Dispose();
     }
 
     private static (ulong UploaderId, uint WorldId) GetUploaderInfo()
     {
         var playerState = Service<PlayerState>.Get();
         return (playerState.ContentId, playerState.CurrentWorld.RowId);
-    }
-
-    private void HandleContentsFinderNotificationPacketDetour(ContentsFinderNotificationPacket* packet)
-    {
-        this.cfPopHook.OriginalDisposeSafe(packet);
-
-        try
-        {
-            if (packet->QueueState != ContentsFinderQueueState.Ready)
-                return;
-
-            if (this.configuration.DutyFinderTaskbarFlash)
-                Util.FlashWindow();
-
-            var conditionId = packet->ContentFinderConditionId;
-            var cfCondition = LuminaUtils.CreateRef<ContentFinderCondition>(conditionId);
-
-            if (!cfCondition.IsValid)
-            {
-                Log.Error("CFC key {ConditionId} not in Lumina data", conditionId);
-                return;
-            }
-
-            var cfcName = cfCondition.Value.Name.ToDalamudString();
-            if (cfcName.Payloads.Count == 0)
-                cfcName = "Duty Roulette";
-
-            Task.Run(() =>
-            {
-                if (this.configuration.DutyFinderChatMessage)
-                {
-                    var b = new SeStringBuilder();
-                    b.Append("Duty pop: ");
-                    b.Append(cfcName);
-                    Service<ChatGui>.GetNullable()?.Print(b.Build());
-                }
-
-                this.CfPop.InvokeSafely(cfCondition.Value);
-            }).ContinueWith(
-                task => Log.Error(task.Exception, "CfPop.Invoke failed"),
-                TaskContinuationOptions.OnlyOnFaulted);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "CfPopDetour threw an exception");
-        }
     }
 
     private IObservable<List<MarketBoardCurrentOfferings.MarketBoardItemListing>> OnMarketBoardListingsBatch(

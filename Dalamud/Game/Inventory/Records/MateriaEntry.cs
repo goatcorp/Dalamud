@@ -1,4 +1,4 @@
-﻿using Dalamud.Data;
+using Dalamud.Data;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;

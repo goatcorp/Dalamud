@@ -1,4 +1,4 @@
-﻿using Dalamud.Hooking;
+using Dalamud.Hooking;
 
 namespace Dalamud.Utility.Signatures;
 

@@ -14,7 +14,9 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using Serilog;
+
 using Windows.Win32.Foundation;
 using Windows.Win32.Security;
 
@@ -56,8 +58,30 @@ internal sealed class Dalamud : IServiceType
 
         // Directory resolved signatures(CS, our own) will be cached in
         var cacheDir = new DirectoryInfo(Path.Combine(this.StartInfo.WorkingDirectory!, "cachedSigs"));
-        if (!cacheDir.Exists)
-            cacheDir.Create();
+
+        // When running sandboxed, we can't write to the working dir. Fall back to the config dir.
+        // TODO: Should this be the default?
+        try
+        {
+            if (!cacheDir.Exists)
+                cacheDir.Create();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            var configDir = Path.GetDirectoryName(this.StartInfo.ConfigurationPath!)
+                            ?? throw new DirectoryNotFoundException("Could not determine the configuration directory.");
+            var scope = new DirectoryInfo(this.StartInfo.WorkingDirectory!).Name;
+            var fallbackDir = new DirectoryInfo(Path.Combine(configDir, "cachedSigs", scope));
+
+            Log.Information(
+                "Signature cache directory {Path} is not writable, falling back to {Fallback}",
+                cacheDir.FullName,
+                fallbackDir.FullName);
+
+            cacheDir = fallbackDir;
+            if (!cacheDir.Exists)
+                cacheDir.Create();
+        }
 
         // Set up the SigScanner for our target module
         TargetSigScanner scanner;

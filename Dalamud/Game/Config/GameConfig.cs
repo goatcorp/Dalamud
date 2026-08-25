@@ -3,12 +3,11 @@ using System.Threading.Tasks;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Common.Configuration;
-
-using Serilog;
 
 namespace Dalamud.Game.Config;
 
@@ -18,6 +17,8 @@ namespace Dalamud.Game.Config;
 [ServiceManager.EarlyLoadedService]
 internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 {
+    private static readonly ModuleLog Log = ModuleLog.Create<GameConfig>();
+
     private readonly TaskCompletionSource tcsInitialization =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -40,7 +41,7 @@ internal sealed class GameConfig : IInternalDisposableService, IGameConfig
         {
             try
             {
-                Log.Verbose("[GameConfig] Initializing");
+                Log.Verbose("Initializing...");
                 var csFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
                 var commonConfig = &csFramework->SystemConfig.SystemConfigBase;
                 this.tcsSystem.SetResult(new("System", framework, &commonConfig->ConfigBase));

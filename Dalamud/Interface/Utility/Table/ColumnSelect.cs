@@ -19,19 +19,19 @@ public class ColumnSelect<T, TItem> : Column<TItem> where T : struct, Enum, IEqu
     protected virtual void SetValue(T value)
         => this.FilterValue = value;
 
-    public    T   FilterValue;
+    public T FilterValue;
     protected int idx = -1;
 
     public override bool DrawFilter()
     {
-        using var id    = ImRaii.PushId(this.FilterLabel);
+        using var id = ImRaii.PushId(this.FilterLabel);
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 0);
         ImGui.SetNextItemWidth(-Table.ArrowWidth * ImGuiHelpers.GlobalScale);
         using var combo = ImRaii.Combo(string.Empty, this.idx < 0 ? this.Label : this.Names[this.idx]);
         if (!combo)
             return false;
 
-        var       ret = false;
+        var ret = false;
         for (var i = 0; i < this.Names.Length; ++i)
         {
             if (this.FilterValue.Equals(this.Values[i]))

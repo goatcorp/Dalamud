@@ -124,19 +124,20 @@ internal sealed class LoadingDialog
 
     private unsafe void UpdateMainInstructionText(HWND hwnd)
     {
-        fixed (void* pszText = this.CurrentState switch
-               {
-                   State.LoadingDalamud => Loc.Localize(
-                       "LoadingDialogMainInstructionLoadingDalamud",
-                       "Dalamud is loading..."),
-                   State.LoadingPlugins => Loc.Localize(
-                       "LoadingDialogMainInstructionLoadingPlugins",
-                       "Waiting for plugins to load..."),
-                   State.AutoUpdatePlugins => Loc.Localize(
-                       "LoadingDialogMainInstructionAutoUpdatePlugins",
-                       "Updating plugins..."),
-                   _ => string.Empty, // should not happen
-               })
+        var text = this.CurrentState switch
+        {
+            State.LoadingDalamud => Loc.Localize(
+                "LoadingDialogMainInstructionLoadingDalamud",
+                "Dalamud is loading..."),
+            State.LoadingPlugins => Loc.Localize(
+                "LoadingDialogMainInstructionLoadingPlugins",
+                "Waiting for plugins to load..."),
+            State.AutoUpdatePlugins => Loc.Localize(
+                "LoadingDialogMainInstructionAutoUpdatePlugins",
+                "Updating plugins..."),
+            _ => string.Empty, // should not happen
+        };
+        fixed (void* pszText = text)
         {
             SendMessageW(
                 hwnd,
@@ -206,7 +207,7 @@ internal sealed class LoadingDialog
 
         if (NewLogEntries.IsEmpty)
             return;
-        
+
         var sb = new StringBuilder();
         while (NewLogEntries.TryDequeue(out var e))
         {
@@ -219,7 +220,7 @@ internal sealed class LoadingDialog
                 t = i == -1 ? ReadOnlySpan<char>.Empty : t[(i + 1)..];
                 if (line.IsEmpty)
                     continue;
-                
+
                 sb.Clear();
                 if (first)
                     sb.Append($"{e.LogEvent.Timestamp:HH:mm:ss} | ");

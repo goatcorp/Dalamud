@@ -1,4 +1,4 @@
-﻿namespace Dalamud;
+namespace Dalamud;
 
 /// <summary>
 /// Marker class for service types.

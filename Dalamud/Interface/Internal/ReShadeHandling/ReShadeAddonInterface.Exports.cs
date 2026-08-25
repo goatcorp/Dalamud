@@ -59,7 +59,7 @@ internal sealed unsafe partial class ReShadeAddonInterface
             }
         }
 
-        AllReShadeModules = [..modules];
+        AllReShadeModules = [.. modules];
 
         return;
 

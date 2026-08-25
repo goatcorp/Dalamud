@@ -72,24 +72,24 @@ public interface IExposedPlugin
     /// <summary>
     /// Gets a value indicating whether the plugin has a main UI.
     /// </summary>
-    public bool HasMainUi { get; }
+    bool HasMainUi { get; }
 
     /// <summary>
     /// Gets a value indicating whether the plugin has a config UI.
     /// </summary>
-    public bool HasConfigUi { get; }
+    bool HasConfigUi { get; }
 
     /// <summary>
     /// Opens the main UI of the plugin.
     /// Throws <see cref="InvalidOperationException"/> if <see cref="HasMainUi"/> is false.
     /// </summary>
-    public void OpenMainUi();
+    void OpenMainUi();
 
     /// <summary>
     /// Opens the config UI of the plugin.
     /// Throws <see cref="InvalidOperationException"/> if <see cref="HasConfigUi"/> is false.
     /// </summary>
-    public void OpenConfigUi();
+    void OpenConfigUi();
 }
 
 /// <summary>

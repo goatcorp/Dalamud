@@ -50,7 +50,7 @@ public class AutoTranslatePayload : Payload, ITextProvider
     {
         this.payload = default; // parsed by DecodeImpl
     }
-    
+
     /// <summary>
     /// Gets the autotranslate group.
     /// </summary>

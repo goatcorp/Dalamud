@@ -48,7 +48,8 @@ static wchar_t* GetRuntimePath()
     }
 
     // Detect Windows first
-    result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &_appdata);
+    // Doesn't work inside app containers without KF_FLAG_DONT_VERIFY
+    result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DONT_VERIFY, nullptr, &_appdata);
 
     if (result != 0)
     {

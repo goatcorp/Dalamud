@@ -474,7 +474,7 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
                 nameof(this.InventoryChangedRaw));
         }
     }
-    
+
     // Note below: using List<T> instead of IEnumerable<T>, since List<T> has a specialized lightweight enumerator.
 
     /// <summary>
@@ -483,42 +483,42 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemAddedArgs> events) =>
         Invoke(this.ItemAdded, this.ItemAddedExplicit, events);
-    
+
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemRemovedArgs> events) =>
         Invoke(this.ItemRemoved, this.ItemRemovedExplicit, events);
-    
+
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemChangedArgs> events) =>
         Invoke(this.ItemChanged, this.ItemChangedExplicit, events);
-    
+
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemMovedArgs> events) =>
         Invoke(this.ItemMoved, this.ItemMovedExplicit, events);
-    
+
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemSplitArgs> events) =>
         Invoke(this.ItemSplit, this.ItemSplitExplicit, events);
-    
+
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemMergedArgs> events) =>
         Invoke(this.ItemMerged, this.ItemMergedExplicit, events);
-    
+
     private static void Invoke<T>(
         IGameInventory.InventoryChangedDelegate? cb,
         IGameInventory.InventoryChangedDelegate<T>? cbt,

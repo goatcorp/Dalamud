@@ -1,10 +1,12 @@
 using System.Linq;
+using System.Threading.Tasks;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Gui;
-using Dalamud.Game.Network.Internal;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -13,6 +15,7 @@ using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Application.Network;
+using FFXIVClientStructs.FFXIV.Client.Enums;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Network;
 using FFXIVClientStructs.FFXIV.Client.Network;
@@ -30,51 +33,54 @@ namespace Dalamud.Game.ClientState;
 /// This class represents the state of the game client at the time of access.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed class ClientState : IInternalDisposableService, IClientState
+internal sealed unsafe class ClientState : IInternalDisposableService, IClientState
 {
     private static readonly ModuleLog Log = ModuleLog.Create<ClientState>();
 
-    private readonly GameLifecycle lifecycle;
-    private readonly ClientStateAddressResolver address;
-    private readonly Hook<UIModule.Delegates.HandlePacket> uiModuleHandlePacketHook;
-    private readonly Hook<SetCurrentInstanceDelegate> setCurrentInstanceHook;
+    [ServiceManager.ServiceDependency]
+    private readonly GameLifecycle gameLifecycle = Service<GameLifecycle>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly NetworkHandlers networkHandlers = Service<NetworkHandlers>.Get();
+    private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
+    private readonly ChatGui chatGui = Service<ChatGui>.Get();
+
+    private readonly Hook<UIModule.Delegates.HandlePacket> uiModuleHandlePacketHook;
+    private readonly Hook<PacketDispatcher.Delegates.HandleContentsFinderNotificationPacket> cfPopHook;
 
     private Hook<LogoutCallbackInterface.Delegates.OnLogout>? onLogoutHook;
     private bool initialized;
     private bool lastConditionNone = true;
 
     [ServiceManager.ServiceConstructor]
-    private unsafe ClientState(TargetSigScanner sigScanner, Dalamud dalamud, GameLifecycle lifecycle)
+    private ClientState(Dalamud dalamud)
     {
-        this.lifecycle = lifecycle;
-        this.address = new ClientStateAddressResolver();
-        this.address.Setup(sigScanner);
-
         Log.Verbose("===== C L I E N T  S T A T E =====");
 
         this.ClientLanguage = (ClientLanguage)dalamud.StartInfo.Language;
 
-        this.uiModuleHandlePacketHook = Hook<UIModule.Delegates.HandlePacket>.FromAddress((nint)UIModule.StaticVirtualTablePointer->HandlePacket, this.UIModuleHandlePacketDetour);
-        this.setCurrentInstanceHook = Hook<SetCurrentInstanceDelegate>.FromAddress(this.AddressResolver.SetCurrentInstance, this.SetCurrentInstanceDetour);
+        this.uiModuleHandlePacketHook = Hook<UIModule.Delegates.HandlePacket>.FromAddress(
+            (nint)UIModule.StaticVirtualTablePointer->HandlePacket,
+            this.UIModuleHandlePacketDetour);
 
-        this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
+        this.cfPopHook = Hook<PacketDispatcher.Delegates.HandleContentsFinderNotificationPacket>.FromAddress(
+            PacketDispatcher.Addresses.HandleContentsFinderNotificationPacket.Value,
+            this.HandleContentsFinderNotificationPacketDetour);
 
         this.uiModuleHandlePacketHook.Enable();
-        this.setCurrentInstanceHook.Enable();
+        this.cfPopHook.Enable();
 
         _ = this.framework.RunOnTick(this.Setup);
     }
 
-    private unsafe delegate void SetCurrentInstanceDelegate(NetworkModuleProxy* thisPtr, short instanceId);
+    private delegate void SetCurrentInstanceDelegate(NetworkModuleProxy* thisPtr, short instanceId);
 
     /// <inheritdoc/>
     public event Action<ZoneInitEventArgs>? ZoneInit;
@@ -170,7 +176,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     }
 
     /// <inheritdoc/>
-    public unsafe bool IsLoggedIn
+    public bool IsLoggedIn
     {
         get
         {
@@ -212,11 +218,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     /// <inheritdoc />
     public bool IsGPosing => GameMain.IsInGPose();
 
-    /// <summary>
-    /// Gets client state address resolver.
-    /// </summary>
-    internal ClientStateAddressResolver AddressResolver => this.address;
-
     /// <inheritdoc/>
     public bool IsClientIdle(out ConditionFlag blockingFlag)
     {
@@ -250,14 +251,13 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     void IInternalDisposableService.DisposeService()
     {
         this.uiModuleHandlePacketHook.Dispose();
+        this.cfPopHook.Dispose();
         this.onLogoutHook?.Dispose();
-        this.setCurrentInstanceHook.Dispose();
 
         this.framework.Update -= this.OnFrameworkUpdate;
-        this.networkHandlers.CfPop -= this.NetworkHandlersOnCfPop;
     }
 
-    private unsafe void Setup()
+    private void Setup()
     {
         this.onLogoutHook = Hook<LogoutCallbackInterface.Delegates.OnLogout>.FromAddress((nint)AgentLobby.Instance()->LogoutCallbackInterface.VirtualTable->OnLogout, this.OnLogoutDetour);
         this.onLogoutHook.Enable();
@@ -272,7 +272,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.framework.Update += this.OnFrameworkUpdate;
     }
 
-    private unsafe void UIModuleHandlePacketDetour(
+    private void UIModuleHandlePacketDetour(
         UIModule* thisPtr, UIModulePacketType type, uint uintParam, void* packet)
     {
         this.uiModuleHandlePacketHook.Original(thisPtr, type, uintParam, packet);
@@ -324,19 +324,60 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
                 Log.Debug($"ZoneInit: {eventArgs}");
                 this.ZoneInit?.InvokeSafely(eventArgs);
                 this.TerritoryType = eventArgs.TerritoryType.RowId;
+                this.Instance = eventArgs.Instance;
                 this.IsPvP = eventArgs.TerritoryType.Value.IsPvpZone;
                 break;
             }
         }
     }
 
-    private unsafe void SetCurrentInstanceDetour(NetworkModuleProxy* thisPtr, short instanceId)
+    private void HandleContentsFinderNotificationPacketDetour(ContentsFinderNotificationPacket* packet)
     {
-        this.setCurrentInstanceHook.Original(thisPtr, instanceId);
-        this.Instance = (uint)instanceId;
+        this.cfPopHook.OriginalDisposeSafe(packet);
+
+        try
+        {
+            if (packet->QueueState != ContentsFinderQueueState.Ready)
+                return;
+
+            if (this.configuration.DutyFinderTaskbarFlash)
+                Util.FlashWindow();
+
+            var cfcId = packet->ContentFinderConditionId;
+            var cfCondition = LuminaUtils.CreateRef<ContentFinderCondition>(cfcId);
+
+            if (!cfCondition.IsValid)
+            {
+                Log.Error("CFC key {cfcId} not found", cfcId);
+                return;
+            }
+
+            var cfcName = cfCondition.Value.Name.ToDalamudString();
+            if (cfcName.Payloads.Count == 0)
+                cfcName = "Duty Roulette";
+
+            Task.Run(() =>
+            {
+                if (this.configuration.DutyFinderChatMessage)
+                {
+                    var b = new SeStringBuilder();
+                    b.Append("Duty pop: ");
+                    b.Append(cfcName);
+                    this.chatGui.Print(b.Build());
+                }
+
+                this.CfPop.InvokeSafely(cfCondition.Value);
+            }).ContinueWith(
+                task => Log.Error(task.Exception, "CfPop.Invoke failed"),
+                TaskContinuationOptions.OnlyOnFaulted);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "CfPopDetour threw an exception");
+        }
     }
 
-    private unsafe void OnFrameworkUpdate(IFramework frameworkArg)
+    private void OnFrameworkUpdate(IFramework frameworkArg)
     {
         this.MapId = AgentMap.Instance()->CurrentMapId;
 
@@ -354,11 +395,11 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
             this.Login?.InvokeSafely();
             gameGui.ResetUiHideState();
 
-            this.lifecycle.ResetLogout();
+            this.gameLifecycle.ResetLogout();
         }
     }
 
-    private unsafe void OnLogoutDetour(LogoutCallbackInterface* thisPtr, LogoutCallbackInterface.LogoutParams* logoutParams)
+    private void OnLogoutDetour(LogoutCallbackInterface* thisPtr, LogoutCallbackInterface.LogoutParams* logoutParams)
     {
         var gameGui = Service<GameGui>.GetNullable();
 
@@ -386,7 +427,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
                 gameGui?.ResetUiHideState();
                 this.lastConditionNone = true; // unblock login flag
 
-                this.lifecycle.SetLogout();
+                this.gameLifecycle.SetLogout();
             }
             catch (Exception ex)
             {

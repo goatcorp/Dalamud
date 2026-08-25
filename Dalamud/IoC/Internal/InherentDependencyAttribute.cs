@@ -1,4 +1,4 @@
-﻿namespace Dalamud.IoC.Internal;
+namespace Dalamud.IoC.Internal;
 
 /// <summary>
 /// Mark a class as being dependent on a service, without actually injecting it.

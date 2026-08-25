@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -19,7 +19,7 @@ public static partial class ImRaii
         public DragDropSourceDisposable()
         {
             this.Success = ImGui.BeginDragDropSource();
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="DragDropSourceDisposable"/> struct. </summary>
@@ -28,7 +28,7 @@ public static partial class ImRaii
         internal DragDropSourceDisposable(ImGuiDragDropFlags flags)
         {
             this.Success = ImGui.BeginDragDropSource(flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(DragDropSourceDisposable value)

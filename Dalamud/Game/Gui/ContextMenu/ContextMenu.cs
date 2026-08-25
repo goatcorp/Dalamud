@@ -10,7 +10,6 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -148,7 +147,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         if (oldValues.Length >= newSize)
             return (AtkValue*)Unsafe.AsPointer(ref oldValues[0]);
 
-        var size = (sizeof(AtkValue) * newSize) + 8;
+        var size = (AtkValue.StructSize * newSize) + 8;
         var newArray = (nint)IMemorySpace.GetUISpace()->Malloc((ulong)size, 0);
         if (newArray == nint.Zero)
             throw new OutOfMemoryException();
@@ -164,7 +163,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     }
 
     private void FreeExpandedContextMenuArray(AtkValue* newValues, int newSize) =>
-        IMemorySpace.Free((void*)((nint)newValues - 8), (ulong)((newSize * sizeof(AtkValue)) + 8));
+        IMemorySpace.Free((void*)((nint)newValues - 8), (ulong)((newSize * AtkValue.StructSize) + 8));
 
     private AtkValue* CreateEmptySubmenuContextMenuArray(SeString name, int x, int y, out int valueCount)
     {
@@ -361,7 +360,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 using (this.MenuItemsLock.EnterScope())
                 {
                     if (this.MenuItems.TryGetValue(menuType, out var items))
-                        this.SelectedItems = [with(items)];
+                        this.SelectedItems = [.. items];
                     else
                         this.SelectedItems = [];
                 }
@@ -437,18 +436,18 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         switch (this.SelectedMenuType)
         {
             case ContextMenuType.Default:
-                {
-                    var ownerAddonId = ((AgentContext*)this.SelectedAgent)->OwnerAddon;
-                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 71, checked((ushort)ownerAddonId), 4);
-                    break;
-                }
+            {
+                var ownerAddonId = ((AgentContext*)this.SelectedAgent)->OwnerAddon;
+                module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 71, checked((ushort)ownerAddonId), 4);
+                break;
+            }
 
             case ContextMenuType.Inventory:
-                {
-                    var ownerAddonId = ((AgentInventoryContext*)this.SelectedAgent)->OwnerAddonId;
-                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 0, checked((ushort)ownerAddonId), 4);
-                    break;
-                }
+            {
+                var ownerAddonId = ((AgentInventoryContext*)this.SelectedAgent)->OwnerAddonId;
+                module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, &this.SelectedAgent->AtkEventInterface, 0, checked((ushort)ownerAddonId), 4);
+                break;
+            }
 
             default:
                 Log.Warning($"Unknown context menu type (agent: {(nint)this.SelectedAgent}, cannot open submenu");
@@ -509,7 +508,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             return false;
         }
 
-original:
+    original:
         // Eventually handled by inventory context here: 14022BBD0 (6.51)
         return this.addonContextMenuOnMenuSelectedHook.Original(addon, selectedIdx, a3);
     }

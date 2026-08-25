@@ -121,7 +121,7 @@ internal sealed unsafe class AutoCompletionIntegration : IInternalDisposableServ
         if (!commands.Any())
             return;
 
-        var categoryData = (CategoryData*)IMemorySpace.GetDefaultSpace()->Malloc((ulong)sizeof(CategoryData), 0x08);
+        var categoryData = (CategoryData*)IMemorySpace.GetDefaultSpace()->Malloc(CategoryData.StructSize, 0x08);
         categoryData->Ctor(GroupNumber, 0xFF);
 
         uiModule->CompletionModule.AddCategoryData(

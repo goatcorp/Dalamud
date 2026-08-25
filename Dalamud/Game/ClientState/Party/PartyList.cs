@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using Dalamud.Game.Player;
 using Dalamud.IoC;
@@ -55,8 +54,6 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     /// <inheritdoc/>
     public long PartyId => this.GroupManagerStruct->MainGroup.PartyId;
 
-    private static int PartyMemberSize { get; } = Marshal.SizeOf<CSPartyMember>();
-
     private CSGroupManager* GroupManagerStruct => (CSGroupManager*)this.GroupManagerAddress;
 
     /// <inheritdoc/>
@@ -87,7 +84,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
         if (index < 0 || index >= GroupLength)
             return 0;
 
-        return this.GroupListAddress + (index * PartyMemberSize);
+        return this.GroupListAddress + (index * CSPartyMember.StructSize);
     }
 
     /// <inheritdoc/>
@@ -108,7 +105,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
         if (index < 0 || index >= AllianceLength)
             return 0;
 
-        return this.AllianceListAddress + (index * PartyMemberSize);
+        return this.AllianceListAddress + (index * CSPartyMember.StructSize);
     }
 
     /// <inheritdoc/>

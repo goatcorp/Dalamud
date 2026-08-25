@@ -18,7 +18,7 @@ public unsafe class VPRGauge : JobGaugeBase<ViperGauge>
         : base(address)
     {
     }
-    
+
     /// <summary>
     /// Gets how many uses of uncoiled fury the player has.
     /// </summary>
@@ -28,7 +28,7 @@ public unsafe class VPRGauge : JobGaugeBase<ViperGauge>
     /// Gets Serpent Offering stacks and gauge.
     /// </summary>
     public byte SerpentOffering => this.Struct->SerpentOffering;
-    
+
     /// <summary>
     /// Gets value indicating the use of 1st, 2nd, 3rd, 4th generation and Ouroboros.
     /// </summary>

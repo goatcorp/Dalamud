@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Game.Network.Structures;
 
-namespace Dalamud.Game.Network.Internal.MarketBoardUploaders;
+namespace Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders;
 
 /// <summary>
 /// An interface binding for the Universalis uploader.

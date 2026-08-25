@@ -10,7 +10,7 @@ public class ColumnString<TItem> : Column<TItem>
     public ColumnString()
         => this.Flags &= ~ImGuiTableColumnFlags.NoResize;
 
-    public    string FilterValue = string.Empty;
+    public string FilterValue = string.Empty;
     protected Regex? filterRegex;
 
     public virtual string ToName(TItem item)

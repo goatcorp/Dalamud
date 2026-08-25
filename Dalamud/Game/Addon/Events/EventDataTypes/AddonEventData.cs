@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Addon.Events.EventDataTypes;
+namespace Dalamud.Game.Addon.Events.EventDataTypes;
 
 /// <summary>
 /// Object representing data that is relevant in handling native events.

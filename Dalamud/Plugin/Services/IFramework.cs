@@ -14,7 +14,7 @@ public interface IFramework : IDalamudService
     /// A delegate type used with the <see cref="Update"/> event.
     /// </summary>
     /// <param name="framework">The Framework instance.</param>
-    public delegate void OnUpdateDelegate(IFramework framework);
+    delegate void OnUpdateDelegate(IFramework framework);
 
     /// <summary>
     /// Event that gets fired every time the game framework updates.

@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Plugin.VersionInfo;
+namespace Dalamud.Plugin.VersionInfo;
 
 /// <inheritdoc />
 internal class DalamudVersionInfo(Version version, string? track, string? gitHash, string? gitHashClientStructs, string? scmVersion) : IDalamudVersionInfo

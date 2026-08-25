@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Agent.AgentArgTypes;
+namespace Dalamud.Game.Agent.AgentArgTypes;
 
 /// <summary>
 /// Agent argument data for game events.

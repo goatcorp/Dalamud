@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface.Textures.Internal;
+namespace Dalamud.Interface.Textures.Internal;
 
 /// <summary>
 /// Exception thrown when an icon could not be found.
@@ -12,6 +12,6 @@ public class IconNotFoundException : Exception
     internal IconNotFoundException(GameIconLookup lookup)
         : base($"The icon with the ID {lookup.IconId} {(lookup.HiRes ? "HiRes" : string.Empty)} {(lookup.ItemHq ? "ItemHq" : string.Empty)} " +
                $"with language {lookup.Language} was not found.")
-    { 
+    {
     }
 }

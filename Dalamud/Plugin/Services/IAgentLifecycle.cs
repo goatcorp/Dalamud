@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Agent;
@@ -16,7 +16,7 @@ public interface IAgentLifecycle : IDalamudService
     /// </summary>
     /// <param name="type">The event type that triggered the message.</param>
     /// <param name="args">Information about what agent triggered the message.</param>
-    public delegate void AgentEventDelegate(AgentEvent type, AgentArgs args);
+    delegate void AgentEventDelegate(AgentEvent type, AgentArgs args);
 
     /// <summary>
     /// Register a listener that will trigger on the specified event and any of the specified agent.

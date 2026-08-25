@@ -132,56 +132,56 @@ public abstract partial class Payload
                 break;
 
             case SeStringChunkType.Interactable:
+            {
+                var subType = (EmbeddedInfoType)reader.ReadByte();
+                switch (subType)
                 {
-                    var subType = (EmbeddedInfoType)reader.ReadByte();
-                    switch (subType)
-                    {
-                        case EmbeddedInfoType.PlayerName:
-                            payload = new PlayerPayload();
-                            break;
+                    case EmbeddedInfoType.PlayerName:
+                        payload = new PlayerPayload();
+                        break;
 
-                        case EmbeddedInfoType.ItemLink:
-                            payload = new ItemPayload();
-                            break;
+                    case EmbeddedInfoType.ItemLink:
+                        payload = new ItemPayload();
+                        break;
 
-                        case EmbeddedInfoType.MapPositionLink:
-                            payload = new MapLinkPayload();
-                            break;
+                    case EmbeddedInfoType.MapPositionLink:
+                        payload = new MapLinkPayload();
+                        break;
 
-                        case EmbeddedInfoType.Status:
-                            payload = new StatusPayload();
-                            break;
+                    case EmbeddedInfoType.Status:
+                        payload = new StatusPayload();
+                        break;
 
-                        case EmbeddedInfoType.QuestLink:
-                            payload = new QuestPayload();
-                            break;
+                    case EmbeddedInfoType.QuestLink:
+                        payload = new QuestPayload();
+                        break;
 
-                        case EmbeddedInfoType.DalamudLink:
-                            payload = new DalamudLinkPayload();
-                            break;
+                    case EmbeddedInfoType.DalamudLink:
+                        payload = new DalamudLinkPayload();
+                        break;
 
-                        case EmbeddedInfoType.PartyFinderNotificationLink:
-                        // this is handled by PartyFinderPayload, so let this fall through
-                        case EmbeddedInfoType.PartyFinderLink:
-                            payload = new PartyFinderPayload();
-                            break;
+                    case EmbeddedInfoType.PartyFinderNotificationLink:
+                    // this is handled by PartyFinderPayload, so let this fall through
+                    case EmbeddedInfoType.PartyFinderLink:
+                        payload = new PartyFinderPayload();
+                        break;
 
-                        case EmbeddedInfoType.LinkTerminator:
-                        // this has no custom handling and so needs to fallthrough to ensure it is captured
-                        default:
-                            // but I'm also tired of this log
-                            if (subType != EmbeddedInfoType.LinkTerminator)
-                            {
-                                Log.Verbose("Unhandled EmbeddedInfoType: {0}", subType);
-                            }
+                    case EmbeddedInfoType.LinkTerminator:
+                    // this has no custom handling and so needs to fallthrough to ensure it is captured
+                    default:
+                        // but I'm also tired of this log
+                        if (subType != EmbeddedInfoType.LinkTerminator)
+                        {
+                            Log.Verbose("Unhandled EmbeddedInfoType: {0}", subType);
+                        }
 
-                            // rewind so we capture the Interactable byte in the raw data
-                            reader.BaseStream.Seek(-1, SeekOrigin.Current);
-                            break;
-                    }
+                        // rewind so we capture the Interactable byte in the raw data
+                        reader.BaseStream.Seek(-1, SeekOrigin.Current);
+                        break;
                 }
 
                 break;
+            }
 
             case SeStringChunkType.AutoTranslateKey:
                 payload = new AutoTranslatePayload();

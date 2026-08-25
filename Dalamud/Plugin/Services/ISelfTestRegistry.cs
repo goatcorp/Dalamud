@@ -52,5 +52,5 @@ public interface ISelfTestRegistry : IDalamudService
     /// Registers the self-test steps for this plugin.
     /// </summary>
     /// <param name="steps">The test steps to register.</param>
-    public void RegisterTestSteps(IEnumerable<ISelfTestStep> steps);
+    void RegisterTestSteps(IEnumerable<ISelfTestStep> steps);
 }

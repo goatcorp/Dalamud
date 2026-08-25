@@ -286,14 +286,16 @@ internal class ServicesWidget : IDataWindowWidget
             this.Kind = t.GetCustomAttribute<ServiceManager.ServiceAttribute>()?.Kind ??
                         ServiceManager.ServiceKind.None;
             this.DisplayedName = this.Type.Name;
-            this.TypeSuffix = this.Kind switch {
+            this.TypeSuffix = this.Kind switch
+            {
                 ServiceManager.ServiceKind.ProvidedService => " (P)",
                 ServiceManager.ServiceKind.EarlyLoadedService => " (E)",
                 ServiceManager.ServiceKind.BlockingEarlyLoadedService => " (B)",
                 ServiceManager.ServiceKind.ScopedService => " (S)",
                 var x => $" (? {x})",
             };
-            this.TypeSuffixColor = this.Kind switch {
+            this.TypeSuffixColor = this.Kind switch
+            {
                 ServiceManager.ServiceKind.ProvidedService => ImGui.GetColorU32(ImGuiColors.DalamudGrey),
                 ServiceManager.ServiceKind.EarlyLoadedService => ImGui.GetColorU32(ImGuiColors.DalamudWhite),
                 ServiceManager.ServiceKind.BlockingEarlyLoadedService => ImGui.GetColorU32(ImGuiColors.ParsedPink),

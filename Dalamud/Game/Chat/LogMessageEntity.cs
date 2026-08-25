@@ -47,7 +47,7 @@ public interface ILogMessageEntity : IEquatable<ILogMessageEntity>
 /// </summary>
 /// <param name="ptr">A pointer to the log message item.</param>
 /// <param name="source">If <see langword="true"/> represents the source entity of the log message, otherwise represents the target entity.</param>
-internal unsafe readonly struct LogMessageEntity(LogMessageQueueItem* ptr, bool source) : ILogMessageEntity
+internal readonly unsafe struct LogMessageEntity(LogMessageQueueItem* ptr, bool source) : ILogMessageEntity
 {
     /// <inheritdoc/>
     public ReadOnlySeString Name => new(this.NameSpan[..this.NameSpan.IndexOf((byte)0)]);

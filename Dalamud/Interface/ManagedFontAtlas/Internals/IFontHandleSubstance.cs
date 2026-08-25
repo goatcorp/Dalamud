@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Utility;
@@ -23,7 +23,7 @@ internal interface IFontHandleSubstance : IDisposable
     /// <summary>
     /// Gets the relevant handles.
     /// </summary>
-    public ICollection<FontHandle> RelevantHandles { get; }
+    ICollection<FontHandle> RelevantHandles { get; }
 
     /// <summary>
     /// Gets the font.

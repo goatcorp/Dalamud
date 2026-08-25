@@ -35,74 +35,74 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
         switch (this.step)
         {
             case 0:
-                {
-                    ImGui.Text("Is this the current time, and is it ticking?"u8);
+            {
+                ImGui.Text("Is this the current time, and is it ticking?"u8);
 
-                    // This checks that EvaluateFromAddon fetches the correct Addon row,
-                    // that MacroDecoder.GetMacroTime()->SetTime() has been called
-                    // and that local and global parameters have been read correctly.
+                // This checks that EvaluateFromAddon fetches the correct Addon row,
+                // that MacroDecoder.GetMacroTime()->SetTime() has been called
+                // and that local and global parameters have been read correctly.
 
-                    ImGui.Text(seStringEvaluator.EvaluateFromAddon(31, [(uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()]).ToString());
+                ImGui.Text(seStringEvaluator.EvaluateFromAddon(31, [(uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()]).ToString());
 
-                    if (ImGui.Button("Yes"u8))
-                        this.step++;
+                if (ImGui.Button("Yes"u8))
+                    this.step++;
 
-                    ImGui.SameLine();
+                ImGui.SameLine();
 
-                    if (ImGui.Button("No"u8))
-                        return SelfTestStepResult.Fail;
+                if (ImGui.Button("No"u8))
+                    return SelfTestStepResult.Fail;
 
-                    break;
-                }
+                break;
+            }
 
             case 1:
+            {
+                ImGui.Text("Checking pcname macro using the local player name..."u8);
+
+                // This makes sure that NameCache.Instance()->TryGetCharacterInfoByEntityId() has been called,
+                // that it returned the local players name by using its EntityId,
+                // and that it didn't include the world name by checking the HomeWorldId against AgentLobby.Instance()->LobbyData.HomeWorldId.
+
+                var objectTable = Service<ObjectTable>.Get();
+                var localPlayer = objectTable.LocalPlayer;
+                if (localPlayer is null)
                 {
-                    ImGui.Text("Checking pcname macro using the local player name..."u8);
+                    ImGui.Text("You need to be logged in for this step."u8);
 
-                    // This makes sure that NameCache.Instance()->TryGetCharacterInfoByEntityId() has been called,
-                    // that it returned the local players name by using its EntityId,
-                    // and that it didn't include the world name by checking the HomeWorldId against AgentLobby.Instance()->LobbyData.HomeWorldId.
+                    if (ImGui.Button("Skip"u8))
+                        return SelfTestStepResult.NotRan;
 
-                    var objectTable = Service<ObjectTable>.Get();
-                    var localPlayer = objectTable.LocalPlayer;
-                    if (localPlayer is null)
-                    {
-                        ImGui.Text("You need to be logged in for this step."u8);
-
-                        if (ImGui.Button("Skip"u8))
-                            return SelfTestStepResult.NotRan;
-
-                        return SelfTestStepResult.Waiting;
-                    }
-
-                    var evaluatedPlayerName = seStringEvaluator.Evaluate(ReadOnlySeString.FromMacroString("<pcname(lnum1)>"), [localPlayer.EntityId]).ToString();
-                    var localPlayerName = localPlayer.Name.TextValue;
-
-                    if (evaluatedPlayerName != localPlayerName)
-                    {
-                        ImGui.Text("The player name doesn't match:"u8);
-                        ImGui.Text($"Evaluated Player Name (got): {evaluatedPlayerName}");
-                        ImGui.Text($"Local Player Name (expected): {localPlayerName}");
-
-                        if (ImGui.Button("Continue"u8))
-                            return SelfTestStepResult.Fail;
-
-                        return SelfTestStepResult.Waiting;
-                    }
-
-                    this.step++;
-                    break;
+                    return SelfTestStepResult.Waiting;
                 }
 
-            case 2:
+                var evaluatedPlayerName = seStringEvaluator.Evaluate(ReadOnlySeString.FromMacroString("<pcname(lnum1)>"), [localPlayer.EntityId]).ToString();
+                var localPlayerName = localPlayer.Name.TextValue;
+
+                if (evaluatedPlayerName != localPlayerName)
                 {
-                    ImGui.Text("Checking AutoTranslatePayload.Text results..."u8);
+                    ImGui.Text("The player name doesn't match:"u8);
+                    ImGui.Text($"Evaluated Player Name (got): {evaluatedPlayerName}");
+                    ImGui.Text($"Local Player Name (expected): {localPlayerName}");
 
-                    var config = Service<DalamudConfiguration>.Get();
-                    var originalLanguageOverride = config.LanguageOverride;
+                    if (ImGui.Button("Continue"u8))
+                        return SelfTestStepResult.Fail;
 
-                    Span<(string Language, uint Group, uint Key, string ExpectedText)> tests = [
-                        ("en", 49u, 209u, " albino karakul "), // Mount
+                    return SelfTestStepResult.Waiting;
+                }
+
+                this.step++;
+                break;
+            }
+
+            case 2:
+            {
+                ImGui.Text("Checking AutoTranslatePayload.Text results..."u8);
+
+                var config = Service<DalamudConfiguration>.Get();
+                var originalLanguageOverride = config.LanguageOverride;
+
+                Span<(string Language, uint Group, uint Key, string ExpectedText)> tests = [
+                    ("en", 49u, 209u, " albino karakul "), // Mount
                         ("en", 62u, 116u, " /echo "), // TextCommand - testing Command
                         ("en", 62u, 143u, " /dutyfinder "), // TextCommand - testing Alias over Command
                         ("en", 65u, 67u, " Minion of Light "), // Companion - testing noun handling for the german language (special case)
@@ -115,117 +115,19 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                         ("de", 71u, 7u, " Phantom-Geomant "), // MKDSupportJob
                     ];
 
-                    try
+                try
+                {
+                    foreach (var (language, group, key, expectedText) in tests)
                     {
-                        foreach (var (language, group, key, expectedText) in tests)
+                        config.LanguageOverride = language;
+
+                        var payload = new AutoTranslatePayload(group, key);
+
+                        if (payload.Text != expectedText)
                         {
-                            config.LanguageOverride = language;
-
-                            var payload = new AutoTranslatePayload(group, key);
-
-                            if (payload.Text != expectedText)
-                            {
-                                ImGui.Text($"Test failed for Group {group}, Key {key}");
-                                ImGui.Text($"Expected: {expectedText}");
-                                ImGui.Text($"Got: {payload.Text}");
-
-                                if (ImGui.Button("Continue"u8))
-                                    return SelfTestStepResult.Fail;
-
-                                return SelfTestStepResult.Waiting;
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        config.LanguageOverride = originalLanguageOverride;
-                    }
-
-                    this.step++;
-                    break;
-                }
-
-            case 3:
-                {
-                    // This tests that the result of the inner sheet macro is interpreted correctly as uint.
-                    // Addon#8509: <sheet(PlaceName,<sheet(TerritoryType,lnum1,5)>,0)>
-
-                    const string expectedPlaceName = "Southern Thanalan";
-                    var evaluatedPlaceName = seStringEvaluator.EvaluateFromAddon(8509, [146], ClientLanguage.English).ToString();
-                    if (evaluatedPlaceName != expectedPlaceName)
-                    {
-                        ImGui.Text($"Test failed for nested sheet payload");
-                        ImGui.Text($"Expected: {expectedPlaceName}");
-                        ImGui.Text($"Got: {evaluatedPlaceName}");
-
-                        if (ImGui.Button("Continue"u8))
-                            return SelfTestStepResult.Fail;
-
-                        return SelfTestStepResult.Waiting;
-                    }
-
-                    this.step++;
-                    break;
-                }
-
-            case 4:
-                {
-                    // This tests that parameter expressions are properly evaluated within a binary expression.
-                    // LogMessage#8244: <head(<if([gstr1=gstr2],you,<if(gnum7,<ennoun(ObjStr,2,gnum7,1,1)>,gstr2)>)>)> <if([gstr1=gstr2],perform,performs)> a fabulous magic trick.
-
-                    if (!clientState.IsLoggedIn)
-                    {
-                        ImGui.Text("You need to be logged in for this step."u8);
-
-                        if (ImGui.Button("Skip"u8))
-                            return SelfTestStepResult.NotRan;
-
-                        return SelfTestStepResult.Waiting;
-                    }
-
-                    unsafe
-                    {
-                        var playerState = CSPlayerState.Instance();
-                        RaptureTextModule.Instance()->SetGlobalTempEntity1(playerState->CharacterName.GetPointer(0), playerState->Sex, 0);
-                    }
-
-                    const string expected = "You perform a fabulous magic trick.";
-                    var evaluated = seStringEvaluator.EvaluateFromLogMessage(8244, default, ClientLanguage.English).ToString();
-                    if (evaluated != expected)
-                    {
-                        ImGui.Text("Test failed for string expressions in binary expression"u8);
-                        ImGui.Text($"Expected: {expected}");
-                        ImGui.Text($"Got: {evaluated}");
-
-                        if (ImGui.Button("Continue"u8))
-                            return SelfTestStepResult.Fail;
-
-                        return SelfTestStepResult.Waiting;
-                    }
-
-                    this.step++;
-                    break;
-                }
-
-            case 5:
-                {
-                    var testCases = new (string MacroString, SeStringParameter[] Parameters, ClientLanguage Language, string Expected)[]
-                    {
-                        ("<if([lstr1==TRUE],EQUAL,NOTEQUAL)>", ["TRUE"], ClientLanguage.English, "EQUAL"),
-                        ("<if([lstr1==TRUE],EQUAL,NOTEQUAL)>", ["FALSE"], ClientLanguage.English, "NOTEQUAL"),
-                        ("<if([lstr1==lstr2],EQUAL,NOTEQUAL)>", ["TRUE", "TRUE"], ClientLanguage.English, "EQUAL"),
-                        ("<if([lstr1==lstr2],EQUAL,NOTEQUAL)>", ["TRUE", "FALSE"], ClientLanguage.English, "NOTEQUAL"),
-                    };
-
-                    foreach (var testCase in testCases)
-                    {
-                        var evaluated = seStringEvaluator.EvaluateMacroString(testCase.MacroString, testCase.Parameters, testCase.Language).ToString();
-                        if (evaluated != testCase.Expected)
-                        {
-                            ImGui.Text("MacroString test failed"u8);
-                            ImGui.Text($"MacroString: {testCase.MacroString}");
-                            ImGui.Text($"Expected: {testCase.Expected}");
-                            ImGui.Text($"Got: {evaluated}");
+                            ImGui.Text($"Test failed for Group {group}, Key {key}");
+                            ImGui.Text($"Expected: {expectedText}");
+                            ImGui.Text($"Got: {payload.Text}");
 
                             if (ImGui.Button("Continue"u8))
                                 return SelfTestStepResult.Fail;
@@ -233,9 +135,107 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                             return SelfTestStepResult.Waiting;
                         }
                     }
-
-                    return SelfTestStepResult.Pass;
                 }
+                finally
+                {
+                    config.LanguageOverride = originalLanguageOverride;
+                }
+
+                this.step++;
+                break;
+            }
+
+            case 3:
+            {
+                // This tests that the result of the inner sheet macro is interpreted correctly as uint.
+                // Addon#8509: <sheet(PlaceName,<sheet(TerritoryType,lnum1,5)>,0)>
+
+                const string expectedPlaceName = "Southern Thanalan";
+                var evaluatedPlaceName = seStringEvaluator.EvaluateFromAddon(8509, [146], ClientLanguage.English).ToString();
+                if (evaluatedPlaceName != expectedPlaceName)
+                {
+                    ImGui.Text($"Test failed for nested sheet payload");
+                    ImGui.Text($"Expected: {expectedPlaceName}");
+                    ImGui.Text($"Got: {evaluatedPlaceName}");
+
+                    if (ImGui.Button("Continue"u8))
+                        return SelfTestStepResult.Fail;
+
+                    return SelfTestStepResult.Waiting;
+                }
+
+                this.step++;
+                break;
+            }
+
+            case 4:
+            {
+                // This tests that parameter expressions are properly evaluated within a binary expression.
+                // LogMessage#8244: <head(<if([gstr1=gstr2],you,<if(gnum7,<ennoun(ObjStr,2,gnum7,1,1)>,gstr2)>)>)> <if([gstr1=gstr2],perform,performs)> a fabulous magic trick.
+
+                if (!clientState.IsLoggedIn)
+                {
+                    ImGui.Text("You need to be logged in for this step."u8);
+
+                    if (ImGui.Button("Skip"u8))
+                        return SelfTestStepResult.NotRan;
+
+                    return SelfTestStepResult.Waiting;
+                }
+
+                unsafe
+                {
+                    var playerState = CSPlayerState.Instance();
+                    RaptureTextModule.Instance()->SetGlobalTempEntity1(playerState->CharacterName.GetPointer(0), playerState->Sex, 0);
+                }
+
+                const string expected = "You perform a fabulous magic trick.";
+                var evaluated = seStringEvaluator.EvaluateFromLogMessage(8244, default, ClientLanguage.English).ToString();
+                if (evaluated != expected)
+                {
+                    ImGui.Text("Test failed for string expressions in binary expression"u8);
+                    ImGui.Text($"Expected: {expected}");
+                    ImGui.Text($"Got: {evaluated}");
+
+                    if (ImGui.Button("Continue"u8))
+                        return SelfTestStepResult.Fail;
+
+                    return SelfTestStepResult.Waiting;
+                }
+
+                this.step++;
+                break;
+            }
+
+            case 5:
+            {
+                var testCases = new (string MacroString, SeStringParameter[] Parameters, ClientLanguage Language, string Expected)[]
+                {
+                        ("<if([lstr1==TRUE],EQUAL,NOTEQUAL)>", ["TRUE"], ClientLanguage.English, "EQUAL"),
+                        ("<if([lstr1==TRUE],EQUAL,NOTEQUAL)>", ["FALSE"], ClientLanguage.English, "NOTEQUAL"),
+                        ("<if([lstr1==lstr2],EQUAL,NOTEQUAL)>", ["TRUE", "TRUE"], ClientLanguage.English, "EQUAL"),
+                        ("<if([lstr1==lstr2],EQUAL,NOTEQUAL)>", ["TRUE", "FALSE"], ClientLanguage.English, "NOTEQUAL"),
+                };
+
+                foreach (var testCase in testCases)
+                {
+                    var evaluated = seStringEvaluator.EvaluateMacroString(testCase.MacroString, testCase.Parameters, testCase.Language).ToString();
+                    if (evaluated != testCase.Expected)
+                    {
+                        ImGui.Text("MacroString test failed"u8);
+                        ImGui.Text($"MacroString: {testCase.MacroString}");
+                        ImGui.Text($"Expected: {testCase.Expected}");
+                        ImGui.Text($"Got: {evaluated}");
+
+                        if (ImGui.Button("Continue"u8))
+                            return SelfTestStepResult.Fail;
+
+                        return SelfTestStepResult.Waiting;
+                    }
+                }
+
+                return SelfTestStepResult.Pass;
+            }
         }
 
         return SelfTestStepResult.Waiting;

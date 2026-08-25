@@ -5,7 +5,7 @@ internal interface IImGuiInputHandler : IDisposable
 {
     /// <summary>Gets or sets a value indicating whether the cursor should be overridden with the ImGui cursor.
     /// </summary>
-    public bool UpdateCursor { get; set; }
+    bool UpdateCursor { get; set; }
 
     /// <summary>Gets or sets the path of ImGui configuration .ini file.</summary>
     string? IniPath { get; set; }
@@ -13,7 +13,7 @@ internal interface IImGuiInputHandler : IDisposable
     /// <summary>Determines if <paramref name="cursorHandle"/> is owned by this.</summary>
     /// <param name="cursorHandle">The cursor.</param>
     /// <returns>Whether it is the case.</returns>
-    public bool IsImGuiCursor(nint cursorHandle);
+    bool IsImGuiCursor(nint cursorHandle);
 
     /// <summary>Marks the beginning of a new frame.</summary>
     /// <param name="width">The width of the new frame.</param>

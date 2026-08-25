@@ -41,7 +41,7 @@ internal sealed partial class TextureManager
     /// <inheritdoc/>
     ISharedImmediateTexture ITextureProvider.GetFromFile(string path) =>
         this.Shared.GetFromFile(path);
-    
+
     /// <inheritdoc/>
     ISharedImmediateTexture ITextureProvider.GetFromFile(FileInfo file) =>
         this.Shared.GetFromFile(file);
@@ -131,7 +131,7 @@ internal sealed partial class TextureManager
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromGameIcon(in GameIconLookup lookup) =>
             this.NonDisposed.GetFromGame(this.lookupCache.GetOrAdd(lookup, this.GetIconPathByValue));
-        
+
         /// <inheritdoc cref="ITextureProvider.TryGetFromGameIcon"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out SharedImmediateTexture.PureImpl? texture)
@@ -144,10 +144,10 @@ internal sealed partial class TextureManager
             {
                 if (!this.textureManager.TryGetIconPath(lookup, out path))
                     return false;
-                
+
                 this.lookupCache.AddOrUpdate(lookup, path);
             }
-            
+
             texture = this.GetFromGame(path);
             return texture != null;
         }
@@ -162,7 +162,7 @@ internal sealed partial class TextureManager
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromFile(string path) =>
             this.NonDisposed.GetFromFile(new FileInfo(path));
-        
+
         /// <inheritdoc cref="ITextureProvider.GetFromFile(FileInfo)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromFile(FileInfo file) =>
