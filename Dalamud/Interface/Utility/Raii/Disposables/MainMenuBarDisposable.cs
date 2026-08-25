@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -20,7 +20,7 @@ public static partial class ImRaii
         public MainMenuBarDisposable()
         {
             this.Success = ImGui.BeginMainMenuBar();
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(MainMenuBarDisposable value)

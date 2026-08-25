@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 
-using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal.Converters;
 

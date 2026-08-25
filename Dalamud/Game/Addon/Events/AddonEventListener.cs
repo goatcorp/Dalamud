@@ -22,8 +22,8 @@ internal unsafe class AddonEventListener : IDisposable
     {
         this.receiveEventDelegate = eventHandler;
 
-        this.eventListener = (AtkEventListener*)Marshal.AllocHGlobal(sizeof(AtkEventListener));
-        this.eventListener->VirtualTable = (AtkEventListener.AtkEventListenerVirtualTable*)Marshal.AllocHGlobal(sizeof(void*) * 3);
+        this.eventListener = (AtkEventListener*)Marshal.AllocHGlobal(AtkEventListener.StructSize);
+        this.eventListener->VirtualTable = (AtkEventListener.AtkEventListenerVirtualTable*)Marshal.AllocHGlobal(nuint.Size * 3);
         this.eventListener->VirtualTable->Dtor = (delegate* unmanaged<AtkEventListener*, byte, AtkEventListener*>)(delegate* unmanaged<void>)&NullSub;
         this.eventListener->VirtualTable->ReceiveGlobalEvent = (delegate* unmanaged<AtkEventListener*, AtkEventType, int, AtkEvent*, AtkEventData*, void>)(delegate* unmanaged<void>)&NullSub;
         this.eventListener->VirtualTable->ReceiveEvent = (delegate* unmanaged<AtkEventListener*, AtkEventType, int, AtkEvent*, AtkEventData*, void>)Marshal.GetFunctionPointerForDelegate(this.receiveEventDelegate);

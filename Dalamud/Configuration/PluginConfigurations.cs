@@ -57,9 +57,7 @@ public sealed class PluginConfigurations
         {
             Service<ReliableFileStorage>.Get().ReadAllTextAsync(path.FullName, text =>
             {
-                config = DeserializeConfig(text);
-                if (config == null)
-                    throw new Exception("Read config was null.");
+                config = DeserializeConfig(text) ?? throw new Exception("Read config was null.");
             }, workingPluginId).GetAwaiter().GetResult();
         }
         catch (FileNotFoundException)
@@ -77,7 +75,7 @@ public sealed class PluginConfigurations
     /// <param name="pluginName">The name of the plugin.</param>
     public void Delete(string pluginName)
     {
-        var directory = this.GetDirectoryPath(pluginName);
+        var directory = this.GetConfigDirectory(pluginName);
         if (directory.Exists)
             directory.Delete(true);
 
@@ -95,7 +93,7 @@ public sealed class PluginConfigurations
     {
         try
         {
-            var path = this.GetDirectoryPath(pluginName);
+            var path = this.GetConfigDirectory(pluginName);
             if (!path.Exists)
             {
                 path.Create();
@@ -145,6 +143,13 @@ public sealed class PluginConfigurations
     public FileInfo GetConfigFile(string pluginName) => new(Path.Combine(this.configDirectory.FullName, $"{pluginName}.json"));
 
     /// <summary>
+    /// Get DirectoryInfo to plugin config directory.
+    /// </summary>
+    /// <param name="pluginName">InternalName of the plugin.</param>
+    /// <returns>DirectoryInfo of the config directory.</returns>
+    public DirectoryInfo GetConfigDirectory(string pluginName) => new(Path.Combine(this.configDirectory.FullName, pluginName));
+
+    /// <summary>
     /// Serializes a plugin configuration object.
     /// </summary>
     /// <param name="config">The configuration object.</param>
@@ -173,8 +178,6 @@ public sealed class PluginConfigurations
                 TypeNameHandling = TypeNameHandling.Objects,
             });
     }
-
-    private DirectoryInfo GetDirectoryPath(string pluginName) => new(Path.Combine(this.configDirectory.FullName, pluginName));
 
     private class DalamudAssemblyTypeNameForcingJsonConverter : JsonConverter
     {

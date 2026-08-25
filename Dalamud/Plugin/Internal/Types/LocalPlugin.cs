@@ -214,10 +214,14 @@ internal class LocalPlugin : IAsyncDisposable
     public bool IsThirdParty => this.manifest.IsThirdParty;
 
     /// <summary>
-    /// Gets a value indicating whether this plugin should be allowed to load.
+    /// Gets a value indicating whether this plugin should be allowed to load automatically, for example when
+    /// profile want states are applied.
+    /// Plugins whose last load attempt faulted are excluded here so that automatic load paths don't retry
+    /// over and over. User can still reload/retry explicitly through the installer's enable toggle.
     /// </summary>
-    public bool ApplicableForLoad => !this.IsBanned && !this.IsDecommissioned && !this.IsOrphaned && !this.IsOutdated
-                                     && !(!this.IsDev && this.State == PluginState.UnloadError) && this.CheckPolicy();
+    public bool ApplicableForAutomaticLoads => !this.IsBanned && !this.IsDecommissioned && !this.IsOrphaned && !this.IsOutdated
+                                     && !(!this.IsDev && this.State is PluginState.UnloadError or PluginState.LoadError)
+                                     && this.CheckPolicy();
 
     /// <summary>
     /// Gets the effective version of this plugin.
@@ -285,10 +289,14 @@ internal class LocalPlugin : IAsyncDisposable
                 case PluginState.Loaded:
                     throw new InvalidPluginOperationException($"Unable to load {this.Name}, already loaded");
                 case PluginState.LoadError:
-                    if (!this.IsDev)
+                    // A previous load attempt has failed. The failure will have cleaned up all of
+                    // the plugin's resources, so we can simply try loading again.
+                    // Automatic load paths skip plugins in this state via ApplicableForAutomaticLoads,
+                    // so the retry must have come from user interaction in that case.
+                    if (this.instance is not null)
                     {
-                        throw new InvalidPluginOperationException(
-                            $"Unable to load {this.Name}, load previously faulted, unload first");
+                        throw new InternalPluginStateException(
+                            "Plugin load faulted but instance was not cleared");
                     }
 
                     break;
@@ -406,36 +414,30 @@ internal class LocalPlugin : IAsyncDisposable
             this.serviceScope = ioc.GetScope();
             this.serviceScope.RegisterPrivateScopes(this); // Add this LocalPlugin as a private scope, so services can get it
 
-            try
-            {
-                Log.Information("Creating plugin instance for {PluginName} (async={IsAsync})", this.InternalName, this.pluginType!.IsAssignableTo(typeof(IAsyncDalamudPlugin)));
-                this.instance = await CreatePluginInstance(
-                                    this.manifest,
-                                    this.serviceScope,
-                                    this.pluginType!,
-                                    this.dalamudInterface,
-                                    cancellationToken);
-                this.State = PluginState.Loaded;
-                Log.Information("Finished loading {PluginName}", this.InternalName);
+            Log.Information("Creating plugin instance for {PluginName} (async={IsAsync})", this.InternalName, this.pluginType!.IsAssignableTo(typeof(IAsyncDalamudPlugin)));
+            this.instance = await CreatePluginInstance(
+                                this.manifest,
+                                this.serviceScope,
+                                this.pluginType!,
+                                this.dalamudInterface,
+                                cancellationToken);
+            this.State = PluginState.Loaded;
+            Log.Information("Finished loading {PluginName}", this.InternalName);
 
-                var manager = Service<PluginManager>.Get();
-                manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Loaded, [this.manifest.InternalName]);
-            }
-            catch (Exception ex)
-            {
-                this.State = PluginState.LoadError;
-                Log.Error(
-                    ex,
-                    "Error while loading {PluginName}, failed to bind and call the plugin constructor",
-                    this.InternalName);
-                await this.ClearAndDisposeAllResources(PluginLoaderDisposalMode.ImmediateDispose);
-            }
+            var manager = Service<PluginManager>.Get();
+            manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Loaded, [this.manifest.InternalName]);
         }
         catch (Exception ex)
         {
             // These are "user errors", we don't want to mark the plugin as failed
             if (ex is not InvalidPluginOperationException)
+            {
                 this.State = PluginState.LoadError;
+
+                // Immediately clean up whatever the failed load attempt left behind. This guarantees that a
+                // plugin in the LoadError state holds no resources and may be loaded again.
+                await this.ClearAndDisposeAllResources(PluginLoaderDisposalMode.ImmediateDispose);
+            }
 
             // If a precondition fails, don't record it as an error, as it isn't really.
             if (ex is PluginPreconditionFailedException)
@@ -525,8 +527,10 @@ internal class LocalPlugin : IAsyncDisposable
     {
         ObjectDisposedException.ThrowIf(this.disposed, nameof(LocalPlugin));
 
-        // Don't unload if we're a dev plugin and have an unload error, this is a bad idea but whatever
-        if (this.IsDev && this.State != PluginState.UnloadError)
+        // Only unload if the plugin is actually loaded. A plugin that faulted while loading or that
+        // was never loaded holds no resources and can be loaded again directly.
+        // Plugins with unload errors are not unloaded again either, LoadAsync will throw an error for them.
+        if (this.State == PluginState.Loaded)
             await this.UnloadAsync(PluginLoaderDisposalMode.None);
 
         await this.LoadAsync(PluginLoadReason.Reload, true);

@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using Dalamud.Game.Player;
 
 using CSStatus = FFXIVClientStructs.FFXIV.Client.Game.Status;
+using CSStatusManager = FFXIVClientStructs.FFXIV.Client.Game.StatusManager;
 
 namespace Dalamud.Game.ClientState.Statuses;
 
@@ -42,9 +42,7 @@ public sealed unsafe partial class StatusList
     /// </summary>
     public int Length => this.Struct->NumValidStatuses;
 
-    private static int StatusSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Status>();
-
-    private FFXIVClientStructs.FFXIV.Client.Game.StatusManager* Struct => (FFXIVClientStructs.FFXIV.Client.Game.StatusManager*)this.Address;
+    private CSStatusManager* Struct => (CSStatusManager*)this.Address;
 
     /// <summary>
     /// Get a status effect at the specified index.

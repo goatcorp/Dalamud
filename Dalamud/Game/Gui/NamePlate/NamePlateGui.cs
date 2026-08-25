@@ -5,13 +5,12 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using Serilog;
 
 namespace Dalamud.Game.Gui.NamePlate;
 
@@ -30,6 +29,8 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
     /// An empty null-terminated string pointer allocated in unmanaged memory, used to tag removed fields.
     /// </summary>
     internal static readonly nint EmptyStringPointer = CreateEmptyStringPointer();
+
+    private static readonly ModuleLog Log = ModuleLog.Create<NamePlateGui>();
 
     [ServiceManager.ServiceDependency]
     private readonly GameGui gameGui = Service<GameGui>.Get();

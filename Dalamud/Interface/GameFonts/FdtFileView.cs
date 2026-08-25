@@ -134,7 +134,7 @@ internal readonly unsafe struct FdtFileView
             checked((ushort)glyphs[0].CharInt),
             checked((ushort)glyphs[0].CharInt),
         };
-        
+
         foreach (ref var glyph in glyphs[1..])
         {
             var c32 = glyph.CharInt;

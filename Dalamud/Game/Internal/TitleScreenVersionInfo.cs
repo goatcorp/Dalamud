@@ -1,5 +1,3 @@
-using CheapLoc;
-
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;

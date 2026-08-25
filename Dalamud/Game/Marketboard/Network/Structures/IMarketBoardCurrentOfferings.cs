@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Dalamud.Game.Network.Structures;
 
@@ -15,7 +15,7 @@ public interface IMarketBoardCurrentOfferings
     /// <summary>
     /// Gets the request ID.
     /// </summary>
-    public int RequestId { get; }
+    int RequestId { get; }
 }
 
 /// <summary>
@@ -26,77 +26,77 @@ public interface IMarketBoardItemListing
     /// <summary>
     /// Gets the artisan ID.
     /// </summary>
-    public ulong ArtisanId { get; }
+    ulong ArtisanId { get; }
 
     /// <summary>
     /// Gets the item ID.
     /// </summary>
-    public uint ItemId { get; }
+    uint ItemId { get; }
 
     /// <summary>
     /// Gets a value indicating whether the item is HQ.
     /// </summary>
-    public bool IsHq { get; }
+    bool IsHq { get; }
 
     /// <summary>
     /// Gets the item quantity.
     /// </summary>
-    public uint ItemQuantity { get; }
+    uint ItemQuantity { get; }
 
     /// <summary>
     /// Gets the listing ID.
     /// </summary>
-    public ulong ListingId { get; }
+    ulong ListingId { get; }
 
     /// <summary>
     /// Gets the list of materia attached to this item.
     /// </summary>
-    public IReadOnlyList<IItemMateria> Materia { get; }
+    IReadOnlyList<IItemMateria> Materia { get; }
 
     /// <summary>
     /// Gets the amount of attached materia.
     /// </summary>
-    public int MateriaCount { get; }
+    int MateriaCount { get; }
 
     /// <summary>
     /// Gets a value indicating whether this item is on a mannequin.
     /// </summary>
-    public bool OnMannequin { get; }
+    bool OnMannequin { get; }
 
     /// <summary>
     /// Gets the price per unit.
     /// </summary>
-    public uint PricePerUnit { get; }
+    uint PricePerUnit { get; }
 
     /// <summary>
     /// Gets the city ID of the retainer selling the item.
     /// </summary>
-    public int RetainerCityId { get; }
+    int RetainerCityId { get; }
 
     /// <summary>
     /// Gets the ID of the retainer selling the item.
     /// </summary>
-    public ulong RetainerId { get; }
+    ulong RetainerId { get; }
 
     /// <summary>
     /// Gets the name of the retainer.
     /// </summary>
-    public string RetainerName { get; }
+    string RetainerName { get; }
 
     /// <summary>
     /// Gets the first stain or applied dye of the item.
     /// </summary>
-    public int Stain1Id { get; }
+    int Stain1Id { get; }
 
     /// <summary>
     /// Gets the second stain or applied dye of the item.
     /// </summary>
-    public int Stain2Id { get; }
+    int Stain2Id { get; }
 
     /// <summary>
     /// Gets the total tax.
     /// </summary>
-    public uint TotalTax { get; }
+    uint TotalTax { get; }
 }
 
 /// <summary>

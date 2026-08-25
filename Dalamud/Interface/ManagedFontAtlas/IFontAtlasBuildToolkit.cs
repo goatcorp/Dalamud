@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;

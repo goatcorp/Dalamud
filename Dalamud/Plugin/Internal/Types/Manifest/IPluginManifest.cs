@@ -13,106 +13,106 @@ public interface IPluginManifest
     /// <summary>
     /// Gets the internal name of the plugin, which should match the assembly name of the plugin.
     /// </summary>
-    public string InternalName { get; }
+    string InternalName { get; }
 
     /// <summary>
     /// Gets the public name of the plugin.
     /// </summary>
-    public string Name { get; }
+    string Name { get; }
 
     /// <summary>
     /// Gets a punchline of the plugins functions.
     /// </summary>
-    public string? Punchline { get; }
+    string? Punchline { get; }
 
     /// <summary>
     /// Gets the author/s of the plugin.
     /// </summary>
-    public string Author { get; }
+    string Author { get; }
 
     /// <summary>
     /// Gets a value indicating whether the plugin can be unloaded asynchronously.
     /// </summary>
-    public bool CanUnloadAsync { get; }
+    bool CanUnloadAsync { get; }
 
     /// <summary>
     /// Gets the assembly version of the plugin.
     /// </summary>
-    public Version AssemblyVersion { get; }
+    Version AssemblyVersion { get; }
 
     /// <summary>
     /// Gets the minimum Dalamud assembly version this plugin requires.
     /// </summary>
-    public Version? MinimumDalamudVersion { get; }
+    Version? MinimumDalamudVersion { get; }
 
     /// <summary>
     /// Gets the DIP17 channel name.
     /// </summary>
-    public string? Dip17Channel { get; }
+    string? Dip17Channel { get; }
 
     /// <summary>
     /// Gets the last time this plugin was updated.
     /// </summary>
-    public long LastUpdate { get; }
+    long LastUpdate { get; }
 
     /// <summary>
     /// Gets a changelog, null if none exists.
     /// </summary>
-    public string? Changelog { get; }
+    string? Changelog { get; }
 
     /// <summary>
     /// Gets a list of tags that apply to this plugin.
     /// </summary>
-    public List<string>? Tags { get; }
+    List<string>? Tags { get; }
 
     /// <summary>
     /// Gets the API level of this plugin.
     /// For the current API level, please see <see cref="PluginManager.DalamudApiLevel"/> for the currently used API level.
     /// </summary>
-    public int DalamudApiLevel { get; }
+    int DalamudApiLevel { get; }
 
     /// <summary>
     /// Gets the number of downloads this plugin has.
     /// </summary>
-    public long DownloadCount { get; }
+    long DownloadCount { get; }
 
     /// <summary>
     /// Gets a value indicating whether the plugin supports profiles.
     /// </summary>
-    public bool SupportsProfiles { get; }
+    bool SupportsProfiles { get; }
 
     /// <summary>
     /// Gets an URL to the website or source code of the plugin.
     /// </summary>
-    public string? RepoUrl { get; }
+    string? RepoUrl { get; }
 
     /// <summary>
     /// Gets a description of the plugins functions.
     /// </summary>
-    public string? Description { get; }
+    string? Description { get; }
 
     /// <summary>
     /// Gets a message that is shown to users when sending feedback.
     /// </summary>
-    public string? FeedbackMessage { get; }
+    string? FeedbackMessage { get; }
 
     /// <summary>
     /// Gets a list of screenshot image URLs to show in the plugin installer.
     /// </summary>
-    public List<string>? ImageUrls { get; }
+    List<string>? ImageUrls { get; }
 
     /// <summary>
     /// Gets an URL for the plugin's icon.
     /// </summary>
-    public string? IconUrl { get; }
+    string? IconUrl { get; }
 
 #pragma warning disable SA1600
 #pragma warning disable SA1516
     [Api16ToDo("Remove from public API, testing plugins don't have this information in the local manifest")]
-    public Version? TestingAssemblyVersion { get; }
-    public int? TestingDalamudApiLevel { get; }
-    public bool IsTestingExclusive { get; }
-    public bool IsAvailableForTesting { get; }
+    Version? TestingAssemblyVersion { get; }
+    int? TestingDalamudApiLevel { get; }
+    bool IsTestingExclusive { get; }
+    bool IsAvailableForTesting { get; }
 #pragma warning restore SA1516
 #pragma warning restore SA1600
 }

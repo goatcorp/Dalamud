@@ -737,7 +737,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             if (configuration.SavedStyles == null ||
                 configuration.SavedStyles.All(x => x.Name != builtInStyles[0].Name))
             {
-                configuration.SavedStyles = [..builtInStyles];
+                configuration.SavedStyles = [.. builtInStyles];
                 configuration.ChosenStyle = builtInStyles[0].Name;
             }
 

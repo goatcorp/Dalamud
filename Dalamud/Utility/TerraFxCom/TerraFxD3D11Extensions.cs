@@ -52,7 +52,7 @@ internal static class TerraFxD3D11Extensions
             return srv;
         }
     }
-    
+
     /// <summary>Gets the descriptor for a <see cref="ID3D11Texture2D"/>.</summary>
     /// <param name="texture">Texture.</param>
     /// <returns>Texture descriptor.</returns>

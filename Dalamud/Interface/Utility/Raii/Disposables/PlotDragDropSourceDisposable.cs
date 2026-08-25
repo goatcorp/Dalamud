@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImPlot;
 
 // ReSharper disable once CheckNamespace
@@ -21,14 +21,14 @@ public static partial class ImRaii
         internal PlotDragDropSourceDisposable(string labelId, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
         {
             this.Success = ImPlot.BeginDragDropSourceItem(labelId, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <inheritdoc cref="PlotDragDropSourceDisposable(string,ImGuiDragDropFlags)"/>
         internal PlotDragDropSourceDisposable(ReadOnlySpan<byte> labelId, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
         {
             this.Success = ImPlot.BeginDragDropSourceItem(labelId, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary> Initialize a new instance of the <see cref="PlotDragDropSourceDisposable"/> struct with SourceAxis. </summary>
@@ -47,7 +47,7 @@ public static partial class ImRaii
         private PlotDragDropSourceDisposable(bool success)
         {
             this.Success = success;
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(PlotDragDropSourceDisposable value)

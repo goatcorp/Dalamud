@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Plugin.Ipc;
+namespace Dalamud.Plugin.Ipc;
 
 /// <summary>
 /// The context associated for an IPC call. Reads from ThreadLocal.

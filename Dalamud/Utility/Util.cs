@@ -71,6 +71,7 @@ public static partial class Util
 
     private static ulong moduleStartAddr;
     private static ulong moduleEndAddr;
+    private static bool? isAppContainer;
 
     /// <inheritdoc cref="DescribeAddress(nint)"/>
     public static unsafe string DescribeAddress(void* p) => DescribeAddress((nint)p);
@@ -367,6 +368,16 @@ public static partial class Util
     /// <returns>Human readable version.</returns>
     public static string FormatBytes(long bytes)
     {
+        return FormatBytes((ulong)bytes);
+    }
+
+    /// <summary>
+    /// Transform byte count to human readable format.
+    /// </summary>
+    /// <param name="bytes">Number of bytes.</param>
+    /// <returns>Human readable version.</returns>
+    public static string FormatBytes(ulong bytes)
+    {
         string[] suffix = ["B", "KB", "MB", "GB", "TB"];
         int i;
         double dblSByte = bytes;
@@ -605,6 +616,41 @@ public static partial class Util
             if (i >= 64 || !Path.Exists(tempPath))
                 return tempPath;
         }
+    }
+
+    /// <summary>
+    /// Determine if the current process is running inside an AppContainer sandbox.
+    /// </summary>
+    /// <returns>Returns true if running in an AppContainer.</returns>
+    internal static unsafe bool IsAppContainer()
+    {
+        if (isAppContainer is { } cached)
+            return cached;
+
+        var result = false;
+        HANDLE token;
+        if (TerraFX.Interop.Windows.Windows.OpenProcessToken(
+                TerraFX.Interop.Windows.Windows.GetCurrentProcess(),
+                TOKEN.TOKEN_QUERY,
+                &token))
+        {
+            BOOL value;
+            uint returnLength;
+            if (TerraFX.Interop.Windows.Windows.GetTokenInformation(
+                    token,
+                    TOKEN_INFORMATION_CLASS.TokenIsAppContainer,
+                    &value,
+                    (uint)sizeof(BOOL),
+                    &returnLength))
+            {
+                result = value;
+            }
+
+            TerraFX.Interop.Windows.Windows.CloseHandle(token);
+        }
+
+        isAppContainer = result;
+        return result;
     }
 
     /// <summary>

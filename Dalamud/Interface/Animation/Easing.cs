@@ -1,7 +1,5 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Numerics;
-
-using Dalamud.Utility;
 
 namespace Dalamud.Interface.Animation;
 

@@ -90,7 +90,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             if (erc is null)
             {
                 this.entriesLock.EnterReadLock();
-                this.entriesReadOnlyCopy = erc = [..this.entries];
+                this.entriesReadOnlyCopy = erc = [.. this.entries];
                 this.entriesLock.ExitReadLock();
             }
 

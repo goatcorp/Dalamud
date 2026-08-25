@@ -12,12 +12,12 @@ public interface IAetheryteList : IDalamudService, IReadOnlyCollection<IAetheryt
     /// <summary>
     /// Gets the amount of Aetherytes the local player has unlocked.
     /// </summary>
-    public int Length { get; }
+    int Length { get; }
 
     /// <summary>
     /// Gets a Aetheryte Entry at the specified index.
     /// </summary>
     /// <param name="index">Index.</param>
     /// <returns>A <see cref="AetheryteEntry"/> at the specified index.</returns>
-    public IAetheryteEntry? this[int index] { get; }
+    IAetheryteEntry? this[int index] { get; }
 }

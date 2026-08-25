@@ -38,9 +38,12 @@ internal class GamepadModeNotifierWindow : Window
     {
         var drawList = ImGui.GetBackgroundDrawList();
         drawList.PushClipRectFullScreen();
-        drawList.AddRectFilled(Vector2.Zero, ImGuiHelpers.MainViewport.Size, 0x661A1A1A);
+        drawList.AddRectFilled(
+            ImGuiHelpers.MainViewport.WorkPos,
+            ImGuiHelpers.MainViewport.WorkPos + ImGuiHelpers.MainViewport.Size,
+            0x661A1A1A);
         drawList.AddText(
-            Vector2.One,
+            ImGuiHelpers.MainViewport.WorkPos,
             0xFFFFFFFF,
             Loc.Localize(
                 "DalamudGamepadModeNotifierText",

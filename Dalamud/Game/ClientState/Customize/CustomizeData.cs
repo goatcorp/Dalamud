@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.ClientState.Objects.Types;
 
 namespace Dalamud.Game.ClientState.Customize;
 
@@ -11,171 +11,171 @@ public interface ICustomizeData
     /// Gets the current race.
     /// E.g., Miqo'te, Aura.
     /// </summary>
-    public byte Race { get; }
+    byte Race { get; }
 
     /// <summary>
     /// Gets the current sex.
     /// </summary>
-    public byte Sex { get; }
+    byte Sex { get; }
 
     /// <summary>
     /// Gets the current body type.
     /// </summary>
-    public byte BodyType { get; }
+    byte BodyType { get; }
 
     /// <summary>
     /// Gets the current height (0 to 100).
     /// </summary>
-    public byte Height { get; }
+    byte Height { get; }
 
     /// <summary>
     /// Gets the current tribe.
     /// E.g., Seeker of the Sun, Keeper of the Moon.
     /// </summary>
-    public byte Tribe { get; }
+    byte Tribe { get; }
 
     /// <summary>
     /// Gets the current face (1 to 4).
     /// </summary>
-    public byte Face { get; }
+    byte Face { get; }
 
     /// <summary>
     /// Gets the current hairstyle.
     /// </summary>
-    public byte Hairstyle { get; }
+    byte Hairstyle { get; }
 
     /// <summary>
     /// Gets the current skin color.
     /// </summary>
-    public byte SkinColor { get; }
+    byte SkinColor { get; }
 
     /// <summary>
     /// Gets the current color of the left eye.
     /// </summary>
-    public byte EyeColorLeft { get; }
+    byte EyeColorLeft { get; }
 
     /// <summary>
     /// Gets the current color of the right eye.
     /// </summary>
-    public byte EyeColorRight { get; }
+    byte EyeColorRight { get; }
 
     /// <summary>
     /// Gets the current main hair color.
     /// </summary>
-    public byte HairColor { get; }
+    byte HairColor { get; }
 
     /// <summary>
     /// Gets the current highlight hair color.
     /// </summary>
-    public byte HighlightsColor { get; }
+    byte HighlightsColor { get; }
 
     /// <summary>
     /// Gets the current tattoo color.
     /// </summary>
-    public byte TattooColor { get; }
+    byte TattooColor { get; }
 
     /// <summary>
     /// Gets the current eyebrow type.
     /// </summary>
-    public byte Eyebrows { get; }
+    byte Eyebrows { get; }
 
     /// <summary>
     /// Gets the current nose type.
     /// </summary>
-    public byte Nose { get; }
+    byte Nose { get; }
 
     /// <summary>
     /// Gets the current jaw type.
     /// </summary>
-    public byte Jaw { get; }
+    byte Jaw { get; }
 
     /// <summary>
     /// Gets the current lip color fur pattern.
     /// </summary>
-    public byte LipColorFurPattern { get; }
+    byte LipColorFurPattern { get; }
 
     /// <summary>
     /// Gets the current muscle mass value.
     /// </summary>
-    public byte MuscleMass { get; }
+    byte MuscleMass { get; }
 
     /// <summary>
     /// Gets the current tail type (1 to 4).
     /// </summary>
-    public byte TailShape { get; }
+    byte TailShape { get; }
 
     /// <summary>
     /// Gets the current bust size (0 to 100).
     /// </summary>
-    public byte BustSize { get; }
+    byte BustSize { get; }
 
     /// <summary>
     /// Gets the current color of the face paint.
     /// </summary>
-    public byte FacePaintColor { get; }
+    byte FacePaintColor { get; }
 
     /// <summary>
     /// Gets a value indicating whether highlight color is used.
     /// </summary>
-    public bool Highlights { get; }
+    bool Highlights { get; }
 
     /// <summary>
     /// Gets a value indicating whether this facial feature is used.
     /// </summary>
-    public bool FacialFeature1 { get; }
+    bool FacialFeature1 { get; }
 
     /// <inheritdoc cref="FacialFeature1"/>
-    public bool FacialFeature2 { get; }
+    bool FacialFeature2 { get; }
 
     /// <inheritdoc cref="FacialFeature1"/>
-    public bool FacialFeature3 { get; }
+    bool FacialFeature3 { get; }
 
     /// <inheritdoc cref="FacialFeature1"/>
-    public bool FacialFeature4 { get; }
+    bool FacialFeature4 { get; }
 
     /// <inheritdoc cref="FacialFeature1"/>
-    public bool FacialFeature5 { get; }
+    bool FacialFeature5 { get; }
 
     /// <inheritdoc cref="FacialFeature1"/>
-    public bool FacialFeature6 { get; }
+    bool FacialFeature6 { get; }
 
     /// <inheritdoc cref="FacialFeature1"/>
-    public bool FacialFeature7 { get; }
+    bool FacialFeature7 { get; }
 
     /// <summary>
     /// Gets a value indicating whether the legacy tattoo is used.
     /// </summary>
-    public bool LegacyTattoo { get; }
+    bool LegacyTattoo { get; }
 
     /// <summary>
     /// Gets the current eye shape type.
     /// </summary>
-    public byte EyeShape { get; }
+    byte EyeShape { get; }
 
     /// <summary>
     /// Gets a value indicating whether small iris is used.
     /// </summary>
-    public bool SmallIris { get; }
+    bool SmallIris { get; }
 
     /// <summary>
     /// Gets the current mouth type.
     /// </summary>
-    public byte Mouth { get; }
+    byte Mouth { get; }
 
     /// <summary>
     /// Gets a value indicating whether lipstick is used.
     /// </summary>
-    public bool Lipstick { get; }
+    bool Lipstick { get; }
 
     /// <summary>
     /// Gets the current face paint type.
     /// </summary>
-    public byte FacePaint { get; }
+    byte FacePaint { get; }
 
     /// <summary>
     /// Gets a value indicating whether face paint reversed is used.
     /// </summary>
-    public bool FacePaintReversed { get; }
+    bool FacePaintReversed { get; }
 }
 
 /// <inheritdoc/>

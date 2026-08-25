@@ -19,22 +19,22 @@ public interface IDataManager : IDalamudService
     /// <summary>
     /// Gets the current game client language.
     /// </summary>
-    public ClientLanguage Language { get; }
+    ClientLanguage Language { get; }
 
     /// <summary>
     /// Gets a <see cref="Lumina"/> object which gives access to any excel/game data.
     /// </summary>
-    public GameData GameData { get; }
+    GameData GameData { get; }
 
     /// <summary>
     /// Gets an <see cref="ExcelModule"/> object which gives access to any of the game's sheet data.
     /// </summary>
-    public ExcelModule Excel { get; }
+    ExcelModule Excel { get; }
 
     /// <summary>
     /// Gets a value indicating whether the game data files have been modified by another third-party tool.
     /// </summary>
-    public bool HasModifiedGameDataFiles { get; }
+    bool HasModifiedGameDataFiles { get; }
 
     /// <summary>
     /// Get an <see cref="ExcelSheet{T}"/> with the given Excel sheet row type.
@@ -52,7 +52,7 @@ public interface IDataManager : IDalamudService
     /// <exception cref="MismatchedColumnHashException">Sheet had a mismatched column hash.</exception>
     /// <exception cref="UnsupportedLanguageException">Sheet does not support <paramref name="language" /> nor <see cref="Language.None"/>.</exception>
     /// <exception cref="NotSupportedException">Sheet was not a <see cref="ExcelVariant.Default"/>.</exception>
-    public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelRow<T>;
+    ExcelSheet<T> GetExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelRow<T>;
 
     /// <summary>
     /// Get a <see cref="SubrowExcelSheet{T}"/> with the given Excel sheet row type.
@@ -70,14 +70,14 @@ public interface IDataManager : IDalamudService
     /// <exception cref="MismatchedColumnHashException">Sheet had a mismatched column hash.</exception>
     /// <exception cref="UnsupportedLanguageException">Sheet does not support <paramref name="language" /> nor <see cref="Language.None"/>.</exception>
     /// <exception cref="NotSupportedException">Sheet was not a <see cref="ExcelVariant.Subrows"/>.</exception>
-    public SubrowExcelSheet<T> GetSubrowExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelSubrow<T>;
+    SubrowExcelSheet<T> GetSubrowExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelSubrow<T>;
 
     /// <summary>
     /// Get a <see cref="FileResource"/> with the given path.
     /// </summary>
     /// <param name="path">The path inside of the game files.</param>
     /// <returns>The <see cref="FileResource"/> of the file.</returns>
-    public FileResource? GetFile(string path);
+    FileResource? GetFile(string path);
 
     /// <summary>
     /// Get a <see cref="FileResource"/> with the given path, of the given type.
@@ -85,7 +85,7 @@ public interface IDataManager : IDalamudService
     /// <typeparam name="T">The type of resource.</typeparam>
     /// <param name="path">The path inside of the game files.</param>
     /// <returns>The <see cref="FileResource"/> of the file.</returns>
-    public T? GetFile<T>(string path) where T : FileResource;
+    T? GetFile<T>(string path) where T : FileResource;
 
     /// <summary>
     /// Get a <see cref="FileResource"/> with the given path, of the given type.
@@ -95,12 +95,12 @@ public interface IDataManager : IDalamudService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the <see cref="FileResource"/> of the file on success.
     /// </returns>
-    public Task<T> GetFileAsync<T>(string path, CancellationToken cancellationToken) where T : FileResource;
+    Task<T> GetFileAsync<T>(string path, CancellationToken cancellationToken) where T : FileResource;
 
     /// <summary>
     /// Check if the file with the given path exists within the game's index files.
     /// </summary>
     /// <param name="path">The path inside of the game files.</param>
     /// <returns>True if the file exists.</returns>
-    public bool FileExists(string path);
+    bool FileExists(string path);
 }

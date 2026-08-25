@@ -18,6 +18,11 @@ internal static class SignatureHelper
 {
     private const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
+    private static readonly MethodInfo CreateHookMethod =
+        typeof(SignatureHelper).GetMethod(nameof(CreateHook), BindingFlags.Static | BindingFlags.NonPublic)!;
+
+    private delegate IDalamudHook HookCreator(IntPtr address, Delegate detour, Assembly? callingAssembly);
+
     /// <summary>
     /// Initializes an object's fields and properties that are annotated with a
     /// <see cref="SignatureAttribute"/>.
@@ -152,14 +157,8 @@ internal static class SignatureHelper
                         detour = del;
                     }
 
-                    var creator = actualType.GetMethod("FromAddress", BindingFlags.Static | BindingFlags.NonPublic);
-                    if (creator == null)
-                    {
-                        Log.Error("Error in SignatureHelper: could not find Hook creator");
-                        continue;
-                    }
-
-                    var hook = creator.Invoke(null, [ptr, detour, false, callingAssembly]) as IDalamudHook;
+                    var creator = CreateHookMethod.MakeGenericMethod(hookDelegateType).CreateDelegate<HookCreator>();
+                    var hook = creator(ptr, detour, callingAssembly);
                     info.SetValue(self, hook);
                     createdHooks.Add(hook);
 
@@ -189,4 +188,8 @@ internal static class SignatureHelper
 
         return createdHooks;
     }
+
+    private static IDalamudHook CreateHook<T>(IntPtr address, Delegate detour, Assembly? callingAssembly)
+        where T : Delegate
+        => Hook<T>.FromAddress(address, (T)detour, callingAssembly: callingAssembly);
 }

@@ -44,7 +44,7 @@ public static class DateTimeSpanExtensions
                 _ => Region0CultureInfo,
             };
         }
-        
+
         return when.ToString("G", culture);
     }
 

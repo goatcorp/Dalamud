@@ -7,7 +7,6 @@ using Dalamud.Game.Gui;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using FFXIVClientStructs.Interop;
 
 using Lumina.Excel.Sheets;
 

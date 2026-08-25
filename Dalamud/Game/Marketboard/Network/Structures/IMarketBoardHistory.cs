@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Dalamud.Game.Network.Structures;
 
@@ -10,12 +10,12 @@ public interface IMarketBoardHistory
     /// <summary>
     /// Gets the item ID.
     /// </summary>
-    public uint ItemId { get; }
+    uint ItemId { get; }
 
     /// <summary>
     /// Gets the list of individual item history listings.
     /// </summary>
-    public IReadOnlyList<IMarketBoardHistoryListing> HistoryListings { get; }
+    IReadOnlyList<IMarketBoardHistoryListing> HistoryListings { get; }
 }
 
 /// <summary>
@@ -26,30 +26,30 @@ public interface IMarketBoardHistoryListing
     /// <summary>
     /// Gets the buyer's name.
     /// </summary>
-    public string BuyerName { get; }
+    string BuyerName { get; }
 
     /// <summary>
     /// Gets a value indicating whether the item is HQ.
     /// </summary>
-    public bool IsHq { get; }
+    bool IsHq { get; }
 
     /// <summary>
     /// Gets a value indicating whether the item is on a mannequin.
     /// </summary>
-    public bool OnMannequin { get; }
+    bool OnMannequin { get; }
 
     /// <summary>
     /// Gets the time of purchase.
     /// </summary>
-    public DateTime PurchaseTime { get; }
+    DateTime PurchaseTime { get; }
 
     /// <summary>
     /// Gets the quantity.
     /// </summary>
-    public uint Quantity { get; }
+    uint Quantity { get; }
 
     /// <summary>
     /// Gets the sale price.
     /// </summary>
-    public uint SalePrice { get; }
+    uint SalePrice { get; }
 }

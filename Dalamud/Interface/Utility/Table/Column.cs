@@ -4,7 +4,7 @@ namespace Dalamud.Interface.Utility.Table;
 
 public class Column<TItem>
 {
-    public string                Label = string.Empty;
+    public string Label = string.Empty;
     public ImGuiTableColumnFlags Flags = ImGuiTableColumnFlags.NoResize;
 
     public virtual float Width

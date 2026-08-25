@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface.ManagedFontAtlas;
+namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>
 /// How to rebuild <see cref="IFontAtlas"/>.

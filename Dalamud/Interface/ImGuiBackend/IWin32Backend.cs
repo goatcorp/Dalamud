@@ -11,5 +11,5 @@ internal interface IWin32Backend : IImGuiBackend
     /// <param name="wParam">wParam.</param>
     /// <param name="lParam">lParam.</param>
     /// <returns>Return value.</returns>
-    public nint? ProcessWndProcW(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
+    nint? ProcessWndProcW(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
 }

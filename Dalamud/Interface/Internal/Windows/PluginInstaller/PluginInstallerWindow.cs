@@ -630,36 +630,36 @@ internal class PluginInstallerWindow : Window, IDisposable
                     ImGuiHelpers.CenteredText("Installing plugin...");
                     break;
                 case LoadingIndicatorKind.Manager:
+                {
+                    if (pluginManager.PluginsReady && !pluginManager.ReposReady)
                     {
-                        if (pluginManager.PluginsReady && !pluginManager.ReposReady)
-                        {
-                            ImGuiHelpers.CenteredText("Loading repositories...");
-                            ImGuiHelpers.ScaledDummy(10);
+                        ImGuiHelpers.CenteredText("Loading repositories...");
+                        ImGuiHelpers.ScaledDummy(10);
 
-                            DrawProgressBar(pluginManager.Repos, x => x.State != PluginRepositoryState.Success &&
-                                                                      x.State != PluginRepositoryState.Fail &&
-                                                                      x.IsEnabled,
-                                            x => x.IsEnabled,
-                                            x => ImGuiHelpers.CenteredText($"Loading {x.PluginMasterUrl}"));
-                        }
-                        else if (!pluginManager.PluginsReady && pluginManager.ReposReady)
-                        {
-                            ImGuiHelpers.CenteredText("Loading installed plugins...");
-                            ImGuiHelpers.ScaledDummy(10);
-
-                            DrawProgressBar(pluginManager.InstalledPlugins, x => x.State == PluginState.Loading,
-                                            x => x.State is PluginState.Loaded or
-                                                     PluginState.LoadError or
-                                                     PluginState.Loading,
-                                            x => ImGuiHelpers.CenteredText($"Loading {x.Name}"));
-                        }
-                        else
-                        {
-                            ImGuiHelpers.CenteredText("Loading repositories and plugins...");
-                        }
+                        DrawProgressBar(pluginManager.Repos, x => x.State != PluginRepositoryState.Success &&
+                                                                  x.State != PluginRepositoryState.Fail &&
+                                                                  x.IsEnabled,
+                                        x => x.IsEnabled,
+                                        x => ImGuiHelpers.CenteredText($"Loading {x.PluginMasterUrl}"));
                     }
+                    else if (!pluginManager.PluginsReady && pluginManager.ReposReady)
+                    {
+                        ImGuiHelpers.CenteredText("Loading installed plugins...");
+                        ImGuiHelpers.ScaledDummy(10);
 
-                    break;
+                        DrawProgressBar(pluginManager.InstalledPlugins, x => x.State == PluginState.Loading,
+                                        x => x.State is PluginState.Loaded or
+                                                 PluginState.LoadError or
+                                                 PluginState.Loading,
+                                        x => ImGuiHelpers.CenteredText($"Loading {x.Name}"));
+                    }
+                    else
+                    {
+                        ImGuiHelpers.CenteredText("Loading repositories and plugins...");
+                    }
+                }
+
+                break;
                 case LoadingIndicatorKind.ProfilesLoading:
                     ImGuiHelpers.CenteredText("Collections are being applied...");
                     break;
@@ -1556,7 +1556,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var configuration = Service<DalamudConfiguration>.Get();
         var favoriteList = configuration.FavoritePluginInternalName;
         var filteredList = pluginList
-                           // Filter out plugins that don't match the search if any
+                          // Filter out plugins that don't match the search if any
                           .Where(plugin => !this.IsManifestFiltered(plugin.Manifest))
                           .Where(plugin => !applyPluginFilters || !this.IsInstalledPluginFiltered(plugin, false))
                           .ToList();
@@ -3247,6 +3247,22 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             ImGui.Separator();
 
+            // Open plugin folder
+            if (configuration.DevMode == true && ImGui.MenuItem(Locs.PluginContext_OpenPluginFolder))
+                Util.OpenLink(plugin.DllFile.Directory.ToString());
+
+            // Open config file
+            var configFile = pluginManager.PluginConfigs.GetConfigFile(plugin.InternalName);
+            if (configFile.Exists && ImGui.MenuItem(Locs.PluginContext_OpenConfigFile))
+                Util.OpenLink(configFile.ToString());
+
+            // Open config folder
+            var configDir = pluginManager.PluginConfigs.GetConfigDirectory(plugin.InternalName);
+            if (configDir.Exists && ImGui.MenuItem(Locs.PluginContext_OpenConfigFolder))
+                Util.OpenLink(configDir.ToString());
+
+            ImGui.Separator();
+
             if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
             {
                 this.ShowDeletePluginConfigWarningModal(plugin.Manifest.Name, optIn != null).ContinueWith(t =>
@@ -3375,7 +3391,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         var inSingleNonDefaultProfileWhichDoesNotWantActive =
             isInSingleProfile && !profilesThatWantThisPlugin.First().CheckWantsActiveFromGameState(Service<PlayerState>.Get().ContentId);
 
-        if (plugin.State is PluginState.UnloadError or PluginState.LoadError or PluginState.DependencyResolutionFailed && config.DevMode.GetValueOrDefault(false) && !plugin.IsOutdated)
+        // Plugins in LoadError have a working toggle to allow for manual retries
+        if (plugin.State is PluginState.UnloadError or PluginState.DependencyResolutionFailed && config.DevMode.GetValueOrDefault(false) && !plugin.IsOutdated)
         {
             ImGuiComponents.DisabledToggleButton(toggleId, false);
 
@@ -4500,6 +4517,12 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginContext_PinPlugin => Loc.Localize("InstallerPinPlugin", "Pin to top");
 
         public static string PluginContext_UnpinPlugin => Loc.Localize("InstallerUnpinPlugin", "Unpin from top");
+
+        public static string PluginContext_OpenConfigFile => Loc.Localize("InstallerOpenConfigFile", "Open config file");
+
+        public static string PluginContext_OpenConfigFolder => Loc.Localize("InstallerOpenConfigFolder", "Open config folder");
+
+        public static string PluginContext_OpenPluginFolder => Loc.Localize("InstallerOpenPluginFolder", "Open plugin folder");
 
         #endregion
 

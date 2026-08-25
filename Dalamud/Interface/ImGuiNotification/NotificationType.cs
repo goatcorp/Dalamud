@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface.ImGuiNotification;
+namespace Dalamud.Interface.ImGuiNotification;
 
 /// <summary>Possible notification types.</summary>
 public enum NotificationType

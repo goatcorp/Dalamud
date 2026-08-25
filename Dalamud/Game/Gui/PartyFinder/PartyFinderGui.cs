@@ -2,12 +2,11 @@ using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.Game.Network;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-
-using Serilog;
 
 namespace Dalamud.Game.Gui.PartyFinder;
 
@@ -17,6 +16,8 @@ namespace Dalamud.Game.Gui.PartyFinder;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class PartyFinderGui : IInternalDisposableService, IPartyFinderGui
 {
+    private static readonly ModuleLog Log = ModuleLog.Create<PartyFinderGui>();
+
     private readonly Hook<InfoProxyCrossRealm.Delegates.ReceiveListing> receiveListingHook;
 
     /// <summary>

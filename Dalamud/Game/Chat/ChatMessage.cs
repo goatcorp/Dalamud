@@ -3,7 +3,6 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
-using FFXIVClientStructs.Interop;
 
 using Lumina.Text.ReadOnly;
 

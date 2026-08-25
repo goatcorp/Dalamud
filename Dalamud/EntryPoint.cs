@@ -14,13 +14,18 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Support;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
+
 using Newtonsoft.Json;
+
 using Reloaded.Hooks;
 using Reloaded.Hooks.Definitions;
+
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 

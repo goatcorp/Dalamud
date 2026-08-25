@@ -15,7 +15,7 @@ public interface IGameInteropProvider : IDalamudService
     /// <summary>
     /// Available hooking backends.
     /// </summary>
-    public enum HookBackend
+    enum HookBackend
     {
         /// <summary>
         /// Choose the best backend automatically.
@@ -25,12 +25,14 @@ public interface IGameInteropProvider : IDalamudService
         /// <summary>
         /// Use Reloaded hooks.
         /// </summary>
+        [Obsolete("Backend selection is no longer supported and will be removed. Please do not specify a backend.")]
         Reloaded,
 
         /// <summary>
         /// Use MinHook.
         /// You should never have to use this without talking to us first.
         /// </summary>
+        [Obsolete("Backend selection is no longer supported and will be removed. Please do not specify a backend.")]
         MinHook,
     }
 
@@ -41,7 +43,7 @@ public interface IGameInteropProvider : IDalamudService
     /// Errors for fallible signatures will be logged.
     /// </summary>
     /// <param name="self">The object to initialize.</param>
-    public void InitializeFromAttributes(object self);
+    void InitializeFromAttributes(object self);
 
     /// <summary>
     /// Creates a hook by replacing the original address with an address pointing to a newly created jump to the detour.
@@ -50,7 +52,7 @@ public interface IGameInteropProvider : IDalamudService
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    public Hook<T> HookFromFunctionPointerVariable<T>(nint address, T detour) where T : Delegate;
+    Hook<T> HookFromFunctionPointerVariable<T>(nint address, T detour) where T : Delegate;
 
     /// <summary>
     /// Creates a hook by rewriting import table address.
@@ -62,7 +64,7 @@ public interface IGameInteropProvider : IDalamudService
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    public Hook<T> HookFromImport<T>(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour) where T : Delegate;
+    Hook<T> HookFromImport<T>(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour) where T : Delegate;
 
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.

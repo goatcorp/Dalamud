@@ -1,4 +1,4 @@
-﻿using Dalamud.IoC;
+using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;

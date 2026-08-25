@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.ClientState.JobGauge.Enums;
+namespace Dalamud.Game.ClientState.JobGauge.Enums;
 
 /// <summary>
 /// Enum representing the current attunement of a  summoner.

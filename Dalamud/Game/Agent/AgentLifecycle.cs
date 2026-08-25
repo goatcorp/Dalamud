@@ -276,11 +276,11 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
             return;
         }
 
-        foreach (uint index in Enumerable.Range(0, agentModule->Agents.Length))
+        foreach (var index in Enumerable.Range(0, agentModule->Agents.Length))
         {
             try
             {
-                var agentPointer = agentModule->Agents.GetPointer((int)index);
+                var agentPointer = agentModule->Agents.GetPointer(index);
 
                 if (agentPointer is null)
                 {

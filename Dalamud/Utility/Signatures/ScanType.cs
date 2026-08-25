@@ -1,4 +1,4 @@
-﻿using Dalamud.Game;
+using Dalamud.Game;
 
 namespace Dalamud.Utility.Signatures;
 

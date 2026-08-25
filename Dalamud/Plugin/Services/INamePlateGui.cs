@@ -14,7 +14,7 @@ public interface INamePlateGui : IDalamudService
     /// </summary>
     /// <param name="context">An object containing information about the pending data update.</param>
     /// <param name="handlers>">A list of handlers used for updating nameplate data.</param>
-    public delegate void OnPlateUpdateDelegate(
+    delegate void OnPlateUpdateDelegate(
         INamePlateUpdateContext context, IReadOnlyList<INamePlateUpdateHandler> handlers);
 
     /// <summary>
