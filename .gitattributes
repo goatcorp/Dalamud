@@ -3,6 +3,11 @@
 ###############################################################################
 * text=auto eol=lf
 
+# nuke always writes files as CRLF (on Windows, at least), so we'll just force
+# it so git isn't consistently upset.
+.nuke/build.schema.json eol=crlf
+
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #
