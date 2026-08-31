@@ -5,6 +5,7 @@ using System.Threading;
 
 using Dalamud.Game.Agent.AgentArgTypes;
 using Dalamud.Logging.Internal;
+using Dalamud.NativeUi.Extensions;
 
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -70,7 +71,7 @@ internal unsafe class AgentVirtualTable : IDisposable
         // Create copy of original table
         // Note this will copy any derived/overriden functions that this specific agent has.
         // Note: currently there are 16 virtual functions, but there's no harm in copying more for when they add new virtual functions to the game
-        this.ModifiedVirtualTable = (AgentInterface.AgentInterfaceVirtualTable*)IMemorySpace.GetUISpace()->Malloc(0x8 * VirtualTableEntryCount, 8);
+        this.ModifiedVirtualTable = (AgentInterface.AgentInterfaceVirtualTable*)IMemorySpace.GetUISpace()->AllocateZeroedArray<nint>(VirtualTableEntryCount);
         NativeMemory.Copy(agent->VirtualTable, this.ModifiedVirtualTable, 0x8 * VirtualTableEntryCount);
 
         // Overwrite the agents existing virtual table with our own
