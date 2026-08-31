@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures;

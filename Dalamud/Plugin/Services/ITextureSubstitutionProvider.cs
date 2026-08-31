@@ -13,19 +13,19 @@ public interface ITextureSubstitutionProvider : IDalamudService
     /// </summary>
     /// <param name="path">The path to the texture that is to be loaded.</param>
     /// <param name="replacementPath">The path that should be loaded instead.</param>
-    public delegate void TextureDataInterceptorDelegate(string path, ref string? replacementPath);
+    delegate void TextureDataInterceptorDelegate(string path, ref string? replacementPath);
 
     /// <summary>
     /// Event that will be called once Dalamud wants to load texture data.
     /// </summary>
-    public event TextureDataInterceptorDelegate? InterceptTexDataLoad;
+    event TextureDataInterceptorDelegate? InterceptTexDataLoad;
 
     /// <summary>
     /// Get a path that may be substituted by a subscriber to ITextureSubstitutionProvider.
     /// </summary>
     /// <param name="originalPath">The original path to substitute.</param>
     /// <returns>The original path, if no subscriber is registered or there is no substitution, or the substituted path.</returns>
-    public string GetSubstitutedPath(string originalPath);
+    string GetSubstitutedPath(string originalPath);
 
     /// <summary>
     /// Notify Dalamud about substitution status for files at the specified VFS paths changing.
@@ -36,5 +36,5 @@ public interface ITextureSubstitutionProvider : IDalamudService
     /// <remarks>
     /// This function will not invalidate the copies of the textures loaded from plugins.
     /// </remarks>
-    public void InvalidatePaths(IEnumerable<string> paths);
+    void InvalidatePaths(IEnumerable<string> paths);
 }

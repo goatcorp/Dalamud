@@ -81,7 +81,7 @@ internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
 
         if (!Windows.Win32.PInvoke.VirtualProtect(
                 this.Address.ToPointer(),
-                (UIntPtr)Marshal.SizeOf<IntPtr>(),
+                (nuint)nuint.Size,
                 PAGE_PROTECTION_FLAGS.PAGE_EXECUTE_READWRITE,
                 out var oldProtect))
         {
@@ -94,7 +94,7 @@ internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
         Marshal.WriteIntPtr(this.Address, this.pfnThunk);
 
         // This really should not fail, but then even if it does, whatever.
-        Windows.Win32.PInvoke.VirtualProtect(this.Address.ToPointer(), (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
+        Windows.Win32.PInvoke.VirtualProtect(this.Address.ToPointer(), (nuint)nuint.Size, oldProtect, out _);
 
         // Add afterwards, so the hookIdent starts at 0.
         indexList.Add(this);

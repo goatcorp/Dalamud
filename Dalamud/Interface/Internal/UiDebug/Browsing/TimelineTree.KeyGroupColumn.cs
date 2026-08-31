@@ -13,19 +13,19 @@ public readonly partial struct TimelineTree
     public interface IKeyGroupColumn
     {
         /// <summary>Gets the column's name/heading.</summary>
-        public string Name { get; }
+        string Name { get; }
 
         /// <summary>Gets the number of cells in the column.</summary>
-        public int Count { get; }
+        int Count { get; }
 
         /// <summary>Gets the column's width.</summary>
-        public float Width { get; }
+        float Width { get; }
 
         /// <summary>
         /// Calls this column's print function for a given row.
         /// </summary>
         /// <param name="i">The row number.</param>
-        public void PrintValueAt(int i);
+        void PrintValueAt(int i);
     }
 
     /// <summary>

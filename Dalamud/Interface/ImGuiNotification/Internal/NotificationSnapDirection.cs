@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface.ImGuiNotification.Internal;
+namespace Dalamud.Interface.ImGuiNotification.Internal;
 
 /// <summary>
 /// Where notifications should snap to on the screen when they are shown.

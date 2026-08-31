@@ -24,10 +24,10 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
 
     public override bool DrawFilter()
     {
-        using var id    = ImRaii.PushId(this.FilterLabel);
+        using var id = ImRaii.PushId(this.FilterLabel);
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 0);
         ImGui.SetNextItemWidth(-Table.ArrowWidth * ImGuiHelpers.GlobalScale);
-        var       all   = this.FilterValue.HasFlag(this.AllFlags);
+        var all = this.FilterValue.HasFlag(this.AllFlags);
         using var color = ImRaii.PushColor(ImGuiCol.FrameBg, 0x803030A0, !all);
         using var combo = ImRaii.Combo(string.Empty, this.Label, ImGuiComboFlags.NoArrowButton);
 

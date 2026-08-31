@@ -15,17 +15,17 @@ public interface IGamepadState : IDalamudService
     /// <summary>
     /// Gets the pointer to the current instance of the GamepadInput struct.
     /// </summary>
-    public nint GamepadInputAddress { get; }
+    nint GamepadInputAddress { get; }
 
     /// <summary>
     /// Gets the left analogue sticks tilt vector.
     /// </summary>
-    public Vector2 LeftStick { get; }
+    Vector2 LeftStick { get; }
 
     /// <summary>
     /// Gets the right analogue sticks tilt vector.
     /// </summary>
-    public Vector2 RightStick { get; }
+    Vector2 RightStick { get; }
 
     /// <summary>
     /// Gets whether <paramref name="button"/> has been pressed.
@@ -35,7 +35,7 @@ public interface IGamepadState : IDalamudService
     /// </summary>
     /// <param name="button">The button to check for.</param>
     /// <returns>1 if pressed, 0 otherwise.</returns>
-    public float Pressed(GamepadButtons button);
+    float Pressed(GamepadButtons button);
 
     /// <summary>
     /// Gets whether <paramref name="button"/> is being pressed.
@@ -45,7 +45,7 @@ public interface IGamepadState : IDalamudService
     /// </summary>
     /// <param name="button">The button to check for.</param>
     /// <returns>1 if still pressed during interval, 0 otherwise or in between intervals.</returns>
-    public float Repeat(GamepadButtons button);
+    float Repeat(GamepadButtons button);
 
     /// <summary>
     /// Gets whether <paramref name="button"/> has been released.
@@ -55,7 +55,7 @@ public interface IGamepadState : IDalamudService
     /// </summary>
     /// <param name="button">The button to check for.</param>
     /// <returns>1 if released, 0 otherwise.</returns>
-    public float Released(GamepadButtons button);
+    float Released(GamepadButtons button);
 
     /// <summary>
     /// Gets the raw state of <paramref name="button"/>.
@@ -64,5 +64,5 @@ public interface IGamepadState : IDalamudService
     /// </summary>
     /// <param name="button">The button to check for.</param>
     /// <returns>1 the whole time button is pressed, 0 otherwise.</returns>
-    public float Raw(GamepadButtons button);
+    float Raw(GamepadButtons button);
 }

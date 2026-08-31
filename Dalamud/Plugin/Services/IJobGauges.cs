@@ -10,12 +10,12 @@ public interface IJobGauges : IDalamudService
     /// <summary>
     /// Gets the address of the JobGauge data.
     /// </summary>
-    public nint Address { get; }
+    nint Address { get; }
 
     /// <summary>
     /// Get the JobGauge for a given job.
     /// </summary>
     /// <typeparam name="T">A JobGauge struct from ClientState.Structs.JobGauge.</typeparam>
     /// <returns>A JobGauge.</returns>
-    public T Get<T>() where T : JobGaugeBase;
+    T Get<T>() where T : JobGaugeBase;
 }

@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -21,7 +21,7 @@ public static partial class ImRaii
         internal MenuDisposable(ImU8String label)
         {
             this.Success = ImGui.BeginMenu(label);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="MenuDisposable"/> struct. </summary>
@@ -32,7 +32,7 @@ public static partial class ImRaii
         internal MenuDisposable(ImU8String label, bool enabled)
         {
             this.Success = ImGui.BeginMenu(label, enabled);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(MenuDisposable value)

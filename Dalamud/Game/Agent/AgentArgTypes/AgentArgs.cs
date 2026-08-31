@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.NativeWrapper;
+using Dalamud.Game.NativeWrapper;
 
 namespace Dalamud.Game.Agent.AgentArgTypes;
 

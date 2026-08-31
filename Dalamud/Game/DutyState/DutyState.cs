@@ -83,115 +83,115 @@ internal unsafe class DutyState : IInternalDisposableService, IDutyState
             {
                 // Duty Commenced
                 case 0x4000_0001:
+                {
+                    this.IsDutyStarted = true;
+
+                    var args = this.CreateEventArgs(arg1);
+
+                    foreach (var action in Delegate.EnumerateInvocationList(this.DutyStarted))
                     {
-                        this.IsDutyStarted = true;
-
-                        var args = this.CreateEventArgs(arg1);
-
-                        foreach (var action in Delegate.EnumerateInvocationList(this.DutyStarted))
+                        try
                         {
-                            try
-                            {
-                                action(args);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                            }
+                            action(args);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Exception during raise of {handler}", action.Method);
                         }
                     }
+                }
 
-                    break;
+                break;
 
                 // Party Wipe
                 case 0x4000_0005:
+                {
+                    this.IsDutyStarted = false;
+
+                    var args = this.CreateEventArgs(arg1);
+
+                    foreach (var action in Delegate.EnumerateInvocationList(this.DutyWiped))
                     {
-                        this.IsDutyStarted = false;
-
-                        var args = this.CreateEventArgs(arg1);
-
-                        foreach (var action in Delegate.EnumerateInvocationList(this.DutyWiped))
+                        try
                         {
-                            try
-                            {
-                                action(args);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                            }
+                            action(args);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Exception during raise of {handler}", action.Method);
                         }
                     }
+                }
 
-                    break;
+                break;
 
                 // Duty Recommence
                 case 0x4000_0006:
+                {
+                    this.IsDutyStarted = true;
+
+                    var args = this.CreateEventArgs(arg1);
+
+                    foreach (var action in Delegate.EnumerateInvocationList(this.DutyRecommenced))
                     {
-                        this.IsDutyStarted = true;
-
-                        var args = this.CreateEventArgs(arg1);
-
-                        foreach (var action in Delegate.EnumerateInvocationList(this.DutyRecommenced))
+                        try
                         {
-                            try
-                            {
-                                action(args);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                            }
+                            action(args);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Exception during raise of {handler}", action.Method);
                         }
                     }
+                }
 
-                    break;
+                break;
 
                 // Duty Completed Flytext Shown
                 case 0x4000_0002 when !this.CompletedThisTerritory:
+                {
+                    this.IsDutyStarted = false;
+                    this.CompletedThisTerritory = true;
+
+                    var args = this.CreateEventArgs(arg1);
+
+                    foreach (var action in Delegate.EnumerateInvocationList(this.DutyCompleted))
                     {
-                        this.IsDutyStarted = false;
-                        this.CompletedThisTerritory = true;
-
-                        var args = this.CreateEventArgs(arg1);
-
-                        foreach (var action in Delegate.EnumerateInvocationList(this.DutyCompleted))
+                        try
                         {
-                            try
-                            {
-                                action(args);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                            }
+                            action(args);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Exception during raise of {handler}", action.Method);
                         }
                     }
+                }
 
-                    break;
+                break;
 
                 // Duty Completed
                 case 0x4000_0003 when !this.CompletedThisTerritory:
+                {
+                    this.IsDutyStarted = false;
+                    this.CompletedThisTerritory = true;
+
+                    var args = this.CreateEventArgs(arg1);
+
+                    foreach (var action in Delegate.EnumerateInvocationList(this.DutyCompleted))
                     {
-                        this.IsDutyStarted = false;
-                        this.CompletedThisTerritory = true;
-
-                        var args = this.CreateEventArgs(arg1);
-
-                        foreach (var action in Delegate.EnumerateInvocationList(this.DutyCompleted))
+                        try
                         {
-                            try
-                            {
-                                action(args);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                            }
+                            action(args);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Exception during raise of {handler}", action.Method);
                         }
                     }
+                }
 
-                    break;
+                break;
             }
         }
 

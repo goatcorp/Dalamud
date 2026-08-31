@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -19,7 +19,7 @@ public static partial class ImRaii
         public DragDropTargetDisposable()
         {
             this.Success = ImGui.BeginDragDropTarget();
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(DragDropTargetDisposable value)

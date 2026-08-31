@@ -18,34 +18,34 @@ public interface IMenuArgs
     /// Almost always an agent pointer. You can use this to find out what type of context menu it is.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the context menu is not a <see cref="ContextMenuType.Default"/>.</exception>
-    public IReadOnlySet<nint> EventInterfaces { get; }
+    IReadOnlySet<nint> EventInterfaces { get; }
 
     /// <summary>
     /// Gets the name of the addon that opened the context menu.
     /// </summary>
-    public string? AddonName { get; }
+    string? AddonName { get; }
 
     /// <summary>
     /// Gets the memory pointer of the addon that opened the context menu.
     /// </summary>
-    public nint AddonPtr { get; }
+    nint AddonPtr { get; }
 
     /// <summary>
     /// Gets the memory pointer of the agent that opened the context menu.
     /// </summary>
-    public nint AgentPtr { get; }
+    nint AgentPtr { get; }
 
     /// <summary>
     /// Gets the type of the context menu.
     /// </summary>
-    public ContextMenuType MenuType { get; }
+    ContextMenuType MenuType { get; }
 
     /// <summary>
     /// Gets the target info of the context menu. The actual type depends on <see cref="MenuType"/>.
     /// <see cref="ContextMenuType.Default"/> signifies a <see cref="MenuTargetDefault"/>.
     /// <see cref="ContextMenuType.Inventory"/> signifies a <see cref="MenuTargetInventory"/>.
     /// </summary>
-    public MenuTarget Target { get; }
+    MenuTarget Target { get; }
 }
 
 /// <summary>
@@ -93,7 +93,7 @@ internal abstract unsafe class MenuArgs : IMenuArgs
     public MenuTarget Target { get; }
 
     /// <inheritdoc/>
-    public IReadOnlySet<nint> EventInterfaces 
+    public IReadOnlySet<nint> EventInterfaces
     {
         get
         {

@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -18,21 +18,21 @@ public static partial class ImRaii
         internal TabItemDisposable(ImU8String label)
         {
             this.Success = ImGui.BeginTabItem(label);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <inheritdoc cref="TabItemDisposable(ImU8String,ref bool,ImGuiTabItemFlags)"/>
         internal TabItemDisposable(ImU8String label, ImGuiTabItemFlags flags)
         {
             this.Success = ImGui.BeginTabItem(label, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <inheritdoc cref="TabItemDisposable(ImU8String,ref bool,ImGuiTabItemFlags)"/>
         internal TabItemDisposable(ImU8String label, ref bool open)
         {
             this.Success = ImGui.BeginTabItem(label, ref open);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="TabItemDisposable"/> struct. </summary>
@@ -43,7 +43,7 @@ public static partial class ImRaii
         internal TabItemDisposable(ImU8String label, scoped ref bool open, ImGuiTabItemFlags flags)
         {
             this.Success = ImGui.BeginTabItem(label, ref open, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(TabItemDisposable value)

@@ -319,7 +319,7 @@ public static class ColorHelpers
 
         _ => color / 255.0f,
     };
-    
+
     /// <summary>
     /// A struct representing a color using HSVA coordinates.
     /// </summary>

@@ -20,7 +20,7 @@ internal abstract unsafe class ComHookUnwrapper
         if (typeof(T).GetNestedType("Vtbl`1") is not { } vtblType)
             return false;
 
-        nint vtblSize = vtblType.GetFields().Length * sizeof(nint);
+        nint vtblSize = vtblType.GetFields().Length * nint.Size;
         var changed = false;
 
         // Unknown wrapper layouts may contain cycles; stop instead of repeatedly following the same object.
@@ -33,7 +33,7 @@ internal abstract unsafe class ComHookUnwrapper
 
             // Known wrappers store the underlying interface near their vtable pointer.
             var peeled = false;
-            for (nint i = sizeof(nint); i <= 0x20; i += sizeof(nint))
+            for (nint i = nint.Size; i <= 0x20; i += nint.Size)
             {
                 var ppObjectBehind = (nint)comptr->Get() + i;
 
@@ -43,7 +43,7 @@ internal abstract unsafe class ComHookUnwrapper
 
                 var pObjectBehind = *(nint*)ppObjectBehind;
 
-                if (!IsValidReadableMemoryAddress(pObjectBehind, sizeof(nint)))
+                if (!IsValidReadableMemoryAddress(pObjectBehind, nint.Size))
                     continue;
                 var pObjectBehindVtbl = *(nint*)pObjectBehind;
 
@@ -51,7 +51,7 @@ internal abstract unsafe class ComHookUnwrapper
                     continue;
 
                 var valid = true;
-                for (var j = 0; valid && j < vtblSize; j += sizeof(nint))
+                for (var j = 0; valid && j < vtblSize; j += nint.Size)
                     valid &= IsValidExecutableMemoryAddress(*(nint*)(pObjectBehindVtbl + j), 1);
                 if (!valid)
                     continue;

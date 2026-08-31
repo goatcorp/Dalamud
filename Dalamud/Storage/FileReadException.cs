@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Storage;
+namespace Dalamud.Storage;
 
 /// <summary>
 /// Thrown if all read operations fail.

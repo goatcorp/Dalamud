@@ -197,19 +197,19 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
         /// Gets the total tax.
         /// </summary>
         public uint TotalTax { get; internal set; }
-        
+
         /// <summary>
         /// Gets or sets the time this offering was last reviewed.
         /// </summary>
         [Obsolete("Universalis Compatibility, contains a fake value", false)]
         internal DateTime LastReviewTime { get; set; } = DateTime.UtcNow;
-        
+
         /// <summary>
         /// Gets the stain or applied dye of the item.
         /// </summary>
         [Obsolete("Universalis Compatibility, use Stain1Id and Stain2Id", false)]
         internal int StainId => (this.Stain2Id << 8) | this.Stain1Id;
-        
+
         /// <summary>
         /// Gets or sets the player name.
         /// </summary>

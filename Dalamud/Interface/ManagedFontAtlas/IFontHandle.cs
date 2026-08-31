@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
@@ -16,7 +16,7 @@ public interface IFontHandle : IDisposable
     /// </summary>
     /// <param name="fontHandle">The relevant font handle.</param>
     /// <param name="lockedFont">The locked font for this font handle, locked during the call of this delegate.</param>
-    public delegate void ImFontChangedDelegate(IFontHandle fontHandle, ILockedImFont lockedFont);
+    delegate void ImFontChangedDelegate(IFontHandle fontHandle, ILockedImFont lockedFont);
 
     /// <summary>
     /// Called when the built instance of <see cref="ImFontPtr"/> has been changed.<br />

@@ -16,7 +16,7 @@ public interface IAddonLifecycle : IDalamudService
     /// </summary>
     /// <param name="type">The event type that triggered the message.</param>
     /// <param name="args">Information about what addon triggered the message.</param>
-    public delegate void AddonEventDelegate(AddonEvent type, AddonArgs args);
+    delegate void AddonEventDelegate(AddonEvent type, AddonArgs args);
 
     /// <summary>
     /// Register a listener that will trigger on the specified event and any of the specified addons.

@@ -2,15 +2,14 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types;
+using Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders.Universalis.Types;
 using Dalamud.Game.Network.Structures;
+using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 
 using Newtonsoft.Json;
 
-using Serilog;
-
-namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
+namespace Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders.Universalis;
 
 /// <summary>
 /// This class represents an uploader for contributing data to Universalis.
@@ -21,6 +20,8 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
     // private const string ApiBase = "https://127.0.0.1:443";
 
     private const string ApiKey = "GGD6RdSfGyRiHM5WDnAo0Nj9Nv7aC5NDhMj3BebT";
+
+    private static readonly ModuleLog Log = ModuleLog.Create<UniversalisMarketBoardUploader>();
 
     private readonly HttpClient httpClient;
 
@@ -34,10 +35,6 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
     /// <inheritdoc/>
     public async Task Upload(MarketBoardItemRequest request, ulong uploaderId, uint worldId)
     {
-        Log.Verbose("Starting Universalis upload");
-
-        // ====================================================================================
-
         var uploadObject = new UniversalisItemUploadRequest
         {
             WorldId = worldId,
@@ -95,7 +92,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         var uploadPath = "/upload";
         var uploadData = JsonConvert.SerializeObject(uploadObject);
-        Log.Verbose("{ListingPath}: {ListingUpload}", uploadPath, uploadData);
+        Log.Verbose("POST {ListingPath}: {ListingUpload}", uploadPath, uploadData);
         var response = await this.httpClient.PostAsync($"{ApiBase}{uploadPath}/{ApiKey}", new StringContent(uploadData, Encoding.UTF8, "application/json"));
 
         if (response.IsSuccessStatusCode)
@@ -132,7 +129,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         var taxPath = "/upload";
         var taxUpload = JsonConvert.SerializeObject(taxUploadObject);
-        Log.Verbose("{TaxPath}: {TaxUpload}", taxPath, taxUpload);
+        Log.Verbose("POST {TaxPath}: {TaxUpload}", taxPath, taxUpload);
 
         await this.httpClient.PostAsync($"{ApiBase}{taxPath}/{ApiKey}", new StringContent(taxUpload, Encoding.UTF8, "application/json"));
 
@@ -164,7 +161,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         var deletePath = $"/api/{worldId}/{itemId}/delete";
         var deleteListing = JsonConvert.SerializeObject(deleteListingObject);
-        Log.Verbose("{DeletePath}: {DeleteListing}", deletePath, deleteListing);
+        Log.Verbose("POST {DeletePath}: {DeleteListing}", deletePath, deleteListing);
 
         var content = new StringContent(deleteListing, Encoding.UTF8, "application/json");
         var message = new HttpRequestMessage(HttpMethod.Post, $"{ApiBase}{deletePath}");

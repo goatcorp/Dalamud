@@ -13,8 +13,6 @@ using Lumina.Excel.Sheets;
 
 using Newtonsoft.Json;
 
-using LSeStringBuilder = Lumina.Text.SeStringBuilder;
-
 namespace Dalamud.Game.Text.SeStringHandling;
 
 /// <summary>

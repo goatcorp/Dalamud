@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 
@@ -20,21 +20,21 @@ public static partial class ImRaii
         internal TableDisposable(ImU8String id, int columns)
         {
             this.Success = ImGui.BeginTable(id, columns);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <inheritdoc cref="TableDisposable(ImU8String,int,ImGuiTableFlags,Vector2,float)"/>
         internal TableDisposable(ImU8String id, int columns, ImGuiTableFlags flags)
         {
             this.Success = ImGui.BeginTable(id, columns, flags);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <inheritdoc cref="TableDisposable(ImU8String,int,ImGuiTableFlags,Vector2,float)"/>
         internal TableDisposable(ImU8String id, int columns, ImGuiTableFlags flags, Vector2 outerSize)
         {
             this.Success = ImGui.BeginTable(id, columns, flags, outerSize);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="TableDisposable"/> struct. </summary>
@@ -55,7 +55,7 @@ public static partial class ImRaii
         internal TableDisposable(ImU8String id, int columns, ImGuiTableFlags flags, Vector2 outerSize, float innerWidth)
         {
             this.Success = ImGui.BeginTable(id, columns, flags, outerSize, innerWidth);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(TableDisposable value)

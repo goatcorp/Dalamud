@@ -9,7 +9,7 @@ public enum DalamudAssetPurpose
     /// The asset has no purpose, and is not valid and/or not accessible.
     /// </summary>
     Empty = 0,
-    
+
     /// <summary>
     /// The asset is a .png file, and can be purposed as a <see cref="TerraFX.Interop.DirectX.ID3D11Texture2D"/>.
     /// </summary>

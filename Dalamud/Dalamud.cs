@@ -14,7 +14,9 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using Serilog;
+
 using Windows.Win32.Foundation;
 using Windows.Win32.Security;
 

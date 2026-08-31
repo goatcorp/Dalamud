@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 using Dalamud.Hooking;
 using Dalamud.Logging.Internal;

@@ -10,7 +10,7 @@ public interface IReadOnlyCommandInfo
     /// </summary>
     /// <param name="command">The command itself.</param>
     /// <param name="arguments">The arguments supplied to the command, ready for parsing.</param>
-    public delegate void HandlerDelegate(string command, string arguments);
+    delegate void HandlerDelegate(string command, string arguments);
 
     /// <summary>
     /// Gets a <see cref="HandlerDelegate"/> which will be called when the command is dispatched.

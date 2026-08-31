@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface;
+namespace Dalamud.Interface;
 
 /// <summary>
 /// Set search terms associated with a font awesome icon.

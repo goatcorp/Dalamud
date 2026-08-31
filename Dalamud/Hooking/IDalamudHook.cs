@@ -8,20 +8,20 @@ public interface IDalamudHook : IDisposable
     /// <summary>
     /// Gets the address to hook.
     /// </summary>
-    public IntPtr Address { get; }
+    IntPtr Address { get; }
 
     /// <summary>
     /// Gets a value indicating whether the hook is enabled.
     /// </summary>
-    public bool IsEnabled { get; }
+    bool IsEnabled { get; }
 
     /// <summary>
     /// Gets a value indicating whether the hook is disposed.
     /// </summary>
-    public bool IsDisposed { get; }
+    bool IsDisposed { get; }
 
     /// <summary>
     /// Gets the name of the hooking backend used for the hook.
     /// </summary>
-    public string BackendName { get; }
+    string BackendName { get; }
 }

@@ -459,7 +459,7 @@ public enum BitmapFontIcon : uint
     /// The Island Sanctuary icon.
     /// </summary>
     IslandSanctuary = 116,
-    
+
     /// <summary>
     /// The Physical Damage icon.
     /// </summary>

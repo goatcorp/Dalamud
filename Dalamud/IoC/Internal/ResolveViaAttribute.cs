@@ -1,4 +1,4 @@
-﻿namespace Dalamud.IoC.Internal;
+namespace Dalamud.IoC.Internal;
 
 /// <summary>
 /// Indicates that an interface a service can implement can be used to resolve that service.

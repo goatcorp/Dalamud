@@ -12,14 +12,14 @@ public interface ICommandManager : IDalamudService
     /// <summary>
     /// Gets a read-only list of all registered commands.
     /// </summary>
-    public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands { get; }
+    ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands { get; }
 
     /// <summary>
     /// Process a command in full.
     /// </summary>
     /// <param name="content">The full command string.</param>
     /// <returns>True if the command was found and dispatched.</returns>
-    public bool ProcessCommand(string content);
+    bool ProcessCommand(string content);
 
     /// <summary>
     /// Dispatch the handling of a command.
@@ -27,7 +27,7 @@ public interface ICommandManager : IDalamudService
     /// <param name="command">The command to dispatch.</param>
     /// <param name="argument">The provided arguments.</param>
     /// <param name="info">A <see cref="CommandInfo"/> object describing this command.</param>
-    public void DispatchCommand(string command, string argument, IReadOnlyCommandInfo info);
+    void DispatchCommand(string command, string argument, IReadOnlyCommandInfo info);
 
     /// <summary>
     /// Add a command handler, which you can use to add your own custom commands to the in-game chat.
@@ -35,12 +35,12 @@ public interface ICommandManager : IDalamudService
     /// <param name="command">The command to register.</param>
     /// <param name="info">A <see cref="CommandInfo"/> object describing the command.</param>
     /// <returns>If adding was successful.</returns>
-    public bool AddHandler(string command, CommandInfo info);
+    bool AddHandler(string command, CommandInfo info);
 
     /// <summary>
     /// Remove a command from the command handlers.
     /// </summary>
     /// <param name="command">The command to remove.</param>
     /// <returns>If the removal was successful.</returns>
-    public bool RemoveHandler(string command);
+    bool RemoveHandler(string command);
 }

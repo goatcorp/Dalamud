@@ -41,7 +41,7 @@ public sealed class SystemFontFamilyId : IFontFamilyId
             this.EnglishName = name;
         else if (localeNames.TryGetValue("en", out name))
             this.EnglishName = name;
-        else 
+        else
             this.EnglishName = localeNames.Values.First();
         this.LocaleNames = localeNames;
     }

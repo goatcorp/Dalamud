@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface.Animation.EasingFunctions;
+namespace Dalamud.Interface.Animation.EasingFunctions;
 
 /// <summary>
 /// Class providing an "InOutCubic" easing animation.

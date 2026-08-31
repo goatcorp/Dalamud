@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 
@@ -22,7 +22,7 @@ public static partial class ImRaii
         internal ListBoxDisposable(ImU8String label)
         {
             this.Success = ImGui.BeginListBox(label);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         /// <summary>Initializes a new instance of the <see cref="ListBoxDisposable"/> struct. </summary>
@@ -37,7 +37,7 @@ public static partial class ImRaii
         internal ListBoxDisposable(ImU8String label, Vector2 size)
         {
             this.Success = ImGui.BeginListBox(label, size);
-            this.Alive   = true;
+            this.Alive = true;
         }
 
         public static implicit operator bool(ListBoxDisposable value)

@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -48,7 +48,7 @@ public static partial class ImRaii
         /// <param name="num"> The number of fonts to pop. This is clamped to the number of fonts pushed by this object. </param>
         public void Pop(int num = 1)
         {
-            num   =  Math.Min(num, this.Count);
+            num = Math.Min(num, this.Count);
             this.Count -= num;
             FontPushCounter -= num;
             while (num-- > 0)

@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Plugin.Internal.Profiles;
+namespace Dalamud.Plugin.Internal.Profiles;
 
 /// <summary>
 /// Class representing a single plugin in a profile.

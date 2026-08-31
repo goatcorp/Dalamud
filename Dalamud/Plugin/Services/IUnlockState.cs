@@ -53,7 +53,7 @@ public interface IUnlockState : IDalamudService
     /// </summary>
     /// <param name="row">The Adventure row to check.</param>
     /// <returns><see langword="true"/> if completed; otherwise, <see langword="false"/>.</returns>
-    public bool IsAdventureComplete(Adventure row);
+    bool IsAdventureComplete(Adventure row);
 
     /// <summary>
     /// Determines whether the specified AetherCurrentCompFlgSet is unlocked.
