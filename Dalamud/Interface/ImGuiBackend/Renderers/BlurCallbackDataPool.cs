@@ -1,7 +1,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
-
-using Dalamud.Utility;
+using System.Threading;
 
 namespace Dalamud.Interface.ImGuiBackend.Renderers;
 
@@ -15,6 +14,7 @@ internal static unsafe class BlurCallbackDataPool
     private static readonly BlurCallbackData* Pool =
         (BlurCallbackData*)NativeMemory.AllocZeroed((nuint)(sizeof(BlurCallbackData) * PoolSize));
 
+    // Frame-retirement callbacks may run on a different thread from Rent(), so slot ownership is atomic.
     private static long freeMask = -1L;
 
     /// <summary>
@@ -27,15 +27,21 @@ internal static unsafe class BlurCallbackDataPool
     /// </returns>
     public static BlurCallbackData* Rent()
     {
-        ThreadSafety.AssertMainThread();
-
-        if (freeMask == 0)
+        long current, next;
+        int slot;
+        do
         {
-            return (BlurCallbackData*)NativeMemory.AllocZeroed((nuint)sizeof(BlurCallbackData));
-        }
+            current = Volatile.Read(ref freeMask);
+            if (current == 0)
+            {
+                return (BlurCallbackData*)NativeMemory.AllocZeroed((nuint)sizeof(BlurCallbackData));
+            }
 
-        var slot = BitOperations.TrailingZeroCount((ulong)freeMask);
-        freeMask &= ~(1L << slot);
+            slot = BitOperations.TrailingZeroCount((ulong)current);
+            next = current & ~(1L << slot);
+        }
+        while (Interlocked.CompareExchange(ref freeMask, next, current) != current);
+
         return Pool + slot;
     }
 
@@ -48,13 +54,11 @@ internal static unsafe class BlurCallbackDataPool
     /// </param>
     public static void Return(BlurCallbackData* ptr)
     {
-        ThreadSafety.AssertMainThread();
-
         var offset = (nuint)((byte*)ptr - (byte*)Pool);
         if (offset < (nuint)(sizeof(BlurCallbackData) * PoolSize))
         {
             var slot = (int)(offset / (nuint)sizeof(BlurCallbackData));
-            freeMask |= 1L << slot;
+            Interlocked.Or(ref freeMask, 1L << slot);
         }
         else
         {

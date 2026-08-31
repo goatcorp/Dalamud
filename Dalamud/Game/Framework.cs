@@ -416,7 +416,13 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     {
         this.RunFrameworkTick();
 
-        return this.updateHook.OriginalDisposeSafe(thisPtr);
+        // Smooth Motion can ask Dalamud to render from NvPresent worker threads while the game thread is inside
+        // the native framework tick. Keep those worker renders out of native UI update/finalize work; the game
+        // thread can still re-enter this monitor for the real present that happens during the tick.
+        lock (ThreadSafety.NativeFrameworkRenderSyncRoot)
+        {
+            return this.updateHook.OriginalDisposeSafe(thisPtr);
+        }
     }
 
     private unsafe void RunFrameworkTick()

@@ -39,4 +39,16 @@ internal interface IImGuiRenderer : IDisposable
     /// <summary>Renders the draw data.</summary>
     /// <param name="drawData">The draw data.</param>
     void RenderDrawData(ImDrawDataPtr drawData);
+
+    /// <summary>
+    /// Draws and presents a single secondary (multi-viewport) window from a snapshot of its draw data.
+    /// </summary>
+    /// <remarks>
+    /// This mirrors what <c>ImGui.RenderPlatformWindowsDefault()</c> would do per secondary viewport
+    /// (render then swap buffers), but using Dalamud-owned snapshotted draw data and a renderer-private
+    /// viewport handle captured under the backend's draw-data lock. It must not be called for the main viewport.
+    /// </remarks>
+    /// <param name="rendererUserData">The viewport's <c>RendererUserData</c> handle.</param>
+    /// <param name="drawData">The snapshotted draw data for the viewport.</param>
+    void RenderViewportSnapshot(nint rendererUserData, ImDrawDataPtr drawData);
 }
