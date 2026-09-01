@@ -129,7 +129,7 @@ internal sealed unsafe class LobbyProfileHandler : IInternalDisposableService
 
             this.lobbyProfileApplyTask = Task.WhenAny(delayTask, applyTask).ContinueWith(_ =>
             {
-                Service<Framework>.Get().Run(() =>
+                _ = Service<Framework>.Get().Run(() =>
                 {
                     addonSelectYesno->ShouldFireCallbackAndHideOrClose = false;
                     addonSelectYesno->YesButton->SetEnabledState(true);

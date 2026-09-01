@@ -135,7 +135,7 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     {
         if (this.isInvokingListeners)
         {
-            this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
+            _ = this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
         }
         else
         {
@@ -153,7 +153,7 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
 
         if (this.isInvokingListeners)
         {
-            this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
+            _ = this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
         }
         else
         {

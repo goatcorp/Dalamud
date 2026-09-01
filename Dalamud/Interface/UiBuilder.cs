@@ -304,14 +304,9 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
 
-    private bool hasErrorWindow = false;
-    private Exception? lastError = null;
-    private bool lastFrameUiHideState = false;
-
-    private IFontHandle? defaultFontHandle;
-    private IFontHandle? iconFontHandle;
-    private IFontHandle? monoFontHandle;
-    private IFontHandle? iconFontFixedWidthHandle;
+    private bool hasErrorWindow;
+    private Exception? lastError;
+    private bool lastFrameUiHideState;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
@@ -452,7 +447,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// </code>
     /// </remarks>
     public IFontHandle DefaultFontHandle =>
-        this.defaultFontHandle ??=
+        field ??=
             this.scopedFinalizer.Add(
                 new FontHandleWrapper(
                     this.InterfaceManagerWithScene?.DefaultFontHandle
@@ -472,7 +467,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// </code>
     /// </remarks>
     public IFontHandle IconFontHandle =>
-        this.iconFontHandle ??=
+        field ??=
             this.scopedFinalizer.Add(
                 new FontHandleWrapper(
                     this.InterfaceManagerWithScene?.IconFontHandle
@@ -482,7 +477,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// Gets the default Dalamud icon font based on FontAwesome 5 free solid with a fixed width and vertically centered glyphs.
     /// </summary>
     public IFontHandle IconFontFixedWidthHandle =>
-        this.iconFontFixedWidthHandle ??=
+        field ??=
             this.scopedFinalizer.Add(
                 new FontHandleWrapper(
                     this.InterfaceManagerWithScene?.IconFontFixedWidthHandle
@@ -504,7 +499,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// </code>
     /// </remarks>
     public IFontHandle MonoFontHandle =>
-        this.monoFontHandle ??=
+        field ??=
             this.scopedFinalizer.Add(
                 new FontHandleWrapper(
                     this.InterfaceManagerWithScene?.MonoFontHandle
@@ -548,7 +543,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// <summary>
     /// Gets the count of Draw calls made since plugin creation.
     /// </summary>
-    public ulong FrameCount { get; private set; } = 0;
+    public ulong FrameCount { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether a cutscene is playing.
@@ -665,7 +660,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
         if (runInFrameworkThread)
         {
             return this.InterfaceManagerWithSceneAsync
-                       .ContinueWith(_ => this.framework.RunOnFrameworkThread(func))
+                       .ContinueWith(_ => this.framework.Run(func))
                        .Unwrap();
         }
         else

@@ -639,7 +639,7 @@ internal class LocalPlugin : IAsyncDisposable
             // Legacy load
             var framework = await Service<Framework>.GetAsync();
             var forceFrameworkThread = manifest.LoadSync && manifest.LoadRequiredState is 0 or 1;
-            var newInstanceTask = forceFrameworkThread ? framework.RunOnFrameworkThread(Create) : Create();
+            var newInstanceTask = forceFrameworkThread ? framework.Run(Create, cancellationToken) : Create();
             return await newInstanceTask.ConfigureAwait(false);
 
             async Task<IDalamudPlugin> Create() => (IDalamudPlugin)await scope.CreateAsync(type, ObjectInstanceVisibility.ExposedToPlugins, dalamudInterface);
