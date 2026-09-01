@@ -416,8 +416,8 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 var now = DateTime.UtcNow;
                 var cooldownTimeSpan = TimeSpan.FromSeconds(30);
 
-                var hasCooldown = this.HitchLogHistory.TryGetValue(key, out DateTime lastLogTimestamp);
-                if (!hasCooldown || (hasCooldown && now - lastLogTimestamp > cooldownTimeSpan))
+                var hasCooldown = this.HitchLogHistory.TryGetValue(key, out var lastLogTimestamp);
+                if (!hasCooldown || now - lastLogTimestamp > cooldownTimeSpan)
                 {
                     this.HitchLogHistory[key] = now;
                     Serilog.Log.Warning("[HITCH] Long {Name} detected, {Total}ms > {Max}ms", key, elapsedMilliseconds, this.configuration.FrameworkUpdateHitch);
@@ -696,7 +696,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 
         this.frameworkService.ProfileAndInvoke(this.Update, this, (ex, handlerName) =>
         {
-            Serilog.Log.Error(ex, "[{PluginInternalName}] Exception in event handler {{EventHandlerName}}", this.plugin.InternalName, handlerName);
+            Serilog.Log.Error(ex, "[{PluginInternalName}] Exception in event handler {EventHandlerName}", this.plugin.InternalName, handlerName);
             this.pluginErrorHandler.NotifyError();
         });
     }
