@@ -70,6 +70,11 @@ public interface IDalamudPluginInterface : IServiceProvider
     /// </summary>
     string InternalName { get; }
 
+    /// <summary> 
+    /// Gets the unique working plugin ID set by Dalamud.
+    /// </summary>
+    Guid WorkingPluginId { get; }
+
     /// <summary>
     /// Gets the plugin's manifest.
     /// </summary>
