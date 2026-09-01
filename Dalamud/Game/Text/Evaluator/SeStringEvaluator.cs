@@ -962,6 +962,19 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 context.Builder.PopLink();
                 return;
 
+            // TODO: use updated LinkMacroPayloadType
+            case "EventTutorial":
+                context.Builder.PushLink((LinkMacroPayloadType)14 /*LinkMacroPayloadType.EventTutorial*/, eRowIdValue, 0u, 0u, text.AsSpan());
+                context.Builder.Append(text);
+                context.Builder.PopLink();
+                return;
+
+            case "Emote":
+                context.Builder.PushLink((LinkMacroPayloadType)15 /*LinkMacroPayloadType.Emote*/, eRowIdValue, 0u, 0u, text.AsSpan());
+                context.Builder.Append(text);
+                context.Builder.PopLink();
+                return;
+
             default:
                 context.Builder.Append(text);
                 return;
