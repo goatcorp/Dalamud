@@ -112,27 +112,6 @@ internal static class EventHandlerExtensions
     }
 
     /// <summary>
-    /// Replacement for Invoke() on OnUpdateDelegate to catch exceptions that stop event propagation in case
-    /// of a thrown Exception inside an invocation.
-    /// </summary>
-    /// <param name="updateDelegate">The OnUpdateDelegate in question.</param>
-    /// <param name="framework">Framework to be passed on to OnUpdateDelegate.</param>
-    public static void InvokeSafely(this IFramework.OnUpdateDelegate? updateDelegate, Framework framework)
-    {
-        foreach (var action in Delegate.EnumerateInvocationList(updateDelegate))
-        {
-            try
-            {
-                action(framework);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Exception during raise of {handler}", action.Method);
-            }
-        }
-    }
-
-    /// <summary>
     /// Replacement for Invoke() on OnMenuOpenedDelegate to catch exceptions that stop event propagation in case
     /// of a thrown Exception inside an invocation.
     /// </summary>
