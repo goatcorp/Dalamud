@@ -630,33 +630,31 @@ internal class PluginInstallerWindow : Window, IDisposable
                     ImGuiHelpers.CenteredText("Installing plugin...");
                     break;
                 case LoadingIndicatorKind.Manager:
+                    if (pluginManager.PluginsReady && !pluginManager.ReposReady)
                     {
-                        if (pluginManager.PluginsReady && !pluginManager.ReposReady)
-                        {
-                            ImGuiHelpers.CenteredText("Loading repositories...");
-                            ImGuiHelpers.ScaledDummy(10);
+                        ImGuiHelpers.CenteredText("Loading repositories...");
+                        ImGuiHelpers.ScaledDummy(10);
 
-                            DrawProgressBar(pluginManager.Repos, x => x.State != PluginRepositoryState.Success &&
-                                                                      x.State != PluginRepositoryState.Fail &&
-                                                                      x.IsEnabled,
-                                            x => x.IsEnabled,
-                                            x => ImGuiHelpers.CenteredText($"Loading {x.PluginMasterUrl}"));
-                        }
-                        else if (!pluginManager.PluginsReady && pluginManager.ReposReady)
-                        {
-                            ImGuiHelpers.CenteredText("Loading installed plugins...");
-                            ImGuiHelpers.ScaledDummy(10);
+                        DrawProgressBar(pluginManager.Repos, x => x.State != PluginRepositoryState.Success &&
+                                                                  x.State != PluginRepositoryState.Fail &&
+                                                                  x.IsEnabled,
+                                        x => x.IsEnabled,
+                                        x => ImGuiHelpers.CenteredText($"Loading {x.PluginMasterUrl}"));
+                    }
+                    else if (!pluginManager.PluginsReady && pluginManager.ReposReady)
+                    {
+                        ImGuiHelpers.CenteredText("Loading installed plugins...");
+                        ImGuiHelpers.ScaledDummy(10);
 
-                            DrawProgressBar(pluginManager.InstalledPlugins, x => x.State == PluginState.Loading,
-                                            x => x.State is PluginState.Loaded or
-                                                     PluginState.LoadError or
-                                                     PluginState.Loading,
-                                            x => ImGuiHelpers.CenteredText($"Loading {x.Name}"));
-                        }
-                        else
-                        {
-                            ImGuiHelpers.CenteredText("Loading repositories and plugins...");
-                        }
+                        DrawProgressBar(pluginManager.InstalledPlugins, x => x.State == PluginState.Loading,
+                                        x => x.State is PluginState.Loaded or
+                                                 PluginState.LoadError or
+                                                 PluginState.Loading,
+                                        x => ImGuiHelpers.CenteredText($"Loading {x.Name}"));
+                    }
+                    else
+                    {
+                        ImGuiHelpers.CenteredText("Loading repositories and plugins...");
                     }
 
                     break;
