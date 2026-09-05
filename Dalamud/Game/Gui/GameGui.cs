@@ -89,7 +89,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     public event Action<bool>? UiHideToggled;
 
     /// <inheritdoc/>
-    public event Action<ulong>? HoveredItemChanged;
+    public event Action<uint>? HoveredItemChanged;
 
     /// <inheritdoc/>
     public event Action<HoveredAction>? HoveredActionChanged;
@@ -101,7 +101,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     public bool GameUiHidden { get; private set; }
 
     /// <inheritdoc/>
-    public ulong HoveredItem { get; set; }
+    public uint HoveredItem { get; set; }
 
     /// <inheritdoc/>
     public HoveredAction HoveredAction { get; } = new HoveredAction();
@@ -288,7 +288,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         if (!thisPtr->IsAgentActive())
             return;
 
-        var itemId = (ulong)thisPtr->ItemId;
+        var itemId = thisPtr->ItemId;
         if (this.HoveredItem == itemId)
             return;
 
@@ -303,7 +303,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         if (values != null && valueCount == 1 && values->Int == -1)
         {
             this.HoveredItem = 0;
-            this.HoveredItemChanged?.InvokeSafely(0ul);
+            this.HoveredItemChanged?.InvokeSafely(0u);
         }
 
         return ret;
@@ -413,7 +413,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     public event Action<bool>? UiHideToggled;
 
     /// <inheritdoc/>
-    public event Action<ulong>? HoveredItemChanged;
+    public event Action<uint>? HoveredItemChanged;
 
     /// <inheritdoc/>
     public event Action<HoveredAction>? HoveredActionChanged;
@@ -425,7 +425,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     public bool GameUiHidden => this.gameGuiService.GameUiHidden;
 
     /// <inheritdoc/>
-    public ulong HoveredItem
+    public uint HoveredItem
     {
         get => this.gameGuiService.HoveredItem;
         set => this.gameGuiService.HoveredItem = value;
@@ -493,7 +493,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
 
     private void UiHideToggledForward(bool toggled) => this.UiHideToggled?.Invoke(toggled);
 
-    private void HoveredItemForward(ulong itemId) => this.HoveredItemChanged?.Invoke(itemId);
+    private void HoveredItemForward(uint itemId) => this.HoveredItemChanged?.Invoke(itemId);
 
     private void HoveredActionForward(HoveredAction hoverAction) => this.HoveredActionChanged?.Invoke(hoverAction);
 
