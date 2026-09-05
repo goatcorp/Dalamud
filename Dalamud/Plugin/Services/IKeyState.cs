@@ -2,6 +2,8 @@ using System.Collections.Generic;
 
 using Dalamud.Game.ClientState.Keys;
 
+using FFXIVClientStructs.FFXIV.Client.System.Input;
+
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
@@ -23,7 +25,7 @@ public interface IKeyState : IDalamudService
     /// </summary>
     /// <param name="vkCode">The virtual key to change.</param>
     /// <returns>Whether the specified key is currently pressed.</returns>
-    /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
+    /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/> or <see cref="GetExtendedVirtualKeys"/>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">If the set value is non-zero.</exception>
     bool this[int vkCode] { get; set; }
 
@@ -35,7 +37,7 @@ public interface IKeyState : IDalamudService
     /// </summary>
     /// <param name="vkCode">The virtual key to change.</param>
     /// <returns>The raw value stored in the index array.</returns>
-    /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
+    /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/> or <see cref="GetExtendedVirtualKeys"/>.</exception>
     int GetRawValue(int vkCode);
 
     /// <inheritdoc cref="GetRawValue(int)"/>
@@ -46,7 +48,7 @@ public interface IKeyState : IDalamudService
     /// </summary>
     /// <param name="vkCode">The virtual key to change.</param>
     /// <param name="value">The raw value to set in the index array.</param>
-    /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
+    /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/> or <see cref="GetExtendedVirtualKeys"/>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">If the set value is non-zero.</exception>
     void SetRawValue(int vkCode, int value);
 
@@ -64,10 +66,27 @@ public interface IKeyState : IDalamudService
     bool IsVirtualKeyValid(VirtualKey vkCode);
 
     /// <summary>
+    /// Attempts to get the SeVirtualKey equivalent of a given virtual key code.
+    /// </summary>
+    /// <param name="vkCode">The virtual key code to convert.</param>
+    /// <param name="seVkCode">The resulting SeVirtualKey, if the conversion is successful.</param>
+    /// <returns>Whether the virtual key code has a valid SeVirtualKey equivalent.</returns>
+    bool TryGetSeVirtualKey(int vkCode, out SeVirtualKey? seVkCode);
+
+    /// <inheritdoc cref="TryGetSeVirtualKey(int, out SeVirtualKey?)"/>
+    bool TryGetSeVirtualKey(VirtualKey vkCode, out SeVirtualKey? seVkCode);
+
+    /// <summary>
     /// Gets an array of virtual keys the game considers valid input.
     /// </summary>
     /// <returns>An array of valid virtual keys.</returns>
     IEnumerable<VirtualKey> GetValidVirtualKeys();
+
+    /// <summary>
+    /// Gets an array of virtual keys the game considers invalid input, but are tracked by Dalamud for plugin use.
+    /// </summary>
+    /// <returns>An array of extended virtual keys.</returns>
+    IEnumerable<VirtualKey> GetExtendedVirtualKeys();
 
     /// <summary>
     /// Clears the pressed state for all keys.

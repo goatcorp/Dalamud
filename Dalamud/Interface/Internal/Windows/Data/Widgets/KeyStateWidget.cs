@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Numerics;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
@@ -30,25 +33,92 @@ internal class KeyStateWidget : IDataWindowWidget
     {
         var keyState = Service<KeyState>.Get();
 
-        // TODO: Use table instead of columns
-        ImGui.Columns(4);
-
-        var i = 0;
-        foreach (var vkCode in keyState.GetValidVirtualKeys())
+        using (ImRaii.Group())
         {
-            var code = (int)vkCode;
-            var value = keyState[code];
-
-            using (ImRaii.PushColor(ImGuiCol.Text, value ? ImGuiColors.SuccessForeground : ImGuiColors.ErrorForeground))
+            if (ImGui.CollapsingHeader("Game Keybinds"))
             {
-                ImGui.Text($"{vkCode} ({code})");
+                this.DrawKeyStateTable("##GameKeybinds", keyState, keyState.GetValidVirtualKeys);
             }
 
-            i++;
-            if (i % 24 == 0)
-                ImGui.NextColumn();
+            ImGui.Spacing();
+
+            if (ImGui.CollapsingHeader("Extended Keybinds"))
+            {
+                this.DrawKeyStateTable("##ExtendedKeybinds", keyState, keyState.GetExtendedVirtualKeys, true);
+            }
+        }
+    }
+
+    private void DrawKeyStateTable(string id, KeyState keyState, Func<IEnumerable<VirtualKey>> getKeys, bool isExtended = false)
+    {
+        if (isExtended)
+        {
+            using (ImRaii.PushFont(UiBuilder.IconFont))
+            {
+                ImGui.TextColored(ImGuiColors.DalamudYellow, FontAwesomeIcon.ExclamationTriangle.ToIconString());
+            }
+
+            ImGui.SameLine();
+            ImGui.Text("Extended keybinds cannot be used by the game, but are made available for plugin use.");
+
+            ImGui.Spacing();
         }
 
-        ImGui.Columns(1);
+        using var table = ImRaii.Table(
+            id,
+            isExtended ? 4 : 5,
+            ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.SizingFixedFit,
+            new Vector2(-1, 300));
+
+        if (table)
+        {
+            ImGui.TableSetupColumn("Virtual Key", ImGuiTableColumnFlags.WidthStretch);
+            if (!isExtended)
+            {
+                ImGui.TableSetupColumn("SeVirtualKey", ImGuiTableColumnFlags.WidthStretch);
+            }
+
+            ImGui.TableSetupColumn("Decimal", ImGuiTableColumnFlags.WidthFixed, 50);
+            ImGui.TableSetupColumn("Hex", ImGuiTableColumnFlags.WidthFixed, 50);
+            ImGui.TableSetupColumn("State", ImGuiTableColumnFlags.WidthFixed, 70);
+
+            ImGui.TableHeadersRow();
+
+            foreach (var vkCode in getKeys())
+            {
+                var code = (int)vkCode;
+                var isPressed = keyState[code];
+
+                ImGui.TableNextRow();
+
+                ImGui.TableNextColumn();
+                ImGui.Text(vkCode.ToString());
+
+                if (!isExtended)
+                {
+                    ImGui.TableNextColumn();
+                    if (keyState.TryGetSeVirtualKey(code, out var seVirtualKey))
+                    {
+                        ImGui.Text($"{seVirtualKey.ToString()} ({(int)seVirtualKey})");
+                    }
+                    else
+                    {
+                        ImGui.Text("-");
+                    }
+                }
+
+                ImGui.TableNextColumn();
+                ImGui.Text(code.ToString());
+
+                ImGui.TableNextColumn();
+                ImGui.Text($"0x{code:X2}");
+
+                ImGui.TableNextColumn();
+                using (ImRaii.PushColor(ImGuiCol.Text, isPressed ? ImGuiColors.SuccessForeground : ImGuiColors.DalamudOrange))
+                {
+                    ImGui.Text(isPressed ? "Pressed" : "Released");
+                }
+            }
+        }
     }
 }
