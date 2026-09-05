@@ -10,7 +10,7 @@ internal class AddonLifecycleEventListener : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonLifecycleEventListener"/> class.
     /// </summary>
-    /// <param name="service">The AddonLifecycle service.</param>
+    /// <param name="service">The <see cref="AddonLifecycle"/> service.</param>
     /// <param name="eventType">Event type to listen for.</param>
     /// <param name="addonName">Addon name to listen for.</param>
     /// <param name="functionDelegate">Delegate to invoke.</param>
@@ -23,7 +23,7 @@ internal class AddonLifecycleEventListener : IDisposable
     }
 
     /// <summary>
-    /// Gets the AddonLifecycle service.
+    /// Gets the <see cref="AddonLifecycle"/> service.
     /// </summary>
     public AddonLifecycle Service { get; init; }
 
@@ -49,7 +49,7 @@ internal class AddonLifecycleEventListener : IDisposable
     internal bool IsRequestedToClear { get; set; }
 
     /// <summary>
-    /// Unregisters the event listener from the AddonLifecycle service.
+    /// Unregisters the event listener from the <see cref="AddonLifecycle"/> service.
     /// </summary>
     public void Dispose()
     {
