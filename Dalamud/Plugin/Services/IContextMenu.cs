@@ -8,16 +8,16 @@ namespace Dalamud.Plugin.Services;
 public interface IContextMenu : IDalamudService
 {
     /// <summary>
-    /// A delegate type used for the <see cref="OnMenuOpened"/> event.
+    /// A delegate type used for the <see cref="MenuOpened"/> event.
     /// </summary>
     /// <param name="args">Information about the currently opening menu.</param>
-    delegate void OnMenuOpenedDelegate(IMenuOpenedArgs args);
+    delegate void MenuOpenedDelegate(IMenuOpenedArgs args);
 
     /// <summary>
     /// Event that gets fired whenever any context menu is opened.
     /// </summary>
     /// <remarks>Use this event and then check if the triggering addon is the desired addon, then add custom context menu items to the provided args.</remarks>
-    event OnMenuOpenedDelegate OnMenuOpened;
+    event MenuOpenedDelegate MenuOpened;
 
     /// <summary>
     /// Adds a menu item to a context menu.

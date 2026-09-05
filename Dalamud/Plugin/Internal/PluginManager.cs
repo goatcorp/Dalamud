@@ -146,12 +146,12 @@ internal class PluginManager : IInternalDisposableService
     /// <summary>
     /// An event that fires when the installed plugins have changed.
     /// </summary>
-    public event Action? OnInstalledPluginsChanged;
+    public event Action? InstalledPluginsChanged;
 
     /// <summary>
     /// An event that fires when the available plugins have changed.
     /// </summary>
-    public event Action? OnAvailablePluginsChanged;
+    public event Action? AvailablePluginsChanged;
 
     /// <summary>
     /// Gets the current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
@@ -1848,14 +1848,14 @@ internal class PluginManager : IInternalDisposableService
     {
         this.DetectAvailablePluginUpdates();
 
-        this.OnAvailablePluginsChanged?.InvokeSafely();
+        this.AvailablePluginsChanged?.InvokeSafely();
     }
 
     private void NotifyInstalledPluginsChanged()
     {
         this.DetectAvailablePluginUpdates();
 
-        this.OnInstalledPluginsChanged?.InvokeSafely();
+        this.InstalledPluginsChanged?.InvokeSafely();
     }
 
     private void LoadAndStartLoadSyncPlugins()
@@ -1865,7 +1865,7 @@ internal class PluginManager : IInternalDisposableService
             using (Timings.Start("PM Load Plugin Repos"))
             {
                 _ = this.SetPluginReposFromConfigAsync(false);
-                this.OnInstalledPluginsChanged += () => Task.Run(Troubleshooting.LogTroubleshooting);
+                this.InstalledPluginsChanged += () => Task.Run(Troubleshooting.LogTroubleshooting);
 
                 Log.Information("Repos loaded!");
             }
