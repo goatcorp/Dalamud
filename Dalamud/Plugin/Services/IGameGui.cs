@@ -14,17 +14,17 @@ public unsafe interface IGameGui : IDalamudService
     /// <summary>
     /// Event which is fired when the game UI hiding is toggled.
     /// </summary>
-    event EventHandler<bool> UiHideToggled;
+    event Action<bool> UiHideToggled;
 
     /// <summary>
     /// Event that is fired when the currently hovered item changes.
     /// </summary>
-    event EventHandler<ulong> HoveredItemChanged;
+    event Action<ulong> HoveredItemChanged;
 
     /// <summary>
     /// Event that is fired when the currently hovered action changes.
     /// </summary>
-    event EventHandler<HoveredAction> HoveredActionChanged;
+    event Action<HoveredAction> HoveredActionChanged;
 
     /// <summary>
     /// Fired when the game sets one or more <see cref="AgentUpdateFlag"/> values,

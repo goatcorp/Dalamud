@@ -20,24 +20,30 @@ namespace Dalamud.Plugin.Services;
 public interface IGameConfig : IDalamudService
 {
     /// <summary>
+    /// Delegate function to be called when game configs have been changed.
+    /// </summary>
+    /// <param name="evt">The event.</param>
+    delegate void ConfigChangeEventDelegate(ConfigChangeEvent evt);
+
+    /// <summary>
     /// Event which is fired when any game config option is changed.
     /// </summary>
-    event EventHandler<ConfigChangeEvent> Changed;
+    event ConfigChangeEventDelegate Changed;
 
     /// <summary>
     /// Event which is fired when a system config option is changed.
     /// </summary>
-    event EventHandler<ConfigChangeEvent> SystemChanged;
+    event ConfigChangeEventDelegate SystemChanged;
 
     /// <summary>
     /// Event which is fired when a UiConfig option is changed.
     /// </summary>
-    event EventHandler<ConfigChangeEvent> UiConfigChanged;
+    event ConfigChangeEventDelegate UiConfigChanged;
 
     /// <summary>
     /// Event which is fired when a UiControl config option is changed.
     /// </summary>
-    event EventHandler<ConfigChangeEvent> UiControlChanged;
+    event ConfigChangeEventDelegate UiControlChanged;
 
     /// <summary>
     /// Gets the collection of config options that persist between characters.
