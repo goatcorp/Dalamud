@@ -47,7 +47,7 @@ internal unsafe class AddonEventManager : IInternalDisposableService
 
         this.onUpdateCursor = Hook<AtkUnitManager.Delegates.UpdateCursor>.FromAddress(AtkUnitManager.Addresses.UpdateCursor.Value, this.UpdateCursorDetour);
 
-        this.finalizeEventListener = new AddonLifecycleEventListener(AddonEvent.PreFinalize, string.Empty, this.OnAddonFinalize);
+        this.finalizeEventListener = new AddonLifecycleEventListener(this.addonLifecycle, AddonEvent.PreFinalize, string.Empty, this.OnAddonFinalize);
         this.addonLifecycle.RegisterListener(this.finalizeEventListener);
 
         this.onUpdateCursor.Enable();

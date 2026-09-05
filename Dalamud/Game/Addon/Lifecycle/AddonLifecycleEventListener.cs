@@ -5,20 +5,27 @@ namespace Dalamud.Game.Addon.Lifecycle;
 /// <summary>
 /// This class is a helper for tracking and invoking listener delegates.
 /// </summary>
-internal class AddonLifecycleEventListener
+internal class AddonLifecycleEventListener : IDisposable
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonLifecycleEventListener"/> class.
     /// </summary>
+    /// <param name="service">The AddonLifecycle service.</param>
     /// <param name="eventType">Event type to listen for.</param>
     /// <param name="addonName">Addon name to listen for.</param>
     /// <param name="functionDelegate">Delegate to invoke.</param>
-    internal AddonLifecycleEventListener(AddonEvent eventType, string addonName, IAddonLifecycle.AddonEventDelegate functionDelegate)
+    internal AddonLifecycleEventListener(AddonLifecycle service, AddonEvent eventType, string addonName, IAddonLifecycle.AddonEventDelegate functionDelegate)
     {
+        this.Service = service;
         this.EventType = eventType;
         this.AddonName = addonName;
         this.FunctionDelegate = functionDelegate;
     }
+
+    /// <summary>
+    /// Gets the AddonLifecycle service.
+    /// </summary>
+    public AddonLifecycle Service { get; init; }
 
     /// <summary>
     /// Gets the name of the addon this listener is looking for.
@@ -40,4 +47,13 @@ internal class AddonLifecycleEventListener
     /// Gets or sets a value indicating whether the listener is requested to be cleared.
     /// </summary>
     internal bool IsRequestedToClear { get; set; }
+
+    /// <summary>
+    /// Unregisters the event listener from the AddonLifecycle service.
+    /// </summary>
+    public void Dispose()
+    {
+        if (!this.IsRequestedToClear)
+            this.Service.UnregisterListener(this);
+    }
 }
