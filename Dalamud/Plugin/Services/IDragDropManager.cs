@@ -1,14 +1,10 @@
 using System.Collections.Generic;
 
-using Dalamud.Plugin.Services;
-using Dalamud.Utility;
-
-namespace Dalamud.Interface.DragDrop;
+namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// A service to handle external drag and drop from WinAPI.
 /// </summary>
-[Api16ToDo("Change namespace to Dalamud.Plugin.Services")]
 public interface IDragDropManager : IDalamudService
 {
     /// <summary> Gets a value indicating whether Drag and Drop functionality is available at all. </summary>
