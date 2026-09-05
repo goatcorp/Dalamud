@@ -3,7 +3,7 @@ namespace Dalamud.Game.Addon.Events;
 /// <summary>
 /// Interface representing the data used for managing AddonEvents.
 /// </summary>
-public interface IAddonEventHandle
+public interface IAddonEventHandle : IDisposable
 {
     /// <summary>
     /// Gets the param key associated with this event.

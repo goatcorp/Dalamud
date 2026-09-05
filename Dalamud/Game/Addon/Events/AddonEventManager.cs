@@ -75,18 +75,14 @@ internal unsafe class AddonEventManager : IInternalDisposableService
     /// <param name="eventType">The event type for this event.</param>
     /// <param name="eventDelegate">The delegate to call when event is triggered.</param>
     /// <returns>IAddonEventHandle used to remove the event.</returns>
-    internal IAddonEventHandle? AddEvent(Guid pluginId, nint atkUnitBase, nint atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventDelegate eventDelegate)
+    internal IAddonEventHandle AddEvent(Guid pluginId, nint atkUnitBase, nint atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventDelegate eventDelegate)
     {
-        if (this.pluginEventControllers.TryGetValue(pluginId, out var controller))
+        if (!this.pluginEventControllers.TryGetValue(pluginId, out var controller))
         {
-            return controller.AddEvent(atkUnitBase, atkResNode, eventType, eventDelegate);
-        }
-        else
-        {
-            Log.Verbose($"Unable to locate controller for {pluginId}. No event was added.");
+            this.pluginEventControllers.TryAdd(pluginId, controller = new PluginEventController());
         }
 
-        return null;
+        return controller.AddEvent(atkUnitBase, atkResNode, eventType, eventDelegate);
     }
 
     /// <summary>
@@ -232,7 +228,7 @@ internal class AddonEventManagerPluginScoped : IInternalDisposableService, IAddo
     }
 
     /// <inheritdoc/>
-    public IAddonEventHandle? AddEvent(nint atkUnitBase, nint atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventDelegate eventDelegate)
+    public IAddonEventHandle AddEvent(nint atkUnitBase, nint atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventDelegate eventDelegate)
         => this.eventManagerService.AddEvent(this.plugin.EffectiveWorkingPluginId, atkUnitBase, atkResNode, eventType, eventDelegate);
 
     /// <inheritdoc/>
