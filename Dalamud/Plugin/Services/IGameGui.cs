@@ -2,7 +2,6 @@ using System.Numerics;
 
 using Dalamud.Game.Gui;
 using Dalamud.Game.NativeWrapper;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 namespace Dalamud.Plugin.Services;
 
@@ -47,13 +46,6 @@ public unsafe interface IGameGui : IDalamudService
     /// Gets the action ID that is current hovered by the player. 0 when no action is hovered.
     /// </summary>
     HoveredAction HoveredAction { get; }
-
-    /// <summary>
-    /// Opens the in-game map with a flag on the location of the parameter.
-    /// </summary>
-    /// <param name="mapLink">Link to the map to be opened.</param>
-    /// <returns>True if there were no errors and it could open the map.</returns>
-    bool OpenMapWithMapLink(MapLinkPayload mapLink);
 
     /// <summary>
     /// Opens the in-game map with a flag on the location of the parameter.

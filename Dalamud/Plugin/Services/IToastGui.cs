@@ -1,5 +1,6 @@
 using Dalamud.Game.Gui.Toast;
-using Dalamud.Game.Text.SeStringHandling;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Plugin.Services;
 
@@ -14,7 +15,7 @@ public interface IToastGui : IDalamudService
     /// <param name="message">The message displayed.</param>
     /// <param name="options">Assorted toast options.</param>
     /// <param name="isHandled">Whether the toast has been handled or should be propagated.</param>
-    delegate void OnNormalToastDelegate(ref SeString message, ref ToastOptions options, ref bool isHandled);
+    delegate void OnNormalToastDelegate(ref ReadOnlySeString message, ref ToastOptions options, ref bool isHandled);
 
     /// <summary>
     /// A delegate type used when a quest toast window appears.
@@ -22,14 +23,14 @@ public interface IToastGui : IDalamudService
     /// <param name="message">The message displayed.</param>
     /// <param name="options">Assorted toast options.</param>
     /// <param name="isHandled">Whether the toast has been handled or should be propagated.</param>
-    delegate void OnQuestToastDelegate(ref SeString message, ref QuestToastOptions options, ref bool isHandled);
+    delegate void OnQuestToastDelegate(ref ReadOnlySeString message, ref QuestToastOptions options, ref bool isHandled);
 
     /// <summary>
     /// A delegate type used when an error toast window appears.
     /// </summary>
     /// <param name="message">The message displayed.</param>
     /// <param name="isHandled">Whether the toast has been handled or should be propagated.</param>
-    delegate void OnErrorToastDelegate(ref SeString message, ref bool isHandled);
+    delegate void OnErrorToastDelegate(ref ReadOnlySeString message, ref bool isHandled);
 
     /// <summary>
     /// Event that will be fired when a toast is sent by the game or a plugin.
@@ -51,38 +52,18 @@ public interface IToastGui : IDalamudService
     /// </summary>
     /// <param name="message">The message to be shown.</param>
     /// <param name="options">Options for the toast.</param>
-    void ShowNormal(string message, ToastOptions? options = null);
-
-    /// <summary>
-    /// Show a toast message with the given content.
-    /// </summary>
-    /// <param name="message">The message to be shown.</param>
-    /// <param name="options">Options for the toast.</param>
-    void ShowNormal(SeString message, ToastOptions? options = null);
+    void ShowNormal(ReadOnlySeString message, ToastOptions? options = null);
 
     /// <summary>
     /// Show a quest toast message with the given content.
     /// </summary>
     /// <param name="message">The message to be shown.</param>
     /// <param name="options">Options for the toast.</param>
-    void ShowQuest(string message, QuestToastOptions? options = null);
-
-    /// <summary>
-    /// Show a quest toast message with the given content.
-    /// </summary>
-    /// <param name="message">The message to be shown.</param>
-    /// <param name="options">Options for the toast.</param>
-    void ShowQuest(SeString message, QuestToastOptions? options = null);
+    void ShowQuest(ReadOnlySeString message, QuestToastOptions? options = null);
 
     /// <summary>
     /// Show an error toast message with the given content.
     /// </summary>
     /// <param name="message">The message to be shown.</param>
-    void ShowError(string message);
-
-    /// <summary>
-    /// Show an error toast message with the given content.
-    /// </summary>
-    /// <param name="message">The message to be shown.</param>
-    void ShowError(SeString message);
+    void ShowError(ReadOnlySeString message);
 }

@@ -1,7 +1,7 @@
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
 
 using Lumina.Excel.Sheets;
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.ContextMenu;
 
@@ -23,7 +23,7 @@ public interface IMenuItem
     /// <summary>
     /// Gets or sets the display name of the menu item.
     /// </summary>
-    SeString Name { get; set; }
+    ReadOnlySeString Name { get; set; }
 
     /// <summary>
     /// Gets or sets the prefix attached to the beginning of <see cref="Name"/>.
@@ -84,7 +84,7 @@ public interface IMenuItem
 public sealed record MenuItem : IMenuItem
 {
     /// <inheritdoc/>
-    public SeString Name { get; set; } = SeString.Empty;
+    public ReadOnlySeString Name { get; set; }
 
     /// <inheritdoc/>
     public SeIconChar? Prefix { get; set; }

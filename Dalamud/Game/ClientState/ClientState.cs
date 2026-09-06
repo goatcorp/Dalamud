@@ -6,7 +6,6 @@ using Dalamud.Data;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Gui;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -352,18 +351,19 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
                 return;
             }
 
-            var cfcName = cfCondition.Value.Name.ToDalamudString();
-            if (cfcName.Payloads.Count == 0)
+            var cfcName = cfCondition.Value.Name;
+            if (cfcName.IsEmpty)
                 cfcName = "Duty Roulette";
 
             Task.Run(() =>
             {
                 if (this.configuration.DutyFinderChatMessage)
                 {
-                    var b = new SeStringBuilder();
-                    b.Append("Duty pop: ");
-                    b.Append(cfcName);
-                    this.chatGui.Print(b.Build());
+                    using var rssb = new RentedSeStringBuilder();
+                    this.chatGui.Print(rssb.Builder
+                        .Append("Duty pop: ")
+                        .Append(cfcName)
+                        .ToReadOnlySeString());
                 }
 
                 this.CfPop.InvokeSafely(cfCondition.Value);

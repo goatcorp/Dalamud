@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 
-using Dalamud.Game.Text.SeStringHandling;
-
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.ContextMenu;
 
@@ -17,7 +17,7 @@ public interface IMenuItemClickedArgs : IMenuArgs
     /// </summary>
     /// <param name="name">The name of the submenu, displayed at the top.</param>
     /// <param name="items">The items to display in the submenu.</param>
-    void OpenSubmenu(SeString name, IReadOnlyList<IMenuItem> items);
+    void OpenSubmenu(ReadOnlySeString name, IReadOnlyList<IMenuItem> items);
 
     /// <summary>
     /// Opens a submenu with the given items.
@@ -39,19 +39,19 @@ internal sealed unsafe class MenuItemClickedArgs : MenuArgs, IMenuItemClickedArg
     /// <param name="agent">Agent associated with the context menu.</param>
     /// <param name="type">The type of context menu.</param>
     /// <param name="eventInterfaces">List of AtkEventInterfaces associated with the context menu.</param>
-    internal MenuItemClickedArgs(Action<SeString?, IReadOnlyList<IMenuItem>> openSubmenu, AtkUnitBase* addon, AgentInterface* agent, ContextMenuType type, IReadOnlySet<nint> eventInterfaces)
+    internal MenuItemClickedArgs(Action<ReadOnlySeString, IReadOnlyList<IMenuItem>> openSubmenu, AtkUnitBase* addon, AgentInterface* agent, ContextMenuType type, IReadOnlySet<nint> eventInterfaces)
         : base(addon, agent, type, eventInterfaces)
     {
         this.OnOpenSubmenu = openSubmenu;
     }
 
-    private Action<SeString?, IReadOnlyList<IMenuItem>> OnOpenSubmenu { get; }
+    private Action<ReadOnlySeString, IReadOnlyList<IMenuItem>> OnOpenSubmenu { get; }
 
     /// <inheritdoc/>
-    public void OpenSubmenu(SeString name, IReadOnlyList<IMenuItem> items) =>
+    public void OpenSubmenu(ReadOnlySeString name, IReadOnlyList<IMenuItem> items) =>
         this.OnOpenSubmenu(name, items);
 
     /// <inheritdoc/>
     public void OpenSubmenu(IReadOnlyList<IMenuItem> items) =>
-        this.OnOpenSubmenu(null, items);
+        this.OnOpenSubmenu(default, items);
 }

@@ -7,7 +7,7 @@ using CheapLoc;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Player;
-using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.ImGuiNotification;

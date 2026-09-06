@@ -12,6 +12,8 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
+using Lumina.Text.ReadOnly;
+
 namespace Dalamud.Game.Gui.NamePlate;
 
 /// <summary>
@@ -93,14 +95,9 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
     /// </summary>
     /// <param name="text">A quoted free company tag.</param>
     /// <returns>A span containing the free company tag without its surrounding quote characters.</returns>
-    internal static ReadOnlySpan<byte> StripFreeCompanyTagQuotes(ReadOnlySpan<byte> text)
+    internal static ReadOnlySeString StripFreeCompanyTagQuotes(ReadOnlySeString text)
     {
-        if (text.Length > 4 && text.StartsWith(" «"u8) && text.EndsWith("»"u8))
-        {
-            return text[3..^2];
-        }
-
-        return text;
+        return text.ReplaceText(" «"u8, default).ReplaceText("»"u8, default);
     }
 
     /// <summary>
@@ -109,14 +106,9 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
     /// </summary>
     /// <param name="text">A quoted title.</param>
     /// <returns>A span containing the title without its surrounding quote characters.</returns>
-    internal static ReadOnlySpan<byte> StripTitleQuotes(ReadOnlySpan<byte> text)
+    internal static ReadOnlySeString StripTitleQuotes(ReadOnlySeString text)
     {
-        if (text.Length > 5 && text.StartsWith("《"u8) && text.EndsWith("》"u8))
-        {
-            return text[3..^3];
-        }
-
-        return text;
+        return text.ReplaceText("《"u8, default).ReplaceText("》"u8, default);
     }
 
     private static nint CreateEmptyStringPointer()

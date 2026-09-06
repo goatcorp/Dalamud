@@ -7,11 +7,11 @@ using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.SelfTest;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+using Lumina.Text.ReadOnly;
 
 using Serilog;
 
@@ -143,12 +143,12 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                         IsSubmenu = true,
                         OnClicked = (IMenuItemClickedArgs a) =>
                         {
-                            SeString name;
+                            ReadOnlySeString name;
                             int count;
                             var targetItem = (a.Target as MenuTargetInventory)!.TargetItem;
                             if (targetItem is { } item)
                             {
-                                name = (this.itemSheet.GetRowOrDefault(item.BaseItemId)?.Name.ExtractText() ?? $"Unknown ({item.BaseItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);
+                                name = (this.itemSheet.GetRowOrDefault(item.BaseItemId)?.Name ?? $"Unknown ({item.BaseItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);
                                 count = item.Quantity;
                             }
                             else

@@ -733,7 +733,7 @@ public static partial class Util
     internal static void PrintGameObject(IGameObject actor, string tag, bool resolveGameData)
     {
         var actorString =
-            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.CurrentDistance} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
+            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name.ToString()} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.CurrentDistance} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
 
         if (actor is Npc npc)
             actorString += $"       BaseId: {npc.BaseId}  NameId:{npc.NameId}\n";
@@ -767,7 +767,7 @@ public static partial class Util
     internal static void PrintGameObject(GameObject actor, string tag, bool resolveGameData)
     {
         var actorString =
-            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.CurrentDistance} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
+            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name.ToString()} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.CurrentDistance} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
 
         if (actor is Npc npc)
             actorString += $"       BaseId: {npc.BaseId}  NameId:{npc.NameId}\n";

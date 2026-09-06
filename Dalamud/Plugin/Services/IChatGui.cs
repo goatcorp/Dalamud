@@ -2,8 +2,8 @@ using System.Collections.Generic;
 
 using Dalamud.Game.Chat;
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Plugin.Services;
 
@@ -69,7 +69,7 @@ public interface IChatGui : IDalamudService
     /// <summary>
     /// Gets the dictionary of Dalamud Link Handlers.
     /// </summary>
-    IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers { get; }
+    IReadOnlyDictionary<(string PluginName, uint CommandId), Action<DalamudLinkPayload>> RegisteredLinkHandlers { get; }
 
     /// <summary>
     /// Register a chat link handler.
@@ -77,7 +77,7 @@ public interface IChatGui : IDalamudService
     /// <param name="commandId">The ID of the command.</param>
     /// <param name="commandAction">The action to be executed.</param>
     /// <returns>Returns an SeString payload for the link.</returns>
-    DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction);
+    DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<DalamudLinkPayload> commandAction);
 
     /// <summary>
     /// Remove a chat link handler.
@@ -93,8 +93,8 @@ public interface IChatGui : IDalamudService
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
     /// </summary>
-    /// <param name="chat">A message to send.</param>
-    void Print(XivChatEntry chat);
+    /// <param name="message">A message to send.</param>
+    void Print(IPrintableChatMessage message);
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
@@ -102,7 +102,7 @@ public interface IChatGui : IDalamudService
     /// <param name="message">A message to send.</param>
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>
-    void Print(string message, string? messageTag = null, ushort? tagColor = null);
+    void Print(ReadOnlySeString message, string? messageTag = null, ushort? tagColor = null);
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
@@ -110,7 +110,7 @@ public interface IChatGui : IDalamudService
     /// <param name="message">A message to send.</param>
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>
-    void Print(SeString message, string? messageTag = null, ushort? tagColor = null);
+    void Print(ReadOnlySeStringSpan message, string? messageTag = null, ushort? tagColor = null);
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
@@ -118,7 +118,7 @@ public interface IChatGui : IDalamudService
     /// <param name="message">A message to send.</param>
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>
-    void PrintError(string message, string? messageTag = null, ushort? tagColor = null);
+    void PrintError(ReadOnlySeString message, string? messageTag = null, ushort? tagColor = null);
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
@@ -126,21 +126,5 @@ public interface IChatGui : IDalamudService
     /// <param name="message">A message to send.</param>
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>
-    void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null);
-
-    /// <summary>
-    /// Queue a chat message. Dalamud will send queued messages on the next framework event.
-    /// </summary>
-    /// <param name="message">A message to send.</param>
-    /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
-    /// <param name="tagColor">Color to display the message tag with.</param>
-    void Print(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null);
-
-    /// <summary>
-    /// Queue a chat message. Dalamud will send queued messages on the next framework event.
-    /// </summary>
-    /// <param name="message">A message to send.</param>
-    /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
-    /// <param name="tagColor">Color to display the message tag with.</param>
-    void PrintError(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null);
+    void PrintError(ReadOnlySeStringSpan message, string? messageTag = null, ushort? tagColor = null);
 }
