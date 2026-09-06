@@ -170,7 +170,7 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 
             fixed (byte* pText1 = rssb1.Builder.Append(tmpText1).GetViewAsSpan())
             {
-                fixed (byte* pText2 = rssb1.Builder.Append(tmpText2).GetViewAsSpan())
+                fixed (byte* pText2 = rssb2.Builder.Append(tmpText2).GetViewAsSpan())
                 {
                     retVal = this.createFlyTextHook.Original(
                         thisPtr,
