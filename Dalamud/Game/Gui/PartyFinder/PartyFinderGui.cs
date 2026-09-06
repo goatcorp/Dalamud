@@ -7,6 +7,7 @@ using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.Game.Network;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
+using FFXIVClientStructs.Interop;
 
 namespace Dalamud.Game.Gui.PartyFinder;
 
@@ -61,13 +62,13 @@ internal sealed unsafe class PartyFinderGui : IInternalDisposableService, IParty
     {
         for (var i = 0; i < packet->Payload.Entries.Length; i++)
         {
-            ref var entry = ref packet->Payload.Entries[i];
+            var entry = packet->Payload.Entries.GetPointer(i);
 
             // these are empty slots that are not shown to the player
-            if (entry.ListingId == 0)
+            if (entry->ListingId == 0)
                 continue;
 
-            var listing = new PartyFinderListing(ref entry);
+            var listing = new PartyFinderListing(entry);
             var args = new PartyFinderListingEventArgs(packet->Payload.SegmentIndex);
             foreach (var d in Delegate.EnumerateInvocationList(this.ReceiveListing))
             {
