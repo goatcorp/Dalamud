@@ -6,8 +6,6 @@ using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.NamePlate;
 
-// TODO: should we use ReadOnlySeStringSpan here?
-
 /// <summary>
 /// Provides a read-only view of the nameplate info object data for a nameplate. Modifications to
 /// <see cref="NamePlateUpdateHandler"/> fields do not affect this data.
@@ -17,36 +15,36 @@ public interface INamePlateInfoView
     /// <summary>
     /// Gets the displayed name for this nameplate according to the nameplate info object.
     /// </summary>
-    ReadOnlySeString Name { get; }
+    ReadOnlySeStringSpan Name { get; }
 
     /// <summary>
     /// Gets the displayed free company tag for this nameplate according to the nameplate info object. For this field,
     /// the quote characters which appear on either side of the title are NOT included.
     /// </summary>
-    ReadOnlySeString FreeCompanyTag { get; }
+    ReadOnlySeStringSpan FreeCompanyTag { get; }
 
     /// <summary>
     /// Gets the displayed free company tag for this nameplate according to the nameplate info object. For this field,
     /// the quote characters which appear on either side of the title ARE included.
     /// </summary>
-    ReadOnlySeString QuotedFreeCompanyTag { get; }
+    ReadOnlySeStringSpan QuotedFreeCompanyTag { get; }
 
     /// <summary>
     /// Gets the displayed title for this nameplate according to the nameplate info object. For this field, the quote
     /// characters which appear on either side of the title are NOT included.
     /// </summary>
-    ReadOnlySeString Title { get; }
+    ReadOnlySeStringSpan Title { get; }
 
     /// <summary>
     /// Gets the displayed title for this nameplate according to the nameplate info object. For this field, the quote
     /// characters which appear on either side of the title ARE included.
     /// </summary>
-    ReadOnlySeString QuotedTitle { get; }
+    ReadOnlySeStringSpan QuotedTitle { get; }
 
     /// <summary>
     /// Gets the displayed level text for this nameplate according to the nameplate info object.
     /// </summary>
-    ReadOnlySeString LevelText { get; }
+    ReadOnlySeStringSpan LevelText { get; }
 
     /// <summary>
     /// Gets the flags for this nameplate according to the nameplate info object.
@@ -72,30 +70,23 @@ public interface INamePlateInfoView
 /// </summary>
 internal unsafe class NamePlateInfoView(RaptureAtkModule.NamePlateInfo* info) : INamePlateInfoView
 {
-    private ReadOnlySeString? name;
-    private ReadOnlySeString? freeCompanyTag;
-    private ReadOnlySeString? quotedFreeCompanyTag;
-    private ReadOnlySeString? title;
-    private ReadOnlySeString? quotedTitle;
-    private ReadOnlySeString? levelText;
+    /// <inheritdoc/>
+    public ReadOnlySeStringSpan Name => info->Name.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public ReadOnlySeString Name => this.name ??= info->Name.AsReadOnlySeString();
+    public ReadOnlySeStringSpan FreeCompanyTag => NamePlateGui.StripFreeCompanyTagQuotes(info->FcName.AsReadOnlySeString()).AsSpan();
 
     /// <inheritdoc/>
-    public ReadOnlySeString FreeCompanyTag => this.freeCompanyTag ??= NamePlateGui.StripFreeCompanyTagQuotes(info->FcName);
+    public ReadOnlySeStringSpan QuotedFreeCompanyTag => info->FcName.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public ReadOnlySeString QuotedFreeCompanyTag => this.quotedFreeCompanyTag ??= info->FcName.AsReadOnlySeString();
+    public ReadOnlySeStringSpan Title => info->Title.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public ReadOnlySeString Title => this.title ??= info->Title.AsReadOnlySeString();
+    public ReadOnlySeStringSpan QuotedTitle => info->DisplayTitle.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public ReadOnlySeString QuotedTitle => this.quotedTitle ??= info->DisplayTitle.AsReadOnlySeString();
-
-    /// <inheritdoc/>
-    public ReadOnlySeString LevelText => this.levelText ??= info->LevelText.AsReadOnlySeString();
+    public ReadOnlySeStringSpan LevelText => info->LevelText.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
     public int Flags => info->Flags;

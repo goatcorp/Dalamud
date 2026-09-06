@@ -102,7 +102,7 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
     private ReadOnlySeString GetStrippedField(NamePlateUpdateHandler handler)
     {
         return isFreeCompany
-            ? NamePlateGui.StripFreeCompanyTagQuotes(handler.GetFieldAsSpan(field))
-            : NamePlateGui.StripTitleQuotes(handler.GetFieldAsSpan(field));
+            ? NamePlateGui.StripFreeCompanyTagQuotes(handler.GetFieldAsReadOnlySeString(field))
+            : NamePlateGui.StripTitleQuotes(handler.GetFieldAsReadOnlySeString(field));
     }
 }
