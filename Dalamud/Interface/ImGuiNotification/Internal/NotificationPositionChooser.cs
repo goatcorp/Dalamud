@@ -1,7 +1,10 @@
 using System.Numerics;
 
+using CheapLoc;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
@@ -19,6 +22,11 @@ internal class NotificationPositionChooser
     private Vector2 currentAnchorPosition;
 
     /// <summary>
+    /// Prevents immediate closure from opening with a gamepad due to button click in the settings window.
+    /// </summary>
+    private bool waitForRelease;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="NotificationPositionChooser"/> class.
     /// </summary>
     /// <param name="configuration">The configuration we are reading or writing from.</param>
@@ -26,6 +34,8 @@ internal class NotificationPositionChooser
     {
         this.configuration = configuration;
         this.previousAnchorPosition = configuration.NotificationAnchorPosition;
+        this.currentAnchorPosition = this.previousAnchorPosition;
+        this.waitForRelease = ImGui.IsKeyDown(ImGuiKey.GamepadFaceDown);
     }
 
     /// <summary>
@@ -58,20 +68,37 @@ internal class NotificationPositionChooser
             ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav);
 
-        var adjustedMousePos = ImGui.GetMousePos() - viewportPos;
-        var mousePosUnit = adjustedMousePos / viewportSize;
+        var gamepadState = Service<GamepadState>.Get();
+        var io = ImGui.GetIO();
 
-        // Store the offset as a Vector2
-        this.currentAnchorPosition = mousePosUnit;
+        if (io.MouseDelta != Vector2.Zero)
+        {
+            var adjustedMousePos = ImGui.GetMousePos() - viewportPos;
+            this.currentAnchorPosition = adjustedMousePos / viewportSize;
+        }
+
+        var isGamepadActive = gamepadState.NavEnableGamepad;
+        if (isGamepadActive && gamepadState.LeftStick != Vector2.Zero)
+        {
+            var gamepadDelta = gamepadState.LeftStick * new Vector2(1, -1) / 100f;
+            this.currentAnchorPosition += gamepadDelta * io.DeltaTime * 1.5f;
+        }
+
+        this.currentAnchorPosition = Vector2.Clamp(this.currentAnchorPosition, Vector2.Zero, Vector2.One);
 
         DrawPreview(this.previousAnchorPosition, 0.3f);
         DrawPreview(this.currentAnchorPosition, 1f);
 
-        if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+        if (this.waitForRelease && !ImGui.IsKeyDown(ImGuiKey.GamepadFaceDown))
+        {
+            this.waitForRelease = false;
+        }
+
+        if (ImGui.IsMouseClicked(ImGuiMouseButton.Right) || (!this.waitForRelease && ImGui.IsKeyPressed(ImGuiKey.GamepadFaceRight)))
         {
             this.SelectionMade.InvokeSafely();
         }
-        else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+        else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) || (!this.waitForRelease && ImGui.IsKeyPressed(ImGuiKey.GamepadFaceDown)))
         {
             this.configuration.NotificationAnchorPosition = this.currentAnchorPosition;
             this.configuration.QueueSave();
@@ -80,9 +107,9 @@ internal class NotificationPositionChooser
         }
 
         // In the middle of the screen, draw some instructions
-        string[] instructions = ["Drag to move the notifications to where you would like them to appear.",
-                           "Click to select the position.",
-                           "Right-click to close without making changes."];
+        var instructions = isGamepadActive
+            ? Locs.InstructionsGamepad.Value
+            : Locs.InstructionMouse.Value;
 
         var dl = ImGui.GetWindowDrawList();
         for (var i = 0; i < instructions.Length; i++)
@@ -222,5 +249,14 @@ internal class NotificationPositionChooser
         // Draw the small box
         dl.AddRectFilled(smallTopLeft, smallBottomRight, ImGui.ColorConvertFloat4ToU32(backgroundColor), borderRounding, ImDrawFlags.RoundCornersAll);
         dl.AddRect(smallTopLeft, smallBottomRight, borderColor, borderRounding, ImDrawFlags.RoundCornersAll, borderThickness);
+    }
+
+    private static class Locs
+    {
+        public static readonly Lazy<string[]> InstructionsGamepad = new(() =>
+            Loc.Localize("NotificationPositionChooser.InstructionsGamepad", "Drag your mouse or use the Left Stick to move notifications.\nLeft-click or press A/Cross to select the position.\nRight-click or press B/Circle to cancel.").Split('\n'));
+
+        public static readonly Lazy<string[]> InstructionMouse = new(() =>
+            Loc.Localize("NotificationPositionChooser.InstructionMouse", "Drag to move the notifications to where you would like them to appear.\nLeft-click to select the position.\nRight-click to close without making changes.").Split('\n'));
     }
 }
