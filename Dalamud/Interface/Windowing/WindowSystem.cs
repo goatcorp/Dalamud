@@ -134,6 +134,9 @@ public class WindowSystem : IWindowSystem
         if (config?.ReduceMotions ?? false)
             flags |= WindowHost.WindowDrawFlags.IsReducedMotion;
 
+        if (config?.IsGamepadClosingWindowsEnabled ?? true)
+            flags |= WindowHost.WindowDrawFlags.IsWindowClosableWithGamepad;
+
         // Shallow clone the list of windows so that we can edit it without modifying it while the loop is iterating
         foreach (var window in this.windows.ToArray())
         {

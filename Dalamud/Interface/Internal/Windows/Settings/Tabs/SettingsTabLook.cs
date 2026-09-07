@@ -145,6 +145,12 @@ internal sealed class SettingsTabLook : SettingsTab
             (v, c) => c.IsGamepadNavigationEnabled = v),
 
         new SettingsEntry<bool>(
+            LazyLoc.Localize("DalamudSettingToggleGamepadClosingWindows", "Allow closing windows via gamepad"),
+            LazyLoc.Localize("DalamudSettingToggleGamepadClosingWindowsHint", "This will allow focused windows to be closed using the gamepad face right button (B / Circle)."),
+            c => c.IsGamepadClosingWindowsEnabled,
+            (v, c) => c.IsGamepadClosingWindowsEnabled = v),
+
+        new SettingsEntry<bool>(
             LazyLoc.Localize("DalamudSettingToggleTsm", "Show title screen menu"),
             LazyLoc.Localize("DalamudSettingToggleTsmHint", "This will allow you to access certain Dalamud and Plugin functionality from the title screen.\nDisabling this will also hide the Dalamud version text on the title screen."),
             c => c.ShowTsm,
