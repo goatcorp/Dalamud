@@ -2,8 +2,6 @@ using System.Collections.Generic;
 
 using Dalamud.Game.ClientState.Keys;
 
-using FFXIVClientStructs.FFXIV.Client.System.Input;
-
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
@@ -66,15 +64,25 @@ public interface IKeyState : IDalamudService
     bool IsVirtualKeyValid(VirtualKey vkCode);
 
     /// <summary>
-    /// Attempts to get the SeVirtualKey equivalent of a given virtual key code.
+    /// Gets a value indicating whether the given VirtualKey code is regarded as a valid extended key by Dalamud.
+    /// </summary>
+    /// <param name="vkCode">Virtual key code.</param>
+    /// <returns>If the code is a valid extended key.</returns>
+    bool IsExtendedVirtualKeyValid(int vkCode);
+
+    /// <inheritdoc cref="IsExtendedVirtualKeyValid(int)"/>
+    bool IsExtendedVirtualKeyValid(VirtualKey vkCode);
+
+    /// <summary>
+    /// Attempts to get the game's virtual key code equivalent of a given virtual key code.
     /// </summary>
     /// <param name="vkCode">The virtual key code to convert.</param>
-    /// <param name="seVkCode">The resulting SeVirtualKey, if the conversion is successful.</param>
-    /// <returns>Whether the virtual key code has a valid SeVirtualKey equivalent.</returns>
-    bool TryGetSeVirtualKey(int vkCode, out SeVirtualKey? seVkCode);
+    /// <param name="seVkCode">The resulting game's virtual key code, if the conversion is successful.</param>
+    /// <returns>Whether the virtual key code has a valid game's virtual key code equivalent.</returns>
+    bool TryGetSeVirtualKey(int vkCode, out int seVkCode);
 
-    /// <inheritdoc cref="TryGetSeVirtualKey(int, out SeVirtualKey?)"/>
-    bool TryGetSeVirtualKey(VirtualKey vkCode, out SeVirtualKey? seVkCode);
+    /// <inheritdoc cref="TryGetSeVirtualKey(int, out int)"/>
+    bool TryGetSeVirtualKey(VirtualKey vkCode, out int seVkCode);
 
     /// <summary>
     /// Gets an array of virtual keys the game considers valid input.

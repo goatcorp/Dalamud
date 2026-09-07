@@ -6,6 +6,8 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 
+using FFXIVClientStructs.FFXIV.Client.System.Input;
+
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
@@ -49,6 +51,13 @@ internal class KeyStateWidget : IDataWindowWidget
         }
     }
 
+    private static void DrawFlagCell(bool isActive)
+    {
+        ImGui.TableNextColumn();
+        var color = isActive ? ImGuiColors.SuccessForeground : ImGuiColors.DalamudOrange;
+        ImGui.TextColored(color, isActive ? "True" : "False");
+    }
+
     private void DrawKeyStateTable(string id, KeyState keyState, Func<IEnumerable<VirtualKey>> getKeys, bool isExtended = false)
     {
         if (isExtended)
@@ -66,7 +75,7 @@ internal class KeyStateWidget : IDataWindowWidget
 
         using var table = ImRaii.Table(
             id,
-            isExtended ? 4 : 5,
+            isExtended ? 7 : 8,
             ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.SizingFixedFit,
             new Vector2(-1, 300));
 
@@ -80,14 +89,17 @@ internal class KeyStateWidget : IDataWindowWidget
 
             ImGui.TableSetupColumn("Decimal", ImGuiTableColumnFlags.WidthFixed, 50);
             ImGui.TableSetupColumn("Hex", ImGuiTableColumnFlags.WidthFixed, 50);
-            ImGui.TableSetupColumn("State", ImGuiTableColumnFlags.WidthFixed, 70);
-
+            ImGui.TableSetupColumn("Down", ImGuiTableColumnFlags.WidthFixed, 45);
+            ImGui.TableSetupColumn("Pressed", ImGuiTableColumnFlags.WidthFixed, 60);
+            ImGui.TableSetupColumn("Held", ImGuiTableColumnFlags.WidthFixed, 45);
+            ImGui.TableSetupColumn("Released", ImGuiTableColumnFlags.WidthFixed, 60);
             ImGui.TableHeadersRow();
 
             foreach (var vkCode in getKeys())
             {
                 var code = (int)vkCode;
-                var isPressed = keyState[code];
+                var raw = keyState.GetRawValue(code);
+                var flags = (KeyStateFlags)raw;
 
                 ImGui.TableNextRow();
 
@@ -99,7 +111,8 @@ internal class KeyStateWidget : IDataWindowWidget
                     ImGui.TableNextColumn();
                     if (keyState.TryGetSeVirtualKey(code, out var seVirtualKey))
                     {
-                        ImGui.Text($"{seVirtualKey.ToString()} ({(int)seVirtualKey})");
+                        var seKey = (SeVirtualKey)seVirtualKey;
+                        ImGui.Text($"{seKey.ToString()} ({seVirtualKey})");
                     }
                     else
                     {
@@ -113,11 +126,10 @@ internal class KeyStateWidget : IDataWindowWidget
                 ImGui.TableNextColumn();
                 ImGui.Text($"0x{code:X2}");
 
-                ImGui.TableNextColumn();
-                using (ImRaii.PushColor(ImGuiCol.Text, isPressed ? ImGuiColors.SuccessForeground : ImGuiColors.DalamudOrange))
-                {
-                    ImGui.Text(isPressed ? "Pressed" : "Released");
-                }
+                DrawFlagCell(flags.HasFlag(KeyStateFlags.Down));
+                DrawFlagCell(flags.HasFlag(KeyStateFlags.Pressed));
+                DrawFlagCell(flags.HasFlag(KeyStateFlags.Held));
+                DrawFlagCell(flags.HasFlag(KeyStateFlags.Released));
             }
         }
     }
