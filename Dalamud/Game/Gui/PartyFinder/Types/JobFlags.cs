@@ -160,4 +160,9 @@ public enum JobFlags : ulong
     /// Pictomancer (PCT).
     /// </summary>
     Pictomancer = 1ul << 31,
+
+    /// <summary>
+    /// Beastmaster (BST).
+    /// </summary>
+    Beastmaster = 1ul << 32,
 }
