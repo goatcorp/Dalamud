@@ -77,7 +77,7 @@ internal class NotificationPositionChooser
             this.currentAnchorPosition = adjustedMousePos / viewportSize;
         }
 
-        var isGamepadActive = gamepadState.NavEnableGamepad;
+        var isGamepadActive = gamepadState.EnableGamepadNav;
         if (isGamepadActive && gamepadState.LeftStick != Vector2.Zero)
         {
             var gamepadDelta = gamepadState.LeftStick * new Vector2(1, -1) / 100f;
