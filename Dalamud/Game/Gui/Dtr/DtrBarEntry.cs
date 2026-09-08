@@ -64,7 +64,7 @@ public interface IReadOnlyDtrBarEntry
 /// <summary>
 /// Interface representing an entry in the server info bar.
 /// </summary>
-public interface IDtrBarEntry : IReadOnlyDtrBarEntry
+public interface IDtrBarEntry : IReadOnlyDtrBarEntry, IDisposable
 {
     /// <summary>
     /// Gets or sets the text of this entry.
