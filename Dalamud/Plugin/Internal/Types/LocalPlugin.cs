@@ -784,7 +784,7 @@ internal class LocalPlugin : IAsyncDisposable
                         break;
 
                     case IDalamudPlugin syncInstance:
-                        await framework.RunOnFrameworkThread(syncInstance.Dispose).ConfigureAwait(false);
+                        await framework.Run(syncInstance.Dispose).ConfigureAwait(false);
                         break;
 
                     // Async plugins always unload async.

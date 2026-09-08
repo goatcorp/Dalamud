@@ -178,14 +178,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
         linkedCts.Token.ThrowIfCancellationRequested();
 
-        if (this.IsInFrameworkUpdateThread)
-        {
-            await action();
-        }
-        else
-        {
-            await this.FrameworkThreadTaskFactory.StartNew(action, linkedCts.Token).Unwrap();
-        }
+        await this.FrameworkThreadTaskFactory.StartNew(action, linkedCts.Token).Unwrap();
     }
 
     /// <inheritdoc/>
@@ -195,19 +188,16 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
         linkedCts.Token.ThrowIfCancellationRequested();
 
-        if (this.IsInFrameworkUpdateThread)
-        {
-            return await action();
-        }
-
         return await this.FrameworkThreadTaskFactory.StartNew(action, linkedCts.Token).Unwrap();
     }
 
     /// <inheritdoc/>
+    [Obsolete($"Use {nameof(RunOnTick)} or {nameof(Run)} instead.")]
     public Task<T> RunOnFrameworkThread<T>(Func<T> func) =>
         this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested ? Task.FromResult(func()) : this.RunOnTick(func);
 
     /// <inheritdoc/>
+    [Obsolete($"Use {nameof(RunOnTick)} or {nameof(Run)} instead.")]
     public Task RunOnFrameworkThread(Action action)
     {
         if (this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested)
@@ -303,7 +293,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             func,
             linkedCts.Token,
             TaskCreationOptions.HideScheduler | TaskCreationOptions.RunContinuationsAsynchronously,
-            this.frameworkThreadTaskScheduler).ConfigureAwait(false);
+            this.frameworkThreadTaskScheduler).Unwrap().ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -545,7 +535,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     [ServiceManager.ServiceDependency]
     private readonly Framework frameworkService = Service<Framework>.Get();
 
-    private readonly CancellationTokenSource pluginUnloadCancellationToken;
+    private readonly CancellationTokenSource pluginDisposeCancellationTokenSource;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FrameworkPluginScoped"/> class.
@@ -554,7 +544,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <param name="pluginErrorHandler">Error handler instance.</param>
     internal FrameworkPluginScoped(LocalPlugin plugin, PluginErrorHandler pluginErrorHandler)
     {
-        this.pluginUnloadCancellationToken = new CancellationTokenSource();
+        this.pluginDisposeCancellationTokenSource = new CancellationTokenSource();
 
         this.plugin = plugin;
         this.pluginErrorHandler = pluginErrorHandler;
@@ -583,7 +573,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.pluginUnloadCancellationToken.Cancel();
+        this.pluginDisposeCancellationTokenSource.Cancel();
 
         this.frameworkService.Update -= this.OnUpdateForward;
 
@@ -596,7 +586,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task DelayTicks(long numTicks, CancellationToken cancellationToken = default)
     {
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginUnloadCancellationToken.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
 
         await this.frameworkService.DelayTicks(numTicks, linkedCts.Token);
     }
@@ -604,7 +594,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task Run(Action action, CancellationToken cancellationToken = default)
     {
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginUnloadCancellationToken.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
 
         await this.frameworkService.Run(action, linkedCts.Token);
     }
@@ -612,7 +602,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task<T> Run<T>(Func<T> action, CancellationToken cancellationToken = default)
     {
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginUnloadCancellationToken.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
 
         return await this.frameworkService.Run(action, linkedCts.Token);
     }
@@ -620,7 +610,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task Run(Func<Task> action, CancellationToken cancellationToken = default)
     {
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginUnloadCancellationToken.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
 
         await this.frameworkService.Run(action, linkedCts.Token);
     }
@@ -628,16 +618,18 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task<T> Run<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
     {
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginUnloadCancellationToken.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
 
         return await this.frameworkService.Run(action, linkedCts.Token);
     }
 
     /// <inheritdoc/>
+    [Obsolete("Pending Removal")]
     public Task<T> RunOnFrameworkThread<T>(Func<T> func)
         => this.frameworkService.RunOnFrameworkThread(func);
 
     /// <inheritdoc/>
+    [Obsolete("Pending Removal")]
     public Task RunOnFrameworkThread(Action action)
         => this.frameworkService.RunOnFrameworkThread(action);
 
@@ -654,7 +646,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginUnloadCancellationToken.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
 
         return await this.frameworkService.RunOnTick(func, delay, delayTicks, linkedCts.Token);
     }
@@ -662,7 +654,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginUnloadCancellationToken.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
 
         await this.frameworkService.RunOnTick(action, delay, delayTicks, linkedCts.Token);
     }
@@ -670,7 +662,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginUnloadCancellationToken.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
 
         return await this.frameworkService.RunOnTick(func, delay, delayTicks, linkedCts.Token);
     }
@@ -678,7 +670,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public async Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginUnloadCancellationToken.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
 
         await this.frameworkService.RunOnTick(func, delay, delayTicks, linkedCts.Token);
     }
@@ -689,7 +681,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 
     private void OnUpdateForward(IFramework framework)
     {
-        if (this.pluginUnloadCancellationToken.IsCancellationRequested)
+        if (this.pluginDisposeCancellationTokenSource.IsCancellationRequested)
         {
             return;
         }

@@ -182,8 +182,14 @@ public interface IFramework : IDalamudService
     /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
     /// <returns>Task representing the pending function.</returns>
     /// <remarks>
+    /// <para>
     /// If you await this call, after awaiting completes you are guaranteed to no longer be on the games framework thread,
     /// even if nested inside another Run or RunOnTick.
+    /// </para>
+    /// <para>
+    /// Do not <c>.Wait()</c> or <c>.Result()</c> this call while you are already on the main thread, as it's not valid to block this call while on the main thread.
+    /// You can't wait the next tick, while blocking the current tick.
+    /// </para>
     /// </remarks>
     Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default);
 
@@ -196,8 +202,14 @@ public interface IFramework : IDalamudService
     /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
     /// <returns>Task representing the pending function.</returns>
     /// <remarks>
+    /// <para>
     /// If you await this call, after awaiting completes you are guaranteed to no longer be on the games framework thread,
     /// even if nested inside another Run or RunOnTick.
+    /// </para>
+    /// <para>
+    /// Do not <c>.Wait()</c> or <c>.Result()</c> this call while you are already on the main thread, as it's not valid to block this call while on the main thread.
+    /// You can't wait the next tick, while blocking the current tick.
+    /// </para>
     /// </remarks>
     Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default);
 
@@ -211,8 +223,14 @@ public interface IFramework : IDalamudService
     /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
     /// <returns>Task representing the pending function.</returns>
     /// <remarks>
+    /// <para>
     /// If you await this call, after awaiting completes you are guaranteed to no longer be on the games framework thread,
     /// even if nested inside another Run or RunOnTick.
+    /// </para>
+    /// <para>
+    /// Do not <c>.Wait()</c> or <c>.Result()</c> this call while you are already on the main thread, as it's not valid to block this call while on the main thread.
+    /// You can't wait the next tick, while blocking the current tick.
+    /// </para>
     /// </remarks>
     Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default);
 
@@ -225,8 +243,14 @@ public interface IFramework : IDalamudService
     /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
     /// <returns>Task representing the pending function.</returns>
     /// <remarks>
+    /// <para>
     /// If you await this call, after awaiting completes you are guaranteed to no longer be on the games framework thread,
     /// even if nested inside another Run or RunOnTick.
+    /// </para>
+    /// <para>
+    /// Do not <c>.Wait()</c> or <c>.Result()</c> this call while you are already on the main thread, as it's not valid to block this call while on the main thread.
+    /// You can't wait the next tick, while blocking the current tick.
+    /// </para>
     /// </remarks>
     Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default);
 
