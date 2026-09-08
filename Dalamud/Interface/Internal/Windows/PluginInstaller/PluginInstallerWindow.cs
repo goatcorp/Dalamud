@@ -630,7 +630,6 @@ internal class PluginInstallerWindow : Window, IDisposable
                     ImGuiHelpers.CenteredText("Installing plugin...");
                     break;
                 case LoadingIndicatorKind.Manager:
-                {
                     if (pluginManager.PluginsReady && !pluginManager.ReposReady)
                     {
                         ImGuiHelpers.CenteredText("Loading repositories...");
@@ -657,9 +656,8 @@ internal class PluginInstallerWindow : Window, IDisposable
                     {
                         ImGuiHelpers.CenteredText("Loading repositories and plugins...");
                     }
-                }
 
-                break;
+                    break;
                 case LoadingIndicatorKind.ProfilesLoading:
                     ImGuiHelpers.CenteredText("Collections are being applied...");
                     break;
