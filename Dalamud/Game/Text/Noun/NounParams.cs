@@ -68,6 +68,7 @@ internal record struct NounParams()
         nameof(LSheets.DeepDungeonDemiclone) => 1,
         nameof(LSheets.Glasses) => 4,
         nameof(LSheets.GlassesStyle) => 15,
+        nameof(LSheets.XBMItem) => 3,
         _ => 0,
     };
 }
