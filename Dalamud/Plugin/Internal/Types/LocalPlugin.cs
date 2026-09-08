@@ -425,7 +425,7 @@ internal class LocalPlugin : IAsyncDisposable
             Log.Information("Finished loading {PluginName}", this.InternalName);
 
             var manager = Service<PluginManager>.Get();
-                manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Loaded, [new ActivePluginsChangedEventArgs.AffectedPlugin(this, null)]);
+            manager.NotifyPluginsForStateChange(PluginListInvalidationKind.Loaded, [new ActivePluginsChangedEventArgs.AffectedPlugin(this, null)]);
         }
         catch (Exception ex)
         {
