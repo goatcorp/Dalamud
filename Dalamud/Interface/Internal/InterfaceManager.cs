@@ -611,8 +611,8 @@ internal partial class InterfaceManager : IInternalDisposableService
         if (CSFramework.Instance()->GetNetworkModuleProxy() == null)
             return;
 
-        this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
         this.framework.Update -= this.FrameworkOnUpdate;
+        this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
     }
 
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
