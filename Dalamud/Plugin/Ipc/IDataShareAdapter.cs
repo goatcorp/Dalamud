@@ -1,17 +1,24 @@
+using Dalamud.Utility;
+
 namespace Dalamud.Plugin.Ipc;
 
 /// <summary> An interface to provide live IPC adapters that can invoke methods directly using custom IDs without the runtime overhead of IPC queries. </summary>
 /// <remarks> Implement only methods you actually need. This can then be used to create a wrapper encapsulating the actually available methods or properties, either by the provider library, or on the consumer side. </remarks>
+[Api16ToDo("Remove default implementations of Disposed, Version and IsDisposed.")]
 public interface IIdDataShareAdapter : IDisposable
 {
     /// <summary> An event that should be invoked when the adapter is disposed. </summary>
-    event Action? Disposed;
+    event Action? Disposed
+    {
+        add => _ = value;
+        remove => _ = value;
+    }
 
     /// <summary> Gets the version of this adapter. </summary>
-    Version Version { get; }
+    Version? Version => null;
 
     /// <summary> Gets a value indicating whether the adapter has already been disposed. </summary>
-    bool IsDisposed { get; }
+    bool IsDisposed => true;
 
     /// <inheritdoc cref="Invoke{T1,T2,T3,T4,T5,T6,T7,T8,T9}(int,T1,T2,T3,T4,T5,T6,T7,T8,T9)"/>
     void Invoke(int methodId)
