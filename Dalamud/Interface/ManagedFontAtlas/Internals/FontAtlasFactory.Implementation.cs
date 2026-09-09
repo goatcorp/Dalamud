@@ -818,7 +818,7 @@ internal sealed partial class FontAtlasFactory
             }
 
             this.buildSuppressionSuppressed = false;
-            this.factory.Framework.RunOnFrameworkThread(
+            _ = this.factory.Framework.RunOnTick(
                 () =>
                 {
                     this.RebuildRecommend.InvokeSafely();

@@ -51,10 +51,10 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     [ServiceManager.ServiceConstructor]
     private unsafe Framework()
     {
-        this.frameworkDestroy = new();
-        this.frameworkDestroyed = new();
-        this.frameworkThreadTaskScheduler = new();
-        this.FrameworkThreadTaskFactory = new(
+        this.frameworkDestroy = new CancellationTokenSource();
+        this.frameworkDestroyed = new CancellationTokenSource();
+        this.frameworkThreadTaskScheduler = new ThreadBoundTaskScheduler();
+        this.FrameworkThreadTaskFactory = new TaskFactory(
             this.frameworkDestroyed.Token,
             TaskCreationOptions.None,
             TaskContinuationOptions.None,
@@ -119,56 +119,85 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     public TaskFactory GetTaskFactory() => this.FrameworkThreadTaskFactory;
 
     /// <inheritdoc/>
-    public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default)
+    public async Task DelayTicks(long numTicks, CancellationToken cancellationToken = default)
     {
-        if (this.frameworkDestroyed.IsCancellationRequested) // Gone
-            return Task.FromCanceled(this.frameworkDestroyed.Token);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
 
-        if (numTicks <= 0 || this.frameworkThreadTaskScheduler.BoundThread == null) // Nonsense or before first tick
-            return Task.CompletedTask;
+        // Cancellation has already been requested either by provided token, or by framework token,
+        // as this function is async this will return a Task.FromCancelled(...) automatically.
+        linkedCts.Token.ThrowIfCancellationRequested();
+
+        // Nonsense or before first tick
+        if (numTicks <= 0 || this.frameworkThreadTaskScheduler.BoundThread == null)
+        {
+            return;
+        }
 
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        this.tickDelayedTaskCompletionSources[tcs] = (this.tickCounter + (ulong)numTicks, cancellationToken);
-        return tcs.Task;
+        this.tickDelayedTaskCompletionSources[tcs] = (this.tickCounter + (ulong)numTicks, linkedCts.Token);
+
+        await tcs.Task;
     }
 
     /// <inheritdoc/>
-    public Task Run(Action action, CancellationToken cancellationToken = default)
+    public async Task Run(Action action, CancellationToken cancellationToken = default)
     {
-        if (cancellationToken == default)
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
+
+        linkedCts.Token.ThrowIfCancellationRequested();
+
+        if (this.IsInFrameworkUpdateThread)
+        {
+            action();
+        }
+        else
+        {
+            await this.FrameworkThreadTaskFactory.StartNew(action, linkedCts.Token);
+        }
     }
 
     /// <inheritdoc/>
-    public Task<T> Run<T>(Func<T> action, CancellationToken cancellationToken = default)
+    public async Task<T> Run<T>(Func<T> action, CancellationToken cancellationToken = default)
     {
-        if (cancellationToken == default)
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
+
+        linkedCts.Token.ThrowIfCancellationRequested();
+
+        if (this.IsInFrameworkUpdateThread)
+        {
+            return action();
+        }
+
+        return await this.FrameworkThreadTaskFactory.StartNew(action, linkedCts.Token);
     }
 
     /// <inheritdoc/>
-    public Task Run(Func<Task> action, CancellationToken cancellationToken = default)
+    public async Task Run(Func<Task> action, CancellationToken cancellationToken = default)
     {
-        if (cancellationToken == default)
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken).Unwrap();
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
+
+        linkedCts.Token.ThrowIfCancellationRequested();
+
+        await this.FrameworkThreadTaskFactory.StartNew(action, linkedCts.Token).Unwrap();
     }
 
     /// <inheritdoc/>
-    public Task<T> Run<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
+    public async Task<T> Run<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
     {
-        if (cancellationToken == default)
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken).Unwrap();
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
+
+        linkedCts.Token.ThrowIfCancellationRequested();
+
+        return await this.FrameworkThreadTaskFactory.StartNew(action, linkedCts.Token).Unwrap();
     }
 
     /// <inheritdoc/>
+    [Obsolete($"Use {nameof(RunOnTick)} or {nameof(Run)} instead.")]
     public Task<T> RunOnFrameworkThread<T>(Func<T> func) =>
         this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested ? Task.FromResult(func()) : this.RunOnTick(func);
 
     /// <inheritdoc/>
+    [Obsolete($"Use {nameof(RunOnTick)} or {nameof(Run)} instead.")]
     public Task RunOnFrameworkThread(Action action)
     {
         if (this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested)
@@ -190,107 +219,81 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     }
 
     /// <inheritdoc/>
+    [Obsolete("Pending Removal")]
     public Task<T> RunOnFrameworkThread<T>(Func<Task<T>> func) =>
         this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested ? func() : this.RunOnTick(func);
 
     /// <inheritdoc/>
+    [Obsolete("Pending Removal")]
     public Task RunOnFrameworkThread(Func<Task> func) =>
         this.IsInFrameworkUpdateThread || this.frameworkDestroyed.IsCancellationRequested ? func() : this.RunOnTick(func);
 
     /// <inheritdoc/>
-    public Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+    public async Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
-        if (this.frameworkDestroyed.IsCancellationRequested)
-        {
-            if (delay == default && delayTicks == default)
-                return this.RunOnFrameworkThread(func);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
 
-            return Task.FromCanceled<T>(this.frameworkDestroyed.Token);
+        if (delay != TimeSpan.Zero || delayTicks is not 0)
+        {
+            await Task.WhenAll(Task.Delay(delay, linkedCts.Token), this.DelayTicks(delayTicks, linkedCts.Token)).ConfigureAwait(false);
         }
 
-        if (cancellationToken == default)
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-        return this.FrameworkThreadTaskFactory.ContinueWhenAll(
-            [
-                Task.Delay(delay, cancellationToken),
-                this.DelayTicks(delayTicks, cancellationToken),
-            ],
-            _ => func(),
-            cancellationToken,
-            TaskContinuationOptions.HideScheduler,
-            this.frameworkThreadTaskScheduler);
+        return await Task.Factory.StartNew(
+                   func,
+                   linkedCts.Token,
+                   TaskCreationOptions.HideScheduler | TaskCreationOptions.RunContinuationsAsynchronously,
+                   this.frameworkThreadTaskScheduler).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+    public async Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
-        if (this.frameworkDestroyed.IsCancellationRequested)
-        {
-            if (delay == default && delayTicks == default)
-                return this.RunOnFrameworkThread(action);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
 
-            return Task.FromCanceled(this.frameworkDestroyed.Token);
+        if (delay != TimeSpan.Zero || delayTicks is not 0)
+        {
+            await Task.WhenAll(Task.Delay(delay, linkedCts.Token), this.DelayTicks(delayTicks, linkedCts.Token)).ConfigureAwait(false);
         }
 
-        if (cancellationToken == default)
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-        return this.FrameworkThreadTaskFactory.ContinueWhenAll(
-            [
-                Task.Delay(delay, cancellationToken),
-                this.DelayTicks(delayTicks, cancellationToken),
-            ],
-            _ => action(),
-            cancellationToken,
-            TaskContinuationOptions.HideScheduler,
-            this.frameworkThreadTaskScheduler);
+        await Task.Factory.StartNew(
+            action,
+            linkedCts.Token,
+            TaskCreationOptions.HideScheduler | TaskCreationOptions.RunContinuationsAsynchronously,
+            this.frameworkThreadTaskScheduler).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+    public async Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
-        if (this.frameworkDestroyed.IsCancellationRequested)
-        {
-            if (delay == default && delayTicks == default)
-                return this.RunOnFrameworkThread(func);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
 
-            return Task.FromCanceled<T>(this.frameworkDestroyed.Token);
+        if (delay != TimeSpan.Zero || delayTicks is not 0)
+        {
+            await Task.WhenAll(Task.Delay(delay, linkedCts.Token), this.DelayTicks(delayTicks, linkedCts.Token)).ConfigureAwait(false);
         }
 
-        if (cancellationToken == default)
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-        return this.FrameworkThreadTaskFactory.ContinueWhenAll(
-            [
-                Task.Delay(delay, cancellationToken),
-                this.DelayTicks(delayTicks, cancellationToken),
-            ],
-            _ => func(),
-            cancellationToken,
-            TaskContinuationOptions.HideScheduler,
-            this.frameworkThreadTaskScheduler).Unwrap();
+        return await Task.Factory.StartNew(
+                   func,
+                   linkedCts.Token,
+                   TaskCreationOptions.HideScheduler | TaskCreationOptions.RunContinuationsAsynchronously,
+                   this.frameworkThreadTaskScheduler).Unwrap().ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+    public async Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
     {
-        if (this.frameworkDestroyed.IsCancellationRequested)
-        {
-            if (delay == default && delayTicks == default)
-                return this.RunOnFrameworkThread(func);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.frameworkDestroyed.Token);
 
-            return Task.FromCanceled(this.frameworkDestroyed.Token);
+        if (delay != TimeSpan.Zero || delayTicks is not 0)
+        {
+            await Task.WhenAll(Task.Delay(delay, linkedCts.Token), this.DelayTicks(delayTicks, linkedCts.Token)).ConfigureAwait(false);
         }
 
-        if (cancellationToken == default)
-            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
-        return this.FrameworkThreadTaskFactory.ContinueWhenAll(
-            [
-                Task.Delay(delay, cancellationToken),
-                this.DelayTicks(delayTicks, cancellationToken),
-            ],
-            _ => func(),
-            cancellationToken,
-            TaskContinuationOptions.HideScheduler,
-            this.frameworkThreadTaskScheduler).Unwrap();
+        await Task.Factory.StartNew(
+            func,
+            linkedCts.Token,
+            TaskCreationOptions.HideScheduler | TaskCreationOptions.RunContinuationsAsynchronously,
+            this.frameworkThreadTaskScheduler).Unwrap().ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -305,7 +308,10 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     void IInternalDisposableService.DisposeService()
     {
         foreach (var k in this.tickDelayedTaskCompletionSources.Keys)
+        {
             k.SetCanceled(this.frameworkDestroy.Token);
+        }
+
         this.tickDelayedTaskCompletionSources.Clear();
 
         this.frameworkDestroyed.Cancel();
@@ -316,20 +322,23 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     }
 
     /// <summary>
-    /// Adds a update time to the stats history.
+    /// Adds a update time to the stat's history.
     /// </summary>
     /// <param name="key">Delegate Name.</param>
     /// <param name="ms">Runtime.</param>
     internal static void AddToStats(string key, double ms)
     {
-        if (!StatsHistory.ContainsKey(key))
-            StatsHistory.Add(key, []);
-
-        StatsHistory[key].Add(ms);
-
-        if (StatsHistory[key].Count > 1000)
+        if (!StatsHistory.TryGetValue(key, out var value))
         {
-            StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
+            value = [];
+            StatsHistory.Add(key, value);
+        }
+
+        value.Add(ms);
+
+        if (value.Count > 1000)
+        {
+            value.RemoveRange(0, value.Count - 1000);
         }
     }
 
@@ -339,7 +348,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     internal void UnloadDalamud()
     {
         if (this.frameworkDestroy.IsCancellationRequested)
+        {
             return;
+        }
 
         this.frameworkDestroy.Cancel();
         this.DispatchUpdateEvents = false;
@@ -372,9 +383,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             }
             catch (Exception ex)
             {
-                if (errorHandler != null)
+                if (errorHandler is not null)
                 {
-                    errorHandler?.InvokeSafely(ex, key);
+                    errorHandler.InvokeSafely(ex, key);
                 }
                 else if (!isScopedService)
                 {
@@ -395,8 +406,8 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 var now = DateTime.UtcNow;
                 var cooldownTimeSpan = TimeSpan.FromSeconds(30);
 
-                var hasCooldown = this.HitchLogHistory.TryGetValue(key, out DateTime lastLogTimestamp);
-                if (!hasCooldown || (hasCooldown && now - lastLogTimestamp > cooldownTimeSpan))
+                var hasCooldown = this.HitchLogHistory.TryGetValue(key, out var lastLogTimestamp);
+                if (!hasCooldown || now - lastLogTimestamp > cooldownTimeSpan)
                 {
                     this.HitchLogHistory[key] = now;
                     Serilog.Log.Warning("[HITCH] Long {Name} detected, {Total}ms > {Max}ms", key, elapsedMilliseconds, this.configuration.FrameworkUpdateHitch);
@@ -414,12 +425,19 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
     private unsafe bool HandleFrameworkUpdate(CSFramework* thisPtr)
     {
-        this.RunFrameworkTick();
+        try
+        {
+            this.RunFrameworkTick();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Exception in Framework.HandleFrameworkUpdate.");
+        }
 
         return this.updateHook.OriginalDisposeSafe(thisPtr);
     }
 
-    private unsafe void RunFrameworkTick()
+    private void RunFrameworkTick()
     {
         this.frameworkThreadTaskScheduler.BoundThread ??= Thread.CurrentThread;
 
@@ -517,6 +535,8 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     [ServiceManager.ServiceDependency]
     private readonly Framework frameworkService = Service<Framework>.Get();
 
+    private readonly CancellationTokenSource pluginDisposeCancellationTokenSource;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="FrameworkPluginScoped"/> class.
     /// </summary>
@@ -524,6 +544,8 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <param name="pluginErrorHandler">Error handler instance.</param>
     internal FrameworkPluginScoped(LocalPlugin plugin, PluginErrorHandler pluginErrorHandler)
     {
+        this.pluginDisposeCancellationTokenSource = new CancellationTokenSource();
+
         this.plugin = plugin;
         this.pluginErrorHandler = pluginErrorHandler;
 
@@ -551,6 +573,8 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        this.pluginDisposeCancellationTokenSource.Cancel();
+
         this.frameworkService.Update -= this.OnUpdateForward;
 
         this.Update = null;
@@ -560,56 +584,96 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     public TaskFactory GetTaskFactory() => this.frameworkService.GetTaskFactory();
 
     /// <inheritdoc/>
-    public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default) =>
-        this.frameworkService.DelayTicks(numTicks, cancellationToken);
+    public async Task DelayTicks(long numTicks, CancellationToken cancellationToken = default)
+    {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
+
+        await this.frameworkService.DelayTicks(numTicks, linkedCts.Token);
+    }
 
     /// <inheritdoc/>
-    public Task Run(Action action, CancellationToken cancellationToken = default) =>
-        this.frameworkService.Run(action, cancellationToken);
+    public async Task Run(Action action, CancellationToken cancellationToken = default)
+    {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
+
+        await this.frameworkService.Run(action, linkedCts.Token);
+    }
 
     /// <inheritdoc/>
-    public Task<T> Run<T>(Func<T> action, CancellationToken cancellationToken = default) =>
-        this.frameworkService.Run(action, cancellationToken);
+    public async Task<T> Run<T>(Func<T> action, CancellationToken cancellationToken = default)
+    {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
+
+        return await this.frameworkService.Run(action, linkedCts.Token);
+    }
 
     /// <inheritdoc/>
-    public Task Run(Func<Task> action, CancellationToken cancellationToken = default) =>
-        this.frameworkService.Run(action, cancellationToken);
+    public async Task Run(Func<Task> action, CancellationToken cancellationToken = default)
+    {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
+
+        await this.frameworkService.Run(action, linkedCts.Token);
+    }
 
     /// <inheritdoc/>
-    public Task<T> Run<T>(Func<Task<T>> action, CancellationToken cancellationToken = default) =>
-        this.frameworkService.Run(action, cancellationToken);
+    public async Task<T> Run<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
+    {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
+
+        return await this.frameworkService.Run(action, linkedCts.Token);
+    }
 
     /// <inheritdoc/>
+    [Obsolete("Pending Removal")]
     public Task<T> RunOnFrameworkThread<T>(Func<T> func)
         => this.frameworkService.RunOnFrameworkThread(func);
 
     /// <inheritdoc/>
+    [Obsolete("Pending Removal")]
     public Task RunOnFrameworkThread(Action action)
         => this.frameworkService.RunOnFrameworkThread(action);
 
     /// <inheritdoc/>
+    [Obsolete("Pending Removal")]
     public Task<T> RunOnFrameworkThread<T>(Func<Task<T>> func)
         => this.frameworkService.RunOnFrameworkThread(func);
 
     /// <inheritdoc/>
+    [Obsolete("Pending Removal")]
     public Task RunOnFrameworkThread(Func<Task> func)
         => this.frameworkService.RunOnFrameworkThread(func);
 
     /// <inheritdoc/>
-    public Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
-        => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
+    public async Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
+    {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
+
+        return await this.frameworkService.RunOnTick(func, delay, delayTicks, linkedCts.Token);
+    }
 
     /// <inheritdoc/>
-    public Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
-        => this.frameworkService.RunOnTick(action, delay, delayTicks, cancellationToken);
+    public async Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
+    {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
+
+        await this.frameworkService.RunOnTick(action, delay, delayTicks, linkedCts.Token);
+    }
 
     /// <inheritdoc/>
-    public Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
-        => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
+    public async Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
+    {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
+
+        return await this.frameworkService.RunOnTick(func, delay, delayTicks, linkedCts.Token);
+    }
 
     /// <inheritdoc/>
-    public Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
-        => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
+    public async Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = 0, CancellationToken cancellationToken = default)
+    {
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.pluginDisposeCancellationTokenSource.Token);
+
+        await this.frameworkService.RunOnTick(func, delay, delayTicks, linkedCts.Token);
+    }
 
     /// <inheritdoc/>
     public IDebouncer CreateDebouncer(TimeSpan delay, Action action)
@@ -617,9 +681,14 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 
     private void OnUpdateForward(IFramework framework)
     {
+        if (this.pluginDisposeCancellationTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
         this.frameworkService.ProfileAndInvoke(this.Update, this, (ex, handlerName) =>
         {
-            Serilog.Log.Error(ex, $"[{this.plugin.InternalName}] Exception in event handler {{EventHandlerName}}", handlerName);
+            Serilog.Log.Error(ex, "[{PluginInternalName}] Exception in event handler {EventHandlerName}", this.plugin.InternalName, handlerName);
             this.pluginErrorHandler.NotifyError();
         });
     }

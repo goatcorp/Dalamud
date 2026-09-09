@@ -204,7 +204,7 @@ public class GameConfigSection
     /// <exception cref="UnreachableException">Thrown if the name of the config option is found, but the struct was not.</exception>
     public unsafe void Set(string name, uint value)
     {
-        this.framework.RunOnFrameworkThread(() =>
+        _ = this.framework.Run(() =>
         {
             if (!this.TryGetIndex(name, out var index))
             {
@@ -282,7 +282,7 @@ public class GameConfigSection
     /// <exception cref="UnreachableException">Thrown if the name of the config option is found, but the struct was not.</exception>
     public unsafe void Set(string name, float value)
     {
-        this.framework.RunOnFrameworkThread(() =>
+        _ = this.framework.Run(() =>
         {
             if (!this.TryGetIndex(name, out var index))
             {
@@ -404,7 +404,7 @@ public class GameConfigSection
     /// <exception cref="UnreachableException">Thrown if the name of the config option is found, but the struct was not.</exception>
     public unsafe void Set(string name, string value)
     {
-        this.framework.RunOnFrameworkThread(() =>
+        _ = this.framework.Run(() =>
         {
             if (!this.TryGetIndex(name, out var index))
             {

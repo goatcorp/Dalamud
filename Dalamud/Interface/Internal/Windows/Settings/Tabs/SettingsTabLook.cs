@@ -267,7 +267,7 @@ internal sealed class SettingsTabLook : SettingsTab
             fcd.SetPopupPositionAndSizeToCurrentWindowCenter();
             interfaceManager.Draw += fcd.Draw;
             fcd.ResultTask.ContinueWith(
-                r => Service<Framework>.Get().RunOnFrameworkThread(
+                r => Service<Framework>.Get().Run(
                     () =>
                     {
                         interfaceManager.Draw -= fcd.Draw;

@@ -192,7 +192,7 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
 
     /// <summary>Queues a call to <see cref="Update"/>.</summary>
     public void QueueUpdate() =>
-        Service<Framework>.Get().RunOnTick(
+        _ = Service<Framework>.Get().RunOnTick(
             () =>
             {
                 if (this.args.TakeBeforeImGuiRender)

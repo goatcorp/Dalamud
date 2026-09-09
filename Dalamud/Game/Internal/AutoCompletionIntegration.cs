@@ -42,7 +42,7 @@ internal sealed unsafe class AutoCompletionIntegration : IInternalDisposableServ
     [ServiceManager.ServiceConstructor]
     internal AutoCompletionIntegration()
     {
-        this.framework.RunOnTick(this.Setup);
+        _ = this.framework.RunOnTick(this.Setup);
     }
 
     /// <inheritdoc/>
@@ -64,7 +64,7 @@ internal sealed unsafe class AutoCompletionIntegration : IInternalDisposableServ
         var uiModule = UIModule.Instance();
         if (uiModule == null || uiModule->FrameCount == 0)
         {
-            this.framework.RunOnTick(this.Setup);
+            _ = this.framework.RunOnTick(this.Setup);
             return;
         }
 
