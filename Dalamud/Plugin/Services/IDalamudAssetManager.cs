@@ -4,10 +4,8 @@ using System.IO;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Textures.TextureWraps;
-using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
-namespace Dalamud.Storage.Assets;
+namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// Holds Dalamud Assets' handles hostage, so that they do not get closed while Dalamud is running.<br />
@@ -18,7 +16,6 @@ namespace Dalamud.Storage.Assets;
 /// Think of C++ [[nodiscard]]. Also, like the intended meaning of the attribute, such methods will not have
 /// externally visible state changes.
 /// </summary>
-[Api16ToDo("Change namespace to Dalamud.Plugin.Services")]
 public interface IDalamudAssetManager : IDalamudService
 {
     /// <summary>

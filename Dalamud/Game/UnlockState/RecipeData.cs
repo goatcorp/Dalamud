@@ -8,6 +8,7 @@ using Dalamud.Game.Gui;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.UnlockState;
@@ -111,10 +112,9 @@ internal unsafe class RecipeData : IInternalDisposableService
         this.cachedCompletedQuests = null;
     }
 
-    private void OnlevelChanged(uint classJobId, uint level)
+    private void OnlevelChanged(RowRef<ClassJob> classJobRef, uint level)
     {
-        if (this.dataManager.GetExcelSheet<ClassJob>().TryGetRow(classJobId, out var classJobRow) &&
-            classJobRow.ClassJobCategory.RowId == 33) // Crafter
+        if (classJobRef.TryGetValue(out var classJobRow) && classJobRow.ClassJobCategory.RowId == 33) // Crafter
         {
             this.Update();
         }

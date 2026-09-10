@@ -40,7 +40,7 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
     }
 
     /// <inheritdoc/>
-    public event IFlyTextGui.OnFlyTextCreatedDelegate? FlyTextCreated;
+    public event IFlyTextGui.FlyTextCreatedDelegate? FlyTextCreated;
 
     /// <summary>
     /// Disposes of managed and unmanaged resources.
@@ -230,7 +230,7 @@ internal class FlyTextGuiPluginScoped : IInternalDisposableService, IFlyTextGui
     }
 
     /// <inheritdoc/>
-    public event IFlyTextGui.OnFlyTextCreatedDelegate? FlyTextCreated;
+    public event IFlyTextGui.FlyTextCreatedDelegate? FlyTextCreated;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()

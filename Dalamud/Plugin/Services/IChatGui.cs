@@ -16,45 +16,45 @@ public interface IChatGui : IDalamudService
     /// A delegate type used for the <see cref="ChatMessage"/> and <see cref="CheckMessageHandled"/> events.
     /// </summary>
     /// <param name="message">The message sent.</param>
-    delegate void OnHandleableChatMessageDelegate(IHandleableChatMessage message);
+    delegate void HandleableChatMessageDelegate(IHandleableChatMessage message);
 
     /// <summary>
     /// A delegate type used for the <see cref="ChatMessageHandled"/> and <see cref="ChatMessageUnhandled"/> events.
     /// </summary>
     /// <param name="message">The message sent.</param>
-    delegate void OnChatMessageDelegate(IChatMessage message);
+    delegate void ChatMessageDelegate(IChatMessage message);
 
     /// <summary>
     /// A delegate type used for the <see cref="LogMessage"/> event.
     /// </summary>
     /// <param name="message">The message sent. The passed object is only valid during the event callback and must not be used after returning from it.</param>
-    delegate void OnLogMessageDelegate(ILogMessage message);
+    delegate void LogMessageDelegate(ILogMessage message);
 
     /// <summary>
     /// An event that will be fired when a chat message is sent to chat by the game.
     /// </summary>
-    event OnHandleableChatMessageDelegate ChatMessage;
+    event HandleableChatMessageDelegate ChatMessage;
 
     /// <summary>
     /// A follow-up event after <see cref="ChatMessage"/>, that allows for final modifications, like translation or formatting.<br/>
     /// It is only fired if the message was not suppressed during the <see cref="ChatMessage"/> event.
     /// </summary>
-    event OnHandleableChatMessageDelegate CheckMessageHandled;
+    event HandleableChatMessageDelegate CheckMessageHandled;
 
     /// <summary>
     /// Event that will be fired when a chat message is handled by Dalamud or a Plugin.
     /// </summary>
-    event OnChatMessageDelegate ChatMessageHandled;
+    event ChatMessageDelegate ChatMessageHandled;
 
     /// <summary>
     /// Event that will be fired when a chat message is not handled by Dalamud or a Plugin.
     /// </summary>
-    event OnChatMessageDelegate ChatMessageUnhandled;
+    event ChatMessageDelegate ChatMessageUnhandled;
 
     /// <summary>
     /// Event that will be fired when a log message, that is a chat message based on entries in the LogMessage sheet, is sent.
     /// </summary>
-    event OnLogMessageDelegate LogMessage;
+    event LogMessageDelegate LogMessage;
 
     /// <summary>
     /// Gets the ID of the last linked item.
