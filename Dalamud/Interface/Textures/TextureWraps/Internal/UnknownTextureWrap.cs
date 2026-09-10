@@ -45,7 +45,7 @@ internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferred
     /// <inheritdoc/>
     public int Height { get; }
 
-    /// <summary>Queue the texture to be disposed once the frame ends.</summary>
+    /// <summary>Queues the texture for disposal through frame retirement.</summary>
     public void Dispose()
     {
         this.Dispose(true);

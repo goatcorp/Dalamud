@@ -1,0 +1,80 @@
+name: Release Dalamud
+
+on:
+  release:
+    types: [published]
+
+concurrency:
+  group: release_dalamud_${{ github.event.release.id }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and upload Windows release
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+        with:
+          ref: ${{ github.sha }}
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@c26a08ba26249b81327e26f6ef381897b6a8754d # v1.0.2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@55ec9447dda3d1cf6bd587150f3262f30ee10815 # v3
+        with:
+          dotnet-version: '10.0.100'
+
+      - name: Define VERSION
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          @(
+            ($env:GITHUB_REPOSITORY -replace '.*/')
+            $env:RELEASE_TAG
+            $env:GITHUB_SHA.Substring(0, 7)
+          ) | Set-Content -LiteralPath VERSION
+
+      - name: Build and test Dalamud
+        run: .\build.ps1 ci --configuration Release
+
+      - name: Create hashlist
+        run: .\CreateHashList.ps1 .\bin\Release
+
+      - name: Package release
+        run: |
+          $requiredFiles = @(
+            'Dalamud.dll', 'Dalamud.deps.json', 'Dalamud.runtimeconfig.json',
+            'Dalamud.Boot.dll', 'Dalamud.Injector.exe', 'Dalamud.Injector.dll',
+            'Dalamud.Injector.deps.json', 'Dalamud.Injector.runtimeconfig.json',
+            'DalamudCrashHandler.exe', 'FFXIVClientStructs.dll',
+            'cimgui.dll', 'cimplot.dll', 'cimguizmo.dll', 'nethost.dll',
+            'hashes.json', 'commit_hash.txt', 'revision.txt', 'TEMP_gitver.txt'
+          )
+          foreach ($file in $requiredFiles) {
+            if (-not (Test-Path -LiteralPath (Join-Path .\bin\Release $file) -PathType Leaf)) {
+              throw "Release bundle is missing $file"
+            }
+          }
+
+          # Keep the output contents at the ZIP root for a Dalamud directory override.
+          Compress-Archive -Path .\bin\Release\* -DestinationPath .\Dalamud-win-x64.zip -CompressionLevel Optimal
+          $hash = (Get-FileHash -LiteralPath .\Dalamud-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  Dalamud-win-x64.zip" | Set-Content -LiteralPath .\Dalamud-win-x64.zip.sha256 -Encoding ascii
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release upload "$env:RELEASE_TAG" .\Dalamud-win-x64.zip .\Dalamud-win-x64.zip.sha256 --repo "$env:GITHUB_REPOSITORY" --clobber
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

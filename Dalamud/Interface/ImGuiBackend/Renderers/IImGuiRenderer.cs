@@ -39,4 +39,16 @@ internal interface IImGuiRenderer : IDisposable
     /// <summary>Renders the draw data.</summary>
     /// <param name="drawData">The draw data.</param>
     void RenderDrawData(ImDrawDataPtr drawData);
+
+    /// <summary>
+    /// Draws and presents a single secondary (multi-viewport) window from a snapshot of its draw data.
+    /// </summary>
+    /// <remarks>
+    /// Renders captured draw data and presents through the borrowed renderer handle. The caller must serialize
+    /// access to the shared renderer and keep the snapshot, its borrowed resources, and the renderer handle valid
+    /// for the entire call. It must not be called for the main viewport.
+    /// </remarks>
+    /// <param name="rendererUserData">The viewport's borrowed <c>RendererUserData</c> handle.</param>
+    /// <param name="drawData">The snapshotted draw data for the viewport.</param>
+    void RenderViewportSnapshot(nint rendererUserData, ImDrawDataPtr drawData);
 }

@@ -117,17 +117,29 @@ internal unsafe partial class InterfaceManager
             $"Calling resizebuffers swap@{(nint)swapChain:X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
 #endif
 
-        this.ResizeBuffers?.InvokeSafely();
+        // Exclude frame capture and worker-thread rendering for the complete back-buffer reallocation.
+        this.backend?.EnterResize();
+        try
+        {
+            // Drain deferred render cleanup while no render pass is active.
+            this.RetireResourcesForResize();
 
-        this.backend?.OnPreResize();
+            this.ResizeBuffers?.InvokeSafely();
 
-        var ret = this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
-        if (ret == DXGI.DXGI_ERROR_INVALID_CALL)
-            Log.Error("invalid call to resizeBuffers");
+            this.backend?.OnPreResize();
 
-        this.backend?.OnPostResize((int)width, (int)height);
+            var ret = this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+            if (ret == DXGI.DXGI_ERROR_INVALID_CALL)
+                Log.Error("invalid call to resizeBuffers");
 
-        return ret;
+            this.backend?.OnPostResize((int)width, (int)height);
+
+            return ret;
+        }
+        finally
+        {
+            this.backend?.ExitResize();
+        }
     }
 
     /// <summary>Represents <c>DXGISwapChain</c> in ReShade.</summary>

@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Dalamud.Utility;
 
@@ -14,6 +15,16 @@ public static class ThreadSafety
     /// Gets a value indicating whether the current thread is the main thread.
     /// </summary>
     public static bool IsMainThread => threadStaticIsMainThread;
+
+    /// <summary>
+    /// Gets the shared lock that prevents worker-thread rendering from overlapping the original native framework
+    /// update.
+    /// </summary>
+    /// <remarks>
+    /// This reentrant lock allows the game thread to present during the native update.
+    /// The managed framework tick runs before this lock is acquired and is not protected by it.
+    /// </remarks>
+    internal static Lock NativeFrameworkRenderSyncRoot { get; } = new();
 
     /// <summary>
     /// Throws an exception when the current thread is not the main thread.
