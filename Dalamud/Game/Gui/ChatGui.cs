@@ -78,19 +78,19 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     }
 
     /// <inheritdoc/>
-    public event IChatGui.OnHandleableChatMessageDelegate? ChatMessage;
+    public event IChatGui.HandleableChatMessageDelegate? ChatMessage;
 
     /// <inheritdoc/>
-    public event IChatGui.OnHandleableChatMessageDelegate? CheckMessageHandled;
+    public event IChatGui.HandleableChatMessageDelegate? CheckMessageHandled;
 
     /// <inheritdoc/>
-    public event IChatGui.OnChatMessageDelegate? ChatMessageHandled;
+    public event IChatGui.ChatMessageDelegate? ChatMessageHandled;
 
     /// <inheritdoc/>
-    public event IChatGui.OnChatMessageDelegate? ChatMessageUnhandled;
+    public event IChatGui.ChatMessageDelegate? ChatMessageUnhandled;
 
     /// <inheritdoc/>
-    public event IChatGui.OnLogMessageDelegate? LogMessage;
+    public event IChatGui.LogMessageDelegate? LogMessage;
 
     /// <inheritdoc/>
     public uint LastLinkedItemId { get; private set; }
@@ -611,19 +611,19 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     }
 
     /// <inheritdoc/>
-    public event IChatGui.OnHandleableChatMessageDelegate? ChatMessage;
+    public event IChatGui.HandleableChatMessageDelegate? ChatMessage;
 
     /// <inheritdoc/>
-    public event IChatGui.OnHandleableChatMessageDelegate? CheckMessageHandled;
+    public event IChatGui.HandleableChatMessageDelegate? CheckMessageHandled;
 
     /// <inheritdoc/>
-    public event IChatGui.OnChatMessageDelegate? ChatMessageHandled;
+    public event IChatGui.ChatMessageDelegate? ChatMessageHandled;
 
     /// <inheritdoc/>
-    public event IChatGui.OnChatMessageDelegate? ChatMessageUnhandled;
+    public event IChatGui.ChatMessageDelegate? ChatMessageUnhandled;
 
     /// <inheritdoc/>
-    public event IChatGui.OnLogMessageDelegate? LogMessage;
+    public event IChatGui.LogMessageDelegate? LogMessage;
 
     /// <inheritdoc/>
     public uint LastLinkedItemId => this.chatGuiService.LastLinkedItemId;

@@ -57,13 +57,13 @@ internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
     #region Events
 
     /// <inheritdoc/>
-    public event IToastGui.OnNormalToastDelegate? Toast;
+    public event IToastGui.NormalToastDelegate? Toast;
 
     /// <inheritdoc/>
-    public event IToastGui.OnQuestToastDelegate? QuestToast;
+    public event IToastGui.QuestToastDelegate? QuestToast;
 
     /// <inheritdoc/>
-    public event IToastGui.OnErrorToastDelegate? ErrorToast;
+    public event IToastGui.ErrorToastDelegate? ErrorToast;
 
     #endregion
 
@@ -356,13 +356,13 @@ internal class ToastGuiPluginScoped : IInternalDisposableService, IToastGui
     }
 
     /// <inheritdoc/>
-    public event IToastGui.OnNormalToastDelegate? Toast;
+    public event IToastGui.NormalToastDelegate? Toast;
 
     /// <inheritdoc/>
-    public event IToastGui.OnQuestToastDelegate? QuestToast;
+    public event IToastGui.QuestToastDelegate? QuestToast;
 
     /// <inheritdoc/>
-    public event IToastGui.OnErrorToastDelegate? ErrorToast;
+    public event IToastGui.ErrorToastDelegate? ErrorToast;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
