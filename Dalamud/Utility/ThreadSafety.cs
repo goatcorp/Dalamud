@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Dalamud.Utility;
 
@@ -20,10 +21,10 @@ public static class ThreadSafety
     /// update.
     /// </summary>
     /// <remarks>
-    /// This reentrant monitor allows the game thread to present during the native update.
+    /// This reentrant lock allows the game thread to present during the native update.
     /// The managed framework tick runs before this lock is acquired and is not protected by it.
     /// </remarks>
-    internal static object NativeFrameworkRenderSyncRoot { get; } = new();
+    internal static Lock NativeFrameworkRenderSyncRoot { get; } = new();
 
     /// <summary>
     /// Throws an exception when the current thread is not the main thread.

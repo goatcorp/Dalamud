@@ -684,11 +684,11 @@ internal partial class InterfaceManager : IInternalDisposableService
     private void RenderDalamudDraw(IImGuiBackend activeBackend)
     {
         // Presentation callbacks may run on multiple threads. Serialize queued actions and live ImGui access
-        // with drawing, and exclude the original native framework update through the shared monitor.
+        // with drawing, and exclude the original native framework update through the shared lock.
         // Acquire NativeFrameworkRenderSyncRoot, renderDalamudLock, backend renderLock, then the snapshot read lock.
-        lock (ThreadSafety.NativeFrameworkRenderSyncRoot)
+        using (ThreadSafety.NativeFrameworkRenderSyncRoot.EnterScope())
         {
-            lock (this.renderDalamudLock)
+            using (this.renderDalamudLock.EnterScope())
             {
                 this.CumulativePresentCalls++;
                 this.IsAnyThreadInPresent = true;

@@ -286,7 +286,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         if (this.resizeInProgress)
             return;
 
-        lock (this.renderLock)
+        using (this.renderLock.EnterScope())
         {
             // Resize may have started while this render call was waiting for another render to finish.
             if (this.resizeInProgress)
