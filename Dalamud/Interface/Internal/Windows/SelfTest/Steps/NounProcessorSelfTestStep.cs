@@ -278,6 +278,8 @@ internal class NounProcessorSelfTestStep : ISelfTestStep
 
         new(nameof(LSheets.GlassesStyle), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Indefinite, 1, "a shaded spectacles"),
         new(nameof(LSheets.GlassesStyle), 1, ClientLanguage.English, 1, (int)EnglishArticleType.Definite, 1, "the shaded spectacles"),
+
+        // TODO: add XBMPet tests when the sheet isn't broken anymore
     ];
 
     private enum GermanCases
