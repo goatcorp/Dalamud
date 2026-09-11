@@ -55,6 +55,8 @@ internal sealed class LocalDevPlugin : LocalPlugin
             configuration.QueueSave();
         }
 
+        this.manifest.WorkingPluginId = this.devSettings.WorkingPluginId;
+
         if (this.AutomaticReload)
         {
             this.EnableReloading();
@@ -171,7 +173,10 @@ internal sealed class LocalDevPlugin : LocalPlugin
     {
         var manifestPath = LocalPluginManifest.GetManifestFile(this.DllFile);
         if (manifestPath.Exists)
+        {
             this.manifest = LocalPluginManifest.Load(manifestPath) ?? throw new Exception("Could not reload manifest.");
+            this.manifest.WorkingPluginId = this.devSettings.WorkingPluginId;
+        }
     }
 
     /// <inheritdoc/>
