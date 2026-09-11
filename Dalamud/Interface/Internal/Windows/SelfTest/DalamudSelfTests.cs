@@ -33,6 +33,7 @@ internal class DalamudSelfTests : IServiceType
             new GamepadStateSelfTestStep(),
             new ChatSelfTestStep(),
             new HoverSelfTestStep(),
+            new LuminaSheetsHashTestStep(),
             new LuminaSelfTestStep<Item>(true),
             new LuminaSelfTestStep<Level>(true),
             new LuminaSelfTestStep<Lumina.Excel.Sheets.Action>(true),
