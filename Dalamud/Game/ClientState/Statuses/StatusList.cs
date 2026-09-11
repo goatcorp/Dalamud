@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Game.Player;
+using Dalamud.Utility;
 
 using CSStatus = FFXIVClientStructs.FFXIV.Client.Game.Status;
 using CSStatusManager = FFXIVClientStructs.FFXIV.Client.Game.StatusManager;
@@ -27,7 +28,7 @@ public sealed unsafe partial class StatusList
     /// Initializes a new instance of the <see cref="StatusList"/> class.
     /// </summary>
     /// <param name="pointer">Pointer to the status list.</param>
-    internal unsafe StatusList(void* pointer)
+    internal StatusList(void* pointer)
         : this((nint)pointer)
     {
     }
@@ -42,7 +43,14 @@ public sealed unsafe partial class StatusList
     /// </summary>
     public int Length => this.Struct->NumValidStatuses;
 
-    private CSStatusManager* Struct => (CSStatusManager*)this.Address;
+    private CSStatusManager* Struct
+    {
+        get
+        {
+            ThreadSafety.AssertMainThread();
+            return (CSStatusManager*)this.Address;
+        }
+    }
 
     /// <summary>
     /// Get a status effect at the specified index.
