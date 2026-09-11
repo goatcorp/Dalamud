@@ -117,7 +117,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
         if (address == 0)
             return null;
 
-        return new PartyMember((CSPartyMember*)address);
+        return new PartyMember(address);
     }
 }
 

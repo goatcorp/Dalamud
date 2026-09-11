@@ -106,7 +106,7 @@ public sealed unsafe partial class StatusList
         if (address == 0)
             return null;
 
-        return new Status((CSStatus*)address);
+        return new Status(address);
     }
 
     /// <summary>
