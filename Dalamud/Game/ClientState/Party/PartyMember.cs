@@ -173,7 +173,7 @@ internal readonly unsafe struct PartyMember(nint address) : IPartyMember
     {
         get
         {
-            ThreadSafety.AssertMainThread();
+            ThreadSafety.DevModeAssertMainThread();
             return (CSPartyMember*)address;
         }
     }

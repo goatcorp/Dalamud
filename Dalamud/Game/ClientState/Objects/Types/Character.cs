@@ -227,7 +227,7 @@ internal unsafe class Character : GameObject, ICharacter
     {
         get
         {
-            ThreadSafety.AssertMainThread();
+            ThreadSafety.DevModeAssertMainThread();
             return (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)this.Address;
         }
     }

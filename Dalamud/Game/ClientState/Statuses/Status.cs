@@ -89,7 +89,7 @@ internal readonly unsafe struct Status(nint address) : IStatus
     {
         get
         {
-            ThreadSafety.AssertMainThread();
+            ThreadSafety.DevModeAssertMainThread();
             return (CSStatus*)address;
         }
     }

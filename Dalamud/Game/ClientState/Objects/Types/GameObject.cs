@@ -279,7 +279,7 @@ internal unsafe partial class GameObject : IGameObject
     {
         get
         {
-            ThreadSafety.AssertMainThread();
+            ThreadSafety.DevModeAssertMainThread();
             return (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)this.Address;
         }
     }

@@ -107,7 +107,7 @@ internal unsafe class BattleChara : Character, IBattleChara
     {
         get
         {
-            ThreadSafety.AssertMainThread();
+            ThreadSafety.DevModeAssertMainThread();
             return (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)this.Address;
         }
     }
