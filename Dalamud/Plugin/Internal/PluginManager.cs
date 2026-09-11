@@ -312,7 +312,7 @@ internal class PluginManager : IInternalDisposableService
                     {
                         if (metadata.Status == PluginUpdateStatus.StatusKind.Success)
                         {
-                            chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
+                            chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.AffectedPlugin.Name, metadata.AffectedPlugin.Version));
                         }
                         else
                         {
@@ -320,8 +320,8 @@ internal class PluginManager : IInternalDisposableService
                                 new XivChatEntry
                                 {
                                     Message = Locs.DalamudPluginUpdateFailed(
-                                        metadata.Name,
-                                        metadata.Version,
+                                        metadata.AffectedPlugin.Name,
+                                        metadata.AffectedPlugin.Version,
                                         PluginUpdateStatus.LocalizeUpdateStatusKind(metadata.Status)),
                                     Type = XivChatType.Urgent,
                                 });
@@ -970,7 +970,7 @@ internal class PluginManager : IInternalDisposableService
         this.NotifyInstalledPluginsChanged();
         this.NotifyPluginsForStateChange(
             autoUpdate ? PluginListInvalidationKind.AutoUpdate : PluginListInvalidationKind.Update,
-            updatedList.Select(x => x.InternalName));
+            updatedList.Select(x => x.AffectedPlugin));
 
         Log.Information("Plugin update OK. {UpdateCount} plugins updated", updatedList.Length);
 
@@ -1009,13 +1009,10 @@ internal class PluginManager : IInternalDisposableService
         if (workingPluginId == Guid.Empty)
             throw new Exception("Existing plugin had no WorkingPluginId");
 
+        var version = metadata.UseTesting ? metadata.UpdateManifest.TestingAssemblyVersion : metadata.UpdateManifest.AssemblyVersion;
         var updateStatus = new PluginUpdateStatus
         {
-            InternalName = plugin.Manifest.InternalName,
-            Name = plugin.Manifest.Name,
-            Version = (metadata.UseTesting
-                           ? metadata.UpdateManifest.TestingAssemblyVersion
-                           : metadata.UpdateManifest.AssemblyVersion)!,
+            AffectedPlugin = new ActivePluginsChangedEventArgs.AffectedPlugin(plugin, version),
             Status = PluginUpdateStatus.StatusKind.Success,
             HasChangelog = !metadata.UpdateManifest.Changelog.IsNullOrWhitespace(),
         };
@@ -1224,8 +1221,8 @@ internal class PluginManager : IInternalDisposableService
     /// Notifies all plugins that the active plugins list changed.
     /// </summary>
     /// <param name="kind">The invalidation kind.</param>
-    /// <param name="affectedInternalNames">The affected plugins.</param>
-    public void NotifyPluginsForStateChange(PluginListInvalidationKind kind, IEnumerable<string> affectedInternalNames)
+    /// <param name="affectedPlugins">The affected plugins.</param>
+    public void NotifyPluginsForStateChange(PluginListInvalidationKind kind, IEnumerable<IActivePluginsChangedEventArgs.IAffectedPlugin> affectedPlugins)
     {
         using (this.pluginListLock.EnterScope())
         {
@@ -1234,8 +1231,7 @@ internal class PluginManager : IInternalDisposableService
                 if (!installedPlugin.IsLoaded || installedPlugin.DalamudInterface == null)
                     continue;
 
-                installedPlugin.DalamudInterface.NotifyActivePluginsChanged(
-                    new ActivePluginsChangedEventArgs(kind, affectedInternalNames));
+                installedPlugin.DalamudInterface.NotifyActivePluginsChanged(new ActivePluginsChangedEventArgs(kind, affectedPlugins));
             }
         }
     }
