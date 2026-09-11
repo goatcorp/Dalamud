@@ -1,17 +1,18 @@
+using Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 using Dalamud.Plugin.SelfTest.Internal;
 
 using Lumina.Excel.Sheets;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest;
 
 /// <summary>
 /// Class handling Dalamud self-test registration.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class DalamudSelfTest : IServiceType
+internal class DalamudSelfTests : IServiceType
 {
     [ServiceManager.ServiceConstructor]
-    private DalamudSelfTest(SelfTestRegistry registry)
+    private DalamudSelfTests(SelfTestRegistry registry)
     {
         registry.RegisterDalamudSelfTestSteps([
             new LoginEventSelfTestStep(),
