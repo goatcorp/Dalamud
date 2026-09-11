@@ -2,6 +2,7 @@ using Dalamud.Data;
 using Dalamud.Game.ClientState.Customize;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Utility;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -222,6 +223,12 @@ internal unsafe class Character : GameObject, ICharacter
     /// <summary>
     /// Gets the underlying structure.
     /// </summary>
-    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.Character* Struct =>
-        (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)this.Address;
+    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.Character* Struct
+    {
+        get
+        {
+            ThreadSafety.DevModeAssertMainThread();
+            return (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)this.Address;
+        }
+    }
 }
