@@ -165,19 +165,14 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
     /// <param name="exportName">A name of the exported function name (e.g. send).</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="useMinHook">Ignored.</param>
     /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     internal static Hook<T> FromSymbol(
         string moduleName,
         string exportName,
         T detour,
-        [Api16ToDo("Remove this parameter and ThrowMinHookRemoved()")] bool useMinHook = false,
         Assembly? callingAssembly = null)
     {
-        if (useMinHook)
-            ThrowMinHookRemoved();
-
         var moduleHandle = Windows.Win32.PInvoke.GetModuleHandle(moduleName);
         if (moduleHandle.IsNull)
             throw new Exception($"Could not get a handle to module {moduleName}");
@@ -196,19 +191,14 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// </summary>
     /// <param name="procAddress">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="useMinHook">Ignored.</param>
     /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     internal static Hook<T> FromAddress(
         IntPtr procAddress,
         T detour,
-        [Api16ToDo("Remove this parameter and ThrowMinHookRemoved()")] bool useMinHook = false,
         Assembly? callingAssembly = null)
     {
         var assembly = callingAssembly ?? Assembly.GetCallingAssembly();
-
-        if (useMinHook)
-            ThrowMinHookRemoved();
 
         // TODO: Only log verification exceptions for now, figure out how to handle this
         if (!HookVerifier.TryVerify<T>(procAddress, assembly, out var exceptions))
@@ -262,11 +252,6 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
 
             throw;
         }
-    }
-
-    private static void ThrowMinHookRemoved()
-    {
-        throw new InvalidOperationException("MinHook is no longer supported.");
     }
 
     private static unsafe IntPtr FromImportHelper(IntPtr baseAddress, ref IMAGE_IMPORT_DESCRIPTOR desc, ref IMAGE_DATA_DIRECTORY dir, string functionName, uint hintOrOrdinal)

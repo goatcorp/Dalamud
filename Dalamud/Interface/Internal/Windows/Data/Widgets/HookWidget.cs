@@ -24,7 +24,7 @@ internal unsafe class HookWidget : IDataWindowWidget
 {
     private readonly List<IDalamudHook> hookStressTestList = [];
 
-    private Hook<MessageBoxWDelegate>? messageBoxMinHook;
+    private Hook<MessageBoxWDelegate>? messageBoxHook;
 
     private int hookStressTestCount;
     private int hookStressTestMax = 1000;
@@ -79,28 +79,28 @@ internal unsafe class HookWidget : IDataWindowWidget
             ImGui.Separator();
 
             if (ImGui.Button("Create"u8))
-                this.messageBoxMinHook = Hook<MessageBoxWDelegate>.FromSymbol("User32", "MessageBoxW", this.MessageBoxWDetour);
+                this.messageBoxHook = Hook<MessageBoxWDelegate>.FromSymbol("User32", "MessageBoxW", this.MessageBoxWDetour);
 
             if (ImGui.Button("Enable"u8))
-                this.messageBoxMinHook?.Enable();
+                this.messageBoxHook?.Enable();
 
             if (ImGui.Button("Disable"u8))
-                this.messageBoxMinHook?.Disable();
+                this.messageBoxHook?.Disable();
 
             if (ImGui.Button("Call Original"u8))
-                this.messageBoxMinHook?.Original(IntPtr.Zero, "Hello from .Original", "Hook Test", MESSAGEBOX_STYLE.MB_OK);
+                this.messageBoxHook?.Original(IntPtr.Zero, "Hello from .Original", "Hook Test", MESSAGEBOX_STYLE.MB_OK);
 
             if (ImGui.Button("Dispose"u8))
             {
-                this.messageBoxMinHook?.Dispose();
-                this.messageBoxMinHook = null;
+                this.messageBoxHook?.Dispose();
+                this.messageBoxHook = null;
             }
 
             if (ImGui.Button("Test"u8))
                 _ = global::Windows.Win32.PInvoke.MessageBox(HWND.Null, "Hi", "Hello", MESSAGEBOX_STYLE.MB_OK);
 
-            if (this.messageBoxMinHook != null)
-                ImGui.Text("Enabled: " + this.messageBoxMinHook?.IsEnabled);
+            if (this.messageBoxHook != null)
+                ImGui.Text("Enabled: " + this.messageBoxHook?.IsEnabled);
 
             ImGui.Separator();
 
