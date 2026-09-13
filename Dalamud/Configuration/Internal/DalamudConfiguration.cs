@@ -283,6 +283,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool IsGamepadNavigationEnabled { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether gamepads can close windows by hitting the right button.
+    /// </summary>
+    public bool IsGamepadClosingWindowsEnabled { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets a value indicating whether focus management is enabled.
     /// </summary>
     public bool IsFocusManagementEnabled { get; set; } = true;

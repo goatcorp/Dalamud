@@ -119,6 +119,11 @@ public class WindowHost
         /// Do not draw non-critical animations.
         /// </summary>
         IsReducedMotion = 1 << 3,
+
+        /// <summary>
+        /// Allow the window to be closed with a gamepad.
+        /// </summary>
+        IsWindowClosableWithGamepad = 1 << 4,
     }
 
     /// <summary>
@@ -557,7 +562,11 @@ public class WindowHost
         }
 
         // Allow the window to be closed with a gamepad
-        if (ImGui.IsKeyPressed(ImGuiKey.GamepadFaceRight) && !this.Window.IsPinned && this.Window.IsFocused && ImGui.GetCurrentContext() is { NavId: 0, NavFocusScopeId: 0 })
+        if (internalDrawParams.Flags.HasFlag(WindowDrawFlags.IsWindowClosableWithGamepad) &&
+            ImGui.IsKeyPressed(ImGuiKey.GamepadFaceRight)
+            && !this.Window.IsPinned
+            && this.Window.IsFocused
+            && ImGui.GetCurrentContext() is { NavId: 0, NavFocusScopeId: 0 })
         {
             this.Window.IsOpen = false;
         }
