@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Game;
+using Dalamud.Common;
 
 using Lumina;
 using Lumina.Data;

@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Common;
 using Dalamud.Data;
-using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.Noun.Enums;

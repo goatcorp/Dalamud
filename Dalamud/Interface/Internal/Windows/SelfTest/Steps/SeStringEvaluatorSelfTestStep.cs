@@ -1,6 +1,6 @@
 using Dalamud.Bindings.ImGui;
+using Dalamud.Common;
 using Dalamud.Configuration.Internal;
-using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Text.Evaluator;
