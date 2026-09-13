@@ -6,7 +6,7 @@ namespace Dalamud.Game.ClientState.Keys;
 /// <remarks>
 /// Defined in winuser.h from Windows SDK v6.1.
 /// </remarks>
-public enum VirtualKey : ushort
+public enum VirtualKey : byte
 {
     /// <summary>
     /// This is an addendum to use on functions in which you have to pass a zero value to represent no key code.
