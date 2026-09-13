@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 
 using Dalamud.Data;
+using Dalamud.Game.Network.Structures.InfoProxy;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
-namespace Dalamud.Game.Network.Structures.InfoProxy;
+namespace Dalamud.Game.Marketboard.Network.Structures.InfoProxy;
 
 /// <summary>
 /// Dalamud wrapper around a client structs <see cref="InfoProxyCommonList.CharacterData"/>.
