@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Game.Gui;
 using Dalamud.Game.NativeWrapper;
+using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Services;
 
@@ -13,17 +14,18 @@ public unsafe interface IGameGui : IDalamudService
     /// <summary>
     /// Event which is fired when the game UI hiding is toggled.
     /// </summary>
-    event EventHandler<bool> UiHideToggled;
+    event Action<bool> UiHideToggled;
 
     /// <summary>
-    /// Event that is fired when the currently hovered item changes.
+    /// Event that is fired when the currently hovered item changes. 0 when no item is hovered.<br/>
+    /// Use <see cref="ItemUtil.GetBaseId"/> to get the base id and classification.
     /// </summary>
-    event EventHandler<ulong> HoveredItemChanged;
+    event Action<uint> HoveredItemChanged;
 
     /// <summary>
     /// Event that is fired when the currently hovered action changes.
     /// </summary>
-    event EventHandler<HoveredAction> HoveredActionChanged;
+    event Action<HoveredAction> HoveredActionChanged;
 
     /// <summary>
     /// Fired when the game sets one or more <see cref="AgentUpdateFlag"/> values,
@@ -37,10 +39,10 @@ public unsafe interface IGameGui : IDalamudService
     bool GameUiHidden { get; }
 
     /// <summary>
-    /// Gets or sets the item ID that is currently hovered by the player. 0 when no item is hovered.
-    /// If > 1.000.000, subtract 1.000.000 and treat it as HQ.
+    /// Gets or sets the item ID that is currently hovered by the player. 0 when no item is hovered.<br/>
+    /// Use <see cref="ItemUtil.GetBaseId"/> to get the base id and classification.
     /// </summary>
-    ulong HoveredItem { get; set; }
+    uint HoveredItem { get; set; }
 
     /// <summary>
     /// Gets the action ID that is current hovered by the player. 0 when no action is hovered.

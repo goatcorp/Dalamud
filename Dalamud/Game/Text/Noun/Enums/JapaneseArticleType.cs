@@ -1,3 +1,5 @@
+using Dalamud.Common;
+
 namespace Dalamud.Game.Text.Noun.Enums;
 
 /// <summary>

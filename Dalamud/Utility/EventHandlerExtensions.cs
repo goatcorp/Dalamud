@@ -117,7 +117,7 @@ internal static class EventHandlerExtensions
     /// </summary>
     /// <param name="openedDelegate">The OnMenuOpenedDelegate in question.</param>
     /// <param name="argument">Templated argument for Action.</param>
-    public static void InvokeSafely(this IContextMenu.OnMenuOpenedDelegate? openedDelegate, MenuOpenedArgs argument)
+    public static void InvokeSafely(this IContextMenu.MenuOpenedDelegate? openedDelegate, MenuOpenedArgs argument)
     {
         foreach (var action in Delegate.EnumerateInvocationList(openedDelegate))
         {
@@ -140,7 +140,7 @@ internal static class EventHandlerExtensions
     /// <param name="context">An object containing information about the pending data update.</param>
     /// <param name="handlers>">A list of handlers used for updating nameplate data.</param>
     public static void InvokeSafely(
-        this INamePlateGui.OnPlateUpdateDelegate? updatedDelegate,
+        this INamePlateGui.PlateUpdateDelegate? updatedDelegate,
         INamePlateUpdateContext context,
         IReadOnlyList<INamePlateUpdateHandler> handlers)
     {

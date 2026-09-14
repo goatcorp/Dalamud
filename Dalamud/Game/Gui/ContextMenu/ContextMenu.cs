@@ -50,7 +50,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     private delegate ushort AtkModuleVf22OpenAddonByAgentDelegate(AtkModule* module, CStringPointer addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8);
 
     /// <inheritdoc/>
-    public event IContextMenu.OnMenuOpenedDelegate? OnMenuOpened;
+    public event IContextMenu.MenuOpenedDelegate? MenuOpened;
 
     private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = [];
 
@@ -376,7 +376,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 }
 
                 var args = new MenuOpenedArgs(this.SelectedItems.Add, this.SelectedParentAddon, this.SelectedAgent, this.SelectedMenuType.Value, this.SelectedEventInterfaces);
-                this.OnMenuOpened?.InvokeSafely(args);
+                this.MenuOpened?.InvokeSafely(args);
                 this.SelectedItems = this.FixupMenuList(this.SelectedItems, (int)values[0].UInt);
                 this.SetupContextMenu(this.SelectedItems, ref valueCount, ref values);
                 Log.Verbose($"Opening {this.SelectedMenuType} context menu with {this.SelectedItems.Count} custom items.");
@@ -539,11 +539,11 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
 
     private ContextMenuPluginScoped()
     {
-        this.parentService.OnMenuOpened += this.OnMenuOpenedForward;
+        this.parentService.MenuOpened += this.OnMenuOpenedForward;
     }
 
     /// <inheritdoc/>
-    public event IContextMenu.OnMenuOpenedDelegate? OnMenuOpened;
+    public event IContextMenu.MenuOpenedDelegate? MenuOpened;
 
     private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = [];
 
@@ -552,9 +552,9 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.parentService.OnMenuOpened -= this.OnMenuOpenedForward;
+        this.parentService.MenuOpened -= this.OnMenuOpenedForward;
 
-        this.OnMenuOpened = null;
+        this.MenuOpened = null;
 
         using var scope = this.MenuItemsLock.EnterScope();
 
@@ -590,5 +590,5 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
     }
 
     private void OnMenuOpenedForward(IMenuOpenedArgs args) =>
-        this.OnMenuOpened?.Invoke(args);
+        this.MenuOpened?.Invoke(args);
 }

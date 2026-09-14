@@ -1,7 +1,7 @@
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.Network.Structures.InfoProxy;
+using Dalamud.Game.Marketboard.Network.Structures.InfoProxy;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 

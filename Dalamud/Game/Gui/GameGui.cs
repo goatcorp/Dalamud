@@ -85,13 +85,13 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     private delegate char HandleImmDelegate(IntPtr framework, char a2, byte a3);
 
     /// <inheritdoc/>
-    public event EventHandler<bool>? UiHideToggled;
+    public event Action<bool>? UiHideToggled;
 
     /// <inheritdoc/>
-    public event EventHandler<ulong>? HoveredItemChanged;
+    public event Action<uint>? HoveredItemChanged;
 
     /// <inheritdoc/>
-    public event EventHandler<HoveredAction>? HoveredActionChanged;
+    public event Action<HoveredAction>? HoveredActionChanged;
 
     /// <inheritdoc/>
     public event Action<AgentUpdateFlag> AgentUpdate;
@@ -100,7 +100,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     public bool GameUiHidden { get; private set; }
 
     /// <inheritdoc/>
-    public ulong HoveredItem { get; set; }
+    public uint HoveredItem { get; set; }
 
     /// <inheritdoc/>
     public HoveredAction HoveredAction { get; } = new HoveredAction();
@@ -283,12 +283,12 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         if (!thisPtr->IsAgentActive())
             return;
 
-        var itemId = (ulong)thisPtr->ItemId;
+        var itemId = thisPtr->ItemId;
         if (this.HoveredItem == itemId)
             return;
 
         this.HoveredItem = itemId;
-        this.HoveredItemChanged?.InvokeSafely(this, itemId);
+        this.HoveredItemChanged?.InvokeSafely(itemId);
     }
 
     private AtkValue* HandleItemOutDetour(AgentItemDetail* thisPtr, AtkValue* returnValue, AtkValue* values, uint valueCount, ulong eventKind)
@@ -298,7 +298,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         if (values != null && valueCount == 1 && values->Int == -1)
         {
             this.HoveredItem = 0;
-            this.HoveredItemChanged?.InvokeSafely(this, 0ul);
+            this.HoveredItemChanged?.InvokeSafely(0u);
         }
 
         return ret;
@@ -310,7 +310,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.HoveredAction.DetailKind = (DetailKind)detailKind;
         this.HoveredAction.BaseActionId = actionId;
         this.HoveredAction.ActionId = hoverState->ActionId;
-        this.HoveredActionChanged?.InvokeSafely(this, this.HoveredAction);
+        this.HoveredActionChanged?.InvokeSafely(this.HoveredAction);
     }
 
     private AtkValue* HandleActionOutDetour(AgentActionDetail* agentActionDetail, AtkValue* a2, AtkValue* a3, uint a4, ulong a5)
@@ -326,7 +326,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
                 this.HoveredAction.DetailKind = DetailKind.None;
                 this.HoveredAction.BaseActionId = 0;
                 this.HoveredAction.ActionId = 0;
-                this.HoveredActionChanged?.InvokeSafely(this, this.HoveredAction);
+                this.HoveredActionChanged?.InvokeSafely(this.HoveredAction);
             }
         }
 
@@ -338,7 +338,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.setUiVisibilityHook.Original(thisPtr, uiVisible);
 
         this.GameUiHidden = !RaptureAtkModule.Instance()->IsUiVisible;
-        this.UiHideToggled?.InvokeSafely(this, this.GameUiHidden);
+        this.UiHideToggled?.InvokeSafely(this.GameUiHidden);
 
         Log.Debug("GameUiHidden: {0}", this.GameUiHidden);
     }
@@ -405,13 +405,13 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     }
 
     /// <inheritdoc/>
-    public event EventHandler<bool>? UiHideToggled;
+    public event Action<bool>? UiHideToggled;
 
     /// <inheritdoc/>
-    public event EventHandler<ulong>? HoveredItemChanged;
+    public event Action<uint>? HoveredItemChanged;
 
     /// <inheritdoc/>
-    public event EventHandler<HoveredAction>? HoveredActionChanged;
+    public event Action<HoveredAction>? HoveredActionChanged;
 
     /// <inheritdoc/>
     public event Action<AgentUpdateFlag> AgentUpdate;
@@ -420,7 +420,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     public bool GameUiHidden => this.gameGuiService.GameUiHidden;
 
     /// <inheritdoc/>
-    public ulong HoveredItem
+    public uint HoveredItem
     {
         get => this.gameGuiService.HoveredItem;
         set => this.gameGuiService.HoveredItem = value;
@@ -482,11 +482,11 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     public AgentInterfacePtr FindAgentInterface(AtkUnitBasePtr addon)
         => this.gameGuiService.FindAgentInterface(addon);
 
-    private void UiHideToggledForward(object sender, bool toggled) => this.UiHideToggled?.Invoke(sender, toggled);
+    private void UiHideToggledForward(bool toggled) => this.UiHideToggled?.Invoke(toggled);
 
-    private void HoveredItemForward(object sender, ulong itemId) => this.HoveredItemChanged?.Invoke(sender, itemId);
+    private void HoveredItemForward(uint itemId) => this.HoveredItemChanged?.Invoke(itemId);
 
-    private void HoveredActionForward(object sender, HoveredAction hoverAction) => this.HoveredActionChanged?.Invoke(sender, hoverAction);
+    private void HoveredActionForward(HoveredAction hoverAction) => this.HoveredActionChanged?.Invoke(hoverAction);
 
     private void AgentUpdateForward(AgentUpdateFlag agentUpdateFlag) => this.AgentUpdate.InvokeSafely(agentUpdateFlag);
 }

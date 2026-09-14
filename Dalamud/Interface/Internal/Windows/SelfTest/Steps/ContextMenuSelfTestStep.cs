@@ -56,7 +56,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
         switch (this.currentSubStep)
         {
             case SubStep.Start:
-                contextMenu.OnMenuOpened += this.OnMenuOpened;
+                contextMenu.MenuOpened += this.OnMenuOpened;
                 this.currentSubStep++;
                 break;
             case SubStep.TestInventoryAndSubmenu:
@@ -118,7 +118,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
     public void CleanUp()
     {
         var contextMenu = Service<ContextMenu>.Get();
-        contextMenu.OnMenuOpened -= this.OnMenuOpened;
+        contextMenu.MenuOpened -= this.OnMenuOpened;
 
         this.currentSubStep = SubStep.Start;
         this.targetInventorySubmenuOpened = null;

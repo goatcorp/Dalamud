@@ -2,6 +2,9 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
 using Dalamud.Plugin.SelfTest;
 
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
+
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
@@ -60,9 +63,9 @@ internal class EnterTerritorySelfTestStep : ISelfTestStep
         this.subscribed = false;
     }
 
-    private void ClientStateOnTerritoryChanged(uint territoryId)
+    private void ClientStateOnTerritoryChanged(RowRef<TerritoryType> territoryTypeRef)
     {
-        if (territoryId == this.territory)
+        if (territoryTypeRef.RowId == this.territory)
         {
             this.hasPassed = true;
         }

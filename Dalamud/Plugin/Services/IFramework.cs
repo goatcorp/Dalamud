@@ -31,12 +31,12 @@ public interface IFramework : IDalamudService
     /// A delegate type used with the <see cref="Update"/> event.
     /// </summary>
     /// <param name="framework">The Framework instance.</param>
-    delegate void OnUpdateDelegate(IFramework framework);
+    delegate void UpdateDelegate(IFramework framework);
 
     /// <summary>
     /// Event that gets fired every time the game framework updates.
     /// </summary>
-    event OnUpdateDelegate Update;
+    event UpdateDelegate Update;
 
     /// <summary>
     /// Gets the last time that the Framework Update event was triggered.
@@ -68,7 +68,7 @@ public interface IFramework : IDalamudService
     TaskFactory GetTaskFactory();
 
     /// <summary>
-    /// Returns a task that completes after the given number of ticks. 
+    /// Returns a task that completes after the given number of ticks.
     /// </summary>
     /// <param name="numTicks">Number of ticks to delay.</param>
     /// <param name="cancellationToken">The cancellation token.</param>

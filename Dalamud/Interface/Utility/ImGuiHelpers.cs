@@ -27,7 +27,7 @@ namespace Dalamud.Interface.Utility;
 /// <summary>
 /// Class containing various helper methods for use with ImGui inside Dalamud.
 /// </summary>
-public static partial class ImGuiHelpers
+public static class ImGuiHelpers
 {
     /// <summary>
     /// Gets the main viewport.
@@ -46,14 +46,6 @@ public static partial class ImGuiHelpers
     /// </summary>
     public static unsafe bool IsImGuiInitialized =>
         ImGui.GetCurrentContext().Handle is not null && ImGui.GetIO().Handle is not null;
-
-    /// <summary>
-    /// Gets the global Dalamud scale; even available before drawing is ready.<br />
-    /// If you are sure that drawing is ready, at the point of using this, use <see cref="GlobalScale"/> instead.
-    /// </summary>
-    [Obsolete("Use GlobalScale. It's always safe now.")]
-    [Api16ToDo("Remove this property and replace usages with GlobalScale.")]
-    public static float GlobalScaleSafe => GlobalScale;
 
     /// <summary>
     /// Check if the current ImGui window is on the main viewport.

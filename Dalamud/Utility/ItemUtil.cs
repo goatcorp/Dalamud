@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 
+using Dalamud.Common;
 using Dalamud.Data;
-using Dalamud.Game;
 using Dalamud.Game.Text;
 
 using Lumina.Excel.Sheets;

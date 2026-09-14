@@ -66,12 +66,12 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     }
 
     /// <inheritdoc/>
-    public event IFramework.OnUpdateDelegate? Update;
+    public event IFramework.UpdateDelegate? Update;
 
     /// <summary>
     /// Executes during FrameworkUpdate before all <see cref="Update"/> delegates.
     /// </summary>
-    internal event IFramework.OnUpdateDelegate? BeforeUpdate;
+    internal event IFramework.UpdateDelegate? BeforeUpdate;
 
     /// <summary>
     /// Gets or sets a value indicating whether the collection of stats is enabled.
@@ -357,7 +357,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <param name="eventDelegate">The Delegate to Profile.</param>
     /// <param name="frameworkInstance">The Framework Instance to pass to delegate.</param>
     /// <param name="errorHandler">A function that is called with the exception, if one arrises.</param>
-    internal void ProfileAndInvoke(IFramework.OnUpdateDelegate? eventDelegate, IFramework frameworkInstance, Action<Exception, string>? errorHandler = null)
+    internal void ProfileAndInvoke(IFramework.UpdateDelegate? eventDelegate, IFramework frameworkInstance, Action<Exception, string>? errorHandler = null)
     {
         // Individually invoke OnUpdate handlers and time them.
         foreach (var d in Delegate.EnumerateInvocationList(eventDelegate))
@@ -531,7 +531,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     }
 
     /// <inheritdoc/>
-    public event IFramework.OnUpdateDelegate? Update;
+    public event IFramework.UpdateDelegate? Update;
 
     /// <inheritdoc/>
     public DateTime LastUpdate => this.frameworkService.LastUpdate;

@@ -1,20 +1,16 @@
 using Dalamud.Game.Marketboard.Network.Internal;
-using Dalamud.Game.Network.Structures;
+using Dalamud.Game.Marketboard.Network.Structures;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
-
-using static Dalamud.Plugin.Services.IMarketBoard;
 
 namespace Dalamud.Game.MarketBoard;
 
 /// <summary>
 /// This class provides access to market board events.
 /// </summary>
-[Api16ToDo("Update all namespaces in Marketboard/Network/Structures")]
 [ServiceManager.EarlyLoadedService]
 internal class MarketBoard : IInternalDisposableService, IMarketBoard
 {
@@ -35,19 +31,19 @@ internal class MarketBoard : IInternalDisposableService, IMarketBoard
     }
 
     /// <inheritdoc/>
-    public event HistoryReceivedDelegate? HistoryReceived;
+    public event IMarketBoard.HistoryReceivedDelegate? HistoryReceived;
 
     /// <inheritdoc/>
-    public event ItemPurchasedDelegate? ItemPurchased;
+    public event IMarketBoard.ItemPurchasedDelegate? ItemPurchased;
 
     /// <inheritdoc/>
-    public event OfferingsReceivedDelegate? OfferingsReceived;
+    public event IMarketBoard.OfferingsReceivedDelegate? OfferingsReceived;
 
     /// <inheritdoc/>
-    public event PurchaseRequestedDelegate? PurchaseRequested;
+    public event IMarketBoard.PurchaseRequestedDelegate? PurchaseRequested;
 
     /// <inheritdoc/>
-    public event TaxRatesReceivedDelegate? TaxRatesReceived;
+    public event IMarketBoard.TaxRatesReceivedDelegate? TaxRatesReceived;
 
     /// <inheritdoc/>
     public void DisposeService()
@@ -118,19 +114,19 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
     }
 
     /// <inheritdoc/>
-    public event HistoryReceivedDelegate? HistoryReceived;
+    public event IMarketBoard.HistoryReceivedDelegate? HistoryReceived;
 
     /// <inheritdoc/>
-    public event ItemPurchasedDelegate? ItemPurchased;
+    public event IMarketBoard.ItemPurchasedDelegate? ItemPurchased;
 
     /// <inheritdoc/>
-    public event OfferingsReceivedDelegate? OfferingsReceived;
+    public event IMarketBoard.OfferingsReceivedDelegate? OfferingsReceived;
 
     /// <inheritdoc/>
-    public event PurchaseRequestedDelegate? PurchaseRequested;
+    public event IMarketBoard.PurchaseRequestedDelegate? PurchaseRequested;
 
     /// <inheritdoc/>
-    public event TaxRatesReceivedDelegate? TaxRatesReceived;
+    public event IMarketBoard.TaxRatesReceivedDelegate? TaxRatesReceived;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()

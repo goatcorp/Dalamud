@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.Enums;

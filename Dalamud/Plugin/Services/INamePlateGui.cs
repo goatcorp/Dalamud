@@ -14,7 +14,7 @@ public interface INamePlateGui : IDalamudService
     /// </summary>
     /// <param name="context">An object containing information about the pending data update.</param>
     /// <param name="handlers>">A list of handlers used for updating nameplate data.</param>
-    delegate void OnPlateUpdateDelegate(
+    delegate void PlateUpdateDelegate(
         INamePlateUpdateContext context, IReadOnlyList<INamePlateUpdateHandler> handlers);
 
     /// <summary>
@@ -22,18 +22,18 @@ public interface INamePlateGui : IDalamudService
     /// subscriber is provided with a list of handlers for nameplates with important updates.
     /// </summary>
     /// <remarks>
-    /// Fires after <see cref="OnDataUpdate"/>.
+    /// Fires after <see cref="DataUpdate"/>.
     /// </remarks>
-    event OnPlateUpdateDelegate? OnNamePlateUpdate;
+    event PlateUpdateDelegate? NamePlateUpdate;
 
     /// <summary>
     /// An event which fires after nameplate data is updated and at least one nameplate had important updates. The
     /// subscriber is provided with a list of handlers for nameplates with important updates.
     /// </summary>
     /// <remarks>
-    /// Fires before <see cref="OnPostDataUpdate"/>.
+    /// Fires before <see cref="PostDataUpdate"/>.
     /// </remarks>
-    event OnPlateUpdateDelegate? OnPostNamePlateUpdate;
+    event PlateUpdateDelegate? PostNamePlateUpdate;
 
     /// <summary>
     /// An event which fires when nameplate data is updated. The subscriber is provided with a list of handlers for all
@@ -41,9 +41,9 @@ public interface INamePlateGui : IDalamudService
     /// </summary>
     /// <remarks>
     /// This event is likely to fire every frame even when no nameplates are actually updated, so in most cases
-    /// <see cref="OnNamePlateUpdate"/> is preferred. Fires before <see cref="OnNamePlateUpdate"/>.
+    /// <see cref="NamePlateUpdate"/> is preferred. Fires before <see cref="NamePlateUpdate"/>.
     /// </remarks>
-    event OnPlateUpdateDelegate? OnDataUpdate;
+    event PlateUpdateDelegate? DataUpdate;
 
     /// <summary>
     /// An event which fires after nameplate data is updated. The subscriber is provided with a list of handlers for all
@@ -51,9 +51,9 @@ public interface INamePlateGui : IDalamudService
     /// </summary>
     /// <remarks>
     /// This event is likely to fire every frame even when no nameplates are actually updated, so in most cases
-    /// <see cref="OnNamePlateUpdate"/> is preferred. Fires after <see cref="OnPostNamePlateUpdate"/>.
+    /// <see cref="NamePlateUpdate"/> is preferred. Fires after <see cref="PostNamePlateUpdate"/>.
     /// </remarks>
-    event OnPlateUpdateDelegate? OnPostDataUpdate;
+    event PlateUpdateDelegate? PostDataUpdate;
 
     /// <summary>
     /// Requests that all nameplates should be redrawn on the following frame.

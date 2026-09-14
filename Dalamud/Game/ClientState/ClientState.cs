@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
+using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Conditions;
@@ -21,6 +22,7 @@ using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 using Action = System.Action;
@@ -85,10 +87,10 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
     public event Action<ZoneInitEventArgs>? ZoneInit;
 
     /// <inheritdoc/>
-    public event Action<uint>? TerritoryChanged;
+    public event Action<RowRef<TerritoryType>>? TerritoryChanged;
 
     /// <inheritdoc/>
-    public event Action<uint>? MapIdChanged;
+    public event Action<RowRef<Map>>? MapChanged;
 
     /// <inheritdoc/>
     public event Action<uint>? InstanceChanged;
@@ -112,18 +114,18 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
     public event Action? LeavePvP;
 
     /// <inheritdoc/>
-    public event Action<ContentFinderCondition>? CfPop;
+    public event Action<RowRef<ContentFinderCondition>>? CfPop;
 
     /// <inheritdoc/>
     public ClientLanguage ClientLanguage { get; }
 
     /// <inheritdoc/>
-    public uint TerritoryType
+    public RowRef<TerritoryType> TerritoryType
     {
         get;
         private set
         {
-            if (field != value)
+            if (field.RowId != value.RowId)
             {
                 field = value;
 
@@ -137,19 +139,19 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
     }
 
     /// <inheritdoc/>
-    public uint MapId
+    public RowRef<Map> Map
     {
         get;
         private set
         {
-            if (field != value)
+            if (field.RowId != value.RowId)
             {
                 field = value;
 
                 if (this.initialized)
                 {
                     Log.Debug("MapId changed: {0}", value);
-                    this.MapIdChanged?.InvokeSafely(value);
+                    this.MapChanged?.InvokeSafely(value);
                 }
             }
         }
@@ -212,7 +214,7 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
     }
 
     /// <inheritdoc/>
-    public bool IsPvPExcludingDen => this.IsPvP && this.TerritoryType != 250;
+    public bool IsPvPExcludingDen => this.IsPvP && this.TerritoryType.RowId != 250;
 
     /// <inheritdoc />
     public bool IsGPosing => GameMain.IsInGPose();
@@ -262,8 +264,8 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
         this.onLogoutHook.Enable();
 
         this.IsPvP = GameMain.IsInPvPArea();
-        this.TerritoryType = GameMain.Instance()->CurrentTerritoryTypeId;
-        this.MapId = AgentMap.Instance()->CurrentMapId;
+        this.TerritoryType = LuminaUtils.CreateRef<TerritoryType>(GameMain.Instance()->CurrentTerritoryTypeId);
+        this.Map = LuminaUtils.CreateRef<Map>(AgentMap.Instance()->CurrentMapId);
         this.Instance = CSUIState.Instance()->PublicInstance.InstanceId;
 
         this.initialized = true;
@@ -280,13 +282,13 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
         {
             case UIModulePacketType.ClassJobChange:
             {
-                var classJobId = uintParam;
+                var classJob = LuminaUtils.CreateRef<ClassJob>(uintParam);
 
                 foreach (var action in Delegate.EnumerateInvocationList(this.ClassJobChanged))
                 {
                     try
                     {
-                        action(classJobId);
+                        action(classJob);
                     }
                     catch (Exception ex)
                     {
@@ -299,14 +301,14 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
 
             case UIModulePacketType.LevelChange:
             {
-                var classJobId = *(uint*)packet;
+                var classJob = LuminaUtils.CreateRef<ClassJob>(*(uint*)packet);
                 var level = *(ushort*)((nint)packet + 4);
 
                 foreach (var action in Delegate.EnumerateInvocationList(this.LevelChanged))
                 {
                     try
                     {
-                        action(classJobId, level);
+                        action(classJob, level);
                     }
                     catch (Exception ex)
                     {
@@ -322,7 +324,7 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
                 var eventArgs = ZoneInitEventArgs.Read((ZoneInitPacket*)packet);
                 Log.Debug($"ZoneInit: {eventArgs}");
                 this.ZoneInit?.InvokeSafely(eventArgs);
-                this.TerritoryType = eventArgs.TerritoryType.RowId;
+                this.TerritoryType = eventArgs.TerritoryType;
                 this.Instance = eventArgs.Instance;
                 this.IsPvP = eventArgs.TerritoryType.Value.IsPvpZone;
                 break;
@@ -366,7 +368,7 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
                         .ToReadOnlySeString());
                 }
 
-                this.CfPop.InvokeSafely(cfCondition.Value);
+                this.CfPop.InvokeSafely(cfCondition);
             }).ContinueWith(
                 task => Log.Error(task.Exception, "CfPop.Invoke failed"),
                 TaskContinuationOptions.OnlyOnFaulted);
@@ -379,7 +381,7 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
 
     private void OnFrameworkUpdate(IFramework frameworkArg)
     {
-        this.MapId = AgentMap.Instance()->CurrentMapId;
+        this.Map = LuminaUtils.CreateRef<Map>(AgentMap.Instance()->CurrentMapId);
 
         var condition = Service<Conditions.Condition>.GetNullable();
         var gameGui = Service<GameGui>.GetNullable();
@@ -438,9 +440,9 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
         this.onLogoutHook!.Original(thisPtr, logoutParams);
     }
 
-    private void NetworkHandlersOnCfPop(ContentFinderCondition e)
+    private void NetworkHandlersOnCfPop(RowRef<ContentFinderCondition> cfc)
     {
-        this.CfPop?.InvokeSafely(e);
+        this.CfPop?.InvokeSafely(cfc);
     }
 }
 
@@ -464,7 +466,7 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     {
         this.clientStateService.ZoneInit += this.ZoneInitForward;
         this.clientStateService.TerritoryChanged += this.TerritoryChangedForward;
-        this.clientStateService.MapIdChanged += this.MapIdChangedForward;
+        this.clientStateService.MapChanged += this.MapChangedForward;
         this.clientStateService.InstanceChanged += this.InstanceChangedForward;
         this.clientStateService.ClassJobChanged += this.ClassJobChangedForward;
         this.clientStateService.LevelChanged += this.LevelChangedForward;
@@ -479,10 +481,10 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     public event Action<ZoneInitEventArgs>? ZoneInit;
 
     /// <inheritdoc/>
-    public event Action<uint>? TerritoryChanged;
+    public event Action<RowRef<TerritoryType>>? TerritoryChanged;
 
     /// <inheritdoc/>
-    public event Action<uint>? MapIdChanged;
+    public event Action<RowRef<Map>>? MapChanged;
 
     /// <inheritdoc/>
     public event Action<uint>? InstanceChanged;
@@ -506,16 +508,16 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     public event Action? LeavePvP;
 
     /// <inheritdoc/>
-    public event Action<ContentFinderCondition>? CfPop;
+    public event Action<RowRef<ContentFinderCondition>>? CfPop;
 
     /// <inheritdoc/>
     public ClientLanguage ClientLanguage => this.clientStateService.ClientLanguage;
 
     /// <inheritdoc/>
-    public uint TerritoryType => this.clientStateService.TerritoryType;
+    public RowRef<TerritoryType> TerritoryType => this.clientStateService.TerritoryType;
 
     /// <inheritdoc/>
-    public uint MapId => this.clientStateService.MapId;
+    public RowRef<Map> Map => this.clientStateService.Map;
 
     /// <inheritdoc/>
     public uint Instance => this.clientStateService.Instance;
@@ -543,7 +545,7 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     {
         this.clientStateService.ZoneInit -= this.ZoneInitForward;
         this.clientStateService.TerritoryChanged -= this.TerritoryChangedForward;
-        this.clientStateService.MapIdChanged -= this.MapIdChangedForward;
+        this.clientStateService.MapChanged -= this.MapChangedForward;
         this.clientStateService.InstanceChanged -= this.InstanceChangedForward;
         this.clientStateService.ClassJobChanged -= this.ClassJobChangedForward;
         this.clientStateService.LevelChanged -= this.LevelChangedForward;
@@ -555,7 +557,7 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
 
         this.ZoneInit = null;
         this.TerritoryChanged = null;
-        this.MapIdChanged = null;
+        this.MapChanged = null;
         this.InstanceChanged = null;
         this.ClassJobChanged = null;
         this.LevelChanged = null;
@@ -568,15 +570,15 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
 
     private void ZoneInitForward(ZoneInitEventArgs eventArgs) => this.ZoneInit?.Invoke(eventArgs);
 
-    private void TerritoryChangedForward(uint territoryId) => this.TerritoryChanged?.Invoke(territoryId);
+    private void TerritoryChangedForward(RowRef<TerritoryType> territoryType) => this.TerritoryChanged?.Invoke(territoryType);
 
-    private void MapIdChangedForward(uint mapId) => this.MapIdChanged?.Invoke(mapId);
+    private void MapChangedForward(RowRef<Map> map) => this.MapChanged?.Invoke(map);
 
     private void InstanceChangedForward(uint instanceId) => this.InstanceChanged?.Invoke(instanceId);
 
-    private void ClassJobChangedForward(uint classJobId) => this.ClassJobChanged?.Invoke(classJobId);
+    private void ClassJobChangedForward(RowRef<ClassJob> classJob) => this.ClassJobChanged?.Invoke(classJob);
 
-    private void LevelChangedForward(uint classJobId, uint level) => this.LevelChanged?.Invoke(classJobId, level);
+    private void LevelChangedForward(RowRef<ClassJob> classJob, uint level) => this.LevelChanged?.Invoke(classJob, level);
 
     private void LoginForward() => this.Login?.Invoke();
 
@@ -586,5 +588,5 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
 
     private void ExitPvPForward() => this.LeavePvP?.Invoke();
 
-    private void ContentFinderPopForward(ContentFinderCondition cfc) => this.CfPop?.Invoke(cfc);
+    private void ContentFinderPopForward(RowRef<ContentFinderCondition> cfc) => this.CfPop?.Invoke(cfc);
 }
