@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -272,29 +273,35 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     }
 
     /// <inheritdoc/>
-    public void RegisterListener(AddonEvent eventType, IEnumerable<string> addonNames, IAddonLifecycle.AddonEventDelegate handler)
+    public IDisposable RegisterListener(AddonEvent eventType, IEnumerable<string> addonNames, IAddonLifecycle.AddonEventDelegate handler)
     {
+        var disposable = new CompositeDisposable();
+
         foreach (var addonName in addonNames)
         {
-            this.RegisterListener(eventType, addonName, handler);
+            disposable.Add(this.RegisterListener(eventType, addonName, handler));
         }
+
+        return disposable;
     }
 
     /// <inheritdoc/>
-    public void RegisterListener(AddonEvent eventType, string addonName, IAddonLifecycle.AddonEventDelegate handler)
+    public IDisposable RegisterListener(AddonEvent eventType, string addonName, IAddonLifecycle.AddonEventDelegate handler)
     {
-        var listener = new AddonLifecycleEventListener(eventType, addonName, handler);
+        var listener = new AddonLifecycleEventListener(this.addonLifecycleService, eventType, addonName, handler);
 
         using var scope = this.listenerLock.EnterScope();
 
         this.eventListeners.Add(listener);
         this.addonLifecycleService.RegisterListener(listener);
+
+        return listener;
     }
 
     /// <inheritdoc/>
-    public void RegisterListener(AddonEvent eventType, IAddonLifecycle.AddonEventDelegate handler)
+    public IDisposable RegisterListener(AddonEvent eventType, IAddonLifecycle.AddonEventDelegate handler)
     {
-        this.RegisterListener(eventType, string.Empty, handler);
+        return this.RegisterListener(eventType, string.Empty, handler);
     }
 
     /// <inheritdoc/>

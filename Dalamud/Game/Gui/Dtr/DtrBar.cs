@@ -66,9 +66,9 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     [ServiceManager.ServiceConstructor]
     private DtrBar()
     {
-        this.dtrPostDrawListener = new AddonLifecycleEventListener(AddonEvent.PostDraw, "_DTR", this.FixCollision);
-        this.dtrPostRequestedUpdateListener = new AddonLifecycleEventListener(AddonEvent.PostRequestedUpdate, "_DTR", this.FixCollision);
-        this.dtrPreFinalizeListener = new AddonLifecycleEventListener(AddonEvent.PreFinalize, "_DTR", this.PreFinalize);
+        this.dtrPostDrawListener = new AddonLifecycleEventListener(this.addonLifecycle, AddonEvent.PostDraw, "_DTR", this.FixCollision);
+        this.dtrPostRequestedUpdateListener = new AddonLifecycleEventListener(this.addonLifecycle, AddonEvent.PostRequestedUpdate, "_DTR", this.FixCollision);
+        this.dtrPreFinalizeListener = new AddonLifecycleEventListener(this.addonLifecycle, AddonEvent.PreFinalize, "_DTR", this.PreFinalize);
 
         this.addonLifecycle.RegisterListener(this.dtrPostDrawListener);
         this.addonLifecycle.RegisterListener(this.dtrPostRequestedUpdateListener);
