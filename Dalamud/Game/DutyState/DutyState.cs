@@ -202,13 +202,13 @@ internal unsafe class DutyState : IInternalDisposableService, IDutyState
     {
         return new DutyStateEventArgs()
         {
-            TerritoryType = LuminaUtils.CreateRef<TerritoryType>(this.clientState.TerritoryType),
+            TerritoryType = this.clientState.TerritoryType,
             ContentFinderCondition = this.ContentFinderCondition,
             EventHandlerId = eventHandlerId,
         };
     }
 
-    private void TerritoryOnChangedEvent(uint territoryId)
+    private void TerritoryOnChangedEvent(RowRef<TerritoryType> territoryTypeRef)
     {
         if (this.IsDutyStarted)
         {

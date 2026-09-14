@@ -59,16 +59,16 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
     }
 
     /// <inheritdoc/>
-    public event INamePlateGui.OnPlateUpdateDelegate? OnNamePlateUpdate;
+    public event INamePlateGui.PlateUpdateDelegate? NamePlateUpdate;
 
     /// <inheritdoc/>
-    public event INamePlateGui.OnPlateUpdateDelegate? OnPostNamePlateUpdate;
+    public event INamePlateGui.PlateUpdateDelegate? PostNamePlateUpdate;
 
     /// <inheritdoc/>
-    public event INamePlateGui.OnPlateUpdateDelegate? OnDataUpdate;
+    public event INamePlateGui.PlateUpdateDelegate? DataUpdate;
 
     /// <inheritdoc/>
-    public event INamePlateGui.OnPlateUpdateDelegate? OnPostDataUpdate;
+    public event INamePlateGui.PlateUpdateDelegate? PostDataUpdate;
 
     /// <inheritdoc/>
     public unsafe void RequestRedraw()
@@ -144,8 +144,8 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
 
         try
         {
-            if (this.OnDataUpdate == null && this.OnNamePlateUpdate == null && this.OnPostDataUpdate == null &&
-                this.OnPostNamePlateUpdate == null)
+            if (this.DataUpdate == null && this.NamePlateUpdate == null && this.PostDataUpdate == null &&
+                this.PostNamePlateUpdate == null)
             {
                 return;
             }
@@ -171,8 +171,8 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                     handler.ResetState();
                 }
 
-                this.OnDataUpdate?.InvokeSafely(this.context, activeHandlers);
-                this.OnNamePlateUpdate?.InvokeSafely(this.context, activeHandlers);
+                this.DataUpdate?.InvokeSafely(this.context, activeHandlers);
+                this.NamePlateUpdate?.InvokeSafely(this.context, activeHandlers);
 
                 if (this.context.HasParts)
                     this.ApplyBuilders(activeHandlers);
@@ -187,8 +187,8 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                     Log.Error(e, "Caught exception when calling original AddonNamePlate OnRequestedUpdate.");
                 }
 
-                this.OnPostNamePlateUpdate?.InvokeSafely(this.context, activeHandlers);
-                this.OnPostDataUpdate?.InvokeSafely(this.context, activeHandlers);
+                this.PostNamePlateUpdate?.InvokeSafely(this.context, activeHandlers);
+                this.PostDataUpdate?.InvokeSafely(this.context, activeHandlers);
             }
             else
             {
@@ -200,10 +200,10 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                         updatedHandlers.Add(handler);
                 }
 
-                if (this.OnDataUpdate is not null)
+                if (this.DataUpdate is not null)
                 {
-                    this.OnDataUpdate?.InvokeSafely(this.context, activeHandlers);
-                    this.OnNamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
+                    this.DataUpdate?.InvokeSafely(this.context, activeHandlers);
+                    this.NamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
 
                     if (this.context.HasParts)
                         this.ApplyBuilders(activeHandlers);
@@ -218,12 +218,12 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                         Log.Error(e, "Caught exception when calling original AddonNamePlate OnRequestedUpdate.");
                     }
 
-                    this.OnPostNamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
-                    this.OnPostDataUpdate?.InvokeSafely(this.context, activeHandlers);
+                    this.PostNamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
+                    this.PostDataUpdate?.InvokeSafely(this.context, activeHandlers);
                 }
                 else if (updatedHandlers.Count != 0)
                 {
-                    this.OnNamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
+                    this.NamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
 
                     if (this.context.HasParts)
                         this.ApplyBuilders(updatedHandlers);
@@ -238,8 +238,8 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                         Log.Error(e, "Caught exception when calling original AddonNamePlate OnRequestedUpdate.");
                     }
 
-                    this.OnPostNamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
-                    this.OnPostDataUpdate?.InvokeSafely(this.context, activeHandlers);
+                    this.PostNamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
+                    this.PostDataUpdate?.InvokeSafely(this.context, activeHandlers);
                 }
             }
         }
@@ -296,12 +296,12 @@ internal class NamePlateGuiPluginScoped : IInternalDisposableService, INamePlate
     private readonly NamePlateGui parentService = Service<NamePlateGui>.Get();
 
     /// <inheritdoc/>
-    public event INamePlateGui.OnPlateUpdateDelegate? OnNamePlateUpdate
+    public event INamePlateGui.PlateUpdateDelegate? NamePlateUpdate
     {
         add
         {
             if (this.OnNamePlateUpdateScoped == null)
-                this.parentService.OnNamePlateUpdate += this.OnNamePlateUpdateForward;
+                this.parentService.NamePlateUpdate += this.OnNamePlateUpdateForward;
 
             this.OnNamePlateUpdateScoped += value;
         }
@@ -310,17 +310,17 @@ internal class NamePlateGuiPluginScoped : IInternalDisposableService, INamePlate
         {
             this.OnNamePlateUpdateScoped -= value;
             if (this.OnNamePlateUpdateScoped == null)
-                this.parentService.OnNamePlateUpdate -= this.OnNamePlateUpdateForward;
+                this.parentService.NamePlateUpdate -= this.OnNamePlateUpdateForward;
         }
     }
 
     /// <inheritdoc/>
-    public event INamePlateGui.OnPlateUpdateDelegate? OnPostNamePlateUpdate
+    public event INamePlateGui.PlateUpdateDelegate? PostNamePlateUpdate
     {
         add
         {
             if (this.OnPostNamePlateUpdateScoped == null)
-                this.parentService.OnPostNamePlateUpdate += this.OnPostNamePlateUpdateForward;
+                this.parentService.PostNamePlateUpdate += this.OnPostNamePlateUpdateForward;
 
             this.OnPostNamePlateUpdateScoped += value;
         }
@@ -329,17 +329,17 @@ internal class NamePlateGuiPluginScoped : IInternalDisposableService, INamePlate
         {
             this.OnPostNamePlateUpdateScoped -= value;
             if (this.OnPostNamePlateUpdateScoped == null)
-                this.parentService.OnPostNamePlateUpdate -= this.OnPostNamePlateUpdateForward;
+                this.parentService.PostNamePlateUpdate -= this.OnPostNamePlateUpdateForward;
         }
     }
 
     /// <inheritdoc/>
-    public event INamePlateGui.OnPlateUpdateDelegate? OnDataUpdate
+    public event INamePlateGui.PlateUpdateDelegate? DataUpdate
     {
         add
         {
             if (this.OnDataUpdateScoped == null)
-                this.parentService.OnDataUpdate += this.OnDataUpdateForward;
+                this.parentService.DataUpdate += this.OnDataUpdateForward;
 
             this.OnDataUpdateScoped += value;
         }
@@ -348,17 +348,17 @@ internal class NamePlateGuiPluginScoped : IInternalDisposableService, INamePlate
         {
             this.OnDataUpdateScoped -= value;
             if (this.OnDataUpdateScoped == null)
-                this.parentService.OnDataUpdate -= this.OnDataUpdateForward;
+                this.parentService.DataUpdate -= this.OnDataUpdateForward;
         }
     }
 
     /// <inheritdoc/>
-    public event INamePlateGui.OnPlateUpdateDelegate? OnPostDataUpdate
+    public event INamePlateGui.PlateUpdateDelegate? PostDataUpdate
     {
         add
         {
             if (this.OnPostDataUpdateScoped == null)
-                this.parentService.OnPostDataUpdate += this.OnPostDataUpdateForward;
+                this.parentService.PostDataUpdate += this.OnPostDataUpdateForward;
 
             this.OnPostDataUpdateScoped += value;
         }
@@ -367,17 +367,17 @@ internal class NamePlateGuiPluginScoped : IInternalDisposableService, INamePlate
         {
             this.OnPostDataUpdateScoped -= value;
             if (this.OnPostDataUpdateScoped == null)
-                this.parentService.OnPostDataUpdate -= this.OnPostDataUpdateForward;
+                this.parentService.PostDataUpdate -= this.OnPostDataUpdateForward;
         }
     }
 
-    private event INamePlateGui.OnPlateUpdateDelegate? OnNamePlateUpdateScoped;
+    private event INamePlateGui.PlateUpdateDelegate? OnNamePlateUpdateScoped;
 
-    private event INamePlateGui.OnPlateUpdateDelegate? OnPostNamePlateUpdateScoped;
+    private event INamePlateGui.PlateUpdateDelegate? OnPostNamePlateUpdateScoped;
 
-    private event INamePlateGui.OnPlateUpdateDelegate? OnDataUpdateScoped;
+    private event INamePlateGui.PlateUpdateDelegate? OnDataUpdateScoped;
 
-    private event INamePlateGui.OnPlateUpdateDelegate? OnPostDataUpdateScoped;
+    private event INamePlateGui.PlateUpdateDelegate? OnPostDataUpdateScoped;
 
     /// <inheritdoc/>
     public void RequestRedraw()
@@ -388,16 +388,16 @@ internal class NamePlateGuiPluginScoped : IInternalDisposableService, INamePlate
     /// <inheritdoc/>
     public void DisposeService()
     {
-        this.parentService.OnNamePlateUpdate -= this.OnNamePlateUpdateForward;
+        this.parentService.NamePlateUpdate -= this.OnNamePlateUpdateForward;
         this.OnNamePlateUpdateScoped = null;
 
-        this.parentService.OnPostNamePlateUpdate -= this.OnPostNamePlateUpdateForward;
+        this.parentService.PostNamePlateUpdate -= this.OnPostNamePlateUpdateForward;
         this.OnPostNamePlateUpdateScoped = null;
 
-        this.parentService.OnDataUpdate -= this.OnDataUpdateForward;
+        this.parentService.DataUpdate -= this.OnDataUpdateForward;
         this.OnDataUpdateScoped = null;
 
-        this.parentService.OnPostDataUpdate -= this.OnPostDataUpdateForward;
+        this.parentService.PostDataUpdate -= this.OnPostDataUpdateForward;
         this.OnPostDataUpdateScoped = null;
     }
 

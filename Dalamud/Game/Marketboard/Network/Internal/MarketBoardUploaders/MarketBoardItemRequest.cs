@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Dalamud.Game.Network.Structures;
+using Dalamud.Game.Marketboard.Network.Structures;
 
 namespace Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders;
 

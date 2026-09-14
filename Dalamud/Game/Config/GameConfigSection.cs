@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text;
 
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Common.Configuration;
@@ -54,7 +55,7 @@ public class GameConfigSection
     /// <summary>
     /// Event which is fired when a game config option is changed within the section.
     /// </summary>
-    internal event EventHandler<ConfigChangeEvent>? Changed;
+    internal event IGameConfig.ConfigChangeEventDelegate? Changed;
 
     /// <summary>
     /// Gets the number of config entries contained within the section.
@@ -542,8 +543,21 @@ public class GameConfigSection
         }
 
         if (enumObject == null) return null;
+
         var eventArgs = new ConfigChangeEvent<TEnum>((TEnum)enumObject, entry->Name.ToString());
-        this.Changed?.InvokeSafely(this, eventArgs);
+
+        foreach (var action in Delegate.EnumerateInvocationList(this.Changed))
+        {
+            try
+            {
+                this.Changed.Invoke(eventArgs);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
+            }
+        }
+
         return eventArgs;
     }
 

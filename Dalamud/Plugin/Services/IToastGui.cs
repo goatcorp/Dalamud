@@ -14,7 +14,7 @@ public interface IToastGui : IDalamudService
     /// <param name="message">The message displayed.</param>
     /// <param name="options">Assorted toast options.</param>
     /// <param name="isHandled">Whether the toast has been handled or should be propagated.</param>
-    delegate void OnNormalToastDelegate(ref SeString message, ref ToastOptions options, ref bool isHandled);
+    delegate void NormalToastDelegate(ref SeString message, ref ToastOptions options, ref bool isHandled);
 
     /// <summary>
     /// A delegate type used when a quest toast window appears.
@@ -22,29 +22,29 @@ public interface IToastGui : IDalamudService
     /// <param name="message">The message displayed.</param>
     /// <param name="options">Assorted toast options.</param>
     /// <param name="isHandled">Whether the toast has been handled or should be propagated.</param>
-    delegate void OnQuestToastDelegate(ref SeString message, ref QuestToastOptions options, ref bool isHandled);
+    delegate void QuestToastDelegate(ref SeString message, ref QuestToastOptions options, ref bool isHandled);
 
     /// <summary>
     /// A delegate type used when an error toast window appears.
     /// </summary>
     /// <param name="message">The message displayed.</param>
     /// <param name="isHandled">Whether the toast has been handled or should be propagated.</param>
-    delegate void OnErrorToastDelegate(ref SeString message, ref bool isHandled);
+    delegate void ErrorToastDelegate(ref SeString message, ref bool isHandled);
 
     /// <summary>
     /// Event that will be fired when a toast is sent by the game or a plugin.
     /// </summary>
-    event OnNormalToastDelegate Toast;
+    event NormalToastDelegate Toast;
 
     /// <summary>
     /// Event that will be fired when a quest toast is sent by the game or a plugin.
     /// </summary>
-    event OnQuestToastDelegate QuestToast;
+    event QuestToastDelegate QuestToast;
 
     /// <summary>
     /// Event that will be fired when an error toast is sent by the game or a plugin.
     /// </summary>
-    event OnErrorToastDelegate ErrorToast;
+    event ErrorToastDelegate ErrorToast;
 
     /// <summary>
     /// Show a toast message with the given content.

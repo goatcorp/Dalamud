@@ -726,19 +726,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     }
 
     /// <inheritdoc/>
-    public bool IsUnlockLinkUnlocked(uint unlockLink)
-    {
-        if (!this.IsLoaded)
-            return false;
-
-        if (unlockLink == 0)
-            return false;
-
-        return UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(unlockLink);
-    }
-
-    /// <inheritdoc/>
-    public bool IsUnlockLinkUnlocked(uint unlockLink, byte minimumQuestSequence)
+    public bool IsUnlockLinkUnlocked(uint unlockLink, byte minimumQuestSequence = 0)
     {
         if (!this.IsLoaded)
             return false;

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders;
 using Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders.Universalis;
-using Dalamud.Game.Network.Structures;
+using Dalamud.Game.Marketboard.Network.Structures;
 using Dalamud.Game.Player;
 using Dalamud.Hooking;
 using Dalamud.Logging.Internal;

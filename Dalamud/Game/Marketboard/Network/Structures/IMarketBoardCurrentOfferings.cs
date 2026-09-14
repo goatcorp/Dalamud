@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Dalamud.Game.Network.Structures;
+namespace Dalamud.Game.Marketboard.Network.Structures;
 
 /// <summary>
 /// An interface that represents the current market board offerings.

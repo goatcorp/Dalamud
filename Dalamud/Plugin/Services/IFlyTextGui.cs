@@ -22,7 +22,7 @@ public interface IFlyTextGui : IDalamudService
     /// <param name="yOffset">The vertical offset to place the flytext at. 0 is default. Negative values result
     /// in text appearing higher on the screen. This does not change where the element begins to fade.</param>
     /// <param name="handled">Whether this flytext has been handled. If a subscriber sets this to true, the FlyText will not appear.</param>
-    delegate void OnFlyTextCreatedDelegate(
+    delegate void FlyTextCreatedDelegate(
         ref FlyTextKind kind,
         ref int val1,
         ref int val2,
@@ -37,7 +37,7 @@ public interface IFlyTextGui : IDalamudService
     /// <summary>
     /// The FlyText event that can be subscribed to.
     /// </summary>
-    event OnFlyTextCreatedDelegate? FlyTextCreated;
+    event FlyTextCreatedDelegate? FlyTextCreated;
 
     /// <summary>
     /// Displays a fly text in-game on the local player.

@@ -77,7 +77,7 @@ internal partial class ChatHandlers : IServiceType
         }
 
         // For injections while logged in
-        if (clientState.IsLoggedIn && clientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
+        if (clientState.IsLoggedIn && clientState.TerritoryType.RowId == 0 && !this.hasSeenLoadingMsg)
             this.PrintWelcomeMessage();
 
 #if !DEBUG && false

@@ -33,8 +33,8 @@ internal class NamePlateSelfTestStep : ISelfTestStep
         switch (this.currentSubStep)
         {
             case SubStep.Start:
-                namePlateGui.OnNamePlateUpdate += this.OnNamePlateUpdate;
-                namePlateGui.OnDataUpdate += this.OnDataUpdate;
+                namePlateGui.NamePlateUpdate += this.OnNamePlateUpdate;
+                namePlateGui.DataUpdate += this.OnDataUpdate;
                 namePlateGui.RequestRedraw();
                 this.updateCount = [];
                 this.currentSubStep++;
@@ -72,8 +72,8 @@ internal class NamePlateSelfTestStep : ISelfTestStep
     public void CleanUp()
     {
         var namePlateGui = Service<NamePlateGui>.Get();
-        namePlateGui.OnNamePlateUpdate -= this.OnNamePlateUpdate;
-        namePlateGui.OnDataUpdate -= this.OnDataUpdate;
+        namePlateGui.NamePlateUpdate -= this.OnNamePlateUpdate;
+        namePlateGui.DataUpdate -= this.OnDataUpdate;
         namePlateGui.RequestRedraw();
         this.updateCount = null;
         this.currentSubStep = SubStep.Start;

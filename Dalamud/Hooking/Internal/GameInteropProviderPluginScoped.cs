@@ -63,36 +63,32 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     }
 
     /// <inheritdoc/>
-    public Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
+    public Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour) where T : Delegate
     {
-        WarnForDeprecatedBackend(backend);
-
         var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, callingAssembly: this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
 
     /// <inheritdoc/>
-    public Hook<T> HookFromAddress<T>(nint procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
+    public Hook<T> HookFromAddress<T>(nint procAddress, T detour) where T : Delegate
     {
-        WarnForDeprecatedBackend(backend);
-
         var hook = Hook<T>.FromAddress(procAddress, detour, callingAssembly: this.plugin.Assembly);
         this.trackedHooks.Add(hook);
         return hook;
     }
 
     /// <inheritdoc/>
-    public Hook<T> HookFromAddress<T>(UIntPtr procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
-        => this.HookFromAddress((nint)procAddress, detour, backend);
+    public Hook<T> HookFromAddress<T>(UIntPtr procAddress, T detour) where T : Delegate
+        => this.HookFromAddress((nint)procAddress, detour);
 
     /// <inheritdoc/>
-    public unsafe Hook<T> HookFromAddress<T>(void* procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
-        => this.HookFromAddress((nint)procAddress, detour, backend);
+    public unsafe Hook<T> HookFromAddress<T>(void* procAddress, T detour) where T : Delegate
+        => this.HookFromAddress((nint)procAddress, detour);
 
     /// <inheritdoc/>
-    public Hook<T> HookFromSignature<T>(string signature, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
-        => this.HookFromAddress(this.scanner.ScanText(signature), detour, backend);
+    public Hook<T> HookFromSignature<T>(string signature, T detour) where T : Delegate
+        => this.HookFromAddress(this.scanner.ScanText(signature), detour);
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -108,15 +104,5 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
         }
 
         this.trackedHooks.Clear();
-    }
-
-    private static void WarnForDeprecatedBackend(IGameInteropProvider.HookBackend backend)
-    {
-#pragma warning disable CS0618 // Type or member is obsolete
-        if (backend == IGameInteropProvider.HookBackend.MinHook)
-        {
-            Log.Warning("The MinHook backend is no longer available, and backend selection will be removed in a future version. Please specify 'Automatic' instead.");
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

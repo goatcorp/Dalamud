@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Dalamud.Game.Network.Structures;
+namespace Dalamud.Game.Marketboard.Network.Structures;
 
 /// <summary>
 /// This class represents the market board history from a game network packet.
