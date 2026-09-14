@@ -4,11 +4,13 @@ using System.Text;
 
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 using FFXIVClientStructs.Interop;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.NamePlate;
 
@@ -138,7 +140,7 @@ public interface INamePlateUpdateHandler
     /// <summary>
     /// Gets or sets the name for this nameplate.
     /// </summary>
-    SeString Name { get; set; }
+    ReadOnlySeString Name { get; set; }
 
     /// <summary>
     /// Gets a builder which can be used to help cooperatively build a new name for this nameplate even when other
@@ -150,7 +152,7 @@ public interface INamePlateUpdateHandler
     /// <summary>
     /// Gets or sets the title for this nameplate.
     /// </summary>
-    SeString Title { get; set; }
+    ReadOnlySeString Title { get; set; }
 
     /// <summary>
     /// Gets a builder which can be used to help cooperatively build a new title for this nameplate even when other
@@ -162,7 +164,7 @@ public interface INamePlateUpdateHandler
     /// <summary>
     /// Gets or sets the free company tag for this nameplate.
     /// </summary>
-    SeString FreeCompanyTag { get; set; }
+    ReadOnlySeString FreeCompanyTag { get; set; }
 
     /// <summary>
     /// Gets a builder which can be used to help cooperatively build a new FC tag for this nameplate even when other
@@ -175,19 +177,19 @@ public interface INamePlateUpdateHandler
     /// Gets or sets the status prefix for this nameplate. This prefix is used by the game to add BitmapFontIcon-based
     /// online status icons to player nameplates.
     /// </summary>
-    SeString StatusPrefix { get; set; }
+    ReadOnlySeString StatusPrefix { get; set; }
 
     /// <summary>
     /// Gets or sets the target suffix for this nameplate. This suffix is used by the game to add the squared-letter
     /// target tags to the end of combat target nameplates.
     /// </summary>
-    SeString TargetSuffix { get; set; }
+    ReadOnlySeString TargetSuffix { get; set; }
 
     /// <summary>
     /// Gets or sets the level prefix for this nameplate. This "Lv60" style prefix is added to enemy and friendly battle
     /// NPC nameplates to indicate the NPC level.
     /// </summary>
-    SeString LevelPrefix { get; set; }
+    ReadOnlySeString LevelPrefix { get; set; }
 
     /// <summary>
     /// Removes the contents of the name field for this nameplate. This differs from simply setting the field
@@ -253,11 +255,18 @@ public interface INamePlateUpdateHandler
     string GetFieldAsString(NamePlateStringField field);
 
     /// <summary>
-    /// Gets a parsed SeString copy of the string array value in the provided field.
+    /// Gets a ReadOnlySeString copy of the string array value in the provided field.
     /// </summary>
     /// <param name="field">The field to read from.</param>
-    /// <returns>A copy of the string array value as a parsed SeString.</returns>
-    SeString GetFieldAsSeString(NamePlateStringField field);
+    /// <returns>A copy of the string array value as a ReadOnlySeString.</returns>
+    ReadOnlySeString GetFieldAsReadOnlySeString(NamePlateStringField field);
+
+    /// <summary>
+    /// Gets a ReadOnlySeStringSpan view of the string array value in the provided field.
+    /// </summary>
+    /// <param name="field">The field to read from.</param>
+    /// <returns>A copy of the string array value as a ReadOnlySeStringSpan.</returns>
+    ReadOnlySeStringSpan GetFieldAsReadOnlySeStringSpan(NamePlateStringField field);
 
     /// <summary>
     /// Sets the string array value for the provided field.
@@ -270,15 +279,15 @@ public interface INamePlateUpdateHandler
     /// Sets the string array value for the provided field.
     /// </summary>
     /// <param name="field">The field to write to.</param>
-    /// <param name="value">The SeString to write.</param>
-    void SetField(NamePlateStringField field, SeString value);
+    /// <param name="value">The ReadOnlySeString to write.</param>
+    void SetField(NamePlateStringField field, ReadOnlySeString value);
 
     /// <summary>
-    /// Sets the string array value for the provided field. The provided byte sequence must be null-terminated.
+    /// Sets the string array value for the provided field.
     /// </summary>
     /// <param name="field">The field to write to.</param>
-    /// <param name="value">The ReadOnlySpan of bytes to write.</param>
-    void SetField(NamePlateStringField field, ReadOnlySpan<byte> value);
+    /// <param name="value">The ReadOnlySeStringSpan to write.</param>
+    void SetField(NamePlateStringField field, ReadOnlySeStringSpan value);
 
     /// <summary>
     /// Sets the string array value for the provided field. The provided byte sequence must be null-terminated.
@@ -449,9 +458,9 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     }
 
     /// <inheritdoc/>
-    public SeString Name
+    public ReadOnlySeString Name
     {
-        get => this.GetFieldAsSeString(NamePlateStringField.Name);
+        get => this.GetFieldAsReadOnlySeString(NamePlateStringField.Name);
         set => this.WeakSetField(NamePlateStringField.Name, value);
     }
 
@@ -459,9 +468,9 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     public NamePlateSimpleParts NameParts => this.PartsContainer.Name;
 
     /// <inheritdoc/>
-    public SeString Title
+    public ReadOnlySeString Title
     {
-        get => this.GetFieldAsSeString(NamePlateStringField.Title);
+        get => this.GetFieldAsReadOnlySeString(NamePlateStringField.Title);
         set => this.WeakSetField(NamePlateStringField.Title, value);
     }
 
@@ -469,9 +478,9 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     public NamePlateQuotedParts TitleParts => this.PartsContainer.Title;
 
     /// <inheritdoc/>
-    public SeString FreeCompanyTag
+    public ReadOnlySeString FreeCompanyTag
     {
-        get => this.GetFieldAsSeString(NamePlateStringField.FreeCompanyTag);
+        get => this.GetFieldAsReadOnlySeString(NamePlateStringField.FreeCompanyTag);
         set => this.WeakSetField(NamePlateStringField.FreeCompanyTag, value);
     }
 
@@ -479,23 +488,23 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     public NamePlateQuotedParts FreeCompanyTagParts => this.PartsContainer.FreeCompanyTag;
 
     /// <inheritdoc/>
-    public SeString StatusPrefix
+    public ReadOnlySeString StatusPrefix
     {
-        get => this.GetFieldAsSeString(NamePlateStringField.StatusPrefix);
+        get => this.GetFieldAsReadOnlySeString(NamePlateStringField.StatusPrefix);
         set => this.WeakSetField(NamePlateStringField.StatusPrefix, value);
     }
 
     /// <inheritdoc/>
-    public SeString TargetSuffix
+    public ReadOnlySeString TargetSuffix
     {
-        get => this.GetFieldAsSeString(NamePlateStringField.TargetSuffix);
+        get => this.GetFieldAsReadOnlySeString(NamePlateStringField.TargetSuffix);
         set => this.WeakSetField(NamePlateStringField.TargetSuffix, value);
     }
 
     /// <inheritdoc/>
-    public SeString LevelPrefix
+    public ReadOnlySeString LevelPrefix
     {
-        get => this.GetFieldAsSeString(NamePlateStringField.LevelPrefix);
+        get => this.GetFieldAsReadOnlySeString(NamePlateStringField.LevelPrefix);
         set => this.WeakSetField(NamePlateStringField.LevelPrefix, value);
     }
 
@@ -555,9 +564,16 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SeString GetFieldAsSeString(NamePlateStringField field)
+    public ReadOnlySeString GetFieldAsReadOnlySeString(NamePlateStringField field)
     {
-        return SeString.Parse(this.GetFieldAsSpan(field));
+        return new ReadOnlySeString(this.GetFieldAsSpan(field));
+    }
+
+    /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ReadOnlySeStringSpan GetFieldAsReadOnlySeStringSpan(NamePlateStringField field)
+    {
+        return this.GetFieldAsSpan(field);
     }
 
     /// <inheritdoc/>
@@ -569,11 +585,12 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void SetField(NamePlateStringField field, SeString value)
+    public void SetField(NamePlateStringField field, ReadOnlySeString value)
     {
+        using var rssb = new RentedSeStringBuilder();
         this.context.StringData->SetValue(
             this.ArrayIndex + (int)field,
-            value.EncodeWithNullTerminator(),
+            rssb.Builder.Append(value).GetViewAsSpan(),
             true,
             true,
             true);
@@ -581,9 +598,15 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void SetField(NamePlateStringField field, ReadOnlySpan<byte> value)
+    public void SetField(NamePlateStringField field, ReadOnlySeStringSpan value)
     {
-        this.context.StringData->SetValue(this.ArrayIndex + (int)field, value, true, true, true);
+        using var rssb = new RentedSeStringBuilder();
+        this.context.StringData->SetValue(
+            this.ArrayIndex + (int)field,
+            rssb.Builder.Append(value).GetViewAsSpan(),
+            true,
+            true,
+            true);
     }
 
     /// <inheritdoc/>
@@ -621,15 +644,17 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     /// pointer used by the Remove methods.
     /// </summary>
     /// <param name="field">The field to write to.</param>
-    /// <param name="value">The SeString to write.</param>
+    /// <param name="value">The ReadOnlySeString to write.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WeakSetField(NamePlateStringField field, SeString value)
+    private void WeakSetField(NamePlateStringField field, ReadOnlySeString value)
     {
         if ((nint)this.GetFieldAsPointer(field) == NamePlateGui.EmptyStringPointer)
             return;
+
+        using var rssb = new RentedSeStringBuilder();
         this.context.StringData->SetValue(
             this.ArrayIndex + (int)field,
-            value.EncodeWithNullTerminator(),
+            rssb.Builder.Append(value).GetViewAsSpan(),
             true,
             true,
             true);

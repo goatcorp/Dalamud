@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Data;
-using Dalamud.Game.Text.SeStringHandling;
 
 using FFXIVClientStructs.FFXIV.Client.Game.Network;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.PartyFinder.Types;
 
@@ -65,12 +65,12 @@ public interface IPartyFinderListing
     /// <summary>
     /// Gets the name of the player hosting this listing.
     /// </summary>
-    SeString Name { get; }
+    ReadOnlySeString Name { get; }
 
     /// <summary>
     /// Gets the description of this listing as set by the host. May be multiple lines.
     /// </summary>
-    SeString Description { get; }
+    ReadOnlySeString Description { get; }
 
     /// <summary>
     /// Gets the world that this listing was created on.
@@ -188,13 +188,9 @@ public interface IPartyFinderListing
 /// <summary>
 /// A single listing in party finder.
 /// </summary>
-internal class PartyFinderListing : IPartyFinderListing
+internal unsafe class PartyFinderListing : IPartyFinderListing
 {
-    private readonly byte objective;
-    private readonly byte conditions;
-    private readonly byte dutyFinderSettings;
-    private readonly byte lootRules;
-    private readonly byte searchArea;
+    private readonly CrossRealmListingSegmentPacket.CrossRealmListing* listing;
     private readonly PartyFinderSlot[] slots;
     private readonly byte[] jobsPresent;
 
@@ -202,117 +198,91 @@ internal class PartyFinderListing : IPartyFinderListing
     /// Initializes a new instance of the <see cref="PartyFinderListing"/> class.
     /// </summary>
     /// <param name="listing">The interop listing data.</param>
-    internal PartyFinderListing(ref CrossRealmListingSegmentPacket.CrossRealmListing listing)
+    internal PartyFinderListing(CrossRealmListingSegmentPacket.CrossRealmListing* listing)
     {
-        var dataManager = Service<DataManager>.Get();
+        this.listing = listing;
 
-        this.objective = listing.Objective;
-        this.conditions = listing.CompletionStatus;
-        this.dutyFinderSettings = listing.DutyFinderSettings;
-        this.lootRules = listing.LootRule;
-        this.searchArea = listing.JoinConditionFlags;
-
-        this.slots = new PartyFinderSlot[listing.SlotFlags.Length];
+        this.slots = new PartyFinderSlot[listing->SlotFlags.Length];
         for (var i = 0; i < this.slots.Length; i++)
-            this.slots[i] = new PartyFinderSlot(listing.SlotFlags[i]);
+            this.slots[i] = new PartyFinderSlot(listing->SlotFlags[i]);
 
-        this.jobsPresent = listing.JobsPresent.ToArray();
-
-        this.Id = listing.ListingId;
-        this.ContentId = listing.ContentId;
-        this.Name = SeString.Parse(listing.Name);
-        this.Description = SeString.Parse(listing.Description);
-        this.World = LuminaUtils.CreateRef<World>(listing.WorldId);
-        this.HomeWorld = LuminaUtils.CreateRef<World>(listing.HomeWorldId);
-        this.CurrentWorld = LuminaUtils.CreateRef<World>(listing.CurrentWorldId);
-        this.Category = (DutyCategory)listing.Category;
-        this.RawDuty = listing.Duty;
-        this.Duty = LuminaUtils.CreateRef<ContentFinderCondition>(listing.Duty);
-        this.DutyType = (DutyType)listing.DutyType;
-        this.BeginnersWelcome = listing.BeginnersWelcome == 1;
-        this.SecondsRemaining = listing.TimeLeft;
-        this.MinimumItemLevel = listing.AvgItemLv;
-        this.Parties = listing.NumberOfParties;
-        this.SlotsAvailable = listing.TotalSlots;
-        this.SlotsFilled = listing.SlotsFilled;
-        this.LastPatchHotfixTimestamp = listing.LastPatchHotfixTimestamp;
-
+        this.jobsPresent = listing->JobsPresent.ToArray();
         this.JobsPresent = this.jobsPresent
                                   .Select(id => LuminaUtils.CreateRef<ClassJob>(id))
                                   .ToArray();
     }
 
     /// <inheritdoc/>
-    public ulong Id { get; }
+    public ulong Id => this.listing->ListingId;
 
     /// <inheritdoc/>
-    public ulong ContentId { get; }
+    public ulong ContentId => this.listing->ContentId;
 
     /// <inheritdoc/>
-    public SeString Name { get; }
+    public ReadOnlySeString Name => this.listing->Name;
 
     /// <inheritdoc/>
-    public SeString Description { get; }
+    public ReadOnlySeString Description => this.listing->Description;
 
     /// <inheritdoc/>
-    public RowRef<World> World { get; }
+    public RowRef<World> World => LuminaUtils.CreateRef<World>(this.listing->WorldId);
 
     /// <inheritdoc/>
-    public RowRef<World> HomeWorld { get; }
+    public RowRef<World> HomeWorld => LuminaUtils.CreateRef<World>(this.listing->HomeWorldId);
 
     /// <inheritdoc/>
-    public RowRef<World> CurrentWorld { get; }
+    public RowRef<World> CurrentWorld => LuminaUtils.CreateRef<World>(this.listing->CurrentWorldId);
 
     /// <inheritdoc/>
-    public DutyCategory Category { get; }
+    public DutyCategory Category => (DutyCategory)this.listing->Category;
 
     /// <inheritdoc/>
-    public ushort RawDuty { get; }
+    public ushort RawDuty => this.listing->Duty;
 
     /// <inheritdoc/>
-    public RowRef<ContentFinderCondition> Duty { get; }
+    public RowRef<ContentFinderCondition> Duty => LuminaUtils.CreateRef<ContentFinderCondition>(this.listing->Duty);
 
     /// <inheritdoc/>
-    public DutyType DutyType { get; }
+    public DutyType DutyType => (DutyType)this.listing->DutyType;
 
     /// <inheritdoc/>
-    public bool BeginnersWelcome { get; }
+    public bool BeginnersWelcome => this.listing->BeginnersWelcome == 1;
 
     /// <inheritdoc/>
-    public ushort SecondsRemaining { get; }
+    public ushort SecondsRemaining => this.listing->TimeLeft;
 
     /// <inheritdoc/>
-    public ushort MinimumItemLevel { get; }
+    public ushort MinimumItemLevel => this.listing->AvgItemLv;
 
     /// <inheritdoc/>
-    public byte Parties { get; }
+    public byte Parties => this.listing->NumberOfParties;
 
     /// <inheritdoc/>
-    public byte SlotsAvailable { get; }
+    public byte SlotsAvailable => this.listing->TotalSlots;
 
     /// <inheritdoc/>
-    public byte SlotsFilled { get; }
+    public byte SlotsFilled => this.listing->SlotsFilled;
 
     /// <inheritdoc/>
-    public int LastPatchHotfixTimestamp { get; }
+    public int LastPatchHotfixTimestamp => this.listing->LastPatchHotfixTimestamp;
 
     /// <inheritdoc/>
     public IReadOnlyCollection<PartyFinderSlot> Slots => this.slots;
 
     /// <inheritdoc/>
-    public ObjectiveFlags Objective => (ObjectiveFlags)this.objective;
+    public ObjectiveFlags Objective => (ObjectiveFlags)this.listing->Objective;
 
     /// <inheritdoc/>
-    public ConditionFlags Conditions => (ConditionFlags)this.conditions;
+    public ConditionFlags Conditions => (ConditionFlags)this.listing->CompletionStatus;
 
     /// <inheritdoc/>
-    public DutyFinderSettingsFlags DutyFinderSettings => (DutyFinderSettingsFlags)this.dutyFinderSettings;
+    public DutyFinderSettingsFlags DutyFinderSettings => (DutyFinderSettingsFlags)this.listing->DutyFinderSettings;
 
     /// <inheritdoc/>
-    public LootRuleFlags LootRules => (LootRuleFlags)this.lootRules;
+    public LootRuleFlags LootRules => (LootRuleFlags)this.listing->LootRule;
 
     /// <inheritdoc/>
-    public SearchAreaFlags SearchArea => (SearchAreaFlags)this.searchArea;
+    public SearchAreaFlags SearchArea => (SearchAreaFlags)this.listing->JoinConditionFlags;
 
     /// <inheritdoc/>
     public IReadOnlyCollection<byte> RawJobsPresent => this.jobsPresent;
@@ -323,19 +293,19 @@ internal class PartyFinderListing : IPartyFinderListing
     #region Indexers
 
     /// <inheritdoc/>
-    public bool this[ObjectiveFlags flag] => this.objective == 0 || (this.objective & (uint)flag) > 0;
+    public bool this[ObjectiveFlags flag] => this.listing->Objective == 0 || (this.listing->Objective & (byte)flag) != 0;
 
     /// <inheritdoc/>
-    public bool this[ConditionFlags flag] => this.conditions == 0 || (this.conditions & (uint)flag) > 0;
+    public bool this[ConditionFlags flag] => this.listing->CompletionStatus == 0 || (this.listing->CompletionStatus & (byte)flag) != 0;
 
     /// <inheritdoc/>
-    public bool this[DutyFinderSettingsFlags flag] => this.dutyFinderSettings == 0 || (this.dutyFinderSettings & (uint)flag) > 0;
+    public bool this[DutyFinderSettingsFlags flag] => this.listing->DutyFinderSettings == 0 || (this.listing->DutyFinderSettings & (byte)flag) != 0;
 
     /// <inheritdoc/>
-    public bool this[LootRuleFlags flag] => this.lootRules == 0 || (this.lootRules & (uint)flag) > 0;
+    public bool this[LootRuleFlags flag] => this.listing->LootRule == 0 || (this.listing->LootRule & (byte)flag) != 0;
 
     /// <inheritdoc/>
-    public bool this[SearchAreaFlags flag] => this.searchArea == 0 || (this.searchArea & (uint)flag) > 0;
+    public bool this[SearchAreaFlags flag] => this.listing->JoinConditionFlags == 0 || (this.listing->JoinConditionFlags & (byte)flag) != 0;
 
     #endregion
 }

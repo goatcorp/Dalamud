@@ -1,6 +1,8 @@
-using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.NamePlate;
 
@@ -13,36 +15,36 @@ public interface INamePlateInfoView
     /// <summary>
     /// Gets the displayed name for this nameplate according to the nameplate info object.
     /// </summary>
-    SeString Name { get; }
+    ReadOnlySeStringSpan Name { get; }
 
     /// <summary>
     /// Gets the displayed free company tag for this nameplate according to the nameplate info object. For this field,
     /// the quote characters which appear on either side of the title are NOT included.
     /// </summary>
-    SeString FreeCompanyTag { get; }
+    ReadOnlySeStringSpan FreeCompanyTag { get; }
 
     /// <summary>
     /// Gets the displayed free company tag for this nameplate according to the nameplate info object. For this field,
     /// the quote characters which appear on either side of the title ARE included.
     /// </summary>
-    SeString QuotedFreeCompanyTag { get; }
+    ReadOnlySeStringSpan QuotedFreeCompanyTag { get; }
 
     /// <summary>
     /// Gets the displayed title for this nameplate according to the nameplate info object. For this field, the quote
     /// characters which appear on either side of the title are NOT included.
     /// </summary>
-    SeString Title { get; }
+    ReadOnlySeStringSpan Title { get; }
 
     /// <summary>
     /// Gets the displayed title for this nameplate according to the nameplate info object. For this field, the quote
     /// characters which appear on either side of the title ARE included.
     /// </summary>
-    SeString QuotedTitle { get; }
+    ReadOnlySeStringSpan QuotedTitle { get; }
 
     /// <summary>
     /// Gets the displayed level text for this nameplate according to the nameplate info object.
     /// </summary>
-    SeString LevelText { get; }
+    ReadOnlySeStringSpan LevelText { get; }
 
     /// <summary>
     /// Gets the flags for this nameplate according to the nameplate info object.
@@ -68,31 +70,23 @@ public interface INamePlateInfoView
 /// </summary>
 internal unsafe class NamePlateInfoView(RaptureAtkModule.NamePlateInfo* info) : INamePlateInfoView
 {
-    private SeString? name;
-    private SeString? freeCompanyTag;
-    private SeString? quotedFreeCompanyTag;
-    private SeString? title;
-    private SeString? quotedTitle;
-    private SeString? levelText;
+    /// <inheritdoc/>
+    public ReadOnlySeStringSpan Name => info->Name.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public SeString Name => this.name ??= SeString.Parse(info->Name);
+    public ReadOnlySeStringSpan FreeCompanyTag => NamePlateGui.StripFreeCompanyTagQuotes(info->FcName.AsReadOnlySeString()).AsSpan();
 
     /// <inheritdoc/>
-    public SeString FreeCompanyTag => this.freeCompanyTag ??=
-                                          SeString.Parse(NamePlateGui.StripFreeCompanyTagQuotes(info->FcName));
+    public ReadOnlySeStringSpan QuotedFreeCompanyTag => info->FcName.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public SeString QuotedFreeCompanyTag => this.quotedFreeCompanyTag ??= SeString.Parse(info->FcName);
+    public ReadOnlySeStringSpan Title => info->Title.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public SeString Title => this.title ??= SeString.Parse(info->Title);
+    public ReadOnlySeStringSpan QuotedTitle => info->DisplayTitle.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public SeString QuotedTitle => this.quotedTitle ??= SeString.Parse(info->DisplayTitle);
-
-    /// <inheritdoc/>
-    public SeString LevelText => this.levelText ??= SeString.Parse(info->LevelText);
+    public ReadOnlySeStringSpan LevelText => info->LevelText.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
     public int Flags => info->Flags;

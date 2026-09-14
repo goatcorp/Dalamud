@@ -1,4 +1,6 @@
-using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Utility;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.NamePlate;
 
@@ -16,15 +18,15 @@ namespace Dalamud.Game.Gui.NamePlate;
 public class NamePlateSimpleParts(NamePlateStringField field)
 {
     /// <summary>
-    /// Gets or sets the opening and closing SeStrings which will wrap the text, which can be used to apply colors or
+    /// Gets or sets the opening and closing strings which will wrap the text, which can be used to apply colors or
     /// styling to the field's text.
     /// </summary>
-    public (SeString, SeString)? TextWrap { get; set; }
+    public (ReadOnlySeString, ReadOnlySeString)? TextWrap { get; set; }
 
     /// <summary>
     /// Gets or sets this field's text.
     /// </summary>
-    public SeString? Text { get; set; }
+    public ReadOnlySeString? Text { get; set; }
 
     /// <summary>
     /// Applies the changes from this builder to the actual field.
@@ -37,15 +39,16 @@ public class NamePlateSimpleParts(NamePlateStringField field)
 
         if (this.TextWrap is { Item1: { } left, Item2: { } right })
         {
-            var sb = new SeStringBuilder();
-            sb.Append(left);
-            sb.Append(this.Text ?? handler.GetFieldAsSeString(field));
-            sb.Append(right);
-            handler.SetField(field, sb.Build());
+            using var rssb = new RentedSeStringBuilder();
+            handler.SetField(field, rssb.Builder
+                .Append(left)
+                .Append(this.Text ?? handler.GetFieldAsReadOnlySeString(field))
+                .Append(right)
+                .ToReadOnlySeString());
         }
-        else if (this.Text is not null)
+        else if (this.Text.HasValue)
         {
-            handler.SetField(field, this.Text);
+            handler.SetField(field, this.Text.Value);
         }
     }
 }

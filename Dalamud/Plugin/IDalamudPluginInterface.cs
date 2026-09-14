@@ -6,7 +6,7 @@ using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration;
-using Dalamud.Game.Text;
+using Dalamud.Game.Chat;
 using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
