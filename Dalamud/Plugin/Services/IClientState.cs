@@ -1,4 +1,4 @@
-using Dalamud.Game;
+using Dalamud.Common;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 

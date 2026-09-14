@@ -2,8 +2,8 @@ using System.Linq;
 using System.Text;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Common;
 using Dalamud.Data;
-using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Text.Noun;
 using Dalamud.Game.Text.Noun.Enums;

@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 
-using Dalamud.Game;
+using Dalamud.Common;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 
