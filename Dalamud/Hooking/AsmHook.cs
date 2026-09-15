@@ -13,7 +13,7 @@ namespace Dalamud.Hooking;
 /// </summary>
 public sealed class AsmHook : IDisposable, IDalamudHook
 {
-    private readonly IntPtr address;
+    private readonly nint address;
     private readonly Reloaded.Hooks.Definitions.IAsmHook hookImpl;
 
     private bool isActivated = false;
@@ -32,33 +32,7 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     /// <param name="assembly">Assembly code representing your hook.</param>
     /// <param name="name">The name of what you are hooking, since a delegate is not required.</param>
     /// <param name="asmHookBehaviour">How the hook is inserted into the execution flow.</param>
-    public AsmHook(IntPtr address, byte[] assembly, string name, AsmHookBehaviour asmHookBehaviour = AsmHookBehaviour.ExecuteFirst)
-    {
-        address = HookManager.FollowJmp(address);
-
-        // We cannot call TrimAfterHook here because the hook is activated by the caller.
-        HookManager.RegisterUnhooker(address);
-
-        this.address = address;
-        this.hookImpl = ReloadedHooks.Instance.CreateAsmHook(assembly, address.ToInt64(), (Reloaded.Hooks.Definitions.Enums.AsmHookBehaviour)asmHookBehaviour);
-
-        this.statsMethod = new DynamicMethod(name, null, null);
-        this.statsMethod.GetILGenerator().Emit(OpCodes.Ret);
-        var dele = this.statsMethod.CreateDelegate(typeof(Action));
-
-        HookManager.TrackedHooks.TryAdd(this.hookId, new HookInfo(this, dele, Assembly.GetCallingAssembly()));
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AsmHook"/> class.
-    /// This is an assembly hook and should not be used for except under unique circumstances.
-    /// Hook is not activated until Enable() method is called.
-    /// </summary>
-    /// <param name="address">A memory address to install a hook.</param>
-    /// <param name="assembly">FASM syntax assembly code representing your hook. The first line should be use64.</param>
-    /// <param name="name">The name of what you are hooking, since a delegate is not required.</param>
-    /// <param name="asmHookBehaviour">How the hook is inserted into the execution flow.</param>
-    public AsmHook(IntPtr address, string[] assembly, string name, AsmHookBehaviour asmHookBehaviour = AsmHookBehaviour.ExecuteFirst)
+    public AsmHook(nint address, byte[] assembly, string name, AsmHookBehaviour asmHookBehaviour = AsmHookBehaviour.ExecuteFirst)
     {
         address = HookManager.FollowJmp(address);
 
@@ -79,7 +53,7 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     /// Gets a memory address of the target function.
     /// </summary>
     /// <exception cref="ObjectDisposedException">Hook is already disposed.</exception>
-    public IntPtr Address
+    public nint Address
     {
         get
         {
