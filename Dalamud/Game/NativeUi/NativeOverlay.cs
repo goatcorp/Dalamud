@@ -139,7 +139,7 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
     }
 
     // This hook is invoked when the user presses ESC with no windows focused, normally this would cause any open AtkUnitBase's to be closed
-    // But this doesn't get forwarded to custom addons, so we have to do it here. Devs can set disable RespectCloseAll to disable this behavior,
+    // But this doesn't get forwarded to custom addons, so we have to do it here. Devs can use RespectCloseAll to disable this behavior,
     // However this should generally be discouraged, unless the dev has a good reason to ignore the standard close behavior.
     private bool OnFireCallback(AtkUnitBase* thisPtr, uint valueCount, AtkValue* values, bool close)
     {
