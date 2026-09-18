@@ -453,10 +453,10 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         NameCache.CharacterInfo characterInfo = default;
         if (NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo))
         {
-            context.Builder.Append((ReadOnlySeStringSpan)characterInfo.Name.AsSpan());
+            context.Builder.Append(characterInfo.Name.AsReadOnlySeStringSpan());
 
             if (characterInfo.HomeWorldId != AgentLobby.Instance()->LobbyData.HomeWorldId &&
-                WorldHelper.Instance()->AllWorlds.TryGetValue((ushort)characterInfo.HomeWorldId, out var world, false))
+                WorldHelper.Instance()->AllWorlds.TryGetValue(characterInfo.HomeWorldId, out var world, false))
             {
                 context.Builder.AppendIcon(88);
 
@@ -514,7 +514,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                        : eFalse);
     }
 
-    private unsafe bool TryResolveIfSelf(in SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveIfSelf(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eEntityId, out var eTrue, out var eFalse))
             return false;
@@ -853,13 +853,13 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     private void AddSheetRedirectItemDecoration(in SeStringContext context, ref ReadOnlySeString text, SheetRedirectFlags flags, uint eRowIdValue)
     {
-        if (!flags.HasFlag(SheetRedirectFlags.Item))
+        if ((flags & SheetRedirectFlags.Item) == 0)
             return;
 
         var rarity = 1u;
         var skipLink = false;
 
-        if (flags.HasFlag(SheetRedirectFlags.EventItem))
+        if ((flags & SheetRedirectFlags.EventItem) != 0)
         {
             rarity = 8;
             skipLink = true;
@@ -877,11 +877,11 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 skipLink = true;
         }
 
-        if (flags.HasFlag(SheetRedirectFlags.Collectible))
+        if ((flags & SheetRedirectFlags.Collectible) != 0)
         {
             itemId += 500000;
         }
-        else if (flags.HasFlag(SheetRedirectFlags.HighQuality))
+        else if ((flags & SheetRedirectFlags.HighQuality) != 0)
         {
             itemId += 1000000;
         }
@@ -901,12 +901,12 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         sb.Append(text);
 
-        if (flags.HasFlag(SheetRedirectFlags.HighQuality)
+        if ((flags & SheetRedirectFlags.HighQuality) != 0
             && this.dataManager.GetExcelSheet<AddonSheet>(context.Language).TryGetRow(9, out var hqSymbol))
         {
             sb.Append(hqSymbol.Text);
         }
-        else if (flags.HasFlag(SheetRedirectFlags.Collectible)
+        else if ((flags & SheetRedirectFlags.Collectible) != 0
             && this.dataManager.GetExcelSheet<AddonSheet>(context.Language).TryGetRow(150, out var collectibleSymbol))
         {
             sb.Append(collectibleSymbol.Text);
@@ -1188,7 +1188,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             context.Builder.Append(playerName);
         }
 
-        if (worldId == AgentLobby.Instance()->LobbyData.HomeWorldId)
+        if (worldId == this.playerState.HomeWorld.RowId)
             return true;
 
         if (!this.dataManager.GetExcelSheet<World>(context.Language).TryGetRow(worldId, out var worldRow))
@@ -1290,10 +1290,13 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             2 => 13743u, // "(Unable to set map link)"
             _ => 0u,
         };
+
         if (rowId == 0u)
             return false;
+
         if (this.dataManager.GetExcelSheet<AddonSheet>(context.Language).TryGetRow(rowId, out var addonRow))
             context.Builder.Append(addonRow.Text);
+
         return true;
     }
 
@@ -1689,9 +1692,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!this.ResolveStringExpression(headContext, eStr))
             return false;
 
-        var str = rssb.Builder.ToReadOnlySeString();
-
-        foreach (var p in str)
+        foreach (var p in rssb.Builder.ToReadOnlySeString())
         {
             if (p.Type == ReadOnlySePayloadType.Invalid)
                 continue;
@@ -1765,7 +1766,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 Quantity = eAmountVal,
                 ArticleType = eArticleTypeVal,
                 GrammaticalCase = eCaseVal - 1,
-                IsActionSheet = flags.HasFlag(SheetRedirectFlags.Action),
+                IsActionSheet = (flags & SheetRedirectFlags.Action) != 0,
             }));
 
         return true;
