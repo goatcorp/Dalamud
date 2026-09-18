@@ -34,6 +34,11 @@ public interface IUnlockState : IDalamudService
     bool IsTitleListLoaded { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the full XBMPet list was received.
+    /// </summary>
+    bool IsXBMPetListLoaded { get; }
+
+    /// <summary>
     /// Determines whether the specified Achievement is completed.<br/>
     /// Requires that the player requested the Achievements list (can be chcked with <see cref="IsAchievementListLoaded"/>).
     /// </summary>
@@ -394,4 +399,11 @@ public interface IUnlockState : IDalamudService
     /// <param name="unlockLink">The unlock link id.</param>
     /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
     bool IsUnlockLinkUnlocked(ushort unlockLink);
+
+    /// <summary>
+    /// Determines whether the specified XBMPet is unlocked.
+    /// </summary>
+    /// <param name="row">The XBMPet row to check.</param>
+    /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
+    bool IsXBMPetUnlocked(XBMPet row);
 }

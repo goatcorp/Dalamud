@@ -241,6 +241,9 @@ public abstract partial class Payload
     /// <summary>
     /// This represents the type of embedded info in a payload.
     /// </summary>
+    /// <remarks>
+    /// This is a mirror of <see cref="Lumina.Text.Payloads.LinkMacroPayloadType"/>, offset by +1, and including <c>DalamudLink</c>.
+    /// </remarks>
     public enum EmbeddedInfoType
     {
         /// <summary>
@@ -279,9 +282,39 @@ public abstract partial class Payload
         PartyFinderLink = 0x0A,
 
         /// <summary>
+        /// An AkatsukiNote entry is linked.
+        /// </summary>
+        AkatsukiNote = 0x0B,
+
+        /// <summary>
+        /// A Description entry is linked.
+        /// </summary>
+        Description = 0x0C,
+
+        /// <summary>
+        /// A WKSPioneeringTrail entry is linked.
+        /// </summary>
+        WKSPioneeringTrail = 0x0D,
+
+        /// <summary>
+        /// A MKDLore entry is linked.
+        /// </summary>
+        MKDLore = 0x0E,
+
+        /// <summary>
+        /// A EventTutorial entry is linked.
+        /// </summary>
+        EventTutorial = 0x0F,
+
+        /// <summary>
+        /// A Emote entry is linked.
+        /// </summary>
+        Emote = 0x10,
+
+        /// <summary>
         /// A custom Dalamud link.
         /// </summary>
-        DalamudLink = 0x0F,
+        DalamudLink = LinkTerminator - 1,
 
         /// <summary>
         /// A link terminator.

@@ -789,28 +789,28 @@ internal class DalamudInterface : IInternalDisposableService
             }
 
             ImGui.End();
-        }
 
-        if (EnvironmentConfiguration.DalamudUseSafetyHook || Util.IsAppContainer())
-        {
-            ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
-            ImGui.SetNextWindowBgAlpha(1);
-
-            if (ImGui.Begin(
-                    "Disclaimer"u8,
-                    ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground |
-                    ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove |
-                    ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMouseInputs |
-                    ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
+            if (EnvironmentConfiguration.DalamudUseSafetyHook || Util.IsAppContainer())
             {
-                if (EnvironmentConfiguration.DalamudUseSafetyHook)
-                    ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "sh!"u8);
+                ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
+                ImGui.SetNextWindowBgAlpha(1);
 
-                if (Util.IsAppContainer())
-                    ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "ac!"u8);
+                if (ImGui.Begin(
+                        "Disclaimer"u8,
+                        ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground |
+                        ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove |
+                        ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMouseInputs |
+                        ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
+                {
+                    if (EnvironmentConfiguration.DalamudUseSafetyHook)
+                        ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "sh!"u8);
+
+                    if (Util.IsAppContainer())
+                        ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "ac!"u8);
+                }
+
+                ImGui.End();
             }
-
-            ImGui.End();
         }
     }
 

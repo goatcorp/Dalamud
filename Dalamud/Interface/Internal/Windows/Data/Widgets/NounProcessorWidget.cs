@@ -50,6 +50,7 @@ internal class NounProcessorWidget : IDataWindowWidget
         typeof(Mount),
         typeof(Ornament),
         typeof(TripleTriadCard),
+        typeof(XBMItem),
     ];
 
     private ClientLanguage[] languages = [];

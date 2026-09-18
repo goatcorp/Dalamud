@@ -1,14 +1,13 @@
 using System.Numerics;
 
-using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.GamePad;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
-/// Exposes the game gamepad state to dalamud.
+/// Exposes the game gamepad state to Dalamud.
 ///
-/// Will block game's gamepad input if <see cref="ImGuiConfigFlags.NavEnableGamepad"/> is set.
+/// Will block game's gamepad input if <see cref="EnableGamepadNav"/> is set.
 /// </summary>
 public interface IGamepadState : IDalamudService
 {
@@ -16,6 +15,12 @@ public interface IGamepadState : IDalamudService
     /// Gets the pointer to the current instance of the GamepadInput struct.
     /// </summary>
     nint GamepadInputAddress { get; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether gamepad input is intercepted for ImGui navigation, 
+    /// preventing it from passing through to the game.
+    /// </summary>
+    public bool EnableGamepadNav { get; set; }
 
     /// <summary>
     /// Gets the left analogue sticks tilt vector.
