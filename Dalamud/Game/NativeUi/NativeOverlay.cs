@@ -3,8 +3,10 @@ using System.Linq;
 
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.NativeUi.BaseTypes.Addon;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -27,9 +29,14 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
     private readonly AddonLifecycleEventListener? addonNameplateSetupListener;
     private readonly AddonLifecycleEventListener? addonNameplateFinalizeListener;
 
+    private readonly Hook<AtkUnitBase.Delegates.FireCallback>? fireCallbackHook;
+
     [ServiceManager.ServiceConstructor]
     private NativeOverlay()
     {
+        this.fireCallbackHook = Hook<AtkUnitBase.Delegates.FireCallback>.FromAddress(AtkUnitBase.Addresses.FireCallback.Value, this.OnFireCallback);
+        this.fireCallbackHook.Enable();
+
         this.addonNameplateSetupListener = new AddonLifecycleEventListener(AddonEvent.PostSetup, "NamePlate", this.OnNameplateSetup);
         this.addonNameplateFinalizeListener = new AddonLifecycleEventListener(AddonEvent.PreFinalize, "NamePlate", this.OnNameplateFinalize);
 
@@ -50,6 +57,8 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        this.fireCallbackHook?.Dispose();
+
         this.addonLifecycle.UnregisterListener(this.addonNameplateSetupListener);
         this.addonLifecycle.UnregisterListener(this.addonNameplateFinalizeListener);
 
@@ -127,6 +136,31 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
                 this.overlayAddons.Add(index, newAddon);
             }
         }
+    }
+
+    // This hook is invoked when the user presses ESC with no windows focused, normally this would cause any open AtkUnitBase's to be closed
+    // But this doesn't get forwarded to custom addons, so we have to do it here. Devs can set disable RespectCloseAll to disable this behavior,
+    // However this should generally be discouraged, unless the dev has a good reason to ignore the standard close behavior.
+    private bool OnFireCallback(AtkUnitBase* thisPtr, uint valueCount, AtkValue* values, bool close)
+    {
+        try
+        {
+            foreach (var addon in NativeAddon.CreatedAddons)
+            {
+                if (addon == thisPtr && close && addon is { RespectCloseAll: true, IsOverlayAddon: false })
+                {
+                    addon.Close();
+                    return true;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            System.Console.WriteLine(e);
+            throw;
+        }
+
+        return this.fireCallbackHook!.Original(thisPtr, valueCount, values, close);
     }
 }
 

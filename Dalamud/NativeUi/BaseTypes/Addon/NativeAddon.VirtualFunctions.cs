@@ -5,6 +5,7 @@ using Dalamud.NativeUi.Classes;
 using Dalamud.NativeUi.Enums;
 using Dalamud.NativeUi.Extensions;
 using Dalamud.NativeUi.Timelines;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -14,6 +15,7 @@ namespace Dalamud.NativeUi.BaseTypes.Addon;
 /// <summary>
 /// .
 /// </summary>
+[Api16ToDo("Remove extra argument in Free calls.")]
 internal unsafe partial class NativeAddon
 {
     private bool isSetup;
@@ -149,7 +151,7 @@ internal unsafe partial class NativeAddon
         this.InternalAddon->UpdateCollisionNodeList(false);
 
         // Now that we have constructed this instance, track it for auto-dispose
-        this.CreatedAddons.Add(this);
+        CreatedAddons.Add(this);
     }
 
     private void Setup(AtkUnitBase* addon, uint valueCount, AtkValue* values)
@@ -283,9 +285,11 @@ internal unsafe partial class NativeAddon
         if ((flags & 1) == 1)
         {
             this.InternalAddon = null;
+
             this.disposeHandle?.Dispose();
             this.disposeHandle = null;
-            this.CreatedAddons.Remove(this);
+
+            CreatedAddons.Remove(this);
 
             // Free our custom virtual table, the game doesn't know this exists and won't clear it on its own.
             // Note: Free doesn't actually have a size argument. Pending update in CS on next API break.

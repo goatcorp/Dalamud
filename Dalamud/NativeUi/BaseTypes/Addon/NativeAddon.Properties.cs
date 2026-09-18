@@ -110,6 +110,11 @@ internal unsafe partial class NativeAddon
     public bool OpenInBounds { get; init; } = true;
 
     /// <summary>
+    /// Gets the list of all created addons.
+    /// </summary>
+    internal static List<NativeAddon> CreatedAddons { get; } = [];
+
+    /// <summary>
     /// Gets or sets the location the window was last closed in.
     /// </summary>
     internal Vector2 LastClosePosition { get; set; } = Vector2.Zero;
@@ -118,11 +123,6 @@ internal unsafe partial class NativeAddon
     /// Gets a value indicating whether this addon is intended to be used as an overlay addon.
     /// </summary>
     internal bool IsOverlayAddon { get; init; }
-
-    /// <summary>
-    /// Gets the list of all created addons.
-    /// </summary>
-    internal List<NativeAddon> CreatedAddons { get; } = [];
 
     /// <summary>
     /// Gets the logger for Native Addons.
