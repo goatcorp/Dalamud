@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.NativeUi.Classes;
 using Dalamud.NativeUi.Nodes;
 
@@ -118,32 +119,35 @@ internal unsafe partial class NativeAddon
 
         this.InternalAddon->ShowSoundEffectId = (short)this.OpenWindowSoundEffectId;
 
-        // var addonConfig = this.LoadAddonConfig();
-        // if (addonConfig.Position != Vector2.Zero && this.RememberClosePosition)
-        // {
-        //     var clampedPosition = this.GetScreenClampedPosition(addonConfig.Position);
-        //     this.InternalAddon->SetPosition((short)clampedPosition.X, (short)clampedPosition.Y);
-        // }
-        // else
-        // {
-        var screenSize = new Vector2(AtkStage.Instance()->ScreenSize.Width, AtkStage.Instance()->ScreenSize.Height);
-        var defaultPosition = (screenSize / 2.0f) - (this.Size / 2.0f);
-        this.InternalAddon->SetPosition((short)defaultPosition.X, (short)defaultPosition.Y);
-        // }
+        var dalamudConfig = Service<DalamudConfiguration>.Get();
 
-        // if (addonConfig.Scale is not 1.0f)
-        // {
-        //     var newScale = Math.Clamp(addonConfig.Scale, 0.25f, 6.0f);
-        //
-        //     this.InternalAddon->SetScale(newScale, true);
-        // }
+        var hasConfigEntry = dalamudConfig.AddonConfigEntries.TryGetValue(this.InternalName, out var configEntry);
+        Vector2 openPosition;
+
+        if (hasConfigEntry && configEntry.Position != Vector2.Zero && this.RememberClosePosition)
+        {
+            openPosition = configEntry.Position;
+        }
+        else
+        {
+            var stage = AtkStage.Instance();
+            var screenSize = new Vector2(stage->ScreenSize.Width, stage->ScreenSize.Height);
+            openPosition = (screenSize - this.Size) / 2.0f;
+        }
+
+        this.InternalAddon->SetPosition((short)openPosition.X, (short)openPosition.Y);
+
+        if (hasConfigEntry && configEntry.Scale is not 1.0f)
+        {
+            this.InternalAddon->SetScale(Math.Clamp(configEntry.Scale, 0.25f, 6.0f), true);
+        }
 
         this.SetWindowSize(this.Size);
 
-        // if (this.LastClosePosition != Vector2.Zero && this.RememberClosePosition)
-        // {
-        //     var clampedPosition = this.GetScreenClampedPosition(this.LastClosePosition);
-        //     this.InternalAddon->SetPosition((short)clampedPosition.X, (short)clampedPosition.Y);
-        // }
+        if (this.LastClosePosition != Vector2.Zero && this.RememberClosePosition)
+        {
+            var clampedPosition = this.GetScreenClampedPosition(this.LastClosePosition);
+            InternalAddon->SetPosition((short)clampedPosition.X, (short)clampedPosition.Y);
+        }
     }
 }

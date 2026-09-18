@@ -99,16 +99,20 @@ internal unsafe partial class NativeAddon
     public int AddonId
         => this.InternalAddon is null ? 0 : this.InternalAddon->Id;
 
-    // Omitted for now, need a way to save and load addon position in a dalamud-y way.
-    // /// <summary>
-    // /// Gets or sets a value indicating whether this addon should remove its close position.
-    // /// </summary>
-    // public bool RememberClosePosition { get; set; } = true;
+    /// <summary>
+    /// Gets or sets a value indicating whether this addon should remove its close position.
+    /// </summary>
+    public bool RememberClosePosition { get; set; } = true;
 
     /// <summary>
     /// Gets a value indicating whether this addon should be forced into the viewable area when opening.
     /// </summary>
     public bool OpenInBounds { get; init; } = true;
+
+    /// <summary>
+    /// Gets or sets the location the window was last closed in.
+    /// </summary>
+    internal Vector2 LastClosePosition { get; set; } = Vector2.Zero;
 
     /// <summary>
     /// Gets a value indicating whether this addon is intended to be used as an overlay addon.

@@ -1,4 +1,8 @@
-﻿using Dalamud.NativeUi.Enums;
+﻿using System.Numerics;
+
+using Dalamud.Configuration.Internal;
+using Dalamud.NativeUi.Classes;
+using Dalamud.NativeUi.Enums;
 using Dalamud.NativeUi.Extensions;
 using Dalamud.NativeUi.Timelines;
 
@@ -227,14 +231,21 @@ internal unsafe partial class NativeAddon
         try
         {
             this.OnHide(addon);
+
+            var dalamudConfig = Service<DalamudConfiguration>.Get();
+
+            dalamudConfig.AddonConfigEntries[this.InternalName] = new AddonConfig
+            {
+                Position = new Vector2(this.InternalAddon->X, this.InternalAddon->Y),
+                Scale = this.InternalAddon->Scale / AtkUnitBase.GetGlobalUIScale(),
+            };
+
+            dalamudConfig.QueueSave();
         }
         catch (Exception e)
         {
             this.Log.Error(e, "Exception in NativeAddon.Hide");
         }
-
-        // todo: dalamud-y way to save and load addon size/position.
-        // this.SaveAddonConfig();
 
         this.originalVirtualTable->Hide(addon, unkBool, callHideCallback, setShowHideFlags);
         this.originalVirtualTable->Close(addon, false);
@@ -256,11 +267,10 @@ internal unsafe partial class NativeAddon
             this.Log.Error(e, "Exception in NativeAddon.Finalizer");
         }
 
-        // Omitted for now.
-        // if (this.RememberClosePosition)
-        // {
-        //     this.LastClosePosition = new Vector2(this.InternalAddon->X, this.InternalAddon->Y);
-        // }
+        if (this.RememberClosePosition)
+        {
+            this.LastClosePosition = new Vector2(this.InternalAddon->X, this.InternalAddon->Y);
+        }
 
         this.originalVirtualTable->Finalizer(addon);
         this.isSetup = false;
