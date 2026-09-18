@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using System.Runtime.InteropServices;
 
-using Dalamud.Game;
 using Dalamud.Logging.Internal;
 using Dalamud.NativeUi.Extensions;
 using Dalamud.Utility;
@@ -109,11 +108,6 @@ internal abstract unsafe partial class NodeBase : IDisposable
                 return;
             }
 
-            if (Service<Framework>.Get().IsFrameworkUnloading)
-            {
-                return;
-            }
-
             if (!ThreadSafety.IsMainThread)
             {
                 return;
@@ -121,6 +115,7 @@ internal abstract unsafe partial class NodeBase : IDisposable
 
             foreach (var child in this.ChildNodes.ToList())
             {
+                child.suppressAddonUpdate = true;
                 child.Dispose();
             }
 

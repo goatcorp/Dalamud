@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 using Dalamud.NativeUi.BaseTypes.Addon;
@@ -6,7 +7,6 @@ using Dalamud.NativeUi.BaseTypes.Component;
 using Dalamud.NativeUi.Classes;
 using Dalamud.NativeUi.Enums;
 using Dalamud.NativeUi.Extensions;
-using Dalamud.NativeUi.Nodes;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -19,6 +19,7 @@ namespace Dalamud.NativeUi.BaseTypes.Node;
 internal abstract unsafe partial class NodeBase
 {
     private NodeBase? parentNode;
+    private bool suppressAddonUpdate;
 
     /// <summary>
     /// Gets the list of the nodes managed children nodes.
@@ -106,7 +107,10 @@ internal abstract unsafe partial class NodeBase
     public void DetachNode()
     {
         ThreadSafety.AssertMainThread();
-        if (this.ResNode is null) return;
+        if (this.ResNode is null)
+        {
+            return;
+        }
 
         this.UnlinkFromNative();
         this.RemoveUldManagerObjectReferences();
@@ -123,7 +127,10 @@ internal abstract unsafe partial class NodeBase
     /// <returns>Enumerable containing all child nodes.</returns>
     internal static IEnumerable<NodeBase> GetLocalChildren(NodeBase parent)
     {
-        if (parent is ComponentNode) yield break;
+        if (parent is ComponentNode)
+        {
+            yield break;
+        }
 
         foreach (var child in parent.ChildNodes)
         {
@@ -142,6 +149,7 @@ internal abstract unsafe partial class NodeBase
         foreach (var child in parent.ChildNodes)
         {
             yield return child;
+
             foreach (var childNode in GetAllChildren(child))
             {
                 yield return childNode;
@@ -152,7 +160,11 @@ internal abstract unsafe partial class NodeBase
     private void PerformManagedAttach(NativeAddon? targetAddon, NodePosition targetPosition = NodePosition.AsLastChild)
     {
         ThreadSafety.AssertMainThread();
-        if (targetAddon is null) return;
+
+        if (targetAddon is null)
+        {
+            return;
+        }
 
         this.PerformNativeAttach(targetAddon.RootNode, targetPosition);
 
@@ -169,7 +181,29 @@ internal abstract unsafe partial class NodeBase
         }
 
         ThreadSafety.AssertMainThread();
-        if (targetNode is null) return;
+
+        if (targetNode is null)
+        {
+            return;
+        }
+
+        // Guard against double-attach, double attaching will deadlock the game.
+        var childNodeList = targetPosition switch
+        {
+            NodePosition.AsFirstChild or NodePosition.AsLastChild
+                => targetNode.ChildNodes,
+
+            NodePosition.BeforeAllSiblings or NodePosition.AfterAllSiblings or NodePosition.BeforeTarget or NodePosition.AfterTarget
+                => targetNode.parentNode?.ChildNodes,
+
+            _ => null,
+        };
+
+        if (childNodeList?.Any(childNode => childNode == this) ?? false)
+        {
+            this.Log.Warning("Attempted to double-attach node to parent, attach was aborted.");
+            return;
+        }
 
         this.PerformNativeAttach(targetNode, targetPosition);
 
@@ -186,7 +220,11 @@ internal abstract unsafe partial class NodeBase
         }
 
         ThreadSafety.AssertMainThread();
-        if (targetNode is null) return;
+
+        if (targetNode is null)
+        {
+            return;
+        }
 
         if (targetNode->GetNodeType() is NodeType.Component)
         {
@@ -231,14 +269,10 @@ internal abstract unsafe partial class NodeBase
 
     private void RemoveUldManagerObjectReferences()
     {
-        // If UldManager is null, try again to get the UldManager.
         if (this.ParentUldManager is null)
         {
-            this.ParentUldManager = this.GetUldManagerForNode(this);
+            return;
         }
-
-        // If we still can't get it, it doesn't exist.
-        if (this.ParentUldManager is null) return;
 
         // Remove this node and all children from the UldManager's Objects List
         ParentUldManager->RemoveNodeFromObjectList(this);
@@ -247,26 +281,16 @@ internal abstract unsafe partial class NodeBase
 
     private void RemoveParentAddonReferences()
     {
-        // If ParentAddon is null, try again to get it from RaptureAtkUnitManager
         if (this.ParentAddon is null)
         {
-            this.ParentAddon = RaptureAtkUnitManager.Instance()->GetAddonByNode(this);
-        }
-
-        // If it's still null, then it doesn't exist.
-        if (this.ParentAddon is null)
-        {
-            // Ensure the children also know that they have no parents.
-            foreach (var child in GetAllChildren(this))
-            {
-                child.ParentAddon = null;
-            }
-
             return;
         }
 
-        ParentAddon->UldManager.UpdateDrawNodeList();
-        ParentAddon->UpdateCollisionNodeList(false);
+        if (!this.suppressAddonUpdate)
+        {
+            this.ParentAddon->UldManager.UpdateDrawNodeList();
+            this.ParentAddon->UpdateCollisionNodeList(false);
+        }
 
         this.ParentAddon = null;
 
@@ -278,7 +302,10 @@ internal abstract unsafe partial class NodeBase
 
     private void RemoveParentNodeReferences()
     {
-        if (this.parentNode is null) return;
+        if (this.parentNode is null)
+        {
+            return;
+        }
 
         this.parentNode.ChildNodes.Remove(this);
         this.parentNode = null;
@@ -286,7 +313,10 @@ internal abstract unsafe partial class NodeBase
 
     private void UpdateNative()
     {
-        if (this.ResNode is null) return;
+        if (this.ResNode is null)
+        {
+            return;
+        }
 
         // Set this node and all children to dirty to have the
         // game recalc their visible location.
@@ -304,11 +334,6 @@ internal abstract unsafe partial class NodeBase
             foreach (var child in GetAllChildren(this))
             {
                 child.ParentUldManager = this.ParentUldManager;
-            }
-
-            if (this is TextNode { TextId: not 0 })
-            {
-                ParentUldManager->SetupText();
             }
         }
 
@@ -345,7 +370,10 @@ internal abstract unsafe partial class NodeBase
 
     private AtkUldManager* GetUldManagerForNode(AtkResNode* node)
     {
-        if (node is null) return null;
+        if (node is null)
+        {
+            return null;
+        }
 
         var targetNode = node;
 
