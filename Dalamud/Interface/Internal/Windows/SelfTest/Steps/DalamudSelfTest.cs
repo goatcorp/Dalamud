@@ -1,6 +1,5 @@
+using Dalamud.Excel.Sheets;
 using Dalamud.Plugin.SelfTest.Internal;
-
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -34,7 +33,7 @@ internal class DalamudSelfTest : IServiceType
             new HoverSelfTestStep(),
             new LuminaSelfTestStep<Item>(true),
             new LuminaSelfTestStep<Level>(true),
-            new LuminaSelfTestStep<Lumina.Excel.Sheets.Action>(true),
+            new LuminaSelfTestStep<global::Dalamud.Excel.Sheets.Action>(true),
             new LuminaSelfTestStep<Quest>(true),
             new LuminaSelfTestStep<TerritoryType>(false),
             new AgentLifecycleSelfTestStep(),

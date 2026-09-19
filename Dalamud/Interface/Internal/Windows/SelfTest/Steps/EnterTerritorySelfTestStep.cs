@@ -1,9 +1,9 @@
 using Dalamud.Bindings.ImGui;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState;
 using Dalamud.Plugin.SelfTest;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 

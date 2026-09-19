@@ -4,6 +4,7 @@ using System.Text;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Text;
@@ -11,7 +12,6 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.SelfTest;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 using Serilog;
 
@@ -224,7 +224,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                     b.Append("Unknown");
                 b.AppendLine($" ({character.Location.RowId})");
 
-                b.AppendLine($"Grand Company: {character.GrandCompany.ValueNullable?.Name.ExtractText() ?? "Unknown"} ({character.GrandCompany.RowId})");
+                b.AppendLine($"Grand Company: {character.GrandCompany.ValueNullable?.Singular.ExtractText() ?? "Unknown"} ({character.GrandCompany.RowId})");
                 b.AppendLine($"Client Language: {character.ClientLanguage}");
                 b.AppendLine($"Languages: {string.Join(", ", character.Languages)}");
                 b.AppendLine($"Gender: {character.Gender}");

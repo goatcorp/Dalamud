@@ -1,9 +1,8 @@
 using Dalamud.Common;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.Text.Noun.Enums;
 
 using Lumina.Text.ReadOnly;
-
-using LSheets = Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Text.Noun;
 
@@ -62,13 +61,13 @@ internal record struct NounParams()
     public readonly int ColumnOffset => this.SheetName switch
     {
         // See "E8 ?? ?? ?? ?? 44 8B 63 ?? 8B F0"
-        nameof(LSheets.BeastTribe) => 11,
-        nameof(LSheets.DeepDungeonItem) => 1,
-        nameof(LSheets.DeepDungeonEquipment) => 1,
-        nameof(LSheets.DeepDungeonMagicStone) => 1,
-        nameof(LSheets.DeepDungeonDemiclone) => 1,
-        nameof(LSheets.Glasses) => 4,
-        nameof(LSheets.GlassesStyle) => 15,
+        nameof(BeastTribe) => 11,
+        nameof(DeepDungeonItem) => 1,
+        nameof(DeepDungeonEquipment) => 1,
+        nameof(DeepDungeonMagicStone) => 1,
+        nameof(DeepDungeonDemiclone) => 1,
+        nameof(Glasses) => 4,
+        nameof(GlassesStyle) => 15,
         _ => 0,
     };
 }

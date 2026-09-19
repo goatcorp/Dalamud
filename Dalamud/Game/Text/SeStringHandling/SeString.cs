@@ -6,11 +6,10 @@ using System.Text;
 
 using Dalamud.Common;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Utility;
-
-using Lumina.Excel.Sheets;
 
 using Newtonsoft.Json;
 

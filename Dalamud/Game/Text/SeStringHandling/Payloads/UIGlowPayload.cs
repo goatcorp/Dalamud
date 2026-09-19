@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 using Newtonsoft.Json;
 
@@ -12,7 +12,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 
 /// <summary>
 /// An SeString Payload that allows text to have a specific edge glow. The color selected will be determined by the
-/// <see cref="Lumina.Excel.Sheets.UIColor.Light"/> theme's coloring, regardless of the active theme.
+/// <see cref="UIColor.Light"/> theme's coloring, regardless of the active theme.
 /// </summary>
 public class UIGlowPayload : Payload
 {

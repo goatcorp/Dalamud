@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.Text.SeStringHandling;
 
 using FFXIVClientStructs.FFXIV.Client.Game.Network;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Gui.PartyFinder.Types;
 
