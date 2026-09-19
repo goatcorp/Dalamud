@@ -132,7 +132,24 @@
         <ProjectReference Include="..\imgui\ImGuiScene\ImGuiScene.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
-        <ProjectReference Include="..\lib\Lumina.Excel\src\Lumina.Excel\Lumina.Excel.csproj" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <SchemaPath>$(MSBuildProjectDirectory)\..\lib\EXDSchema</SchemaPath>
+        <GeneratedNamespace>Dalamud.Excel.Sheets</GeneratedNamespace>
+        <UseUsings>true</UseUsings>
+        <UseFileScopedNamespace>true</UseFileScopedNamespace>
+        <UseSchemaAttribute>false</UseSchemaAttribute>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include="SchemaPath" />
+        <CompilerVisibleProperty Include="ExperimentalSchemaPath" />
+        <CompilerVisibleProperty Include="GeneratedNamespace" />
+        <CompilerVisibleProperty Include="UseUsings" />
+        <CompilerVisibleProperty Include="UseFileScopedNamespace" />
+        <CompilerVisibleProperty Include="UseSchemaAttribute" />
+        <ProjectReference Include="..\lib\Lumina.Excel\src\Lumina.Excel.Generator\Lumina.Excel.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" IncludeAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
