@@ -16,15 +16,13 @@ using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.NativeUi.Classes;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Storage;
 using Dalamud.Utility;
-
 using Newtonsoft.Json;
-
 using Serilog.Events;
-
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Dalamud.Configuration.Internal;
@@ -538,6 +536,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether badges should be shown on the title screen.
     /// </summary>
     public bool ShowBadgesOnTitleScreen { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets addon config entries, used to determine where a custom native window will open at.
+    /// </summary>
+    public Dictionary<string, AddonConfig> AddonConfigEntries { get; set; } = [];
 
     /// <summary>
     /// Load a configuration from the provided path.
