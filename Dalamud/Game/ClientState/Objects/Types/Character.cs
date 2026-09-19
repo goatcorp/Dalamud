@@ -1,9 +1,9 @@
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Customize;
 using Dalamud.Game.ClientState.Objects.Enums;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
 

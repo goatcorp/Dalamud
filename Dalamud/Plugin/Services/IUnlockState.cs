@@ -1,7 +1,8 @@
-using Dalamud.Utility;
+using Dalamud.Excel.Sheets;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
+
+using ActionSheet = Dalamud.Excel.Sheets.Action;
 
 namespace Dalamud.Plugin.Services;
 
@@ -46,7 +47,7 @@ public interface IUnlockState : IDalamudService
     /// </summary>
     /// <param name="row">The Action row to check.</param>
     /// <returns><see langword="true"/> if unlocked; otherwise, <see langword="false"/>.</returns>
-    bool IsActionUnlocked(Lumina.Excel.Sheets.Action row);
+    bool IsActionUnlocked(ActionSheet row);
 
     /// <summary>
     /// Determines whether the specified Adventure is completed.

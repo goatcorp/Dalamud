@@ -3,13 +3,13 @@ using System.Linq;
 using CommunityToolkit.HighPerformance;
 
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.Gui;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.UnlockState;
 
