@@ -16,18 +16,14 @@ using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.NativeUi.Classes;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Storage;
 using Dalamud.Utility;
-
 using Newtonsoft.Json;
-
 using Serilog.Events;
-
 using Windows.Win32.UI.WindowsAndMessaging;
-
-using Dalamud.NativeUi.Classes;
 
 namespace Dalamud.Configuration.Internal;
 
