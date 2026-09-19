@@ -7,6 +7,9 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Lumina.Excel;
 
 using CSBuddyMember = FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember;
+using DawnGrowMemberSheet = Dalamud.Excel.Sheets.DawnGrowMember;
+using MountSheet = Dalamud.Excel.Sheets.Mount;
+using PetSheet = Dalamud.Excel.Sheets.Pet;
 
 namespace Dalamud.Game.ClientState.Buddy;
 
@@ -57,17 +60,17 @@ public interface IBuddyMember : IEquatable<IBuddyMember>
     /// <summary>
     /// Gets the Mount data related to this buddy. It should only be used with companion buddies.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.Mount> MountData { get; }
+    RowRef<MountSheet> MountData { get; }
 
     /// <summary>
     /// Gets the Pet data related to this buddy. It should only be used with pet buddies.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.Pet> PetData { get; }
+    RowRef<PetSheet> PetData { get; }
 
     /// <summary>
     /// Gets the Trust data related to this buddy. It should only be used with battle buddies.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.DawnGrowMember> TrustData { get; }
+    RowRef<DawnGrowMemberSheet> TrustData { get; }
 }
 
 /// <summary>
@@ -101,13 +104,13 @@ internal readonly unsafe struct BuddyMember(CSBuddyMember* ptr) : IBuddyMember
     public uint DataID => ptr->DataId;
 
     /// <inheritdoc />
-    public RowRef<Lumina.Excel.Sheets.Mount> MountData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Mount>(this.DataID);
+    public RowRef<MountSheet> MountData => LuminaUtils.CreateRef<MountSheet>(this.DataID);
 
     /// <inheritdoc />
-    public RowRef<Lumina.Excel.Sheets.Pet> PetData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Pet>(this.DataID);
+    public RowRef<PetSheet> PetData => LuminaUtils.CreateRef<PetSheet>(this.DataID);
 
     /// <inheritdoc />
-    public RowRef<Lumina.Excel.Sheets.DawnGrowMember> TrustData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.DawnGrowMember>(this.DataID);
+    public RowRef<DawnGrowMemberSheet> TrustData => LuminaUtils.CreateRef<DawnGrowMemberSheet>(this.DataID);
 
     public static bool operator ==(BuddyMember x, BuddyMember y) => x.Equals(y);
 

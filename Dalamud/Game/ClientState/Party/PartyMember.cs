@@ -9,7 +9,10 @@ using Dalamud.Game.Text.SeStringHandling;
 
 using Lumina.Excel;
 
+using ClassJobSheet = Dalamud.Excel.Sheets.ClassJob;
 using CSPartyMember = FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember;
+using TerritoryTypeSheet = Dalamud.Excel.Sheets.TerritoryType;
+using WorldSheet = Dalamud.Excel.Sheets.World;
 
 namespace Dalamud.Game.ClientState.Party;
 
@@ -80,12 +83,12 @@ public interface IPartyMember : IEquatable<IPartyMember>
     /// <summary>
     /// Gets the territory this party member is located in.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.TerritoryType> Territory { get; }
+    RowRef<TerritoryTypeSheet> Territory { get; }
 
     /// <summary>
     /// Gets the World this party member resides in.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.World> World { get; }
+    RowRef<WorldSheet> World { get; }
 
     /// <summary>
     /// Gets the displayname of this party member.
@@ -100,7 +103,7 @@ public interface IPartyMember : IEquatable<IPartyMember>
     /// <summary>
     /// Gets the classjob of this party member.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.ClassJob> ClassJob { get; }
+    RowRef<ClassJobSheet> ClassJob { get; }
 
     /// <summary>
     /// Gets the level of this party member.
@@ -148,10 +151,10 @@ internal readonly unsafe struct PartyMember(CSPartyMember* ptr) : IPartyMember
     public ushort MaxMP => ptr->MaxMP;
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.TerritoryType> Territory => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(ptr->TerritoryType);
+    public RowRef<TerritoryTypeSheet> Territory => LuminaUtils.CreateRef<TerritoryTypeSheet>(ptr->TerritoryType);
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.World> World => LuminaUtils.CreateRef<Lumina.Excel.Sheets.World>(ptr->HomeWorld);
+    public RowRef<WorldSheet> World => LuminaUtils.CreateRef<WorldSheet>(ptr->HomeWorld);
 
     /// <inheritdoc/>
     public SeString Name => SeString.Parse(ptr->Name);
@@ -160,7 +163,7 @@ internal readonly unsafe struct PartyMember(CSPartyMember* ptr) : IPartyMember
     public byte Sex => ptr->Sex;
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.ClassJob> ClassJob => LuminaUtils.CreateRef<Lumina.Excel.Sheets.ClassJob>(ptr->ClassJob);
+    public RowRef<ClassJobSheet> ClassJob => LuminaUtils.CreateRef<ClassJobSheet>(ptr->ClassJob);
 
     /// <inheritdoc/>
     public byte Level => ptr->Level;

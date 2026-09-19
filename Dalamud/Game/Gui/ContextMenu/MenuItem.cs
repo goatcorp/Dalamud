@@ -1,7 +1,6 @@
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Gui.ContextMenu;
 

@@ -1,11 +1,12 @@
 using System.Buffers.Binary;
 using System.Collections.Generic;
 
+using Dalamud.Excel.Sheets;
+
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
@@ -45,8 +46,8 @@ internal sealed class SeStringColorStackSet
             this.ColorTypes[row.RowId, 3] = row.ClearBlue;
             this.ColorTypes[row.RowId, 5] = row.ClearWhite;
             this.ColorTypes[row.RowId, 6] = row.ClearGreen;
-            this.ColorTypes[row.RowId, 7] = row.Unknown2; // ClearGrey
-            this.ColorTypes[row.RowId, 8] = row.Unknown3; // ClearPink
+            this.ColorTypes[row.RowId, 7] = row.ClearGrey;
+            this.ColorTypes[row.RowId, 8] = row.ClearPink;
         }
 
         if (BitConverter.IsLittleEndian)

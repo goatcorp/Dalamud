@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Utility;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 using Newtonsoft.Json;
 

@@ -3,9 +3,9 @@ using System.IO;
 
 using Dalamud.Common;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 using Newtonsoft.Json;
 

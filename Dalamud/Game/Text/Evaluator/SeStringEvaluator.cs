@@ -7,6 +7,7 @@ using System.Text;
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Config;
 using Dalamud.Game.Player;
@@ -29,16 +30,15 @@ using FFXIVClientStructs.Interop;
 
 using Lumina.Data.Structs.Excel;
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 using Lumina.Text;
 using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
-using AddonSheet = Lumina.Excel.Sheets.Addon;
+using AddonSheet = Dalamud.Excel.Sheets.Addon;
 using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
-using StatusSheet = Lumina.Excel.Sheets.Status;
+using StatusSheet = Dalamud.Excel.Sheets.Status;
 
 namespace Dalamud.Game.Text.Evaluator;
 
