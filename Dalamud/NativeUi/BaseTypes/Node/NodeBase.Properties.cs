@@ -11,9 +11,6 @@ using Vector4 = System.Numerics.Vector4;
 
 namespace Dalamud.NativeUi.BaseTypes.Node;
 
-/// <summary>
-/// .
-/// </summary>
 internal abstract unsafe partial class NodeBase
 {
     private bool? lastIsVisible;

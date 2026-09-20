@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Dalamud.Logging.Internal;
 using Dalamud.NativeUi.BaseTypes.Node;
 using Dalamud.NativeUi.Nodes;
@@ -7,8 +9,9 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 namespace Dalamud.NativeUi.BaseTypes.Component;
 
 /// <summary>
-/// Abstract implementation of the base class for all component nodes use in KamiToolKit.
+/// Abstract implementation of the base class for all component nodes used for native ui component nodes.
 /// </summary>
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1601:Partial elements should be documented", Justification = "Suppress warning on partials, as documentation duplicates on tooltip.")]
 internal abstract unsafe partial class ComponentNode(NodeType nodeType) : NodeBase<AtkComponentNode>(nodeType)
 {
     /// <summary>

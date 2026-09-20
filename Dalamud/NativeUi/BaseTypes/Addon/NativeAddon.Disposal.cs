@@ -2,9 +2,6 @@
 
 namespace Dalamud.NativeUi.BaseTypes.Addon;
 
-/// <summary>
-/// .
-/// </summary>
 internal partial class NativeAddon : IDisposable, IAsyncDisposable
 {
     private bool isDisposed;

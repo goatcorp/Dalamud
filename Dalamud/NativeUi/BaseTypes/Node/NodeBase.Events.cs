@@ -9,9 +9,6 @@ using EventHandlerInfo = Dalamud.NativeUi.Classes.EventHandlerInfo;
 
 namespace Dalamud.NativeUi.BaseTypes.Node;
 
-/// <summary>
-/// .
-/// </summary>
 internal abstract unsafe partial class NodeBase
 {
     private readonly Dictionary<AtkEventType, EventHandlerInfo> eventHandlers = [];

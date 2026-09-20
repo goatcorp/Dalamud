@@ -3,9 +3,6 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.NativeUi.BaseTypes.Component;
 
-/// <summary>
-/// .
-/// </summary>
 internal abstract unsafe partial class ComponentNode
 {
     /// <summary>

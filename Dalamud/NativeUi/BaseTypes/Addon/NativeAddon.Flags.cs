@@ -2,9 +2,6 @@
 
 namespace Dalamud.NativeUi.BaseTypes.Addon;
 
-/// <summary>
-/// .
-/// </summary>
 internal unsafe partial class NativeAddon
 {
     /// <summary>

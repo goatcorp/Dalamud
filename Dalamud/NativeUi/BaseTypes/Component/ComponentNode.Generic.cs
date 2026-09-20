@@ -7,7 +7,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 namespace Dalamud.NativeUi.BaseTypes.Component;
 
 /// <summary>
-/// Generic Implementation of the games ComponentNode as a base class for use in KTK.
+/// Generic Implementation of the games ComponentNode as a base class for making native component nodes.
 /// </summary>
 /// <typeparam name="T">The component type.</typeparam>
 /// <typeparam name="TU">The component uld data type.</typeparam>

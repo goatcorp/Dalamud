@@ -10,9 +10,6 @@ using Lumina.Text.ReadOnly;
 
 namespace Dalamud.NativeUi.BaseTypes.Node;
 
-/// <summary>
-/// .
-/// </summary>
 internal unsafe partial class NodeBase
 {
     private AtkTooltipType tooltipType = AtkTooltipType.None;

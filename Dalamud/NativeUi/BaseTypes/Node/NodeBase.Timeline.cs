@@ -2,9 +2,6 @@
 
 namespace Dalamud.NativeUi.BaseTypes.Node;
 
-/// <summary>
-/// .
-/// </summary>
 internal abstract unsafe partial class NodeBase
 {
     /// <summary>

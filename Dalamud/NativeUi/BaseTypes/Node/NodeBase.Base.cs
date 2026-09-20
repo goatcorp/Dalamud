@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Logging.Internal;
@@ -12,6 +13,7 @@ namespace Dalamud.NativeUi.BaseTypes.Node;
 /// <summary>
 /// Abstract base class for all native ui nodes.
 /// </summary>
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1601:Partial elements should be documented", Justification = "Suppress warning on partials, as documentation duplicates on tooltip.")]
 internal abstract unsafe partial class NodeBase : IDisposable
 {
     /// <summary>

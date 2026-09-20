@@ -5,17 +5,12 @@ using Dalamud.NativeUi.Classes;
 using Dalamud.NativeUi.Enums;
 using Dalamud.NativeUi.Extensions;
 using Dalamud.NativeUi.Timelines;
-using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.NativeUi.BaseTypes.Addon;
 
-/// <summary>
-/// .
-/// </summary>
-[Api16ToDo("Remove extra argument in Free calls.")]
 internal unsafe partial class NativeAddon
 {
     private bool isSetup;

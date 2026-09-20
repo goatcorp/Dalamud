@@ -11,9 +11,6 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.NativeUi.BaseTypes.Addon;
 
-/// <summary>
-/// .
-/// </summary>
 internal partial class NativeAddon
 {
     /// <summary>

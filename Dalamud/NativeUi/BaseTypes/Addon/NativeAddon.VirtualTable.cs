@@ -7,9 +7,6 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.NativeUi.BaseTypes.Addon;
 
-/// <summary>
-/// .
-/// </summary>
 internal unsafe partial class NativeAddon
 {
     private const int VirtualTableEntryCount = 200;

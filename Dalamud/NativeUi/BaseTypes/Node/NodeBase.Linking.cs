@@ -13,9 +13,6 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.NativeUi.BaseTypes.Node;
 
-/// <summary>
-/// Double Docs Because Partial... (Linking).
-/// </summary>
 internal abstract unsafe partial class NodeBase
 {
     private NodeBase? parentNode;

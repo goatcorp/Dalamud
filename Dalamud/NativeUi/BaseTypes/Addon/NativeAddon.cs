@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -15,6 +16,7 @@ namespace Dalamud.NativeUi.BaseTypes.Addon;
 /// <summary>
 /// Implementation of a custom native addon (AtkUnitBase).
 /// </summary>
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1601:Partial elements should be documented", Justification = "Suppress warning on partials, as documentation duplicates on tooltip.")]
 internal unsafe partial class NativeAddon
 {
     private PinnedGCHandle<NativeAddon>? disposeHandle;
