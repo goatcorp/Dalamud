@@ -8,7 +8,7 @@ internal partial class NativeAddon : IDisposable, IAsyncDisposable
 
     /// <summary>
     /// Finalizes an instance of the <see cref="NativeAddon"/> class.
-    /// This can only be called by the GC, and shouldn't happen except for OverlayAddons, which gets promptly ignored.
+    /// This can only be called by the GC, this shouldn't happen unless something was leaked.
     /// </summary>
     ~NativeAddon()
     {
