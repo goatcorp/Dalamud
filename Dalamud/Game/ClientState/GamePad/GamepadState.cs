@@ -27,21 +27,21 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
     [ServiceManager.ServiceDependency]
     private readonly DalamudInterface dalamudInterface = Service<DalamudInterface>.Get();
 
-    private Hook<PadDevice.Delegates.Poll>? gamepadPollHook;
+    private Hook<PadDevice.Delegates.Update> gamepadPollHook;
     private int leftStickX;
     private int leftStickY;
     private int rightStickX;
     private int rightStickY;
 
     [ServiceManager.ServiceConstructor]
-    private GamepadState(ClientState clientState)
+    private GamepadState()
     {
-        this.gamepadPollHook = Hook<PadDevice.Delegates.Poll>.FromAddress((nint)PadDevice.StaticVirtualTablePointer->Poll, this.GamepadPollDetour);
-        this.gamepadPollHook?.Enable();
+        this.gamepadPollHook = Hook<PadDevice.Delegates.Update>.FromAddress((nint)PadDevice.StaticVirtualTablePointer->Update, this.PadDeviceUpdateDetour);
+        this.gamepadPollHook.Enable();
     }
 
     /// <inheritdoc/>
-    public IntPtr GamepadInputAddress { get; private set; }
+    public nint GamepadInputAddress { get; private set; }
 
     /// <inheritdoc/>
     // Internal Note: Ideally, we would use
@@ -123,13 +123,13 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
-        this.gamepadPollHook?.Dispose();
-        this.gamepadPollHook = null;
+        this.gamepadPollHook.Dispose();
     }
 
-    private nint GamepadPollDetour(PadDevice* gamepadInput)
+    private void PadDeviceUpdateDetour(PadDevice* gamepadInput)
     {
-        var original = this.gamepadPollHook!.Original(gamepadInput);
+        this.gamepadPollHook.Original(gamepadInput);
+
         try
         {
             this.GamepadInputAddress = (nint)gamepadInput;
@@ -175,20 +175,14 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
                 gamepadInput->GamepadInputData.ButtonsPressed = 0;
                 gamepadInput->GamepadInputData.ButtonsReleased = 0;
                 gamepadInput->GamepadInputData.ButtonsRepeat = 0;
-                return 0;
             }
-
-            // NOTE (Chiv) Not so sure about the return value, does not seem to matter if we return the
-            // original, zero or do the work adjusting the bits.
-            return original;
         }
         catch (Exception e)
         {
-            Log.Error(e, "Unexpected error in GamepadPollDetour. Gamepad navigation will not work!");
+            Log.Error(e, "Unexpected error in PadDeviceUpdateDetour. Gamepad navigation will not work!");
 
             // NOTE (Chiv) Explicitly deactivate on error
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
-            return original;
         }
     }
 }
