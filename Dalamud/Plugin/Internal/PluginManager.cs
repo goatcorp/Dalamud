@@ -15,10 +15,9 @@ using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC;
@@ -125,7 +124,7 @@ internal class PluginManager : IInternalDisposableService
         this.openInstallerWindowPluginChangelogsLink =
             Service<ChatGui>.GetAsync().ContinueWith(
                 chatGuiTask => chatGuiTask.Result.AddChatLinkHandler(
-                    (_, _) =>
+                    (_) =>
                     {
                         Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(
                             PluginInstallerOpenKind.Changelogs);
@@ -289,23 +288,21 @@ internal class PluginManager : IInternalDisposableService
                 var chatGui = chatGuiTask.Result;
                 if (updateMetadata is { Count: > 0 })
                 {
+                    using var rssb = new RentedSeStringBuilder();
                     chatGui.Print(
-                        new XivChatEntry
+                        new PrintableChatMessage
                         {
-                            Message = new SeString(
-                                new List<Payload>()
-                                {
-                                    new TextPayload(header),
-                                    new TextPayload("  ["),
-                                    new UIForegroundPayload(500),
-                                    this.openInstallerWindowPluginChangelogsLink.Result,
-                                    new TextPayload(
-                                        Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs")),
-                                    RawPayload.LinkTerminator,
-                                    new UIForegroundPayload(0),
-                                    new TextPayload("]"),
-                                }),
-                            Type = this.configuration.GeneralChatType,
+                            LogKind = this.configuration.GeneralChatType,
+                            Message = rssb.Builder
+                                .Append(header)
+                                .Append("  [")
+                                .PushColorType(500)
+                                .PushDalamudLink(this.openInstallerWindowPluginChangelogsLink.Result)
+                                .Append(Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs"))
+                                .PopLink()
+                                .PopColorType()
+                                .Append(']')
+                                .ToReadOnlySeString(),
                         });
 
                     foreach (var metadata in updateMetadata)
@@ -317,13 +314,13 @@ internal class PluginManager : IInternalDisposableService
                         else
                         {
                             chatGui.Print(
-                                new XivChatEntry
+                                new PrintableChatMessage
                                 {
                                     Message = Locs.DalamudPluginUpdateFailed(
                                         metadata.Name,
                                         metadata.Version,
                                         PluginUpdateStatus.LocalizeUpdateStatusKind(metadata.Status)),
-                                    Type = XivChatType.Urgent,
+                                    LogKind = XivChatType.Urgent,
                                 });
                         }
                     }

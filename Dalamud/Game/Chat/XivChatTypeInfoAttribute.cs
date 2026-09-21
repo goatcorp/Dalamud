@@ -1,10 +1,10 @@
-namespace Dalamud.Game.Text;
+namespace Dalamud.Game.Chat;
 
 /// <summary>
 /// Storage for relevant information associated with the chat type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field)]
-public class XivChatTypeInfoAttribute : Attribute
+public sealed class XivChatTypeInfoAttribute : Attribute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="XivChatTypeInfoAttribute"/> class.

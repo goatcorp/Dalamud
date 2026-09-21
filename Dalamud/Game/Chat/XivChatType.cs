@@ -1,4 +1,4 @@
-namespace Dalamud.Game.Text;
+namespace Dalamud.Game.Chat;
 
 /// <summary>
 /// The FFXIV chat types as seen in the LogKind excel sheet.
