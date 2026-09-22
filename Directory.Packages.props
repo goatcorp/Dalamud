@@ -14,7 +14,7 @@
     <PackageVersion Include="BitFaster.Caching" Version="2.5.4" />
     <PackageVersion Include="CheapLoc" Version="1.1.8" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageVersion Include="Lumina" Version="7.6.0" />
+    <PackageVersion Include="Lumina" Version="7.7.0" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.0" />
     <PackageVersion Include="System.Reactive" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="10.0.0" />
