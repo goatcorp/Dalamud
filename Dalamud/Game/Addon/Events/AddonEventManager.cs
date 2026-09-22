@@ -225,7 +225,7 @@ internal class AddonEventManagerPluginScoped : IInternalDisposableService, IAddo
             this.eventManagerService.ResetCursor();
         }
 
-        Service<Framework>.Get().RunOnFrameworkThread(() =>
+        Service<Framework>.Get().Run(() =>
         {
             this.eventManagerService.RemovePluginEventController(this.plugin.EffectiveWorkingPluginId);
         }).Wait();

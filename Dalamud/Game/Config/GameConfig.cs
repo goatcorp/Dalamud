@@ -37,7 +37,7 @@ internal sealed class GameConfig : IInternalDisposableService, IGameConfig
     [ServiceManager.ServiceConstructor]
     private unsafe GameConfig(Framework framework, TargetSigScanner sigScanner)
     {
-        framework.RunOnTick(() =>
+        _ = framework.RunOnTick(() =>
         {
             try
             {

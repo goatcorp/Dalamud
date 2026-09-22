@@ -452,7 +452,7 @@ internal static class ServiceManager
         var framework = Service<Framework>.GetNullable(ExceptionPropagationMode.None);
         if (framework is { IsInFrameworkUpdateThread: false, IsFrameworkUnloading: false })
         {
-            framework.RunOnFrameworkThread(UnloadAllServices).Wait();
+            framework.Run(UnloadAllServices).Wait();
             return;
         }
 
