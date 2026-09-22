@@ -147,7 +147,7 @@ internal unsafe class PlayerState : IServiceType, IPlayerState
     }
 
     /// <inheritdoc/>
-    public RowRef<Aetheryte> FreeAetheryte => this.IsLoaded ? LuminaUtils.CreateRef<Aetheryte>(CSPlayerState.Instance()->FreeAetheryteId) : default;
+    public RowRef<Aetheryte> FreeAetheryte => this.IsLoaded ? LuminaUtils.CreateRef<Aetheryte>(CSPlayerState.Instance()->FreeAetheryteIds[0]) : default;
 
     /// <inheritdoc/>
     public uint BaseRestedExperience => this.IsLoaded ? CSPlayerState.Instance()->BaseRestedExperience : default;
