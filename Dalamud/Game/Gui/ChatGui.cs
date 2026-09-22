@@ -255,25 +255,34 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         while (this.messageQueue.TryDequeue(out var chat))
         {
             // set sender
-            sender.SetString(rssb.Builder
-                .Clear()
-                .Append(chat.Sender)
-                .GetViewAsSpan());
+            rssb.Builder.Clear();
+
+            if (chat.Sender.IsEmpty)
+                sender.Clear();
+            else
+                sender.SetString(rssb.Builder.Append(chat.Sender).GetViewAsSpan());
 
             // set message
             rssb.Builder.Clear();
 
-            foreach (var c in UtfEnumerator.From(chat.Message, UtfEnumeratorFlags.Utf8SeString))
+            if (chat.Message.IsEmpty)
             {
-                if (c.IsSeStringPayload)
-                    rssb.Builder.Append((ReadOnlySeStringSpan)chat.Message.Data.Span[c.ByteOffset..(c.ByteOffset + c.ByteLength)]);
-                else if (c.Value.IntValue == 0x202F)
-                    rssb.Builder.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
-                else
-                    rssb.Builder.Append(c);
+                message.Clear();
             }
+            else
+            {
+                foreach (var c in UtfEnumerator.From(chat.Message, UtfEnumeratorFlags.Utf8SeString))
+                {
+                    if (c.IsSeStringPayload)
+                        rssb.Builder.Append((ReadOnlySeStringSpan)chat.Message.Data.Span[c.ByteOffset..(c.ByteOffset + c.ByteLength)]);
+                    else if (c.Value.IntValue == 0x202F)
+                        rssb.Builder.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
+                    else
+                        rssb.Builder.Append(c);
+                }
 
-            message.SetString(rssb.Builder.GetViewAsSpan());
+                message.SetString(rssb.Builder.GetViewAsSpan());
+            }
 
             this.HandlePrintMessageDetour(
                 RaptureLogModule.Instance(),
@@ -382,14 +391,22 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             {
                 Log.Verbose($"HandlePrintMessageDetour Sender modified: {sender->AsReadOnlySeStringSpan().ToMacroString()} -> {this.currentChatMessage.Sender.ToMacroString()}");
                 using var rssb = new RentedSeStringBuilder();
-                sender->SetString(rssb.Builder.Append(this.currentChatMessage.Sender).GetViewAsSpan());
+
+                if (this.currentChatMessage.Sender.IsEmpty)
+                    sender->Clear();
+                else
+                    sender->SetString(rssb.Builder.Append(this.currentChatMessage.Sender).GetViewAsSpan());
             }
 
             if (this.currentChatMessage.MessageModified)
             {
                 Log.Verbose($"HandlePrintMessageDetour Message modified: {message->AsReadOnlySeStringSpan().ToMacroString()} -> {this.currentChatMessage.Message.ToMacroString()}");
                 using var rssb = new RentedSeStringBuilder();
-                message->SetString(rssb.Builder.Append(this.currentChatMessage.Message).GetViewAsSpan());
+
+                if (this.currentChatMessage.Message.IsEmpty)
+                    message->Clear();
+                else
+                    message->SetString(rssb.Builder.Append(this.currentChatMessage.Message).GetViewAsSpan());
             }
 
             // If not handled by a plugin, let the game handle it (prints it to chat)
