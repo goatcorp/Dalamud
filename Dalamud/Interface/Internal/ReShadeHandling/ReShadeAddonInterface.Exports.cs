@@ -7,6 +7,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+using Dalamud.Support;
+
 using Serilog;
 
 using TerraFX.Interop.Windows;
@@ -27,7 +29,7 @@ internal sealed unsafe partial class ReShadeAddonInterface
     static ReShadeAddonInterface()
     {
         var modules = new List<ProcessModule>();
-        foreach (var m in Process.GetCurrentProcess().Modules.Cast<ProcessModule>())
+        foreach (var m in CurrentProcessModules.ModuleCollection.Cast<ProcessModule>())
         {
             ExportsStruct e;
             if (!GetProcAddressInto(m, nameof(e.ReShadeRegisterAddon), &e.ReShadeRegisterAddon) ||

@@ -167,6 +167,28 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     public void RenderDrawData(ImDrawDataPtr drawData) =>
         this.mainViewport.Draw(drawData, this.mainViewport.SwapChain == null);
 
+    /// <inheritdoc/>
+    public void RenderViewportSnapshot(nint rendererUserData, ImDrawDataPtr drawData)
+    {
+        // The caller must keep the captured handle alive throughout drawing and presentation.
+        // These checks handle missing data; they cannot validate the lifetime of an arbitrary handle.
+        if (rendererUserData == nint.Zero)
+            return;
+
+        ViewportData vp;
+        try
+        {
+            vp = ViewportData.Attach((void*)rendererUserData);
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        vp.Draw(drawData, true);
+        vp.PresentIfSwapChainAvailable();
+    }
+
     /// <summary>
     /// Rebuilds font texture.
     /// </summary>
@@ -411,13 +433,13 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                     {
                         if ((nint)cmd.UserCallback == (nint)CustomImDrawCallbackEnum.Blur)
                         {
+                            // The command borrows this payload; frame retirement returns it after repeated renders.
                             var data = (BlurCallbackData*)cmd.UserCallbackData;
                             var blurStrength = data->BlurStrength;
                             var rounding = data->Rounding;
                             var tintColor = data->TintColor;
                             var luminosityColor = data->LuminosityColor;
                             var noiseOpacity = data->NoiseOpacity;
-                            BlurCallbackDataPool.Return(data);
 
                             var blurV4 = cmd.ClipRect - clipOff;
                             if (blurV4.X >= blurV4.Z || blurV4.Y >= blurV4.W)
