@@ -144,7 +144,7 @@
         <ItemGroup>
             <ReferenceCopyLocalPaths
                 Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')"
-                Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)'!='' and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
+                Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)'!='' and '%(ReferenceCopyLocalPaths.NuGetPackageId)'!='TerraFX.Interop.Windows' and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
         </ItemGroup>
     </Target>
 
