@@ -87,7 +87,7 @@ internal class NamePlateSelfTestStep : ISelfTestStep
             handler.VisibilityFlags |= 1;
 
             // Set marker icon based on nameplate kind, and flicker when updating
-            if (handler.IsUpdating || context.IsFullUpdate)
+            if (handler.IsUpdating)
             {
                 handler.MarkerIconId = 66181 + (int)handler.NamePlateKind;
             }
