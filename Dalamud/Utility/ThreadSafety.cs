@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
 
+using Dalamud.Configuration.Internal;
+
 namespace Dalamud.Utility;
 
 /// <summary>
@@ -49,6 +51,21 @@ public static class ThreadSafety
 #if DEBUG
         AssertMainThread();
 #endif
+    }
+
+    /// <summary>
+    /// Throws an exception when the current thread is not the main thread and DevMode is enabled.
+    /// </summary>
+    /// <param name="message">The message to be passed into the exception, if one is to be thrown.</param>
+    /// <exception cref="InvalidOperationException">Thrown when the current thread is not the main thread.</exception>
+    [Api16ToDo("Replace all calls with AssertMainThread")]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void DevModeAssertMainThread(string? message = null)
+    {
+        if (!threadStaticIsMainThread && Service<DalamudConfiguration>.Get().DevMode == true)
+        {
+            throw new InvalidOperationException(message ?? "Not on main thread!");
+        }
     }
 
     /// <summary>
