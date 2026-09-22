@@ -255,22 +255,25 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         while (this.messageQueue.TryDequeue(out var chat))
         {
             // set sender
-            rssb.Builder.Clear();
-
             if (chat.Sender.IsEmpty)
+            {
                 sender.Clear();
+            }
             else
+            {
+                rssb.Builder.Clear();
                 sender.SetString(rssb.Builder.Append(chat.Sender).GetViewAsSpan());
+            }
 
             // set message
-            rssb.Builder.Clear();
-
             if (chat.Message.IsEmpty)
             {
                 message.Clear();
             }
             else
             {
+                rssb.Builder.Clear();
+
                 foreach (var c in UtfEnumerator.From(chat.Message, UtfEnumeratorFlags.Utf8SeString))
                 {
                     if (c.IsSeStringPayload)
