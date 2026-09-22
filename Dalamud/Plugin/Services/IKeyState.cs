@@ -15,6 +15,27 @@ namespace Dalamud.Plugin.Services;
 /// index &amp; 1 = key down (ephemeral).
 /// index &amp; 2 = key up (ephemeral).
 /// index &amp; 3 = short key press (ephemeral).
+/// 
+/// <para>
+/// Virtual keys are tracked through two methods:
+/// <list type="bullet">
+/// <item>
+/// <term><see cref="IsVirtualKeyValid(int)"/> and <see cref="GetValidVirtualKeys"/></term>
+/// <description>The game's own keystate buffer.</description>
+/// </item>
+/// <item>
+/// <term><see cref="IsExtendedVirtualKeyValid(int)"/> and <see cref="GetExtendedVirtualKeys"/></term>
+/// <description>Dalamud's extended virtual key support.</description>
+/// </item>
+/// </list>
+/// A given <see cref="VirtualKey"/> is only ever one or the other, never both.
+/// </para>
+/// <para>
+/// Most do not need to distinguish between the two: <see cref="this[int]"/> and <see cref="GetRawValue(int)"/>/<see cref="SetRawValue(int, int)"/>
+/// transparently handle both. The sole distinction is in <see cref="TryGetSeVirtualKey(int, out int)"/> which only succeeds for
+/// valid game's keys; a valid extended key and an invalid key will both return <see langword="false"/>. Use <see cref="IsExtendedVirtualKeyValid(int)"/>
+/// to distinguish between the two.
+/// </para>
 /// </remarks>
 public interface IKeyState : IDalamudService
 {
@@ -79,6 +100,11 @@ public interface IKeyState : IDalamudService
     /// <param name="vkCode">The virtual key code to convert.</param>
     /// <param name="seVkCode">The resulting game's virtual key code, if the conversion is successful.</param>
     /// <returns>Whether the virtual key code has a valid game's virtual key code equivalent.</returns>
+    /// <remarks>
+    /// Returns <see langword="false"/> both when <paramref name="vkCode"/> is not a valid <see cref="VirtualKey"/>
+    /// and when it is a valid <em>extended</em> key that the game does not recognize.
+    /// If you need to distinguish between the two, use <see cref="IsExtendedVirtualKeyValid(int)"/>.
+    /// </remarks>
     bool TryGetSeVirtualKey(int vkCode, out int seVkCode);
 
     /// <inheritdoc cref="TryGetSeVirtualKey(int, out int)"/>
