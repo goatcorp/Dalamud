@@ -104,6 +104,9 @@ public unsafe interface IGameGui : IDalamudService
     /// <returns>A pointer wrapper to the addon.</returns>
     AtkUnitBasePtr GetAddonByName(string name, int index = 1);
 
+    /// <inheritdoc cref="GetAddonByName(string, int)"/>
+    AtkUnitBasePtr GetAddonByName(ReadOnlySpan<byte> name, int index = 1);
+
     /// <summary>
     /// Gets the pointer to the Addon with the given name and index.
     /// </summary>
@@ -112,6 +115,9 @@ public unsafe interface IGameGui : IDalamudService
     /// <returns>A pointer wrapper to the addon.</returns>
     /// <typeparam name="T">Type of addon pointer AtkUnitBase or any derived struct.</typeparam>
     T* GetAddonByName<T>(string name, int index = 1) where T : unmanaged;
+
+    /// <inheritdoc cref="GetAddonByName{T}(string, int)"/>
+    T* GetAddonByName<T>(ReadOnlySpan<byte> name, int index = 1) where T : unmanaged;
 
     /// <summary>
     /// Find the agent associated with an addon, if possible.
@@ -126,6 +132,9 @@ public unsafe interface IGameGui : IDalamudService
     /// <param name="addonName">The addon name.</param>
     /// <returns>A pointer wrapper to the agent interface.</returns>
     AgentInterfacePtr FindAgentInterface(string addonName);
+
+    /// <inheritdoc cref="FindAgentInterface(string)"/>
+    AgentInterfacePtr FindAgentInterface(ReadOnlySpan<byte> addonName);
 
     /// <summary>
     /// Find the agent associated with an addon, if possible.

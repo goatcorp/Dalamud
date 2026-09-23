@@ -1,4 +1,5 @@
 using Dalamud.Game.NativeWrapper;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
@@ -10,7 +11,9 @@ public class AddonArgs
     /// <summary>
     /// Constant string representing the name of an addon that is invalid.
     /// </summary>
-    public const string InvalidAddon = "NullAddon";
+    public const string InvalidAddonName = "NullAddon";
+
+    private string? addonName;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonArgs"/> class.
@@ -20,9 +23,19 @@ public class AddonArgs
     }
 
     /// <summary>
+    /// Gets the string representing the name of an addon that is invalid.
+    /// </summary>
+    public static ReadOnlySpan<byte> InvalidAddonNameSpan => "NullAddon"u8;
+
+    /// <summary>
     /// Gets the name of the addon this args referrers to.
     /// </summary>
-    public string AddonName { get; private set; } = InvalidAddon;
+    public string AddonName => this.Addon.IsNull ? InvalidAddonName : this.addonName ??= this.Addon.Name;
+
+    /// <summary>
+    /// Gets the name of the addon this args referrers to.
+    /// </summary>
+    public ReadOnlySpan<byte> AddonNameSpan => this.Addon.IsNull ? InvalidAddonNameSpan : this.Addon.NameSpan.BeforeNull();
 
     /// <summary>
     /// Gets the pointer to the addons AtkUnitBase.
@@ -33,9 +46,7 @@ public class AddonArgs
         internal set
         {
             field = value;
-
-            if (!this.Addon.IsNull && !string.IsNullOrEmpty(value.Name))
-                this.AddonName = value.Name;
+            this.addonName = null;
         }
     }
 
