@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using FFXIVClientStructs.Interop;
 
@@ -39,6 +41,11 @@ public readonly unsafe struct AtkUnitBasePtr(nint address) : IEquatable<AtkUnitB
     /// Gets the name.
     /// </summary>
     public readonly string Name => this.IsNull ? string.Empty : this.Struct->NameString;
+
+    /// <summary>
+    /// Gets the name as <see cref="ReadOnlySpan{Byte}"/>.
+    /// </summary>
+    public readonly ReadOnlySpan<byte> NameSpan => this.IsNull ? default : this.Struct->Name.BeforeNull();
 
     /// <summary>
     /// Gets the id.

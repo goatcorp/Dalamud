@@ -331,7 +331,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.entriesReadOnlyCopy = null;
     }
 
-    private AtkUnitBase* GetDtr() => this.gameGui.GetAddonByName("_DTR").Struct;
+    private AtkUnitBase* GetDtr() => this.gameGui.GetAddonByName("_DTR"u8).Struct;
 
     private void Update(IFramework unused)
     {

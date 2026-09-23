@@ -70,7 +70,7 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
     /// <inheritdoc/>
     public unsafe void RequestRedraw()
     {
-        var addon = this.gameGui.GetAddonByName<AddonNamePlate>("NamePlate");
+        var addon = this.gameGui.GetAddonByName<AddonNamePlate>("NamePlate"u8);
         if (addon != null)
         {
             AtkStage.Instance()->GetNumberArrayData(NumberArrayType.NamePlate)->UpdateState = 2;
