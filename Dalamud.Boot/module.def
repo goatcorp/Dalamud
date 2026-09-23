@@ -1,4 +1,4 @@
-LIBRARY Dalamud.Boot
+LIBRARY "Dalamud.Boot.dll"
 EXPORTS
     Initialize @1
     RewriteRemoteEntryPointW @2

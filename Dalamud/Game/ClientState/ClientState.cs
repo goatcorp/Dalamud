@@ -131,7 +131,7 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
 
                 if (this.initialized)
                 {
-                    Log.Debug("TerritoryType changed: {0}", value);
+                    Log.Debug("TerritoryType changed: {0}", value.RowId);
                     this.TerritoryChanged?.InvokeSafely(value);
                 }
             }
@@ -150,7 +150,7 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
 
                 if (this.initialized)
                 {
-                    Log.Debug("MapId changed: {0}", value);
+                    Log.Debug("MapId changed: {0}", value.RowId);
                     this.MapChanged?.InvokeSafely(value);
                 }
             }

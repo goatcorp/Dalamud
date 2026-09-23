@@ -556,6 +556,12 @@ public class WindowHost
             }
         }
 
+        // Allow the window to be closed with a gamepad
+        if (ImGui.IsKeyPressed(ImGuiKey.GamepadFaceRight) && !this.Window.IsPinned && this.Window.IsFocused && ImGui.GetCurrentContext() is { NavId: 0, NavFocusScopeId: 0 })
+        {
+            this.Window.IsOpen = false;
+        }
+
         this.fadeOutSize = ImGui.GetWindowSize();
         this.fadeOutOrigin = ImGui.GetWindowPos();
         var isCollapsed = ImGui.IsWindowCollapsed();

@@ -58,7 +58,7 @@ internal sealed unsafe class TitleScreenVersionInfo : IInternalDisposableService
         {
             this.addonLifecycle.UnregisterListener(this.versionStringListener);
 
-            var addonPtr = this.gameGui.GetAddonByName("_TitleRevision");
+            var addonPtr = this.gameGui.GetAddonByName("_TitleRevision"u8);
             if (!addonPtr.IsNull && addonPtr.IsReady)
             {
                 var addon = addonPtr.Struct;

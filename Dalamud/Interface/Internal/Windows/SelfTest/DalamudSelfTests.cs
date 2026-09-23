@@ -1,16 +1,17 @@
 using Dalamud.Excel.Sheets;
+using Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 using Dalamud.Plugin.SelfTest.Internal;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest;
 
 /// <summary>
 /// Class handling Dalamud self-test registration.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class DalamudSelfTest : IServiceType
+internal class DalamudSelfTests : IServiceType
 {
     [ServiceManager.ServiceConstructor]
-    private DalamudSelfTest(SelfTestRegistry registry)
+    private DalamudSelfTests(SelfTestRegistry registry)
     {
         registry.RegisterDalamudSelfTestSteps([
             new LoginEventSelfTestStep(),
@@ -31,6 +32,7 @@ internal class DalamudSelfTest : IServiceType
             new GamepadStateSelfTestStep(),
             new ChatSelfTestStep(),
             new HoverSelfTestStep(),
+            new LuminaSheetsHashTestStep(),
             new LuminaSelfTestStep<Item>(true),
             new LuminaSelfTestStep<Level>(true),
             new LuminaSelfTestStep<global::Dalamud.Excel.Sheets.Action>(true),

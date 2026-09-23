@@ -68,6 +68,7 @@ internal record struct NounParams()
         nameof(DeepDungeonDemiclone) => 1,
         nameof(Glasses) => 4,
         nameof(GlassesStyle) => 15,
+        nameof(XBMItem) => 3,
         _ => 0,
     };
 }

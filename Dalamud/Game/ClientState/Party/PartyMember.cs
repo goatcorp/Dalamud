@@ -5,6 +5,7 @@ using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
+using Dalamud.Utility;
 
 using Lumina.Excel;
 using Lumina.Text.ReadOnly;
@@ -114,59 +115,71 @@ public interface IPartyMember : IEquatable<IPartyMember>
 /// <summary>
 /// This struct represents a party member in the group manager.
 /// </summary>
-/// <param name="ptr">A pointer to the PartyMember.</param>
-internal readonly unsafe struct PartyMember(CSPartyMember* ptr) : IPartyMember
+/// <param name="address">A pointer to the PartyMember.</param>
+internal readonly unsafe struct PartyMember(nint address) : IPartyMember
 {
     /// <inheritdoc/>
-    public nint Address => (nint)ptr;
+    public nint Address => address;
 
     /// <inheritdoc/>
-    public StatusList Statuses => new(&ptr->StatusManager);
+    public StatusList Statuses => new(&this.Struct->StatusManager);
 
     /// <inheritdoc/>
-    public Vector3 Position => ptr->Position;
+    public Vector3 Position => this.Struct->Position;
 
     /// <inheritdoc/>
-    public ulong ContentId => ptr->ContentId;
+    public ulong ContentId => this.Struct->ContentId;
 
     /// <inheritdoc/>
-    public uint ObjectId => ptr->EntityId;
+    public uint ObjectId => this.Struct->EntityId;
 
     /// <inheritdoc/>
-    public uint EntityId => ptr->EntityId;
+    public uint EntityId => this.Struct->EntityId;
 
     /// <inheritdoc/>
     public IGameObject? GameObject => Service<ObjectTable>.Get().SearchById(this.EntityId);
 
     /// <inheritdoc/>
-    public uint CurrentHP => ptr->CurrentHP;
+    public uint CurrentHP => this.Struct->CurrentHP;
 
     /// <inheritdoc/>
-    public uint MaxHP => ptr->MaxHP;
+    public uint MaxHP => this.Struct->MaxHP;
 
     /// <inheritdoc/>
-    public ushort CurrentMP => ptr->CurrentMP;
+    public ushort CurrentMP => this.Struct->CurrentMP;
 
     /// <inheritdoc/>
-    public ushort MaxMP => ptr->MaxMP;
+    public ushort MaxMP => this.Struct->MaxMP;
 
     /// <inheritdoc/>
-    public RowRef<TerritoryTypeSheet> Territory => LuminaUtils.CreateRef<TerritoryTypeSheet>(ptr->TerritoryType);
+    public RowRef<TerritoryTypeSheet> Territory => LuminaUtils.CreateRef<TerritoryTypeSheet>(this.Struct->TerritoryType);
 
     /// <inheritdoc/>
-    public RowRef<WorldSheet> World => LuminaUtils.CreateRef<WorldSheet>(ptr->HomeWorld);
+    public RowRef<WorldSheet> World => LuminaUtils.CreateRef<WorldSheet>(this.Struct->HomeWorld);
 
     /// <inheritdoc/>
-    public ReadOnlySeStringSpan Name => ptr->Name;
+    public ReadOnlySeStringSpan Name => this.Struct->Name;
 
     /// <inheritdoc/>
-    public byte Sex => ptr->Sex;
+    public byte Sex => this.Struct->Sex;
 
     /// <inheritdoc/>
-    public RowRef<ClassJobSheet> ClassJob => LuminaUtils.CreateRef<ClassJobSheet>(ptr->ClassJob);
+    public RowRef<ClassJobSheet> ClassJob => LuminaUtils.CreateRef<ClassJobSheet>(this.Struct->ClassJob);
 
     /// <inheritdoc/>
-    public byte Level => ptr->Level;
+    public byte Level => this.Struct->Level;
+
+    /// <summary>
+    /// Gets the underlying structure.
+    /// </summary>
+    internal CSPartyMember* Struct
+    {
+        get
+        {
+            ThreadSafety.DevModeAssertMainThread();
+            return (CSPartyMember*)address;
+        }
+    }
 
     public static bool operator ==(PartyMember x, PartyMember y) => x.Equals(y);
 

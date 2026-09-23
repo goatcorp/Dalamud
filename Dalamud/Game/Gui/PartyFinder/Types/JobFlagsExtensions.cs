@@ -51,6 +51,7 @@ public static class JobFlagsExtensions
             JobFlags.Sage => 40,
             JobFlags.Viper => 41,
             JobFlags.Pictomancer => 42,
+            JobFlags.Beastmaster => 43,
             _ => null,
         };
 

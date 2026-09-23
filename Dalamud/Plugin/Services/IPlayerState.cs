@@ -207,6 +207,11 @@ public interface IPlayerState : IDalamudService
     bool IsReturner { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the Away from Keyboard status is currently active for the local player.
+    /// </summary>
+    bool IsAwayFromKeyboard { get; }
+
+    /// <summary>
     /// Gets the value of an attribute of the local character.
     /// </summary>
     /// <param name="attribute">The attribute to check.</param>

@@ -7,23 +7,44 @@ concurrency:
 
 jobs:
   build:
-    name: Build on Windows
+    name: Build on Windows (${{ matrix.configuration }})
     permissions:
       id-token: write
       contents: read
       attestations: write
     runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+    env:
+      CONFIGURATION: ${{ matrix.configuration }}
+      IS_RELEASE: ${{ matrix.configuration == 'Release' }}
     steps:
       - name: Checkout Dalamud
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
         with:
           submodules: recursive
           fetch-depth: 0
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@c26a08ba26249b81327e26f6ef381897b6a8754d # v1.0.2
       - uses: actions/setup-dotnet@55ec9447dda3d1cf6bd587150f3262f30ee10815 # v3
         with:
           dotnet-version: '10.0.100'
+      # Can be dropped once we're on windows-2025
+      - name: Install CMake
+        env:
+          CMAKE_VERSION: '4.2.0'
+        run: |
+          $name = "cmake-$env:CMAKE_VERSION-windows-x86_64"
+          $url = "https://cmake.org/files/v$($env:CMAKE_VERSION -replace '\.\d+$', '')"
+          Invoke-WebRequest "$url/$name.zip" -OutFile "$env:RUNNER_TEMP\cmake.zip"
+          Invoke-WebRequest "$url/cmake-$env:CMAKE_VERSION-SHA-256.txt" -OutFile "$env:RUNNER_TEMP\cmake.sha256"
+
+          $expected = (Select-String -Path "$env:RUNNER_TEMP\cmake.sha256" -Pattern "  $name.zip$").Line.Split(' ')[0]
+          $actual = (Get-FileHash "$env:RUNNER_TEMP\cmake.zip" -Algorithm SHA256).Hash
+          if ($actual -ne $expected) { throw "CMake checksum mismatch: $actual != $expected" }
+
+          Expand-Archive "$env:RUNNER_TEMP\cmake.zip" $env:RUNNER_TEMP
+          "$env:RUNNER_TEMP\$name\bin" >> $env:GITHUB_PATH
       - name: Define VERSION
         run: |
           $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
@@ -33,18 +54,28 @@ jobs:
           ($env:REPO_NAME) >> VERSION
           ($env:BRANCH) >> VERSION
           ($env:COMMIT) >> VERSION
-      - name: Build and Test Dalamud
-        run: .\build.ps1 ci
+      # TODO v143
+      - name: Build native projects
+        run: |
+          cmake --preset vs2022
+          cmake --build build --config $env:CONFIGURATION -- "/clp:NoSummary;ForceNoAlign"
+      - name: Build Dalamud
+        run: |
+          dotnet build Dalamud/Dalamud.csproj -c $env:CONFIGURATION -tl:off "/clp:NoSummary;ForceNoAlign"
+          dotnet build Dalamud.Injector/Dalamud.Injector.csproj -c $env:CONFIGURATION -tl:off "/clp:NoSummary;ForceNoAlign"
+      - name: Test Dalamud
+        run: dotnet test Dalamud.Test/Dalamud.Test.csproj -c $env:CONFIGURATION -tl:off -p:WarningLevel=0
       - name: Sign Dalamud
-        if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
+        if: ${{ env.IS_RELEASE == 'true' && github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
         env:
           CODESIGN_CERT_PFX: ${{ secrets.CODESIGN_CERT_PFX }}
           CODESIGN_CERT_PASSWORD: ${{ secrets.CODESIGN_CERT_PASSWORD }}
-        run: .\sign.ps1 .\bin\Release
+        run: .\tools\sign.ps1 .\bin\Release
       - name: Create hashlist
-        run: .\CreateHashList.ps1 .\bin\Release
+        if: ${{ env.IS_RELEASE == 'true' }}
+        run: .\tools\create_hashlist.ps1 .\bin\Release
       - name: Attest Build
-        if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
+        if: ${{ env.IS_RELEASE == 'true' && github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
         uses: actions/attest-build-provenance@ef244123eb79f2f7a7e75d99086184180e6d0018 # v1
         with:
           subject-path: |
@@ -56,6 +87,7 @@ jobs:
             bin/Release/FFXIVClientStructs.dll
             bin/Release/cim*.dll
       - name: Upload artifact
+        if: ${{ env.IS_RELEASE == 'true' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: dalamud-artifact

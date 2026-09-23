@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Utility;
 
 using Lumina.Excel;
 
@@ -58,29 +59,41 @@ public interface IStatus : IEquatable<IStatus>
 /// <summary>
 /// This struct represents a status effect an actor is afflicted by.
 /// </summary>
-/// <param name="ptr">A pointer to the Status.</param>
-internal readonly unsafe struct Status(CSStatus* ptr) : IStatus
+/// <param name="address">A pointer to the Status.</param>
+internal readonly unsafe struct Status(nint address) : IStatus
 {
     /// <inheritdoc/>
-    public nint Address => (nint)ptr;
+    public nint Address => address;
 
     /// <inheritdoc/>
-    public uint StatusId => ptr->StatusId;
+    public uint StatusId => this.Struct->StatusId;
 
     /// <inheritdoc/>
-    public RowRef<StatusSheet> GameData => LuminaUtils.CreateRef<StatusSheet>(ptr->StatusId);
+    public RowRef<StatusSheet> GameData => LuminaUtils.CreateRef<StatusSheet>(this.Struct->StatusId);
 
     /// <inheritdoc/>
-    public ushort Param => ptr->Param;
+    public ushort Param => this.Struct->Param;
 
     /// <inheritdoc/>
-    public float RemainingTime => ptr->RemainingTime;
+    public float RemainingTime => this.Struct->RemainingTime;
 
     /// <inheritdoc/>
-    public uint SourceId => ptr->SourceObject.ObjectId;
+    public uint SourceId => this.Struct->SourceObject.ObjectId;
 
     /// <inheritdoc/>
     public IGameObject? SourceObject => Service<ObjectTable>.Get().SearchById(this.SourceId);
+
+    /// <summary>
+    /// Gets the underlying structure.
+    /// </summary>
+    internal CSStatus* Struct
+    {
+        get
+        {
+            ThreadSafety.DevModeAssertMainThread();
+            return (CSStatus*)address;
+        }
+    }
 
     public static bool operator ==(Status x, Status y) => x.Equals(y);
 
