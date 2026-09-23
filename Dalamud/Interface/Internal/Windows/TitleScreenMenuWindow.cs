@@ -454,10 +454,10 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         if (!this.configuration.ShowTsm)
             this.IsOpen = false;
 
-        var charaSelect = this.gameGui.GetAddonByName("CharaSelect", 1);
-        var charaMake = this.gameGui.GetAddonByName("CharaMake", 1);
-        var titleDcWorldMap = this.gameGui.GetAddonByName("TitleDCWorldMap", 1);
-        if (charaMake != IntPtr.Zero || charaSelect != IntPtr.Zero || titleDcWorldMap != IntPtr.Zero)
+        var charaSelect = this.gameGui.GetAddonByName("CharaSelect"u8, 1);
+        var charaMake = this.gameGui.GetAddonByName("CharaMake"u8, 1);
+        var titleDcWorldMap = this.gameGui.GetAddonByName("TitleDCWorldMap"u8, 1);
+        if (!charaMake.IsNull || !charaSelect.IsNull || !titleDcWorldMap.IsNull)
             this.IsOpen = false;
     }
 

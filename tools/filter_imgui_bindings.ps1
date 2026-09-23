@@ -1,6 +1,8 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
+$repoRoot = Split-Path $PSScriptRoot
+
 $namespaceDefPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^\s*)namespace\s+(?<namespace>[\w.]+)\b', 'Compiled,Multiline,Singleline'
 $usingPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^|;)\s*using\s+(?<using>\w+)\s*;', 'Compiled,Multiline,Singleline'
 $classDefPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?<indent>^\s*)(?<visibility>public\s+|internal\s+|protected\s+|private\s+)?(?<static>static\s+)?(?<unsafe>unsafe\s+)?(?<partial>partial\s+)?(?<type>class\s+|struct\s+)(?<name>\w+)\b', 'Compiled,Multiline,Singleline'
@@ -9,23 +11,23 @@ $referNativeFunction = New-Object -TypeName System.Text.RegularExpressions.Regex
 $referNativeFunctionQualified = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '\b(\w+)\s*\.\s*(\w+)Native(?=\()', 'Compiled'
 
 $sourcePaths = (
-    "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Functions",
-    "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Structs",
-    "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Internals\Functions",
-    "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Manual\Functions",
-    # "$PSScriptRoot\imgui\Dalamud.Bindings.ImPlot\Generated\Functions",
-    # "$PSScriptRoot\imgui\Dalamud.Bindings.ImPlot\Generated\Structs",
+    "$repoRoot\imgui\Dalamud.Bindings.ImGui\Generated\Functions",
+    "$repoRoot\imgui\Dalamud.Bindings.ImGui\Generated\Structs",
+    "$repoRoot\imgui\Dalamud.Bindings.ImGui\Internals\Functions",
+    "$repoRoot\imgui\Dalamud.Bindings.ImGui\Manual\Functions",
+    # "$repoRoot\imgui\Dalamud.Bindings.ImPlot\Generated\Functions",
+    # "$repoRoot\imgui\Dalamud.Bindings.ImPlot\Generated\Structs",
     $null
 )
 
 # replace "ImGuiKey.GamepadStart"
-$tmp = Get-Content -Path "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Enums\ImGuiKeyPrivate.cs" -Raw
+$tmp = Get-Content -Path "$repoRoot\imgui\Dalamud.Bindings.ImGui\Generated\Enums\ImGuiKeyPrivate.cs" -Raw
 $tmp = $tmp.Replace("unchecked((int)GamepadStart)", "unchecked((int)ImGuiKey.GamepadStart)").Trim()
-$tmp.Trim() | Set-Content -Path "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Enums\ImGuiKeyPrivate.cs" -Encoding ascii
+$tmp.Trim() | Set-Content -Path "$repoRoot\imgui\Dalamud.Bindings.ImGui\Generated\Enums\ImGuiKeyPrivate.cs" -Encoding ascii
 
 try
 {
-    Remove-Item -Path "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Handles\ImTextureID.cs" -Force
+    Remove-Item -Path "$repoRoot\imgui\Dalamud.Bindings.ImGui\Generated\Handles\ImTextureID.cs" -Force
 }
 catch [System.Management.Automation.ItemNotFoundException]
 {
@@ -51,7 +53,7 @@ foreach ($sourcePath in $sourcePaths)
     $null = $imports.Add("System.Numerics")
     $null = $imports.Add("HexaGen.Runtime")
 
-    if (!$sourcePath.StartsWith("$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\"))
+    if (!$sourcePath.StartsWith("$repoRoot\imgui\Dalamud.Bindings.ImGui\"))
     {
         $null = $imports.Add("Dalamud.Bindings.ImGui")
     }

@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Hooking;
+using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
@@ -12,9 +13,7 @@ using FFXIVClientStructs.FFXIV.Client.System.Input;
 namespace Dalamud.Game.ClientState.GamePad;
 
 /// <summary>
-/// Exposes the game gamepad state to dalamud.
-///
-/// Will block game's gamepad input if <see cref="ImGuiConfigFlags.NavEnableGamepad"/> is set.
+/// Exposes the game gamepad state to Dalamud.
 /// </summary>
 [PluginInterface]
 [ServiceManager.EarlyLoadedService]
@@ -25,26 +24,51 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
 {
     private static readonly ModuleLog Log = ModuleLog.Create<GamepadState>();
 
-    private readonly Hook<PadDevice.Delegates.Poll>? gamepadPoll;
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudInterface dalamudInterface = Service<DalamudInterface>.Get();
 
-    private bool isDisposed;
-
+    private Hook<PadDevice.Delegates.Update> gamepadPollHook;
     private int leftStickX;
     private int leftStickY;
     private int rightStickX;
     private int rightStickY;
 
     [ServiceManager.ServiceConstructor]
-    private GamepadState(ClientState clientState)
+    private GamepadState()
     {
-        this.gamepadPoll = Hook<PadDevice.Delegates.Poll>.FromAddress((nint)PadDevice.StaticVirtualTablePointer->Poll, this.GamepadPollDetour);
-        this.gamepadPoll?.Enable();
+        this.gamepadPollHook = Hook<PadDevice.Delegates.Update>.FromAddress((nint)PadDevice.StaticVirtualTablePointer->Update, this.PadDeviceUpdateDetour);
+        this.gamepadPollHook.Enable();
     }
 
-    /// <summary>
-    /// Gets the pointer to the current instance of the GamepadInput struct.
-    /// </summary>
-    public IntPtr GamepadInputAddress { get; private set; }
+    /// <inheritdoc/>
+    public nint GamepadInputAddress { get; private set; }
+
+    /// <inheritdoc/>
+    // Internal Note: Ideally, we would use
+    // (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0
+    // but this has a race condition during load with the detour which sets up ImGui
+    // and throws if our detour gets called before the other.
+    public bool EnableGamepadNav
+    {
+        get => field;
+        set
+        {
+            field = value;
+
+            var gamepadEnabled = (ImGui.GetIO().BackendFlags & ImGuiBackendFlags.HasGamepad) > 0;
+
+            if (value && gamepadEnabled)
+            {
+                ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;
+                this.dalamudInterface.OpenGamepadModeNotifierWindow();
+            }
+            else
+            {
+                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
+                this.dalamudInterface.CloseGamepadModeNotifierWindow();
+            }
+        }
+    }
 
     /// <inheritdoc/>
     public Vector2 LeftStick =>
@@ -82,16 +106,6 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
     /// </summary>
     internal GamepadButtons ButtonsRepeat { get; private set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether detour should block gamepad input for game.
-    ///
-    /// Ideally, we would use
-    /// (ImGui.GetIO().ConfigFlags &amp; ImGuiConfigFlags.NavEnableGamepad) > 0
-    /// but this has a race condition during load with the detour which sets up ImGui
-    /// and throws if our detour gets called before the other.
-    /// </summary>
-    internal bool NavEnableGamepad { get; set; }
-
     /// <inheritdoc/>
     public float Pressed(GamepadButtons button) => (this.ButtonsPressed & button) > 0 ? 1 : 0;
 
@@ -109,13 +123,13 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
-        this.Dispose(true);
-        GC.SuppressFinalize(this);
+        this.gamepadPollHook.Dispose();
     }
 
-    private nint GamepadPollDetour(PadDevice* gamepadInput)
+    private void PadDeviceUpdateDetour(PadDevice* gamepadInput)
     {
-        var original = this.gamepadPoll!.Original(gamepadInput);
+        this.gamepadPollHook.Original(gamepadInput);
+
         try
         {
             this.GamepadInputAddress = (nint)gamepadInput;
@@ -129,7 +143,7 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
             this.ButtonsReleased = (GamepadButtons)gamepadInput->GamepadInputData.ButtonsReleased;
             this.ButtonsRepeat = (GamepadButtons)gamepadInput->GamepadInputData.ButtonsRepeat;
 
-            if (this.NavEnableGamepad)
+            if (this.EnableGamepadNav)
             {
                 gamepadInput->GamepadInputData.LeftStickX = 0;
                 gamepadInput->GamepadInputData.LeftStickY = 0;
@@ -161,32 +175,14 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
                 gamepadInput->GamepadInputData.ButtonsPressed = 0;
                 gamepadInput->GamepadInputData.ButtonsReleased = 0;
                 gamepadInput->GamepadInputData.ButtonsRepeat = 0;
-                return 0;
             }
-
-            // NOTE (Chiv) Not so sure about the return value, does not seem to matter if we return the
-            // original, zero or do the work adjusting the bits.
-            return original;
         }
         catch (Exception e)
         {
-            Log.Error(e, "Unexpected error in GamepadPollDetour. Gamepad navigation will not work!");
+            Log.Error(e, "Unexpected error in PadDeviceUpdateDetour. Gamepad navigation will not work!");
 
             // NOTE (Chiv) Explicitly deactivate on error
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
-            return original;
         }
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (this.isDisposed) return;
-        if (disposing)
-        {
-            this.gamepadPoll?.Disable();
-            this.gamepadPoll?.Dispose();
-        }
-
-        this.isDisposed = true;
     }
 }

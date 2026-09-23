@@ -19,7 +19,7 @@ public interface INamePlateUpdateContext
     int ActiveNamePlateCount { get; }
 
     /// <summary>
-    /// Gets a value indicating whether the game is currently performing a full update of all active nameplates.
+    /// Gets a value indicating whether a forced re-draw is currently being performed.
     /// </summary>
     bool IsFullUpdate { get; }
 
@@ -68,9 +68,9 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
     public int ActiveNamePlateCount { get; private set; }
 
     /// <summary>
-    /// Gets a value indicating whether the game is currently performing a full update of all active nameplates.
+    /// Gets or sets a value indicating whether a forced re-draw is currently being performed.
     /// </summary>
-    public bool IsFullUpdate { get; private set; }
+    public bool IsFullUpdate { get; internal set; }
 
     /// <summary>
     /// Gets the address of the NamePlate addon.
@@ -136,9 +136,7 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
     /// Resets the state of the context based on the provided addon lifecycle arguments.
     /// </summary>
     /// <param name="addon">A pointer to the addon.</param>
-    /// <param name="numberArrayData">A pointer to the global number array data struct.</param>
-    /// <param name="stringArrayData">A pointer to the global string array data struct.</param>
-    public void ResetState(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
+    public void ResetState(AtkUnitBase* addon)
     {
         this.Addon = (AddonNamePlate*)addon;
         this.NumberData = AtkStage.Instance()->GetNumberArrayData(NumberArrayType.NamePlate);
@@ -147,6 +145,6 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
         this.HasParts = false;
 
         this.ActiveNamePlateCount = this.NumberStruct->ActiveNamePlateCount;
-        this.IsFullUpdate = this.Addon->DoFullUpdate != 0;
+        this.IsFullUpdate = false;
     }
 }
