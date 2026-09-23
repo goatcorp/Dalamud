@@ -24,13 +24,21 @@
     <Project Path="lib/FFXIVClientStructs/InteropGenerator/InteropGenerator.csproj" />
   </Folder>
   <Folder Name="/Dependencies/imgui/">
-    <Project Path="external/cimgui/cimgui.vcxproj" />
-    <Project Path="external/cimguizmo/cimguizmo.vcxproj" />
-    <Project Path="external/cimplot/cimplot.vcxproj" />
+    <Project Path="build/external/cimgui.vcxproj" />
+    <Project Path="build/external/cimguizmo.vcxproj" />
+    <Project Path="build/external/cimplot.vcxproj" />
   </Folder>
   <Folder Name="/Dependencies/Lumina/">
     <Project Path="lib/Lumina.Excel/src/Lumina.Excel.Generator/Lumina.Excel.Generator.csproj" />
     <Project Path="lib/Lumina.Excel/src/Lumina.Excel/Lumina.Excel.csproj" />
+  </Folder>
+  <Folder Name="/CMake/">
+    <File Path="CMakeLists.txt" />
+    <File Path="CMakePresets.json" />
+    <File Path="build.cmd" />
+    <File Path="generate.cmd" />
+    <File Path="tools/find-cmake.cmd" />
+    <Project Path="build/ZERO_CHECK.vcxproj" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
@@ -54,10 +62,7 @@
       <Platform Project="x64" />
     </Project>
   </Folder>
-  <Project Path="build/build.csproj">
-    <Platform Project="x64" />
-  </Project>
-  <Project Path="Dalamud.Boot/Dalamud.Boot.vcxproj" />
+  <Project Path="build/Dalamud.Boot/Dalamud.Boot.vcxproj" />
   <Project Path="Dalamud.Common/Dalamud.Common.csproj">
     <Platform Project="x64" />
   </Project>
@@ -68,10 +73,10 @@
     <Platform Project="x64" />
   </Project>
   <Project Path="Dalamud/Dalamud.csproj">
-    <BuildDependency Project="external/cimgui/cimgui.vcxproj" />
-    <BuildDependency Project="external/cimguizmo/cimguizmo.vcxproj" />
-    <BuildDependency Project="external/cimplot/cimplot.vcxproj" />
+    <BuildDependency Project="build/external/cimgui.vcxproj" />
+    <BuildDependency Project="build/external/cimguizmo.vcxproj" />
+    <BuildDependency Project="build/external/cimplot.vcxproj" />
     <Platform Project="x64" />
   </Project>
-  <Project Path="DalamudCrashHandler/DalamudCrashHandler.vcxproj" />
+  <Project Path="build/DalamudCrashHandler/DalamudCrashHandler.vcxproj" />
 </Solution>
