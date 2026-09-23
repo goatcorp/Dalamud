@@ -1238,9 +1238,9 @@ internal class DalamudInterface : IInternalDisposableService
                     ImGui.PushFont(InterfaceManager.MonoFont);
 
                     ImGui.BeginMenu($"{Versioning.GetActiveTrack() ?? "???"} on {Versioning.GetGitBranch() ?? "???"}", false);
-                    ImGui.BeginMenu($"{Versioning.GetScmVersion()}", false);
-                    ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
-                    ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
+                    ImGui.BeginMenu(Versioning.GetScmVersion(), false);
+                    ImGui.BeginMenu(this.FrameCount.ToString("000000", CultureInfo.InvariantCulture), false);
+                    ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000", CultureInfo.InvariantCulture), false);
                     ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
 
                     var videoMem = this.interfaceManager.GetD3dMemoryInfo();
