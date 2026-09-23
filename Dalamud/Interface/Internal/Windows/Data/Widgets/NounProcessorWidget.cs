@@ -4,6 +4,7 @@ using System.Text;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Common;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Text.Noun;
 using Dalamud.Game.Text.Noun.Enums;
@@ -11,7 +12,6 @@ using Dalamud.Interface.Utility.Raii;
 
 using Lumina.Data;
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

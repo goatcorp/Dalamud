@@ -1,4 +1,5 @@
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.IoC;
@@ -11,7 +12,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Network;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.DutyState;
 

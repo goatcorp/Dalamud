@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Gui;
@@ -23,7 +24,6 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 using Action = System.Action;
 using CSUIState = FFXIVClientStructs.FFXIV.Client.Game.UI.UIState;

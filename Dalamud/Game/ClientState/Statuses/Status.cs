@@ -8,6 +8,7 @@ using Dalamud.Utility;
 using Lumina.Excel;
 
 using CSStatus = FFXIVClientStructs.FFXIV.Client.Game.Status;
+using StatusSheet = Dalamud.Excel.Sheets.Status;
 
 namespace Dalamud.Game.ClientState.Statuses;
 
@@ -29,7 +30,7 @@ public interface IStatus : IEquatable<IStatus>
     /// <summary>
     /// Gets the GameData associated with this status.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.Status> GameData { get; }
+    RowRef<StatusSheet> GameData { get; }
 
     /// <summary>
     /// Gets the parameter value of the status.
@@ -68,7 +69,7 @@ internal readonly unsafe struct Status(nint address) : IStatus
     public uint StatusId => this.Struct->StatusId;
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.Status> GameData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Status>(this.Struct->StatusId);
+    public RowRef<StatusSheet> GameData => LuminaUtils.CreateRef<StatusSheet>(this.Struct->StatusId);
 
     /// <inheritdoc/>
     public ushort Param => this.Struct->Param;

@@ -1,6 +1,5 @@
+using Dalamud.Excel.Sheets;
 using Dalamud.Plugin.Services;
-
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Gui.PartyFinder.Types;
 
