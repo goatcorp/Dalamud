@@ -24,7 +24,8 @@ public interface IAgentLifecycle : IDalamudService
     /// <param name="eventType">Event type to trigger on.</param>
     /// <param name="agentIds">Agent IDs that will trigger the handler to be invoked.</param>
     /// <param name="handler">The handler to invoke.</param>
-    void RegisterListener(AgentEvent eventType, IEnumerable<AgentId> agentIds, AgentEventDelegate handler);
+    /// <returns>An <see cref="IDisposable"/> that automatically unregisters the listener when disposed.</returns>
+    IDisposable RegisterListener(AgentEvent eventType, IEnumerable<AgentId> agentIds, AgentEventDelegate handler);
 
     /// <summary>
     /// Register a listener that will trigger on the specified event only for the specified agent.
@@ -32,14 +33,16 @@ public interface IAgentLifecycle : IDalamudService
     /// <param name="eventType">Event type to trigger on.</param>
     /// <param name="agentId">The agent ID that will trigger the handler to be invoked.</param>
     /// <param name="handler">The handler to invoke.</param>
-    void RegisterListener(AgentEvent eventType, AgentId agentId, AgentEventDelegate handler);
+    /// <returns>An <see cref="IDisposable"/> that automatically unregisters the listener when disposed.</returns>
+    IDisposable RegisterListener(AgentEvent eventType, AgentId agentId, AgentEventDelegate handler);
 
     /// <summary>
     /// Register a listener that will trigger on the specified event for any agent.
     /// </summary>
     /// <param name="eventType">Event type to trigger on.</param>
     /// <param name="handler">The handler to invoke.</param>
-    void RegisterListener(AgentEvent eventType, AgentEventDelegate handler);
+    /// <returns>An <see cref="IDisposable"/> that automatically unregisters the listener when disposed.</returns>
+    IDisposable RegisterListener(AgentEvent eventType, AgentEventDelegate handler);
 
     /// <summary>
     /// Unregister listener from specified event type and specified agent IDs.

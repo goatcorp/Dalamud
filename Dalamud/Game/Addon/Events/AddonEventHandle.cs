@@ -3,7 +3,7 @@ namespace Dalamud.Game.Addon.Events;
 /// <summary>
 /// Class that represents a addon event handle.
 /// </summary>
-public class AddonEventHandle : IAddonEventHandle
+internal class AddonEventHandle : IAddonEventHandle
 {
     /// <inheritdoc/>
     public uint ParamKey { get; init; }
@@ -16,4 +16,15 @@ public class AddonEventHandle : IAddonEventHandle
 
     /// <inheritdoc/>
     public Guid EventGuid { get; init; }
+
+    /// <summary>
+    /// Gets the EventController this handle is registered in.
+    /// </summary>
+    internal PluginEventController EventController { get; init; }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.EventController.RemoveEvent(this);
+    }
 }

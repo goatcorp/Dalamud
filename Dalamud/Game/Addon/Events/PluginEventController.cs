@@ -47,6 +47,7 @@ internal unsafe class PluginEventController : IDisposable
 
         var eventHandle = new AddonEventHandle
         {
+            EventController = this,
             AddonName = addon->NameString,
             ParamKey = eventId,
             EventType = atkEventType,

@@ -24,7 +24,8 @@ public interface IAddonLifecycle : IDalamudService
     /// <param name="eventType">Event type to trigger on.</param>
     /// <param name="addonNames">Addon names that will trigger the handler to be invoked.</param>
     /// <param name="handler">The handler to invoke.</param>
-    void RegisterListener(AddonEvent eventType, IEnumerable<string> addonNames, AddonEventDelegate handler);
+    /// <returns>An <see cref="IDisposable"/> that automatically unregisters the listener when disposed.</returns>
+    IDisposable RegisterListener(AddonEvent eventType, IEnumerable<string> addonNames, AddonEventDelegate handler);
 
     /// <summary>
     /// Register a listener that will trigger on the specified event only for the specified addon.
@@ -32,14 +33,16 @@ public interface IAddonLifecycle : IDalamudService
     /// <param name="eventType">Event type to trigger on.</param>
     /// <param name="addonName">The addon name that will trigger the handler to be invoked.</param>
     /// <param name="handler">The handler to invoke.</param>
-    void RegisterListener(AddonEvent eventType, string addonName, AddonEventDelegate handler);
+    /// <returns>An <see cref="IDisposable"/> that automatically unregisters the listener when disposed.</returns>
+    IDisposable RegisterListener(AddonEvent eventType, string addonName, AddonEventDelegate handler);
 
     /// <summary>
     /// Register a listener that will trigger on the specified event for any addon.
     /// </summary>
     /// <param name="eventType">Event type to trigger on.</param>
     /// <param name="handler">The handler to invoke.</param>
-    void RegisterListener(AddonEvent eventType, AddonEventDelegate handler);
+    /// <returns>An <see cref="IDisposable"/> that automatically unregisters the listener when disposed.</returns>
+    IDisposable RegisterListener(AddonEvent eventType, AddonEventDelegate handler);
 
     /// <summary>
     /// Unregister listener from specified event type and specified addon names.
