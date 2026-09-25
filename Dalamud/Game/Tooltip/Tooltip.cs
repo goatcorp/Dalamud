@@ -79,23 +79,23 @@ internal class Tooltip : IInternalDisposableService
     /// </summary>
     /// <param name="requestedUpdateArgs">Arg data.</param>
     /// <returns>True if the addon is requesting a layout rebuild.</returns>
-    private static unsafe bool IsItemDetailRebuildingLayout(AddonRequestedUpdateArgs requestedUpdateArgs)
+    private static unsafe bool ShouldSkipUpdate(AddonRequestedUpdateArgs requestedUpdateArgs)
     {
         var numberArrays = (NumberArrayData**)requestedUpdateArgs.NumberArrayData;
         if (numberArrays == null)
         {
-            return false;
+            return true;
         }
 
         var itemDetailNumberArray = numberArrays[(int)NumberArrayType.ItemDetail];
         if (itemDetailNumberArray == null)
         {
-            return false;
+            return true;
         }
 
         if (itemDetailNumberArray->IntArray[0] is 0)
         {
-            return false; // An item has not been populated, so the addon is setting up for the first time.
+            return true; // An item has not been populated, so the addon is setting up for the first time.
         }
 
         // IntArray index 3 represents a dirty or is rebuilding flag that the game checks
@@ -112,7 +112,7 @@ internal class Tooltip : IInternalDisposableService
             return; // Shouldn't be possible.
         }
 
-        if (IsItemDetailRebuildingLayout(requestedUpdateArgs))
+        if (ShouldSkipUpdate(requestedUpdateArgs))
         {
             return; // This update isn't part of a tooltip rebuild, we should ignore it.
         }
@@ -186,7 +186,7 @@ internal class Tooltip : IInternalDisposableService
             return;
         }
 
-        if (IsItemDetailRebuildingLayout(requestedUpdateArgs))
+        if (ShouldSkipUpdate(requestedUpdateArgs))
         {
             return; // This update isn't part of a tooltip rebuild, we should ignore it.
         }
@@ -343,6 +343,15 @@ internal class TooltipPluginScoped : IInternalDisposableService, ITooltip
                     registeredListeners.Remove(listener);
                 }
             }
+        }
+    }
+
+    /// <inheritdoc/>
+    public void UnregisterListener(params ITooltip.TooltipChanged[] delegates)
+    {
+        foreach (var listener in delegates)
+        {
+            this.UnregisterListener(listener);
         }
     }
 }
