@@ -44,4 +44,10 @@ public interface ITooltip : IDalamudService
     /// </summary>
     /// <param name="tooltipChangedDelegate">Delegate to unregister.</param>
     void UnregisterListener(TooltipChanged tooltipChangedDelegate);
+
+    /// <summary>
+    /// Unregisters multiple delegates from all listeners.
+    /// </summary>
+    /// <param name="delegates">Delegates to unregister.</param>
+    void UnregisterListener(params TooltipChanged[] delegates);
 }
