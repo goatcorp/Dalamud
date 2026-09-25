@@ -303,6 +303,27 @@ public unsafe class ItemTooltipArgs : TooltipArgs
     public StringArrayHelper BonusesValueStrings => new(this.StringArrayData, 37, 6);
 
     /// <summary>
+    /// Gets or sets a region specific label, "Crucible Effect:" "Occult Crescent Set Bonus: yadayada".
+    /// </summary>
+    public ReadOnlySeString RegionEffectLabel
+    {
+        get => this.StringArrayData->Span[45].AsReadOnlySeString();
+        set
+        {
+            using var stringBuilder = new RentedSeStringBuilder();
+            this.StringArrayData->SetValue(45, stringBuilder.Builder.Append(value).GetViewAsSpan(), suppressUpdates: true);
+        }
+    }
+
+    /// <summary>
+    /// Gets an array indexable regional stat bonuse strings object.
+    /// </summary>
+    /// <remarks>
+    /// Starts at string array index 46, and can hold up to 6 values.
+    /// </remarks>
+    public StringArrayHelper RegionBonusStrings => new(this.StringArrayData, 46, 6);
+
+    /// <summary>
     /// Gets or sets the materia label string.
     /// </summary>
     public ReadOnlySeString MaterialLabelString
