@@ -38,12 +38,12 @@ public class TextOptions
     public FontType FontType { get; set; } = FontType.Axis;
 
     /// <summary>
-    /// Gets or sets the text flags.
+    /// Gets or sets the text flags. Defaults to WordWrap + MultiLine.
     /// </summary>
     /// <remarks>
     /// This is things like italics, multi-line, ellipsis.
     /// </remarks>
-    public TextFlags TextFlags { get; set; } = TextFlags.None;
+    public TextFlags TextFlags { get; set; } = TextFlags.WordWrap | TextFlags.MultiLine;
 
     /// <summary>
     /// Gets or sets the text size.
