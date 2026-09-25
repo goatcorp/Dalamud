@@ -194,6 +194,74 @@ public unsafe class ItemTooltipArgs : TooltipArgs
     }
 
     /// <summary>
+    /// Gets or sets the ceremony type label, "Anniversary" "Invitation".
+    /// </summary>
+    public ReadOnlySeString CeremonyLabelString
+    {
+        get => this.StringArrayData->Span[17].AsReadOnlySeString();
+        set
+        {
+            using var stringBuilder = new RentedSeStringBuilder();
+            this.StringArrayData->SetValue(17, stringBuilder.Builder.Append(value).GetViewAsSpan(), suppressUpdates: true);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the ceremony date label string.
+    /// </summary>
+    /// <remarks>
+    /// This does not include the actual date string, this is just the label.
+    /// </remarks>
+    public ReadOnlySeString CeremonyDateLabelString
+    {
+        get => this.StringArrayData->Span[18].AsReadOnlySeString();
+        set
+        {
+            using var stringBuilder = new RentedSeStringBuilder();
+            this.StringArrayData->SetValue(18, stringBuilder.Builder.Append(value).GetViewAsSpan(), suppressUpdates: true);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the ceremony date string.
+    /// </summary>
+    public ReadOnlySeString CeremonyDateString
+    {
+        get => this.StringArrayData->Span[19].AsReadOnlySeString();
+        set
+        {
+            using var stringBuilder = new RentedSeStringBuilder();
+            this.StringArrayData->SetValue(19, stringBuilder.Builder.Append(value).GetViewAsSpan(), suppressUpdates: true);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the copies label string.
+    /// </summary>
+    public ReadOnlySeString CopiesLabelString
+    {
+        get => this.StringArrayData->Span[20].AsReadOnlySeString();
+        set
+        {
+            using var stringBuilder = new RentedSeStringBuilder();
+            this.StringArrayData->SetValue(20, stringBuilder.Builder.Append(value).GetViewAsSpan(), suppressUpdates: true);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the copies amount string.
+    /// </summary>
+    public ReadOnlySeString CopiesString
+    {
+        get => this.StringArrayData->Span[21].AsReadOnlySeString();
+        set
+        {
+            using var stringBuilder = new RentedSeStringBuilder();
+            this.StringArrayData->SetValue(21, stringBuilder.Builder.Append(value).GetViewAsSpan(), suppressUpdates: true);
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the ClassJobCategory string.
     /// </summary>
     public ReadOnlySeString ClassJobCategoryString
