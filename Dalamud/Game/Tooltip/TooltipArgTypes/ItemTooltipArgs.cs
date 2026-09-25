@@ -1,11 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 
+using Dalamud.Data;
 using Dalamud.Game.NativeWrapper;
 using Dalamud.Game.Tooltip.Classes;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Tooltip.TooltipArgTypes;
@@ -31,7 +35,46 @@ public unsafe class ItemTooltipArgs : TooltipArgs
     /// <summary>
     /// Gets the itemId for this tooltip.
     /// </summary>
-    public uint ItemId => AgentItemDetail.Instance()->ItemId;
+    public uint ItemId
+        => AgentItemDetail.Instance()->ItemId;
+
+    /// <summary>
+    /// Gets the item kind for this item, either Item or EventItem typically.
+    /// </summary>
+    public ItemKind ItemKind
+        => ItemUtil.GetBaseId(this.ItemId).Kind;
+
+    /// <summary>
+    /// Gets a value indicating whether this tooltip args is for a regular item, and not an event item.
+    /// </summary>
+    public bool IsItem
+        => this.ItemKind is ItemKind.Collectible or ItemKind.Normal or ItemKind.Hq;
+
+    /// <summary>
+    /// Gets a value indicating whether this tooltip args is for a event item, and not a regular item.
+    /// </summary>
+    public bool IsEventItem
+        => this.ItemKind is ItemKind.EventItem;
+
+    /// <summary>
+    /// Gets a generic RowRef to the item data.
+    /// </summary>
+    public RowRef ItemReference =>
+        this.ItemKind is ItemKind.EventItem
+            ? (RowRef)LuminaUtils.CreateRef<EventItem>(this.ItemId)
+            : (RowRef)LuminaUtils.CreateRef<Item>(this.ItemId);
+
+    /// <summary>
+    /// Gets the item data when <see cref="IsItem"/> is true.
+    /// </summary>
+    public Item? Item
+        => this.ItemReference.TryGetValue(out Item item) ? item : null;
+
+    /// <summary>
+    /// Gets the event item data when <see cref="IsEventItem"/> is true.
+    /// </summary>
+    public EventItem? EventItem
+        => this.ItemReference.TryGetValue(out EventItem eventItem) ? eventItem : null;
 
     /// <summary>
     /// Gets or sets the icon id.
@@ -43,7 +86,7 @@ public unsafe class ItemTooltipArgs : TooltipArgs
         {
             if (value is 0)
             {
-                // Throw to prevent setting to zero, as we check IconId to detemine if the RequestedUpdate is non-fist-init.
+                // Throw to prevent setting to zero, as we check IconId to determine if the RequestedUpdate is non-fist-init.
                 throw new IndexOutOfRangeException("Setting IconId to Zero is invalid");
             }
 
