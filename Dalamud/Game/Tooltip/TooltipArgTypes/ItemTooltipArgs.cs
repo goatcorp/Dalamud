@@ -1,3 +1,7 @@
+using System.Collections;
+using System.Collections.Generic;
+
+using Dalamud.Game.NativeWrapper;
 using Dalamud.Game.Tooltip.Classes;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -20,6 +24,11 @@ public unsafe class ItemTooltipArgs : TooltipArgs
     public override TooltipType Type => TooltipType.Item;
 
     /// <summary>
+    /// Gets a pointer to the addon that triggered these args.
+    /// </summary>
+    public required AtkUnitBasePtr AddonPointer { get; init; }
+
+    /// <summary>
     /// Gets the itemId for this tooltip.
     /// </summary>
     public uint ItemId => AgentItemDetail.Instance()->ItemId;
@@ -30,7 +39,16 @@ public unsafe class ItemTooltipArgs : TooltipArgs
     public uint IconId
     {
         get => (uint)this.NumberArrayData->Span[0];
-        set => this.NumberArrayData->SetValue(0, (int)value, suppressUpdates: true);
+        set
+        {
+            if (value is 0)
+            {
+                // Throw to prevent setting to zero, as we check IconId to detemine if the RequestedUpdate is non-fist-init.
+                throw new IndexOutOfRangeException("Setting IconId to Zero is invalid");
+            }
+
+            this.NumberArrayData->SetValue(0, (int)value, suppressUpdates: true);
+        }
     }
 
     /// <summary>
@@ -408,7 +426,7 @@ public unsafe class ItemTooltipArgs : TooltipArgs
 /// <summary>
 /// Generic string array helper to access strings at a certain range.
 /// </summary>
-public unsafe class StringArrayHelper(StringArrayData* stringArrayData, int startIndex, int size)
+public unsafe class StringArrayHelper(StringArrayData* stringArrayData, int startIndex, int size) : IEnumerable<ReadOnlySeString>
 {
     /// <summary>
     /// Gets the number of elements this helper is for.
@@ -443,4 +461,16 @@ public unsafe class StringArrayHelper(StringArrayData* stringArrayData, int star
             stringArrayData->SetValue(startIndex + index, stringBuilder.Builder.Append(value).GetViewAsSpan(), suppressUpdates: true);
         }
     }
+
+    /// <inheritdoc/>
+    public IEnumerator<ReadOnlySeString> GetEnumerator()
+    {
+        for (var i = 0; i < this.Length; i++)
+        {
+            yield return this[i];
+        }
+    }
+
+    /// <inheritdoc/>
+    IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 }

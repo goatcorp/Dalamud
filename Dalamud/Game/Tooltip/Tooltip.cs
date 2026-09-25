@@ -133,6 +133,7 @@ internal class Tooltip : IInternalDisposableService
         {
             var newTooltipData = new ItemTooltipArgs
             {
+                AddonPointer = args.Addon,
                 NumberArrayDataPointer = (NumberArrayData**)requestedUpdateArgs.NumberArrayData,
                 StringArrayDataRoot = (StringArrayData**)requestedUpdateArgs.StringArrayData,
                 SourcePluginName = listener.SourcePluginName,
