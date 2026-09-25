@@ -34,7 +34,7 @@ internal unsafe partial class NativeAddon
     /// <summary>
     /// Gets a pointer to the contained addon. This is also accessible via <see cref="op_Implicit"/>.
     /// </summary>
-    protected internal AtkUnitBase* InternalAddon { get; private set; }
+    protected AtkUnitBase* InternalAddon { get; private set; }
 
     /// <summary>
     /// Gets the Window node for this NativeAddon. May be null if <see cref="CreateWindowNode"/> returns a null windowNode.
