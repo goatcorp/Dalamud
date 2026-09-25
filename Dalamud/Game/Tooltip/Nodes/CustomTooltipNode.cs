@@ -102,6 +102,18 @@ internal class CustomTooltipNode : ResNode
 
                 this.contentsNode.AddNode(newImageNode);
                 break;
+
+            case IconTooltipEntry { IconId: var iconId, Options: { } iconOptions, Size: var size }:
+                var newIconNode = new IconImageNode
+                {
+                    IconId = iconId,
+                    FitTexture = true,
+                    Size = size,
+                    Color = iconOptions.Color,
+                };
+
+                this.contentsNode.AddNode(newIconNode);
+                break;
         }
 
         this.Size = new Vector2(376.0f, this.contentsNode.Height + 18.0f);

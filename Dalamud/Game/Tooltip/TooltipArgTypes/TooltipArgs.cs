@@ -75,6 +75,24 @@ public abstract class TooltipArgs
         });
 
     /// <summary>
+    /// Adds an image to the tooltip.
+    /// </summary>
+    /// <param name="iconId">IconId to show.</param>
+    /// <remarks>
+    /// When providing image size, maximum width is 342px. The loaded texture will be fitted to the image node.
+    /// </remarks>
+    /// <param name="imageSize">Sets the image size used to display.</param>
+    /// <param name="options">Image styling options to use.</param>
+    public void AddIconImage(uint iconId, Vector2 imageSize, ImageOptions? options = null)
+        => this.TooltipEntries.Add(
+        new IconTooltipEntry
+        {
+            IconId = iconId,
+            Options = options ?? new ImageOptions(),
+            Size = imageSize,
+        });
+
+    /// <summary>
     /// Builds the actual tooltip node for this entry, with size computed and everything.
     /// </summary>
     /// <returns>Null if this args object doesn't want its own node. Otherwise, a constructed node.</returns>
