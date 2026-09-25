@@ -368,7 +368,7 @@ public unsafe class ItemTooltipArgs : TooltipArgs
     /// <remarks>
     /// Starts at string array index 58, and can hold up to 5 values.
     /// </remarks>
-    public StringArrayHelper MaterialBonusesStrings => new(this.StringArrayData, 58, 5);
+    public StringArrayHelper MateriaBonusesStrings => new(this.StringArrayData, 58, 5);
 
     /// <summary>
     /// Gets or sets the shop selling price string.
