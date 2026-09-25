@@ -147,8 +147,10 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     /// Unregisters the listener from events.
     /// </summary>
     /// <param name="listener">The listener to unregister.</param>
-    internal void UnregisterListener(AgentLifecycleEventListener listener)
+    internal void UnregisterListener(AgentLifecycleEventListener? listener)
     {
+        if (listener is null) return;
+
         listener.IsRequestedToClear = true;
 
         if (this.isInvokingListeners)
