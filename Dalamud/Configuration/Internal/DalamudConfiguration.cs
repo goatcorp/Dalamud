@@ -19,6 +19,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.NativeUi.Classes;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Profiles;
+using Dalamud.Plugin.Services;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Newtonsoft.Json;
@@ -541,6 +542,16 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets addon config entries, used to determine where a custom native window will open at.
     /// </summary>
     public Dictionary<string, AddonConfig> AddonConfigEntries { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets a orderd list of plugin entries for <see cref="ITooltip"/> service.
+    /// </summary>
+    public List<string> TooltipOrder { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets a list plugins that the user has disabled custom tooltips for.
+    /// </summary>
+    public List<string> TooltipIgnore { get; set; } = [];
 
     /// <summary>
     /// Load a configuration from the provided path.

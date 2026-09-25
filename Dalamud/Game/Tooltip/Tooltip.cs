@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.Tooltip.Classes;
@@ -30,6 +31,9 @@ internal class Tooltip : IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
+
     private readonly AddonLifecycleEventListener preRequestedUpdateListener;
     private readonly AddonLifecycleEventListener postRequestedUpdateListener;
 
@@ -40,9 +44,6 @@ internal class Tooltip : IInternalDisposableService
     /// </summary>
     private readonly Dictionary<TooltipType, List<PluginTooltipInfo>> newTooltipNodes = [];
     private readonly List<NodeBase> attachedNodes = [];
-
-    // Temporary value used to make the game resize the tooltip addon for us, and then we reset it after.
-    private ushort heightChange;
 
     [ServiceManager.ServiceConstructor]
     private Tooltip()
@@ -117,13 +118,13 @@ internal class Tooltip : IInternalDisposableService
             return; // This update isn't part of a tooltip rebuild, we should ignore it.
         }
 
-        // Remove any left-over nodes, we are about to rebuild the tooltip as-well.
+        // Remove any left-over nodes, we are about to completely rebuild the tooltip including new nodes.
         foreach (var node in this.attachedNodes)
         {
             node.Dispose();
         }
 
-        this.heightChange = 0;
+        var heightChange = 0;
 
         // If there are no listeners defined, we still need to populate the dictionary key.
         this.EventListeners.TryAdd(TooltipType.Item, []);
@@ -131,6 +132,21 @@ internal class Tooltip : IInternalDisposableService
         // For each listener, build that listeners args object, call
         foreach (var listener in this.EventListeners[TooltipType.Item])
         {
+            var sourcePluginNameString = listener.SourcePluginName.ToString();
+
+            // If ignored don't allow any modifications from this plugin.
+            if (this.dalamudConfiguration.TooltipIgnore.Contains(sourcePluginNameString))
+            {
+                continue;
+            }
+
+            // If dalamud configuration has never seen a tooltip from this plugin before, add it.
+            if (this.dalamudConfiguration.TooltipOrder.All(entry => entry != sourcePluginNameString))
+            {
+                this.dalamudConfiguration.TooltipOrder.Add(sourcePluginNameString);
+            }
+
+            // Generate a new tooltip entry for each listener, they will edit it, and may set custom ui elements.
             var newTooltipData = new ItemTooltipArgs
             {
                 AddonPointer = args.Addon,
@@ -139,6 +155,7 @@ internal class Tooltip : IInternalDisposableService
                 SourcePluginName = listener.SourcePluginName,
             };
 
+            // Catch exceptions in case someone does a silly and throws an exception in their handler.
             try
             {
                 listener.ListenerDelegate(TooltipType.Item, newTooltipData);
@@ -155,10 +172,7 @@ internal class Tooltip : IInternalDisposableService
             {
                 // Due to game limitation, the backing panel for the tooltip is limited to a min height of 96px.
                 // If plugins want smaller tooltips, they should edit the native tooltip itself instead.
-                if (builtNode.Height < 96.0f)
-                {
-                    builtNode.Height = 96.0f;
-                }
+                builtNode.Height = MathF.Max(builtNode.Height, 96.0f);
 
                 var tooltipNodeInfo = new PluginTooltipInfo
                 {
@@ -166,7 +180,7 @@ internal class Tooltip : IInternalDisposableService
                     TooltipNode = builtNode,
                 };
 
-                this.heightChange += (ushort)tooltipNodeInfo.TooltipNode.Height;
+                heightChange += (ushort)(tooltipNodeInfo.TooltipNode.Height - 4);
 
                 this.newTooltipNodes.TryAdd(TooltipType.Item, []);
                 this.newTooltipNodes[TooltipType.Item].Add(tooltipNodeInfo);
@@ -176,9 +190,11 @@ internal class Tooltip : IInternalDisposableService
         // Offset 0x390 seems to be a value used to calculate a fixed additional offset used for the text NineGrid that shows below the tooltip.
         // We can manipulate this to make the game think the tooltip is bigger than it actually is to resize and fit out custom nodes.
         // Game uses a default value of -14, we add another -4 to squish our nodes together a little.
-        Marshal.WriteInt16(args.Addon.Address, 0x390, (short)(this.heightChange - 14 - 4));
+        Marshal.WriteInt16(args.Addon.Address, 0x390, (short)(heightChange - 14));
     }
 
+    // We have to do this stuff after the game has processed RequestedUpdate, because by now the game has resized
+    // and repositioned everything that we care about, in the Pre-RequestedUpdate nothing was sized or positioned yet.
     private unsafe void OnItemDetailPostRequestedUpdate(AddonEvent type, AddonArgs args)
     {
         if (args is not AddonRequestedUpdateArgs requestedUpdateArgs)
@@ -198,8 +214,20 @@ internal class Tooltip : IInternalDisposableService
         // If there are no listeners defined, we still need to populate the dictionary key.
         this.newTooltipNodes.TryAdd(TooltipType.Item, []);
 
-        // todo: Also do the dalamud config to enable/disable ? And Ordering.
-        foreach (var tooltipEntry in this.newTooltipNodes[TooltipType.Item])
+        var itemTooltipEntries = this.newTooltipNodes[TooltipType.Item];
+
+        // Map the position in the list to an index
+        var orderingMap =
+            this.dalamudConfiguration
+                .TooltipOrder
+                .Select((name, index) => (name, index))
+                .ToDictionary(entry => entry.name, entry => entry.index, StringComparer.OrdinalIgnoreCase);
+
+        // Use those indexes to add the tooltip nodes in order.
+        var orderedTooltips = itemTooltipEntries
+            .OrderBy(entry => orderingMap.GetValueOrDefault(entry.SourcePluginName.ToString(), int.MaxValue));
+
+        foreach (var tooltipEntry in orderedTooltips)
         {
             var tooltipNode = tooltipEntry.TooltipNode;
 
