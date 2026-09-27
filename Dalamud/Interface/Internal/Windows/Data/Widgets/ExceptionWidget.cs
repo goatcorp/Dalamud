@@ -54,8 +54,16 @@ public class ExceptionWidget : IDataWindowWidget
             return;
         }
 
+        using var table = ImRaii.Table("##SectionTable", 2, ImGuiTableFlags.Resizable, outerSize: ImGui.GetContentRegionAvail());
+        if (!table) return;
+
+        ImGui.TableSetupColumn("##ListBoxColumn", ImGuiTableColumnFlags.WidthStretch, 3);
+        ImGui.TableSetupColumn("##ExceptionColumn", ImGuiTableColumnFlags.WidthStretch, 11);
+
+        ImGui.TableNextColumn();
         this.DrawExceptionSelectList();
-        ImGui.SameLine();
+
+        ImGui.TableNextColumn();
         this.DrawExceptionInformation();
     }
 
@@ -89,8 +97,7 @@ public class ExceptionWidget : IDataWindowWidget
             return;
         }
 
-        var listBoxSize = new Vector2(ImGui.GetContentRegionAvail().X * (2.0f / 8.0f), ImGui.GetContentRegionAvail().Y);
-        using var listBox = ImRaii.ListBox("##ExceptionSelectList", listBoxSize);
+        using var listBox = ImRaii.ListBox("##ExceptionSelectList", ImGui.GetContentRegionAvail() - new Vector2(0.0f, ImGui.GetStyle().FramePadding.Y));
         if (!listBox) return;
 
         if (!ScopedPluginLogService.PluginExceptionEntries.TryGetValue(this.selectedPlugin, out var exceptions))
@@ -113,21 +120,24 @@ public class ExceptionWidget : IDataWindowWidget
 
             ImGui.SetCursorPosY(cursorPosition);
             ImGui.Text(exceptionTypeName);
-            ImGui.Text(exceptionTimeString);
+            ImGui.TextColored(KnownColor.Gray.Vector(), exceptionTimeString);
         }
     }
 
     private void DrawExceptionInformation()
     {
+        using var frameChild = ImRaii.Child("ExceptionFrame", ImGui.GetContentRegionAvail() - new Vector2(0.0f, ImGui.GetStyle().FramePadding.Y));
+        if (!frameChild) return;
+
         if (this.selectedException is null)
         {
-            ImGuiHelpers.CenteredText("Select an Exception on the left");
+            const string labelText = "Select an Exception on the left";
+            var textSize = ImGui.CalcTextSize(labelText);
+
+            ImGui.SetCursorPos((ImGui.GetContentRegionAvail() / 2.0f) - (textSize / 2.0f));
+            ImGui.Text(labelText);
             return;
         }
-
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (5.0f * ImGuiHelpers.GlobalScale));
-        using var frameChild = ImRaii.Child("ExceptionFrame", ImGui.GetContentRegionAvail());
-        if (!frameChild) return;
 
         ImGui.AlignTextToFramePadding();
         ImGui.Text(this.selectedException.Exception.Message);
