@@ -98,7 +98,7 @@ public class ExceptionWidget : IDataWindowWidget
             return;
         }
 
-        foreach (var (index, exceptionEntry) in exceptions.Index().Reverse().Take(50))
+        foreach (var (index, exceptionEntry) in exceptions.Index().Reverse())
         {
             var exceptionTypeName = exceptionEntry.Exception.GetType().Name;
             var exceptionTimeString = exceptionEntry.Timestamp.ToLocalTime().ToString("G");
