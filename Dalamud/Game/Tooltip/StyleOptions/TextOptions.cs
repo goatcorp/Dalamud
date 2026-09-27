@@ -1,5 +1,4 @@
 using Dalamud.Game.Tooltip.TooltipArgTypes;
-using Dalamud.NativeUi;
 using Dalamud.NativeUi.Classes;
 using Dalamud.NativeUi.Nodes;
 
