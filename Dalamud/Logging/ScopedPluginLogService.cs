@@ -21,7 +21,7 @@ namespace Dalamud.Logging;
 #pragma warning disable SA1015
 [ResolveVia<IPluginLog>]
 #pragma warning restore SA1015
-internal class ScopedPluginLogService : IServiceType, IPluginLog
+internal class ScopedPluginLogService : IPluginLog, IInternalDisposableService
 {
     private readonly LocalPlugin localPlugin;
     private readonly PluginErrorHandler errorHandler;
@@ -61,7 +61,13 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
     /// <summary>
     /// Gets a Dictionary of exceptions grouped by plugin source. For use with <see cref="ExceptionWidget"/>.
     /// </summary>
-    internal static ConcurrentDictionary<LocalPlugin, ConcurrentBag<Exception>> PluginExceptionEntries { get; private set; } = [];
+    internal static ConcurrentDictionary<LocalPlugin, ConcurrentBag<PluginExceptionEntry>> PluginExceptionEntries { get; private set; } = [];
+
+    /// <inheritdoc />
+    public void DisposeService()
+    {
+        PluginExceptionEntries.TryRemove(this.localPlugin, out _);
+    }
 
     /// <inheritdoc />
     public void Fatal(string messageTemplate, params object[] values) =>
@@ -127,7 +133,9 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
 
         if (exception is not null)
         {
-            PluginExceptionEntries.GetOrAdd(this.localPlugin, _ => []).Add(exception);
+            PluginExceptionEntries
+                .GetOrAdd(this.localPlugin, _ => [])
+                .Add(new PluginExceptionEntry(exception, DateTime.UtcNow));
         }
 
         this.Logger.Write(
@@ -148,3 +156,8 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
         return this.localPlugin.IsDev ? LogEventLevel.Verbose : LogEventLevel.Debug;
     }
 }
+
+/// <summary>
+/// Record for exception entries to record additional information for use in <see cref="ExceptionWidget"/>.
+/// </summary>
+internal record PluginExceptionEntry(Exception Exception, DateTime Timestamp);

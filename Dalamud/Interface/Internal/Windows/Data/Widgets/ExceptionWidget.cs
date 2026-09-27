@@ -16,7 +16,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 public class ExceptionWidget : IDataWindowWidget
 {
     private LocalPlugin? selectedPlugin;
-    private Exception? selectedException;
+    private PluginExceptionEntry? selectedException;
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = ["exception", "ex", "error"];
@@ -36,6 +36,12 @@ public class ExceptionWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
+        if (this.selectedPlugin is { IsLoaded: false })
+        {
+            this.selectedPlugin = null;
+            this.selectedException = null;
+        }
+
         this.DrawPluginSelectCombo();
 
         if (this.selectedPlugin is null)
@@ -92,12 +98,22 @@ public class ExceptionWidget : IDataWindowWidget
             return;
         }
 
-        foreach (var (index, exception) in exceptions.Index().Reverse())
+        foreach (var (index, exceptionEntry) in exceptions.Index().Reverse().Take(50))
         {
-            if (ImGui.Selectable($"{exception.GetType().Name}##{index}", this.selectedException == exception))
+            var exceptionTypeName = exceptionEntry.Exception.GetType().Name;
+            var exceptionTimeString = exceptionEntry.Timestamp.ToLocalTime().ToString("G");
+
+            var entryHeight = ImGui.CalcTextSize(exceptionTypeName).Y + ImGui.CalcTextSize(exceptionTimeString).Y + ImGui.GetStyle().ItemSpacing.Y;
+
+            var cursorPosition = ImGui.GetCursorPosY();
+            if (ImGui.Selectable($"##{exceptionTypeName}{index}", this.selectedException == exceptionEntry, size: new Vector2(ImGui.GetContentRegionAvail().X, entryHeight)))
             {
-                this.selectedException = exception;
+                this.selectedException = exceptionEntry;
             }
+
+            ImGui.SetCursorPosY(cursorPosition);
+            ImGui.Text(exceptionTypeName);
+            ImGui.Text(exceptionTimeString);
         }
     }
 
@@ -114,7 +130,7 @@ public class ExceptionWidget : IDataWindowWidget
         if (!frameChild) return;
 
         ImGui.AlignTextToFramePadding();
-        ImGui.Text(this.selectedException.Message);
+        ImGui.Text(this.selectedException.Exception.Message);
 
         const string buttonText = "Copy to Clipboard";
         var buttonWidth = ImGui.CalcTextSize(buttonText).X + (ImGui.GetStyle().FramePadding.X * 2.0f);
@@ -122,13 +138,13 @@ public class ExceptionWidget : IDataWindowWidget
         ImGui.SameLine(ImGui.GetContentRegionMax().X - buttonWidth);
         if (ImGui.Button(buttonText))
         {
-            ImGui.SetClipboardText(this.selectedException.ToString());
+            ImGui.SetClipboardText(this.selectedException.Exception.ToString());
         }
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (10.0f * ImGuiHelpers.GlobalScale));
         using var child = ImRaii.Child("ExceptionChild", ImGui.GetContentRegionAvail());
         if (!child) return;
 
-        ImGui.TextWrapped(this.selectedException.ToString());
+        ImGui.TextWrapped(this.selectedException.Exception.ToString());
     }
 }
