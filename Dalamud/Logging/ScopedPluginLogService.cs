@@ -1,3 +1,6 @@
+using System.Collections.Concurrent;
+
+using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
@@ -54,6 +57,11 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
         get => this.levelSwitch.MinimumLevel;
         set => this.levelSwitch.MinimumLevel = value;
     }
+
+    /// <summary>
+    /// Gets a Dictionary of exceptions grouped by plugin source. For use with <see cref="ExceptionWidget"/>.
+    /// </summary>
+    internal static ConcurrentDictionary<LocalPlugin, ConcurrentBag<Exception>> PluginExceptionEntries { get; private set; } = [];
 
     /// <inheritdoc />
     public void Fatal(string messageTemplate, params object[] values) =>
@@ -116,6 +124,11 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
     {
         if (level == LogEventLevel.Error)
             this.errorHandler.NotifyError();
+
+        if (exception is not null)
+        {
+            PluginExceptionEntries.GetOrAdd(this.localPlugin, _ => []).Add(exception);
+        }
 
         this.Logger.Write(
             level,
