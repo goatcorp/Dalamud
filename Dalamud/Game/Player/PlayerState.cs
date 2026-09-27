@@ -6,6 +6,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -147,7 +148,7 @@ internal unsafe class PlayerState : IServiceType, IPlayerState
     }
 
     /// <inheritdoc/>
-    public RowRef<Aetheryte> FreeAetheryte => this.IsLoaded ? LuminaUtils.CreateRef<Aetheryte>(CSPlayerState.Instance()->FreeAetheryteId) : default;
+    public RowRef<Aetheryte> FreeAetheryte => this.IsLoaded ? LuminaUtils.CreateRef<Aetheryte>(CSPlayerState.Instance()->FreeAetheryteIds[0]) : default;
 
     /// <inheritdoc/>
     public uint BaseRestedExperience => this.IsLoaded ? CSPlayerState.Instance()->BaseRestedExperience : default;
@@ -175,6 +176,22 @@ internal unsafe class PlayerState : IServiceType, IPlayerState
 
     /// <inheritdoc/>
     public bool IsReturner => this.IsLoaded && CSPlayerState.Instance()->IsReturner();
+
+    /// <inheritdoc/>
+    public bool IsAwayFromKeyboard
+    {
+        get
+        {
+            if (!this.IsLoaded)
+                return false;
+
+            var infoModule = InfoModule.Instance();
+            if (infoModule == null)
+                return false;
+
+            return infoModule->IsOnlineStatusSet(17);
+        }
+    }
 
     /// <inheritdoc/>
     public int GetAttribute(PlayerAttribute attribute) => this.IsLoaded ? CSPlayerState.Instance()->Attributes[(int)attribute] : default;

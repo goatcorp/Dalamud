@@ -55,6 +55,7 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     /// As of 7.01, this should be treated as a bit field.
     /// Use <see cref="AttunementCount"/> and <see cref="AttunementType"/> instead.
     /// </remarks>
+    [Obsolete("Use AttunementCount and AttunementType instead.")]
     public byte Attunement => this.Struct->Attunement;
 
     /// <summary>

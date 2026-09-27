@@ -56,6 +56,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
     private readonly Hook<TitleList.Delegates.SetTitleUnlocked> setTitleUnlockedHook;
     private readonly Hook<CSPlayerState.Delegates.SetOrnamentUnlocked> setOrnamentUnlockedHook;
     private readonly Hook<CSPlayerState.Delegates.SetGlassesStyleUnlocked> setGlassesStyleUnlockedHook;
+    private readonly Hook<XBMManager.Delegates.SetPetUnlocked> setPetUnlockedHook;
 
     [ServiceManager.ServiceConstructor]
     private UnlockState()
@@ -82,10 +83,15 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
             (nint)CSPlayerState.MemberFunctionPointers.SetGlassesStyleUnlocked,
             this.SetGlassesStyleUnlockedDetour);
 
+        this.setPetUnlockedHook = Hook<XBMManager.Delegates.SetPetUnlocked>.FromAddress(
+            (nint)XBMManager.MemberFunctionPointers.SetPetUnlocked,
+            this.SetPetUnlockedDetour);
+
         this.setAchievementCompletedHook.Enable();
         this.setTitleUnlockedHook.Enable();
         this.setOrnamentUnlockedHook.Enable();
         this.setGlassesStyleUnlockedHook.Enable();
+        this.setPetUnlockedHook.Enable();
     }
 
     /// <inheritdoc/>
@@ -96,6 +102,16 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
     /// <inheritdoc/>
     public bool IsTitleListLoaded => UIState.Instance()->TitleList.DataReceived;
+
+    /// <inheritdoc/>
+    public bool IsXBMPetListLoaded
+    {
+        get
+        {
+            var manager = XBMManager.Instance();
+            return manager != null && manager->State == XBMManager.DataState.Received;
+        }
+    }
 
     private bool IsLoaded => CSPlayerState.Instance()->IsLoaded;
 
@@ -110,6 +126,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.setTitleUnlockedHook.Dispose();
         this.setOrnamentUnlockedHook.Dispose();
         this.setGlassesStyleUnlockedHook.Dispose();
+        this.setPetUnlockedHook.Dispose();
 
         this.updateDebouncer.Dispose();
     }
@@ -749,6 +766,16 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         return UIState.Instance()->IsUnlockLinkUnlockedOrQuestCompleted(unlockLink, minimumQuestSequence);
     }
 
+    /// <inheritdoc/>
+    public bool IsXBMPetUnlocked(XBMPet row)
+    {
+        if (!this.IsLoaded)
+            return false;
+
+        var manager = XBMManager.Instance();
+        return manager != null && manager->IsPetUnlocked(row.RowId);
+    }
+
     private void OnLogin()
     {
         this.updateDebouncer.Debounce();
@@ -805,6 +832,16 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
         this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<GlassesStyle>(glassesStyleId));
     }
 
+    private void SetPetUnlockedDetour(XBMManager* thisPtr, ushort petId)
+    {
+        this.setPetUnlockedHook.Original(thisPtr, petId);
+
+        if (!thisPtr->HasNewUnlockedPets)
+            return;
+
+        this.RaiseUnlockSafely((RowRef)LuminaUtils.CreateRef<XBMPet>(petId));
+    }
+
     private void Update()
     {
         if (!this.IsLoaded)
@@ -812,7 +849,7 @@ internal unsafe class UnlockState : IInternalDisposableService, IUnlockState
 
         Log.Verbose("Checking for new unlocks...");
 
-        // Do not check for Achievements or Titles here!
+        // Do not check for Achievements, Titles or XBMPets here!
 
         this.UpdateUnlocksForSheet<ActionSheet>();
         this.UpdateUnlocksForSheet<Adventure>();
@@ -947,6 +984,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsTitleListLoaded => this.unlockStateService.IsTitleListLoaded;
+
+    /// <inheritdoc/>
+    public bool IsXBMPetListLoaded => this.unlockStateService.IsXBMPetListLoaded;
 
     /// <inheritdoc/>
     public bool IsAchievementComplete(AchievementSheet row) => this.unlockStateService.IsAchievementComplete(row);
@@ -1100,6 +1140,9 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
 
     /// <inheritdoc/>
     public bool IsUnlockLinkUnlocked(ushort unlockLink) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink);
+
+    /// <inheritdoc/>
+    public bool IsXBMPetUnlocked(XBMPet row) => this.unlockStateService.IsXBMPetUnlocked(row);
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()

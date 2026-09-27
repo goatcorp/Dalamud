@@ -789,28 +789,28 @@ internal class DalamudInterface : IInternalDisposableService
             }
 
             ImGui.End();
-        }
 
-        if (EnvironmentConfiguration.DalamudUseSafetyHook || Util.IsAppContainer())
-        {
-            ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
-            ImGui.SetNextWindowBgAlpha(1);
-
-            if (ImGui.Begin(
-                    "Disclaimer"u8,
-                    ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground |
-                    ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove |
-                    ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMouseInputs |
-                    ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
+            if (EnvironmentConfiguration.DalamudUseSafetyHook || Util.IsAppContainer())
             {
-                if (EnvironmentConfiguration.DalamudUseSafetyHook)
-                    ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "sh!"u8);
+                ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
+                ImGui.SetNextWindowBgAlpha(1);
 
-                if (Util.IsAppContainer())
-                    ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "ac!"u8);
+                if (ImGui.Begin(
+                        "Disclaimer"u8,
+                        ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground |
+                        ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove |
+                        ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMouseInputs |
+                        ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
+                {
+                    if (EnvironmentConfiguration.DalamudUseSafetyHook)
+                        ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "sh!"u8);
+
+                    if (Util.IsAppContainer())
+                        ImGui.TextColoredWrapped(ImGuiColors.AttentionForeground, "ac!"u8);
+                }
+
+                ImGui.End();
             }
-
-            ImGui.End();
         }
     }
 
@@ -1238,9 +1238,9 @@ internal class DalamudInterface : IInternalDisposableService
                     ImGui.PushFont(InterfaceManager.MonoFont);
 
                     ImGui.BeginMenu($"{Versioning.GetActiveTrack() ?? "???"} on {Versioning.GetGitBranch() ?? "???"}", false);
-                    ImGui.BeginMenu($"{Versioning.GetScmVersion()}", false);
-                    ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
-                    ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
+                    ImGui.BeginMenu(Versioning.GetScmVersion(), false);
+                    ImGui.BeginMenu(this.FrameCount.ToString("000000", CultureInfo.InvariantCulture), false);
+                    ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000", CultureInfo.InvariantCulture), false);
                     ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
 
                     var videoMem = this.interfaceManager.GetD3dMemoryInfo();

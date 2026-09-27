@@ -1,0 +1,82 @@
+<Solution>
+  <Folder Name="/Bindings/">
+    <Project Path="imgui/Dalamud.Bindings.ImGui/Dalamud.Bindings.ImGui.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="imgui/Dalamud.Bindings.ImGuizmo/Dalamud.Bindings.ImGuizmo.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="imgui/Dalamud.Bindings.ImPlot/Dalamud.Bindings.ImPlot.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="imgui/ImGuiScene/ImGuiScene.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="imgui/StandaloneImGuiTestbed/StandaloneImGuiTestbed.csproj">
+      <Platform Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/Dependencies/" />
+  <Folder Name="/Dependencies/CS/">
+    <Project Path="lib/FFXIVClientStructs/FFXIVClientStructs.Generators/FFXIVClientStructs.Generators.csproj" />
+    <Project Path="lib/FFXIVClientStructs/FFXIVClientStructs/FFXIVClientStructs.csproj" />
+    <Project Path="lib/FFXIVClientStructs/InteropGenerator.Runtime/InteropGenerator.Runtime.csproj" />
+    <Project Path="lib/FFXIVClientStructs/InteropGenerator/InteropGenerator.csproj" />
+  </Folder>
+  <Folder Name="/Dependencies/imgui/">
+    <Project Path="build/external/cimgui.vcxproj" Id="6c11b58c-fb91-34c6-82b2-e2186f252da5" />
+    <Project Path="build/external/cimguizmo.vcxproj" Id="b81fa456-8285-3221-a3a6-1e88fa3b46ee" />
+    <Project Path="build/external/cimplot.vcxproj" Id="c64a55e8-4353-3caa-8989-b5bc8912cb15" />
+  </Folder>
+  <Folder Name="/Dependencies/Lumina/">
+    <Project Path="lib/Lumina.Excel/src/Lumina.Excel.Generator/Lumina.Excel.Generator.csproj" />
+    <Project Path="lib/Lumina.Excel/src/Lumina.Excel/Lumina.Excel.csproj" />
+  </Folder>
+  <Folder Name="/CMake/">
+    <File Path="CMakeLists.txt" />
+    <File Path="CMakePresets.json" />
+    <File Path="build.cmd" />
+    <File Path="generate.cmd" />
+    <File Path="tools/find-cmake.cmd" />
+    <Project Path="build/ZERO_CHECK.vcxproj" Id="da052c2f-b067-35ce-8e08-c1b653064162" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="tools/BannedSymbols.txt" />
+    <File Path="tools/dalamud.ruleset" />
+  </Folder>
+  <Folder Name="/Source Generators/">
+    <File Path="generators/Directory.Build.props" />
+    <Project Path="generators/Dalamud.EnumGenerator/Dalamud.EnumGenerator.Sample/Dalamud.EnumGenerator.Sample.csproj" />
+    <Project Path="generators/Dalamud.EnumGenerator/Dalamud.EnumGenerator.Tests/Dalamud.EnumGenerator.Tests.csproj" />
+    <Project Path="generators/Dalamud.EnumGenerator/Dalamud.EnumGenerator/Dalamud.EnumGenerator.csproj" />
+  </Folder>
+  <Folder Name="/Utilities/">
+    <Project Path="Dalamud.CorePlugin/Dalamud.CorePlugin.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="tools/Dalamud.LocExporter/Dalamud.LocExporter.csproj">
+      <Platform Project="x64" />
+    </Project>
+  </Folder>
+  <Project Path="build/Dalamud.Boot/Dalamud.Boot.vcxproj" Id="a26b8b98-74e0-3f5d-935f-86d318f43b15" />
+  <Project Path="build/DalamudCrashHandler/DalamudCrashHandler.vcxproj" Id="e06892af-ba2d-34b9-97e9-8aa563df2c5d" />
+  <Project Path="Dalamud.Common/Dalamud.Common.csproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="Dalamud.Injector/Dalamud.Injector.csproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="Dalamud.Test/Dalamud.Test.csproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="Dalamud/Dalamud.csproj">
+    <BuildDependency Project="build/external/cimgui.vcxproj" />
+    <BuildDependency Project="build/external/cimguizmo.vcxproj" />
+    <BuildDependency Project="build/external/cimplot.vcxproj" />
+    <Platform Project="x64" />
+  </Project>
+</Solution>

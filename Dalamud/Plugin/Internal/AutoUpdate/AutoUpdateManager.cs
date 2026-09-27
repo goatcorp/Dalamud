@@ -370,7 +370,7 @@ internal class AutoUpdateManager : IServiceType
 
             var failedPlugins = pluginStates
                                 .Where(x => x.Status != PluginUpdateStatus.StatusKind.Success)
-                                .Select(x => x.Name).ToList();
+                                .Select(x => x.AffectedPlugin.Name).ToList();
 
             notification.Content += "\n" + Locs.NotificationContentFailedPlugins(failedPlugins);
         }
