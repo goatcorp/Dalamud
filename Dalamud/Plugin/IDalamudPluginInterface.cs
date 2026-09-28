@@ -70,7 +70,7 @@ public interface IDalamudPluginInterface : IServiceProvider
     /// </summary>
     string InternalName { get; }
 
-    /// <summary> 
+    /// <summary>
     /// Gets the unique working plugin ID set by Dalamud.
     /// </summary>
     Guid WorkingPluginId { get; }
@@ -119,7 +119,7 @@ public interface IDalamudPluginInterface : IServiceProvider
     DirectoryInfo DalamudAssetDirectory { get; }
 
     /// <summary>
-    /// Gets your plugins Assembly.
+    /// Gets your plugin's Assembly.
     /// </summary>
     Assembly Assembly { get; }
 
