@@ -119,6 +119,11 @@ public interface IDalamudPluginInterface : IServiceProvider
     DirectoryInfo DalamudAssetDirectory { get; }
 
     /// <summary>
+    /// Gets your plugins Assembly.
+    /// </summary>
+    Assembly Assembly { get; }
+
+    /// <summary>
     /// Gets the location of your plugin assembly.
     /// </summary>
     FileInfo AssemblyLocation { get; }
