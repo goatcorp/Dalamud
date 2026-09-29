@@ -655,10 +655,6 @@ public static class ImGuiHelpers
         return new ReadOnlySpan<ushort>((void*)outRanges.Data, outRanges.Size).ToArray();
     }
 
-    /// <inheritdoc cref="CreateImGuiRangesFrom(IEnumerable{UnicodeRange})"/>
-    public static ushort[] CreateImGuiRangesFrom(params UnicodeRange[] ranges)
-        => CreateImGuiRangesFrom((IEnumerable<UnicodeRange>)ranges);
-
     /// <summary>
     /// Creates glyph ranges from <see cref="UnicodeRange"/>.<br />
     /// Use values from <see cref="UnicodeRanges"/>.

@@ -332,7 +332,7 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     }
 
     /// <inheritdoc/>
-    public void UnregisterListener(params IAddonLifecycle.AddonEventDelegate[] handlers)
+    public void UnregisterListener(params IEnumerable<IAddonLifecycle.AddonEventDelegate> handlers)
     {
         using var scope = this.listenerLock.EnterScope();
 

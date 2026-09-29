@@ -533,7 +533,7 @@ internal class PluginCategoryManager
         /// <param name="groupKind">Type of group.</param>
         /// <param name="nameFunc">Function returning localized name of category.</param>
         /// <param name="categories">List of category Ids to hardcode.</param>
-        public GroupInfo(GroupKind groupKind, Func<string> nameFunc, params CategoryKind[] categories)
+        public GroupInfo(GroupKind groupKind, Func<string> nameFunc, params IEnumerable<CategoryKind> categories)
         {
             this.GroupKind = groupKind;
             this.nameFunc = nameFunc;
