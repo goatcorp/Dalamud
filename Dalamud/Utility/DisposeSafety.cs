@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.ObjectPool;
+
 namespace Dalamud.Utility;
 
 /// <summary>
@@ -141,8 +143,20 @@ public static class DisposeSafety
     /// </summary>
     public class ScopedFinalizer : IDisposeCallback, IAsyncDisposable
     {
-        private readonly List<object> objects = [];
+        private static readonly ObjectPool<List<object>> ListPool = ObjectPool.Create<List<object>>();
+
         private readonly Lock objectsLock = new();
+
+        private List<object> objects;
+        private bool isDisposed;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScopedFinalizer"/> class.
+        /// </summary>
+        public ScopedFinalizer()
+        {
+            this.objects = ListPool.Get();
+        }
 
         /// <inheritdoc/>
         public event Action<IDisposeCallback>? BeforeDispose;
@@ -306,6 +320,9 @@ public static class DisposeSafety
         /// <inheritdoc/>
         public void Dispose()
         {
+            if (this.isDisposed)
+                return;
+
             this.BeforeDispose?.InvokeSafely(this);
 
             List<Exception>? exceptions = null;
@@ -362,6 +379,9 @@ public static class DisposeSafety
 
                 throw exs;
             }
+
+            ListPool.Return(this.objects);
+            this.isDisposed = true;
         }
 
         /// <inheritdoc/>
