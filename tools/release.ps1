@@ -7,7 +7,7 @@ if (-not $VersionString) {
     exit 1
 }
 
-$csprojPath = "Dalamud/Dalamud.csproj"
+$csprojPath = "$PSScriptRoot/../Dalamud/Dalamud.csproj"
 
 if (-not (Test-Path $csprojPath)) {
     Write-Error "Cannot find Dalamud.csproj at the specified path."

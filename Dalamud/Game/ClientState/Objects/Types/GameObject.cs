@@ -185,8 +185,7 @@ internal partial class GameObject
         if (actor == null)
             return false;
 
-        var playerState = Service<PlayerState>.Get();
-        return playerState.IsLoaded == true;
+        return Service<PlayerState>.Get().IsLoaded;
     }
 
     /// <summary>
@@ -276,7 +275,14 @@ internal unsafe partial class GameObject : IGameObject
     /// <summary>
     /// Gets the underlying structure.
     /// </summary>
-    protected internal FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)this.Address;
+    protected internal FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* Struct
+    {
+        get
+        {
+            ThreadSafety.DevModeAssertMainThread();
+            return (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)this.Address;
+        }
+    }
 
     /// <inheritdoc/>
     public override string ToString() => $"{this.GameObjectId:X}({this.Name.TextValue} - {this.ObjectKind}) at {this.Address:X}";

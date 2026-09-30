@@ -26,13 +26,27 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@c26a08ba26249b81327e26f6ef381897b6a8754d # v1.0.2
-
       - name: Setup .NET
         uses: actions/setup-dotnet@55ec9447dda3d1cf6bd587150f3262f30ee10815 # v3
         with:
           dotnet-version: '10.0.100'
+
+      # Can be dropped once we're on windows-2025.
+      - name: Install CMake
+        env:
+          CMAKE_VERSION: '4.2.0'
+        run: |
+          $name = "cmake-$env:CMAKE_VERSION-windows-x86_64"
+          $url = "https://cmake.org/files/v$($env:CMAKE_VERSION -replace '\.\d+$', '')"
+          Invoke-WebRequest "$url/$name.zip" -OutFile "$env:RUNNER_TEMP\cmake.zip"
+          Invoke-WebRequest "$url/cmake-$env:CMAKE_VERSION-SHA-256.txt" -OutFile "$env:RUNNER_TEMP\cmake.sha256"
+
+          $expected = (Select-String -Path "$env:RUNNER_TEMP\cmake.sha256" -Pattern "  $name.zip$").Line.Split(' ')[0]
+          $actual = (Get-FileHash "$env:RUNNER_TEMP\cmake.zip" -Algorithm SHA256).Hash
+          if ($actual -ne $expected) { throw "CMake checksum mismatch: $actual != $expected" }
+
+          Expand-Archive "$env:RUNNER_TEMP\cmake.zip" $env:RUNNER_TEMP
+          "$env:RUNNER_TEMP\$name\bin" >> $env:GITHUB_PATH
 
       - name: Define VERSION
         env:
@@ -44,11 +58,17 @@ jobs:
             $env:GITHUB_SHA.Substring(0, 7)
           ) | Set-Content -LiteralPath VERSION
 
-      - name: Build and test Dalamud
-        run: .\build.ps1 ci --configuration Release
+      - name: Generate native projects
+        run: .\generate.cmd vs2022
+
+      - name: Build Dalamud
+        run: .\build.cmd Release
+
+      - name: Test Dalamud
+        run: dotnet test Dalamud.Test/Dalamud.Test.csproj -c Release -tl:off -p:WarningLevel=0
 
       - name: Create hashlist
-        run: .\CreateHashList.ps1 .\bin\Release
+        run: .\tools\create_hashlist.ps1 .\bin\Release
 
       - name: Package release
         run: |

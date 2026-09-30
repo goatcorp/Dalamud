@@ -363,7 +363,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         foreach (var d in Delegate.EnumerateInvocationList(eventDelegate))
         {
             var isScopedService = d.Method.DeclaringType == typeof(FrameworkPluginScoped); // ignore FrameworkPluginScoped.OnUpdateForward itself
-            var key = $"{d.Target}::{d.Method.Name}";
             var startTime = Stopwatch.GetTimestamp();
 
             try
@@ -374,7 +373,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             {
                 if (errorHandler != null)
                 {
-                    errorHandler?.InvokeSafely(ex, key);
+                    errorHandler?.InvokeSafely(ex, GetFullHandlerName(d));
                 }
                 else if (!isScopedService)
                 {
@@ -386,6 +385,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
             if (!isScopedService && StatsEnabled)
             {
+                var key = GetFullHandlerName(d);
                 this.NonUpdatedSubDelegates.Remove(key);
                 AddToStats(key, elapsedMilliseconds);
             }
@@ -394,8 +394,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             {
                 var now = DateTime.UtcNow;
                 var cooldownTimeSpan = TimeSpan.FromSeconds(30);
+                var key = GetFullHandlerName(d);
 
-                var hasCooldown = this.HitchLogHistory.TryGetValue(key, out DateTime lastLogTimestamp);
+                var hasCooldown = this.HitchLogHistory.TryGetValue(key, out var lastLogTimestamp);
                 if (!hasCooldown || (hasCooldown && now - lastLogTimestamp > cooldownTimeSpan))
                 {
                     this.HitchLogHistory[key] = now;
@@ -410,6 +411,8 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 }
             }
         }
+
+        static string GetFullHandlerName(IFramework.OnUpdateDelegate d) => $"{d.Target}::{d.Method.Name}";
     }
 
     private unsafe bool HandleFrameworkUpdate(CSFramework* thisPtr)

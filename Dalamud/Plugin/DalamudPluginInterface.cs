@@ -110,6 +110,9 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     public string InternalName => this.plugin.InternalName;
 
     /// <inheritdoc/>
+    public Guid WorkingPluginId => this.plugin.Manifest.WorkingPluginId;
+
+    /// <inheritdoc/>
     public IPluginManifest Manifest { get; }
 
     /// <inheritdoc/>

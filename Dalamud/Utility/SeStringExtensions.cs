@@ -4,7 +4,6 @@ using Lumina.Text.ReadOnly;
 
 using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
 using DSeStringBuilder = Dalamud.Game.Text.SeStringHandling.SeStringBuilder;
-using LSeString = Lumina.Text.SeString;
 using LSeStringBuilder = Lumina.Text.SeStringBuilder;
 
 namespace Dalamud.Utility;
@@ -14,15 +13,6 @@ namespace Dalamud.Utility;
 /// </summary>
 public static class SeStringExtensions
 {
-    /// <summary>
-    /// Convert a Lumina SeString into a Dalamud SeString.
-    /// This conversion re-parses the string.
-    /// </summary>
-    /// <param name="originalString">The original Lumina SeString.</param>
-    /// <returns>The re-parsed Dalamud SeString.</returns>
-    [Obsolete("Switch to using ReadOnlySeString instead of Lumina's SeString.", true)]
-    public static DSeString ToDalamudString(this LSeString originalString) => DSeString.Parse(originalString.RawData);
-
     /// <summary>
     /// Convert a Lumina ReadOnlySeString into a Dalamud SeString.
     /// This conversion re-parses the string.

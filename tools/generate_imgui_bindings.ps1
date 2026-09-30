@@ -1,8 +1,8 @@
 # Store initial directory
 $initialDirectory = Get-Location
 
-# CD to the directory of this script
-Set-Location -Path $PSScriptRoot
+# CD to the repository root
+Set-Location -Path "$PSScriptRoot/.."
 
 # Copy cimgui files from the cimgui repository to Hexa.NET.ImGui
 Copy-Item -Path "lib/cimgui/cimgui.h" -Destination "lib/Hexa.NET.ImGui/Generator/cimgui" -Force

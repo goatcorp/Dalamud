@@ -555,12 +555,12 @@ internal sealed class ChangelogWindow : Window, IDisposable
         if (this.openedThroughEligibility)
             return;
 
-        var isEligible = this.gameGui.GetAddonByName("_TitleMenu", 1) != IntPtr.Zero;
+        var isEligible = !this.gameGui.GetAddonByName("_TitleMenu"u8, 1).IsNull;
 
-        var charaSelect = this.gameGui.GetAddonByName("CharaSelect", 1);
-        var charaMake = this.gameGui.GetAddonByName("CharaMake", 1);
-        var titleDcWorldMap = this.gameGui.GetAddonByName("TitleDCWorldMap", 1);
-        if (charaMake != IntPtr.Zero || charaSelect != IntPtr.Zero || titleDcWorldMap != IntPtr.Zero)
+        var charaSelect = this.gameGui.GetAddonByName("CharaSelect"u8, 1);
+        var charaMake = this.gameGui.GetAddonByName("CharaMake"u8, 1);
+        var titleDcWorldMap = this.gameGui.GetAddonByName("TitleDCWorldMap"u8, 1);
+        if (!charaMake.IsNull || !charaSelect.IsNull || !titleDcWorldMap.IsNull)
             isEligible = false;
 
         if (this.isEligibleSince == null && isEligible)
