@@ -5,6 +5,7 @@ using Dalamud.Game.Addon.Events;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.GamePad;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
@@ -46,6 +47,9 @@ internal sealed unsafe class SystemMenuIntegration : IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
+    [ServiceManager.ServiceDependency]
+    private readonly Localization localization = Service<Localization>.Get();
+
     private AddonLifecycleEventListener mainCrossPostSetupListener;
     private AddonLifecycleEventListener mainCrossPostReceiveEventListener;
 
@@ -56,6 +60,7 @@ internal sealed unsafe class SystemMenuIntegration : IInternalDisposableService
         this.hookUiModuleExecuteMainCommand = Hook<UIModule.Delegates.ExecuteMainCommand>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ExecuteMainCommand, this.UiModuleExecuteMainCommandDetour);
 
         // this.contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
+        this.localization.LocalizationChanged += this.OnLocalizationChanged;
 
         this.hookAgentHudOpenSystemMenu.Enable();
         this.hookUiModuleExecuteMainCommand.Enable();
@@ -82,6 +87,7 @@ internal sealed unsafe class SystemMenuIntegration : IInternalDisposableService
         this.hookUiModuleExecuteMainCommand.Dispose();
 
         // this.contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
+        this.localization.LocalizationChanged -= this.OnLocalizationChanged;
 
         this.addonLifecycle.UnregisterListener(this.mainCrossPostSetupListener);
         this.addonLifecycle.UnregisterListener(this.mainCrossPostReceiveEventListener);
@@ -115,6 +121,36 @@ internal sealed unsafe class SystemMenuIntegration : IInternalDisposableService
         return newArray;
     }
 
+    private void OnLocalizationChanged(string langCode)
+    {
+        var gameGui = Service<GameGui>.GetNullable();
+        if (gameGui == null)
+            return;
+
+        var addon = gameGui.GetAddonByName<AddonMainCross>("_MainCross"u8);
+        if (addon == null)
+            return;
+
+        foreach (ref var category in addon->CategoryData)
+        {
+            foreach (ref var item in category.Commands)
+            {
+                switch (item.RowId)
+                {
+                    case MainCrossPluginsId:
+                        this.SetMainCrossItemText(ref item, this.LocDalamudPlugins);
+                        break;
+                    case MainCrossSettingsId:
+                        this.SetMainCrossItemText(ref item, this.LocDalamudSettings);
+                        break;
+                }
+            }
+        }
+
+        addon->RefreshCurrentItemNodes();
+        addon->UpdateHelpText(false);
+    }
+
     private void OnMainCrossPostSetup(AddonEvent type, AddonArgs args)
     {
         if (!this.configuration.DoButtonsSystemMenu)
@@ -136,48 +172,24 @@ internal sealed unsafe class SystemMenuIntegration : IInternalDisposableService
         var lastCategoryIndex = addon->CategoryData.Length - 1;
         var category = addon->CategoryData.GetPointer(lastCategoryIndex);
 
-        const int color = 539;
-        using var rssb = new RentedSeStringBuilder();
         var newItem = default(AddonMainCross.CommandData);
         newItem.Label.Ctor();
         newItem.LabelWithPatchMark.Ctor();
-
-        rssb
-            .PushColorType(color)
-            .PushEdgeColorBgra(0, 0, 0, 255)
-            .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
-            .PopEdgeColor()
-            .PopColorType()
-            .Append(this.LocDalamudSettings);
 
         newItem.RowId = MainCrossSettingsId;
         newItem.IconId = 14;
         newItem.SortId = category->Commands.First->SortId - 1;
         newItem.IsEnabled = true;
         newItem.IsUnseen = false;
-        newItem.Label.SetString(rssb.GetViewAsSpan());
-        newItem.LabelWithPatchMark.SetString(rssb.GetViewAsSpan());
-
-        // this function makes a copy of newItem and inserts it before a2
+        this.SetMainCrossItemText(ref newItem, this.LocDalamudSettings);
         AddonMainCross.StdVectorCommandDataInsert(&category->Commands, category->Commands.First, &newItem);
-
-        rssb
-            .Clear()
-            .PushColorType(color)
-            .PushEdgeColorBgra(0, 0, 0, 255)
-            .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
-            .PopEdgeColor()
-            .PopColorType()
-            .Append(this.LocDalamudPlugins);
 
         newItem.RowId = MainCrossPluginsId;
         newItem.IconId = 14;
         newItem.SortId = category->Commands.First->SortId - 1;
         newItem.IsEnabled = true;
         newItem.IsUnseen = false;
-        newItem.Label.SetString(rssb.GetViewAsSpan());
-        newItem.LabelWithPatchMark.SetString(rssb.GetViewAsSpan());
-
+        this.SetMainCrossItemText(ref newItem, this.LocDalamudPlugins);
         AddonMainCross.StdVectorCommandDataInsert(&category->Commands, category->Commands.First, &newItem);
 
         newItem.Label.Dtor(false);
@@ -224,8 +236,27 @@ internal sealed unsafe class SystemMenuIntegration : IInternalDisposableService
         if (inputId is not (InputId.LEFT or InputId.RIGHT or InputId.UP or InputId.DOWN))
             return;
 
-        var addon = (AddonMainCross*)args.Addon.Address;
+        this.UpdateMainCrossHelpText((AddonMainCross*)args.Addon.Address);
+    }
 
+    private void SetMainCrossItemText(ref AddonMainCross.CommandData item, string text)
+    {
+        using var rssb = new RentedSeStringBuilder();
+
+        rssb
+            .PushColorType(539)
+            .PushEdgeColorBgra(0, 0, 0, 255)
+            .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
+            .PopEdgeColor()
+            .PopColorType()
+            .Append(text);
+
+        item.Label.SetString(rssb.GetViewAsSpan());
+        item.LabelWithPatchMark.SetString(rssb.GetViewAsSpan());
+    }
+
+    private void UpdateMainCrossHelpText(AddonMainCross* addon)
+    {
         switch (addon->CategoryData[addon->SelectedCategory].Commands[addon->SelectedItem].RowId)
         {
             case MainCrossPluginsId:
