@@ -1,5 +1,5 @@
 name: Check for Submodule Changes
-on: 
+on:
   schedule:
     - cron: "0 0,6,12,18 * * *"
   workflow_dispatch:
@@ -18,11 +18,11 @@ jobs:
             branch: main
             branch-prefix: csupdate
           - name: Excel Schema
-            path: lib/Lumina.Excel
+            path: lib/EXDSchema
             branch: master
             branch-prefix: schemaupdate
 
-    defaults: 
+    defaults:
       run:
         shell: bash
 
@@ -51,16 +51,16 @@ jobs:
         cd ../..
         git add ${{ matrix.submodule.path }}
 
-        if [[ -z "$(git status --porcelain --untracked-files=no)" ]]; then   
+        if [[ -z "$(git status --porcelain --untracked-files=no)" ]]; then
           echo "No changes detected!"
           echo "SUBMIT_PR=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        
+
         git commit --message "Update ${{ matrix.submodule.name }}"
         git push origin ${{ matrix.submodule.branch-prefix }}-${{ matrix.branches }} --force
         echo "SUBMIT_PR=true" >> "$GITHUB_OUTPUT"
-        
+
     - name: Create PR
       if: ${{ steps.update-submodule.outputs.SUBMIT_PR == 'true' }}
       run: |
