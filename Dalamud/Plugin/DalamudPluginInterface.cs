@@ -137,6 +137,9 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     public DirectoryInfo DalamudAssetDirectory => Service<Dalamud>.Get().AssetDirectory;
 
     /// <inheritdoc/>
+    public Assembly Assembly => this.plugin.Assembly;
+
+    /// <inheritdoc/>
     public FileInfo AssemblyLocation => this.plugin.DllFile;
 
     /// <inheritdoc/>

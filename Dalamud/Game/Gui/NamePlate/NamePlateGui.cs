@@ -153,6 +153,19 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
 
             var activeHandlers = this.updateHandlers[..activeNamePlateCount];
 
+            if (hasNoSubscribers)
+            {
+                this.pendingForceRedraw = false;
+
+                foreach (var handler in activeHandlers)
+                {
+                    handler.ResetState();
+                    handler.IsUpdating = true;
+                }
+
+                return;
+            }
+
             if (this.pendingForceRedraw)
             {
                 this.pendingForceRedraw = false;
