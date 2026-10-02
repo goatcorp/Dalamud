@@ -186,6 +186,8 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
 #pragma warning restore SA1015
 internal class NativeOverlayPluginScoped : IInternalDisposableService, INativeOverlayProvider
 {
+    private static readonly ModuleLog Log = ModuleLog.Create<NativeOverlayPluginScoped>();
+
     [ServiceManager.ServiceDependency]
     private readonly NativeOverlay nativeOverlayService = Service<NativeOverlay>.Get();
 
@@ -208,6 +210,7 @@ internal class NativeOverlayPluginScoped : IInternalDisposableService, INativeOv
     {
         if (depthLayer < 0 || depthLayer > RaptureAtkUnitManager.Instance()->DepthLayers.Length)
         {
+            Log.Warning("Attempted to attach a overlay node to an invalid depth layer.");
             return;
         }
 
@@ -226,6 +229,7 @@ internal class NativeOverlayPluginScoped : IInternalDisposableService, INativeOv
     {
         if (depthLayer < 0 || depthLayer > RaptureAtkUnitManager.Instance()->DepthLayers.Length)
         {
+            Log.Warning("Attempted to attach a overlay node to an invalid depth layer.");
             return;
         }
 
