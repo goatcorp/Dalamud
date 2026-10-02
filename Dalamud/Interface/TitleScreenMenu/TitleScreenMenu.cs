@@ -187,14 +187,14 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         string text,
         ISharedImmediateTexture texture,
         Action onTriggered,
-        params VirtualKey[] showConditionKeys)
+        params IEnumerable<VirtualKey> showConditionKeys)
     {
         TitleScreenMenuEntry entry;
         using (this.entriesLock.EnterScope())
         {
             var entriesOfAssembly = this.entries.Where(x => x.CallingAssembly == null).ToList();
             var priority = entriesOfAssembly.Count != 0
-                               ? unchecked(entriesOfAssembly.Select(x => x.Priority).Max() + 1)
+                               ? unchecked(entriesOfAssembly.Max(x => x.Priority) + 1)
                                : 0;
             entry = new(null, priority, text, texture, onTriggered, showConditionKeys)
             {
