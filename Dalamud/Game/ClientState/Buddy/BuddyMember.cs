@@ -7,9 +7,9 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Lumina.Excel;
 
 using CSBuddyMember = FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember;
-using DawnGrowMemberSheet = Dalamud.Excel.Sheets.DawnGrowMember;
-using MountSheet = Dalamud.Excel.Sheets.Mount;
-using PetSheet = Dalamud.Excel.Sheets.Pet;
+using DawnGrowMemberSheet = Lumina.Excel.Sheets.DawnGrowMember;
+using MountSheet = Lumina.Excel.Sheets.Mount;
+using PetSheet = Lumina.Excel.Sheets.Pet;
 
 namespace Dalamud.Game.ClientState.Buddy;
 

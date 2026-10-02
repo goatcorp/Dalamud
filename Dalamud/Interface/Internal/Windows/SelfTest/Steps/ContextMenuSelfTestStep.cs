@@ -4,13 +4,13 @@ using System.Text;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
-using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Text;
 using Dalamud.Plugin.SelfTest;
 
 using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 
 using Serilog;

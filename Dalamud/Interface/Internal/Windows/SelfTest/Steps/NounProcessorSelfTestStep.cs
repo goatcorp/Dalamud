@@ -1,9 +1,10 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Common;
-using Dalamud.Excel.Sheets;
 using Dalamud.Game.Text.Noun;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Plugin.SelfTest;
+
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 

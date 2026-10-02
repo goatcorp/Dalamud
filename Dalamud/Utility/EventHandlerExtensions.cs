@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-using Dalamud.Game;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Gui.NamePlate;
 using Dalamud.Plugin.Services;

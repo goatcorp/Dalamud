@@ -1,7 +1,7 @@
 using Dalamud.Common;
-using Dalamud.Excel.Sheets;
 using Dalamud.Game.Text.Noun.Enums;
 
+using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Text.Noun;

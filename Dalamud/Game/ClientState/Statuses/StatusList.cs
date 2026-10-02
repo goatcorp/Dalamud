@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using Dalamud.Game.Player;
 using Dalamud.Utility;
 
-using CSStatus = FFXIVClientStructs.FFXIV.Client.Game.Status;
 using CSStatusManager = FFXIVClientStructs.FFXIV.Client.Game.StatusManager;
 
 namespace Dalamud.Game.ClientState.Statuses;

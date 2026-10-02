@@ -639,11 +639,11 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             switch (atkEventType)
             {
                 case AddonEventType.MouseOver:
-                    {
-                        using var rssb = new RentedSeStringBuilder();
-                        AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, node, rssb.Builder.Append(dtrBarEntry.Tooltip).GetViewAsSpan());
-                        break;
-                    }
+                {
+                    using var rssb = new RentedSeStringBuilder();
+                    AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, node, rssb.Builder.Append(dtrBarEntry.Tooltip).GetViewAsSpan());
+                    break;
+                }
 
                 case AddonEventType.MouseOut:
                     AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);

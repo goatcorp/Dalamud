@@ -8,7 +8,7 @@ using Dalamud.Utility;
 using Lumina.Excel;
 
 using CSStatus = FFXIVClientStructs.FFXIV.Client.Game.Status;
-using StatusSheet = Dalamud.Excel.Sheets.Status;
+using StatusSheet = Lumina.Excel.Sheets.Status;
 
 namespace Dalamud.Game.ClientState.Statuses;
 

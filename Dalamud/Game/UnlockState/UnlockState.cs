@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 using Dalamud.Data;
-using Dalamud.Excel.Sheets;
 using Dalamud.Game.Gui;
 using Dalamud.Hooking;
 using Dalamud.IoC;
@@ -17,13 +16,14 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 
 using Lumina.Excel;
+using Lumina.Excel.Sheets;
 
-using AchievementSheet = Dalamud.Excel.Sheets.Achievement;
-using ActionSheet = Dalamud.Excel.Sheets.Action;
+using AchievementSheet = Lumina.Excel.Sheets.Achievement;
+using ActionSheet = Lumina.Excel.Sheets.Action;
 using CSAchievement = FFXIVClientStructs.FFXIV.Client.Game.UI.Achievement;
 using CSPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
-using InstanceContentSheet = Dalamud.Excel.Sheets.InstanceContent;
-using PublicContentSheet = Dalamud.Excel.Sheets.PublicContent;
+using InstanceContentSheet = Lumina.Excel.Sheets.InstanceContent;
+using PublicContentSheet = Lumina.Excel.Sheets.PublicContent;
 
 namespace Dalamud.Game.UnlockState;
 

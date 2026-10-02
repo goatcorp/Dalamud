@@ -8,7 +8,6 @@ using BitFaster.Caching.Lru;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
-using Dalamud.Excel.Sheets;
 using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
@@ -18,6 +17,7 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 
+using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.Parse;
 using Lumina.Text.Payloads;

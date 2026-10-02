@@ -3,11 +3,12 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.Data;
-using Dalamud.Excel.Sheets;
 using Dalamud.Game.Inventory.Records;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
+
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Inventory;
 

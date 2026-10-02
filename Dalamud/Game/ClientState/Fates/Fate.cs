@@ -8,8 +8,8 @@ using Lumina.Excel;
 using Lumina.Text.ReadOnly;
 
 using CSFateContext = FFXIVClientStructs.FFXIV.Client.Game.Fate.FateContext;
-using FateSheet = Dalamud.Excel.Sheets.Fate;
-using TerritoryTypeSheet = Dalamud.Excel.Sheets.TerritoryType;
+using FateSheet = Lumina.Excel.Sheets.Fate;
+using TerritoryTypeSheet = Lumina.Excel.Sheets.TerritoryType;
 
 namespace Dalamud.Game.ClientState.Fates;
 

@@ -3,8 +3,8 @@ using Dalamud.Game.ClientState.JobGauge.Enums;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 using AetherFlags = Dalamud.Game.ClientState.JobGauge.Enums.AetherFlags;
-using PetMirageSheet = Dalamud.Excel.Sheets.PetMirage;
-using PetSheet = Dalamud.Excel.Sheets.Pet;
+using PetMirageSheet = Lumina.Excel.Sheets.PetMirage;
+using PetSheet = Lumina.Excel.Sheets.Pet;
 
 namespace Dalamud.Game.ClientState.JobGauge.Types;
 
