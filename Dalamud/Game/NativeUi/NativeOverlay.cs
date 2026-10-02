@@ -74,6 +74,11 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
     /// <inheritdoc/>
     public void AddNode(IOverlayNode node, int depthLayer)
     {
+        if (depthLayer < 0 || depthLayer > RaptureAtkUnitManager.Instance()->DepthLayers.Length)
+        {
+            return;
+        }
+
         if (node.GetAsAtkResNode() is null) return;
 
         ThreadSafety.AssertMainThread();
@@ -87,6 +92,11 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
     /// <inheritdoc/>
     public void RemoveNode(IOverlayNode node, int depthLayer)
     {
+        if (depthLayer < 0 || depthLayer > RaptureAtkUnitManager.Instance()->DepthLayers.Length)
+        {
+            return;
+        }
+
         if (node.GetAsAtkResNode() is null) return;
 
         ThreadSafety.AssertMainThread();
@@ -208,8 +218,13 @@ internal class NativeOverlayPluginScoped : IInternalDisposableService, INativeOv
     }
 
     /// <inheritdoc/>
-    public void AddNode(IOverlayNode node, int depthLayer)
+    public unsafe void AddNode(IOverlayNode node, int depthLayer)
     {
+        if (depthLayer < 0 || depthLayer > RaptureAtkUnitManager.Instance()->DepthLayers.Length)
+        {
+            return;
+        }
+
         ThreadSafety.AssertMainThread();
 
         this.nativeOverlayService.AddNode(node, depthLayer);
@@ -221,8 +236,13 @@ internal class NativeOverlayPluginScoped : IInternalDisposableService, INativeOv
     }
 
     /// <inheritdoc/>
-    public void RemoveNode(IOverlayNode node, int depthLayer)
+    public unsafe void RemoveNode(IOverlayNode node, int depthLayer)
     {
+        if (depthLayer < 0 || depthLayer > RaptureAtkUnitManager.Instance()->DepthLayers.Length)
+        {
+            return;
+        }
+
         ThreadSafety.AssertMainThread();
 
         if (this.attachedNodes.TryGetValue(depthLayer, out var nodes) && nodes.Contains(node))
