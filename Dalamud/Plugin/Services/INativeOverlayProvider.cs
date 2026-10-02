@@ -19,7 +19,7 @@ public interface INativeOverlayProvider : IDalamudService
 
     /// <summary>
     /// Removes a node from a native addon on the specified layer.
-    /// Also disposes the node.
+    /// Invokes the nodes implemented Perform <see cref="IOverlayNode.PerformDetach"/> method.
     /// </summary>
     /// <remarks>
     /// Must be called from the games main thread.
