@@ -163,7 +163,7 @@ internal unsafe class CounterNode : NodeBase<AtkCounterNode>
         set
         {
             this.PartsList[0]->U = (ushort)value.X;
-            this.PartsList[0]->V = (ushort)value.X;
+            this.PartsList[0]->V = (ushort)value.Y;
         }
     }
 
@@ -176,7 +176,7 @@ internal unsafe class CounterNode : NodeBase<AtkCounterNode>
         set
         {
             this.PartsList[0]->Width = (ushort)value.X;
-            this.PartsList[0]->Height = (ushort)value.X;
+            this.PartsList[0]->Height = (ushort)value.Y;
         }
     }
 
