@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <SchemaPath>$(MSBuildProjectDirectory)\..\lib\EXDSchema</SchemaPath>
+        <GeneratedNamespace>Dalamud.Excel.Sheets</GeneratedNamespace>
+        <UseUsings>true</UseUsings>
+        <UseFileScopedNamespace>true</UseFileScopedNamespace>
+        <UseSchemaAttribute>false</UseSchemaAttribute>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include="SchemaPath" />
+        <CompilerVisibleProperty Include="ExperimentalSchemaPath" />
+        <CompilerVisibleProperty Include="GeneratedNamespace" />
+        <CompilerVisibleProperty Include="UseUsings" />
+        <CompilerVisibleProperty Include="UseFileScopedNamespace" />
+        <CompilerVisibleProperty Include="UseSchemaAttribute" />
+        <ProjectReference Include="..\lib\Lumina.Excel\src\Lumina.Excel.Generator\Lumina.Excel.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" IncludeAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Lumina" />
+    </ItemGroup>
+</Project>
