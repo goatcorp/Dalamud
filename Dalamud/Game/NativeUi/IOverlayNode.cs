@@ -6,7 +6,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 namespace Dalamud.Game.NativeUi;
 
 /// <summary>
-/// Interface for use with <see cref="INativeOverlay"/>.
+/// Interface for use with <see cref="INativeOverlayProvider"/>.
 /// </summary>
 public interface IOverlayNode
 {
