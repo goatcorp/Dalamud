@@ -6,6 +6,7 @@ using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.NativeUi.BaseTypes.Addon;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
@@ -21,6 +22,8 @@ namespace Dalamud.Game.NativeUi;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class NativeOverlay : IInternalDisposableService, INativeOverlayProvider
 {
+    private static readonly ModuleLog Log = ModuleLog.Create<NativeOverlay>();
+
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
@@ -166,8 +169,7 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
         }
         catch (Exception e)
         {
-            System.Console.WriteLine(e);
-            throw;
+            Log.Error(e, "Exception handling OnFireCallback.");
         }
 
         return this.fireCallbackHook!.Original(thisPtr, valueCount, values, close);
