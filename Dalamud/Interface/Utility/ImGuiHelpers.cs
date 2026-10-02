@@ -16,7 +16,6 @@ using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Utility;
 
 using Lumina.Text.Payloads;
 

@@ -4,7 +4,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 using Lumina.Excel;
 
-using AetheryteSheet = Dalamud.Excel.Sheets.Aetheryte;
+using AetheryteSheet = Lumina.Excel.Sheets.Aetheryte;
 
 namespace Dalamud.Game.ClientState.Aetherytes;
 

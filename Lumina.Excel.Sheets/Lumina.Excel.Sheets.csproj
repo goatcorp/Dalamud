@@ -6,7 +6,7 @@
 
     <PropertyGroup>
         <SchemaPath>$(MSBuildProjectDirectory)\..\lib\EXDSchema</SchemaPath>
-        <GeneratedNamespace>Dalamud.Excel.Sheets</GeneratedNamespace>
+        <GeneratedNamespace>Lumina.Excel.Sheets</GeneratedNamespace>
         <UseUsings>true</UseUsings>
         <UseFileScopedNamespace>true</UseFileScopedNamespace>
         <UseSchemaAttribute>false</UseSchemaAttribute>

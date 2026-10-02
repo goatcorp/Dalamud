@@ -4,11 +4,12 @@ using System.Text;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
-using Dalamud.Excel.Sheets;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Utility.Raii;
+
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

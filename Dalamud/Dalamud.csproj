@@ -87,7 +87,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Dalamud.Excel.Sheets\Dalamud.Excel.Sheets.csproj" />
         <ProjectReference Include="..\generators\Dalamud.EnumGenerator\Dalamud.EnumGenerator\Dalamud.EnumGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
@@ -133,6 +132,7 @@
         <ProjectReference Include="..\imgui\ImGuiScene\ImGuiScene.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
+        <ProjectReference Include="..\Lumina.Excel.Sheets\Lumina.Excel.Sheets.csproj" />
     </ItemGroup>
 
     <ItemGroup>

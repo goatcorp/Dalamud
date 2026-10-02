@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 
 using Dalamud.Data;
-using Dalamud.Excel.Sheets;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -10,9 +9,10 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 using Lumina.Excel;
+using Lumina.Excel.Sheets;
 
 using CSPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
-using GrandCompany = Dalamud.Excel.Sheets.GrandCompany;
+using GrandCompany = Lumina.Excel.Sheets.GrandCompany;
 
 namespace Dalamud.Game.Player;
 

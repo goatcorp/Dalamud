@@ -16,7 +16,7 @@ using FFXIVClientStructs.STD;
 using Lumina.Excel;
 using Lumina.Text.ReadOnly;
 
-using LobMessageSheet = Dalamud.Excel.Sheets.LogMessage;
+using LobMessageSheet = Lumina.Excel.Sheets.LogMessage;
 
 namespace Dalamud.Game.Chat;
 

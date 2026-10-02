@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
-using Dalamud.Excel.Sheets;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
@@ -17,6 +16,7 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
+using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.Parse;
 using Lumina.Text.Payloads;

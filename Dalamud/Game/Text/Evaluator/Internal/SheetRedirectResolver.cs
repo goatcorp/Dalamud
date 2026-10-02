@@ -1,10 +1,10 @@
 using Dalamud.Data;
-using Dalamud.Excel.Sheets;
 using Dalamud.Utility;
 
+using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 
-using ActionSheet = Dalamud.Excel.Sheets.Action;
+using ActionSheet = Lumina.Excel.Sheets.Action;
 
 namespace Dalamud.Game.Text.Evaluator.Internal;
 

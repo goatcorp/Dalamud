@@ -10,10 +10,10 @@ using Dalamud.Utility;
 using Lumina.Excel;
 using Lumina.Text.ReadOnly;
 
-using ClassJobSheet = Dalamud.Excel.Sheets.ClassJob;
+using ClassJobSheet = Lumina.Excel.Sheets.ClassJob;
 using CSPartyMember = FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember;
-using TerritoryTypeSheet = Dalamud.Excel.Sheets.TerritoryType;
-using WorldSheet = Dalamud.Excel.Sheets.World;
+using TerritoryTypeSheet = Lumina.Excel.Sheets.TerritoryType;
+using WorldSheet = Lumina.Excel.Sheets.World;
 
 namespace Dalamud.Game.ClientState.Party;
 

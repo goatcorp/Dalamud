@@ -2,12 +2,12 @@ using System.Collections.Concurrent;
 
 using Dalamud.Common;
 using Dalamud.Data;
-using Dalamud.Excel.Sheets;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
 using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Text.Noun;

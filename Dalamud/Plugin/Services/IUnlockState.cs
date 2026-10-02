@@ -1,8 +1,7 @@
-using Dalamud.Excel.Sheets;
-
 using Lumina.Excel;
+using Lumina.Excel.Sheets;
 
-using ActionSheet = Dalamud.Excel.Sheets.Action;
+using ActionSheet = Lumina.Excel.Sheets.Action;
 
 namespace Dalamud.Plugin.Services;
 
