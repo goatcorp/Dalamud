@@ -87,6 +87,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Dalamud.Excel.Sheets\Dalamud.Excel.Sheets.csproj" />
         <ProjectReference Include="..\generators\Dalamud.EnumGenerator\Dalamud.EnumGenerator\Dalamud.EnumGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
@@ -134,24 +135,6 @@
         <ProjectReference Include="..\lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
     </ItemGroup>
 
-    <PropertyGroup>
-        <SchemaPath>$(MSBuildProjectDirectory)\..\lib\EXDSchema</SchemaPath>
-        <GeneratedNamespace>Dalamud.Excel.Sheets</GeneratedNamespace>
-        <UseUsings>true</UseUsings>
-        <UseFileScopedNamespace>true</UseFileScopedNamespace>
-        <UseSchemaAttribute>false</UseSchemaAttribute>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <CompilerVisibleProperty Include="SchemaPath" />
-        <CompilerVisibleProperty Include="ExperimentalSchemaPath" />
-        <CompilerVisibleProperty Include="GeneratedNamespace" />
-        <CompilerVisibleProperty Include="UseUsings" />
-        <CompilerVisibleProperty Include="UseFileScopedNamespace" />
-        <CompilerVisibleProperty Include="UseSchemaAttribute" />
-        <ProjectReference Include="..\lib\Lumina.Excel\src\Lumina.Excel.Generator\Lumina.Excel.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" IncludeAssets="all" />
-    </ItemGroup>
-
     <ItemGroup>
         <AdditionalFiles Include="..\stylecop.json" />
     </ItemGroup>
@@ -159,9 +142,7 @@
     <!-- Copy XML files from all PackageReferences to output dir -->
     <Target Name="_ResolveCopyLocalNuGetPkgXmls" AfterTargets="ResolveReferences">
         <ItemGroup>
-            <ReferenceCopyLocalPaths
-                Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')"
-                Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)'!='' and '%(ReferenceCopyLocalPaths.NuGetPackageId)'!='TerraFX.Interop.Windows' and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
+            <ReferenceCopyLocalPaths Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)'!='' and '%(ReferenceCopyLocalPaths.NuGetPackageId)'!='TerraFX.Interop.Windows' and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
         </ItemGroup>
     </Target>
 
