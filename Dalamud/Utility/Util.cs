@@ -45,6 +45,7 @@ namespace Dalamud.Utility;
 /// </summary>
 public static partial class Util
 {
+    private static readonly string[] ByteSuffixes = ["B", "KB", "MB", "GB", "TB"];
     private static readonly string[] PageProtectionFlagNames = [
         "PAGE_NOACCESS",
         "PAGE_READONLY",
@@ -378,15 +379,14 @@ public static partial class Util
     /// <returns>Human readable version.</returns>
     public static string FormatBytes(ulong bytes)
     {
-        string[] suffix = ["B", "KB", "MB", "GB", "TB"];
         int i;
         double dblSByte = bytes;
-        for (i = 0; i < suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+        for (i = 0; i < ByteSuffixes.Length && bytes >= 1024; i++, bytes /= 1024)
         {
             dblSByte = bytes / 1024.0;
         }
 
-        return $"{dblSByte:0.00} {suffix[i]}";
+        return $"{dblSByte:0.00} {ByteSuffixes[i]}";
     }
 
     /// <summary>
