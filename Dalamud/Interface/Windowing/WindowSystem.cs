@@ -15,7 +15,9 @@ public class WindowSystem : IWindowSystem
 {
     private static DateTimeOffset lastAnyFocus;
 
-    private readonly List<WindowHost> windows = [];
+    private readonly List<WindowHost> windowHosts = [];
+    private readonly List<WindowHost> windowHostsBuffer = [];
+    private readonly List<IWindow> windows = [];
 
     private string lastFocusedWindowName = string.Empty;
 
@@ -45,7 +47,7 @@ public class WindowSystem : IWindowSystem
     public static TimeSpan TimeSinceLastAnyFocus => DateTimeOffset.Now - lastAnyFocus;
 
     /// <inheritdoc/>
-    public IReadOnlyList<IWindow> Windows => this.windows.Select(c => c.Window).ToList();
+    public IReadOnlyList<IWindow> Windows => this.windows;
 
     /// <inheritdoc/>
     public bool HasAnyFocus { get; private set; }
@@ -90,23 +92,29 @@ public class WindowSystem : IWindowSystem
     /// <inheritdoc/>
     public void AddWindow(IWindow window)
     {
-        if (this.windows.Any(x => x.Window.WindowName == window.WindowName))
+        if (this.windowHosts.Any(host => host.Window.WindowName == window.WindowName))
             throw new ArgumentException("A window with this name/ID already exists.");
 
-        this.windows.Add(new WindowHost(window));
+        this.windowHosts.Add(new WindowHost(window));
+        this.windows.Add(window);
     }
 
     /// <inheritdoc/>
     public void RemoveWindow(IWindow window)
     {
-        if (this.windows.All(c => c.Window != window))
+        if (this.windowHosts.All(host => host.Window != window))
             throw new ArgumentException("This window is not registered on this WindowSystem.");
 
-        this.windows.RemoveAll(c => c.Window == window);
+        this.windowHosts.RemoveAll(host => host.Window == window);
+        this.windows.RemoveAll(win => win == window);
     }
 
     /// <inheritdoc/>
-    public void RemoveAllWindows() => this.windows.Clear();
+    public void RemoveAllWindows()
+    {
+        this.windowHosts.Clear();
+        this.windows.Clear();
+    }
 
     /// <inheritdoc/>
     public void Draw()
@@ -134,8 +142,12 @@ public class WindowSystem : IWindowSystem
         if (config?.ReduceMotions ?? false)
             flags |= WindowHost.WindowDrawFlags.IsReducedMotion;
 
-        // Shallow clone the list of windows so that we can edit it without modifying it while the loop is iterating
-        foreach (var window in this.windows.ToArray())
+        // Make a copy of the list of WindowHosts, so that we can add/remove windows
+        // without modifying the list during iteration
+        this.windowHostsBuffer.Clear();
+        this.windowHostsBuffer.AddRange(this.windowHosts);
+
+        foreach (var window in this.windowHostsBuffer)
         {
 #if DEBUG
             // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
@@ -152,15 +164,15 @@ public class WindowSystem : IWindowSystem
             window.DrawInternal(parameters, persistence);
         }
 
-        var focusedWindow = this.windows.FirstOrDefault(window => window.Window.IsFocused);
+        var focusedWindow = this.windows.FirstOrDefault(win => win.IsFocused);
         this.HasAnyFocus = focusedWindow != null;
 
         if (this.HasAnyFocus)
         {
-            if (this.lastFocusedWindowName != focusedWindow.Window.WindowName)
+            if (this.lastFocusedWindowName != focusedWindow.WindowName)
             {
-                Log.Verbose($"WindowSystem \"{this.Namespace}\" Window \"{focusedWindow.Window.WindowName}\" has focus now");
-                this.lastFocusedWindowName = focusedWindow.Window.WindowName;
+                Log.Verbose($"WindowSystem \"{this.Namespace}\" Window \"{focusedWindow.WindowName}\" has focus now");
+                this.lastFocusedWindowName = focusedWindow.WindowName;
             }
 
             HasAnyWindowSystemFocus = true;
@@ -177,15 +189,11 @@ public class WindowSystem : IWindowSystem
             }
         }
 
-        ShouldInhibitAtkCloseEvents |= this.windows.Any(w => w.Window.IsFocused &&
-                                                            w.Window.RespectCloseHotkey &&
-                                                            !w.Window.IsPinned &&
-                                                            !w.Window.IsClickthrough);
+        ShouldInhibitAtkCloseEvents |= this.windows.Any(
+            win => win.IsFocused && win.RespectCloseHotkey && !win.IsPinned && !win.IsClickthrough);
 
-        ShouldInhibitAtkCollisions |= this.windows.Any(w => w.Window.IsHovered &&
-                                                            w.Window.InhibitAtkCollision &&
-                                                            !w.Window.IsPinned &&
-                                                            !w.Window.IsClickthrough);
+        ShouldInhibitAtkCollisions |= this.windows.Any(
+            win => win.IsHovered && win.InhibitAtkCollision && !win.IsPinned && !win.IsClickthrough);
 
         if (hasNamespace)
             ImGui.PopID();

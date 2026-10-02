@@ -1,6 +1,6 @@
 namespace Dalamud.Plugin.Ipc;
 
-/// <summary> Exception thrown if the method requested in a <see cref="IIdDataShareAdapter"/> or a <see cref="INameDataShareAdapter"/> can not handle a specified argument type. </summary>
+/// <summary> Exception thrown if the method requested in a <see cref="IIdDataShareAdapter"/> can not handle a specified argument type. </summary>
 public sealed class AdapterTypeMismatchException : Exception
 {
     /// <summary> Initializes a new instance of the <see cref="AdapterTypeMismatchException"/> class using a named method. </summary>
