@@ -38,7 +38,7 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
     private NativeOverlay()
     {
         this.fireCallbackHook = Hook<AtkUnitBase.Delegates.FireCallback>.FromAddress(AtkUnitBase.Addresses.FireCallback.Value, this.OnFireCallback);
-        this.fireCallbackHook.Enable();
+        // this.fireCallbackHook.Enable(); // Disabled for now, this will need to be enabled if dalamud creates any normal Native UI windows (non-overlay).
 
         this.addonNameplateSetupListener = new AddonLifecycleEventListener(AddonEvent.PostSetup, "NamePlate", this.OnNameplateSetup);
         this.addonNameplateFinalizeListener = new AddonLifecycleEventListener(AddonEvent.PreFinalize, "NamePlate", this.OnNameplateFinalize);
