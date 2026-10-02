@@ -14,7 +14,7 @@ public interface INativeOverlayProvider : IDalamudService
     /// Must be called from the games main thread.
     /// </remarks>
     /// <param name="node">Pointer to the node to attach.</param>
-    /// <param name="depthLayer">Which depth layer to attach to.</param>
+    /// <param name="depthLayer">Which depth layer to attach to. Minimum: 0, Maximum: 12. (Lower is below the standard UI).</param>
     void AddNode(IOverlayNode node, int depthLayer);
 
     /// <summary>
@@ -25,6 +25,6 @@ public interface INativeOverlayProvider : IDalamudService
     /// Must be called from the games main thread.
     /// </remarks>
     /// <param name="node">Pointer to the node to remove.</param>
-    /// <param name="depthLayer">Which depth layer to remove it from.</param>
+    /// <param name="depthLayer">Which depth layer to attach to. Minimum: 0, Maximum: 12. (Lower is below the standard UI).</param>
     void RemoveNode(IOverlayNode node, int depthLayer);
 }
