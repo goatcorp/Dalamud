@@ -12,7 +12,7 @@ if not "%PRESET%"=="" goto configure
 rem TODO v143
 set "PRESET=vs2022"
 set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
-for /f "usebackq delims=" %%v in (`"%VSWHERE%" -latest -prerelease -property catalog_productLineVersion`) do (
+for /f "usebackq delims=" %%v in (`"%VSWHERE%" -latest -prerelease -products * -property catalog_productLineVersion`) do (
     if "%%v"=="18" set "PRESET=vs2026"
 )
 
