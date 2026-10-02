@@ -20,9 +20,9 @@ internal unsafe partial class NativeAddon
     public bool EnableContextMenu { get; init; } = true;
 
     /// <summary>
-    /// Gets a value indicating whether this window should be able to be dragged off-screen.
+    /// Gets a value indicating whether this window should be locked to the screen borders, unable to be dragged off-screen at all.
     /// </summary>
-    public bool DisableClamping { get; init; } = true;
+    public bool EnableClamping { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether the context menu for this addon should allow changing the scale.
@@ -48,7 +48,7 @@ internal unsafe partial class NativeAddon
         this.InternalAddon->EnableTitleBarContextMenu = this.EnableContextMenu;
         this.InternalAddon->DisableUserScaling = this.DisableScaleContextOption;
 
-        FlagHelper.UpdateFlag(ref this.InternalAddon->Flags1A3, 1 << 5, this.DisableClamping);
+        FlagHelper.UpdateFlag(ref this.InternalAddon->Flags1A3, 1 << 5, !this.EnableClamping);
 
         if (this.IsOverlayAddon)
         {
