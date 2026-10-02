@@ -17,6 +17,7 @@ public interface IOverlayNode
 
     /// <summary>
     /// Callback to have you actually attach your node to this addon.
+    /// You should allocate your node inside this callback, and attach your node to the root node of the provided addon.
     /// </summary>
     /// <remarks>
     /// Your node's nodeId will be set to an appropriate value prior to this call.
@@ -26,6 +27,7 @@ public interface IOverlayNode
 
     /// <summary>
     /// Callback to have you actually detach your node from this addon.
+    /// You should dispose/free your node inside this callback, and detach your node from the root node of the provided addon.
     /// </summary>
     /// <param name="atkUnitBase">Pointer to AtkUnitBase.</param>
     void PerformDetach(AtkUnitBasePtr atkUnitBase);
