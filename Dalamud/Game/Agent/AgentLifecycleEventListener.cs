@@ -5,20 +5,27 @@ namespace Dalamud.Game.Agent;
 /// <summary>
 /// This class is a helper for tracking and invoking listener delegates.
 /// </summary>
-public class AgentLifecycleEventListener
+internal class AgentLifecycleEventListener : IDisposable
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AgentLifecycleEventListener"/> class.
     /// </summary>
+    /// <param name="service">The <see cref="AgentLifecycle"/> service.</param>
     /// <param name="eventType">Event type to listen for.</param>
     /// <param name="agentId">Agent id to listen for.</param>
     /// <param name="functionDelegate">Delegate to invoke.</param>
-    internal AgentLifecycleEventListener(AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate functionDelegate)
+    internal AgentLifecycleEventListener(AgentLifecycle service, AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate functionDelegate)
     {
+        this.Service = service;
         this.EventType = eventType;
         this.AgentId = agentId;
         this.FunctionDelegate = functionDelegate;
     }
+
+    /// <summary>
+    /// Gets the <see cref="AgentLifecycle"/> service.
+    /// </summary>
+    public AgentLifecycle Service { get; init; }
 
     /// <summary>
     /// Gets the agentId of the agent this listener is looking for.
@@ -40,4 +47,13 @@ public class AgentLifecycleEventListener
     /// Gets or sets a value indicating whether the listener is requested to be cleared.
     /// </summary>
     internal bool IsRequestedToClear { get; set; }
+
+    /// <summary>
+    /// Unregisters the event listener from the <see cref="AgentLifecycle"/> service.
+    /// </summary>
+    public void Dispose()
+    {
+        if (!this.IsRequestedToClear)
+            this.Service.UnregisterListener(this);
+    }
 }

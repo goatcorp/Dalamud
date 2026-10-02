@@ -12,9 +12,8 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 /// </summary>
 internal class AgentLifecycleSelfTestStep : ISelfTestStep
 {
-    private readonly List<AgentLifecycleEventListener> listeners;
-
     private AgentLifecycle? service;
+    private List<AgentLifecycleEventListener>? listeners;
     private TestStep currentStep = TestStep.ReceiveEvent;
     private bool listenersRegistered;
 
@@ -23,12 +22,6 @@ internal class AgentLifecycleSelfTestStep : ISelfTestStep
     /// </summary>
     public AgentLifecycleSelfTestStep()
     {
-        this.listeners =
-        [
-            // ReceiveEvent is gonna be what is most commonly used, and is the easiest to test
-            // Other events require performing actions that may be considered unreasonable for a test, such as switching job/changing level
-            new AgentLifecycleEventListener(AgentEvent.PreReceiveEvent, AgentId.ConfigCharacter, this.PreReceiveEvent),
-        ];
     }
 
     private enum TestStep
@@ -48,6 +41,13 @@ internal class AgentLifecycleSelfTestStep : ISelfTestStep
 
         if (!this.listenersRegistered)
         {
+            this.listeners =
+            [
+                // ReceiveEvent is gonna be what is most commonly used, and is the easiest to test
+                // Other events require performing actions that may be considered unreasonable for a test, such as switching job/changing level
+                new AgentLifecycleEventListener(this.service, AgentEvent.PreReceiveEvent, AgentId.ConfigCharacter, this.PreReceiveEvent),
+            ];
+
             foreach (var listener in this.listeners)
             {
                 this.service.RegisterListener(listener);
@@ -78,6 +78,9 @@ internal class AgentLifecycleSelfTestStep : ISelfTestStep
         {
             this.service?.UnregisterListener(listener);
         }
+
+        this.listeners = null;
+        this.listenersRegistered = false;
     }
 
     private void PreReceiveEvent(AgentEvent type, AgentArgs args)

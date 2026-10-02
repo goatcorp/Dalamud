@@ -38,7 +38,7 @@ internal sealed unsafe class TitleScreenVersionInfo : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private TitleScreenVersionInfo()
     {
-        this.versionStringListener = new AddonLifecycleEventListener(AddonEvent.PreDraw, "_TitleRevision", this.OnVersionStringDraw);
+        this.versionStringListener = new AddonLifecycleEventListener(this.addonLifecycle, AddonEvent.PreDraw, "_TitleRevision", this.OnVersionStringDraw);
 
         this.addonLifecycle.RegisterListener(this.versionStringListener);
     }

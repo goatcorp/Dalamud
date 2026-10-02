@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -327,29 +328,35 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     }
 
     /// <inheritdoc/>
-    public void RegisterListener(AgentEvent eventType, IEnumerable<AgentId> agentIds, IAgentLifecycle.AgentEventDelegate handler)
+    public IDisposable RegisterListener(AgentEvent eventType, IEnumerable<AgentId> agentIds, IAgentLifecycle.AgentEventDelegate handler)
     {
+        var disposable = new CompositeDisposable();
+
         foreach (var agentId in agentIds)
         {
-            this.RegisterListener(eventType, agentId, handler);
+            disposable.Add(this.RegisterListener(eventType, agentId, handler));
         }
+
+        return disposable;
     }
 
     /// <inheritdoc/>
-    public void RegisterListener(AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate handler)
+    public IDisposable RegisterListener(AgentEvent eventType, AgentId agentId, IAgentLifecycle.AgentEventDelegate handler)
     {
-        var listener = new AgentLifecycleEventListener(eventType, agentId, handler);
+        var listener = new AgentLifecycleEventListener(this.agentLifecycleService, eventType, agentId, handler);
 
         using var scope = this.listenerLock.EnterScope();
 
         this.eventListeners.Add(listener);
         this.agentLifecycleService.RegisterListener(listener);
+
+        return listener;
     }
 
     /// <inheritdoc/>
-    public void RegisterListener(AgentEvent eventType, IAgentLifecycle.AgentEventDelegate handler)
+    public IDisposable RegisterListener(AgentEvent eventType, IAgentLifecycle.AgentEventDelegate handler)
     {
-        this.RegisterListener(eventType, (AgentId)uint.MaxValue, handler);
+        return this.RegisterListener(eventType, (AgentId)uint.MaxValue, handler);
     }
 
     /// <inheritdoc/>

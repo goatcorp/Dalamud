@@ -12,9 +12,8 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 /// </summary>
 internal class AddonLifecycleSelfTestStep : ISelfTestStep
 {
-    private readonly List<AddonLifecycleEventListener> listeners;
-
     private AddonLifecycle? service;
+    private List<AddonLifecycleEventListener>? listeners;
     private TestStep currentStep = TestStep.CharacterRefresh;
     private bool listenersRegistered;
 
@@ -23,15 +22,6 @@ internal class AddonLifecycleSelfTestStep : ISelfTestStep
     /// </summary>
     public AddonLifecycleSelfTestStep()
     {
-        this.listeners =
-        [
-            new(AddonEvent.PostSetup, "Character", this.PostSetup),
-            new(AddonEvent.PostUpdate, "Character", this.PostUpdate),
-            new(AddonEvent.PostDraw, "Character", this.PostDraw),
-            new(AddonEvent.PostRefresh, "Character", this.PostRefresh),
-            new(AddonEvent.PostRequestedUpdate, "Character", this.PostRequestedUpdate),
-            new(AddonEvent.PreFinalize, "Character", this.PreFinalize),
-        ];
     }
 
     private enum TestStep
@@ -56,6 +46,16 @@ internal class AddonLifecycleSelfTestStep : ISelfTestStep
 
         if (!this.listenersRegistered)
         {
+            this.listeners =
+            [
+                new(this.service, AddonEvent.PostSetup, "Character", this.PostSetup),
+                new(this.service, AddonEvent.PostUpdate, "Character", this.PostUpdate),
+                new(this.service, AddonEvent.PostDraw, "Character", this.PostDraw),
+                new(this.service, AddonEvent.PostRefresh, "Character", this.PostRefresh),
+                new(this.service, AddonEvent.PostRequestedUpdate, "Character", this.PostRequestedUpdate),
+                new(this.service, AddonEvent.PreFinalize, "Character", this.PreFinalize),
+            ];
+
             foreach (var listener in this.listeners)
             {
                 this.service.RegisterListener(listener);
@@ -100,6 +100,9 @@ internal class AddonLifecycleSelfTestStep : ISelfTestStep
         {
             this.service?.UnregisterListener(listener);
         }
+
+        this.listeners = null;
+        this.listenersRegistered = false;
     }
 
     private void PostSetup(AddonEvent eventType, AddonArgs addonInfo)
