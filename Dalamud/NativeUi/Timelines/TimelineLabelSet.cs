@@ -74,7 +74,7 @@ internal unsafe class TimelineLabelSet : IDisposable
         ref var keyGroup = ref this.InternalLabelSet->LabelKeyGroup;
 
         // Free existing array, we will completely rebuild it
-        if (keyGroup.KeyFrames is null)
+        if (keyGroup.KeyFrames is not null)
         {
             IMemorySpace.Free(keyGroup.KeyFrames);
             keyGroup.KeyFrames = null;
