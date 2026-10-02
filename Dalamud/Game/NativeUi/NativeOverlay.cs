@@ -19,7 +19,7 @@ namespace Dalamud.Game.NativeUi;
 /// Service api implementation providing devs with access to managing native ui elements in overlay addons.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed unsafe class NativeOverlay : IInternalDisposableService, INativeOverlay
+internal sealed unsafe class NativeOverlay : IInternalDisposableService, INativeOverlayProvider
 {
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
@@ -170,9 +170,9 @@ internal sealed unsafe class NativeOverlay : IInternalDisposableService, INative
 [PluginInterface]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
-[ResolveVia<INativeOverlay>]
+[ResolveVia<INativeOverlayProvider>]
 #pragma warning restore SA1015
-internal class NativeOverlayPluginScoped : IInternalDisposableService, INativeOverlay
+internal class NativeOverlayPluginScoped : IInternalDisposableService, INativeOverlayProvider
 {
     [ServiceManager.ServiceDependency]
     private readonly NativeOverlay nativeOverlayService = Service<NativeOverlay>.Get();

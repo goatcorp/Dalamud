@@ -5,7 +5,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Service api for providing devs with access to adding native ui elements to overlay addons.
 /// </summary>
-public interface INativeOverlay : IDalamudService
+public interface INativeOverlayProvider : IDalamudService
 {
     /// <summary>
     /// Adds a node to a native addon on the specified layer.
