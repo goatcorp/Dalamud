@@ -191,22 +191,6 @@ internal class NativeOverlayPluginScoped : IInternalDisposableService, INativeOv
 
     private readonly Dictionary<int, List<IOverlayNode>> attachedNodes = [];
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="NativeOverlayPluginScoped"/> class.
-    /// </summary>
-    internal NativeOverlayPluginScoped()
-    {
-        foreach (var (layer, nodeList) in this.attachedNodes)
-        {
-            foreach (var node in nodeList)
-            {
-                this.nativeOverlayService.RemoveNode(node, layer);
-            }
-        }
-
-        this.attachedNodes.Clear();
-    }
-
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
