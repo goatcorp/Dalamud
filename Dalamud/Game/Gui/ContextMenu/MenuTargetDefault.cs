@@ -1,4 +1,5 @@
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Marketboard.Network.Structures.InfoProxy;
@@ -6,7 +7,6 @@ using Dalamud.Game.Marketboard.Network.Structures.InfoProxy;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Gui.ContextMenu;
 

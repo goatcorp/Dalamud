@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Player;
+using Dalamud.Utility;
 
 using Lumina.Text.ReadOnly;
 

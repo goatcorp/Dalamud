@@ -2,12 +2,12 @@ using System.Collections.Generic;
 
 using Dalamud.Common;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.Network.Structures.InfoProxy;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Marketboard.Network.Structures.InfoProxy;
 

@@ -1,11 +1,10 @@
 using System.Numerics;
 
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Objects.Types;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Utility;
 

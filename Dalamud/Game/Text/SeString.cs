@@ -1,4 +1,5 @@
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Utility;
@@ -6,12 +7,11 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
-using Lumina.Excel.Sheets;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
-using MapSheet = Lumina.Excel.Sheets.Map;
+using MapSheet = Dalamud.Excel.Sheets.Map;
 
 namespace Dalamud.Game.Text;
 

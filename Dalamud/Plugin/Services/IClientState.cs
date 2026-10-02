@@ -1,9 +1,9 @@
 using Dalamud.Common;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 using Action = System.Action;
 

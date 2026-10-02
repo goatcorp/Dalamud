@@ -1,6 +1,6 @@
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.Text;
 
-using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Gui.ContextMenu;

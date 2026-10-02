@@ -117,7 +117,7 @@ jobs:
           Expand-Archive -Force latest.zip "left"
     - name: "Verify Compatibility"
       run: |
-        $FILES_TO_VALIDATE = "Dalamud.dll","FFXIVClientStructs.dll","Lumina.dll","Lumina.Excel.dll"
+        $FILES_TO_VALIDATE = "Dalamud.dll","FFXIVClientStructs.dll","Lumina.dll"
 
         $retcode = 0
 

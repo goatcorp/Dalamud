@@ -3,6 +3,8 @@ using Dalamud.Game.ClientState.JobGauge.Enums;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 using AetherFlags = Dalamud.Game.ClientState.JobGauge.Enums.AetherFlags;
+using PetMirageSheet = Dalamud.Excel.Sheets.PetMirage;
+using PetSheet = Dalamud.Excel.Sheets.Pet;
 
 namespace Dalamud.Game.ClientState.JobGauge.Types;
 
@@ -38,13 +40,13 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
 
     /// <summary>
     /// Gets the summon that will return after the current summon expires.
-    /// This maps to the <see cref="Lumina.Excel.Sheets.Pet"/> sheet.
+    /// This maps to the <see cref="PetSheet"/> sheet.
     /// </summary>
     public SummonPet ReturnSummon => (SummonPet)this.Struct->ReturnSummon;
 
     /// <summary>
     /// Gets the summon glam for the <see cref="ReturnSummon"/>.
-    /// This maps to the <see cref="Lumina.Excel.Sheets.PetMirage"/> sheet.
+    /// This maps to the <see cref="PetMirageSheet"/> sheet.
     /// </summary>
     public PetGlam ReturnSummonGlam => (PetGlam)this.Struct->ReturnSummonGlam;
 

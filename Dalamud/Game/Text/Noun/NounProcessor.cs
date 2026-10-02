@@ -2,14 +2,13 @@ using System.Collections.Concurrent;
 
 using Dalamud.Common;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
 using Lumina.Excel;
 using Lumina.Text.ReadOnly;
-
-using LSheets = Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Text.Noun;
 
@@ -141,7 +140,7 @@ internal class NounProcessor : IServiceType
             return default;
         }
 
-        var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(LSheets.Attributive));
+        var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(Attributive));
 
         using var rssb = new RentedSeStringBuilder();
 
@@ -184,7 +183,7 @@ internal class NounProcessor : IServiceType
             return default;
         }
 
-        var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(LSheets.Attributive));
+        var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(Attributive));
 
         using var rssb = new RentedSeStringBuilder();
 
@@ -234,7 +233,7 @@ internal class NounProcessor : IServiceType
             return default;
         }
 
-        var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(LSheets.Attributive));
+        var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(Attributive));
 
         using var rssb = new RentedSeStringBuilder();
 
@@ -336,7 +335,7 @@ internal class NounProcessor : IServiceType
             return default;
         }
 
-        var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(LSheets.Attributive));
+        var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(nounParams.Language.ToLumina(), nameof(Attributive));
         var articleRow = attributiveSheet.GetRow((uint)nounParams.ArticleType);
 
         using var rssb = new RentedSeStringBuilder();

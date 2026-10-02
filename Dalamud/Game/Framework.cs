@@ -412,7 +412,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             }
         }
 
-        static string GetFullHandlerName(IFramework.OnUpdateDelegate d) => $"{d.Target}::{d.Method.Name}";
+        static string GetFullHandlerName(IFramework.UpdateDelegate d) => $"{d.Target}::{d.Method.Name}";
     }
 
     private unsafe bool HandleFrameworkUpdate(CSFramework* thisPtr)
