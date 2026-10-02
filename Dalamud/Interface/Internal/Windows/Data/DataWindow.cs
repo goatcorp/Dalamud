@@ -33,6 +33,7 @@ internal class DataWindow : Window, IDisposable
         new ConfigurationWidget(),
         new DataShareWidget(),
         new DtrBarWidget(),
+        new ExceptionWidget(),
         new FateTableWidget(),
         new FlyTextWidget(),
         new FontAwesomeTestWidget(),
