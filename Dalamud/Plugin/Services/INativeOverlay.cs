@@ -13,7 +13,7 @@ public interface INativeOverlay : IDalamudService
     /// <remarks>
     /// Must be called from the games main thread.
     /// </remarks>
-    /// <param name="node">Pointer to the node to attach.</param>
+    /// <param name="node">Instance of your implementation of <see cref="IOverlayNode">.</param>
     /// <param name="depthLayer">Which depth layer to attach to.</param>
     void AddNode(IOverlayNode node, int depthLayer);
 
