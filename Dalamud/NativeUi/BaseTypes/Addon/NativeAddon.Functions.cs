@@ -48,7 +48,6 @@ internal partial class NativeAddon
     public unsafe void Close()
     {
         ThreadSafety.AssertMainThread();
-        if (this.InternalAddon is null) return;
 
         if (this.InternalAddon is null)
         {
