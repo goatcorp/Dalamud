@@ -1,11 +1,19 @@
-#include "pch.h"
+#include <filesystem>
 #include <format>
+#include <thread>
+
+#include <Windows.h>
+#include <CommCtrl.h>
+#include <PathCch.h>
+#include <shellapi.h>
 
 #include <d3d11.h>
 #include <dxgi.h>
 #include <dxgi1_3.h>
-#pragma comment(lib, "dxgi.lib")
 
+#include <boot.h>
+
+#include "globals.h"
 #include "DalamudStartInfo.h"
 #include "hooks.h"
 #include "logging.h"
@@ -14,7 +22,7 @@
 #include "xivfixes.h"
 #include "resource.h"
 
-#include "../shared/hardware_info.h"
+#include "hardware_info.h"
 
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);

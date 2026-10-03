@@ -42,7 +42,7 @@ add_library(Dalamud.Boot SHARED
     error_info.cpp
     hooks.cpp
     ntdll.cpp
-    pch_nmd_assembly_impl.cpp
+    nmd_assembly_impl.cpp
     rewrite_entrypoint.cpp
     rewrite_entrypoint_thunks.asm
     safetyhook_api.cpp
@@ -56,12 +56,20 @@ add_library(Dalamud.Boot SHARED
 # TODO: use same standard for all projects (here cxx_std_23)
 target_compile_options(Dalamud.Boot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++23preview>)
 target_compile_definitions(Dalamud.Boot PRIVATE CPPDLLTEMPLATE_EXPORTS _USRDLL)
-target_include_directories(Dalamud.Boot PRIVATE "${LIB_DIR}/mimalloc/include" "${LIB_DIR}/safetyhook")
-target_link_libraries(Dalamud.Boot PRIVATE Version Shlwapi)
 
-# TODO PCH: Must match pch.h due to stupid std::mutex abi break
-set_source_files_properties("${LIB_DIR}/safetyhook/safetyhook.cpp" PROPERTIES
-    COMPILE_DEFINITIONS _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
+# TODO: Get rid of this please, put it in a header, make the thirdparties static libs
+target_compile_definitions(Dalamud.Boot PRIVATE WIN32_LEAN_AND_MEAN= NOMINMAX=)
+target_include_directories(Dalamud.Boot PRIVATE
+    "${SHARED_DIR}"
+    "${LIB_DIR}/CoreCLR"
+    "${LIB_DIR}/libdeflate"
+    "${LIB_DIR}/mimalloc/include"
+    "${LIB_DIR}/nlohmann-json"
+    "${LIB_DIR}/Nomade040-nmd"
+    "${LIB_DIR}/safetyhook"
+    "${LIB_DIR}/srell3_009/single-header"
+    "${LIB_DIR}/TsudaKageyu-minhook/include")
+target_link_libraries(Dalamud.Boot PRIVATE Version Shlwapi Comctl32 Dxgi)
 
 add_custom_command(TARGET Dalamud.Boot POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different

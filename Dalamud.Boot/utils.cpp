@@ -1,4 +1,13 @@
-#include "pch.h"
+#include <mutex>
+#include <ranges>
+
+#include <Windows.h>
+#include <PathCch.h>
+#include <Psapi.h>
+
+#include <nmd_assembly.h>
+
+#include "globals.h"
 #include "DalamudStartInfo.h"
 
 #include "utils.h"
