@@ -8,6 +8,7 @@
 
 #include "veh.h"
 
+#include "clr_host.h"
 #include "globals.h"
 #include "logging.h"
 #include "utils.h"

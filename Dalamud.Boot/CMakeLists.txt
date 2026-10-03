@@ -23,8 +23,6 @@ set(THIRD_PARTY_SOURCES
     "${LIB_DIR}/libdeflate/lib/deflate_decompress.c"
     "${LIB_DIR}/libdeflate/lib/utils.c"
     "${LIB_DIR}/libdeflate/lib/x86/cpu_features.c"
-    "${LIB_DIR}/CoreCLR/boot.cpp"
-    "${LIB_DIR}/CoreCLR/CoreCLR.cpp"
     "${LIB_DIR}/TsudaKageyu-minhook/src/buffer.c"
     "${LIB_DIR}/TsudaKageyu-minhook/src/HDE/hde64.c"
     "${LIB_DIR}/TsudaKageyu-minhook/src/hook.c"
@@ -37,6 +35,8 @@ add_library(Dalamud.Boot SHARED
     "${SHARED_DIR}/hardware_info.cpp"
     "${SHARED_DIR}/logging.cpp"
     "${SHARED_DIR}/unicode.cpp"
+    clr_host.cpp
+    CoreCLR.cpp
     DalamudStartInfo.cpp
     dllmain.cpp
     error_info.cpp

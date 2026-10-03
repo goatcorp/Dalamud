@@ -1,10 +1,7 @@
-#define WIN32_LEAN_AND_MEAN
-
 #include "CoreCLR.h"
 #include <Windows.h>
 #include <filesystem>
 #include <iostream>
-#include "nethost/nethost.h"
 #include "logging.h"
 
 CoreCLR::CoreCLR(void* calling_module)

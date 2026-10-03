@@ -11,7 +11,7 @@
 #include <dxgi.h>
 #include <dxgi1_3.h>
 
-#include <boot.h>
+#include "clr_host.h"
 
 #include "globals.h"
 #include "DalamudStartInfo.h"
