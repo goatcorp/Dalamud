@@ -53,7 +53,7 @@ add_library(Dalamud.Boot SHARED
     module.def
     themes.manifest)
 
-# TODO v143: Use target_compile_features with cxx_std_23 instead
+# TODO: use same standard for all projects (here cxx_std_23)
 target_compile_options(Dalamud.Boot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++23preview>)
 target_compile_definitions(Dalamud.Boot PRIVATE CPPDLLTEMPLATE_EXPORTS _USRDLL)
 target_include_directories(Dalamud.Boot PRIVATE "${LIB_DIR}/mimalloc/include" "${LIB_DIR}/safetyhook")

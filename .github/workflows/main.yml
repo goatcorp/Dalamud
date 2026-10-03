@@ -12,7 +12,7 @@ jobs:
       id-token: write
       contents: read
       attestations: write
-    runs-on: windows-2022
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
@@ -29,22 +29,6 @@ jobs:
       - uses: actions/setup-dotnet@55ec9447dda3d1cf6bd587150f3262f30ee10815 # v3
         with:
           dotnet-version: '10.0.100'
-      # Can be dropped once we're on windows-2025
-      - name: Install CMake
-        env:
-          CMAKE_VERSION: '4.2.0'
-        run: |
-          $name = "cmake-$env:CMAKE_VERSION-windows-x86_64"
-          $url = "https://cmake.org/files/v$($env:CMAKE_VERSION -replace '\.\d+$', '')"
-          Invoke-WebRequest "$url/$name.zip" -OutFile "$env:RUNNER_TEMP\cmake.zip"
-          Invoke-WebRequest "$url/cmake-$env:CMAKE_VERSION-SHA-256.txt" -OutFile "$env:RUNNER_TEMP\cmake.sha256"
-
-          $expected = (Select-String -Path "$env:RUNNER_TEMP\cmake.sha256" -Pattern "  $name.zip$").Line.Split(' ')[0]
-          $actual = (Get-FileHash "$env:RUNNER_TEMP\cmake.zip" -Algorithm SHA256).Hash
-          if ($actual -ne $expected) { throw "CMake checksum mismatch: $actual != $expected" }
-
-          Expand-Archive "$env:RUNNER_TEMP\cmake.zip" $env:RUNNER_TEMP
-          "$env:RUNNER_TEMP\$name\bin" >> $env:GITHUB_PATH
       - name: Define VERSION
         run: |
           $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
@@ -54,10 +38,9 @@ jobs:
           ($env:REPO_NAME) >> VERSION
           ($env:BRANCH) >> VERSION
           ($env:COMMIT) >> VERSION
-      # TODO v143
       - name: Build native projects
         run: |
-          cmake --preset vs2022
+          cmake --preset vs2026
           cmake --build build --config $env:CONFIGURATION -- "/clp:NoSummary;ForceNoAlign"
       - name: Build Dalamud
         run: |

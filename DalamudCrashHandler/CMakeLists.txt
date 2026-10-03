@@ -10,7 +10,7 @@ add_executable(DalamudCrashHandler
 
 target_compile_features(DalamudCrashHandler PRIVATE c_std_17)
 
-# TODO v143: CMake doesn't know cxx_std_26 for old msvc
+# TODO: use same standard for all projects (here cxx_std_23)
 target_compile_options(DalamudCrashHandler PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++latest>)
 target_compile_definitions(DalamudCrashHandler PRIVATE _CRT_SECURE_NO_WARNINGS _CONSOLE)
 target_link_libraries(DalamudCrashHandler PRIVATE Version Winhttp Dbghelp)

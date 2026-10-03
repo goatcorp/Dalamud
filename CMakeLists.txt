@@ -4,7 +4,7 @@
 #   Dalamud.Boot/         Dalamud.Boot                (DLL injected into the game)
 #   DalamudCrashHandler/  DalamudCrashHandler         (EXE spawned by Dalamud.Boot to handle crashes)
 
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 4.2)
 project(DalamudNative LANGUAGES C CXX)
 
 if(NOT MSVC)
