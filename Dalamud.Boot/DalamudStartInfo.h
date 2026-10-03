@@ -1,5 +1,10 @@
 #pragma once
 
+#include <set>
+#include <string>
+
+#include <nlohmann/json.hpp>
+
 struct DalamudStartInfo {
     enum class WaitMessageboxFlags : int {
         None = 0,

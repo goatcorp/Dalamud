@@ -1,6 +1,6 @@
-#include "pch.h"
-
 #include "hooks.h"
+
+#include <mutex>
 
 #include "ntdll.h"
 #include "logging.h"

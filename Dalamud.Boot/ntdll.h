@@ -1,5 +1,8 @@
 #pragma once
 
+#include <Windows.h>
+#include <SubAuth.h>
+
 // ntdll exports
 enum {
     LDR_DLL_NOTIFICATION_REASON_LOADED = 1,

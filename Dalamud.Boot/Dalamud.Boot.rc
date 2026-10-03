@@ -34,16 +34,16 @@ RT_MANIFEST_THEMES      RT_MANIFEST             "themes.manifest"
 
 STRINGTABLE
 BEGIN
-    IDS_APPNAME             "Dalamud Boot"
+    IDS_APPNAME             "Dalamud"
     IDS_MSVCRT_ACTION_OPENDOWNLOAD
-                            "Download Microsoft Visual C++ Redistributable 2022\nExit the game and download the latest setup file from Microsoft."
+                            "Download Microsoft Visual C++ Redistributable\nExit the game and download the latest setup file from Microsoft."
     IDS_MSVCRT_ACTION_IGNORE
                             "Ignore and Continue\nAttempt to continue with the currently installed version.\nDalamud or plugins may fail to load."
     IDS_MSVCRT_DIALOG_MAININSTRUCTION
                             "Outdated Microsoft Visual C++ Redistributable"
     IDS_MSVCRT_DIALOG_CONTENT
                             "The Microsoft Visual C++ Redistributable version detected on this computer (v{0}.{1}.{2}.{3}) is out of date and may not work with Dalamud."
-    IDS_MSVCRT_DOWNLOADURL  "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+    IDS_MSVCRT_DOWNLOADURL  "https://aka.ms/vc14/vc_redist.x64.exe"
     IDS_INITIALIZEFAIL_ACTION_ABORT "Abort\nExit the game."
     IDS_INITIALIZEFAIL_ACTION_CONTINUE
                             "Load game without Dalamud\nThe game will launch without Dalamud enabled."

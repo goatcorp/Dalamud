@@ -1,6 +1,10 @@
 #pragma once
 
+#include <format>
 #include <map>
+#include <optional>
+
+#include <MinHook.h>
 
 #include "utils.h"
 
