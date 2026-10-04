@@ -42,7 +42,7 @@ BEGIN
     IDS_MSVCRT_DIALOG_MAININSTRUCTION
                             "Outdated Microsoft Visual C++ Redistributable"
     IDS_MSVCRT_DIALOG_CONTENT
-                            "The Microsoft Visual C++ Redistributable version detected on this computer (v{0}.{1}.{2}.{3}) is out of date and may not work with Dalamud."
+                            "The Microsoft Visual C++ Redistributable version detected on this computer (v{0}.{1}.{2}.{3}) is out of date and may not work with Dalamud.\nYou may need to install a newer version of the redistributable to play."
     IDS_MSVCRT_DOWNLOADURL  "https://aka.ms/vc14/vc_redist.x64.exe"
     IDS_INITIALIZEFAIL_ACTION_ABORT "Abort\nExit the game."
     IDS_INITIALIZEFAIL_ACTION_CONTINUE
