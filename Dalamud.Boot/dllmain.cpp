@@ -28,6 +28,9 @@ HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
 static void CheckMsvcrtVersion() {
+    if (utils::is_running_on_wine())
+        return;
+
     // 14.51.36247.0 is what is shipped with windows-2025 on GitHub actions at time of writing (v145 build tools)
     constexpr WORD RequiredMsvcrtVersionComponents[] = {14, 51, 36247, 0};
     constexpr auto RequiredMsvcrtVersion = 0ULL
