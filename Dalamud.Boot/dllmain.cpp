@@ -1,11 +1,19 @@
-#include "pch.h"
+#include <filesystem>
 #include <format>
+#include <thread>
+
+#include <Windows.h>
+#include <CommCtrl.h>
+#include <PathCch.h>
+#include <shellapi.h>
 
 #include <d3d11.h>
 #include <dxgi.h>
 #include <dxgi1_3.h>
-#pragma comment(lib, "dxgi.lib")
 
+#include "clr_host.h"
+
+#include "globals.h"
 #include "DalamudStartInfo.h"
 #include "hooks.h"
 #include "logging.h"
@@ -14,20 +22,17 @@
 #include "xivfixes.h"
 #include "resource.h"
 
-#include "../shared/hardware_info.h"
+#include "hardware_info.h"
 
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
 static void CheckMsvcrtVersion() {
-    // Commit introducing inline mutex ctor: tagged vs-2022-17.14 (2024-06-18)
-    // - https://github.com/microsoft/STL/commit/22a88260db4d754bbc067e2002430144d6ec5391
-    // MSVC Redist versions:
-    // - https://github.com/abbodi1406/vcredist/blob/master/source_links/README.md
-    // - 14.40.33810.0 dsig 2024-04-28
-    // - 14.40.33816.0 dsig 2024-09-11
+    if (utils::is_running_on_wine())
+        return;
 
-    constexpr WORD RequiredMsvcrtVersionComponents[] = {14, 40, 33816, 0};
+    // 14.51.36247.0 is what is shipped with windows-2025 on GitHub actions at time of writing (v145 build tools)
+    constexpr WORD RequiredMsvcrtVersionComponents[] = {14, 51, 36247, 0};
     constexpr auto RequiredMsvcrtVersion = 0ULL
         | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[0]) << 48)
         | (static_cast<uint64_t>(RequiredMsvcrtVersionComponents[1]) << 32)

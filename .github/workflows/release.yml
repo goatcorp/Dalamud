@@ -11,7 +11,7 @@ concurrency:
 jobs:
   release:
     name: Build and upload Windows release
-    runs-on: windows-2022
+    runs-on: windows-2025
     permissions:
       contents: write
     defaults:
@@ -31,23 +31,6 @@ jobs:
         with:
           dotnet-version: '10.0.100'
 
-      # Can be dropped once we're on windows-2025.
-      - name: Install CMake
-        env:
-          CMAKE_VERSION: '4.2.0'
-        run: |
-          $name = "cmake-$env:CMAKE_VERSION-windows-x86_64"
-          $url = "https://cmake.org/files/v$($env:CMAKE_VERSION -replace '\.\d+$', '')"
-          Invoke-WebRequest "$url/$name.zip" -OutFile "$env:RUNNER_TEMP\cmake.zip"
-          Invoke-WebRequest "$url/cmake-$env:CMAKE_VERSION-SHA-256.txt" -OutFile "$env:RUNNER_TEMP\cmake.sha256"
-
-          $expected = (Select-String -Path "$env:RUNNER_TEMP\cmake.sha256" -Pattern "  $name.zip$").Line.Split(' ')[0]
-          $actual = (Get-FileHash "$env:RUNNER_TEMP\cmake.zip" -Algorithm SHA256).Hash
-          if ($actual -ne $expected) { throw "CMake checksum mismatch: $actual != $expected" }
-
-          Expand-Archive "$env:RUNNER_TEMP\cmake.zip" $env:RUNNER_TEMP
-          "$env:RUNNER_TEMP\$name\bin" >> $env:GITHUB_PATH
-
       - name: Define VERSION
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
@@ -59,7 +42,7 @@ jobs:
           ) | Set-Content -LiteralPath VERSION
 
       - name: Generate native projects
-        run: .\generate.cmd vs2022
+        run: .\generate.cmd vs2026
 
       - name: Build Dalamud
         run: .\build.cmd Release

@@ -1,6 +1,6 @@
-#include "pch.h"
-
 #include "safetyhook_api.h"
+
+#include <Windows.h>
 
 #include <safetyhook.hpp>
 
