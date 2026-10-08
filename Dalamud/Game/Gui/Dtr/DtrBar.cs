@@ -395,7 +395,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                     }
 
                     using var rssb = new RentedSeStringBuilder();
-                    data.Storage->SetString(rssb.Builder.Append(data.Text).GetViewAsSpan());
+                    data.Storage->SetString(rssb.Append(data.Text).GetViewAsSpan());
                     node->SetText(data.Storage->StringPtr);
 
                     ushort w = 0, h = 0;
@@ -641,7 +641,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                 case AddonEventType.MouseOver:
                     {
                         using var rssb = new RentedSeStringBuilder();
-                        AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, node, rssb.Builder.Append(dtrBarEntry.Tooltip).GetViewAsSpan());
+                        AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, node, rssb.Append(dtrBarEntry.Tooltip).GetViewAsSpan());
                         break;
                     }
 

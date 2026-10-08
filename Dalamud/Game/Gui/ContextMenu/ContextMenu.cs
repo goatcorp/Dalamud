@@ -140,7 +140,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             return menuItem.Name;
 
         using var rssb = new RentedSeStringBuilder();
-        return rssb.Builder
+        return rssb
             .PushColorType(menuItem.PrefixColor)
             .Append(prefix.ToIconString())
             .Append(menuItem.Name)
@@ -188,7 +188,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         using var rssb = new RentedSeStringBuilder();
 
         values[0].SetUInt(0);
-        values[1].SetManagedString(rssb.Builder.Append(name).GetViewAsSpan());
+        values[1].SetManagedString(rssb.Append(name).GetViewAsSpan());
         values[2].SetInt(x);
         values[3].SetInt(y);
         values[4].SetBool(false);
@@ -260,7 +260,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 submenuMask |= 1u << i;
 
             using var rssb = new RentedSeStringBuilder();
-            nameData[i].SetManagedString(rssb.Builder.Append(this.GetPrefixedName(item)).GetViewAsSpan());
+            nameData[i].SetManagedString(rssb.Append(this.GetPrefixedName(item)).GetViewAsSpan());
         }
 
         for (var i = 0; i < prefixMenuSize; ++i)

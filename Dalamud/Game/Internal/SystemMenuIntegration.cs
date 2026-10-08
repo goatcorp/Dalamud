@@ -152,18 +152,18 @@ internal sealed unsafe class SystemMenuIntegration : IInternalDisposableService
         var entryIndex = startIndex;
 
         values[entryIndex].SetInt(69420);
-        values[entryIndex + maxEntries].SetManagedString(rssb.Builder
+        values[entryIndex + maxEntries].SetManagedString(rssb
             .PushColorType(color)
             .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
             .PopColorType()
             .Append(this.LocDalamudPlugins)
             .GetViewAsSpan());
 
-        rssb.Builder.Clear();
+        rssb.Clear();
         entryIndex++;
 
         values[entryIndex].SetInt(69421);
-        values[entryIndex + maxEntries].SetManagedString(rssb.Builder
+        values[entryIndex + maxEntries].SetManagedString(rssb
             .PushColorType(color)
             .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
             .PopColorType()

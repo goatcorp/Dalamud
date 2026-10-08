@@ -151,19 +151,19 @@ public static class ItemUtil
 
         using var rssb = new RentedSeStringBuilder();
 
-        rssb.Builder.Append(item.Name);
+        rssb.Append(item.Name);
 
         switch (kind)
         {
             case ItemKind.Hq:
-                rssb.Builder.Append($" {(char)SeIconChar.HighQuality}");
+                rssb.Append($" {(char)SeIconChar.HighQuality}");
                 break;
             case ItemKind.Collectible:
-                rssb.Builder.Append($" {(char)SeIconChar.Collectible}");
+                rssb.Append($" {(char)SeIconChar.Collectible}");
                 break;
         }
 
-        return rssb.Builder.ToReadOnlySeString();
+        return rssb.ToReadOnlySeString();
     }
 
     /// <summary>

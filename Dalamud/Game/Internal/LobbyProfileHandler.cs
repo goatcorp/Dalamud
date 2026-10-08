@@ -111,7 +111,7 @@ internal sealed unsafe class LobbyProfileHandler : IInternalDisposableService
 
             using var rssb = new RentedSeStringBuilder();
 
-            addonSelectYesno->PromptText->SetText(rssb.Builder
+            addonSelectYesno->PromptText->SetText(rssb
                 .PushColorType(539)
                 .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
                 .PopColorType()

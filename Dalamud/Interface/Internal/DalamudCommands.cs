@@ -303,14 +303,14 @@ internal class DalamudCommands : IServiceType
         var chatGui = Service<ChatGui>.Get();
         using var rssb = new RentedSeStringBuilder();
 
-        chatGui.Print(rssb.Builder
+        chatGui.Print(rssb
             .AppendSetItalic(true)
             .Append("Dalamud:")
             .AppendSetItalic(false)
             .Append($" {Versioning.GetScmVersion()}")
             .ToReadOnlySeString());
 
-        chatGui.Print(rssb.Builder
+        chatGui.Print(rssb
             .Clear()
             .AppendSetItalic(true)
             .Append("FFXIVCS:")

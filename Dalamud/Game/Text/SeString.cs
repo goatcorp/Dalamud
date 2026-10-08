@@ -64,7 +64,7 @@ public static class SeString
 
         using var rssb = new RentedSeStringBuilder();
 
-        var itemLink = rssb.Builder
+        var itemLink = rssb
             .PushColorType(textColor)
             .PushEdgeColorType(textEdgeColor)
             .PushLinkItem(rawId, copyName)
@@ -131,14 +131,13 @@ public static class SeString
         var evaluator = Service<SeStringEvaluator>.Get();
 
         using var rssb = new RentedSeStringBuilder();
-        var sb = rssb.Builder;
 
-        sb.Append(placeName.Name);
+        rssb.Append(placeName.Name);
 
         if (instanceId > 0)
-            sb.Append((char)(SeIconChar.Instance1 + (byte)(instanceId - 1)));
+            rssb.Append((char)(SeIconChar.Instance1 + (byte)(instanceId - 1)));
 
-        var placeNameWithInstance = sb.ToReadOnlySeString();
+        var placeNameWithInstance = rssb.ToReadOnlySeString();
 
         var mapPosX = map.ToMapCoordX(xCoord);
         var mapPosY = map.ToMapCoordY(yCoord);
@@ -159,9 +158,9 @@ public static class SeString
             linkText = evaluator.EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY]);
         }
 
-        sb.Clear();
+        rssb.Clear();
 
-        var mapLink = sb
+        var mapLink = rssb
             .PushLinkMapPosition(territoryId, mapId, (int)(xCoord * 1000f), (int)(yCoord * 1000f))
             .Append(linkText)
             .PopLink()
@@ -182,7 +181,7 @@ public static class SeString
     {
         using var rssb = new RentedSeStringBuilder();
         var evaluator = Service<SeStringEvaluator>.Get();
-        return evaluator.Evaluate(rssb.Builder
+        return evaluator.Evaluate(rssb
             .BeginMacro(MacroCode.Fixed)
             .AppendIntExpression(200)
             .AppendIntExpression(11)
@@ -204,7 +203,7 @@ public static class SeString
     {
         using var rssb = new RentedSeStringBuilder();
         var evaluator = Service<SeStringEvaluator>.Get();
-        return evaluator.Evaluate(rssb.Builder
+        return evaluator.Evaluate(rssb
             .PushLinkPartyFinderNotification()
             .Append(evaluator.EvaluateFromAddon(371, [message]))
             .PopLink()

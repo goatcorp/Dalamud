@@ -120,7 +120,7 @@ internal partial class ChatHandlers : IServiceType
             chatGui.Print(new PrintableChatMessage
             {
                 LogKind = XivChatType.Notice,
-                Message = rssb.Builder
+                Message = rssb
                     .Append(Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully!"))
                     .PushColorType(500)
                     .Append("  [ ")

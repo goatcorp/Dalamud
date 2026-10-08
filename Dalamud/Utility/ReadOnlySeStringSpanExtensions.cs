@@ -76,4 +76,59 @@ public static class ReadOnlySeStringSpanExtensions
             ArrayPool<byte>.Shared.Return(rented);
         }
     }
+
+    /// <summary>
+    /// Replaces occurrences of a specified text in a <see cref="ReadOnlySeString"/> with another text.
+    /// </summary>
+    /// <param name="input">The original string.</param>
+    /// <param name="toFind">The text to find.</param>
+    /// <param name="replacement">The replacement text.</param>
+    /// <returns>A new <see cref="ReadOnlySeString"/> with the replacements made.</returns>
+    public static ReadOnlySeString ReplaceText(this ReadOnlySeStringSpan input, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
+    {
+        if (input.IsEmpty)
+            return new ReadOnlySeString(input);
+
+        using var rssb = new RentedSeStringBuilder();
+
+        foreach (var payload in input)
+        {
+            if (payload.Type == ReadOnlySePayloadType.Invalid)
+                continue;
+
+            if (payload.Type != ReadOnlySePayloadType.Text)
+            {
+                rssb.Append(payload);
+                continue;
+            }
+
+            var index = payload.Body.IndexOf(toFind);
+            if (index == -1)
+            {
+                rssb.Append(payload);
+                continue;
+            }
+
+            var lastIndex = 0;
+            while (index != -1)
+            {
+                rssb.Append(payload.Body[lastIndex..index]);
+
+                if (!replacement.IsEmpty)
+                {
+                    rssb.Append(replacement);
+                }
+
+                lastIndex = index + toFind.Length;
+                index = payload.Body[lastIndex..].IndexOf(toFind);
+
+                if (index != -1)
+                    index += lastIndex;
+            }
+
+            rssb.Append(payload.Body[lastIndex..]);
+        }
+
+        return rssb.ToReadOnlySeString();
+    }
 }
