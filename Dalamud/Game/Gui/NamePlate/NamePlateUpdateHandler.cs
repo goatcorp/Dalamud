@@ -594,7 +594,7 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
         using var rssb = new RentedSeStringBuilder();
         this.context.StringData->SetValue(
             this.ArrayIndex + (int)field,
-            rssb.Builder.Append(value).GetViewAsSpan(),
+            rssb.Append(value).GetViewAsSpan(),
             true,
             true,
             true);
@@ -607,7 +607,7 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
         using var rssb = new RentedSeStringBuilder();
         this.context.StringData->SetValue(
             this.ArrayIndex + (int)field,
-            rssb.Builder.Append(value).GetViewAsSpan(),
+            rssb.Append(value).GetViewAsSpan(),
             true,
             true,
             true);
@@ -658,7 +658,7 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
         using var rssb = new RentedSeStringBuilder();
         this.context.StringData->SetValue(
             this.ArrayIndex + (int)field,
-            rssb.Builder.Append(value).GetViewAsSpan(),
+            rssb.Append(value).GetViewAsSpan(),
             true,
             true,
             true);

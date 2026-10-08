@@ -31,13 +31,13 @@ internal class GamepadStateSelfTestStep : ISelfTestStep
 
         using var rssb = new RentedSeStringBuilder();
 
-        rssb.Builder.Append("Hold down ");
+        rssb.Append("Hold down ");
 
         for (var i = 0; i < buttons.Length; i++)
         {
             var (button, iconId) = buttons[i];
 
-            rssb.Builder
+            rssb
                 .BeginMacro(MacroCode.Icon)
                 .AppendUIntExpression(iconId)
                 .EndMacro()
@@ -47,7 +47,7 @@ internal class GamepadStateSelfTestStep : ISelfTestStep
                 .Append(i < buttons.Length - 1 ? ", " : ".");
         }
 
-        ImGuiHelpers.SeStringWrapped(rssb.Builder.ToReadOnlySeString());
+        ImGuiHelpers.SeStringWrapped(rssb.ToReadOnlySeString());
 
         if (buttons.All(tuple => gamepadState.Raw(tuple.Button) == 1))
         {

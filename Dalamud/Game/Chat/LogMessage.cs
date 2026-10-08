@@ -207,7 +207,7 @@ internal unsafe class LogMessage : ILogMessage
         SetName(logModule, this.TargetEntity);
 
         using var rssb = new RentedSeStringBuilder();
-        logModule->RaptureTextModule->FormatString(rssb.Builder.Append(this.GameData.Value.Text).GetViewAsSpan(), &this.Pointer->Parameters, &utf8);
+        logModule->RaptureTextModule->FormatString(rssb.Append(this.GameData.Value.Text).GetViewAsSpan(), &this.Pointer->Parameters, &utf8);
 
         return new ReadOnlySeString(utf8.AsSpan());
 

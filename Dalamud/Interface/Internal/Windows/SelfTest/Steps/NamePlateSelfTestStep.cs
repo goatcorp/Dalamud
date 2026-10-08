@@ -105,7 +105,7 @@ internal class NamePlateSelfTestStep : ISelfTestStep
             var gameObjectAddress = handler.GameObject?.Address ?? 0;
 
             using var rssb = new RentedSeStringBuilder();
-            handler.Name = rssb.Builder
+            handler.Name = rssb
                 .Append(handler.Name)
                 .PushColorType(9)
                 .Append($" (0x{gameObjectAddress:X})")
@@ -118,8 +118,8 @@ internal class NamePlateSelfTestStep : ISelfTestStep
 
             handler.TitleParts.Text = $"Updates: {count}";
             handler.TitleParts.TextWrap = (
-                rssb.Builder.Clear().PushColorType(43).ToReadOnlySeString(),
-                rssb.Builder.Clear().PopColorType().ToReadOnlySeString());
+                rssb.Clear().PushColorType(43).ToReadOnlySeString(),
+                rssb.Clear().PopColorType().ToReadOnlySeString());
             handler.DisplayTitle = true;
             handler.IsPrefixTitle = false;
         }

@@ -255,7 +255,7 @@ internal sealed unsafe class AutoCompletionIntegration : IInternalDisposableServ
         {
             using var rssb = new RentedSeStringBuilder();
 
-            this.Display = Utf8String.FromSequence(rssb.Builder
+            this.Display = Utf8String.FromSequence(rssb
                 .PushColorType(539)
                 .Append(command)
                 .PopColorType()

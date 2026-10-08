@@ -98,25 +98,25 @@ public static class ReadOnlySeStringSpanExtensions
 
             if (payload.Type != ReadOnlySePayloadType.Text)
             {
-                rssb.Builder.Append(payload);
+                rssb.Append(payload);
                 continue;
             }
 
             var index = payload.Body.IndexOf(toFind);
             if (index == -1)
             {
-                rssb.Builder.Append(payload);
+                rssb.Append(payload);
                 continue;
             }
 
             var lastIndex = 0;
             while (index != -1)
             {
-                rssb.Builder.Append(payload.Body[lastIndex..index]);
+                rssb.Append(payload.Body[lastIndex..index]);
 
                 if (!replacement.IsEmpty)
                 {
-                    rssb.Builder.Append(replacement);
+                    rssb.Append(replacement);
                 }
 
                 lastIndex = index + toFind.Length;
@@ -126,9 +126,9 @@ public static class ReadOnlySeStringSpanExtensions
                     index += lastIndex;
             }
 
-            rssb.Builder.Append(payload.Body[lastIndex..]);
+            rssb.Append(payload.Body[lastIndex..]);
         }
 
-        return rssb.Builder.ToReadOnlySeString();
+        return rssb.ToReadOnlySeString();
     }
 }

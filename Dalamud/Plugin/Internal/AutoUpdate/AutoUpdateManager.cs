@@ -433,7 +433,7 @@ internal class AutoUpdateManager : IServiceType
         chatGui.Print(new PrintableChatMessage
         {
             LogKind = XivChatType.Urgent,
-            Message = rssb.Builder
+            Message = rssb
                 .Append(Locs.NotificationContentUpdatesAvailableMinimized(updatablePlugins.Count))
                 .Append("  [")
                 .PushColorType(500)

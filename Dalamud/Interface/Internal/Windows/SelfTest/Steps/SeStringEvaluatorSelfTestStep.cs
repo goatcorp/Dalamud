@@ -124,7 +124,7 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                     {
                         config.LanguageOverride = language;
 
-                        var payload = rssb.Builder
+                        var payload = rssb
                                 .Clear()
                                 .BeginMacro(MacroCode.Fixed)
                                 .AppendUIntExpression(group)
