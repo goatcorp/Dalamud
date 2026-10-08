@@ -29,6 +29,8 @@ public readonly struct RentedSeStringBuilder() : IResettable, IDisposable
     /// </summary>
     public SeStringBuilder Builder { get; } = SeStringBuilder.SharedPool.Get();
 
+    public static implicit operator SeStringBuilder(RentedSeStringBuilder rssb) => rssb.Builder;
+
     /// <summary>
     /// Returns the rented <see cref="SeStringBuilder"/> to the shared pool.
     /// </summary>
