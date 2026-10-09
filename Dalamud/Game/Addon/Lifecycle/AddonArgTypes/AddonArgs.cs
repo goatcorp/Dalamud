@@ -57,4 +57,12 @@ public class AddonArgs
     /// Only valid to be called from a Pre event listener not a Post event listener.
     /// </summary>
     public void PreventOriginal() => this.PreventOriginalRequested = true;
+
+    /// <summary>
+    /// Gets the typed pointer to the addons AtkUnitBase*.
+    /// </summary>
+    /// <typeparam name="T">AtkUnitBase.</typeparam>
+    /// <returns>Typed pointer to contained addons AtkUnitBase.</returns>
+    public unsafe T* GetAddonPointer<T>() where T : unmanaged
+        => (T*)this.Addon.Address;
 }
