@@ -77,22 +77,24 @@ internal unsafe class AddonVirtualTable : IDisposable
         this.atkUnitBase = addon;
         this.lifecycleService = lifecycleService;
 
-        this.setupArgs = new AddonSetupArgs { Addon = addon };
-        this.finalizeArgs = new AddonArgs { Addon = addon };
-        this.drawArgs = new AddonArgs { Addon = addon };
-        this.updateArgs = new AddonArgs { Addon = addon };
-        this.refreshArgs = new AddonRefreshArgs { Addon = addon };
-        this.requestedUpdateArgs = new AddonRequestedUpdateArgs { Addon = addon };
-        this.receiveEventArgs = new AddonReceiveEventArgs { Addon = addon };
-        this.openArgs = new AddonArgs { Addon = addon };
-        this.closeArgs = new AddonCloseArgs { Addon = addon };
-        this.showArgs = new AddonShowArgs { Addon = addon };
-        this.hideArgs = new AddonHideArgs { Addon = addon };
-        this.onMoveArgs = new AddonArgs { Addon = addon };
-        this.onMouseOverArgs = new AddonArgs { Addon = addon };
-        this.onMouseOutArgs = new AddonArgs { Addon = addon };
-        this.focusArgs = new AddonArgs { Addon = addon };
-        this.focusChangedArgs = new AddonFocusChangedArgs { Addon = addon };
+        var addonName = addon->NameString;
+
+        this.setupArgs = new AddonSetupArgs { Addon = addon, AddonName = addonName };
+        this.finalizeArgs = new AddonArgs { Addon = addon, AddonName = addonName };
+        this.drawArgs = new AddonArgs { Addon = addon, AddonName = addonName };
+        this.updateArgs = new AddonArgs { Addon = addon, AddonName = addonName };
+        this.refreshArgs = new AddonRefreshArgs { Addon = addon, AddonName = addonName };
+        this.requestedUpdateArgs = new AddonRequestedUpdateArgs { Addon = addon, AddonName = addonName };
+        this.receiveEventArgs = new AddonReceiveEventArgs { Addon = addon, AddonName = addonName };
+        this.openArgs = new AddonArgs { Addon = addon, AddonName = addonName };
+        this.closeArgs = new AddonCloseArgs { Addon = addon, AddonName = addonName };
+        this.showArgs = new AddonShowArgs { Addon = addon, AddonName = addonName };
+        this.hideArgs = new AddonHideArgs { Addon = addon, AddonName = addonName };
+        this.onMoveArgs = new AddonArgs { Addon = addon, AddonName = addonName };
+        this.onMouseOverArgs = new AddonArgs { Addon = addon, AddonName = addonName };
+        this.onMouseOutArgs = new AddonArgs { Addon = addon, AddonName = addonName };
+        this.focusArgs = new AddonArgs { Addon = addon, AddonName = addonName };
+        this.focusChangedArgs = new AddonFocusChangedArgs { Addon = addon, AddonName = addonName };
 
         // Save original virtual table
         this.OriginalVirtualTable = addon->VirtualTable;
