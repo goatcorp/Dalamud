@@ -6,6 +6,7 @@ using System.Threading;
 using Dalamud.Game.Addon.Events;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Logging.Internal;
+using Dalamud.NativeUi.Extensions;
 
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -83,7 +84,7 @@ internal unsafe class AddonVirtualTable : IDisposable
         // Create copy of original table
         // Note this will copy any derived/overriden functions that this specific addon has.
         // Note: currently there are 73 virtual functions, but there's no harm in copying more for when they add new virtual functions to the game
-        this.ModifiedVirtualTable = (AtkUnitBase.AtkUnitBaseVirtualTable*)IMemorySpace.GetUISpace()->Malloc(0x8 * VirtualTableEntryCount, 8);
+        this.ModifiedVirtualTable = (AtkUnitBase.AtkUnitBaseVirtualTable*)IMemorySpace.GetUISpace()->AllocateZeroedArray<nint>(VirtualTableEntryCount);
         NativeMemory.Copy(addon->VirtualTable, this.ModifiedVirtualTable, 0x8 * VirtualTableEntryCount);
 
         // Overwrite the addons existing virtual table with our own
