@@ -324,7 +324,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         // Framework.Destroy has never been called and thus Framework.IsFrameworkUnloading cannot be true, and this
         // function will actually run the destroy from the framework thread.
         // Otherwise, as Framework.IsFrameworkUnloading should have been set, this code should run immediately.
-        this.framework.RunOnFrameworkThread(ClearHooks).Wait();
+        this.framework.Run(ClearHooks).Wait();
 
         // Below this point, hooks are guaranteed to be no longer called.
 
@@ -896,10 +896,10 @@ internal partial class InterfaceManager : IInternalDisposableService
                         missingOnly: true);
                     tk.FitRatio(tk.GetFont(this.IconFontFixedWidthHandle));
                 });
-            this.DefaultFontHandle.ImFontChanged += (_, font) =>
+            this.DefaultFontHandle.ImFontChanged += (fontHandle, font) =>
             {
                 var fontLocked = font.NewRef();
-                this.framework.RunOnFrameworkThread(
+                _ = this.framework.Run(
                     () =>
                     {
                         // Update the ImGui default font.

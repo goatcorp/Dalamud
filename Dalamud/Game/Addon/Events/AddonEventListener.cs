@@ -67,7 +67,7 @@ internal unsafe class AddonEventListener : IDisposable
     {
         if (node is null) return;
 
-        Service<Framework>.Get().RunOnFrameworkThread(() =>
+        _ = Service<Framework>.Get().Run(() =>
         {
             node->AddEvent(eventType, param, this.eventListener, (AtkResNode*)addon, false);
         });
@@ -83,7 +83,7 @@ internal unsafe class AddonEventListener : IDisposable
     {
         if (node is null) return;
 
-        Service<Framework>.Get().RunOnFrameworkThread(() =>
+        _ = Service<Framework>.Get().Run(() =>
         {
             node->RemoveEvent(eventType, param, this.eventListener, false);
         });

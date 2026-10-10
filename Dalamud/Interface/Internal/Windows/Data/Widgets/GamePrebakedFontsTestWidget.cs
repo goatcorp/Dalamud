@@ -105,7 +105,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
             else
             {
                 this.chooserDialog.Cancel();
-                this.chooserDialog.ResultTask.ContinueWith(_ => Service<Framework>.Get().RunOnFrameworkThread(DoNext));
+                this.chooserDialog.ResultTask.ContinueWith(_ => Service<Framework>.Get().Run(DoNext));
                 this.chooserDialog = null;
             }
 
@@ -128,7 +128,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                     this.fontDialogHandle = null;
                 };
                 fcd.ResultTask.ContinueWith(
-                    r => Service<Framework>.Get().RunOnFrameworkThread(
+                    r => Service<Framework>.Get().Run(
                         () =>
                         {
                             Service<InterfaceManager>.Get().Draw -= fcd.Draw;
