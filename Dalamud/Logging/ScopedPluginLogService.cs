@@ -1,3 +1,6 @@
+using System.Collections.Concurrent;
+
+using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
@@ -18,7 +21,7 @@ namespace Dalamud.Logging;
 #pragma warning disable SA1015
 [ResolveVia<IPluginLog>]
 #pragma warning restore SA1015
-internal class ScopedPluginLogService : IServiceType, IPluginLog
+internal class ScopedPluginLogService : IPluginLog, IInternalDisposableService
 {
     private readonly LocalPlugin localPlugin;
     private readonly PluginErrorHandler errorHandler;
@@ -53,6 +56,17 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
     {
         get => this.levelSwitch.MinimumLevel;
         set => this.levelSwitch.MinimumLevel = value;
+    }
+
+    /// <summary>
+    /// Gets a Dictionary of exceptions grouped by plugin source. For use with <see cref="ExceptionWidget"/>.
+    /// </summary>
+    internal static ConcurrentDictionary<LocalPlugin, ConcurrentBag<PluginExceptionEntry>> PluginExceptionEntries { get; private set; } = [];
+
+    /// <inheritdoc />
+    public void DisposeService()
+    {
+        PluginExceptionEntries.TryRemove(this.localPlugin, out _);
     }
 
     /// <inheritdoc />
@@ -117,6 +131,13 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
         if (level == LogEventLevel.Error)
             this.errorHandler.NotifyError();
 
+        if (exception is not null)
+        {
+            PluginExceptionEntries
+                .GetOrAdd(this.localPlugin, _ => [])
+                .Add(new PluginExceptionEntry(exception, DateTime.UtcNow));
+        }
+
         this.Logger.Write(
             level,
             exception: exception,
@@ -135,3 +156,8 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
         return this.localPlugin.IsDev ? LogEventLevel.Verbose : LogEventLevel.Debug;
     }
 }
+
+/// <summary>
+/// Record for exception entries to record additional information for use in <see cref="ExceptionWidget"/>.
+/// </summary>
+internal record PluginExceptionEntry(Exception Exception, DateTime Timestamp);
