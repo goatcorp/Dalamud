@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Logging;
@@ -54,6 +55,8 @@ public class ExceptionWidget : IDataWindowWidget
             return;
         }
 
+        this.DrawLimitNotice(this.selectedPlugin);
+
         using var table = ImRaii.Table("##SectionTable", 2, ImGuiTableFlags.Resizable, outerSize: ImGui.GetContentRegionAvail());
         if (!table) return;
 
@@ -87,6 +90,29 @@ public class ExceptionWidget : IDataWindowWidget
             {
                 this.selectedPlugin = option;
             }
+        }
+    }
+
+    private void DrawLimitNotice(LocalPlugin plugin)
+    {
+        if (!ScopedPluginLogService.PluginExceptionEntries.TryGetValue(plugin, out var exceptions))
+        {
+            return;
+        }
+
+        if (exceptions.Count < ScopedPluginLogService.MaxPluginExceptionEntries)
+        {
+            return;
+        }
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextColored(ImGuiColors.WarningForeground, $"Limit of {ScopedPluginLogService.MaxPluginExceptionEntries} exceptions reached");
+
+        ImGui.SameLine();
+        if (ImGui.Button("Clear"))
+        {
+            exceptions.Clear();
+            this.selectedException = null;
         }
     }
 

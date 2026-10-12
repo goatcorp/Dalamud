@@ -23,6 +23,11 @@ namespace Dalamud.Logging;
 #pragma warning restore SA1015
 internal class ScopedPluginLogService : IPluginLog, IInternalDisposableService
 {
+    /// <summary>
+    /// Gets the maximum number of exceptions tracked in <see cref="PluginExceptionEntries"/>.
+    /// </summary>
+    internal const int MaxPluginExceptionEntries = 100;
+
     private readonly LocalPlugin localPlugin;
     private readonly PluginErrorHandler errorHandler;
 
@@ -61,7 +66,7 @@ internal class ScopedPluginLogService : IPluginLog, IInternalDisposableService
     /// <summary>
     /// Gets a Dictionary of exceptions grouped by plugin source. For use with <see cref="ExceptionWidget"/>.
     /// </summary>
-    internal static ConcurrentDictionary<LocalPlugin, ConcurrentBag<PluginExceptionEntry>> PluginExceptionEntries { get; private set; } = [];
+    internal static ConcurrentDictionary<LocalPlugin, ConcurrentQueue<PluginExceptionEntry>> PluginExceptionEntries { get; private set; } = [];
 
     /// <inheritdoc />
     public void DisposeService()
@@ -133,9 +138,12 @@ internal class ScopedPluginLogService : IPluginLog, IInternalDisposableService
 
         if (exception is not null)
         {
-            PluginExceptionEntries
-                .GetOrAdd(this.localPlugin, _ => [])
-                .Add(new PluginExceptionEntry(exception, DateTime.UtcNow));
+            var entries = PluginExceptionEntries.GetOrAdd(this.localPlugin, _ => new());
+
+            if (entries.Count < MaxPluginExceptionEntries)
+            {
+                entries.Enqueue(new PluginExceptionEntry(exception, DateTime.UtcNow));
+            }
         }
 
         this.Logger.Write(
