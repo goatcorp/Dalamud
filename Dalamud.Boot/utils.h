@@ -8,6 +8,10 @@
 #include <memory>
 #include <vector>
 
+#include <Windows.h>
+
+#include <srell.hpp>
+
 #include "error_info.h"
 #include "unicode.h"
 

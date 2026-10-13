@@ -1,3 +1,14 @@
+#pragma once
+
+#include <optional>
+#include <string>
+
+#include <Windows.h>
+
+#include "CoreCLR.h"
+
+extern std::optional<CoreCLR> g_clr;
+
 void ConsoleSetup(const std::wstring console_name);
 void ConsoleTeardown();
 

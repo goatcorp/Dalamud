@@ -432,7 +432,11 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     }
 
     /// <inheritdoc/>
-    public bool IsUpdating => (this.UpdateFlags & 1) != 0;
+    public bool IsUpdating
+    {
+        get => (this.UpdateFlags & 1) != 0;
+        internal set => this.UpdateFlags = value ? this.UpdateFlags | 1 : this.UpdateFlags & ~1;
+    }
 
     /// <inheritdoc/>
     public bool IsPrefixTitle

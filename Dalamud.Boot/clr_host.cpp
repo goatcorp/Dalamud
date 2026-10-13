@@ -1,12 +1,11 @@
-#define WIN32_LEAN_AND_MEAN
+#include "clr_host.h"
 
 #include <cstdio>
 #include <filesystem>
 #include <Windows.h>
 #include <Lmcons.h>
 #include <Shlobj.h>
-#include "CoreCLR.h"
-#include "..\..\Dalamud.Boot\logging.h"
+#include "logging.h"
 
 FILE* g_CmdStream;
 void ConsoleSetup(const std::wstring console_name)

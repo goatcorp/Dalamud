@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
-#include "core/hostfxr.h"
-#include "core/coreclr_delegates.h"
-#include "nethost/nethost.h"
+#include <core/hostfxr.h>
+#include <core/coreclr_delegates.h>
+#include <nethost/nethost.h>
 
 class CoreCLR {
     void* const m_calling_module;

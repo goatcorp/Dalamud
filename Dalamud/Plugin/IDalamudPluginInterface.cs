@@ -71,6 +71,11 @@ public interface IDalamudPluginInterface : IServiceProvider
     string InternalName { get; }
 
     /// <summary>
+    /// Gets the unique working plugin ID set by Dalamud.
+    /// </summary>
+    Guid WorkingPluginId { get; }
+
+    /// <summary>
     /// Gets the plugin's manifest.
     /// </summary>
     IPluginManifest Manifest { get; }
@@ -112,6 +117,11 @@ public interface IDalamudPluginInterface : IServiceProvider
     /// Gets the directory Dalamud assets are stored in.
     /// </summary>
     DirectoryInfo DalamudAssetDirectory { get; }
+
+    /// <summary>
+    /// Gets your plugin's Assembly.
+    /// </summary>
+    Assembly Assembly { get; }
 
     /// <summary>
     /// Gets the location of your plugin assembly.

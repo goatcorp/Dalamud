@@ -1,4 +1,21 @@
-#include "pch.h"
+#include <chrono>
+#include <filesystem>
+#include <mutex>
+#include <set>
+
+#include <Windows.h>
+#include <DbgHelp.h>
+#include <Dbt.h>
+#include <iphlpapi.h>
+#include <icmpapi.h> // Must be after iphlpapi.h
+#include <ShlObj.h>
+#include <Shlwapi.h>
+
+#include <libdeflate.h>
+#include <mimalloc.h>
+#include <nmd_assembly.h>
+
+#include "globals.h"
 
 #include "xivfixes.h"
 

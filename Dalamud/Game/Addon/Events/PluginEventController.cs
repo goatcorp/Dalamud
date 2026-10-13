@@ -130,11 +130,11 @@ internal unsafe class PluginEventController : IDisposable
     private void TryRemoveEventFromNative(AddonEventEntry eventEntry)
     {
         // Is the eventEntry addon valid?
-        if (eventEntry.AddonName is AddonEventEntry.InvalidAddonName) return;
+        if (eventEntry.AddonNameSpan.SequenceEqual(AddonEventEntry.InvalidAddonNameSpan)) return;
 
         // Is an addon with the same name active?
-        var currentAddonPointer = Service<GameGui>.Get().GetAddonByName(eventEntry.AddonName);
-        if (currentAddonPointer == nint.Zero) return;
+        var currentAddonPointer = Service<GameGui>.Get().GetAddonByName(eventEntry.AddonNameSpan);
+        if (currentAddonPointer.IsNull) return;
 
         // Is our stored addon pointer the same as the active addon pointer?
         if (currentAddonPointer != eventEntry.Addon) return;

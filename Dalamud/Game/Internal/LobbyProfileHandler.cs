@@ -107,7 +107,7 @@ internal sealed unsafe class LobbyProfileHandler : IInternalDisposableService
 
         if (!waitingForProfileLoad && eventValue == 0)
         {
-            var addonSelectYesno = Service<GameGui>.Get().GetAddonByName<AddonSelectYesno>("SelectYesno");
+            var addonSelectYesno = Service<GameGui>.Get().GetAddonByName<AddonSelectYesno>("SelectYesno"u8);
 
             using var rssb = new RentedSeStringBuilder();
 

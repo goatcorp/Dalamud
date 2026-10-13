@@ -29,7 +29,23 @@ public unsafe class MNKGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// <remarks>
     /// This will always return an array of size 3, inactive Beast Chakra are represented by <see cref="Enums.BeastChakra.None"/>.
     /// </remarks>
+    [Obsolete("Use BeastChakra1, BeastChakra2 and BeastChakra3 individually.")]
     public BeastChakra[] BeastChakra => this.Struct->BeastChakra.Select(c => (BeastChakra)c).ToArray();
+
+    /// <summary>
+    /// Gets the type of the first Beast Chakra.
+    /// </summary>
+    public BeastChakra BeastChakra1 => (BeastChakra)this.Struct->BeastChakra1;
+
+    /// <summary>
+    /// Gets the type of the second Beast Chakra.
+    /// </summary>
+    public BeastChakra BeastChakra2 => (BeastChakra)this.Struct->BeastChakra2;
+
+    /// <summary>
+    /// Gets the type of the third Beast Chakra.
+    /// </summary>
+    public BeastChakra BeastChakra3 => (BeastChakra)this.Struct->BeastChakra3;
 
     /// <summary>
     /// Gets the types of Nadi available.

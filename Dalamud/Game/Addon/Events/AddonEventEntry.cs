@@ -1,4 +1,5 @@
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -18,6 +19,11 @@ internal unsafe class AddonEventEntry
     private string? addonName;
 
     /// <summary>
+    /// Gets the name of an invalid addon.
+    /// </summary>
+    public static ReadOnlySpan<byte> InvalidAddonNameSpan => "NullAddon"u8;
+
+    /// <summary>
     /// Gets the pointer to the addons AtkUnitBase.
     /// </summary>
     public required nint Addon { get; init; }
@@ -26,6 +32,11 @@ internal unsafe class AddonEventEntry
     /// Gets the name of the addon this args referrers to.
     /// </summary>
     public string AddonName => this.Addon == nint.Zero ? InvalidAddonName : this.addonName ??= ((AtkUnitBase*)this.Addon)->NameString;
+
+    /// <summary>
+    /// Gets the name of the addon this args referrers to.
+    /// </summary>
+    public ReadOnlySpan<byte> AddonNameSpan => this.Addon == nint.Zero ? InvalidAddonNameSpan : ((AtkUnitBase*)this.Addon)->Name.BeforeNull();
 
     /// <summary>
     /// Gets the pointer to the event source.

@@ -118,9 +118,8 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         { LinkMacroPayloadType.Description, ["RowId"] },
         { LinkMacroPayloadType.WKSPioneeringTrail, ["RowId", "SubrowId"] },
         { LinkMacroPayloadType.MKDLore, ["RowId"] },
-        // TODO: add new LinkMacroPayloadTypes
-        // { LinkMacroPayloadType.EventTutorial, ["RowId"] },
-        // { LinkMacroPayloadType.Emote, ["Emote"] },
+        { LinkMacroPayloadType.EventTutorial, ["RowId"] },
+        { LinkMacroPayloadType.Emote, ["Emote"] },
         { DalamudLinkType, ["CommandId", "Extra1", "Extra2", "ExtraString"] },
     };
 
@@ -1108,13 +1107,12 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                         ImGui.Text(mkdLoreRow.Name.ToString());
                         break;
 
-                    // TODO: use new LinkMacroPayloadTypes
-                    case (LinkMacroPayloadType)14/*LinkMacroPayloadType.EventTutorial*/ when dataManager.GetExcelSheet<EventTutorial>(this.language).TryGetRow(u32, out var eventTutorialRow):
+                    case LinkMacroPayloadType.EventTutorial when dataManager.GetExcelSheet<EventTutorial>(this.language).TryGetRow(u32, out var eventTutorialRow):
                         ImGui.SameLine();
                         ImGui.Text(eventTutorialRow.Singular.ToString());
                         break;
 
-                    case (LinkMacroPayloadType)15/*LinkMacroPayloadType.Emote*/ when dataManager.GetExcelSheet<Emote>(this.language).TryGetRow(u32, out var emoteRow):
+                    case LinkMacroPayloadType.Emote when dataManager.GetExcelSheet<Emote>(this.language).TryGetRow(u32, out var emoteRow):
                         ImGui.SameLine();
                         ImGui.Text(emoteRow.Name.ToString());
                         break;

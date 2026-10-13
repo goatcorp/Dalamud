@@ -1,4 +1,5 @@
 using Dalamud.Game.ClientState.Statuses;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
 
@@ -102,5 +103,12 @@ internal unsafe class BattleChara : Character, IBattleChara
     /// <summary>
     /// Gets the underlying structure.
     /// </summary>
-    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)this.Address;
+    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* Struct
+    {
+        get
+        {
+            ThreadSafety.DevModeAssertMainThread();
+            return (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)this.Address;
+        }
+    }
 }
