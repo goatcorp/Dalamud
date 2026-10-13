@@ -6,7 +6,6 @@
 #include <Windows.h>
 #include <intrin.h>
 #include <dxgi.h>
-#pragma comment(lib, "dxgi.lib")
 
 namespace {
     // Reads the CPU vendor and brand strings via CPUID

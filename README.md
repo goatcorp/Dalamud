@@ -39,6 +39,9 @@ Dalamud can be loaded via DLL injection, or by rewriting a process' entrypoint.
 | *Dalamud* (C#)                | Core API, game bindings, plugin framework                                                                                    |
 | *Dalamud.CorePlugin* (C#)     | Testbed plugin that can access Dalamud internals, to prototype new Dalamud features                                          |
 
+## AI/LLM-authored Contributions
+Dalamud and XIVLauncher do not accept contributions made using generative AI. We kindly ask that you do not interact with this repository using automated systems driven by LLMs/AI tools.
+
 <br>
 
 ##### Final Fantasy XIV © 2010-2021 SQUARE ENIX CO., LTD. All Rights Reserved. We are not affiliated with SQUARE ENIX CO., LTD. in any way.

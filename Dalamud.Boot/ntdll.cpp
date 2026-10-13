@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #include "ntdll.h"
 
 #include "utils.h"

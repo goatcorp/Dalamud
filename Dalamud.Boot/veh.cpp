@@ -1,17 +1,21 @@
-#include "pch.h"
+#include <chrono>
+#include <filesystem>
+#include <mutex>
+
+#include <Windows.h>
+#include <PathCch.h>
+#include <shellapi.h>
 
 #include "veh.h"
 
-#include <shellapi.h>
-
+#include "clr_host.h"
+#include "globals.h"
 #include "logging.h"
 #include "utils.h"
 #include "hooks.h"
 
 #include "crashhandler_shared.h"
 #include "DalamudStartInfo.h"
-
-#pragma comment(lib, "comctl32.lib")
 
 #if defined _M_IX86
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")

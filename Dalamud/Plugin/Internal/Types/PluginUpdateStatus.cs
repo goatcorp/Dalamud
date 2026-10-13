@@ -43,20 +43,8 @@ internal class PluginUpdateStatus
         Success,
     }
 
-    /// <summary>
-    /// Gets the plugin internal name.
-    /// </summary>
-    public string InternalName { get; init; } = null!;
-
-    /// <summary>
-    /// Gets the plugin name.
-    /// </summary>
-    public string Name { get; init; } = null!;
-
-    /// <summary>
-    /// Gets the plugin version.
-    /// </summary>
-    public Version Version { get; init; } = null!;
+    /// <summary> Gets data about the affected plugin. </summary>
+    public ActivePluginsChangedEventArgs.AffectedPlugin AffectedPlugin { get; init; } = null!;
 
     /// <summary>
     /// Gets or sets a value indicating the status of the update.

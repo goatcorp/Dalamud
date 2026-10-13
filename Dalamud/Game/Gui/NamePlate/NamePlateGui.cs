@@ -21,11 +21,6 @@ namespace Dalamud.Game.Gui.NamePlate;
 internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
 {
     /// <summary>
-    /// The index for of the FullUpdate entry in the NamePlate number array.
-    /// </summary>
-    internal const int NumberArrayFullUpdateIndex = 4;
-
-    /// <summary>
     /// An empty null-terminated string pointer allocated in unmanaged memory, used to tag removed fields.
     /// </summary>
     internal static readonly nint EmptyStringPointer = CreateEmptyStringPointer();
@@ -45,6 +40,8 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
     private NamePlateUpdateContext? context;
 
     private NamePlateUpdateHandler[] updateHandlers = [];
+
+    private bool pendingForceRedraw;
 
     [ServiceManager.ServiceConstructor]
     private unsafe NamePlateGui(TargetSigScanner sigScanner)
@@ -73,11 +70,11 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
     /// <inheritdoc/>
     public unsafe void RequestRedraw()
     {
-        var addon = (AddonNamePlate*)(nint)this.gameGui.GetAddonByName("NamePlate");
+        var addon = this.gameGui.GetAddonByName<AddonNamePlate>("NamePlate"u8);
         if (addon != null)
         {
-            addon->DoFullUpdate = 1;
-            AtkStage.Instance()->GetNumberArrayData(NumberArrayType.NamePlate)->SetValue(NumberArrayFullUpdateIndex, 1);
+            AtkStage.Instance()->GetNumberArrayData(NumberArrayType.NamePlate)->UpdateState = 2;
+            this.pendingForceRedraw = true;
         }
     }
 
@@ -144,8 +141,10 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
 
         try
         {
-            if (this.OnDataUpdate == null && this.OnNamePlateUpdate == null && this.OnPostDataUpdate == null &&
-                this.OnPostNamePlateUpdate == null)
+            var hasNoSubscribers = this.OnDataUpdate == null && this.OnNamePlateUpdate == null && this.OnPostDataUpdate == null
+                                   && this.OnPostNamePlateUpdate == null;
+
+            if (hasNoSubscribers && !this.pendingForceRedraw)
             {
                 return;
             }
@@ -156,7 +155,7 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                 this.CreateHandlers(this.context);
             }
 
-            this.context.ResetState(addon, numberArrayData, stringArrayData);
+            this.context.ResetState(addon);
 
             var activeNamePlateCount = this.context!.ActiveNamePlateCount;
             if (activeNamePlateCount == 0)
@@ -164,11 +163,28 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
 
             var activeHandlers = this.updateHandlers[..activeNamePlateCount];
 
-            if (this.context.IsFullUpdate)
+            if (hasNoSubscribers)
             {
+                this.pendingForceRedraw = false;
+
                 foreach (var handler in activeHandlers)
                 {
                     handler.ResetState();
+                    handler.IsUpdating = true;
+                }
+
+                return;
+            }
+
+            if (this.pendingForceRedraw)
+            {
+                this.pendingForceRedraw = false;
+                this.context.IsFullUpdate = true;
+
+                foreach (var handler in activeHandlers)
+                {
+                    handler.ResetState();
+                    handler.IsUpdating = true;
                 }
 
                 this.OnDataUpdate?.InvokeSafely(this.context, activeHandlers);

@@ -1,5 +1,14 @@
-#include "pch.h"
+#include <filesystem>
+#include <fstream>
+#include <span>
 
+#include <Windows.h>
+#include <comdef.h>
+#include <CommCtrl.h>
+#include <PathCch.h>
+#include <shellapi.h>
+
+#include "globals.h"
 #include "logging.h"
 #include "utils.h"
 #include "resource.h"
