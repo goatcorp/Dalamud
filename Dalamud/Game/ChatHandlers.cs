@@ -129,7 +129,7 @@ internal partial class ChatHandlers : IServiceType
                 .AddUiForeground(500)
                 .AddText("  [ ")
                 .Add(linkPayload)
-                .AddText(Loc.Localize("DalamudClickToViewChangelogs", "Click here to view the changelog."))
+                .AddText(Loc.Localize("DalamudClickToViewChangelogs", "Click here to view the changelog"))
                 .Add(RawPayload.LinkTerminator)
                 .AddText(" ]")
                 .AddUiForegroundOff();
