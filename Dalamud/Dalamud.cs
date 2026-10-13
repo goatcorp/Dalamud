@@ -25,7 +25,6 @@ using Windows.Win32.Security;
 #endif
 
 [assembly: InternalsVisibleTo("Dalamud.Test")]
-[assembly: InternalsVisibleTo("Dalamud.DevHelpers")]
 
 namespace Dalamud;
 
