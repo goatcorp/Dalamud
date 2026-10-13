@@ -133,8 +133,10 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
 
         try
         {
-            if (this.DataUpdate == null && this.NamePlateUpdate == null && this.PostDataUpdate == null &&
-                this.PostNamePlateUpdate == null)
+            var hasNoSubscribers = this.DataUpdate == null && this.NamePlateUpdate == null && this.PostDataUpdate == null &&
+                                   this.PostNamePlateUpdate == null;
+
+            if (hasNoSubscribers && !this.pendingForceRedraw)
             {
                 return;
             }
@@ -152,6 +154,19 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                 return;
 
             var activeHandlers = this.updateHandlers[..activeNamePlateCount];
+
+            if (hasNoSubscribers)
+            {
+                this.pendingForceRedraw = false;
+
+                foreach (var handler in activeHandlers)
+                {
+                    handler.ResetState();
+                    handler.IsUpdating = true;
+                }
+
+                return;
+            }
 
             if (this.pendingForceRedraw)
             {

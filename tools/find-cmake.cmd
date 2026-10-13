@@ -18,6 +18,6 @@ set "PATH=%FIND_CMAKE_BIN%;%PATH%"
 exit /b 0
 
 :missing
-echo CMake 4.0 or newer is required. Install it from https://cmake.org/download/
+echo CMake 4.2 or newer is required. Install it from https://cmake.org/download/
 echo or add the "C++ CMake tools for Windows" component to Visual Studio 2026.
 exit /b 1

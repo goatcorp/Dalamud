@@ -39,11 +39,6 @@ internal partial class ChatHandlers : IServiceType
     /// </summary>
     public string? LastLink { get; private set; }
 
-    /// <summary>
-    /// Gets a value indicating whether auto-updates have already completed this session.
-    /// </summary>
-    public bool IsAutoUpdateComplete { get; private set; }
-
     [GeneratedRegex(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", RegexOptions.Compiled)]
     private static partial Regex CompiledUrlRegex { get; }
 
@@ -64,18 +59,24 @@ internal partial class ChatHandlers : IServiceType
     private void OnChatMessage(IHandleableChatMessage message)
     {
         var clientState = Service<ClientState.ClientState>.GetNullable();
-        if (clientState == null)
+        if (clientState is null)
+        {
             return;
+        }
 
         if (message.LogKind == XivChatType.Notice)
         {
             if (!this.hasSeenLoadingMsg)
+            {
                 this.PrintWelcomeMessage();
+            }
         }
 
         // For injections while logged in
         if (clientState.IsLoggedIn && clientState.TerritoryType.RowId == 0 && !this.hasSeenLoadingMsg)
+        {
             this.PrintWelcomeMessage();
+        }
 
 #if !DEBUG && false
             if (!this.hasSeenLoadingMsg)
@@ -84,7 +85,9 @@ internal partial class ChatHandlers : IServiceType
 
         var linkMatch = CompiledUrlRegex.Match(message.Message.ToString());
         if (linkMatch.Value.Length > 0)
+        {
             this.LastLink = linkMatch.Value;
+        }
     }
 
     private void PrintWelcomeMessage()
@@ -92,9 +95,12 @@ internal partial class ChatHandlers : IServiceType
         var chatGui = Service<ChatGui>.GetNullable();
         var pluginManager = Service<PluginManager>.GetNullable();
         var dalamudInterface = Service<DalamudInterface>.GetNullable();
+        var dalamudConfig = Service<DalamudConfiguration>.GetNullable();
 
-        if (chatGui == null || pluginManager == null || dalamudInterface == null)
+        if (chatGui is null || pluginManager is null || dalamudInterface is null)
+        {
             return;
+        }
 
         if (this.configuration.PrintDalamudWelcomeMsg)
         {
@@ -134,6 +140,29 @@ internal partial class ChatHandlers : IServiceType
 
             this.configuration.LastVersion = Versioning.GetAssemblyVersion();
             this.configuration.QueueSave();
+        }
+
+        if (dalamudConfig?.DevMode ?? false)
+        {
+            var linkPayload = chatGui.AddChatLinkHandler(
+                (_) => dalamudInterface.OpenSettingsTo(SettingsOpenKind.Experimental));
+
+            using var rssb = new RentedSeStringBuilder();
+
+            chatGui.Print(new PrintableChatMessage
+            {
+                LogKind = XivChatType.Notice,
+                Message = rssb.Builder
+                    .Append(Loc.Localize("DeveloperModeEnabledWarning", "Developer Mode is enabled."))
+                    .PushColorType(500)
+                    .Append("  [ ")
+                    .PushDalamudLink(linkPayload)
+                    .Append(Loc.Localize("DeveloperModeMoreInfoLink", "Learn more here"))
+                    .PopLink()
+                    .Append(" ]")
+                    .PopColorType()
+                    .ToReadOnlySeString(),
+            });
         }
 
         this.hasSeenLoadingMsg = true;

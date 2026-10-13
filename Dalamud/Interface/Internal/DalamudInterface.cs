@@ -83,8 +83,8 @@ internal class DalamudInterface : IInternalDisposableService
     private readonly BranchSwitcherWindow branchSwitcherWindow;
     private readonly HitchSettingsWindow hitchSettingsWindow;
 
+    private readonly OutCubic creditsDarkeningAnimation = new(TimeSpan.FromSeconds(10));
     private bool isCreditsDarkening = false;
-    private OutCubic creditsDarkeningAnimation = new(TimeSpan.FromSeconds(10));
 
     private bool hasDrawError = false;
     private Exception? lastDrawError = null;
@@ -113,7 +113,7 @@ internal class DalamudInterface : IInternalDisposableService
         InterfaceManager interfaceManager,
         PluginImageCache pluginImageCache,
         DalamudAssetManager dalamudAssetManager,
-        Game.Framework framework,
+        Framework framework,
         ClientState clientState,
         TitleScreenMenu titleScreenMenu,
         GameGui gameGui,
@@ -127,16 +127,16 @@ internal class DalamudInterface : IInternalDisposableService
 
         this.WindowSystem = new WindowSystem("DalamudCore");
 
-        this.colorDemoWindow = new ColorDemoWindow() { IsOpen = false };
-        this.componentDemoWindow = new ComponentDemoWindow() { IsOpen = false };
-        this.dataWindow = new DataWindow() { IsOpen = false };
-        this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow() { IsOpen = false };
+        this.colorDemoWindow = new ColorDemoWindow { IsOpen = false };
+        this.componentDemoWindow = new ComponentDemoWindow { IsOpen = false };
+        this.dataWindow = new DataWindow(this.WindowSystem) { IsOpen = false };
+        this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow { IsOpen = false };
         this.consoleWindow = new ConsoleWindow(configuration) { IsOpen = configuration.LogOpenAtStartup };
-        this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
+        this.pluginStatWindow = new PluginStatWindow { IsOpen = false };
         this.pluginWindow = new PluginInstallerWindow(pluginImageCache, configuration) { IsOpen = false };
-        this.settingsWindow = new SettingsWindow() { IsOpen = false };
+        this.settingsWindow = new SettingsWindow { IsOpen = false };
         this.selfTestWindow = new SelfTestWindow(selfTestRegistry) { IsOpen = false };
-        this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
+        this.styleEditorWindow = new StyleEditorWindow { IsOpen = false };
         this.titleScreenMenuWindow = new TitleScreenMenuWindow(
             clientState,
             configuration,
@@ -159,9 +159,9 @@ internal class DalamudInterface : IInternalDisposableService
         {
             IsOpen = false,
         };
-        this.profilerWindow = new ProfilerWindow() { IsOpen = false };
-        this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
-        this.hitchSettingsWindow = new HitchSettingsWindow() { IsOpen = false };
+        this.profilerWindow = new ProfilerWindow { IsOpen = false };
+        this.branchSwitcherWindow = new BranchSwitcherWindow { IsOpen = false };
+        this.hitchSettingsWindow = new HitchSettingsWindow { IsOpen = false };
 
         this.WindowSystem.AddWindow(this.changelogWindow);
         this.WindowSystem.AddWindow(this.colorDemoWindow);
