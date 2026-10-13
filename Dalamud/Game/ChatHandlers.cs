@@ -145,22 +145,23 @@ internal partial class ChatHandlers : IServiceType
         if (dalamudConfig?.DevMode ?? false)
         {
             var linkPayload = chatGui.AddChatLinkHandler(
-                (_, _) => dalamudInterface.OpenSettingsTo(SettingsOpenKind.Experimental));
+                (_) => dalamudInterface.OpenSettingsTo(SettingsOpenKind.Experimental));
 
-            var devModeWarningMessage = new SeStringBuilder()
-                .AddText(Loc.Localize("DeveloperModeEnabledWarning", "Developer Mode is enabled."))
-                .AddUiForeground(500)
-                .AddText("  [ ")
-                .Add(linkPayload)
-                .AddText(Loc.Localize("DeveloperModeMoreInfoLink", "Learn more here"))
-                .Add(RawPayload.LinkTerminator)
-                .AddText(" ]")
-                .AddUiForegroundOff();
+            using var rssb = new RentedSeStringBuilder();
 
-            chatGui.Print(new XivChatEntry
+            chatGui.Print(new PrintableChatMessage
             {
-                Message = devModeWarningMessage.Build(),
-                Type = XivChatType.Notice,
+                LogKind = XivChatType.Notice,
+                Message = rssb.Builder
+                    .Append(Loc.Localize("DeveloperModeEnabledWarning", "Developer Mode is enabled."))
+                    .PushColorType(500)
+                    .Append("  [ ")
+                    .PushDalamudLink(linkPayload)
+                    .Append(Loc.Localize("DeveloperModeMoreInfoLink", "Learn more here"))
+                    .PopLink()
+                    .Append(" ]")
+                    .PopColorType()
+                    .ToReadOnlySeString(),
             });
         }
 
