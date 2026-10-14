@@ -1,4 +1,4 @@
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -36,6 +36,7 @@ public static partial class ImRaii
             this.Success = ImGui.CollapsingHeader(label, ref visible, flags);
             if (this.Success)
                 ImGui.PushID(label);
+            this.Alive = true;
         }
 
         public static implicit operator bool(HeaderDisposable value)
