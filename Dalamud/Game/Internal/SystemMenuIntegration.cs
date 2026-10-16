@@ -68,8 +68,9 @@ internal sealed unsafe class SystemMenuIntegration : IInternalDisposableService
         this.mainCrossPostSetupListener = new AddonLifecycleEventListener(AddonEvent.PostSetup, "_MainCross", this.OnMainCrossPostSetup);
         this.mainCrossPostReceiveEventListener = new AddonLifecycleEventListener(AddonEvent.PostReceiveEvent, "_MainCross", this.OnMainCrossPostReceiveEvent);
 
-        this.addonLifecycle.RegisterListener(this.mainCrossPostSetupListener);
-        this.addonLifecycle.RegisterListener(this.mainCrossPostReceiveEventListener);
+        // Disabled temporally due to issues.
+        // this.addonLifecycle.RegisterListener(this.mainCrossPostSetupListener);
+        // this.addonLifecycle.RegisterListener(this.mainCrossPostReceiveEventListener);
     }
 
     private string LocDalamudPlugins => Loc.Localize("SystemMenuPlugins", "Dalamud Plugins");
@@ -89,8 +90,9 @@ internal sealed unsafe class SystemMenuIntegration : IInternalDisposableService
         // this.contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
         this.localization.LocalizationChanged -= this.OnLocalizationChanged;
 
-        this.addonLifecycle.UnregisterListener(this.mainCrossPostSetupListener);
-        this.addonLifecycle.UnregisterListener(this.mainCrossPostReceiveEventListener);
+        // Disabled temporally due to issues.
+        // this.addonLifecycle.UnregisterListener(this.mainCrossPostSetupListener);
+        // this.addonLifecycle.UnregisterListener(this.mainCrossPostReceiveEventListener);
     }
 
     private static T* NewDynamicArray<T>(int length) where T : unmanaged, ICreatable<T>
