@@ -7,8 +7,6 @@ using CheapLoc;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
-using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.ImGuiNotification;
@@ -553,17 +551,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// <summary>
     /// Gets a value indicating whether a cutscene is playing.
     /// </summary>
-    public bool CutsceneActive
-    {
-        get
-        {
-            var condition = Service<Condition>.GetNullable();
-            if (condition == null)
-                return false;
-            return condition[ConditionFlag.OccupiedInCutSceneEvent]
-                   || condition[ConditionFlag.WatchingCutscene78];
-        }
-    }
+    public bool CutsceneActive => UiHideState.CutsceneActive;
 
     /// <summary>
     /// Gets a value indicating whether this plugin should modify the game's interface at this time.
@@ -750,16 +738,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     {
         this.hitchDetector.Start();
 
-        var clientState = Service<ClientState>.Get();
         var gameGui = Service<GameGui>.GetNullable();
         if (gameGui == null)
             return;
 
-        if ((gameGui.GameUiHidden && this.configuration.ToggleUiHide &&
+        if ((UiHideState.GameUiHidden && this.configuration.ToggleUiHide &&
              !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
-            (this.CutsceneActive && this.configuration.ToggleUiHideDuringCutscenes &&
+            (UiHideState.CutsceneActive && this.configuration.ToggleUiHideDuringCutscenes &&
              !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
-            (clientState.IsGPosing && this.configuration.ToggleUiHideDuringGpose &&
+            (UiHideState.GPosing && this.configuration.ToggleUiHideDuringGpose &&
              !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
         {
             if (!this.lastFrameUiHideState)

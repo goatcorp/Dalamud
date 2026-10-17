@@ -16,6 +16,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
     private readonly LoadSettingDelegate load;
     private readonly SaveSettingDelegate save;
     private readonly Action<T?>? change;
+    private readonly Func<bool>? enabled;
 
     private object? valueBacking;
 
@@ -27,11 +28,13 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         Action<T?>? change = null,
         Func<T?, string?>? warning = null,
         Func<T?, string?>? validity = null,
-        Func<bool>? visibility = null)
+        Func<bool>? visibility = null,
+        Func<bool>? enabled = null)
     {
         this.load = load;
         this.save = save;
         this.change = change;
+        this.enabled = enabled;
         this.Name = name;
         this.Description = description;
         this.CheckWarning = warning;
@@ -73,6 +76,8 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         var description = this.Description.ToString();
 
         Debug.Assert(!string.IsNullOrWhiteSpace(name), "Name is empty");
+
+        using var disabled = ImRaii.Disabled(!(this.enabled?.Invoke() ?? true));
 
         var type = typeof(T);
 
