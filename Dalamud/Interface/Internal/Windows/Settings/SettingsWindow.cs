@@ -5,6 +5,7 @@ using CheapLoc;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
@@ -296,8 +297,7 @@ internal sealed class SettingsWindow : Window
             ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
 
-            var di = Service<DalamudInterface>.Get();
-            di.CloseGamepadModeNotifierWindow();
+            Service<GamepadState>.Get().EnableGamepadNav = false;
         }
         else
         {

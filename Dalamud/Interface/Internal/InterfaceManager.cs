@@ -1171,6 +1171,9 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         var gamepadEnabled = (io.BackendFlags & ImGuiBackendFlags.HasGamepad) > 0;
 
+        // Plugins can enable/disable this in io state without us noticing or showing the notifier
+        gamepadState.EnableGamepadNav = (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0;
+
         // NOTE (Chiv) Activate ImGui navigation  via L1+L3 press
         // (mimicking how mouse navigation is activated via L1+R3 press in game).
         if (gamepadEnabled
