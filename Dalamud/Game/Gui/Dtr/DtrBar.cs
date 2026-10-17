@@ -231,7 +231,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.addonLifecycle.UnregisterListener(this.dtrPostRequestedUpdateListener);
         this.addonLifecycle.UnregisterListener(this.dtrPreFinalizeListener);
 
-        this.framework.RunOnFrameworkThread(
+        this.framework.Run(
             () =>
             {
                 this.entriesLock.EnterWriteLock();
