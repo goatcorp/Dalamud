@@ -7,6 +7,9 @@ namespace Dalamud.Utility.Unicode;
 [Flags]
 public enum UnicodeEmojiProperty : byte
 {
+    /// <summary>Not an emoji.</summary>
+    None = 0,
+
     /// <summary>Characters that are emoji.</summary>
     Emoji = 1 << 0,
 

@@ -88,6 +88,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\generators\Dalamud.EnumGenerator\Dalamud.EnumGenerator\Dalamud.EnumGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\generators\Dalamud.UnicodeDataGenerator\Dalamud.UnicodeDataGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup Label="Unicode Character Database files, which UnicodeData's tables are generated from">
+        <AdditionalFiles Include="Utility\Unicode\*.txt" />
     </ItemGroup>
 
     <ItemGroup>
@@ -121,24 +126,6 @@
         <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\NoiseAsset_256X256_PNG.png">
             <WithCulture>false</WithCulture>
           <LogicalName>blur-noise.png</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Utility\Unicode\DerivedGeneralCategory.txt">
-          <LogicalName>DerivedGeneralCategory.txt</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Utility\Unicode\EastAsianWidth.txt">
-          <LogicalName>EastAsianWidth.txt</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Utility\Unicode\emoji-data.txt">
-          <LogicalName>emoji-data.txt</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Utility\Unicode\LineBreak.txt">
-          <LogicalName>LineBreak.txt</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Utility\Unicode\GraphemeBreakProperty.txt">
-          <LogicalName>GraphemeBreakProperty.txt</LogicalName>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Utility\Unicode\IndicConjunctBreak.txt">
-          <LogicalName>IndicConjunctBreak.txt</LogicalName>
         </EmbeddedResource>
     </ItemGroup>
 

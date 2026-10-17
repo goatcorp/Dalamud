@@ -8,11 +8,8 @@ using static Dalamud.Utility.Unicode.UnicodeGraphemeClusterBreak;
 namespace Dalamud.Utility.Unicode;
 
 /// <summary>Enumerates the boundaries of extended grapheme clusters according to
-/// <a href="https://www.unicode.org/reports/tr29/">UAX #29 (r49, Unicode 18.0)</a>: the byte offset each cluster but
-/// the first starts at, then the end of the text.</summary>
-/// <remarks>SeString payloads without a representative character are ignored. Otherwise, they're treated as U+FFFC
-/// (object replacement character).</remarks>
-internal ref struct UnicodeGraphemeClusterEnumerator
+/// <a href="https://www.unicode.org/reports/tr29/">UAX #29 (r49, Unicode 18.0)</a>.</summary>
+public ref struct UnicodeGraphemeClusterEnumerator
 {
     private readonly int dataLength;
 
