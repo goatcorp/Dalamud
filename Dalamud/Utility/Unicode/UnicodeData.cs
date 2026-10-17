@@ -48,6 +48,7 @@ public static partial class UnicodeData
         "Indic_Conjunct_Break")]
     public static partial UnicodePropertyTable<UnicodeIndicConjunctBreak> IndicConjunctBreak { get; }
 
+#pragma warning disable CS9113 // Disable the unread parameter warning
     [AttributeUsage(AttributeTargets.Property)]
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     private sealed class GeneratedUnicodeDataAttribute(
@@ -55,6 +56,7 @@ public static partial class UnicodeData
         object? defaultValue,
         string sourceUrl,
         string? property = null) : Attribute
+#pragma warning restore CS9113 // Restore the warning for the rest of the file
     {
         public string FileName { get; } = fileName;
 
