@@ -106,6 +106,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
 
     private readonly AssertHandler assertHandler = new();
+    private readonly GamepadAutoExit gamepadAutoExit = new();
 
     private IWin32Backend? backend;
 
@@ -1171,6 +1172,9 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         var gamepadEnabled = (io.BackendFlags & ImGuiBackendFlags.HasGamepad) > 0;
 
+        // Plugins can enable/disable this in io state without us noticing or showing the notifier
+        gamepadState.EnableGamepadNav = (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0;
+
         // NOTE (Chiv) Activate ImGui navigation  via L1+L3 press
         // (mimicking how mouse navigation is activated via L1+R3 press in game).
         if (gamepadEnabled
@@ -1178,6 +1182,15 @@ internal partial class InterfaceManager : IInternalDisposableService
             && gamepadState.Pressed(GamepadButtons.L3) > 0)
         {
             gamepadState.EnableGamepadNav ^= true;
+        }
+
+        if (!gamepadState.EnableGamepadNav || !this.dalamudConfiguration.AutoExitGamepadNavigation)
+        {
+            this.gamepadAutoExit.Reset();
+        }
+        else if (this.gamepadAutoExit.ShouldExit())
+        {
+            gamepadState.EnableGamepadNav = false;
         }
 
         if (gamepadEnabled && (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)
