@@ -23,7 +23,7 @@ public interface IAddonEventManager : IDalamudService
     /// <param name="eventType">The event type for this event.</param>
     /// <param name="eventDelegate">The handler to call when event is triggered.</param>
     /// <returns>IAddonEventHandle used to remove the event. Null if no event was added.</returns>
-    IAddonEventHandle? AddEvent(nint atkUnitBase, nint atkResNode, AddonEventType eventType, AddonEventDelegate eventDelegate);
+    IAddonEventHandle AddEvent(nint atkUnitBase, nint atkResNode, AddonEventType eventType, AddonEventDelegate eventDelegate);
 
     /// <summary>
     /// Unregisters an event handler with the specified event id and event type.

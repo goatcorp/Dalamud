@@ -40,7 +40,7 @@ internal sealed unsafe class LobbyProfileHandler : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private LobbyProfileHandler()
     {
-        this.agentLobbyPreEventListener = new AgentLifecycleEventListener(AgentEvent.PreReceiveEvent, Agent.AgentId.Lobby, this.AgentLobbyPreReceiveEvent);
+        this.agentLobbyPreEventListener = new AgentLifecycleEventListener(this.agentLifecycle, AgentEvent.PreReceiveEvent, Agent.AgentId.Lobby, this.AgentLobbyPreReceiveEvent);
         this.agentLifecycle.RegisterListener(this.agentLobbyPreEventListener);
     }
 
