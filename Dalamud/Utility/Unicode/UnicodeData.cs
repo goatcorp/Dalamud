@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace Dalamud.Utility.Unicode;
 
 /// <summary>Stores unicode data.</summary>
-internal static class UnicodeData
+public static class UnicodeData
 {
     /// <summary>Line break classes.</summary>
     private static readonly UnicodeLineBreakClass[] LineBreakValue;

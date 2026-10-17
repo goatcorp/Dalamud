@@ -24,7 +24,7 @@ namespace Dalamud.Utility.Unicode;
 /// <a href="https://www.unicode.org/reports/tr14/">UAX #14 (r57, Unicode 18.0)</a>.</summary>
 /// <remarks>SeString payloads without a representative character are ignored. Otherwise, they're treated as U+FFFC
 /// (object replacement character).</remarks>
-internal ref struct UnicodeLineBreakEnumerator
+public ref struct UnicodeLineBreakEnumerator
 {
     private readonly UtfEnumeratorFlags enumeratorFlags;
     private readonly bool findWords;

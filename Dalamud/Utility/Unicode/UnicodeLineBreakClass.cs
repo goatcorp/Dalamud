@@ -8,7 +8,7 @@ namespace Dalamud.Utility.Unicode;
     "StyleCop.CSharp.DocumentationRules",
     "SA1300:Element should begin with an uppercase letter",
     Justification = "Unicode Data")]
-internal enum UnicodeLineBreakClass : byte
+public enum UnicodeLineBreakClass : byte
 {
     /// <summary>Start of text. Only for use with UAX #14.</summary>
     sot,
