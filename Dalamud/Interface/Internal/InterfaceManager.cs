@@ -106,6 +106,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
 
     private readonly AssertHandler assertHandler = new();
+    private readonly GamepadAutoExit gamepadAutoExit = new();
 
     private IWin32Backend? backend;
 
@@ -1181,6 +1182,15 @@ internal partial class InterfaceManager : IInternalDisposableService
             && gamepadState.Pressed(GamepadButtons.L3) > 0)
         {
             gamepadState.EnableGamepadNav ^= true;
+        }
+
+        if (!gamepadState.EnableGamepadNav || !this.dalamudConfiguration.AutoExitGamepadNavigation)
+        {
+            this.gamepadAutoExit.Reset();
+        }
+        else if (this.gamepadAutoExit.ShouldExit())
+        {
+            gamepadState.EnableGamepadNav = false;
         }
 
         if (gamepadEnabled && (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)
