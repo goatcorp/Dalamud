@@ -73,4 +73,9 @@ internal sealed class GroupSettingsEntry : SettingsEntry
             entry.OnClose();
         }
     }
+
+    public override bool MatchesSearch(string search)
+    {
+        return this.entries.Any(x => x.MatchesSearch(search));
+    }
 }
