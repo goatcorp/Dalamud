@@ -19,6 +19,12 @@ public static class UnicodeData
     /// <summary>Emoji properties.</summary>
     private static readonly UnicodeEmojiProperty[] EmojiPropertyValue;
 
+    /// <summary>Grapheme cluster break properties.</summary>
+    private static readonly UnicodeGraphemeClusterBreak[] GraphemeClusterBreakValue;
+
+    /// <summary>Indic conjunct break properties.</summary>
+    private static readonly UnicodeIndicConjunctBreak[] IndicConjunctBreakValue;
+
     static UnicodeData()
     {
         // File is from https://www.unicode.org/Public/UCD/latest/ucd/LineBreak.txt
@@ -44,6 +50,18 @@ public static class UnicodeData
             Parse(
                 typeof(UnicodeData).Assembly.GetManifestResourceStream("emoji-data.txt")!,
                 default(UnicodeEmojiProperty));
+
+        // https://www.unicode.org/Public/UCD/latest/ucd/auxiliary/GraphemeBreakProperty.txt
+        GraphemeClusterBreakValue =
+            Parse(
+                typeof(UnicodeData).Assembly.GetManifestResourceStream("GraphemeBreakProperty.txt")!,
+                UnicodeGraphemeClusterBreak.Other);
+
+        // The Indic_Conjunct_Break section of https://www.unicode.org/Public/UCD/latest/ucd/DerivedCoreProperties.txt
+        IndicConjunctBreakValue =
+            Parse(
+                typeof(UnicodeData).Assembly.GetManifestResourceStream("IndicConjunctBreak.txt")!,
+                UnicodeIndicConjunctBreak.None);
     }
 
     /// <inheritdoc cref="LineBreakValue"/>
@@ -57,6 +75,12 @@ public static class UnicodeData
 
     /// <inheritdoc cref="EmojiPropertyValue"/>
     public static ReadOnlySpan<UnicodeEmojiProperty> EmojiProperty => EmojiPropertyValue;
+
+    /// <inheritdoc cref="GraphemeClusterBreakValue"/>
+    public static ReadOnlySpan<UnicodeGraphemeClusterBreak> GraphemeClusterBreak => GraphemeClusterBreakValue;
+
+    /// <inheritdoc cref="IndicConjunctBreakValue"/>
+    public static ReadOnlySpan<UnicodeIndicConjunctBreak> IndicConjunctBreak => IndicConjunctBreakValue;
 
     private static T[] Parse<T>(Stream stream, T defaultValue)
         where T : unmanaged, Enum
@@ -87,7 +111,7 @@ public static class UnicodeData
                 throw new InvalidDataException();
 
             var range = span[..i].Trim();
-            var entry = Enum.Parse<T>(span[(i + 1)..].Trim());
+            var entry = Enum.Parse<T>(span[(span.LastIndexOf(';') + 1)..].Trim());
 
             i = range.IndexOf("..");
             int from, to;

@@ -20,6 +20,9 @@
       <None Update="Utility\Unicode\LineBreakTest.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Utility\Unicode\GraphemeBreakTest.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

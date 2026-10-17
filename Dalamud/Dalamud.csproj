@@ -134,6 +134,12 @@
         <EmbeddedResource Include="Utility\Unicode\LineBreak.txt">
           <LogicalName>LineBreak.txt</LogicalName>
         </EmbeddedResource>
+        <EmbeddedResource Include="Utility\Unicode\GraphemeBreakProperty.txt">
+          <LogicalName>GraphemeBreakProperty.txt</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Utility\Unicode\IndicConjunctBreak.txt">
+          <LogicalName>IndicConjunctBreak.txt</LogicalName>
+        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
