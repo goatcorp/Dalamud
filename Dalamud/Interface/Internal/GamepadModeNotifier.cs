@@ -86,38 +86,25 @@ internal class GamepadModeNotifier : IDisposable
             IconMacro(BitmapFontIcon.ControllerAnalogRightStickIn),
             IconMacro(BitmapFontIcon.ControllerButton2));
 
-        foreach (var line in description.Split('\n'))
-        {
-            y += DrawCentered(drawList, line, centerX, y);
-        }
-
-        drawList.PopClipRect();
-    }
-
-    private static float DrawCentered(ImDrawListPtr drawList, string macroLine, float centerX, float y)
-    {
         var renderer = Service<SeStringRenderer>.Get();
-        var line = renderer.CompileAndCache(macroLine).AsSpan();
-
-        var measureParams = new SeStringDrawParams
+        var lineParams = new SeStringDrawParams
         {
-            TargetDrawList = default(ImDrawListPtr),
-            ScreenOffset = Vector2.Zero,
+            TargetDrawList = drawList,
+            WrapWidth = viewport.WorkSize.X,
             Font = ImGui.GetFont(),
             FontSize = ImGui.GetFontSize(),
             Color = TextColor,
         };
-        var size = renderer.Draw(line, measureParams).Size;
 
-        renderer.Draw(
-            line,
-            measureParams with
-            {
-                TargetDrawList = drawList,
-                ScreenOffset = new Vector2(centerX - (size.X / 2), y),
-            });
+        foreach (var line in description.Split('\n'))
+        {
+            var size = ImGuiHelpers.CenteredSeString(
+                renderer.CompileAndCache(line).AsSpan(),
+                lineParams with { ScreenOffset = viewport.WorkPos with { Y = y } }).Size;
+            y += size.Y + ImGui.GetStyle().ItemSpacing.Y;
+        }
 
-        return size.Y + ImGui.GetStyle().ItemSpacing.Y;
+        drawList.PopClipRect();
     }
 
     private static void DrawGlow(ImDrawListPtr drawList, Vector2 pos, string text)
