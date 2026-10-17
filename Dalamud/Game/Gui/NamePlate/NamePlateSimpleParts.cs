@@ -40,7 +40,7 @@ public class NamePlateSimpleParts(NamePlateStringField field)
         if (this.TextWrap is { Item1: { } left, Item2: { } right })
         {
             using var rssb = new RentedSeStringBuilder();
-            handler.SetField(field, rssb.Builder
+            handler.SetField(field, rssb
                 .Append(left)
                 .Append(this.Text ?? handler.GetFieldAsReadOnlySeString(field))
                 .Append(right)

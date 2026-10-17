@@ -484,18 +484,18 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 switch (entry.Type)
                 {
                     case TextEntryType.String:
-                        rssb.Builder.Append(entry.Message);
+                        rssb.Append(entry.Message);
                         break;
 
                     case TextEntryType.Macro:
                     case TextEntryType.Fixed:
-                        rssb.Builder.AppendMacroString(entry.Message);
+                        rssb.AppendMacroString(entry.Message);
                         break;
                 }
             }
 
             var evaluated = Service<SeStringEvaluator>.Get().Evaluate(
-                rssb.Builder.ToReadOnlySeString(),
+                rssb.ToReadOnlySeString(),
                 this.localParameters,
                 this.language);
 
@@ -515,17 +515,17 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                     switch (entry.Type)
                     {
                         case TextEntryType.String:
-                            rssb.Builder.Append(entry.Message);
+                            rssb.Append(entry.Message);
                             break;
 
                         case TextEntryType.Macro:
                         case TextEntryType.Fixed:
-                            rssb.Builder.AppendMacroString(entry.Message);
+                            rssb.AppendMacroString(entry.Message);
                             break;
                     }
                 }
 
-                ImGui.SetClipboardText(rssb.Builder.ToReadOnlySeString().ToMacroString());
+                ImGui.SetClipboardText(rssb.ToReadOnlySeString().ToMacroString());
             }
 
             ImGui.SameLine();
@@ -807,17 +807,17 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             switch (entry.Type)
             {
                 case TextEntryType.String:
-                    rssb.Builder.Append(entry.Message);
+                    rssb.Append(entry.Message);
                     break;
 
                 case TextEntryType.Macro:
                 case TextEntryType.Fixed:
-                    rssb.Builder.AppendMacroString(entry.Message);
+                    rssb.AppendMacroString(entry.Message);
                     break;
             }
         }
 
-        this.input = rssb.Builder.ToReadOnlySeString();
+        this.input = rssb.ToReadOnlySeString();
 
         if (resetLocalParameters)
             this.localParameters = null;
@@ -997,8 +997,8 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 }
 
                 using var rssb = new RentedSeStringBuilder();
-                rssb.Builder.AppendIcon(iconId);
-                ImGuiHelpers.SeStringWrapped(rssb.Builder.ToArray());
+                rssb.AppendIcon(iconId);
+                ImGuiHelpers.SeStringWrapped(rssb.ToArray());
 
                 ImGui.SameLine();
             }

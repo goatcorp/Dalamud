@@ -105,7 +105,7 @@ internal sealed unsafe class TitleScreenVersionInfo : IInternalDisposableService
 
         using var rssb = new RentedSeStringBuilder();
 
-        rssb.Builder
+        rssb
             .Append(new ReadOnlySeStringSpan(addon->AtkValues[1].String.Value))
             .Append("\n\n")
             .PushEdgeColorType(701)
@@ -117,8 +117,8 @@ internal sealed unsafe class TitleScreenVersionInfo : IInternalDisposableService
             .Append($" - {count} {(count != 1 ? "plugins" : "plugin")} loaded");
 
         if (pm?.SafeMode is true)
-            rssb.Builder.PushColorType(17).Append(" [SAFE MODE]").PopColorType();
+            rssb.PushColorType(17).Append(" [SAFE MODE]").PopColorType();
 
-        textNode->SetText(rssb.Builder.GetViewAsSpan());
+        textNode->SetText(rssb.GetViewAsSpan());
     }
 }

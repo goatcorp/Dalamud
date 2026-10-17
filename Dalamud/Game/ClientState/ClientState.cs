@@ -362,7 +362,7 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
                 if (this.configuration.DutyFinderChatMessage)
                 {
                     using var rssb = new RentedSeStringBuilder();
-                    this.chatGui.Print(rssb.Builder
+                    this.chatGui.Print(rssb
                         .Append("Duty pop: ")
                         .Append(cfcName)
                         .ToReadOnlySeString());

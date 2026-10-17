@@ -55,48 +55,47 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
             return;
 
         using var rssb = new RentedSeStringBuilder();
-        var sb = rssb.Builder;
 
         if (this.OuterWrap is { Item1: { } outerLeft })
         {
-            sb.Append(outerLeft);
+            rssb.Append(outerLeft);
         }
 
         if (this.LeftQuote.HasValue)
         {
-            sb.Append(this.LeftQuote.Value);
+            rssb.Append(this.LeftQuote.Value);
         }
         else
         {
-            sb.Append(isFreeCompany ? " «" : "《");
+            rssb.Append(isFreeCompany ? " «" : "《");
         }
 
         if (this.TextWrap is { Item1: { } left, Item2: { } right })
         {
-            sb.Append(left);
-            sb.Append(this.Text ?? this.GetStrippedField(handler));
-            sb.Append(right);
+            rssb.Append(left);
+            rssb.Append(this.Text ?? this.GetStrippedField(handler));
+            rssb.Append(right);
         }
         else
         {
-            sb.Append(this.Text ?? this.GetStrippedField(handler));
+            rssb.Append(this.Text ?? this.GetStrippedField(handler));
         }
 
         if (this.RightQuote.HasValue)
         {
-            sb.Append(this.RightQuote.Value);
+            rssb.Append(this.RightQuote.Value);
         }
         else
         {
-            sb.Append(isFreeCompany ? "»" : "》");
+            rssb.Append(isFreeCompany ? "»" : "》");
         }
 
         if (this.OuterWrap is { Item2: { } outerRight })
         {
-            sb.Append(outerRight);
+            rssb.Append(outerRight);
         }
 
-        handler.SetField(field, sb.ToReadOnlySeString());
+        handler.SetField(field, rssb.ToReadOnlySeString());
     }
 
     private ReadOnlySeString GetStrippedField(NamePlateUpdateHandler handler)

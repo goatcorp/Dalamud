@@ -126,7 +126,7 @@ internal partial class ChatHandlers : IServiceType
             chatGui.Print(new PrintableChatMessage
             {
                 LogKind = XivChatType.Notice,
-                Message = rssb.Builder
+                Message = rssb
                     .Append(Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully!"))
                     .PushColorType(500)
                     .Append("  [ ")
@@ -152,7 +152,7 @@ internal partial class ChatHandlers : IServiceType
             chatGui.Print(new PrintableChatMessage
             {
                 LogKind = XivChatType.Notice,
-                Message = rssb.Builder
+                Message = rssb
                     .Append(Loc.Localize("DeveloperModeEnabledWarning", "Developer Mode is enabled."))
                     .PushColorType(500)
                     .Append("  [ ")

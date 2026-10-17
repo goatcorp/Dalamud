@@ -75,9 +75,9 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
         numArray->IntArray[numOffset + 9] = 0; // Unknown, has something to do with yOffset
 
         using var rssb = new RentedSeStringBuilder();
-        strArray->SetValue((int)strOffset + 0, rssb.Builder.Append(text1).GetViewAsSpan(), false, true, false);
-        rssb.Builder.Clear();
-        strArray->SetValue((int)strOffset + 1, rssb.Builder.Append(text2).GetViewAsSpan(), false, true, false);
+        strArray->SetValue((int)strOffset + 0, rssb.Append(text1).GetViewAsSpan(), false, true, false);
+        rssb.Clear();
+        strArray->SetValue((int)strOffset + 1, rssb.Append(text2).GetViewAsSpan(), false, true, false);
 
         flytext->AddFlyText(actorIndex, 1, numArray, numOffset, 10, strArray, strOffset, 2, 0);
     }

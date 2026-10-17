@@ -3,6 +3,10 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+using Dalamud.Excel.Sheets;
+using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.Text;
+
 using Lumina.Text;
 using Lumina.Text.Expressions;
 using Lumina.Text.Parse;
@@ -24,6 +28,8 @@ public readonly struct RentedSeStringBuilder() : IResettable, IDisposable
     /// Gets the rented <see cref="SeStringBuilder"/> value from the shared pool.
     /// </summary>
     public SeStringBuilder Builder { get; } = SeStringBuilder.SharedPool.Get();
+
+    public static implicit operator SeStringBuilder(RentedSeStringBuilder rssb) => rssb.Builder;
 
     /// <summary>
     /// Returns the rented <see cref="SeStringBuilder"/> to the shared pool.
@@ -130,7 +136,7 @@ public readonly struct RentedSeStringBuilder() : IResettable, IDisposable
     public SeStringBuilder Append(ReadOnlySePayloadSpan value) => this.Builder.Append(value);
 
     /// <inheritdoc cref="SeStringBuilder.Append(in UtfEnumerator)"/>
-    public SeStringBuilder Append(scoped in UtfEnumerator enumerator) => this.Builder.Append(enumerator);
+    public SeStringBuilder Append(scoped UtfEnumerator enumerator) => this.Builder.Append(enumerator);
 
     /// <inheritdoc cref="SeStringBuilder.AppendChar(int)"/>
     public SeStringBuilder AppendChar(int codepoint) => this.Builder.AppendChar(codepoint);
@@ -547,6 +553,54 @@ public readonly struct RentedSeStringBuilder() : IResettable, IDisposable
 
     /// <inheritdoc cref="SeStringBuilder.PopShadowColor()"/>
     public SeStringBuilder PopShadowColor() => this.Builder.PopShadowColor();
+
+    #endregion
+
+    #region SeStringBuilderExtensions
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.ContainsText(SeStringBuilder, ReadOnlySpan{byte})"/>
+    public bool ContainsText(ReadOnlySpan<byte> needle)
+        => this.Builder.ContainsText(needle);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.ReplaceText(SeStringBuilder, ReadOnlySpan{byte}, ReadOnlySpan{byte})"/>
+    public void ReplaceText(ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
+        => this.Builder.ReplaceText(toFind, replacement);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushDalamudLink(SeStringBuilder, uint, string, int, int, string)"/>
+    public SeStringBuilder PushDalamudLink(uint commandId, string pluginName, int extra1, int extra2, string extraString)
+        => this.Builder.PushDalamudLink(commandId, pluginName, extra1, extra2, extraString);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushDalamudLink(SeStringBuilder, DalamudLinkPayload)"/>
+    public SeStringBuilder PushDalamudLink(DalamudLinkPayload payload)
+        => this.Builder.PushDalamudLink(payload);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushItemLink(SeStringBuilder, uint, string?)"/>
+    public SeStringBuilder PushItemLink(uint itemId, string? displayNameOverride = null)
+        => this.Builder.PushItemLink(itemId, displayNameOverride);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushItemLink(SeStringBuilder, uint, ItemKind, string?)"/>
+    public SeStringBuilder PushItemLink(uint baseItemId, ItemKind itemKind, string? displayNameOverride = null)
+        => this.Builder.PushItemLink(baseItemId, itemKind, displayNameOverride);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushItemLink(SeStringBuilder, Item, bool, string?)"/>
+    public SeStringBuilder PushItemLink(Item item, bool isHq, string? displayNameOverride = null)
+        => this.Builder.PushItemLink(item, isHq, displayNameOverride);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushMapLink(SeStringBuilder, IGameObject)"/>
+    public SeStringBuilder PushMapLink(IGameObject obj)
+        => this.Builder.PushMapLink(obj);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushMapLink(SeStringBuilder, uint, uint, float, float, float, int, float)"/>
+    public SeStringBuilder PushMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float zCoord = 0, int instanceId = 0, float fudgeFactor = 0.05f)
+        => this.Builder.PushMapLink(territoryId, mapId, xCoord, yCoord, zCoord, instanceId, fudgeFactor);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushPartyFinderLink(SeStringBuilder, uint, string, bool)"/>
+    public SeStringBuilder PushPartyFinderLink(uint listingId, string recruiterName, bool isCrossWorld = false)
+        => this.Builder.PushPartyFinderLink(listingId, recruiterName, isCrossWorld);
+
+    /// <inheritdoc cref="SeStringBuilderExtensions.PushPartyFinderSearchConditionsLink(SeStringBuilder, string)"/>
+    public SeStringBuilder PushPartyFinderSearchConditionsLink(string message)
+        => this.Builder.PushPartyFinderSearchConditionsLink(message);
 
     #endregion
 }

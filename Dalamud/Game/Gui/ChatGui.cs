@@ -261,8 +261,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             }
             else
             {
-                rssb.Builder.Clear();
-                sender.SetString(rssb.Builder.Append(chat.Sender).GetViewAsSpan());
+                rssb.Clear();
+                sender.SetString(rssb.Append(chat.Sender).GetViewAsSpan());
             }
 
             // set message
@@ -272,19 +272,19 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             }
             else
             {
-                rssb.Builder.Clear();
+                rssb.Clear();
 
                 foreach (var c in UtfEnumerator.From(chat.Message, UtfEnumeratorFlags.Utf8SeString))
                 {
                     if (c.IsSeStringPayload)
-                        rssb.Builder.Append((ReadOnlySeStringSpan)chat.Message.Data.Span[c.ByteOffset..(c.ByteOffset + c.ByteLength)]);
+                        rssb.Append((ReadOnlySeStringSpan)chat.Message.Data.Span[c.ByteOffset..(c.ByteOffset + c.ByteLength)]);
                     else if (c.Value.IntValue == 0x202F)
-                        rssb.Builder.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
+                        rssb.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
                     else
-                        rssb.Builder.Append(c);
+                        rssb.Append(c);
                 }
 
-                message.SetString(rssb.Builder.GetViewAsSpan());
+                message.SetString(rssb.GetViewAsSpan());
             }
 
             this.HandlePrintMessageDetour(
@@ -310,21 +310,21 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         {
             if (color is not null)
             {
-                rssb.Builder
+                rssb
                     .PushColorType(color.Value)
                     .Append($"[{tag}] ")
                     .PopColorType();
             }
             else
             {
-                rssb.Builder.Append($"[{tag}] ");
+                rssb.Append($"[{tag}] ");
             }
         }
 
         this.Print(new PrintableChatMessage
         {
             LogKind = channel,
-            Message = rssb.Builder.Append(message).ToReadOnlySeString(),
+            Message = rssb.Append(message).ToReadOnlySeString(),
         });
     }
 
@@ -398,7 +398,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 if (this.currentChatMessage.Sender.IsEmpty)
                     sender->Clear();
                 else
-                    sender->SetString(rssb.Builder.Append(this.currentChatMessage.Sender).GetViewAsSpan());
+                    sender->SetString(rssb.Append(this.currentChatMessage.Sender).GetViewAsSpan());
             }
 
             if (this.currentChatMessage.MessageModified)
@@ -409,7 +409,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 if (this.currentChatMessage.Message.IsEmpty)
                     message->Clear();
                 else
-                    message->SetString(rssb.Builder.Append(this.currentChatMessage.Message).GetViewAsSpan());
+                    message->SetString(rssb.Append(this.currentChatMessage.Message).GetViewAsSpan());
             }
 
             // If not handled by a plugin, let the game handle it (prints it to chat)

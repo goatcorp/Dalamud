@@ -115,7 +115,7 @@ internal sealed partial class ToastGui
 
         using var rssb = new RentedSeStringBuilder();
 
-        fixed (byte* ptr = rssb.Builder.Append(message).GetViewAsSpan())
+        fixed (byte* ptr = rssb.Append(message).GetViewAsSpan())
         {
             this.HandleNormalToastDetour(
                 UIModule.Instance(),
@@ -159,7 +159,7 @@ internal sealed partial class ToastGui
 
         using var rssb = new RentedSeStringBuilder();
 
-        fixed (byte* ptr = rssb.Builder.Append(str).GetViewAsSpan())
+        fixed (byte* ptr = rssb.Append(str).GetViewAsSpan())
         {
             this.showNormalToastHook.Original(
                 thisPtr,
@@ -186,7 +186,7 @@ internal sealed partial class ToastGui
 
         using var rssb = new RentedSeStringBuilder();
 
-        fixed (byte* ptr = rssb.Builder.Append(message).GetViewAsSpan())
+        fixed (byte* ptr = rssb.Append(message).GetViewAsSpan())
         {
             this.HandleQuestToastDetour(
                 UIModule.Instance(),
@@ -235,7 +235,7 @@ internal sealed partial class ToastGui
 
         using var rssb = new RentedSeStringBuilder();
 
-        fixed (byte* ptr = rssb.Builder.Append(str).GetViewAsSpan())
+        fixed (byte* ptr = rssb.Append(str).GetViewAsSpan())
         {
             this.showQuestToastHook.Original(
                 UIModule.Instance(),
@@ -266,7 +266,7 @@ internal sealed partial class ToastGui
     {
         using var rssb = new RentedSeStringBuilder();
 
-        fixed (byte* ptr = rssb.Builder.Append(message).GetViewAsSpan())
+        fixed (byte* ptr = rssb.Append(message).GetViewAsSpan())
         {
             this.HandleErrorToastDetour(UIModule.Instance(), ptr, false);
         }
@@ -299,7 +299,7 @@ internal sealed partial class ToastGui
 
         using var rssb = new RentedSeStringBuilder();
 
-        fixed (byte* ptr = rssb.Builder.Append(str).GetViewAsSpan())
+        fixed (byte* ptr = rssb.Append(str).GetViewAsSpan())
         {
             this.showErrorToastHook.Original(thisPtr, ptr, forceVisible);
         }

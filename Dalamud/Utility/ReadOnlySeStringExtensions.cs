@@ -24,4 +24,10 @@ public static class ReadOnlySeStringExtensions
     {
         return input.AsSpan().ContainsText(needle);
     }
+
+    /// <inheritdoc cref="ReadOnlySeStringSpanExtensions.ReplaceText(ReadOnlySeStringSpan, ReadOnlySpan{byte}, ReadOnlySpan{byte})"/>
+    public static ReadOnlySeString ReplaceText(this ReadOnlySeString input, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
+    {
+        return input.AsSpan().ReplaceText(toFind, replacement);
+    }
 }

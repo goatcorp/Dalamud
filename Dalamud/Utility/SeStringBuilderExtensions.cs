@@ -4,13 +4,14 @@ using Dalamud.Game.Text;
 
 using Lumina.Text;
 using Lumina.Text.Payloads;
-using Lumina.Text.ReadOnly;
 
 using Newtonsoft.Json;
 
 using SeString = Dalamud.Game.Text.SeString;
 
 namespace Dalamud.Utility;
+
+// Note: Do not forget to add forwards to RentedSeStringBuilder.
 
 /// <summary>
 /// Extension methods for SeStringBuilder.
@@ -26,64 +27,6 @@ public static class SeStringBuilderExtensions
     public static bool ContainsText(this SeStringBuilder builder, ReadOnlySpan<byte> needle)
     {
         return builder.ToReadOnlySeString().ContainsText(needle);
-    }
-
-    /// <summary>
-    /// Replaces occurrences of a specified text in a <see cref="ReadOnlySeString"/> with another text.
-    /// </summary>
-    /// <param name="ross">The original string.</param>
-    /// <param name="toFind">The text to find.</param>
-    /// <param name="replacement">The replacement text.</param>
-    /// <returns>A new <see cref="ReadOnlySeString"/> with the replacements made.</returns>
-    public static ReadOnlySeString ReplaceText(
-        this ReadOnlySeString ross,
-        ReadOnlySpan<byte> toFind,
-        ReadOnlySpan<byte> replacement)
-    {
-        if (ross.IsEmpty)
-            return ross;
-
-        using var rssb = new RentedSeStringBuilder();
-
-        foreach (var payload in ross)
-        {
-            if (payload.Type == ReadOnlySePayloadType.Invalid)
-                continue;
-
-            if (payload.Type != ReadOnlySePayloadType.Text)
-            {
-                rssb.Builder.Append(payload);
-                continue;
-            }
-
-            var index = payload.Body.Span.IndexOf(toFind);
-            if (index == -1)
-            {
-                rssb.Builder.Append(payload);
-                continue;
-            }
-
-            var lastIndex = 0;
-            while (index != -1)
-            {
-                rssb.Builder.Append(payload.Body.Span[lastIndex..index]);
-
-                if (!replacement.IsEmpty)
-                {
-                    rssb.Builder.Append(replacement);
-                }
-
-                lastIndex = index + toFind.Length;
-                index = payload.Body.Span[lastIndex..].IndexOf(toFind);
-
-                if (index != -1)
-                    index += lastIndex;
-            }
-
-            rssb.Builder.Append(payload.Body.Span[lastIndex..]);
-        }
-
-        return rssb.Builder.ToReadOnlySeString();
     }
 
     /// <summary>
@@ -104,7 +47,7 @@ public static class SeStringBuilderExtensions
         if (str.IsEmpty)
             return;
 
-        var replaced = ReplaceText(new ReadOnlySeString(builder.GetViewAsMemory()), toFind, replacement);
+        var replaced = str.ReplaceText(toFind, replacement);
         builder.Clear().Append(replaced);
     }
 

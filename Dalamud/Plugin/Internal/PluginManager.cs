@@ -293,7 +293,7 @@ internal class PluginManager : IInternalDisposableService
                         new PrintableChatMessage
                         {
                             LogKind = this.configuration.GeneralChatType,
-                            Message = rssb.Builder
+                            Message = rssb
                                 .Append(header)
                                 .Append("  [")
                                 .PushColorType(500)

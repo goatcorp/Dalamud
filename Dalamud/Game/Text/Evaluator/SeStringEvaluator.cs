@@ -110,7 +110,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         try
         {
             CultureInfo.CurrentCulture = Localization.GetCultureInfoFromLangCode(lang.ToCode());
-            return this.EvaluateAndAppendTo(rssb.Builder, str, localParameters, lang).ToReadOnlySeString();
+            return this.EvaluateAndAppendTo(rssb, str, localParameters, lang).ToReadOnlySeString();
         }
         finally
         {
@@ -875,38 +875,37 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
 
         using var rssb = new RentedSeStringBuilder();
-        var sb = rssb.Builder;
 
-        sb.Append(this.EvaluateFromAddon(6, [rarity], context.Language)); // appends colortype and edgecolortype
+        rssb.Append(this.EvaluateFromAddon(6, [rarity], context.Language)); // appends colortype and edgecolortype
 
         if (!skipLink)
         {
             // The last argument is a flag for LogMessages, set here "C7 80 ?? ?? ?? ?? 00 00 00 00 66 83 E7".
-            sb.PushLink(LinkMacroPayloadType.Item, itemId, rarity, 0u);
+            rssb.PushLink(LinkMacroPayloadType.Item, itemId, rarity, 0u);
         }
 
         // there is code here for handling noun link markers (//), but i don't know why
 
-        sb.Append(text);
+        rssb.Append(text);
 
         if ((flags & SheetRedirectFlags.HighQuality) != 0
             && this.dataManager.GetExcelSheet<AddonSheet>(context.Language).TryGetRow(9, out var hqSymbol))
         {
-            sb.Append(hqSymbol.Text);
+            rssb.Append(hqSymbol.Text);
         }
         else if ((flags & SheetRedirectFlags.Collectible) != 0
             && this.dataManager.GetExcelSheet<AddonSheet>(context.Language).TryGetRow(150, out var collectibleSymbol))
         {
-            sb.Append(collectibleSymbol.Text);
+            rssb.Append(collectibleSymbol.Text);
         }
 
         if (!skipLink)
-            sb.PopLink();
+            rssb.PopLink();
 
-        sb.PopEdgeColorType();
-        sb.PopColorType();
+        rssb.PopEdgeColorType();
+        rssb.PopColorType();
 
-        text = sb.ToReadOnlySeString();
+        text = rssb.ToReadOnlySeString();
     }
 
     private void CreateSheetLink(in SeStringContext context, string resolvedSheetName, ReadOnlySeString text, uint eRowIdValue, uint eColParamValue)
@@ -992,12 +991,12 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         using var rssb = new RentedSeStringBuilder();
 
-        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
+        var headContext = new SeStringContext(rssb, context.LocalParameters, context.Language);
 
         if (!this.ResolveStringExpression(headContext, eStr))
             return false;
 
-        var str = rssb.Builder.ToReadOnlySeString();
+        var str = rssb.ToReadOnlySeString();
         var pIdx = 0;
 
         foreach (var p in str)
@@ -1026,12 +1025,12 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         using var rssb = new RentedSeStringBuilder();
 
-        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
+        var headContext = new SeStringContext(rssb, context.LocalParameters, context.Language);
 
         if (!this.ResolveStringExpression(headContext, eStr))
             return false;
 
-        var str = rssb.Builder.ToReadOnlySeString();
+        var str = rssb.ToReadOnlySeString();
         var pIdx = 0;
 
         foreach (var p in str)
@@ -1063,7 +1062,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         using var rssb = new RentedSeStringBuilder();
 
-        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
+        var headContext = new SeStringContext(rssb, context.LocalParameters, context.Language);
 
         if (!this.ResolveStringExpression(headContext, eText))
             return false;
@@ -1072,7 +1071,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (separator.Length < 1)
             return false;
 
-        var splitted = rssb.Builder.ToReadOnlySeString().ExtractText().Split(separator[0]);
+        var splitted = rssb.ToReadOnlySeString().ExtractText().Split(separator[0]);
         if (eIndexVal <= splitted.Length)
         {
             context.Builder.Append(splitted[eIndexVal - 1]);
@@ -1089,12 +1088,12 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         using var rssb = new RentedSeStringBuilder();
 
-        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
+        var headContext = new SeStringContext(rssb, context.LocalParameters, context.Language);
 
         if (!this.ResolveStringExpression(headContext, eStr))
             return false;
 
-        var str = rssb.Builder.ToReadOnlySeString();
+        var str = rssb.ToReadOnlySeString();
 
         foreach (var p in str)
         {
@@ -1244,11 +1243,11 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
             using var rssb = new RentedSeStringBuilder();
 
-            rssb.Builder.Append(placeNameRow.Name);
+            rssb.Append(placeNameRow.Name);
             if (instance is > 0 and <= 9)
-                rssb.Builder.Append((char)((char)0xE0B0 + (char)instance));
+                rssb.Append((char)((char)0xE0B0 + (char)instance));
 
-            var placeNameWithInstance = rssb.Builder.ToReadOnlySeString();
+            var placeNameWithInstance = rssb.ToReadOnlySeString();
 
             var mapPosX = mapRow.ToMapCoordX(rawX / 1000f);
             var mapPosY = mapRow.ToMapCoordY(rawY / 1000f);
@@ -1405,17 +1404,17 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         switch (statusRow.StatusCategory)
         {
             case 1:
-                rssb.Builder.Append(this.EvaluateFromAddon(376, default, context.Language));
+                rssb.Append(this.EvaluateFromAddon(376, default, context.Language));
                 break;
 
             case 2:
-                rssb.Builder.Append(this.EvaluateFromAddon(377, default, context.Language));
+                rssb.Append(this.EvaluateFromAddon(377, default, context.Language));
                 break;
         }
 
-        rssb.Builder.Append(statusName);
+        rssb.Append(statusName);
 
-        var linkText = rssb.Builder.ToReadOnlySeString();
+        var linkText = rssb.ToReadOnlySeString();
 
         context.Builder
                .BeginMacro(MacroCode.Link)
@@ -1674,12 +1673,12 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         using var rssb = new RentedSeStringBuilder();
 
-        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
+        var headContext = new SeStringContext(rssb, context.LocalParameters, context.Language);
 
         if (!this.ResolveStringExpression(headContext, eStr))
             return false;
 
-        foreach (var p in rssb.Builder.ToReadOnlySeString())
+        foreach (var p in rssb.ToReadOnlySeString())
         {
             if (p.Type == ReadOnlySePayloadType.Invalid)
                 continue;
@@ -1766,12 +1765,12 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         using var rssb = new RentedSeStringBuilder();
 
-        var headContext = new SeStringContext(rssb.Builder, context.LocalParameters, context.Language);
+        var headContext = new SeStringContext(rssb, context.LocalParameters, context.Language);
 
         if (!this.ResolveStringExpression(headContext, eStr))
             return false;
 
-        var str = rssb.Builder.ToReadOnlySeString();
+        var str = rssb.ToReadOnlySeString();
         var pIdx = 0;
 
         foreach (var p in str)

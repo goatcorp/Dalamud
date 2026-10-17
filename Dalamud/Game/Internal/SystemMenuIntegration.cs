@@ -360,18 +360,18 @@ internal sealed unsafe class SystemMenuIntegration : IInternalDisposableService
         var entryIndex = startIndex;
 
         values[entryIndex].SetInt(SystemMenuPluginsId);
-        values[entryIndex + maxEntries].SetManagedString(rssb.Builder
+        values[entryIndex + maxEntries].SetManagedString(rssb
             .PushColorType(color)
             .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
             .PopColorType()
             .Append(this.LocDalamudPlugins)
             .GetViewAsSpan());
 
-        rssb.Builder.Clear();
+        rssb.Clear();
         entryIndex++;
 
         values[entryIndex].SetInt(SystemMenuSettingsId);
-        values[entryIndex + maxEntries].SetManagedString(rssb.Builder
+        values[entryIndex + maxEntries].SetManagedString(rssb
             .PushColorType(color)
             .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
             .PopColorType()
