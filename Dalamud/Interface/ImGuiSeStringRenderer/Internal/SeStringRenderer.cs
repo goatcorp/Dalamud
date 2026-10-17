@@ -10,9 +10,9 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
+using Dalamud.Utility.Unicode;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -31,10 +31,6 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 [ServiceManager.EarlyLoadedService]
 internal class SeStringRenderer : IServiceType
 {
-    private const int ImGuiContextCurrentWindowOffset = 0x3FF0;
-    private const int ImGuiWindowDcOffset = 0x118;
-    private const int ImGuiWindowTempDataCurrLineTextBaseOffset = 0x38;
-
     /// <summary>Soft hyphen character, which signifies that a word can be broken here, and will display a standard
     /// hyphen when it is broken there.</summary>
     private const int SoftHyphen = '\u00AD';
@@ -329,7 +325,7 @@ internal class SeStringRenderer : IServiceType
         var xy = Vector2.Zero;
         var w = 0f;
         var link = -1;
-        foreach (var (breakAt, mandatory) in new LineBreakEnumerator(state.Span, UtfEnumeratorFlags.Utf8SeString))
+        foreach (var (breakAt, mandatory) in new UnicodeLineBreakEnumerator(state.Span, UtfEnumeratorFlags.Utf8SeString))
         {
             // Might have happened if custom entity was longer than the previous break unit.
             if (prev > breakAt)

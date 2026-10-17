@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
+namespace Dalamud.Utility.Unicode;
 
 /// <summary><a href="https://www.unicode.org/reports/tr51/#Emoji_Characters">Unicode emoji property</a>.</summary>
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Unicode Data")]

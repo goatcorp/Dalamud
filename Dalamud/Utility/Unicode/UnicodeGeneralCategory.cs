@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
+namespace Dalamud.Utility.Unicode;
 
-/// <summary><a href="https://www.unicode.org/reports/tr44/#General_Category_Values">Unicode general category.</a>.
+/// <summary><a href="https://www.unicode.org/reports/tr44/#General_Category_Values">Unicode general category</a>.
 /// </summary>
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Unicode Data")]
 internal enum UnicodeGeneralCategory : byte

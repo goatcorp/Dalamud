@@ -122,6 +122,18 @@
             <WithCulture>false</WithCulture>
           <LogicalName>blur-noise.png</LogicalName>
         </EmbeddedResource>
+        <EmbeddedResource Include="Utility\Unicode\DerivedGeneralCategory.txt">
+          <LogicalName>DerivedGeneralCategory.txt</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Utility\Unicode\EastAsianWidth.txt">
+          <LogicalName>EastAsianWidth.txt</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Utility\Unicode\emoji-data.txt">
+          <LogicalName>emoji-data.txt</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Utility\Unicode\LineBreak.txt">
+          <LogicalName>LineBreak.txt</LogicalName>
+        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
@@ -142,9 +154,7 @@
     <!-- Copy XML files from all PackageReferences to output dir -->
     <Target Name="_ResolveCopyLocalNuGetPkgXmls" AfterTargets="ResolveReferences">
         <ItemGroup>
-            <ReferenceCopyLocalPaths
-                Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')"
-                Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)'!='' and '%(ReferenceCopyLocalPaths.NuGetPackageId)'!='TerraFX.Interop.Windows' and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
+            <ReferenceCopyLocalPaths Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)'!='' and '%(ReferenceCopyLocalPaths.NuGetPackageId)'!='TerraFX.Interop.Windows' and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
         </ItemGroup>
     </Target>
 
@@ -158,17 +168,14 @@
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\DerivedGeneralCategory.txt" LogicalName="DerivedGeneralCategory.txt" />
-      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\EastAsianWidth.txt" LogicalName="EastAsianWidth.txt" />
-      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\emoji-data.txt" LogicalName="emoji-data.txt" />
-      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\LineBreak.txt" LogicalName="LineBreak.txt" />
-    </ItemGroup>
-
-    <ItemGroup>
       <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.DrawToPremul.ps.bin" />
       <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.DrawToPremul.vs.bin" />
       <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.MakeStraight.ps.bin" />
       <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.MakeStraight.vs.bin" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\" />
     </ItemGroup>
 
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">
