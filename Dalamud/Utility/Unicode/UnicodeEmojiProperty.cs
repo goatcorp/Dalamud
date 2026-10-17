@@ -1,12 +1,15 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
+namespace Dalamud.Utility.Unicode;
 
 /// <summary><a href="https://www.unicode.org/reports/tr51/#Emoji_Characters">Unicode emoji property</a>.</summary>
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Unicode Data")]
 [Flags]
-internal enum UnicodeEmojiProperty : byte
+public enum UnicodeEmojiProperty : byte
 {
+    /// <summary>Not an emoji.</summary>
+    None = 0,
+
     /// <summary>Characters that are emoji.</summary>
     Emoji = 1 << 0,
 
