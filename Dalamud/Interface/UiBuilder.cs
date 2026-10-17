@@ -236,6 +236,12 @@ public interface IUiBuilder
     bool PluginUISoundEffectsEnabled { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the user has enabled the "Add a button to the title bar of plugin windows to
+    /// open additional options" setting.
+    /// </summary>
+    bool PluginUIAdditionalOptionsEnabled { get; }
+
+    /// <summary>
     /// Loads an ULD file that can load textures containing multiple icons in a single texture.
     /// </summary>
     /// <param name="uldPath">The path of the requested ULD file.</param>
@@ -576,6 +582,9 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 
     /// <inheritdoc />
     public bool PluginUISoundEffectsEnabled => Service<DalamudConfiguration>.Get().EnablePluginUISoundEffects;
+
+    /// <inheritdoc />
+    public bool PluginUIAdditionalOptionsEnabled => Service<DalamudConfiguration>.Get().EnablePluginUiAdditionalOptions;
 
     /// <summary>
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
