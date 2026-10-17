@@ -180,10 +180,6 @@
       <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.MakeStraight.vs.bin" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\" />
-    </ItemGroup>
-
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">
         <ItemGroup>
             <ContentWithTargetPath Include="$(ProjectDepsFilePath)" CopyToOutputDirectory="PreserveNewest" TargetPath="$(ProjectDepsFileName)" />

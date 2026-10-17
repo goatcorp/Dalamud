@@ -40,7 +40,7 @@ internal class SeStringRenderer : IServiceType
     private const int ObjectReplacementCharacter = '\uFFFC';
 
     /// <summary>Cache of compiled SeStrings from <see cref="CompileAndCache"/>.</summary>
-    private readonly ConcurrentLru<string, ReadOnlySeString> cache = new(1024);
+    private readonly ConcurrentLru<string, ReadOnlySeString> cache = [with(1024)];
 
     /// <summary>Parsed <c>gfdata.gfd</c> file, containing bitmap font icon lookup table.</summary>
     private readonly GfdFile gfd;
@@ -624,9 +624,9 @@ internal class SeStringRenderer : IServiceType
     /// <param name="link">Byte offset of the link payload in <see cref="SeStringDrawState.Span"/> that
     ///     decorates this text fragment.</param>
     /// <param name="entity">Entity to display in place of this fragment.</param>
-    /// <param name="wrapWidth">Optional wrap width to stop at while creating this text fragment. Note that at least
-    ///     one visible character needs to be there in a single text fragment, in which case it is allowed to exceed
-    ///     the wrap width.</param>
+    /// <param name="wrapWidth">Optional wrap width to stop at while creating this text fragment, at the start of a
+    ///     grapheme cluster. Note that at least one visible grapheme cluster needs to be there in a single text
+    ///     fragment, in which case it is allowed to exceed the wrap width.</param>
     /// <returns>Newly created text fragment.</returns>
     private TextFragment CreateFragment(
         scoped in SeStringDrawState state,
@@ -664,9 +664,25 @@ internal class SeStringRenderer : IServiceType
         var lastDisplayRune = default(Rune);
         var lastNonSoftHyphenRune = default(Rune);
         var endsWithSoftHyphen = false;
+
+        var clusters = new UnicodeGraphemeClusterEnumerator(state.Span[from..to], UtfEnumeratorFlags.Utf8SeString);
+        var nextCluster = 0;
+        var clusterStart = from;
+        // ReSharper disable once ExpressionIsAlwaysNull,ConditionIsAlwaysTrueOrFalse
+        var atClusterStart = (visibleWidth, advanceWidth, advanceWidthWithoutSoftHyphen, firstDisplayRune,
+                                 lastNonSoftHyphenRune, endsWithSoftHyphen);
         foreach (var c in UtfEnumerator.From(state.Span[from..to], UtfEnumeratorFlags.Utf8SeString))
         {
             var byteOffset = from + c.ByteOffset;
+            if (c.ByteOffset >= nextCluster)
+            {
+                clusterStart = byteOffset;
+                atClusterStart = (visibleWidth, advanceWidth, advanceWidthWithoutSoftHyphen, firstDisplayRune,
+                                     lastNonSoftHyphenRune, endsWithSoftHyphen);
+                while (nextCluster <= c.ByteOffset)
+                    nextCluster = clusters.MoveNext() ? clusters.Current : int.MaxValue;
+            }
+
             var isBreakableWhitespace = false;
             var effectiveRune = c.EffectiveRune;
             Rune displayRune;
@@ -704,9 +720,11 @@ internal class SeStringRenderer : IServiceType
             }
             else
             {
-                if (firstDisplayRune is not null && w > wrapWidth && effectiveRune.Value != SoftHyphen)
+                if (atClusterStart.firstDisplayRune is not null && w > wrapWidth && effectiveRune.Value != SoftHyphen)
                 {
-                    to = byteOffset;
+                    (visibleWidth, advanceWidth, advanceWidthWithoutSoftHyphen, firstDisplayRune, lastNonSoftHyphenRune,
+                        endsWithSoftHyphen) = atClusterStart;
+                    to = clusterStart;
                     break;
                 }
 
