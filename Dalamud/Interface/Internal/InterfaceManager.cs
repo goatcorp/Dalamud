@@ -613,7 +613,16 @@ internal partial class InterfaceManager : IInternalDisposableService
             return;
 
         this.framework.Update -= this.FrameworkOnUpdate;
-        this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
+
+        try
+        {
+            this.SetupHooks(Service<FontAtlasFactory>.Get());
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not set up interface hooks");
+            Service<InterfaceManagerWithScene>.ProvideException(ex);
+        }
     }
 
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
@@ -847,7 +856,6 @@ internal partial class InterfaceManager : IInternalDisposableService
     }
 
     private unsafe void SetupHooks(
-        TargetSigScanner sigScanner,
         FontAtlasFactory fontAtlasFactory)
     {
         this.dalamudAtlas = fontAtlasFactory
