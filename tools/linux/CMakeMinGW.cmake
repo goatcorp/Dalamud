@@ -29,6 +29,12 @@ if(NOT WIN32 AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     set(CMAKE_ASM_MASM_FLAGS "-win64 -Zg -c")
     set(CMAKE_ASM_MASM_FLAGS_DEBUG "-Zi")
+
+    # Wine restricts us to DWARF v4 without type info. Anything beyond that crashes winedbg and wine.
+    foreach(_lang C CXX)
+        set(CMAKE_${_lang}_FLAGS_DEBUG "-gdwarf-4 -g1")
+        set(CMAKE_${_lang}_FLAGS_RELEASE "-O2 -DNDEBUG -gdwarf-4 -g1")
+    endforeach()
 endif()
 
 
