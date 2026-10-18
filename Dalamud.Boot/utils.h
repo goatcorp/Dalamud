@@ -16,6 +16,8 @@
 #include "error_info.h"
 #include "unicode.h"
 
+#include "noopt.h"
+
 namespace utils {
     class loaded_module {
         HMODULE m_hModule;
@@ -190,21 +192,16 @@ namespace utils {
 
     private:
         // mark it as virtual to prevent compiler from inlining
-#if defined(_MSC_VER)
-        __declspec(noinline)
-#endif
-        virtual TReturn
-#if !defined(_MSC_VER)
-        __attribute__((noinline))
-#endif
-        detour(TArgs... args) {
+        NOOPT_BEGIN
+        NOINLINE virtual TReturn detour(TArgs... args) {
             return m_fnTarget(std::forward<TArgs>(args)...);
         }
 
-        static TReturn detour_static(TArgs... args) {
+        NOINLINE static TReturn detour_static(TArgs... args) {
             const volatile auto pThis = reinterpret_cast<thunk<TFn>*>(Placeholder);
             return pThis->detour(args...);
         }
+        NOOPT_END
     };
 
     template<class TElem, class TTraits = std::char_traits<TElem>>
