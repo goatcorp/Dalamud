@@ -1158,7 +1158,8 @@ static std::wstring get_thread_name(HANDLE hThread)
 }
 
 // Walk and log mixed-mode call stack for the passed thread
-void print_thread_call_stack(HANDLE hThread, const CONTEXT& ctx, std::wostringstream& log) {
+NOOPT_BEGIN
+NOINLINE void print_thread_call_stack(HANDLE hThread, const CONTEXT& ctx, std::wostringstream& log) {
     int frame_index = 0;
     bool dacWalkDone = false;
 
@@ -1410,7 +1411,6 @@ void print_thread_call_stack(HANDLE hThread, const CONTEXT& ctx, std::wostringst
             log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string_mixed(sf.AddrPC.Offset, g_pClrDataProcess));
         };
 
-        NOOPT_BEGIN
         const auto tryStackWalk = [&] NOINLINE {
             __seh_try_begin {
                 CONTEXT ctxWalk = ctx;
@@ -1426,12 +1426,12 @@ void print_thread_call_stack(HANDLE hThread, const CONTEXT& ctx, std::wostringst
                 return false;
             }
         };
-        NOOPT_END
 
         if (!tryStackWalk())
             log << L"\n  Access violation while walking up the stack.";
     }
 }
+NOOPT_END
 
 void print_exception_info(DWORD threadId, HANDLE hThread, const EXCEPTION_POINTERS& ex, const CONTEXT& ctx, std::wostringstream& log) {
     std::vector<EXCEPTION_RECORD> exRecs;
