@@ -117,8 +117,6 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                     fixed (IDCompositionDevice** pp = &this.dcompDevice.GetPinnableReference())
                     fixed (Guid* piidDCompositionDevice = &IID.IID_IDCompositionDevice)
                         DirectX.DCompositionCreateDevice(null, piidDCompositionDevice, (void**)pp).ThrowOnError();
-
-                    ImGuiViewportHelpers.EnableViewportWindowBackgroundAlpha();
                 }
                 catch
                 {
