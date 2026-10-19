@@ -561,7 +561,8 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// <summary>
     /// Gets a value indicating whether UI functions can be used.
     /// </summary>
-    public bool UiPrepared => Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable() != null;
+    public bool UiPrepared =>
+        Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable(ExceptionPropagationMode.None) != null;
 
     /// <summary>
     /// Gets the plugin-private font atlas.
@@ -600,7 +601,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     internal bool HasMainUi => this.OpenMainUi != null;
 
     private InterfaceManager? InterfaceManagerWithScene =>
-        Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable()?.Manager;
+        Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable(ExceptionPropagationMode.None)?.Manager;
 
     private Task<InterfaceManager> InterfaceManagerWithSceneAsync =>
         Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task => task.Result.Manager);
