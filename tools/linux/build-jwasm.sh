@@ -4,14 +4,17 @@ echo 'Usage: build-jwasm.sh'
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# Ubuntu 22.04 MinGW 13 warns about some possible overflows.
-export CFLAGS="-Wno-format-overflow -Wno-format ${CFLAGS:-}"
+# https://github.com/goatcorp/Dalamud/pull/3024/changes#paneldiscussion_r4319228855
+git clone \
+    --depth 1 \
+    --revision a5c4ea03cc0545a15d81a354251b5f534bef7a1b \
+    https://github.com/JWasm/JWasm.git
 
 # Fails to build with C++23, or out of the box with CMake 4.
 # The min ver is also ancient.
-cmake -Slib/JWasm -Blib/JWasm/build \
+cmake -SJWasm -BJWasm/build \
     -DCMAKE_C_STANDARD=17 -DCMAKE_CXX_STANDARD=17 \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -Wno-deprecated
 
-cmake --build lib/JWasm/build
+cmake --build JWasm/build

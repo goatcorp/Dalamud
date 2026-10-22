@@ -28,6 +28,3 @@
 [submodule "lib/libdeflate"]
 	path = lib/libdeflate
 	url = https://github.com/ebiggers/libdeflate.git
-[submodule "lib/JWasm"]
-	path = lib/JWasm
-	url = https://github.com/JWasm/JWasm.git
