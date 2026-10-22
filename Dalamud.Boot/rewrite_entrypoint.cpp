@@ -111,7 +111,7 @@ void read_process_memory_or_throw(HANDLE hProcess, void* pAddress, void* data, s
 
 template<typename T>
 void read_process_memory_or_throw(HANDLE hProcess, void* pAddress, T& data) {
-    return read_process_memory_or_throw(hProcess, pAddress, &data, sizeof(data));
+    return read_process_memory_or_throw(hProcess, pAddress, &data, sizeof data);
 }
 
 void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const void* data, size_t len) {
@@ -125,7 +125,7 @@ void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const void* 
 
 template<typename T>
 void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const T& data) {
-    return write_process_memory_or_throw(hProcess, pAddress, &data, sizeof(data));
+    return write_process_memory_or_throw(hProcess, pAddress, &data, sizeof data);
 }
 
 std::filesystem::path get_path_from_local_module(HMODULE hModule) {
@@ -143,7 +143,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
     std::ifstream exe(path, std::ios::binary);
 
     IMAGE_DOS_HEADER exe_dos_header;
-    exe.read(reinterpret_cast<char*>(&exe_dos_header), sizeof(exe_dos_header));
+    exe.read(reinterpret_cast<char*>(&exe_dos_header), sizeof exe_dos_header);
     if (!exe || exe_dos_header.e_magic != IMAGE_DOS_SIGNATURE)
         throw std::runtime_error("Game executable is corrupt (DOS header).");
 
@@ -152,7 +152,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
         IMAGE_NT_HEADERS64 exe_nt_header64;
     };
     exe.seekg(exe_dos_header.e_lfanew, std::ios::beg);
-    exe.read(reinterpret_cast<char*>(&exe_nt_header64), sizeof(exe_nt_header64));
+    exe.read(reinterpret_cast<char*>(&exe_nt_header64), sizeof exe_nt_header64);
     if (!exe || exe_nt_header64.Signature != IMAGE_NT_SIGNATURE)
         throw std::runtime_error("Game executable is corrupt (NT header).");
 
@@ -166,7 +166,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
     GetSystemInfo(&sysinfo);
 
     for (MEMORY_BASIC_INFORMATION mbi{};
-        VirtualQueryEx(hProcess, mbi.BaseAddress, &mbi, sizeof(mbi));
+        VirtualQueryEx(hProcess, mbi.BaseAddress, &mbi, sizeof mbi);
         mbi.BaseAddress = static_cast<char*>(mbi.BaseAddress) + mbi.RegionSize) {
 
         // wine: apparently there exists a RegionSize of 0xFFF
@@ -206,7 +206,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
                     continue;
 
                 std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header32.FileHeader.NumberOfSections);
-                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof(compare_nt_header32), &compare_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size());
+                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header32, &compare_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size());
                 if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size()) != 0)
                     continue;
 
@@ -219,7 +219,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
                     continue;
 
                 std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header64.FileHeader.NumberOfSections);
-                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof(compare_nt_header64), &compare_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size());
+                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header64, &compare_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size());
                 if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof(IMAGE_SECTION_HEADER) * compare_section_headers.size()) != 0)
                     continue;
 
@@ -300,20 +300,20 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
 
         // Backup original entry point.
         last_operation = std::format(L"read_process_memory_or_throw(entrypoint, {}b)", entrypoint_replacement.size());
-        read_process_memory_or_throw(hProcess, entrypoint, &buffer[sizeof(params)], entrypoint_replacement.size());
+        read_process_memory_or_throw(hProcess, entrypoint, &buffer[sizeof params], entrypoint_replacement.size());
 
-        memcpy(&buffer[sizeof(params) + entrypoint_replacement.size()], load_info.data(), load_info.size());
+        memcpy(&buffer[sizeof params + entrypoint_replacement.size()], load_info.data(), load_info.size());
 
         last_operation = L"thunks::fill_placeholders(EntryPointReplacement)";
         thunks::fill_placeholders(standalone_rewrittenentrypoint.data(), remote_buffer);
-        memcpy(&buffer[sizeof(params) + entrypoint_replacement.size() + load_info.size()], standalone_rewrittenentrypoint.data(), standalone_rewrittenentrypoint.size());
+        memcpy(&buffer[sizeof params + entrypoint_replacement.size() + load_info.size()], standalone_rewrittenentrypoint.data(), standalone_rewrittenentrypoint.size());
 
         // Write the local buffer into the buffer in remote process.
         last_operation = std::format(L"write_process_memory_or_throw(remote_buffer, {}b)", buffer.size());
         write_process_memory_or_throw(hProcess, remote_buffer, buffer.data(), buffer.size());
 
         last_operation = L"thunks::fill_placeholders(RewrittenEntryPoint_Standalone::pRewrittenEntryPointParameters)";
-        thunks::fill_placeholders(entrypoint_replacement.data(), remote_buffer + sizeof(params) + entrypoint_replacement.size() + load_info.size());
+        thunks::fill_placeholders(entrypoint_replacement.data(), remote_buffer + sizeof params + entrypoint_replacement.size() + load_info.size());
 
         // Overwrite remote process' entry point with a thunk that will load our DLLs and call our trampoline function.
         last_operation = std::format(L"write_process_memory_or_throw(entrypoint={:X}, {}b)", reinterpret_cast<uintptr_t>(entrypoint), buffer.size());
@@ -358,7 +358,7 @@ extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointPara
     SetLastError(ERROR_SUCCESS);
 
     try {
-        const auto pOriginalEntryPointBytes = reinterpret_cast<char*>(&params) + sizeof(params);
+        const auto pOriginalEntryPointBytes = reinterpret_cast<char*>(&params) + sizeof params;
         const auto pLoadInfo = pOriginalEntryPointBytes + params.entrypointLength;
 
         // Restore original entry point.
@@ -425,7 +425,7 @@ extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointPara
             };
 
             const TASKDIALOGCONFIG sacConfig{
-                .cbSize = sizeof(sacConfig),
+                .cbSize = sizeof sacConfig,
                 .hInstance = g_hModule,
                 .dwFlags = TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS,
                 .pszWindowTitle = MAKEINTRESOURCEW(IDS_APPNAME),
