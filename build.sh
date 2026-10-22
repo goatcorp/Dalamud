@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 # Just in case those bits get lost and someone decides to chmod a+x this file,
 # but none of the other files. Been there, done that.
 # -jade
-chmod a+x build-jwasm.sh
+chmod a+x tools/linux/build-jwasm.sh
 chmod a+x generate.sh
 
 CONFIG='Debug'
@@ -15,8 +15,8 @@ if [ $# -ge 1 ] && [ -n "$1" ]; then
     CONFIG="$1"
 fi
 
-if ! [ -f 'lib/JWasm/build/jwasm' ]; then
-    ./build-jwasm.sh
+if ! [ -f 'tools/linux/JWasm/build/jwasm' ]; then
+    ./tools/linux/build-jwasm.sh
 fi
 
 if ! [ -f 'build/CMakeCache.txt' ]; then
