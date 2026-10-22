@@ -21,7 +21,7 @@
     #define NOOPT_END
 
 #else
-    #define NOOPT_ATTRIB
+    #define NOINLINE
     #define NOOPT_BEGIN
     #define NOOPT_END
 #endif

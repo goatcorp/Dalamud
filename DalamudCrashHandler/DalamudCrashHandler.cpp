@@ -60,24 +60,33 @@ static constexpr GUID Guid_IFileDialog_Tspack{ 0xfc057318, 0xad35, 0x4599, {0xa7
 #include "miniz.h"
 #include "dac_interfaces.h"
 
-#include "noopt.h"
-
 /* mingw SEH try / catch seems to be absolutely cursed beyond belief,
  * with some projects handling it wrong, some projects warning against it,
  * and yet again some other projects pushing through despite its fragility.
  */
 #if defined(_MSC_VER)
-// MSVC: __try { faulty; } __except(EXCEPTION_EXECUTE_HANDLER) { handler; }
+// MSVC: __try { faulty; } __except(EXCEPTION_EXECUTE_HANDLER) { runs_always; }
 #define __seh_try_begin __try
 #define __seh_try_end __except(EXCEPTION_EXECUTE_HANDLER) {}
 
+// MSVC can cope with SEH + default opt flags.
+#define __seh_NOINLINE
+#define __seh_NOOPT_BEGIN
+#define __seh_NOOPT_END
+
 #elif defined(__try1)
-NOOPT_BEGIN
-extern "C" NOINLINE long seh_violation_handler(EXCEPTION_POINTERS* data)
+// Manual SEH requires manually disabling opts...
+#include "noopt.h"
+#define __seh_NOINLINE NOINLINE
+#define __seh_NOOPT_BEGIN NOOPT_BEGIN
+#define __seh_NOOPT_END NOOPT_END
+
+__seh_NOOPT_BEGIN
+extern "C" __seh_NOINLINE long seh_violation_handler(EXCEPTION_POINTERS* data)
 {
     return EXCEPTION_EXECUTE_HANDLER;
 }
-NOOPT_END
+__seh_NOOPT_END
 
 // MinGW: __try1(handler); faulty; __except1; runs_always;
 /* MinGW __try1 / __except1 is great... except for when it decides to use named labels which cannot be reused.
@@ -576,8 +585,8 @@ struct DacNameResult
     int kind;
 };
 
-NOOPT_BEGIN
-NOINLINE static DacNameResult try_get_managed_method_name_seh(IXCLRDataProcess* pClrProc, DWORD64 address)
+__seh_NOOPT_BEGIN
+__seh_NOINLINE static DacNameResult try_get_managed_method_name_seh(IXCLRDataProcess* pClrProc, DWORD64 address)
 {
     DacNameResult result{};
     result.nameBuf[0] = L'\0';
@@ -640,7 +649,7 @@ NOINLINE static DacNameResult try_get_managed_method_name_seh(IXCLRDataProcess* 
 
     return result;
 }
-NOOPT_END
+__seh_NOOPT_END
 
 // Attempt to resolve a managed method name for a given native code address (in compiled JIT code)
 std::wstring try_get_managed_method_name(IXCLRDataProcess* pClrProc, DWORD64 address)
@@ -683,15 +692,15 @@ std::wstring to_address_string_mixed(DWORD64 address, IXCLRDataProcess* pClrProc
     return to_address_string(address, false);
 }
 
-NOOPT_BEGIN
-NOINLINE static HRESULT seh_get_code_header_data(ISOSDacInterface* pSos,
+__seh_NOOPT_BEGIN
+__seh_NOINLINE static HRESULT seh_get_code_header_data(ISOSDacInterface* pSos,
                                          CLRDATA_ADDRESS    ip,
                                          DacpCodeHeaderData* pOut)
 {
     __seh_try_begin { return pSos->GetCodeHeaderData(ip, pOut); }
     __seh_try_end { return E_FAIL; }
 }
-NOOPT_END
+__seh_NOOPT_END
 
 // Map x64 unwind register index (0-15) to the matching CONTEXT field pointer
 static ULONG64* ctx_reg(CONTEXT& ctx, BYTE regIdx)
@@ -1097,42 +1106,42 @@ static bool try_jit_virtual_unwind(HANDLE hProcess, ISOSDacInterface* pSos, CONT
     return true;
 }
 
-NOOPT_BEGIN
-NOINLINE static HRESULT seh_dac_get_task(IXCLRDataProcess* pProc, DWORD osId, IXCLRDataTask** ppTask)
+__seh_NOOPT_BEGIN
+__seh_NOINLINE static HRESULT seh_dac_get_task(IXCLRDataProcess* pProc, DWORD osId, IXCLRDataTask** ppTask)
 {
     *ppTask = nullptr;
     __seh_try_begin { return pProc->GetTaskByOSThreadID(osId, ppTask); }
     __seh_try_end { return E_FAIL; }
 }
 
-NOINLINE static HRESULT seh_dac_create_stack_walk(IXCLRDataTask* pTask, ULONG32 flags, IXCLRDataStackWalk** ppWalk)
+__seh_NOINLINE static HRESULT seh_dac_create_stack_walk(IXCLRDataTask* pTask, ULONG32 flags, IXCLRDataStackWalk** ppWalk)
 {
     *ppWalk = nullptr;
     __seh_try_begin { return pTask->CreateStackWalk(flags, ppWalk); }
     __seh_try_end { return E_FAIL; }
 }
 
-NOINLINE static HRESULT seh_dac_walk_get_context(IXCLRDataStackWalk* pWalk, CONTEXT* pCtx)
+__seh_NOINLINE static HRESULT seh_dac_walk_get_context(IXCLRDataStackWalk* pWalk, CONTEXT* pCtx)
 {
     ULONG32 ctxSize = 0;
     __seh_try_begin { return pWalk->GetContext(CONTEXT_ALL, sizeof(CONTEXT), &ctxSize, reinterpret_cast<BYTE*>(pCtx)); }
     __seh_try_end { return E_FAIL; }
 }
 
-NOINLINE static HRESULT seh_dac_walk_get_frame_type(IXCLRDataStackWalk* pWalk,
+__seh_NOINLINE static HRESULT seh_dac_walk_get_frame_type(IXCLRDataStackWalk* pWalk,
     CLRDataSimpleFrameType* pSimple, CLRDataDetailedFrameType* pDetailed)
 {
     __seh_try_begin { return pWalk->GetFrameType(pSimple, pDetailed); }
     __seh_try_end { return E_FAIL; }
 }
 
-NOINLINE static HRESULT seh_dac_walk_next(IXCLRDataStackWalk* pWalk)
+__seh_NOINLINE static HRESULT seh_dac_walk_next(IXCLRDataStackWalk* pWalk)
 {
     __seh_try_begin { return pWalk->Next(); }
     __seh_try_end { return E_FAIL; }
 }
 
-NOINLINE static HRESULT seh_dac_walk_set_context2(IXCLRDataStackWalk* pWalk, ULONG32 flags, const CONTEXT* pCtx)
+__seh_NOINLINE static HRESULT seh_dac_walk_set_context2(IXCLRDataStackWalk* pWalk, ULONG32 flags, const CONTEXT* pCtx)
 {
     __seh_try_begin
     {
@@ -1141,7 +1150,7 @@ NOINLINE static HRESULT seh_dac_walk_set_context2(IXCLRDataStackWalk* pWalk, ULO
     }
     __seh_try_end { return E_FAIL; }
 }
-NOOPT_END
+__seh_NOOPT_END
 
 static std::wstring get_thread_name(HANDLE hThread)
 {
@@ -1158,8 +1167,8 @@ static std::wstring get_thread_name(HANDLE hThread)
 }
 
 // Walk and log mixed-mode call stack for the passed thread
-NOOPT_BEGIN
-NOINLINE void print_thread_call_stack(HANDLE hThread, const CONTEXT& ctx, std::wostringstream& log) {
+__seh_NOOPT_BEGIN
+__seh_NOINLINE void print_thread_call_stack(HANDLE hThread, const CONTEXT& ctx, std::wostringstream& log) {
     int frame_index = 0;
     bool dacWalkDone = false;
 
@@ -1411,7 +1420,7 @@ NOINLINE void print_thread_call_stack(HANDLE hThread, const CONTEXT& ctx, std::w
             log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string_mixed(sf.AddrPC.Offset, g_pClrDataProcess));
         };
 
-        const auto tryStackWalk = [&] NOINLINE {
+        const auto tryStackWalk = [&] __seh_NOINLINE {
             __seh_try_begin {
                 CONTEXT ctxWalk = ctx;
                 do {
@@ -1431,7 +1440,7 @@ NOINLINE void print_thread_call_stack(HANDLE hThread, const CONTEXT& ctx, std::w
             log << L"\n  Access violation while walking up the stack.";
     }
 }
-NOOPT_END
+__seh_NOOPT_END
 
 void print_exception_info(DWORD threadId, HANDLE hThread, const EXCEPTION_POINTERS& ex, const CONTEXT& ctx, std::wostringstream& log) {
     std::vector<EXCEPTION_RECORD> exRecs;
