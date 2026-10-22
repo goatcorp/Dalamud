@@ -301,6 +301,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
+    private readonly Lazy<IFontAtlas> fontAtlas;
 
     private bool hasErrorWindow = false;
     private Exception? lastError = null;
@@ -340,12 +341,12 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             this.interfaceManager.DefaultFontChanged += this.OnDefaultFontChanged;
             this.scopedFinalizer.Add(() => this.interfaceManager.DefaultFontChanged -= this.OnDefaultFontChanged);
 
-            this.FontAtlas =
-                this.scopedFinalizer
-                    .Add(
-                        Service<FontAtlasFactory>
-                            .Get()
-                            .CreateFontAtlas(namespaceName, FontAtlasAutoRebuildMode.Async));
+            this.fontAtlas = new Lazy<IFontAtlas>(() => this.scopedFinalizer.Add(
+                                                      Service<FontAtlasFactory>
+                                                          .Get()
+                                                          .CreateFontAtlas(
+                                                              namespaceName,
+                                                              FontAtlasAutoRebuildMode.Async)));
         }
         catch
         {
@@ -561,12 +562,13 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// <summary>
     /// Gets a value indicating whether UI functions can be used.
     /// </summary>
-    public bool UiPrepared => Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable() != null;
+    public bool UiPrepared =>
+        Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable(ExceptionPropagationMode.None) != null;
 
     /// <summary>
     /// Gets the plugin-private font atlas.
     /// </summary>
-    public IFontAtlas FontAtlas { get; }
+    public IFontAtlas FontAtlas => this.fontAtlas.Value;
 
     /// <summary>
     /// Gets a value indicating whether to use "reduced motion". This usually means that you should use less
@@ -600,7 +602,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     internal bool HasMainUi => this.OpenMainUi != null;
 
     private InterfaceManager? InterfaceManagerWithScene =>
-        Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable()?.Manager;
+        Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable(ExceptionPropagationMode.None)?.Manager;
 
     private Task<InterfaceManager> InterfaceManagerWithSceneAsync =>
         Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task => task.Result.Manager);

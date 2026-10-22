@@ -330,7 +330,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         // Framework.Destroy has never been called and thus Framework.IsFrameworkUnloading cannot be true, and this
         // function will actually run the destroy from the framework thread.
         // Otherwise, as Framework.IsFrameworkUnloading should have been set, this code should run immediately.
-        this.framework.RunOnFrameworkThread(ClearHooks).Wait();
+        this.framework.RunOnFrameworkThread(this.ClearHooks).Wait();
 
         // Below this point, hooks are guaranteed to be no longer called.
 
@@ -359,20 +359,6 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.frameRetireActions.Clear();
         while (this.pendingRetireQueue.TryDequeue(out var action))
             action.InvokeSafely();
-
-        return;
-
-        void ClearHooks()
-        {
-            this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
-            Interlocked.Exchange(ref this.kernelDeviceSwapchainPresentHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.dxgiSwapChainPresentHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.reShadeDxgiSwapChainPresentHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.dxgiSwapChainResizeBuffersHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.dxgiSwapChainHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.reShadeAddonInterface, null)?.Dispose();
-        }
     }
 
     /// <summary>
@@ -641,7 +627,33 @@ internal partial class InterfaceManager : IInternalDisposableService
             return;
 
         this.framework.Update -= this.FrameworkOnUpdate;
-        this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
+
+        try
+        {
+            this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not set up interface hooks");
+
+            // Fail init immediately and let service init deal with it
+            Service<InterfaceManagerWithScene>.ProvideException(ex);
+
+            // Make sure we don't get any calls from hooks, since we might have been setup half way
+            this.ClearHooks();
+        }
+    }
+
+    private void ClearHooks()
+    {
+        this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
+        Interlocked.Exchange(ref this.kernelDeviceSwapchainPresentHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.dxgiSwapChainPresentHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.reShadeDxgiSwapChainPresentHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.dxgiSwapChainResizeBuffersHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.dxgiSwapChainHook, null)?.Dispose();
+        Interlocked.Exchange(ref this.reShadeAddonInterface, null)?.Dispose();
     }
 
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
@@ -1083,8 +1095,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         if (!sigScanner.TryScanText("E8 ?? ?? ?? ?? C6 46 79 00 EB 40", out var pPresent))
         {
-            Log.Error("Could not find Client::Graphics::Kernel::SwapChain::Present(), no UI will be drawn");
-            return;
+            throw new InvalidOperationException("Could not find Client::Graphics::Kernel::SwapChain::Present(), no UI will be drawn");
         }
 
         this.kernelDeviceSwapchainPresentHook = Hook<PresentDelegate>.FromAddress(
@@ -1159,13 +1170,6 @@ internal partial class InterfaceManager : IInternalDisposableService
                 }
 
                 Log.Information("Registered as a ReShade addon");
-                this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
-                this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
-                if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddonPresent)
-                    this.reShadeAddonInterface.Present += this.ReShadeAddonInterfaceOnPresent;
-                else
-                    this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
-
                 dxgiSwapChainResizeBuffersDelegate = this.AsReShadeAddonDxgiSwapChainResizeBuffersDetour;
                 break;
 
@@ -1259,6 +1263,23 @@ internal partial class InterfaceManager : IInternalDisposableService
         this.dxgiSwapChainPresentHook?.Enable();
         this.dxgiSwapChainHook?.Enable();
         this.kernelDeviceSwapchainPresentHook.Enable();
+
+        // Set up ReShade callbacks after we are sure we are set
+        if (this.reShadeAddonInterface is null)
+        {
+            return;
+        }
+
+        this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
+        this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
+        if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddonPresent)
+        {
+            this.reShadeAddonInterface.Present += this.ReShadeAddonInterfaceOnPresent;
+        }
+        else
+        {
+            this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
+        }
     }
 
     private nint SetCursorDetour(nint hCursor)
