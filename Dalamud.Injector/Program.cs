@@ -258,35 +258,6 @@ namespace Dalamud.Injector
             }
         }
 
-        private static OSPlatform DetectPlatformHeuristic()
-        {
-            var ntdll = Windows.Win32.PInvoke.GetModuleHandle("ntdll.dll");
-            var wineServerCallPtr = Windows.Win32.PInvoke.GetProcAddress(ntdll, "wine_server_call");
-            var wineGetHostVersionPtr = Windows.Win32.PInvoke.GetProcAddress(ntdll, "wine_get_host_version");
-            var winePlatform = GetWinePlatform(wineGetHostVersionPtr);
-            var isWine = wineServerCallPtr != nint.Zero;
-
-            static unsafe string? GetWinePlatform(nint wineGetHostVersionPtr)
-            {
-                if (wineGetHostVersionPtr == nint.Zero) return null;
-
-                var methodDelegate = (delegate* unmanaged[Cdecl]<out char*, out char*, void>)wineGetHostVersionPtr;
-                methodDelegate(out var platformPtr, out var _);
-
-                if (platformPtr == null) return null;
-
-                return Marshal.PtrToStringAnsi((nint)platformPtr);
-            }
-
-            if (!isWine)
-                return OSPlatform.Windows;
-
-            if (winePlatform == "Darwin")
-                return OSPlatform.OSX;
-
-            return OSPlatform.Linux;
-        }
-
         private static DalamudStartInfo ExtractAndInitializeStartInfoFromArguments(DalamudStartInfo? startInfo, List<string> args)
         {
             int len;
@@ -437,7 +408,7 @@ namespace Dalamud.Injector
             }
             else
             {
-                platform = DetectPlatformHeuristic();
+                platform = EnvironmentUtils.DetectPlatformHeuristic();
                 Log.Warning("Heuristically determined host system platform as {platform}", platform);
             }
 
