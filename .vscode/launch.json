@@ -160,6 +160,27 @@
                 },
             ],
             "preLaunchTask": "Launch winedbg Debug DalamudCrashHandler"
-        }
+        },
+        {
+            "name": "Launch Wine netcoredbg Dalamud.Test (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/Dalamud.Test/bin/Debug/net10.0-windows/win-x64",
+            "program": "${workspaceFolder}/Dalamud.Test/bin/Debug/net10.0-windows/win-x64/Dalamud.Test.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "pipeTransport": {
+                "pipeCwd": "${workspaceFolder}",
+                "pipeProgram": "/bin/bash",
+                "pipeArgs": [
+                    "-c",
+                    ". .vscode/wine-common.sh; dotnetsdk-wine \"$(get-netcoredbg)\" --interpreter=vscode"
+                ],
+                "debuggerPath": "#unused"
+            },
+            "justMyCode": false,
+            "suppressJITOptimizations": true
+        },
     ]
 }

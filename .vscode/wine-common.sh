@@ -8,6 +8,10 @@ xlcore-wine() {
     xlcore wine $@ 2> >(filter-stderr >&2)
 }
 
+dotnetsdk-wine() {
+    xlcore wine $@ 2> >(filter-stderr >&2)
+}
+
 export WINEDEBUG=-all,+debugstr
 export DOTNET_NOLOGO=true
 export DOTNET_ROOT="$(xlcore-wine winepath -w ~/.xlcore/runtime/)"
