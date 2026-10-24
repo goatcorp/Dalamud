@@ -70,7 +70,7 @@ internal sealed class SettingsTabGeneral : SettingsTab
 
         new SettingsEntry<bool>(
             LazyLoc.Localize("DalamudSettingsSystemMenu", "Dalamud buttons in system menu"),
-            LazyLoc.Localize("DalamudSettingsSystemMenuMsgHint", "Add buttons for Dalamud plugins and settings to the system menu."),
+            LazyLoc.Localize("DalamudSettingsSystemMenuMsgHint", "Add buttons for Dalamud plugins and settings to the system menu. You may have to restart the game for this setting to take effect."),
             c => c.DoButtonsSystemMenu,
             (v, c) => c.DoButtonsSystemMenu = v),
 
