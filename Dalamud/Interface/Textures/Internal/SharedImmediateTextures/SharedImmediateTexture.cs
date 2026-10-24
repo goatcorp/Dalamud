@@ -370,7 +370,7 @@ internal abstract class SharedImmediateTexture
             if (exp == SelfReferenceExpiryExpired)
                 _ = this.AddRef();
 
-            // Release the reference for rendering, after rendering ImGui.
+            // Retain the rendering reference until frame retirement.
             Service<InterfaceManager>.Get().EnqueueDeferredDispose(this);
 
             var uw = this.UnderlyingWrap;
