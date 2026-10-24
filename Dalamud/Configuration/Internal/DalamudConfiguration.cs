@@ -284,6 +284,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool IsGamepadNavigationEnabled { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether gamepad navigation turns off once the last navigable window closes.
+    /// </summary>
+    public bool AutoExitGamepadNavigation { get; set; } = false;
+
+    /// <summary>
     /// Gets or sets a value indicating whether focus management is enabled.
     /// </summary>
     public bool IsFocusManagementEnabled { get; set; } = true;
