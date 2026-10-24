@@ -185,20 +185,36 @@
         <DalamudRevisionFile>$(OutputPath)revision.txt</DalamudRevisionFile>
     </PropertyGroup>
 
+    <!-- MSBuild's own built-in WriteLinesToFile appends a newline with no way to opt out, bleh. -->
+    <UsingTask TaskName="WriteTextNoNewline"  TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+        <ParameterGroup>
+            <FilePath ParameterType="System.String" Required="true" />
+            <Text ParameterType="System.String" Required="true" />
+        </ParameterGroup>
+        <Task>
+            <Using Namespace="System.IO" />
+            <Code Type="Fragment" Language="cs">
+                <![CDATA[
+                    File.WriteAllText(FilePath, Text);
+                ]]>
+            </Code>
+        </Task>
+    </UsingTask>
+
     <Target Name="GetVersionData" BeforeTargets="WriteVersionData" Condition="'$(SCMVersion)'=='' And '$(Configuration)'=='Release'">
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-list --count HEAD" ConsoleToMSBuild="true">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','/'))&quot; rev-list --count HEAD" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitCount" />
         </Exec>
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --match=NeVeRmAtCh --always --abbrev=40 --dirty" ConsoleToMSBuild="true">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','/'))&quot; describe --match=NeVeRmAtCh --always --abbrev=40 --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitHash" />
         </Exec>
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --tags --always --dirty" ConsoleToMSBuild="true">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','/'))&quot; describe --tags --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
         </Exec>
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-parse --abbrev-ref HEAD" ConsoleToMSBuild="true">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','/'))&quot; rev-parse --abbrev-ref HEAD" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitBranch" />
         </Exec>
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','/'))/../lib/FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
         </Exec>
 
@@ -210,9 +226,9 @@
             <CommitHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</CommitHashClientStructs>
         </PropertyGroup>
 
-        <Exec Command="echo|set /P =&quot;$(CommitCount)&quot; &gt; $(DalamudRevisionFile)" IgnoreExitCode="true" />
-        <Exec Command="echo|set /P =&quot;$(CommitHash)&quot; &gt; $(CommitHashFile)" IgnoreExitCode="true" />
-        <Exec Command="echo|set /P =&quot;$(SCMVersion)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
+        <WriteTextNoNewline FilePath="$(DalamudRevisionFile)" Text="$(CommitCount)" />
+        <WriteTextNoNewline FilePath="$(CommitHashFile)" Text="$(CommitHash)" />
+        <WriteTextNoNewline FilePath="$(TempVerFile)" Text="$(SCMVersion)" />
     </Target>
 
     <Target Name="GenerateStubVersionData" BeforeTargets="WriteVersionData" Condition="'$(SCMVersion)'=='' And '$(Configuration)'!='Release'">
