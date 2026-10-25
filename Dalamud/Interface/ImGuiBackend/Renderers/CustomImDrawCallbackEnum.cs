@@ -17,4 +17,11 @@ internal enum CustomImDrawCallbackEnum : long
     /// UserCallbackData must be a pointer to an instance of <see cref="BlurCallbackData"/>.
     /// </summary>
     Blur = -1,
+
+    /// <summary>
+    /// Binds the glyph texture arrays at <c>t1</c> and <c>t2</c> for the draws after it.<br />
+    /// UserCallbackData is a pointer to the two views, or null for the glyph atlas's.
+    /// </summary>
+    /// <seealso cref="Fonts.Internal.Glyphs.GlyphAtlasTextResources.BindTextures"/>
+    BindGlyphTextures = -2,
 }

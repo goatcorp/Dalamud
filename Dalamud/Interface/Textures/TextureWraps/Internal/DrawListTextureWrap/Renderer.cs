@@ -1,10 +1,11 @@
-using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Reflection;
 using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Fonts.Internal.Glyphs;
+using Dalamud.Interface.ImGuiBackend.Helpers.D3D11;
+using Dalamud.Interface.ImGuiBackend.Renderers;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
@@ -76,10 +77,9 @@ internal sealed unsafe partial class DrawListTextureWrap
         {
             ThreadSafety.AssertMainThread();
 
-            if (drawData.DisplaySize.X <= 0 || drawData.DisplaySize.Y <= 0
-                || !drawData.Valid || drawData.CmdListsCount < 1)
+            var cmdLists = drawData.CmdLists.AsSpan();
+            if (drawData.DisplaySize.X <= 0 || drawData.DisplaySize.Y <= 0 || !drawData.Valid || cmdLists.IsEmpty)
                 return;
-            var cmdLists = new Span<ImDrawListPtr>(drawData.CmdLists, drawData.CmdListsCount);
 
             // Create and grow vertex/index buffers if needed
             if (this.vertexBufferSize < drawData.TotalVtxCount)
@@ -177,6 +177,13 @@ internal sealed unsafe partial class DrawListTextureWrap
                 this.deviceContext.Get()->Unmap((ID3D11Resource*)this.drawToPremulVertexConstantBuffer.Get(), 0);
             }
 
+            var (coverage, color) = GlyphAtlasTextResources.Upload(this.deviceContext);
+            var glyphs = stackalloc ID3D11ShaderResourceView*[2]
+            {
+                (ID3D11ShaderResourceView*)coverage,
+                (ID3D11ShaderResourceView*)color,
+            };
+
             // Set up render state
             {
                 this.deviceContext.Get()->IASetInputLayout(this.drawToPremulInputLayout);
@@ -208,7 +215,8 @@ internal sealed unsafe partial class DrawListTextureWrap
                 buffer = this.drawToPremulVertexConstantBuffer.Get();
                 this.deviceContext.Get()->VSSetConstantBuffers(0, 1, &buffer);
 
-                // PS handled later
+                // The pixel shader and t0 are set per draw below.
+                this.deviceContext.Get()->PSSetShaderResources(1, 2, glyphs);
 
                 this.deviceContext.Get()->GSSetShader(null, null, 0);
                 this.deviceContext.Get()->HSSetShader(null, null, 0);
@@ -228,6 +236,15 @@ internal sealed unsafe partial class DrawListTextureWrap
                 var cmds = new ImVectorWrapper<ImDrawCmd>(cmdList.CmdBuffer.ToUntyped());
                 foreach (ref var cmd in cmds.DataSpan)
                 {
+                    if ((nint)cmd.UserCallback == (nint)CustomImDrawCallbackEnum.BindGlyphTextures)
+                    {
+                        var textures = (nint*)cmd.UserCallbackData;
+                        glyphs[0] = (ID3D11ShaderResourceView*)(textures is null ? coverage : textures[0]);
+                        glyphs[1] = (ID3D11ShaderResourceView*)(textures is null ? color : textures[1]);
+                        this.deviceContext.Get()->PSSetShaderResources(1, 2, glyphs);
+                        continue;
+                    }
+
                     var clipV4 = (cmd.ClipRect - clipOff) * frameBufferScaleV4;
                     var clipRect = new RECT((int)clipV4.X, (int)clipV4.Y, (int)clipV4.Z, (int)clipV4.W);
 
@@ -241,7 +258,7 @@ internal sealed unsafe partial class DrawListTextureWrap
                     {
                         // Bind texture and draw
                         var samplerp = this.samplerState.Get();
-                        var srvp = (ID3D11ShaderResourceView*)cmd.TextureId.Handle;
+                        var srvp = (ID3D11ShaderResourceView*)cmd.GetTexID().Handle;
                         this.deviceContext.Get()->PSSetShader(this.drawToPremulPixelShader, null, 0);
                         this.deviceContext.Get()->PSSetSamplers(0, 1, &samplerp);
                         this.deviceContext.Get()->PSSetShaderResources(0, 1, &srvp);
@@ -313,98 +330,41 @@ internal sealed unsafe partial class DrawListTextureWrap
             Justification = "Multiple fixed")]
         private void Setup()
         {
-            var assembly = Assembly.GetExecutingAssembly();
             var rendererName = typeof(Renderer).FullName!.Replace('+', '.');
 
             if (this.drawToPremulVertexShader.IsEmpty() || this.drawToPremulInputLayout.IsEmpty())
             {
-                using var stream = assembly.GetManifestResourceStream($"{rendererName}.DrawToPremul.vs.bin")!;
-                var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-                stream.ReadExactly(array, 0, (int)stream.Length);
-
                 using var tempShader = default(ComPtr<ID3D11VertexShader>);
                 using var tempInputLayout = default(ComPtr<ID3D11InputLayout>);
-
-                fixed (byte* pArray = array)
-                fixed (void* pszPosition = "POSITION"u8)
-                fixed (void* pszTexCoord = "TEXCOORD"u8)
-                fixed (void* pszColor = "COLOR"u8)
-                {
-                    this.device.Get()->CreateVertexShader(
-                        pArray,
-                        (nuint)stream.Length,
-                        null,
-                        tempShader.GetAddressOf()).ThrowOnError();
-
-                    var ied = stackalloc D3D11_INPUT_ELEMENT_DESC[]
-                    {
-                        new()
-                        {
-                            SemanticName = (sbyte*)pszPosition,
-                            Format = DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT,
-                            AlignedByteOffset = uint.MaxValue,
-                        },
-                        new()
-                        {
-                            SemanticName = (sbyte*)pszTexCoord,
-                            Format = DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT,
-                            AlignedByteOffset = uint.MaxValue,
-                        },
-                        new()
-                        {
-                            SemanticName = (sbyte*)pszColor,
-                            Format = DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
-                            AlignedByteOffset = uint.MaxValue,
-                        },
-                    };
-                    this.device.Get()->CreateInputLayout(
-                            ied,
-                            3,
-                            pArray,
-                            (nuint)stream.Length,
-                            tempInputLayout.GetAddressOf())
-                        .ThrowOnError();
-                }
-
-                ArrayPool<byte>.Shared.Return(array);
-
+                D3D11Shaders.CreateImDrawVertShader(
+                    this.device,
+                    $"{rendererName}.DrawToPremul.vs.bin",
+                    5,
+                    tempShader.GetAddressOf(),
+                    tempInputLayout.GetAddressOf());
                 tempShader.Swap(ref this.drawToPremulVertexShader);
                 tempInputLayout.Swap(ref this.drawToPremulInputLayout);
             }
 
             if (this.drawToPremulPixelShader.IsEmpty())
             {
-                using var stream = assembly.GetManifestResourceStream($"{rendererName}.DrawToPremul.ps.bin")!;
-                var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-                stream.ReadExactly(array, 0, (int)stream.Length);
-
                 using var tmp = default(ComPtr<ID3D11PixelShader>);
-                fixed (byte* pArray = array)
-                {
-                    this.device.Get()->CreatePixelShader(pArray, (nuint)stream.Length, null, tmp.GetAddressOf())
-                        .ThrowOnError();
-                }
-
-                ArrayPool<byte>.Shared.Return(array);
-
+                D3D11Shaders.CreatePixelShader(this.device, $"{rendererName}.DrawToPremul.ps.bin", tmp.GetAddressOf());
                 tmp.Swap(ref this.drawToPremulPixelShader);
             }
 
             if (this.makeStraightVertexShader.IsEmpty() || this.makeStraightInputLayout.IsEmpty())
             {
-                using var stream = assembly.GetManifestResourceStream($"{rendererName}.MakeStraight.vs.bin")!;
-                var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-                stream.ReadExactly(array, 0, (int)stream.Length);
-
+                var bytes = D3D11Shaders.ReadResource($"{rendererName}.MakeStraight.vs.bin");
                 using var tempShader = default(ComPtr<ID3D11VertexShader>);
                 using var tempInputLayout = default(ComPtr<ID3D11InputLayout>);
 
-                fixed (byte* pArray = array)
+                fixed (byte* pArray = bytes)
                 fixed (void* pszPosition = "POSITION"u8)
                 {
                     this.device.Get()->CreateVertexShader(
                         pArray,
-                        (nuint)stream.Length,
+                        (nuint)bytes.Length,
                         null,
                         tempShader.GetAddressOf()).ThrowOnError();
 
@@ -421,12 +381,10 @@ internal sealed unsafe partial class DrawListTextureWrap
                             ied,
                             1,
                             pArray,
-                            (nuint)stream.Length,
+                            (nuint)bytes.Length,
                             tempInputLayout.GetAddressOf())
                         .ThrowOnError();
                 }
-
-                ArrayPool<byte>.Shared.Return(array);
 
                 tempShader.Swap(ref this.makeStraightVertexShader);
                 tempInputLayout.Swap(ref this.makeStraightInputLayout);
@@ -434,19 +392,8 @@ internal sealed unsafe partial class DrawListTextureWrap
 
             if (this.makeStraightPixelShader.IsEmpty())
             {
-                using var stream = assembly.GetManifestResourceStream($"{rendererName}.MakeStraight.ps.bin")!;
-                var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-                stream.ReadExactly(array, 0, (int)stream.Length);
-
                 using var tmp = default(ComPtr<ID3D11PixelShader>);
-                fixed (byte* pArray = array)
-                {
-                    this.device.Get()->CreatePixelShader(pArray, (nuint)stream.Length, null, tmp.GetAddressOf())
-                        .ThrowOnError();
-                }
-
-                ArrayPool<byte>.Shared.Return(array);
-
+                D3D11Shaders.CreatePixelShader(this.device, $"{rendererName}.MakeStraight.ps.bin", tmp.GetAddressOf());
                 tmp.Swap(ref this.makeStraightPixelShader);
             }
 
