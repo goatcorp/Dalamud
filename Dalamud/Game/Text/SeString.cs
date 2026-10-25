@@ -105,18 +105,6 @@ public static class SeString
     {
         using var rssb = new RentedSeStringBuilder();
 
-        var rawZ = MapUtil.NoRawZ;
-
-        if (worldPos.Z != MapUtil.NoRawZ
-            && Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(worldPos.TerritoryId, out var transient)
-            && transient.OffsetZ != MapUtil.NoOffsetZ)
-        {
-            var adjustedZ = worldPos.Z - transient.OffsetZ;
-            rawZ = (int)adjustedZ;
-            if (adjustedZ < 0.0 && adjustedZ != rawZ)
-                rawZ -= 10;
-        }
-
         return Service<SeStringEvaluator>.Get().Evaluate(rssb
                 .BeginMacro(MacroCode.Fixed)
                 .AppendIntExpression(200)
@@ -125,7 +113,7 @@ public static class SeString
                 .AppendUIntExpression((worldPos.InstanceId << 16) | worldPos.MapId)
                 .AppendIntExpression((int)(worldPos.X * 1000f))
                 .AppendIntExpression((int)(worldPos.Y * 1000f))
-                .AppendIntExpression(rawZ)
+                .AppendIntExpression((int)worldPos.Z)
                 .AppendUIntExpression(0)
                 .EndMacro()
                 .ToReadOnlySeString());
