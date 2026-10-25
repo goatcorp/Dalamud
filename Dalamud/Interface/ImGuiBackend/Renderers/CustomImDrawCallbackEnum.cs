@@ -2,19 +2,19 @@ using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ImGuiBackend.Renderers;
 
-/// <summary>
-/// Extends <see cref="ImDrawCallbackEnum"/> with Dalamud-specific preset draw-list callbacks
-/// that are handled directly inside <see cref="Dx11Renderer"/>.
-/// Values must not collide with <see cref="ImDrawCallbackEnum"/> and must remain negative
-/// (positive values are treated as real function pointers by ImGui).
-/// </summary>
+/// <summary>Preset draw-list callbacks handled directly by <see cref="Dx11Renderer"/>.</summary>
+/// <remarks>Extends <see cref="ImDrawCallbackEnum"/>. Values must stay negative and not collide with it, as ImGui
+/// treats positive values as function pointers.</remarks>
 internal enum CustomImDrawCallbackEnum : long
 {
-    /// <summary>
-    /// Performs a two-pass separable Gaussian blur-behind effect for the region described by
-    /// the command's clip rect, then composites the result back with a smooth rounded-rectangle
-    /// SDF mask.<br />
-    /// UserCallbackData must be a pointer to an instance of <see cref="BlurCallbackData"/>.
-    /// </summary>
+    /// <summary>Blurs the region behind the command's clip rect.</summary>
+    /// <remarks>It is a six-pass dual Kawase blur. The result is composited back with a smooth
+    /// rounded-rectangle SDF mask. UserCallbackData must point to a <see cref="BlurCallbackData"/>.</remarks>
     Blur = -1,
+
+    /// <summary>Binds the glyph texture arrays at <c>t1</c> and <c>t2</c> for the draws after it.</summary>
+    /// <remarks>UserCallbackData is the handle of a large glyph image, or null for the arrays of the glyph
+    /// atlas.</remarks>
+    /// <seealso cref="Fonts.Internal.Glyphs.GlyphAtlas.BindTextures"/>
+    BindGlyphTextures = -2,
 }
