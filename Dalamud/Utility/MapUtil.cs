@@ -92,16 +92,12 @@ public readonly struct WorldCoordinate
         if (mapId == 0 || !dataManager.GetExcelSheet<Map>().TryGetRow(mapId, out var mapRow))
             return default;
 
-        var offsetZ = MapUtil.NoOffsetZ;
-        if (!dataManager.GetExcelSheet<TerritoryTypeTransient>().TryGetRow(this.TerritoryId, out var transientRow))
-            offsetZ = transientRow.OffsetZ;
-
         return new MapCoordinate(
             this.TerritoryId,
             this.MapId,
             MapUtil.ConvertWorldCoordXZToMapCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
             MapUtil.ConvertWorldCoordXZToMapCoord(this.Y, mapRow.SizeFactor, mapRow.OffsetX),
-            MapUtil.ConvertWorldCoordYToMapCoord(this.Z, offsetZ),
+            MapUtil.ConvertWorldCoordYToMapCoord(this.TerritoryId, this.Z),
             this.InstanceId);
     }
 
@@ -208,7 +204,7 @@ public readonly struct MapCoordinate
             this.MapId,
             MapUtil.MapPosXYToWorldPos(this.X, mapRow.SizeFactor, mapRow.OffsetX),
             MapUtil.MapPosXYToWorldPos(this.Y, mapRow.SizeFactor, mapRow.OffsetY),
-            MapUtil.MapPosZToWorldPos(this.Z ?? MapUtil.NoRawZ),
+            this.Z.HasValue ? this.Z.Value : MapUtil.NoRawZ,
             this.InstanceId);
     }
 
@@ -402,11 +398,19 @@ public static class MapUtil
     /// <summary>
     /// Helper method to convert the map's Z coordinate to a world coordinate.
     /// </summary>
+    /// <param name="territoryId">The TerritoryType Id.</param>
     /// <param name="z">The z-coordinate value.</param>
     /// <returns>A 3D world coordinate.</returns>
-    internal static int MapPosZToWorldPos(float z)
+    internal static int ConvertWorldCoordYToMapCoord(uint territoryId, float z)
     {
-        return (int)(z * 100f);
+        if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryId, out var transientRow))
+            return MapUtil.NoRawZ;
+
+        var adjustedZ = z - transientRow.OffsetZ;
+        var result = (int)adjustedZ;
+        if (adjustedZ < 0.0 && adjustedZ != result)
+            result -= 10;
+        return result;
     }
 
     /// <summary>
