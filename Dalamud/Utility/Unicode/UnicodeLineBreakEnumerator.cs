@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -465,41 +464,37 @@ public ref struct UnicodeLineBreakEnumerator
     {
         const int maxRunLength = 1024;
 
-        var text = ArrayPool<char>.Shared.Rent(maxRunLength);
-        var textOffsets = ArrayPool<int>.Shared.Rent(maxRunLength);
-        try
+        var pooledText = PooledSpan<char>.Rent(maxRunLength);
+        var pooledTextOffsets = PooledSpan<int>.Rent(maxRunLength);
+        var text = pooledText.Span;
+        var textOffsets = pooledTextOffsets.Span;
+        var length = 0;
+        var e = this.enumerator;
+        this.complexContextEnd = e.Current.ByteOffset;
+        do
         {
-            var length = 0;
-            var e = this.enumerator;
-            this.complexContextEnd = e.Current.ByteOffset;
-            do
-            {
-                var c = e.Current.EffectiveInt;
-                if (c == char.MaxValue)
-                    continue;
-                if (UnicodeData.LineBreak[c] is not SA || length + 2 > maxRunLength)
-                    break;
+            var c = e.Current.EffectiveInt;
+            if (c == char.MaxValue)
+                continue;
+            if (UnicodeData.LineBreak[c] is not SA || length + 2 > maxRunLength)
+                break;
 
-                var written = new Rune(c).EncodeToUtf16(text.AsSpan(length));
-                textOffsets.AsSpan(length, written).Fill(e.Current.ByteOffset);
-                length += written;
-                this.complexContextEnd = e.Current.ByteOffset + e.Current.ByteLength;
-            }
-            while (e.MoveNext());
+            var written = new Rune(c).EncodeToUtf16(text[length..]);
+            textOffsets.Slice(length, written).Fill(e.Current.ByteOffset);
+            length += written;
+            this.complexContextEnd = e.Current.ByteOffset + e.Current.ByteLength;
+        }
+        while (e.MoveNext());
 
-            var starts = DirectWriteWordFinder.FindWordStarts(new(text, 0, length));
-            if (this.wordStarts is null || this.wordStarts.Length < starts.Length)
-                this.wordStarts = new int[Math.Max(starts.Length, 16)];
-            for (var i = 0; i < starts.Length; i++)
-                this.wordStarts[i] = textOffsets[starts[i]];
-            this.wordStartCount = starts.Length;
-            this.nextWordStart = 0;
-        }
-        finally
-        {
-            ArrayPool<char>.Shared.Return(text);
-            ArrayPool<int>.Shared.Return(textOffsets);
-        }
+        var starts = DirectWriteWordFinder.FindWordStarts(new(text[..length]));
+        if (this.wordStarts is null || this.wordStarts.Length < starts.Length)
+            this.wordStarts = new int[Math.Max(starts.Length, 16)];
+        for (var i = 0; i < starts.Length; i++)
+            this.wordStarts[i] = textOffsets[starts[i]];
+        this.wordStartCount = starts.Length;
+        this.nextWordStart = 0;
+        pooledText.Recycle();
+        pooledTextOffsets.Recycle();
     }
 
     private readonly struct Entry
@@ -597,10 +592,10 @@ public ref struct UnicodeLineBreakEnumerator
 
             uint count;
             layout.Get()->GetClusterMetrics(null, 0, &count);
-            var metrics = ArrayPool<DWRITE_CLUSTER_METRICS>.Shared.Rent((int)count);
+            var metrics = PooledSpan<DWRITE_CLUSTER_METRICS>.Rent((int)count);
             try
             {
-                fixed (DWRITE_CLUSTER_METRICS* m = metrics)
+                fixed (DWRITE_CLUSTER_METRICS* m = metrics.Span)
                 {
                     if (layout.Get()->GetClusterMetrics(m, count, &count).FAILED)
                         return [];
@@ -608,7 +603,7 @@ public ref struct UnicodeLineBreakEnumerator
 
                 var starts = new List<int>();
                 var position = 0;
-                foreach (ref readonly var cluster in metrics.AsSpan(0, (int)count))
+                foreach (ref readonly var cluster in metrics.Span[..(int)count])
                 {
                     position += cluster.length;
                     if (cluster.canWrapLineAfter != 0 && position < text.Length)
@@ -619,7 +614,7 @@ public ref struct UnicodeLineBreakEnumerator
             }
             finally
             {
-                ArrayPool<DWRITE_CLUSTER_METRICS>.Shared.Return(metrics);
+                metrics.Recycle();
             }
         }
 
