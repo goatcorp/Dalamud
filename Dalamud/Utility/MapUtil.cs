@@ -94,7 +94,7 @@ public readonly struct WorldCoordinate
             this.MapId,
             MapUtil.ConvertWorldCoordXZToMapCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
             MapUtil.ConvertWorldCoordXZToMapCoord(this.Y, mapRow.SizeFactor, mapRow.OffsetX),
-            MapUtil.ConvertWorldCoordYToMapCoord(this.TerritoryId, this.Z),
+            MapUtil.ConvertWorldCoordYToMapCoord(this.TerritoryId, this.Z) / 100f,
             this.InstanceId);
     }
 
@@ -201,7 +201,7 @@ public readonly struct MapCoordinate
             this.MapId,
             MapUtil.MapPosXYToWorldPos(this.X, mapRow.SizeFactor, mapRow.OffsetX),
             MapUtil.MapPosXYToWorldPos(this.Y, mapRow.SizeFactor, mapRow.OffsetY),
-            this.Z.HasValue ? this.Z.Value : MapUtil.NoRawZ,
+            this.Z.HasValue ? this.Z.Value * 100f : MapUtil.NoRawZ,
             this.InstanceId);
     }
 
