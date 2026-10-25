@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Services;
@@ -8,6 +9,21 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This class represents the Framework of the native game client and grants access to various subsystems.
 /// </summary>
+/// <remarks>
+/// <para>
+/// <b>Choosing between <c>Run</c> and <c>RunOnTick</c></b>
+/// <li>
+/// Use Run when you need to access game resources that are being used by the game to prevent contention.
+/// Run will be invoked either immediately during the current tick if already on the main thread, or on the next available tick if not on the main thread.
+/// </li>
+/// <li>
+/// Use RunOnTick when you need to perform an operation at some specified time later.
+/// You can specify a specific number of game frames (ticks) to wait, or a specified time via TimeSpan.
+/// </li>
+/// </para>
+/// <para>See <see cref="TaskSchedulerWidget"/> to see the difference in behaviors, and how would a misuse of these
+/// functions result in a deadlock.</para>
+/// </remarks>
 public interface IFramework : IDalamudService
 {
     /// <summary>
