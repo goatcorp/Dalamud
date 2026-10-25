@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
@@ -88,7 +89,8 @@ public class IconBrowserWidget : IDataWindowWidget
             {
                 if (child.Success)
                 {
-                    var itemsPerRow = (int)MathF.Floor(ImGui.GetContentRegionMax().X / (this.iconSize.X + ImGui.GetStyle().ItemSpacing.X));
+                    var itemsPerRow = (int)MathF.Floor(
+                        ImGuiHelpers.GetContentRegionMax().X / (this.iconSize.X + ImGui.GetStyle().ItemSpacing.X));
                     var itemHeight = this.iconSize.Y + ImGui.GetStyle().ItemSpacing.Y;
 
                     ImGuiClip.ClippedDraw(this.valueRange!, this.DrawIcon, itemsPerRow, itemHeight);
@@ -192,7 +194,7 @@ public class IconBrowserWidget : IDataWindowWidget
         else if (exc is not null)
         {
             ImGui.Dummy(this.iconSize);
-            using (Service<InterfaceManager>.Get().IconFontHandle?.Push())
+            using (InterfaceManager.IconFont.Push())
             {
                 var iconText = FontAwesomeIcon.Ban.ToIconString();
                 var textSize = ImGui.CalcTextSize(iconText);

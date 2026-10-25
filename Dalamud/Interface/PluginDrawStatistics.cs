@@ -3,10 +3,11 @@ using System.Diagnostics;
 using System.Linq;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Fonts.Internal.Markup;
 
 namespace Dalamud.Interface;
 
-/// <summary> 
+/// <summary>
 /// Tracks draw timing statistics and resource stack leaks for a plugin's rendering operations.
 /// </summary>
 internal sealed class PluginDrawStatistics
@@ -15,6 +16,7 @@ internal sealed class PluginDrawStatistics
     private readonly Queue<long> drawTimeHistory = [];
 
     private int styleStack;
+    private int textCallbackStack;
     private int colorStack;
     private int fontStack;
     private short disabledStack;
@@ -29,12 +31,12 @@ internal sealed class PluginDrawStatistics
     /// </summary>
     public long MaxDrawTime { get; private set; } = -1;
 
-    /// <summary> 
+    /// <summary>
     /// Gets the average draw time.
     /// </summary>
     public long AverageDrawTime { get; private set; } = -1;
 
-    /// <summary> Gets the total amount of leaked style variables from this plugin. </summary>
+    /// <summary> Gets the total amount of leaked style variables and markup callbacks from this plugin. </summary>
     public int LeakedStyles { get; private set; }
 
     /// <summary> Gets the total amount of leaked colors from this plugin. </summary>
@@ -55,6 +57,7 @@ internal sealed class PluginDrawStatistics
         this.stopwatch.Restart();
         var context = ImGui.GetCurrentContext();
         this.styleStack = context.StyleVarStack.Size;
+        this.textCallbackStack = TextCallbackStack.Count;
         this.colorStack = context.ColorStack.Size;
         this.fontStack = context.FontStack.Size;
         this.disabledStack = context.DisabledStackSize;
@@ -74,6 +77,8 @@ internal sealed class PluginDrawStatistics
         var context = ImGui.GetCurrentContext();
         if (this.styleStack < context.StyleVarStack.Size)
             this.LeakedStyles += context.StyleVarStack.Size - this.styleStack;
+        if (this.textCallbackStack < TextCallbackStack.Count)
+            this.LeakedStyles += TextCallbackStack.Count - this.textCallbackStack;
         if (this.colorStack < context.ColorStack.Size)
             this.LeakedColors += context.ColorStack.Size - this.colorStack;
         if (this.fontStack < context.FontStack.Size)
