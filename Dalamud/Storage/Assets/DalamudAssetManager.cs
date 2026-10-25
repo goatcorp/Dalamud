@@ -203,7 +203,7 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                 }
             }
 
-            if (File.Exists(path = Path.Combine(dam.localSourceDirectory, asset.ToString())))
+            if (File.Exists(path = GetLocalPath(dam.localSourceDirectory, asset)))
             {
                 try
                 {
@@ -395,4 +395,23 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
             }
         }
     }
+
+    /// <summary>Gets the local override file path for <paramref name="asset"/> in <paramref name="directory"/>.</summary>
+    /// <param name="directory">The local asset folder.</param>
+    /// <param name="asset">The asset.</param>
+    /// <returns>The path. The file may not exist.</returns>
+    /// <seealso cref="DalamudAssetExtensions.GetLocalFileName"/>
+    internal static string GetLocalPath(string directory, DalamudAsset asset) =>
+        Path.Combine(directory, asset.GetLocalFileName());
+
+    /// <summary>Tests whether an asset can be read without a download.</summary>
+    /// <param name="asset">The asset.</param>
+    /// <returns><see langword="true"/> if an in-memory stream, downloaded asset file, or local override file is available.</returns>
+    /// <remarks>Unlike <see cref="IsStreamImmediatelyAvailable"/>, it does not wait for the asset to be loaded first.
+    /// </remarks>
+    internal bool IsAvailableLocally(DalamudAsset asset) =>
+        this.IsStreamImmediatelyAvailable(asset)
+        || asset.GetAttributes<DalamudAssetPathAttribute>()
+                .Any(x => File.Exists(Path.Combine(this.dalamud.AssetDirectory.FullName, x.FileName)))
+        || File.Exists(GetLocalPath(this.localSourceDirectory, asset));
 }

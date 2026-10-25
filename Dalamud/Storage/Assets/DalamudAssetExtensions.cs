@@ -25,6 +25,12 @@ public static class DalamudAssetExtensions
             ? EmptyAttribute
             : Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(AttributeCache), (int)asset);
 
+    /// <summary>Gets the local override file name for <paramref name="asset"/>.</summary>
+    /// <param name="asset">The asset.</param>
+    /// <returns><see cref="DalamudAssetLocalFileAttribute.FileName"/> if present, or <c>asset.ToString()</c> otherwise.</returns>
+    internal static string GetLocalFileName(this DalamudAsset asset) =>
+        asset.GetAttribute<DalamudAssetLocalFileAttribute>()?.FileName ?? asset.ToString();
+
     private static DalamudAssetAttribute[] CreateCache()
     {
         var assets = Enum.GetValues<DalamudAsset>();
