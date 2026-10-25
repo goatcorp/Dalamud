@@ -120,7 +120,9 @@ public static class SeString
 
         var rawZ = MapUtil.NoRawZ;
 
-        if (Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(worldPos.TerritoryId, out var transient) && transient.OffsetZ != MapUtil.NoOffsetZ)
+        if (worldPos.Z != MapUtil.NoRawZ
+            && Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(worldPos.TerritoryId, out var transient)
+            && transient.OffsetZ != MapUtil.NoOffsetZ)
         {
             var adjustedZ = worldPos.Z - transient.OffsetZ;
             rawZ = (int)adjustedZ;

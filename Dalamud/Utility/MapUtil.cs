@@ -124,9 +124,9 @@ public readonly struct MapCoordinate
     /// <param name="mapId">The Map RowId.</param>
     /// <param name="x">The map X coordinate.</param>
     /// <param name="y">The map Y coordinate.</param>
-    /// <param name="z">The map Z coordinate. 0 when not given.</param>
+    /// <param name="z">An optional map Z coordinate.</param>
     /// <param name="instanceId">The Instance Id.</param>
-    public MapCoordinate(uint territoryId, uint mapId, float x, float y, float z = 0, uint instanceId = 0)
+    public MapCoordinate(uint territoryId, uint mapId, float x, float y, float? z = null, uint instanceId = 0)
     {
         this.TerritoryId = territoryId;
         this.MapId = mapId;
@@ -159,7 +159,7 @@ public readonly struct MapCoordinate
     /// <summary>
     /// Gets the world Z coordinate.
     /// </summary>
-    public float Z { get; }
+    public float? Z { get; }
 
     /// <summary>
     /// Gets the Instance Id.
@@ -184,7 +184,7 @@ public readonly struct MapCoordinate
             this.MapId,
             MapUtil.MapPosXYToWorldPos(this.X, mapRow.SizeFactor, mapRow.OffsetX),
             MapUtil.MapPosXYToWorldPos(this.Y, mapRow.SizeFactor, mapRow.OffsetY),
-            MapUtil.MapPosZToWorldPos(this.Z),
+            MapUtil.MapPosZToWorldPos(this.Z ?? MapUtil.NoRawZ),
             this.InstanceId);
     }
 
