@@ -157,10 +157,9 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             new ImDrawData
             {
                 Valid = 1,
-                CmdListsCount = 1,
                 TotalIdxCount = drawListPtr.IdxBuffer.Size,
                 TotalVtxCount = drawListPtr.VtxBuffer.Size,
-                CmdLists = (ImDrawList**)(&drawListPtr),
+                CmdLists = new(1, 1, &drawListPtr),
                 DisplayPos = displayPos,
                 DisplaySize = this.Size,
                 FramebufferScale = scale,
@@ -188,10 +187,10 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
 
         // If there is nothing to draw, then stop.
         if (!drawData.Valid
-            || drawData.CmdListsCount < 1
+            || drawData.CmdLists.Size < 1
             || drawData.TotalIdxCount < 1
             || drawData.TotalVtxCount < 1
-            || drawData.CmdLists.IsNull
+            || drawData.CmdLists.Data is null
             || drawData.DisplaySize.X <= 0
             || drawData.DisplaySize.Y <= 0
             || drawData.FramebufferScale.X == 0

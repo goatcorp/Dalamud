@@ -3,6 +3,8 @@ set(IMGUI_DIR "${LIB_DIR}/cimgui/imgui")
 
 set(IMGUI_SOURCES
     "${IMGUI_DIR}/imgui.cpp"
+    "${IMGUI_DIR}/imgui_dalamud_text.cpp"
+    "${IMGUI_DIR}/imgui_dalamud_text_widget.cpp"
     "${IMGUI_DIR}/imgui_demo.cpp"
     "${IMGUI_DIR}/imgui_draw.cpp"
     "${IMGUI_DIR}/imgui_tables.cpp"
@@ -13,7 +15,7 @@ function(add_cimgui_module NAME)
 
     add_library(${NAME} SHARED ${IMGUI_SOURCES} ${ARG_SOURCES})
     target_include_directories(${NAME} PRIVATE "${IMGUI_DIR}" "${LIB_DIR}/cimgui" ${ARG_INCLUDES})
-    target_compile_definitions(${NAME} PRIVATE _USRDLL "IMGUI_USER_CONFIG=\"cimgui_user.h\"" ${ARG_DEFINES})
+    target_compile_definitions(${NAME} PRIVATE _USRDLL "IMGUI_USER_CONFIG=\"cimgui_user.h\"" IMGUI_DISABLE_OBSOLETE_FUNCTIONS=1 ${ARG_DEFINES})
     set_target_properties(${NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 endfunction()
 
@@ -21,7 +23,7 @@ add_cimgui_module(cimgui
     SOURCES
         "${LIB_DIR}/cimgui/cimgui.cpp"
         "${LIB_DIR}/cimgui/cimgui_impl.cpp"
-    DEFINES CIMGUI_EXPORTS IMGUI_DISABLE_OBSOLETE_FUNCTIONS=1)
+    DEFINES CIMGUI_EXPORTS)
 
 add_cimgui_module(cimplot
     SOURCES
@@ -37,10 +39,13 @@ add_cimgui_module(cimguizmo
     SOURCES
         "${LIB_DIR}/cimguizmo/cimguizmo.cpp"
         "${LIB_DIR}/cimguizmo/cimguizmo_impl.cpp"
-        "${LIB_DIR}/cimguizmo/ImGuizmo/GraphEditor.cpp"
-        "${LIB_DIR}/cimguizmo/ImGuizmo/ImCurveEdit.cpp"
-        "${LIB_DIR}/cimguizmo/ImGuizmo/ImGradient.cpp"
-        "${LIB_DIR}/cimguizmo/ImGuizmo/ImGuizmo.cpp"
-        "${LIB_DIR}/cimguizmo/ImGuizmo/ImSequencer.cpp"
-    INCLUDES "${LIB_DIR}/cimguizmo/ImGuizmo"
+        "${LIB_DIR}/cimguizmo/ImGuizmo/src/GraphEditor.cpp"
+        "${LIB_DIR}/cimguizmo/ImGuizmo/src/ImCurveEdit.cpp"
+        "${LIB_DIR}/cimguizmo/ImGuizmo/src/ImGradient.cpp"
+        "${LIB_DIR}/cimguizmo/ImGuizmo/src/ImGuizmo.cpp"
+        "${LIB_DIR}/cimguizmo/ImGuizmo/src/ImSequencer.cpp"
+    INCLUDES "${LIB_DIR}/cimguizmo/ImGuizmo/src"
     DEFINES CIMGUIZMO_EXPORTS)
+
+# cimguizmo: deprecated ImGuizmo::SetID
+target_compile_options(cimguizmo PRIVATE /wd4996)

@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -80,7 +79,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
         if (io.ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable))
             this.viewportHandler = new(this);
 
-        this.cursors = new HCURSOR[9];
+        this.cursors = new HCURSOR[(int)ImGuiMouseCursor.Count];
         this.cursors[(int)ImGuiMouseCursor.Arrow] = LoadCursorW(default, IDC.IDC_ARROW);
         this.cursors[(int)ImGuiMouseCursor.TextInput] = LoadCursorW(default, IDC.IDC_IBEAM);
         this.cursors[(int)ImGuiMouseCursor.ResizeAll] = LoadCursorW(default, IDC.IDC_SIZEALL);
@@ -89,6 +88,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
         this.cursors[(int)ImGuiMouseCursor.ResizeNesw] = LoadCursorW(default, IDC.IDC_SIZENESW);
         this.cursors[(int)ImGuiMouseCursor.ResizeNwse] = LoadCursorW(default, IDC.IDC_SIZENWSE);
         this.cursors[(int)ImGuiMouseCursor.Hand] = LoadCursorW(default, IDC.IDC_HAND);
+        this.cursors[(int)ImGuiMouseCursor.Wait] = LoadCursorW(default, IDC.IDC_WAIT);
+        this.cursors[(int)ImGuiMouseCursor.Progress] = LoadCursorW(default, IDC.IDC_APPSTARTING);
         this.cursors[(int)ImGuiMouseCursor.NotAllowed] = LoadCursorW(default, IDC.IDC_NO);
 
         this.cvLogMouseEvents = Service<ConsoleManager>.Get().AddVariable(
@@ -440,7 +441,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             case WM.WM_CHAR:
                 if (io.WantTextInput)
                 {
-                    io.AddInputCharacter(new Rune((uint)wParam));
+                    ImGuiNative.AddInputCharacterUTF16(io.Handle, (ushort)wParam);
                     return nint.Zero;
                 }
 
@@ -503,8 +504,8 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
 
         if (isAppFocused)
         {
-            // (Optional) Set OS mouse position from Dear ImGui if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
-            // When multi-viewports are enabled, all Dear ImGui positions are same as OS positions.
+            // ImGui asks for it only with ConfigNavMoveSetMousePos. With multi-viewports, all ImGui positions are OS
+            // positions.
             if (io.WantSetMousePos)
             {
                 var pos = new POINT((int)io.MousePos.X, (int)io.MousePos.Y);
@@ -603,6 +604,10 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             var isForeground = focusedWindow == this.hWnd;
             for (var i = (int)ImGuiKey.NamedKeyBegin; i < (int)ImGuiKey.NamedKeyEnd; i++)
             {
+                // ImGui infers mouse keys from mouse events, and asserts if they are submitted as key events.
+                if (IsMouseKey((ImGuiKey)i))
+                    continue;
+
                 // Skip raising modifier keys if the game is focused.
                 // This allows us to raise the keys when one is held and the window becomes unfocused,
                 // but if we do not skip them, they will only be held down every 4th frame or so.

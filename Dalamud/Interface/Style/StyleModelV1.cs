@@ -660,7 +660,8 @@ public class StyleModelV1 : StyleModel
                 continue;
             }
 
-            style.Colors[(int)imGuiCol] = this.Colors[imGuiCol.ToString()];
+            if (this.TryGetColor(imGuiCol, out var color))
+                style.Colors[(int)imGuiCol] = color;
         }
 
         this.BuiltInColors?.Apply();
@@ -704,9 +705,26 @@ public class StyleModelV1 : StyleModel
                 continue;
             }
 
-            this.PushColorHelper(imGuiCol, this.Colors[imGuiCol.ToString()]);
+            if (this.TryGetColor(imGuiCol, out var color))
+                this.PushColorHelper(imGuiCol, color);
         }
 
         this.DonePushing();
+    }
+
+    private bool TryGetColor(ImGuiCol imGuiCol, out Vector4 color)
+    {
+        if (this.Colors.TryGetValue(imGuiCol.ToString(), out color))
+            return true;
+
+        var oldName = imGuiCol switch
+        {
+            ImGuiCol.NavCursor => "NavHighlight", // renamed in 1.91.4
+            ImGuiCol.TabSelected => "TabActive", // renamed in 1.90.9
+            ImGuiCol.TabDimmed => "TabUnfocused", // renamed in 1.90.9
+            ImGuiCol.TabDimmedSelected => "TabUnfocusedActive", // renamed in 1.90.9
+            _ => null,
+        };
+        return oldName is not null && this.Colors.TryGetValue(oldName, out color);
     }
 }

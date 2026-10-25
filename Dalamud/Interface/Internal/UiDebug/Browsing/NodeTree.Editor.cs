@@ -312,7 +312,7 @@ internal unsafe partial class TextNodeTree
         ImGui.TableNextColumn();
         ImGui.Text("Text:"u8);
         ImGui.TableNextColumn();
-        ImGui.SetNextItemWidth(Math.Max(ImGui.GetWindowContentRegionMax().X - ImGui.GetCursorPosX() - 50f, 150));
+        ImGui.SetNextItemWidth(Math.Max(GetWindowContentRegionMax().X - ImGui.GetCursorPosX() - 50f, 150));
         if (ImGui.InputText($"##{(nint)this.Node:X}textEdit", ref text, 512, EnterReturnsTrue))
         {
             this.TxtNode->SetText(text);

@@ -293,7 +293,7 @@ public class WindowHost
         {
             ref var nextWindowData = ref ImGui.GetCurrentContext().NextWindowData;
             effectiveWindowBgAlpha = ImGui.GetStyle().Colors[(int)ImGuiCol.WindowBg].W;
-            if (nextWindowData.Flags.HasFlag(ImGuiNextWindowDataFlags.HasBgAlpha))
+            if (nextWindowData.HasFlags.HasFlag(ImGuiNextWindowDataFlags.HasBgAlpha))
             {
                 effectiveWindowBgAlpha = nextWindowData.BgAlphaVal;
             }
