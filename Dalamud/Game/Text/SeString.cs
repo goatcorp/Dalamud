@@ -81,22 +81,9 @@ public static class SeString
     /// </summary>
     /// <param name="obj">The GameObject, which position should be used.</param>
     /// <returns>A ReadOnlySeString containing all of the macros necessary to display a map link in the chat log.</returns>
-    public static unsafe ReadOnlySeString CreateMapLink(IGameObject obj)
+    public static ReadOnlySeString CreateMapLink(IGameObject obj)
     {
-        var territoryId = GameMain.Instance()->CurrentTerritoryTypeId;
-        if (territoryId == 0)
-            return default;
-
-        var mapId = TerritoryInfo.Instance()->ChatLinkMapIdOverride;
-        if (mapId == 0)
-            mapId = GameMain.Instance()->CurrentMapId;
-        if (mapId == 0)
-            mapId = MapUtil.ResolveMapId(territoryId, mapId);
-        if (mapId == 0)
-            return default;
-
-        var instanceId = (uint)CSFramework.Instance()->GetNetworkModuleProxy()->GetCurrentInstance();
-        return CreateMapLink(new WorldCoordinate(territoryId, mapId, obj.Position.X, obj.Position.Z, obj.Position.Y, instanceId));
+        return CreateMapLink(obj.GetMapCoordinate());
     }
 
     /// <summary>
