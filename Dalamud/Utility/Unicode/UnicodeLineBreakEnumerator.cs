@@ -1,22 +1,14 @@
-using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
+
+using Dalamud.Interface.Fonts.Internal.DirectWrite;
 
 using Lumina.Text;
-
-using TerraFX.Interop.DirectX;
 
 using static Dalamud.Utility.Unicode.UnicodeEastAsianWidthClass;
 using static Dalamud.Utility.Unicode.UnicodeGeneralCategory;
 using static Dalamud.Utility.Unicode.UnicodeLineBreakClass;
-
-using IDWriteFactoryPtr = TerraFX.Interop.Windows.ComPtr<TerraFX.Interop.DirectX.IDWriteFactory>;
-using IDWriteTextFormatPtr = TerraFX.Interop.Windows.ComPtr<TerraFX.Interop.DirectX.IDWriteTextFormat>;
-using IDWriteTextLayoutPtr = TerraFX.Interop.Windows.ComPtr<TerraFX.Interop.DirectX.IDWriteTextLayout>;
-using IID = TerraFX.Interop.Windows.IID;
-using IUnknown = TerraFX.Interop.Windows.IUnknown;
 
 namespace Dalamud.Utility.Unicode;
 
@@ -26,7 +18,6 @@ namespace Dalamud.Utility.Unicode;
 /// (object replacement character).</remarks>
 public ref struct UnicodeLineBreakEnumerator
 {
-    private readonly UtfEnumeratorFlags enumeratorFlags;
     private readonly bool findWords;
     private readonly int dataLength;
 
@@ -34,7 +25,7 @@ public ref struct UnicodeLineBreakEnumerator
 
     // For breaking South Asian text between words.
     private int complexContextEnd;
-    private int[]? wordStarts;
+    private PooledSpan<int> wordStarts;
     private int wordStartCount;
     private int nextWordStart;
 
@@ -62,20 +53,14 @@ public ref struct UnicodeLineBreakEnumerator
         bool findWords = true)
     {
         this.enumerator = UtfEnumerator.From(data, enumeratorFlags);
-        this.enumeratorFlags = enumeratorFlags;
         this.dataLength = data.Length;
         this.findWords = findWords;
     }
 
-    private UnicodeLineBreakEnumerator(
-        int dataLength,
-        UtfEnumerator enumerator,
-        UtfEnumeratorFlags enumeratorFlags,
-        bool findWords)
+    private UnicodeLineBreakEnumerator(int dataLength, UtfEnumerator enumerator, bool findWords)
     {
         this.dataLength = dataLength;
         this.enumerator = enumerator;
-        this.enumeratorFlags = enumeratorFlags;
         this.findWords = findWords;
     }
 
@@ -86,16 +71,16 @@ public ref struct UnicodeLineBreakEnumerator
         Optional,
     }
 
-    /// <summary>Where the characters before are in a number, for LB25.</summary>
+    // Tracks numeric sequence progress for LB25.
     private enum NumberState : byte
     {
-        /// <summary>Not after <c>NU (SY | IS)*</c>.</summary>
+        // Not after NU (SY | IS)*.
         None,
 
-        /// <summary>After <c>NU (SY | IS)*</c>.</summary>
+        // After NU (SY | IS)*.
         Number,
 
-        /// <summary>After <c>NU (SY | IS)* (CL | CP)</c>.</summary>
+        // After NU (SY | IS)* (CL | CP).
         Closed,
     }
 
@@ -125,7 +110,6 @@ public ref struct UnicodeLineBreakEnumerator
                 case LineBreakMode.Optional:
                     this.Current = new(this.enumerator.Current.ByteOffset, false);
                     return true;
-                case LineBreakMode.Prohibited:
                 default:
                     continue;
             }
@@ -135,14 +119,23 @@ public ref struct UnicodeLineBreakEnumerator
         // LB3 Always break at the end of text.
         this.Current = new(this.dataLength, true);
         this.Finished = true;
+        this.wordStarts.Recycle();
         return true;
     }
 
     /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
     public UnicodeLineBreakEnumerator GetEnumerator() =>
-        new(this.dataLength, this.enumerator.GetEnumerator(), this.enumeratorFlags, this.findWords);
+        new(this.dataLength, this.enumerator.GetEnumerator(), this.findWords);
 
     private static bool IsAksara(in Entry e) => e.Class is AK or AS || e.IsDottedCircle;
+
+    private static void Grow<T>(ref PooledSpan<T> pooled, int used)
+    {
+        var grown = PooledSpan<T>.Rent(pooled.Span.Length * 2);
+        pooled.Span[..used].CopyTo(grown.Span);
+        pooled.Recycle();
+        pooled = grown;
+    }
 
     private LineBreakMode HandleCharacter(int c)
     {
@@ -182,10 +175,7 @@ public ref struct UnicodeLineBreakEnumerator
         return mode;
     }
 
-    /// <summary>Gets whether a line may break before a character, after the characters seen so far.</summary>
-    /// <param name="curr">The character, resolved (not a CM or ZWJ).</param>
-    /// <param name="currIsAfterZwj">Whether the character before was a ZWJ.</param>
-    /// <returns>The break.</returns>
+    // Returns the break mode before curr (already resolved by LB9 and LB10, so never CM or ZWJ).
     private readonly LineBreakMode Resolve(in Entry curr, bool currIsAfterZwj)
     {
         var (prev1, prev2) = (this.class1, this.class2);
@@ -456,50 +446,51 @@ public ref struct UnicodeLineBreakEnumerator
         if (offset >= this.complexContextEnd)
             this.FindWords();
 
-        while (this.nextWordStart < this.wordStartCount && this.wordStarts![this.nextWordStart] < offset)
+        var starts = this.wordStarts.Span;
+        while (this.nextWordStart < this.wordStartCount && starts[this.nextWordStart] < offset)
             this.nextWordStart++;
-        return this.nextWordStart < this.wordStartCount && this.wordStarts![this.nextWordStart] == offset;
+        return this.nextWordStart < this.wordStartCount && starts[this.nextWordStart] == offset;
     }
 
     private void FindWords()
     {
-        const int maxRunLength = 1024;
-
-        var text = ArrayPool<char>.Shared.Rent(maxRunLength);
-        var textOffsets = ArrayPool<int>.Shared.Rent(maxRunLength);
-        try
+        var pooledText = PooledSpan<char>.Rent(64);
+        var pooledOffsets = PooledSpan<int>.Rent(64);
+        var written = 0;
+        var e = this.enumerator;
+        this.complexContextEnd = e.Current.ByteOffset;
+        do
         {
-            var length = 0;
-            var e = this.enumerator;
-            this.complexContextEnd = e.Current.ByteOffset;
-            do
+            var c = e.Current.EffectiveInt;
+            if (c == char.MaxValue)
+                continue;
+            if (UnicodeData.LineBreak[c] is not SA)
+                break;
+
+            if (written + 2 > pooledText.Span.Length)
             {
-                var c = e.Current.EffectiveInt;
-                if (c == char.MaxValue)
-                    continue;
-                if (UnicodeData.LineBreak[c] is not SA || length + 2 > maxRunLength)
-                    break;
-
-                var written = new Rune(c).EncodeToUtf16(text.AsSpan(length));
-                textOffsets.AsSpan(length, written).Fill(e.Current.ByteOffset);
-                length += written;
-                this.complexContextEnd = e.Current.ByteOffset + e.Current.ByteLength;
+                Grow(ref pooledText, written);
+                Grow(ref pooledOffsets, written);
             }
-            while (e.MoveNext());
 
-            var starts = DirectWriteWordFinder.FindWordStarts(new(text, 0, length));
-            if (this.wordStarts is null || this.wordStarts.Length < starts.Length)
-                this.wordStarts = new int[Math.Max(starts.Length, 16)];
-            for (var i = 0; i < starts.Length; i++)
-                this.wordStarts[i] = textOffsets[starts[i]];
-            this.wordStartCount = starts.Length;
-            this.nextWordStart = 0;
+            written = Utf16Flattening.Append(
+                new Rune(c),
+                e.Current.ByteOffset,
+                pooledText.Span,
+                pooledOffsets.Span,
+                written);
+            this.complexContextEnd = e.Current.ByteOffset + e.Current.ByteLength;
         }
-        finally
-        {
-            ArrayPool<char>.Shared.Return(text);
-            ArrayPool<int>.Shared.Return(textOffsets);
-        }
+        while (e.MoveNext());
+
+        // A run of one character has no word starts after its start.
+        this.wordStarts.Recycle();
+        this.wordStartCount = written < 2
+            ? 0
+            : DirectWriteWordFinder.FindWordStarts(pooledText.Span[..written], pooledOffsets.Span[..written]);
+        this.wordStarts = pooledOffsets;
+        this.nextWordStart = 0;
+        pooledText.Recycle();
     }
 
     private readonly struct Entry
@@ -545,126 +536,5 @@ public ref struct UnicodeLineBreakEnumerator
         }
 
         public bool IsEastAsian => this.EastAsianWidth is F or W or H;
-    }
-
-    private static unsafe class DirectWriteWordFinder
-    {
-        private const int MaxCachedRuns = 1024;
-
-        private static readonly Lock SyncRoot = new();
-        private static readonly Dictionary<string, int[]> Cache = [];
-        private static bool initialized;
-        private static IDWriteFactoryPtr factory;
-        private static IDWriteTextFormatPtr format;
-
-        /// <summary>Finds where words start in a run of text of class SA.</summary>
-        /// <param name="text">The run.</param>
-        /// <returns>The UTF-16 indices where words start, other than 0, ascending, or none if DirectWrite is
-        /// unavailable.</returns>
-        public static int[] FindWordStarts(string text)
-        {
-            lock (SyncRoot)
-            {
-                if (Cache.TryGetValue(text, out var starts))
-                    return starts;
-
-                starts = Find(text);
-                if (Cache.Count >= MaxCachedRuns)
-                    Cache.Clear();
-                Cache.Add(text, starts);
-                return starts;
-            }
-        }
-
-        private static int[] Find(string text)
-        {
-            if (text.Length < 2 || !Initialize())
-                return [];
-
-            using var layout = default(IDWriteTextLayoutPtr);
-            fixed (char* p = text)
-            {
-                var hr = factory.Get()->CreateTextLayout(
-                    p,
-                    (uint)text.Length,
-                    format.Get(),
-                    float.MaxValue,
-                    float.MaxValue,
-                    layout.GetAddressOf());
-                if (hr.FAILED)
-                    return [];
-            }
-
-            uint count;
-            layout.Get()->GetClusterMetrics(null, 0, &count);
-            var metrics = ArrayPool<DWRITE_CLUSTER_METRICS>.Shared.Rent((int)count);
-            try
-            {
-                fixed (DWRITE_CLUSTER_METRICS* m = metrics)
-                {
-                    if (layout.Get()->GetClusterMetrics(m, count, &count).FAILED)
-                        return [];
-                }
-
-                var starts = new List<int>();
-                var position = 0;
-                foreach (ref readonly var cluster in metrics.AsSpan(0, (int)count))
-                {
-                    position += cluster.length;
-                    if (cluster.canWrapLineAfter != 0 && position < text.Length)
-                        starts.Add(position);
-                }
-
-                return starts.ToArray();
-            }
-            finally
-            {
-                ArrayPool<DWRITE_CLUSTER_METRICS>.Shared.Return(metrics);
-            }
-        }
-
-        private static bool Initialize()
-        {
-            if (initialized)
-                return format.Get() != null;
-            initialized = true;
-
-            try
-            {
-                fixed (Guid* piid = &IID.IID_IDWriteFactory)
-                {
-                    DirectX.DWriteCreateFactory(
-                        DWRITE_FACTORY_TYPE.DWRITE_FACTORY_TYPE_SHARED,
-                        piid,
-                        (IUnknown**)factory.GetAddressOf()).ThrowOnError();
-                }
-
-#pragma warning disable SA1519 // Braces should not be omitted from multi-line child statement
-                // just need some value to supply. It does not affect the word finder.
-                fixed (char* family = "Segoe UI")
-                fixed (char* locale = "en-us")
-                {
-                    factory.Get()->CreateTextFormat(
-                        family,
-                        null,
-                        DWRITE_FONT_WEIGHT.DWRITE_FONT_WEIGHT_NORMAL,
-                        DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL,
-                        DWRITE_FONT_STRETCH.DWRITE_FONT_STRETCH_NORMAL,
-                        12,
-                        locale,
-                        format.GetAddressOf()).ThrowOnError();
-                }
-#pragma warning restore SA1519 // Braces should not be omitted from multi-line child statement
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Warning(ex, "DirectWrite is unavailable; SA text is not broken between words");
-                factory.Dispose();
-                format.Dispose();
-                return false;
-            }
-        }
     }
 }
