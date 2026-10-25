@@ -6,7 +6,8 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.ImGuiSeStringRenderer;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.IoC;
@@ -285,13 +286,27 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap CreateTextureFromSeString(
-        ReadOnlySpan<byte> text,
-        scoped in SeStringDrawParams drawParams = default,
+    public IDalamudTextureWrap CreateTextureFromText(
+        ImU8String text,
+        TextMarkup markup,
+        ImFontPtr font = default,
+        float fontSizePx = 0,
+        float wrapWidth = float.MaxValue,
         string? debugName = null)
     {
-        var manager = this.ManagerOrThrow;
-        var textureWrap = manager.CreateTextureFromSeString(text, drawParams, debugName);
+        // The manager recycles the text. Without one, it is recycled here.
+        TextureManager manager;
+        try
+        {
+            manager = this.ManagerOrThrow;
+        }
+        catch
+        {
+            text.Recycle();
+            throw;
+        }
+
+        var textureWrap = manager.CreateTextureFromText(text, markup, font, fontSizePx, wrapWidth, debugName);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
