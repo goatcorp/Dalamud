@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Textures;
@@ -366,7 +367,13 @@ internal class TexWidget : IDataWindowWidget
                         if (this.inputTexScale != Vector2.Zero)
                             scale *= this.inputTexScale;
 
-                        ImGui.Image(tex.Handle, scale, this.inputTexUv0, this.inputTexUv1, this.inputTintCol);
+                        ImGui.ImageWithBg(
+                            tex.Handle,
+                            scale,
+                            this.inputTexUv0,
+                            this.inputTexUv1,
+                            Vector4.Zero,
+                            this.inputTintCol);
                     }
                     else
                     {
@@ -389,8 +396,6 @@ internal class TexWidget : IDataWindowWidget
 
     private unsafe void DrawBlame(List<TextureManager.IBlameableDalamudTextureWrap> allBlames)
     {
-        var im = Service<InterfaceManager>.Get();
-
         var shouldSortAgain = ImGui.Button("Sort again"u8);
 
         ImGui.SameLine();
@@ -402,11 +407,7 @@ internal class TexWidget : IDataWindowWidget
             return;
 
         const int numIcons = 1;
-        float iconWidths;
-        using (im.IconFontHandle?.Push())
-        {
-            iconWidths = ImGui.CalcTextSize(FontAwesomeIcon.Save.ToIconString()).X;
-        }
+        var iconWidths = InterfaceManager.IconFont.CalcTextSize(FontAwesomeIcon.Save.ToIconString()).X;
 
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn(
@@ -552,19 +553,15 @@ internal class TexWidget : IDataWindowWidget
 
     private void DrawLoadedTextures(ICollection<SharedImmediateTexture> textures)
     {
-        var im = Service<InterfaceManager>.Get();
         using var table = ImRaii.Table("##table"u8, 6);
         if (!table.Success)
             return;
 
         const int numIcons = 4;
-        float iconWidths;
-        using (im.IconFontHandle?.Push())
-        {
-            iconWidths = ImGui.CalcTextSize(FontAwesomeIcon.Save.ToIconString()).X;
-            iconWidths += ImGui.CalcTextSize(FontAwesomeIcon.Sync.ToIconString()).X;
-            iconWidths += ImGui.CalcTextSize(FontAwesomeIcon.Trash.ToIconString()).X;
-        }
+        var iconFont = InterfaceManager.IconFont;
+        var iconWidths = iconFont.CalcTextSize(FontAwesomeIcon.Save.ToIconString()).X +
+                         iconFont.CalcTextSize(FontAwesomeIcon.Sync.ToIconString()).X +
+                         iconFont.CalcTextSize(FontAwesomeIcon.Trash.ToIconString()).X;
 
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("ID"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("000000"u8).X);

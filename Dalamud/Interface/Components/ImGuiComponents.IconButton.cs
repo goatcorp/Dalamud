@@ -201,11 +201,7 @@ public static partial class ImGuiComponents
 
         bool button;
 
-        Vector2 iconSize;
-        using (ImRaii.PushFont(UiBuilder.IconFont))
-        {
-            iconSize = ImGui.CalcTextSize(icon.ToIconString());
-        }
+        var iconSize = UiBuilder.IconFont.CalcTextSize(icon.ToIconString());
 
         var textStr = text;
         if (textStr.Contains('#'))
@@ -251,14 +247,23 @@ public static partial class ImGuiComponents
     /// <returns>Width.</returns>
     public static float GetIconButtonWithTextWidth(FontAwesomeIcon icon, string text)
     {
-        Vector2 iconSize;
-        using (ImRaii.PushFont(UiBuilder.IconFont))
-        {
-            iconSize = ImGui.CalcTextSize(icon.ToIconString());
-        }
+        var iconSize = UiBuilder.IconFont.CalcTextSize(icon.ToIconString());
 
         var textSize = ImGui.CalcTextSize(text);
         var iconPadding = 3 * ImGuiHelpers.GlobalScale;
         return iconSize.X + textSize.X + (ImGui.GetStyle().FramePadding.X * 2) + iconPadding;
+    }
+
+    /// <summary>Gets the size of an <see cref="IconButton(FontAwesomeIcon)"/> of the default size.</summary>
+    /// <param name="icon">The icon.</param>
+    /// <returns>The size.</returns>
+    public static Vector2 GetIconButtonSize(FontAwesomeIcon icon)
+    {
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            return new(
+                ImGui.CalcTextSize(icon.ToIconString()).X + (ImGui.GetStyle().FramePadding.X * 2),
+                ImGui.GetFrameHeight());
+        }
     }
 }

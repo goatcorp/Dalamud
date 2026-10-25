@@ -1,7 +1,8 @@
 using System.Linq;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.GamePad;
-using Dalamud.Interface.Utility;
+using Dalamud.Interface.Fonts;
 using Dalamud.Plugin.SelfTest;
 using Dalamud.Utility;
 
@@ -47,7 +48,7 @@ internal class GamepadStateSelfTestStep : ISelfTestStep
                 .Append(i < buttons.Length - 1 ? ", " : ".");
         }
 
-        ImGuiHelpers.SeStringWrapped(rssb.Builder.ToReadOnlySeString());
+        ImGui.TextSeString(rssb, wrap: true);
 
         if (buttons.All(tuple => gamepadState.Raw(tuple.Button) == 1))
         {
