@@ -180,7 +180,11 @@ internal class ServiceScopeImpl : IServiceScope
         // have unregistered the event listeners, on next framework tick, none can be running anymore.
         // This has an additional effect of ensuring that DtrBar entries are completely removed on return.
         // Note that this still does not handle Framework.RunOnTick with specified delays.
-        await (Service<Framework>.GetNullable()?.DelayTicks(1) ?? Task.CompletedTask).SuppressException();
+        // If we're unloading, something else may block the framework thread, so we skip it in this case.
+        if (!ServiceManager.UnloadCancellationToken.IsCancellationRequested)
+        {
+            await (Service<Framework>.GetNullable()?.DelayTicks(1) ?? Task.CompletedTask).SuppressException();
+        }
 
         if (exceptions is not null)
             throw new AggregateException(exceptions);

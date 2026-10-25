@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "DalamudStartInfo.h"
 
 #include "utils.h"

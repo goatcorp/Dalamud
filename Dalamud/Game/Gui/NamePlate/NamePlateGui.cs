@@ -141,8 +141,10 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
 
         try
         {
-            if (this.OnDataUpdate == null && this.OnNamePlateUpdate == null && this.OnPostDataUpdate == null &&
-                this.OnPostNamePlateUpdate == null)
+            var hasNoSubscribers = this.OnDataUpdate == null && this.OnNamePlateUpdate == null && this.OnPostDataUpdate == null
+                                   && this.OnPostNamePlateUpdate == null;
+
+            if (hasNoSubscribers && !this.pendingForceRedraw)
             {
                 return;
             }
@@ -161,6 +163,19 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
 
             var activeHandlers = this.updateHandlers[..activeNamePlateCount];
 
+            if (hasNoSubscribers)
+            {
+                this.pendingForceRedraw = false;
+
+                foreach (var handler in activeHandlers)
+                {
+                    handler.ResetState();
+                    handler.UpdateFlags |= 3;
+                }
+
+                return;
+            }
+
             if (this.pendingForceRedraw)
             {
                 this.pendingForceRedraw = false;
@@ -169,7 +184,7 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                 foreach (var handler in activeHandlers)
                 {
                     handler.ResetState();
-                    handler.IsUpdating = true;
+                    handler.UpdateFlags |= 3;
                 }
 
                 this.OnDataUpdate?.InvokeSafely(this.context, activeHandlers);

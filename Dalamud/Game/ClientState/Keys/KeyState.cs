@@ -15,18 +15,7 @@ using TerraFX.Interop.Windows;
 
 namespace Dalamud.Game.ClientState.Keys;
 
-/// <summary>
-/// Wrapper around the game keystate buffer, which contains the pressed state for all keyboard keys, indexed by virtual vkCode.
-/// </summary>
-/// <remarks>
-/// The stored key state is actually a combination field, however the below ephemeral states are consumed each frame. Setting
-/// the value may be mildly useful, however retrieving the value is largely pointless. In testing, it wasn't possible without
-/// setting the statue manually.
-/// index &amp; 0 = key pressed.
-/// index &amp; 1 = key down (ephemeral).
-/// index &amp; 2 = key up (ephemeral).
-/// index &amp; 3 = short key press (ephemeral).
-/// </remarks>
+/// <inheritdoc cref="IKeyState"/>
 [PluginInterface]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
@@ -116,7 +105,10 @@ internal class KeyState : IServiceType, IKeyState, IInternalDisposableService
 
     /// <inheritdoc/>
     public bool IsVirtualKeyValid(int vkCode)
-        => this.ConvertVirtualKey(vkCode) != 0;
+    {
+        var vk = (VirtualKey)vkCode;
+        return !IsDirectionalKey(vk) && this.ConvertVirtualKey(vkCode) != 0;
+    }
 
     /// <inheritdoc/>
     public bool IsVirtualKeyValid(VirtualKey vkCode)
@@ -192,6 +184,11 @@ internal class KeyState : IServiceType, IKeyState, IInternalDisposableService
     private static bool IsExcludedKey(VirtualKey key)
         => key is VirtualKey.LBUTTON or VirtualKey.RBUTTON or VirtualKey.NO_KEY;
 
+    private static bool IsDirectionalKey(VirtualKey key) =>
+        key is VirtualKey.LSHIFT or VirtualKey.RSHIFT
+            or VirtualKey.LCONTROL or VirtualKey.RCONTROL
+            or VirtualKey.LMENU or VirtualKey.RMENU;
+
     /// <summary>
     /// Converts a virtual key into the equivalent value that the game uses.
     /// Valid values are non-zero.
@@ -220,16 +217,18 @@ internal class KeyState : IServiceType, IKeyState, IInternalDisposableService
     /// </returns>
     private unsafe ref int GetRefValue(int vkCode)
     {
-        var gameVkCode = this.ConvertVirtualKey(vkCode);
-        if (gameVkCode != 0) // Return the game's key state buffer
+        var vk = (VirtualKey)vkCode;
+
+        // Do not route directional keys to the game's key state buffer, let Dalamud handle it
+        if (!IsDirectionalKey(vk))
         {
-            return ref *(int*)(this.bufferBase + (4 * gameVkCode));
+            var gameVkCode = this.ConvertVirtualKey(vkCode);
+            if (gameVkCode != 0)
+                return ref *(int*)(this.bufferBase + (4 * gameVkCode));
         }
 
         if (this.IsExtendedVirtualKeyValid(vkCode))
-        {
             return ref this.extendedKeyState[vkCode];
-        }
 
         throw new ArgumentException($"Keycode {vkCode} does not map to a valid VirtualKey. Refer to GetValidVirtualKeys() or GetExtendedVirtualKeys() for valid keycodes.", nameof(vkCode));
     }

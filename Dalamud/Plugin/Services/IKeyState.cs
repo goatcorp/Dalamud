@@ -31,6 +31,12 @@ namespace Dalamud.Plugin.Services;
 /// A given <see cref="VirtualKey"/> is only ever one or the other, never both.
 /// </para>
 /// <para>
+/// Directional modifier keys (<see cref="VirtualKey.LSHIFT"/>, <see cref="VirtualKey.RSHIFT"/>, <see cref="VirtualKey.LCONTROL"/>,
+/// <see cref="VirtualKey.RCONTROL"/>, <see cref="VirtualKey.LMENU"/>, <see cref="VirtualKey.RMENU"/>) are tracked by Dalamud as <em>extended</em> virtual keys.
+/// The game only tracks generic modifiers (<see cref="VirtualKey.SHIFT"/>, <see cref="VirtualKey.CONTROL"/>, <see cref="VirtualKey.MENU"/>). Pressing a
+/// directional modifier key will activate both the generic game modifier in <see cref="GetValidVirtualKeys"/> and the extended key in <see cref="GetExtendedVirtualKeys"/>.
+/// </para>
+/// <para>
 /// Most do not need to distinguish between the two: <see cref="this[int]"/> and <see cref="GetRawValue(int)"/>/<see cref="SetRawValue(int, int)"/>
 /// transparently handle both. The sole distinction is in <see cref="TryGetSeVirtualKey(int, out int)"/> which only succeeds for
 /// valid game's keys; a valid extended key and an invalid key will both return <see langword="false"/>. Use <see cref="IsExtendedVirtualKeyValid(int)"/>
@@ -75,10 +81,14 @@ public interface IKeyState : IDalamudService
     void SetRawValue(VirtualKey vkCode, int value);
 
     /// <summary>
-    /// Gets a value indicating whether the given VirtualKey code is regarded as valid input by the game.
+    /// Gets a value indicating whether the given VirtualKey code is natively tracked by the game.
     /// </summary>
     /// <param name="vkCode">Virtual key code.</param>
     /// <returns>If the code is valid.</returns>
+    /// <remarks>
+    /// Directional modifier keys (<see cref="VirtualKey.LSHIFT"/>, <see cref="VirtualKey.RSHIFT"/>, etc.) return
+    /// <see langword="false" /> here as they are tracked by Dalamud as extended virtual keys. Use <see cref="IsExtendedVirtualKeyValid(int)"/> to check for those.
+    /// </remarks>
     bool IsVirtualKeyValid(int vkCode);
 
     /// <inheritdoc cref="IsVirtualKeyValid(int)"/>
@@ -89,6 +99,10 @@ public interface IKeyState : IDalamudService
     /// </summary>
     /// <param name="vkCode">Virtual key code.</param>
     /// <returns>If the code is a valid extended key.</returns>
+    /// <remarks>
+    /// Extended keys include keys the game does not track natively (<see cref="VirtualKey.F13"/>) as well as
+    /// directional modifier keys (<see cref="VirtualKey.LSHIFT"/>, <see cref="VirtualKey.RSHIFT"/>, etc.).
+    /// </remarks>
     bool IsExtendedVirtualKeyValid(int vkCode);
 
     /// <inheritdoc cref="IsExtendedVirtualKeyValid(int)"/>
@@ -114,12 +128,21 @@ public interface IKeyState : IDalamudService
     /// Gets an array of virtual keys the game considers valid input.
     /// </summary>
     /// <returns>An array of valid virtual keys.</returns>
+    /// <remarks>
+    /// This list contains generic modifiers (<see cref="VirtualKey.SHIFT"/>, <see cref="VirtualKey.CONTROL"/>,
+    /// <see cref="VirtualKey.MENU"/>). See <see cref="GetExtendedVirtualKeys"/> for directional modifiers
+    /// (<see cref="VirtualKey.LSHIFT"/>, <see cref="VirtualKey.RSHIFT"/>, etc.).
+    /// </remarks>
     IEnumerable<VirtualKey> GetValidVirtualKeys();
 
     /// <summary>
-    /// Gets an array of virtual keys the game considers invalid input, but are tracked by Dalamud for plugin use.
+    /// Gets an array of virtual keys tracked by Dalamud for plugin use.
     /// </summary>
     /// <returns>An array of extended virtual keys.</returns>
+    /// <remarks>
+    /// This list contains directional modifiers (<see cref="VirtualKey.LSHIFT"/>, <see cref="VirtualKey.RSHIFT"/>, etc.)
+    /// and keys the game does not natively recognize.
+    /// </remarks>
     IEnumerable<VirtualKey> GetExtendedVirtualKeys();
 
     /// <summary>

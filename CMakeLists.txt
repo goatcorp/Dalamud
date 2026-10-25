@@ -4,16 +4,17 @@
 #   Dalamud.Boot/         Dalamud.Boot                (DLL injected into the game)
 #   DalamudCrashHandler/  DalamudCrashHandler         (EXE spawned by Dalamud.Boot to handle crashes)
 
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 4.2)
 project(DalamudNative LANGUAGES C CXX)
 
 if(NOT MSVC)
     message(FATAL_ERROR "Only MSVC is supported for now.")
 endif()
 
-set(DALAMUD_BIN_DIR "${PROJECT_SOURCE_DIR}/bin/$<CONFIG>")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DALAMUD_BIN_DIR}")
-set(CMAKE_PDB_OUTPUT_DIRECTORY "${DALAMUD_BIN_DIR}")
+if(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/$<CONFIG>")
+endif()
+set(CMAKE_PDB_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 # PDBs for every configuration
 set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT ProgramDatabase)
@@ -21,6 +22,12 @@ set(CMAKE_VS_JUST_MY_CODE_DEBUGGING $<CONFIG:Debug>)
 
 # No C++20 modules
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
+# Hybrid CRT
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+add_link_options(
+    "$<$<CONFIG:Debug>:/NODEFAULTLIB:libucrtd.lib;/DEFAULTLIB:ucrtd.lib>"
+    "$<$<NOT:$<CONFIG:Debug>>:/NODEFAULTLIB:libucrt.lib;/DEFAULTLIB:ucrt.lib>")
 
 add_compile_definitions(UNICODE _UNICODE _WINDOWS)
 

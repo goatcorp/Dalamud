@@ -309,6 +309,13 @@ internal sealed partial class FontAtlasFactory
             this.factory.BackendTask.ContinueWith(
                 r =>
                 {
+                    // IM init failed, mark exception as observed
+                    if (!r.IsCompletedSuccessfully)
+                    {
+                        _ = r.Exception;
+                        return;
+                    }
+
                     using (this.syncRoot.EnterScope())
                     {
                         if (this.disposed)

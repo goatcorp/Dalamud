@@ -1,13 +1,6 @@
-using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
-
-using TerraFX.Interop.Windows;
-
-using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.Interface.ImGuiBackend.Helpers;
 
@@ -137,29 +130,4 @@ internal static class ImGuiViewportHelpers
     /// </summary>
     /// <param name="viewport">An instance of <see cref="ImGuiViewportPtr"/>.</param>
     public delegate void ChangedViewportDelegate(ImGuiViewportPtr viewport);
-
-    /// <summary>
-    /// Disables ImGui from disabling alpha for Viewport window backgrounds.
-    /// </summary>
-    public static unsafe void EnableViewportWindowBackgroundAlpha()
-    {
-        // TODO: patch imgui.cpp:6126, which disables background transparency for extra viewport windows
-        var offset = 0x00007FFB6ADA632C - 0x00007FFB6AD60000;
-        offset += Process.GetCurrentProcess().Modules.Cast<ProcessModule>().First(x => x.ModuleName == "cimgui.dll")
-                         .BaseAddress;
-        var b = (byte*)offset;
-        uint old;
-        if (!VirtualProtect(b, 1, PAGE.PAGE_EXECUTE_READWRITE, &old))
-        {
-            throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error())
-                  ?? throw new InvalidOperationException($"{nameof(VirtualProtect)} failed.");
-        }
-
-        *b = 0xEB;
-        if (!VirtualProtect(b, 1, old, &old))
-        {
-            throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error())
-                  ?? throw new InvalidOperationException($"{nameof(VirtualProtect)} failed.");
-        }
-    }
 }
