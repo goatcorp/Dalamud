@@ -48,21 +48,26 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		HrMinSMs = unchecked(5),
+		MinSMs = unchecked(5),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		HrMinS = unchecked(6),
+		HrMinSMs = unchecked(6),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		HrMin = unchecked(7),
+		HrMinS = unchecked(7),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Hr = unchecked(8),
+		HrMin = unchecked(8),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Hr = unchecked(9),
 	}
 }

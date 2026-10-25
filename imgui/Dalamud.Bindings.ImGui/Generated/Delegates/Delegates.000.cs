@@ -37,14 +37,14 @@ namespace Dalamud.Bindings.ImGui
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate byte FontBuilderBuild([NativeName(NativeNameType.Param, "atlas")] [NativeName(NativeNameType.Type, "ImFontAtlas*")] ImFontAtlas* atlas);
+	public unsafe delegate int TextLayoutFn([NativeName(NativeNameType.Param, "font")] [NativeName(NativeNameType.Type, "ImFont*")] ImFont* font, [NativeName(NativeNameType.Param, "desc")] [NativeName(NativeNameType.Type, "const ImTextDesc*")] ImTextDesc* desc, [NativeName(NativeNameType.Param, "text")] [NativeName(NativeNameType.Type, "const char*")] byte* text, [NativeName(NativeNameType.Param, "text_end")] [NativeName(NativeNameType.Type, "const char*")] byte* textEnd, [NativeName(NativeNameType.Param, "out_layout")] [NativeName(NativeNameType.Type, "ImTextLayout**")] ImTextLayout** outLayout);
 
 	#else
 	/// <summary>
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate byte FontBuilderBuild([NativeName(NativeNameType.Param, "atlas")] [NativeName(NativeNameType.Type, "ImFontAtlas*")] nint atlas);
+	public unsafe delegate int TextLayoutFn([NativeName(NativeNameType.Param, "font")] [NativeName(NativeNameType.Type, "ImFont*")] nint font, [NativeName(NativeNameType.Param, "desc")] [NativeName(NativeNameType.Type, "const ImTextDesc*")] nint desc, [NativeName(NativeNameType.Param, "text")] [NativeName(NativeNameType.Type, "const char*")] nint text, [NativeName(NativeNameType.Param, "text_end")] [NativeName(NativeNameType.Type, "const char*")] nint textEnd, [NativeName(NativeNameType.Param, "out_layout")] [NativeName(NativeNameType.Type, "ImTextLayout**")] nint outLayout);
 
 	#endif
 
@@ -53,14 +53,14 @@ namespace Dalamud.Bindings.ImGui
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate byte* GetClipboardTextFn([NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] void* userData);
+	public unsafe delegate void FontMetricsFn([NativeName(NativeNameType.Param, "font")] [NativeName(NativeNameType.Type, "ImFont*")] ImFont* font, [NativeName(NativeNameType.Param, "size")] [NativeName(NativeNameType.Type, "float")] float size, [NativeName(NativeNameType.Param, "density")] [NativeName(NativeNameType.Type, "float")] float density, [NativeName(NativeNameType.Param, "out_metrics")] [NativeName(NativeNameType.Type, "ImTextMetrics*")] ImTextMetrics* outMetrics);
 
 	#else
 	/// <summary>
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate nint GetClipboardTextFn([NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] nint userData);
+	public unsafe delegate void FontMetricsFn([NativeName(NativeNameType.Param, "font")] [NativeName(NativeNameType.Type, "ImFont*")] nint font, [NativeName(NativeNameType.Param, "size")] [NativeName(NativeNameType.Type, "float")] float size, [NativeName(NativeNameType.Param, "density")] [NativeName(NativeNameType.Type, "float")] float density, [NativeName(NativeNameType.Param, "out_metrics")] [NativeName(NativeNameType.Type, "ImTextMetrics*")] nint outMetrics);
 
 	#endif
 
@@ -69,14 +69,14 @@ namespace Dalamud.Bindings.ImGui
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate void SetClipboardTextFn([NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] void* userData, [NativeName(NativeNameType.Param, "text")] [NativeName(NativeNameType.Type, "const char*")] byte* text);
+	public unsafe delegate int QueryInterface([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self, [NativeName(NativeNameType.Param, "iid")] [NativeName(NativeNameType.Type, "const ImGUID*")] ImGUID* iid, [NativeName(NativeNameType.Param, "out_object")] [NativeName(NativeNameType.Type, "void**")] void** outObject);
 
 	#else
 	/// <summary>
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate void SetClipboardTextFn([NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] nint userData, [NativeName(NativeNameType.Param, "text")] [NativeName(NativeNameType.Type, "const char*")] nint text);
+	public unsafe delegate int QueryInterface([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self, [NativeName(NativeNameType.Param, "iid")] [NativeName(NativeNameType.Type, "const ImGUID*")] nint iid, [NativeName(NativeNameType.Param, "out_object")] [NativeName(NativeNameType.Type, "void**")] nint outObject);
 
 	#endif
 
@@ -85,14 +85,398 @@ namespace Dalamud.Bindings.ImGui
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate void SetPlatformImeDataFn([NativeName(NativeNameType.Param, "viewport")] [NativeName(NativeNameType.Type, "ImGuiViewport*")] ImGuiViewport* viewport, [NativeName(NativeNameType.Param, "data")] [NativeName(NativeNameType.Type, "ImGuiPlatformImeData*")] ImGuiPlatformImeData* data);
+	public unsafe delegate uint AddRef([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self);
 
 	#else
 	/// <summary>
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate void SetPlatformImeDataFn([NativeName(NativeNameType.Param, "viewport")] [NativeName(NativeNameType.Type, "ImGuiViewport*")] nint viewport, [NativeName(NativeNameType.Param, "data")] [NativeName(NativeNameType.Type, "ImGuiPlatformImeData*")] nint data);
+	public unsafe delegate uint AddRef([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate uint Release([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate uint Release([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void GetBoundingBox([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self, [NativeName(NativeNameType.Param, "out_layout")] [NativeName(NativeNameType.Type, "ImVec4*")] Vector4* outLayout, [NativeName(NativeNameType.Param, "out_ink")] [NativeName(NativeNameType.Type, "ImVec4*")] Vector4* outInk);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void GetBoundingBox([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self, [NativeName(NativeNameType.Param, "out_layout")] [NativeName(NativeNameType.Type, "ImVec4*")] nint outLayout, [NativeName(NativeNameType.Param, "out_ink")] [NativeName(NativeNameType.Type, "ImVec4*")] nint outInk);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetTextLength([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetTextLength([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetEllipsisOffset([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetEllipsisOffset([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetLines([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self, [NativeName(NativeNameType.Param, "out_lines")] [NativeName(NativeNameType.Type, "const ImTextLine**")] ImTextLine** outLines);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetLines([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self, [NativeName(NativeNameType.Param, "out_lines")] [NativeName(NativeNameType.Type, "const ImTextLine**")] nint outLines);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void GetCaret([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self, [NativeName(NativeNameType.Param, "text_offset")] [NativeName(NativeNameType.Type, "int")] int textOffset, [NativeName(NativeNameType.Param, "prefer_previous_line")] [NativeName(NativeNameType.Type, "bool")] byte preferPreviousLine, [NativeName(NativeNameType.Param, "out_caret")] [NativeName(NativeNameType.Type, "ImTextCaret*")] ImTextCaret* outCaret);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void GetCaret([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self, [NativeName(NativeNameType.Param, "text_offset")] [NativeName(NativeNameType.Type, "int")] int textOffset, [NativeName(NativeNameType.Param, "prefer_previous_line")] [NativeName(NativeNameType.Type, "bool")] byte preferPreviousLine, [NativeName(NativeNameType.Param, "out_caret")] [NativeName(NativeNameType.Type, "ImTextCaret*")] nint outCaret);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void HitTest([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self, [NativeName(NativeNameType.Param, "point")] [NativeName(NativeNameType.Type, "ImVec2")] Vector2 point, [NativeName(NativeNameType.Param, "out_caret")] [NativeName(NativeNameType.Type, "ImTextCaret*")] ImTextCaret* outCaret);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void HitTest([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self, [NativeName(NativeNameType.Param, "point")] [NativeName(NativeNameType.Type, "ImVec2")] Vector2 point, [NativeName(NativeNameType.Param, "out_caret")] [NativeName(NativeNameType.Type, "ImTextCaret*")] nint outCaret);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void Move([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self, [NativeName(NativeNameType.Param, "from")] [NativeName(NativeNameType.Type, "const ImTextCaret*")] ImTextCaret* from, [NativeName(NativeNameType.Param, "flags")] [NativeName(NativeNameType.Type, "ImTextMoveFlags")] ImTextMoveFlags flags, [NativeName(NativeNameType.Param, "dx")] [NativeName(NativeNameType.Type, "int")] int dx, [NativeName(NativeNameType.Param, "dy")] [NativeName(NativeNameType.Type, "int")] int dy, [NativeName(NativeNameType.Param, "preferred_inline_pos")] [NativeName(NativeNameType.Type, "float")] float preferredInlinePos, [NativeName(NativeNameType.Param, "out_caret")] [NativeName(NativeNameType.Type, "ImTextCaret*")] ImTextCaret* outCaret);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void Move([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self, [NativeName(NativeNameType.Param, "from")] [NativeName(NativeNameType.Type, "const ImTextCaret*")] nint from, [NativeName(NativeNameType.Param, "flags")] [NativeName(NativeNameType.Type, "ImTextMoveFlags")] ImTextMoveFlags flags, [NativeName(NativeNameType.Param, "dx")] [NativeName(NativeNameType.Type, "int")] int dx, [NativeName(NativeNameType.Param, "dy")] [NativeName(NativeNameType.Type, "int")] int dy, [NativeName(NativeNameType.Param, "preferred_inline_pos")] [NativeName(NativeNameType.Type, "float")] float preferredInlinePos, [NativeName(NativeNameType.Param, "out_caret")] [NativeName(NativeNameType.Type, "ImTextCaret*")] nint outCaret);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetRangeRects([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self, [NativeName(NativeNameType.Param, "text_begin")] [NativeName(NativeNameType.Type, "int")] int textBegin, [NativeName(NativeNameType.Param, "text_end")] [NativeName(NativeNameType.Type, "int")] int textEnd, [NativeName(NativeNameType.Param, "out_rects")] [NativeName(NativeNameType.Type, "ImVec4*")] Vector4* outRects, [NativeName(NativeNameType.Param, "capacity")] [NativeName(NativeNameType.Type, "int")] int capacity);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetRangeRects([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self, [NativeName(NativeNameType.Param, "text_begin")] [NativeName(NativeNameType.Type, "int")] int textBegin, [NativeName(NativeNameType.Param, "text_end")] [NativeName(NativeNameType.Type, "int")] int textEnd, [NativeName(NativeNameType.Param, "out_rects")] [NativeName(NativeNameType.Type, "ImVec4*")] nint outRects, [NativeName(NativeNameType.Param, "capacity")] [NativeName(NativeNameType.Type, "int")] int capacity);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void Render([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self, [NativeName(NativeNameType.Param, "draw_list")] [NativeName(NativeNameType.Type, "ImDrawList*")] ImDrawList* drawList, [NativeName(NativeNameType.Param, "pos")] [NativeName(NativeNameType.Type, "ImVec2")] Vector2 pos, [NativeName(NativeNameType.Param, "transform")] [NativeName(NativeNameType.Type, "const ImTextTransform*")] ImTextTransform* transform, [NativeName(NativeNameType.Param, "col")] [NativeName(NativeNameType.Type, "ImU32")] uint col, [NativeName(NativeNameType.Param, "clip_rect")] [NativeName(NativeNameType.Type, "const ImVec4*")] Vector4* clipRect, [NativeName(NativeNameType.Param, "flags")] [NativeName(NativeNameType.Type, "ImTextRenderFlags")] ImTextRenderFlags flags);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void Render([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self, [NativeName(NativeNameType.Param, "draw_list")] [NativeName(NativeNameType.Type, "ImDrawList*")] nint drawList, [NativeName(NativeNameType.Param, "pos")] [NativeName(NativeNameType.Type, "ImVec2")] Vector2 pos, [NativeName(NativeNameType.Param, "transform")] [NativeName(NativeNameType.Type, "const ImTextTransform*")] nint transform, [NativeName(NativeNameType.Param, "col")] [NativeName(NativeNameType.Type, "ImU32")] uint col, [NativeName(NativeNameType.Param, "clip_rect")] [NativeName(NativeNameType.Type, "const ImVec4*")] nint clipRect, [NativeName(NativeNameType.Param, "flags")] [NativeName(NativeNameType.Type, "ImTextRenderFlags")] ImTextRenderFlags flags);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void RenderRange([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self, [NativeName(NativeNameType.Param, "draw_list")] [NativeName(NativeNameType.Type, "ImDrawList*")] ImDrawList* drawList, [NativeName(NativeNameType.Param, "pos")] [NativeName(NativeNameType.Type, "ImVec2")] Vector2 pos, [NativeName(NativeNameType.Param, "transform")] [NativeName(NativeNameType.Type, "const ImTextTransform*")] ImTextTransform* transform, [NativeName(NativeNameType.Param, "col")] [NativeName(NativeNameType.Type, "ImU32")] uint col, [NativeName(NativeNameType.Param, "clip_rect")] [NativeName(NativeNameType.Type, "const ImVec4*")] Vector4* clipRect, [NativeName(NativeNameType.Param, "flags")] [NativeName(NativeNameType.Type, "ImTextRenderFlags")] ImTextRenderFlags flags, [NativeName(NativeNameType.Param, "text_begin")] [NativeName(NativeNameType.Type, "int")] int textBegin, [NativeName(NativeNameType.Param, "text_end")] [NativeName(NativeNameType.Type, "int")] int textEnd);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void RenderRange([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self, [NativeName(NativeNameType.Param, "draw_list")] [NativeName(NativeNameType.Type, "ImDrawList*")] nint drawList, [NativeName(NativeNameType.Param, "pos")] [NativeName(NativeNameType.Type, "ImVec2")] Vector2 pos, [NativeName(NativeNameType.Param, "transform")] [NativeName(NativeNameType.Type, "const ImTextTransform*")] nint transform, [NativeName(NativeNameType.Param, "col")] [NativeName(NativeNameType.Type, "ImU32")] uint col, [NativeName(NativeNameType.Param, "clip_rect")] [NativeName(NativeNameType.Type, "const ImVec4*")] nint clipRect, [NativeName(NativeNameType.Param, "flags")] [NativeName(NativeNameType.Type, "ImTextRenderFlags")] ImTextRenderFlags flags, [NativeName(NativeNameType.Param, "text_begin")] [NativeName(NativeNameType.Type, "int")] int textBegin, [NativeName(NativeNameType.Param, "text_end")] [NativeName(NativeNameType.Type, "int")] int textEnd);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetRunCount([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetRunCount([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetRunRects([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] ImTextLayout* self, [NativeName(NativeNameType.Param, "run_index")] [NativeName(NativeNameType.Type, "int")] int runIndex, [NativeName(NativeNameType.Param, "out_rects")] [NativeName(NativeNameType.Type, "const ImVec4**")] Vector4** outRects);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int GetRunRects([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImTextLayout*")] nint self, [NativeName(NativeNameType.Param, "run_index")] [NativeName(NativeNameType.Type, "int")] int runIndex, [NativeName(NativeNameType.Param, "out_rects")] [NativeName(NativeNameType.Type, "const ImVec4**")] nint outRects);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DockNodeWindowMenuHandler([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] ImGuiContext* ctx, [NativeName(NativeNameType.Param, "node")] [NativeName(NativeNameType.Type, "ImGuiDockNode*")] ImGuiDockNode* node, [NativeName(NativeNameType.Param, "tab_bar")] [NativeName(NativeNameType.Type, "ImGuiTabBar*")] ImGuiTabBar* tabBar);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DockNodeWindowMenuHandler([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] nint ctx, [NativeName(NativeNameType.Param, "node")] [NativeName(NativeNameType.Type, "ImGuiDockNode*")] nint node, [NativeName(NativeNameType.Param, "tab_bar")] [NativeName(NativeNameType.Type, "ImGuiTabBar*")] nint tabBar);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DemoMarkerCallback([NativeName(NativeNameType.Param, "file")] [NativeName(NativeNameType.Type, "const char*")] byte* file, [NativeName(NativeNameType.Param, "line")] [NativeName(NativeNameType.Type, "int")] int line, [NativeName(NativeNameType.Param, "section")] [NativeName(NativeNameType.Type, "const char*")] byte* section);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DemoMarkerCallback([NativeName(NativeNameType.Param, "file")] [NativeName(NativeNameType.Type, "const char*")] nint file, [NativeName(NativeNameType.Param, "line")] [NativeName(NativeNameType.Type, "int")] int line, [NativeName(NativeNameType.Param, "section")] [NativeName(NativeNameType.Type, "const char*")] nint section);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void ErrorCallback([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] ImGuiContext* ctx, [NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] void* userData, [NativeName(NativeNameType.Param, "msg")] [NativeName(NativeNameType.Type, "const char*")] byte* msg);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void ErrorCallback([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] nint ctx, [NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] nint userData, [NativeName(NativeNameType.Param, "msg")] [NativeName(NativeNameType.Type, "const char*")] nint msg);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate byte* PlatformGetClipboardTextFn([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] ImGuiContext* ctx);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate nint PlatformGetClipboardTextFn([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] nint ctx);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void PlatformSetClipboardTextFn([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] ImGuiContext* ctx, [NativeName(NativeNameType.Param, "text")] [NativeName(NativeNameType.Type, "const char*")] byte* text);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void PlatformSetClipboardTextFn([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] nint ctx, [NativeName(NativeNameType.Param, "text")] [NativeName(NativeNameType.Type, "const char*")] nint text);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate byte PlatformOpenInShellFn([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] ImGuiContext* ctx, [NativeName(NativeNameType.Param, "path")] [NativeName(NativeNameType.Type, "const char*")] byte* path);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate byte PlatformOpenInShellFn([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] nint ctx, [NativeName(NativeNameType.Param, "path")] [NativeName(NativeNameType.Type, "const char*")] nint path);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void PlatformSetImeDataFn([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] ImGuiContext* ctx, [NativeName(NativeNameType.Param, "viewport")] [NativeName(NativeNameType.Type, "ImGuiViewport*")] ImGuiViewport* viewport, [NativeName(NativeNameType.Param, "data")] [NativeName(NativeNameType.Type, "ImGuiPlatformImeData*")] ImGuiPlatformImeData* data);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void PlatformSetImeDataFn([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] nint ctx, [NativeName(NativeNameType.Param, "viewport")] [NativeName(NativeNameType.Type, "ImGuiViewport*")] nint viewport, [NativeName(NativeNameType.Param, "data")] [NativeName(NativeNameType.Type, "ImGuiPlatformImeData*")] nint data);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DrawCallbackResetRenderState([NativeName(NativeNameType.Param, "parent_list")] [NativeName(NativeNameType.Type, "const ImDrawList*")] ImDrawList* parentList, [NativeName(NativeNameType.Param, "cmd")] [NativeName(NativeNameType.Type, "const ImDrawCmd*")] ImDrawCmd* cmd);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DrawCallbackResetRenderState([NativeName(NativeNameType.Param, "parent_list")] [NativeName(NativeNameType.Type, "const ImDrawList*")] nint parentList, [NativeName(NativeNameType.Param, "cmd")] [NativeName(NativeNameType.Type, "const ImDrawCmd*")] nint cmd);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DrawCallbackSetSamplerLinear([NativeName(NativeNameType.Param, "parent_list")] [NativeName(NativeNameType.Type, "const ImDrawList*")] ImDrawList* parentList, [NativeName(NativeNameType.Param, "cmd")] [NativeName(NativeNameType.Type, "const ImDrawCmd*")] ImDrawCmd* cmd);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DrawCallbackSetSamplerLinear([NativeName(NativeNameType.Param, "parent_list")] [NativeName(NativeNameType.Type, "const ImDrawList*")] nint parentList, [NativeName(NativeNameType.Param, "cmd")] [NativeName(NativeNameType.Type, "const ImDrawCmd*")] nint cmd);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DrawCallbackSetSamplerNearest([NativeName(NativeNameType.Param, "parent_list")] [NativeName(NativeNameType.Type, "const ImDrawList*")] ImDrawList* parentList, [NativeName(NativeNameType.Param, "cmd")] [NativeName(NativeNameType.Type, "const ImDrawCmd*")] ImDrawCmd* cmd);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DrawCallbackSetSamplerNearest([NativeName(NativeNameType.Param, "parent_list")] [NativeName(NativeNameType.Type, "const ImDrawList*")] nint parentList, [NativeName(NativeNameType.Param, "cmd")] [NativeName(NativeNameType.Type, "const ImDrawCmd*")] nint cmd);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DrawCallbackSetSamplerFromTex([NativeName(NativeNameType.Param, "parent_list")] [NativeName(NativeNameType.Type, "const ImDrawList*")] ImDrawList* parentList, [NativeName(NativeNameType.Param, "cmd")] [NativeName(NativeNameType.Type, "const ImDrawCmd*")] ImDrawCmd* cmd);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void DrawCallbackSetSamplerFromTex([NativeName(NativeNameType.Param, "parent_list")] [NativeName(NativeNameType.Type, "const ImDrawList*")] nint parentList, [NativeName(NativeNameType.Param, "cmd")] [NativeName(NativeNameType.Type, "const ImDrawCmd*")] nint cmd);
 
 	#endif
 
@@ -205,6 +589,22 @@ namespace Dalamud.Bindings.ImGui
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public unsafe delegate Vector2* PlatformGetWindowSize(Vector2* size, ImGuiViewport* viewport);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate Vector2 PlatformGetWindowFramebufferScale([NativeName(NativeNameType.Param, "vp")] [NativeName(NativeNameType.Type, "ImGuiViewport*")] ImGuiViewport* vp);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate Vector2 PlatformGetWindowFramebufferScale([NativeName(NativeNameType.Param, "vp")] [NativeName(NativeNameType.Type, "ImGuiViewport*")] nint vp);
 
 	#endif
 
@@ -365,6 +765,22 @@ namespace Dalamud.Bindings.ImGui
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public unsafe delegate void PlatformOnChangedViewport([NativeName(NativeNameType.Param, "vp")] [NativeName(NativeNameType.Type, "ImGuiViewport*")] nint vp);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate Vector4 PlatformGetWindowWorkAreaInsets([NativeName(NativeNameType.Param, "vp")] [NativeName(NativeNameType.Type, "ImGuiViewport*")] ImGuiViewport* vp);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate Vector4 PlatformGetWindowWorkAreaInsets([NativeName(NativeNameType.Param, "vp")] [NativeName(NativeNameType.Type, "ImGuiViewport*")] nint vp);
 
 	#endif
 
@@ -597,6 +1013,70 @@ namespace Dalamud.Bindings.ImGui
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate uint AdapterIndexToStorageId([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImGuiSelectionBasicStorage*")] ImGuiSelectionBasicStorage* self, [NativeName(NativeNameType.Param, "idx")] [NativeName(NativeNameType.Type, "int")] int idx);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate uint AdapterIndexToStorageId([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImGuiSelectionBasicStorage*")] nint self, [NativeName(NativeNameType.Param, "idx")] [NativeName(NativeNameType.Type, "int")] int idx);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void AdapterSetItemSelected([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImGuiSelectionExternalStorage*")] ImGuiSelectionExternalStorage* self, [NativeName(NativeNameType.Param, "idx")] [NativeName(NativeNameType.Type, "int")] int idx, [NativeName(NativeNameType.Param, "selected")] [NativeName(NativeNameType.Type, "bool")] byte selected);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void AdapterSetItemSelected([NativeName(NativeNameType.Param, "self")] [NativeName(NativeNameType.Type, "ImGuiSelectionExternalStorage*")] nint self, [NativeName(NativeNameType.Param, "idx")] [NativeName(NativeNameType.Type, "int")] int idx, [NativeName(NativeNameType.Param, "selected")] [NativeName(NativeNameType.Type, "bool")] byte selected);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int ImTextLayoutFn([NativeName(NativeNameType.Param, "font")] [NativeName(NativeNameType.Type, "ImFont*")] ImFont* font, [NativeName(NativeNameType.Param, "desc")] [NativeName(NativeNameType.Type, "const ImTextDesc*")] ImTextDesc* desc, [NativeName(NativeNameType.Param, "text")] [NativeName(NativeNameType.Type, "const char*")] byte* text, [NativeName(NativeNameType.Param, "text_end")] [NativeName(NativeNameType.Type, "const char*")] byte* textEnd, [NativeName(NativeNameType.Param, "out_layout")] [NativeName(NativeNameType.Type, "ImTextLayout**")] ImTextLayout** outLayout);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate int ImTextLayoutFn([NativeName(NativeNameType.Param, "font")] [NativeName(NativeNameType.Type, "ImFont*")] nint font, [NativeName(NativeNameType.Param, "desc")] [NativeName(NativeNameType.Type, "const ImTextDesc*")] nint desc, [NativeName(NativeNameType.Param, "text")] [NativeName(NativeNameType.Type, "const char*")] nint text, [NativeName(NativeNameType.Param, "text_end")] [NativeName(NativeNameType.Type, "const char*")] nint textEnd, [NativeName(NativeNameType.Param, "out_layout")] [NativeName(NativeNameType.Type, "ImTextLayout**")] nint outLayout);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void ImFontMetricsFn([NativeName(NativeNameType.Param, "font")] [NativeName(NativeNameType.Type, "ImFont*")] ImFont* font, [NativeName(NativeNameType.Param, "size")] [NativeName(NativeNameType.Type, "float")] float size, [NativeName(NativeNameType.Param, "density")] [NativeName(NativeNameType.Type, "float")] float density, [NativeName(NativeNameType.Param, "out_metrics")] [NativeName(NativeNameType.Type, "ImTextMetrics*")] ImTextMetrics* outMetrics);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void ImFontMetricsFn([NativeName(NativeNameType.Param, "font")] [NativeName(NativeNameType.Type, "ImFont*")] nint font, [NativeName(NativeNameType.Param, "size")] [NativeName(NativeNameType.Type, "float")] float size, [NativeName(NativeNameType.Param, "density")] [NativeName(NativeNameType.Type, "float")] float density, [NativeName(NativeNameType.Param, "out_metrics")] [NativeName(NativeNameType.Type, "ImTextMetrics*")] nint outMetrics);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public unsafe delegate void ImDrawCallback([NativeName(NativeNameType.Param, "parent_list")] [NativeName(NativeNameType.Type, "const ImDrawList*")] ImDrawList* parentList, [NativeName(NativeNameType.Param, "cmd")] [NativeName(NativeNameType.Type, "const ImDrawCmd*")] ImDrawCmd* cmd);
 
 	#else
@@ -645,6 +1125,38 @@ namespace Dalamud.Bindings.ImGui
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void ImGuiDemoMarkerCallback([NativeName(NativeNameType.Param, "file")] [NativeName(NativeNameType.Type, "const char*")] byte* file, [NativeName(NativeNameType.Param, "line")] [NativeName(NativeNameType.Type, "int")] int line, [NativeName(NativeNameType.Param, "section")] [NativeName(NativeNameType.Type, "const char*")] byte* section);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void ImGuiDemoMarkerCallback([NativeName(NativeNameType.Param, "file")] [NativeName(NativeNameType.Type, "const char*")] nint file, [NativeName(NativeNameType.Param, "line")] [NativeName(NativeNameType.Type, "int")] int line, [NativeName(NativeNameType.Param, "section")] [NativeName(NativeNameType.Type, "const char*")] nint section);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void ImGuiErrorCallback([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] ImGuiContext* ctx, [NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] void* userData, [NativeName(NativeNameType.Param, "msg")] [NativeName(NativeNameType.Type, "const char*")] byte* msg);
+
+	#else
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public unsafe delegate void ImGuiErrorCallback([NativeName(NativeNameType.Param, "ctx")] [NativeName(NativeNameType.Type, "ImGuiContext*")] nint ctx, [NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] nint userData, [NativeName(NativeNameType.Param, "msg")] [NativeName(NativeNameType.Type, "const char*")] nint msg);
+
+	#endif
+
+	#if NET5_0_OR_GREATER
+	/// <summary>
+	/// To be documented.
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public unsafe delegate int ImGuiInputTextCallback([NativeName(NativeNameType.Param, "data")] [NativeName(NativeNameType.Type, "ImGuiInputTextCallbackData*")] ImGuiInputTextCallbackData* data);
 
 	#else
@@ -685,22 +1197,6 @@ namespace Dalamud.Bindings.ImGui
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public unsafe delegate void ImGuiMemFreeFunc([NativeName(NativeNameType.Param, "ptr")] [NativeName(NativeNameType.Type, "void*")] nint ptr, [NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] nint userData);
-
-	#endif
-
-	#if NET5_0_OR_GREATER
-	/// <summary>
-	/// To be documented.
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate void ImGuiErrorLogCallback([NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] void* userData, [NativeName(NativeNameType.Param, "fmt")] [NativeName(NativeNameType.Type, "const char*")] byte* fmt);
-
-	#else
-	/// <summary>
-	/// To be documented.
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate void ImGuiErrorLogCallback([NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] nint userData, [NativeName(NativeNameType.Param, "fmt")] [NativeName(NativeNameType.Type, "const char*")] nint fmt);
 
 	#endif
 

@@ -22,1539 +22,1034 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, byte* labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, bool* outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmapNative(pStr0, (double*)pvalues, rows, cols, scaleMin, (double)(0), labelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, byte* labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, ref double x, Vector4 col, bool* outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmapNative(pStr0, (double*)pvalues, rows, cols, (double)(0), (double)(0), labelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, double scaleMax, byte* labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmapNative(pStr0, (double*)pvalues, rows, cols, scaleMin, scaleMax, labelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, double scaleMax, byte* labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, bool* outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmapNative(pStr0, (double*)pvalues, rows, cols, scaleMin, scaleMax, labelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, double scaleMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmap(pStr0, (double*)pvalues, rows, cols, scaleMin, scaleMax, (string)"%.1f", (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmap(pStr0, (double*)pvalues, rows, cols, scaleMin, (double)(0), (string)"%.1f", (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmap(pStr0, (double*)pvalues, rows, cols, (double)(0), (double)(0), (string)"%.1f", (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, byte* labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmapNative(pStr0, (double*)pvalues, rows, cols, scaleMin, (double)(0), labelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, byte* labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmapNative(pStr0, (double*)pvalues, rows, cols, (double)(0), (double)(0), labelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, double scaleMax, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmap(pStr0, (double*)pvalues, rows, cols, scaleMin, scaleMax, (string)"%.1f", boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, x, col, thickness, flags, (bool*)poutClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmap(pStr0, (double*)pvalues, rows, cols, scaleMin, (double)(0), (string)"%.1f", boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, x, col, thickness, flags, (bool*)poutClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmap(pStr0, (double*)pvalues, rows, cols, (double)(0), (double)(0), (string)"%.1f", boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, x, col, thickness, flags, (bool*)poutClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, byte* labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ref bool outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmapNative(pStr0, (double*)pvalues, rows, cols, scaleMin, (double)(0), labelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, x, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, byte* labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ref bool outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmapNative(pStr0, (double*)pvalues, rows, cols, (double)(0), (double)(0), labelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, x, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, double scaleMax, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmap(pStr0, (double*)pvalues, rows, cols, scaleMin, scaleMax, (string)"%.1f", boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, x, col, (float)(1), flags, (bool*)poutClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ref bool outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmap(pStr0, (double*)pvalues, rows, cols, scaleMin, (double)(0), (string)"%.1f", boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, x, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ref bool outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmap(pStr0, (double*)pvalues, rows, cols, (double)(0), (double)(0), (string)"%.1f", boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, x, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, double scaleMin, byte* labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmapNative(pStr0, (double*)pvalues, rows, cols, scaleMin, (double)(0), labelFmt, boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, x, col, (float)(1), flags, (bool*)poutClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, ref double values, int rows, int cols, byte* labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ref bool outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pvalues = &values)
-			{
-				PlotHeatmapNative(pStr0, (double*)pvalues, rows, cols, (double)(0), (double)(0), labelFmt, boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragLineXNative(id, x, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ref bool outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, flags);
+				byte ret = DragLineXNative(id, x, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, double* x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+				byte ret = DragLineXNative(id, x, col, (float)(1), flags, (bool*)poutClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, flags, (bool*)poutClicked, outHovered, outHeld);
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, flags, (bool*)poutClicked, outHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, flags, (bool*)poutClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ref byte labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ref bool outClicked)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ref bool outClicked)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, (bool*)poutClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ref bool outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ref bool outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, (bool*)poutClicked, outHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ref bool outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, outHeld);
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ref bool outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, outHeld);
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, (bool*)poutClicked, outHovered, outHeld);
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				byte ret = DragLineXNative(id, x, col, thickness, flags, outClicked, (bool*)poutHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				byte ret = DragLineXNative(id, x, col, thickness, flags, outClicked, (bool*)poutHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, bool* outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
+				byte ret = DragLineXNative(id, x, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, bool* outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
+				byte ret = DragLineXNative(id, x, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, flags);
+				byte ret = DragLineXNative(id, x, col, (float)(1), flags, outClicked, (bool*)poutHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, bool* outClicked, ref bool outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+				byte ret = DragLineXNative(id, x, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, double* x, Vector4 col, bool* outClicked, ref bool outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				byte ret = DragLineXNative(id, x, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt)
+		public static bool DragLineX(int id, double* x, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				byte ret = DragLineXNative(id, x, col, (float)(1), flags, outClicked, (bool*)poutHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, flags, outClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, flags, outClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, bool* outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, ref double x, Vector4 col, bool* outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, outClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, bool* outClicked, ref bool outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, bool* outClicked, ref bool outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (double* px = &x)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, outClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, x, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, x, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, x, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ref bool outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, x, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, x, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelFmt = labelFmt)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineXNative(id, x, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ref bool outClicked, ref bool outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (bool* poutHovered = &outHovered)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					byte ret = DragLineXNative(id, x, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
 				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, boundsMax, flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, double* x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (bool* poutHovered = &outHovered)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					byte ret = DragLineXNative(id, x, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
 				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, outHeld);
+						return ret != 0;
+					}
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
+				fixed (bool* poutClicked = &outClicked)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+						return ret != 0;
+					}
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, string labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+						return ret != 0;
+					}
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, string labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ref bool outClicked, ref bool outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
+				fixed (bool* poutClicked = &outClicked)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+						return ret != 0;
+					}
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+						return ret != 0;
+					}
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
+				fixed (bool* poutClicked = &outClicked)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, outHeld);
+						return ret != 0;
+					}
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ref bool outClicked, ref bool outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, outHeld);
+						return ret != 0;
+					}
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, outHeld);
+						return ret != 0;
+					}
 				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, ref bool outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+			fixed (bool* poutHeld = &outHeld)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragLineXNative(id, x, col, thickness, flags, outClicked, outHovered, (bool*)poutHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, bool* outClicked, bool* outHovered, ref bool outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, scaleMax, pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+			fixed (bool* poutHeld = &outHeld)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragLineXNative(id, x, col, thickness, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)poutHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, bool* outClicked, bool* outHovered, ref bool outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+			fixed (bool* poutHeld = &outHeld)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragLineXNative(id, x, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)poutHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, ref bool outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+			fixed (bool* poutHeld = &outHeld)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragLineXNative(id, x, col, (float)(1), flags, outClicked, outHovered, (bool*)poutHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, ref bool outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
+				fixed (bool* poutHeld = &outHeld)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, flags, outClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, bool* outClicked, bool* outHovered, ref bool outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
+				fixed (bool* poutHeld = &outHeld)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, bool* outClicked, bool* outHovered, ref bool outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
+				fixed (bool* poutHeld = &outHeld)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, boundsMax, flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(byte* labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, ref bool outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelFmt != null)
+			fixed (double* px = &x)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
+				fixed (bool* poutHeld = &outHeld)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, outClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			PlotHeatmapNative(labelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, boundsMax, flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHeld = &outHeld)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, flags);
+					byte ret = DragLineXNative(id, x, col, thickness, flags, (bool*)poutClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -1562,13 +1057,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ref bool outClicked, bool* outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHeld = &outHeld)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+					byte ret = DragLineXNative(id, x, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -1576,13 +1072,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, double* x, Vector4 col, ref bool outClicked, bool* outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHeld = &outHeld)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragLineXNative(id, x, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -1590,13 +1087,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt)
+		public static bool DragLineX(int id, double* x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHeld = &outHeld)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragLineXNative(id, x, col, (float)(1), flags, (bool*)poutClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -1604,13 +1102,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, thickness, flags, (bool*)poutClicked, outHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1618,13 +1120,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ref byte labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ref bool outClicked, bool* outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1632,13 +1138,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ref bool outClicked, bool* outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1646,13 +1156,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, (bool*)poutClicked, outHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1660,13 +1174,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHeld = &outHeld)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+					byte ret = DragLineXNative(id, x, col, thickness, flags, outClicked, (bool*)poutHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -1674,13 +1189,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, bool* outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHeld = &outHeld)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+					byte ret = DragLineXNative(id, x, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -1688,13 +1204,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, bool* outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHeld = &outHeld)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					byte ret = DragLineXNative(id, x, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -1702,13 +1219,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (bool* poutHovered = &outHovered)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHeld = &outHeld)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					byte ret = DragLineXNative(id, x, col, (float)(1), flags, outClicked, (bool*)poutHovered, (bool*)poutHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -1716,13 +1234,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHovered = &outHovered)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, thickness, flags, outClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1730,13 +1252,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, bool* outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHovered = &outHovered)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1744,13 +1270,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, bool* outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHovered = &outHovered)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1758,13 +1288,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHovered = &outHovered)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, outClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1772,13 +1306,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHovered = &outHovered)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, x, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1786,13 +1324,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (bool* poutHovered = &outHovered)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, x, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1800,13 +1342,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineX(int id, double* x, Vector4 col, ref bool outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (bool* poutHovered = &outHovered)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, flags);
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, x, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1814,13 +1360,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineX(int id, double* x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (bool* poutClicked = &outClicked)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (bool* poutHovered = &outHovered)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineXNative(id, x, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -1828,13 +1378,20 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					fixed (bool* poutHovered = &outHovered)
+					{
+						fixed (bool* poutHeld = &outHeld)
+						{
+							byte ret = DragLineXNative(id, (double*)px, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+							return ret != 0;
+						}
+					}
 				}
 			}
 		}
@@ -1842,13 +1399,20 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					fixed (bool* poutHovered = &outHovered)
+					{
+						fixed (bool* poutHeld = &outHeld)
+						{
+							byte ret = DragLineXNative(id, (double*)px, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+							return ret != 0;
+						}
+					}
 				}
 			}
 		}
@@ -1856,13 +1420,20 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ref bool outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					fixed (bool* poutHovered = &outHovered)
+					{
+						fixed (bool* poutHeld = &outHeld)
+						{
+							byte ret = DragLineXNative(id, (double*)px, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+							return ret != 0;
+						}
+					}
 				}
 			}
 		}
@@ -1870,13 +1441,20 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt)
+		public static bool DragLineX(int id, ref double x, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, ref bool outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px = &x)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					fixed (bool* poutHovered = &outHovered)
+					{
+						fixed (bool* poutHeld = &outHeld)
+						{
+							byte ret = DragLineXNative(id, (double*)px, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+							return ret != 0;
+						}
+					}
 				}
 			}
 		}
@@ -1884,1109 +1462,2188 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static byte DragLineYNative(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				}
-			}
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<int, double*, Vector4, float, ImPlotDragToolFlags, bool*, bool*, bool*, byte>)funcTable[346])(id, y, col, thickness, flags, outClicked, outHovered, outHeld);
+			#else
+			return (byte)((delegate* unmanaged[Cdecl]<int, nint, Vector4, float, ImPlotDragToolFlags, nint, nint, nint, byte>)funcTable[346])(id, (nint)y, col, thickness, flags, (nint)outClicked, (nint)outHovered, (nint)outHeld);
+			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				}
-			}
+			byte ret = DragLineYNative(id, y, col, thickness, flags, outClicked, outHovered, outHeld);
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				}
-			}
+			byte ret = DragLineYNative(id, y, col, thickness, flags, outClicked, outHovered, (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				}
-			}
+			byte ret = DragLineYNative(id, y, col, thickness, flags, outClicked, (bool*)(default), (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				}
-			}
+			byte ret = DragLineYNative(id, y, col, thickness, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				}
-			}
+			byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineY(int id, double* y, Vector4 col)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				}
-			}
+			byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				}
-			}
+			byte ret = DragLineYNative(id, y, col, (float)(1), flags, (bool*)(default), (bool*)(default), (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				}
-			}
+			byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragLineY(int id, double* y, Vector4 col, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				}
-			}
+			byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
-				}
-			}
+			byte ret = DragLineYNative(id, y, col, (float)(1), flags, outClicked, (bool*)(default), (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
-				}
-			}
+			byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragLineY(int id, double* y, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, pStr1, boundsMin, boundsMax, flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
+			byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, pStr1, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
+			byte ret = DragLineYNative(id, y, col, (float)(1), flags, outClicked, outHovered, (bool*)(default));
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, pStr1, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
+			byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt)
+		public static bool DragLineY(int id, double* y, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, pStr1, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
+			byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, string labelFmt)
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, (double)(0), pStr1, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
+			byte ret = DragLineYNative(id, y, col, (float)(1), flags, outClicked, outHovered, outHeld);
+			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, string labelFmt)
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			PlotHeatmapNative(pStr0, values, rows, cols, (double)(0), (double)(0), pStr1, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+			fixed (double* py = &y)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, (double)(0), pStr1, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+			fixed (double* py = &y)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* py = &y)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
+				byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags)
+		{
+			fixed (double* py = &y)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
+				byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			PlotHeatmapNative(pStr0, values, rows, cols, (double)(0), (double)(0), pStr1, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness)
+		{
+			fixed (double* py = &y)
 			{
-				Utils.Free(pStr1);
+				byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col)
+		{
+			fixed (double* py = &y)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* py = &y)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, bool* outClicked)
+		{
+			fixed (double* py = &y)
+			{
+				byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, bool* outClicked)
+		{
+			fixed (double* py = &y)
+			{
+				byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
+		{
+			fixed (double* py = &y)
+			{
+				byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, bool* outClicked, bool* outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, bool* outClicked, bool* outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, outClicked, outHovered, (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, bool* outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, outClicked, outHovered, outHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, flags, (bool*)poutClicked, outHovered, outHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, flags, (bool*)poutClicked, outHovered, (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, flags, (bool*)poutClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ref bool outClicked)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ref bool outClicked)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), flags, (bool*)poutClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ref bool outClicked, bool* outHovered)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ref bool outClicked, bool* outHovered)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), flags, (bool*)poutClicked, outHovered, (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ref bool outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, outHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ref bool outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, outHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), flags, (bool*)poutClicked, outHovered, outHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, (bool*)poutClicked, outHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, (bool*)poutClicked, outHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, (bool*)poutClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ref bool outClicked)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ref bool outClicked)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, (bool*)poutClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ref bool outClicked, bool* outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ref bool outClicked, bool* outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, (bool*)poutClicked, outHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ref bool outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ref bool outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, (bool*)poutClicked, outHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, flags, outClicked, (bool*)poutHovered, outHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, flags, outClicked, (bool*)poutHovered, (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, bool* outClicked, ref bool outHovered)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, bool* outClicked, ref bool outHovered)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), flags, outClicked, (bool*)poutHovered, (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, bool* outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, outHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, bool* outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, outHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), flags, outClicked, (bool*)poutHovered, outHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, outClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, outClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, bool* outClicked, ref bool outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, bool* outClicked, ref bool outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, outClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, bool* outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, bool* outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, outClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, y, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, y, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ref bool outClicked, ref bool outHovered)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, y, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ref bool outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					byte ret = DragLineYNative(id, y, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, outHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, outHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ref bool outClicked, ref bool outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)(default));
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, outHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ref bool outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, outHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, bool* outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHovered = &outHovered)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, outHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutHeld = &outHeld)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, flags, outClicked, outHovered, (bool*)poutHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, bool* outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutHeld = &outHeld)
+			{
+				byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)poutHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, bool* outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutHeld = &outHeld)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)poutHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutHeld = &outHeld)
+			{
+				byte ret = DragLineYNative(id, y, col, (float)(1), flags, outClicked, outHovered, (bool*)poutHeld);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, outClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, bool* outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, bool* outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, outClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, y, col, thickness, flags, (bool*)poutClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ref bool outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ref bool outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, y, col, (float)(1), flags, (bool*)poutClicked, outHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, (bool*)poutClicked, outHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ref bool outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ref bool outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, outHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, bool* outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, (bool*)poutClicked, outHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, y, col, thickness, flags, outClicked, (bool*)poutHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, bool* outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, bool* outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutHovered = &outHovered)
+			{
+				fixed (bool* poutHeld = &outHeld)
+				{
+					byte ret = DragLineYNative(id, y, col, (float)(1), flags, outClicked, (bool*)poutHovered, (bool*)poutHeld);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, outClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, bool* outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, bool* outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), outClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, outClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, y, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, y, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ref bool outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, y, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, double* y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (bool* poutClicked = &outClicked)
+			{
+				fixed (bool* poutHovered = &outHovered)
+				{
+					fixed (bool* poutHeld = &outHeld)
+					{
+						byte ret = DragLineYNative(id, y, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					fixed (bool* poutHovered = &outHovered)
+					{
+						fixed (bool* poutHeld = &outHeld)
+						{
+							byte ret = DragLineYNative(id, (double*)py, col, thickness, flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+							return ret != 0;
+						}
+					}
 				}
-				else
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, float thickness, ref bool outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					fixed (bool* poutHovered = &outHovered)
+					{
+						fixed (bool* poutHeld = &outHeld)
+						{
+							byte ret = DragLineYNative(id, (double*)py, col, thickness, (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+							return ret != 0;
+						}
+					}
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ref bool outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
+				fixed (bool* poutClicked = &outClicked)
 				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					fixed (bool* poutHovered = &outHovered)
+					{
+						fixed (bool* poutHeld = &outHeld)
+						{
+							byte ret = DragLineYNative(id, (double*)py, col, (float)(1), (ImPlotDragToolFlags)(0), (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+							return ret != 0;
+						}
+					}
 				}
-				else
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragLineY(int id, ref double y, Vector4 col, ImPlotDragToolFlags flags, ref bool outClicked, ref bool outHovered, ref bool outHeld)
+		{
+			fixed (double* py = &y)
+			{
+				fixed (bool* poutClicked = &outClicked)
 				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
+					fixed (bool* poutHovered = &outHovered)
+					{
+						fixed (bool* poutHeld = &outHeld)
+						{
+							byte ret = DragLineYNative(id, (double*)py, col, (float)(1), flags, (bool*)poutClicked, (bool*)poutHovered, (bool*)poutHeld);
+							return ret != 0;
+						}
+					}
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static byte DragRectNative(int id, double* x1, double* y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<int, double*, double*, double*, double*, Vector4, ImPlotDragToolFlags, bool*, bool*, bool*, byte>)funcTable[347])(id, x1, y1, x2, y2, col, flags, outClicked, outHovered, outHeld);
+			#else
+			return (byte)((delegate* unmanaged[Cdecl]<int, nint, nint, nint, nint, Vector4, ImPlotDragToolFlags, nint, nint, nint, byte>)funcTable[347])(id, (nint)x1, (nint)y1, (nint)x2, (nint)y2, col, flags, (nint)outClicked, (nint)outHovered, (nint)outHeld);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
+		{
+			byte ret = DragRectNative(id, x1, y1, x2, y2, col, flags, outClicked, outHovered, outHeld);
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
+		{
+			byte ret = DragRectNative(id, x1, y1, x2, y2, col, flags, outClicked, outHovered, (bool*)(default));
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
+		{
+			byte ret = DragRectNative(id, x1, y1, x2, y2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags)
+		{
+			byte ret = DragRectNative(id, x1, y1, x2, y2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, double* y2, Vector4 col)
+		{
+			byte ret = DragRectNative(id, x1, y1, x2, y2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, double* y2, Vector4 col, bool* outClicked)
+		{
+			byte ret = DragRectNative(id, x1, y1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered)
+		{
+			byte ret = DragRectNative(id, x1, y1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
+		{
+			byte ret = DragRectNative(id, x1, y1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* px1 = &x1)
+			{
+				byte ret = DragRectNative(id, (double*)px1, y1, x2, y2, col, flags, outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, (double)(0), pStr1, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
+		{
+			fixed (double* px1 = &x1)
 			{
-				Utils.Free(pStr1);
+				byte ret = DragRectNative(id, (double*)px1, y1, x2, y2, col, flags, outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
+		{
+			fixed (double* px1 = &x1)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragRectNative(id, (double*)px1, y1, x2, y2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px1 = &x1)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			PlotHeatmapNative(pStr0, values, rows, cols, (double)(0), (double)(0), pStr1, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
+				byte ret = DragRectNative(id, (double*)px1, y1, x2, y2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, double* y2, Vector4 col)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px1 = &x1)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
+				byte ret = DragRectNative(id, (double*)px1, y1, x2, y2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, double* y2, Vector4 col, bool* outClicked)
+		{
+			fixed (double* px1 = &x1)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
+				byte ret = DragRectNative(id, (double*)px1, y1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, pStr1, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered)
+		{
+			fixed (double* px1 = &x1)
 			{
-				Utils.Free(pStr1);
+				byte ret = DragRectNative(id, (double*)px1, y1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* px1 = &x1)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragRectNative(id, (double*)px1, y1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* py1 = &y1)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
+				byte ret = DragRectNative(id, x1, (double*)py1, x2, y2, col, flags, outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
+		{
+			fixed (double* py1 = &y1)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
+				byte ret = DragRectNative(id, x1, (double*)py1, x2, y2, col, flags, outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, pStr1, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
+		{
+			fixed (double* py1 = &y1)
 			{
-				Utils.Free(pStr1);
+				byte ret = DragRectNative(id, x1, (double*)py1, x2, y2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags)
+		{
+			fixed (double* py1 = &y1)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragRectNative(id, x1, (double*)py1, x2, y2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, double* y2, Vector4 col)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* py1 = &y1)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
+				byte ret = DragRectNative(id, x1, (double*)py1, x2, y2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, double* y2, Vector4 col, bool* outClicked)
+		{
+			fixed (double* py1 = &y1)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
+				byte ret = DragRectNative(id, x1, (double*)py1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, (double)(0), pStr1, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered)
+		{
+			fixed (double* py1 = &y1)
 			{
-				Utils.Free(pStr1);
+				byte ret = DragRectNative(id, x1, (double*)py1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* py1 = &y1)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragRectNative(id, x1, (double*)py1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px1 = &x1)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py1 = &y1)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, y2, col, flags, outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
+		{
+			fixed (double* px1 = &x1)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
+				fixed (double* py1 = &y1)
 				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, y2, col, flags, outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			PlotHeatmapNative(pStr0, values, rows, cols, (double)(0), (double)(0), pStr1, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
 			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px1 = &x1)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
+				fixed (double* py1 = &y1)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, y2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, double* y2, Vector4 col, ImPlotDragToolFlags flags)
+		{
+			fixed (double* px1 = &x1)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
+				fixed (double* py1 = &y1)
 				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
+					byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, y2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, (double)(0), pStr1, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, double* y2, Vector4 col)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px1 = &x1)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py1 = &y1)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, y2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, double* y2, Vector4 col, bool* outClicked)
+		{
+			fixed (double* px1 = &x1)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
+				fixed (double* py1 = &y1)
 				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			PlotHeatmapNative(pStr0, values, rows, cols, (double)(0), (double)(0), pStr1, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
 			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px1 = &x1)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
+				fixed (double* py1 = &y1)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* px1 = &x1)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
+				fixed (double* py1 = &y1)
 				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
+					byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
 			}
-			PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, (double)(0), pStr1, boundsMin, boundsMax, flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
+		{
+			fixed (double* px2 = &x2)
 			{
-				Utils.Free(pStr1);
+				byte ret = DragRectNative(id, x1, y1, (double*)px2, y2, col, flags, outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
+		{
+			fixed (double* px2 = &x2)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragRectNative(id, x1, y1, (double*)px2, y2, col, flags, outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px2 = &x2)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
+				byte ret = DragRectNative(id, x1, y1, (double*)px2, y2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (labelFmt != null)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags)
+		{
+			fixed (double* px2 = &x2)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(labelFmt);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(labelFmt, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
+				byte ret = DragRectNative(id, x1, y1, (double*)px2, y2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			PlotHeatmapNative(pStr0, values, rows, cols, (double)(0), (double)(0), pStr1, boundsMin, boundsMax, flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, double* y2, Vector4 col)
+		{
+			fixed (double* px2 = &x2)
 			{
-				Utils.Free(pStr1);
+				byte ret = DragRectNative(id, x1, y1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, double* y2, Vector4 col, bool* outClicked)
+		{
+			fixed (double* px2 = &x2)
 			{
-				Utils.Free(pStr0);
+				byte ret = DragRectNative(id, x1, y1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px2 = &x2)
 			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, flags);
-				}
+				byte ret = DragRectNative(id, x1, y1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px2 = &x2)
 			{
-				fixed (byte* plabelFmt = labelFmt)
-				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				}
+				byte ret = DragRectNative(id, x1, y1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, y2, col, flags, outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -2994,13 +3651,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, y2, col, flags, outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3008,13 +3666,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, y2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3022,13 +3681,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, y2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3036,13 +3696,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, double* y2, Vector4 col)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3050,13 +3711,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, double* y2, Vector4 col, bool* outClicked)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3064,13 +3726,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3078,13 +3741,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -3092,13 +3756,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, y2, col, flags, outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -3106,13 +3771,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ReadOnlySpan<byte> labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, y2, col, flags, outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3120,13 +3786,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, y2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3134,13 +3801,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, y2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3148,13 +3816,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, double* y2, Vector4 col)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3162,13 +3831,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, double* y2, Vector4 col, bool* outClicked)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3176,13 +3846,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
+					byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3190,13 +3861,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, ReadOnlySpan<byte> labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = labelFmt)
+				fixed (double* px2 = &x2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
+					byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -3204,479 +3876,254 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* py1 = &y1)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* px2 = &x2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, y2, col, flags, outClicked, outHovered, outHeld);
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
 				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* py1 = &y1)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* px2 = &x2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, y2, col, flags, outClicked, outHovered, (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
 				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* py1 = &y1)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* px2 = &x2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, y2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
 				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, double* y2, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* py1 = &y1)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* px2 = &x2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, y2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
 				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, string labelFmt)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, double* y2, Vector4 col)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* py1 = &y1)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* px2 = &x2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
 				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, string labelFmt)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, double* y2, Vector4 col, bool* outClicked)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* py1 = &y1)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* px2 = &x2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
 				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* py1 = &y1)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* px2 = &x2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
 				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, double* y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* py1 = &y1)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* px2 = &x2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, y2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
 				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py2 = &y2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragRectNative(id, x1, y1, x2, (double*)py2, col, flags, outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py2 = &y2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragRectNative(id, x1, y1, x2, (double*)py2, col, flags, outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py2 = &y2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragRectNative(id, x1, y1, x2, (double*)py2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags)
+		{
+			fixed (double* py2 = &y2)
+			{
+				byte ret = DragRectNative(id, x1, y1, x2, (double*)py2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, ref double y2, Vector4 col)
+		{
+			fixed (double* py2 = &y2)
+			{
+				byte ret = DragRectNative(id, x1, y1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, ref double y2, Vector4 col, bool* outClicked)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py2 = &y2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragRectNative(id, x1, y1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py2 = &y2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragRectNative(id, x1, y1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, double* y1, double* x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* py2 = &y2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				byte ret = DragRectNative(id, x1, y1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, (double*)px1, y1, x2, (double*)py2, col, flags, outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -3684,31 +4131,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, (double*)px1, y1, x2, (double*)py2, col, flags, outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3716,31 +4146,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, (double*)px1, y1, x2, (double*)py2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3748,31 +4161,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ref byte labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			fixed (byte* plabelId = &labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, (double*)px1, y1, x2, (double*)py2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3780,13 +4176,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, ref double y2, Vector4 col)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, flags);
+					byte ret = DragRectNative(id, (double*)px1, y1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3794,13 +4191,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, ref double y2, Vector4 col, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, (double*)px1, y1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3808,13 +4206,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, (double*)px1, y1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3822,13 +4221,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt)
+		public static bool DragRect(int id, ref double x1, double* y1, double* x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, (double*)px1, y1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -3836,13 +4236,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt)
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, x1, (double*)py1, x2, (double*)py2, col, flags, outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -3850,13 +4251,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ref byte labelFmt)
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, x1, (double*)py1, x2, (double*)py2, col, flags, outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3864,13 +4266,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, x1, (double*)py1, x2, (double*)py2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3878,13 +4281,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, x1, (double*)py1, x2, (double*)py2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3892,13 +4296,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, ref double y2, Vector4 col)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, x1, (double*)py1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3906,13 +4311,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, ref double y2, Vector4 col, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
+					byte ret = DragRectNative(id, x1, (double*)py1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3920,13 +4326,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					byte ret = DragRectNative(id, x1, (double*)py1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -3934,13 +4341,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, double* x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* py1 = &y1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py2 = &y2)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					byte ret = DragRectNative(id, x1, (double*)py1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -3948,13 +4356,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py1 = &y1)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, (double*)py2, col, flags, outClicked, outHovered, outHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -3962,13 +4374,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py1 = &y1)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, (double*)py2, col, flags, outClicked, outHovered, (bool*)(default));
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -3976,13 +4392,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py1 = &y1)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, (double*)py2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -3990,13 +4410,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py1 = &y1)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, (double*)py2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -4004,13 +4428,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, ref double y2, Vector4 col)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py1 = &y1)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -4018,13 +4446,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, ref double y2, Vector4 col, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				fixed (byte* plabelFmt = &labelFmt)
+				fixed (double* py1 = &y1)
 				{
-					PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, flags);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -4032,31 +4464,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* py1 = &y1)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* py2 = &y2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
 				}
 			}
 		}
@@ -4064,31 +4482,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, ref double x1, ref double y1, double* x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* py1 = &y1)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* py2 = &y2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, (double*)py1, x2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
 				}
 			}
 		}
@@ -4096,31 +4500,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px2 = &x2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, x1, y1, (double*)px2, (double*)py2, col, flags, outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -4128,31 +4515,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt)
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px2 = &x2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, x1, y1, (double*)px2, (double*)py2, col, flags, outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -4160,31 +4530,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, string labelFmt)
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px2 = &x2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, x1, y1, (double*)px2, (double*)py2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -4192,31 +4545,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, string labelFmt)
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px2 = &x2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, x1, y1, (double*)px2, (double*)py2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -4224,31 +4560,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, ref double y2, Vector4 col)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px2 = &x2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, x1, y1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -4256,31 +4575,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, ref double y2, Vector4 col, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px2 = &x2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, x1, y1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -4288,31 +4590,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px2 = &x2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, x1, y1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+					return ret != 0;
 				}
 			}
 		}
@@ -4320,31 +4605,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, double* x1, double* y1, ref double x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px2 = &x2)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py2 = &y2)
 				{
-					Utils.Free(pStr0);
+					byte ret = DragRectNative(id, x1, y1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+					return ret != 0;
 				}
 			}
 		}
@@ -4352,31 +4620,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* px2 = &x2)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* py2 = &y2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, (double*)py2, col, flags, outClicked, outHovered, outHeld);
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
 				}
 			}
 		}
@@ -4384,31 +4638,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* px2 = &x2)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* py2 = &y2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, (double*)py2, col, flags, outClicked, outHovered, (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, scaleMax, pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
 				}
 			}
 		}
@@ -4416,31 +4656,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* px2 = &x2)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* py2 = &y2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, (double*)py2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
 				}
 			}
 		}
@@ -4448,31 +4674,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, string labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* px2 = &x2)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* py2 = &y2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, (double*)py2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
 				}
 			}
 		}
@@ -4480,31 +4692,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, ref double y2, Vector4 col)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* px2 = &x2)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* py2 = &y2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
 				}
 			}
 		}
@@ -4512,31 +4710,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, ref double y2, Vector4 col, bool* outClicked)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* px2 = &x2)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* py2 = &y2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
 				}
 			}
 		}
@@ -4544,31 +4728,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, double scaleMin, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* px2 = &x2)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* py2 = &y2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, scaleMin, (double)(0), pStr0, boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
 				}
 			}
 		}
@@ -4576,31 +4746,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(ReadOnlySpan<byte> labelId, double* values, int rows, int cols, string labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, double* y1, ref double x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			fixed (byte* plabelId = labelId)
+			fixed (double* px1 = &x1)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (labelFmt != null)
+				fixed (double* px2 = &x2)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(labelFmt);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
+					fixed (double* py2 = &y2)
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte ret = DragRectNative(id, (double*)px1, y1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+						return ret != 0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(labelFmt, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				PlotHeatmapNative((byte*)plabelId, values, rows, cols, (double)(0), (double)(0), pStr0, boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
 				}
 			}
 		}
@@ -4608,31 +4764,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* py1 = &y1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* px2 = &x2)
 				{
-					Utils.Free(pStr0);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, (double*)py2, col, flags, outClicked, outHovered, outHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -4640,31 +4782,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* py1 = &y1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* px2 = &x2)
 				{
-					Utils.Free(pStr0);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, (double*)py2, col, flags, outClicked, outHovered, (bool*)(default));
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -4672,31 +4800,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* py1 = &y1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* px2 = &x2)
 				{
-					Utils.Free(pStr0);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, (double*)py2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -4704,31 +4818,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* py1 = &y1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* px2 = &x2)
 				{
-					Utils.Free(pStr0);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, (double*)py2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -4736,31 +4836,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, ref double y2, Vector4 col)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* py1 = &y1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* px2 = &x2)
 				{
-					Utils.Free(pStr0);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -4768,31 +4854,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, ref byte labelFmt)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, ref double y2, Vector4 col, bool* outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* py1 = &y1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* px2 = &x2)
 				{
-					Utils.Free(pStr0);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -4800,31 +4872,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* py1 = &y1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* px2 = &x2)
 				{
-					Utils.Free(pStr0);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, (bool*)(default));
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -4832,31 +4890,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin)
+		public static bool DragRect(int id, double* x1, ref double y1, ref double x2, ref double y2, Vector4 col, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* py1 = &y1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* px2 = &x2)
 				{
-					Utils.Free(pStr0);
+					fixed (double* py2 = &y2)
+					{
+						byte ret = DragRectNative(id, x1, (double*)py1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, outHovered, outHeld);
+						return ret != 0;
+					}
 				}
 			}
 		}
@@ -4864,31 +4908,20 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered, bool* outHeld)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px1 = &x1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py1 = &y1)
 				{
-					Utils.Free(pStr0);
+					fixed (double* px2 = &x2)
+					{
+						fixed (double* py2 = &y2)
+						{
+							byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, (double*)py2, col, flags, outClicked, outHovered, outHeld);
+							return ret != 0;
+						}
+					}
 				}
 			}
 		}
@@ -4896,31 +4929,20 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotPoint boundsMax)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked, bool* outHovered)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px1 = &x1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, (double)(0), (double)(0), (byte*)plabelFmt, boundsMin, boundsMax, (ImPlotHeatmapFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py1 = &y1)
 				{
-					Utils.Free(pStr0);
+					fixed (double* px2 = &x2)
+					{
+						fixed (double* py2 = &y2)
+						{
+							byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, (double*)py2, col, flags, outClicked, outHovered, (bool*)(default));
+							return ret != 0;
+						}
+					}
 				}
 			}
 		}
@@ -4928,31 +4950,20 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotPoint boundsMin, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags, bool* outClicked)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px1 = &x1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, boundsMin, (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py1 = &y1)
 				{
-					Utils.Free(pStr0);
+					fixed (double* px2 = &x2)
+					{
+						fixed (double* py2 = &y2)
+						{
+							byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, (double*)py2, col, flags, outClicked, (bool*)(default), (bool*)(default));
+							return ret != 0;
+						}
+					}
 				}
 			}
 		}
@@ -4960,31 +4971,20 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, double scaleMax, ref byte labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, ref double y2, Vector4 col, ImPlotDragToolFlags flags)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* plabelFmt = &labelFmt)
+			fixed (double* px1 = &x1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, scaleMax, (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py1 = &y1)
 				{
-					Utils.Free(pStr0);
+					fixed (double* px2 = &x2)
+					{
+						fixed (double* py2 = &y2)
+						{
+							byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, (double*)py2, col, flags, (bool*)(default), (bool*)(default), (bool*)(default));
+							return ret != 0;
+						}
+					}
 				}
 			}
 		}
@@ -4992,31 +4992,41 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotHeatmap(string labelId, double* values, int rows, int cols, double scaleMin, ref byte labelFmt, ImPlotHeatmapFlags flags)
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, ref double y2, Vector4 col)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
+			fixed (double* px1 = &x1)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
+				fixed (double* py1 = &y1)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					fixed (double* px2 = &x2)
+					{
+						fixed (double* py2 = &y2)
+						{
+							byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), (bool*)(default), (bool*)(default), (bool*)(default));
+							return ret != 0;
+						}
+					}
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			fixed (byte* plabelFmt = &labelFmt)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragRect(int id, ref double x1, ref double y1, ref double x2, ref double y2, Vector4 col, bool* outClicked)
+		{
+			fixed (double* px1 = &x1)
 			{
-				PlotHeatmapNative(pStr0, values, rows, cols, scaleMin, (double)(0), (byte*)plabelFmt, (ImPlotPoint)(*ImPlotPointNative(0,0)), (ImPlotPoint)(*ImPlotPointNative(1,1)), flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (double* py1 = &y1)
 				{
-					Utils.Free(pStr0);
+					fixed (double* px2 = &x2)
+					{
+						fixed (double* py2 = &y2)
+						{
+							byte ret = DragRectNative(id, (double*)px1, (double*)py1, (double*)px2, (double*)py2, col, (ImPlotDragToolFlags)(0), outClicked, (bool*)(default), (bool*)(default));
+							return ret != 0;
+						}
+					}
 				}
 			}
 		}

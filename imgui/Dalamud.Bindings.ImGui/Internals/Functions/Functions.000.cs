@@ -24,9 +24,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static uint ImHashDataNative(void* data, nuint dataSize, uint seed)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<void*, nuint, uint, uint>)funcTable[688])(data, dataSize, seed);
+			return ((delegate* unmanaged[Cdecl]<void*, nuint, uint, uint>)funcTable[673])(data, dataSize, seed);
 			#else
-			return (uint)((delegate* unmanaged[Cdecl]<nint, nuint, uint, uint>)funcTable[688])((nint)data, dataSize, seed);
+			return (uint)((delegate* unmanaged[Cdecl]<nint, nuint, uint, uint>)funcTable[673])((nint)data, dataSize, seed);
 			#endif
 		}
 
@@ -55,9 +55,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static uint ImHashStrNative(byte* data, nuint dataSize, uint seed)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, nuint, uint, uint>)funcTable[689])(data, dataSize, seed);
+			return ((delegate* unmanaged[Cdecl]<byte*, nuint, uint, uint>)funcTable[674])(data, dataSize, seed);
 			#else
-			return (uint)((delegate* unmanaged[Cdecl]<nint, nuint, uint, uint>)funcTable[689])((nint)data, dataSize, seed);
+			return (uint)((delegate* unmanaged[Cdecl]<nint, nuint, uint, uint>)funcTable[674])((nint)data, dataSize, seed);
 			#endif
 		}
 
@@ -317,12 +317,151 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static byte* ImHashSkipUncontributingPrefixNative(byte* label)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*>)funcTable[675])(label);
+			#else
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[675])((nint)label);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static byte* ImHashSkipUncontributingPrefix(byte* label)
+		{
+			byte* ret = ImHashSkipUncontributingPrefixNative(label);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static string ImHashSkipUncontributingPrefixS(byte* label)
+		{
+			string ret = Utils.DecodeStringUTF8(ImHashSkipUncontributingPrefixNative(label));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static byte* ImHashSkipUncontributingPrefix(ref byte label)
+		{
+			fixed (byte* plabel = &label)
+			{
+				byte* ret = ImHashSkipUncontributingPrefixNative((byte*)plabel);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static string ImHashSkipUncontributingPrefixS(ref byte label)
+		{
+			fixed (byte* plabel = &label)
+			{
+				string ret = Utils.DecodeStringUTF8(ImHashSkipUncontributingPrefixNative((byte*)plabel));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static byte* ImHashSkipUncontributingPrefix(ReadOnlySpan<byte> label)
+		{
+			fixed (byte* plabel = label)
+			{
+				byte* ret = ImHashSkipUncontributingPrefixNative((byte*)plabel);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static string ImHashSkipUncontributingPrefixS(ReadOnlySpan<byte> label)
+		{
+			fixed (byte* plabel = label)
+			{
+				string ret = Utils.DecodeStringUTF8(ImHashSkipUncontributingPrefixNative((byte*)plabel));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static byte* ImHashSkipUncontributingPrefix(string label)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			byte* ret = ImHashSkipUncontributingPrefixNative(pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static string ImHashSkipUncontributingPrefixS(string label)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			string ret = Utils.DecodeStringUTF8(ImHashSkipUncontributingPrefixNative(pStr0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static void ImQsortNative(void* baseValue, nuint count, nuint sizeOfElement, delegate*<void*, nuint, nuint, delegate*<void*, void*, int>, int> compareFunc)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void*, nuint, nuint, delegate*<void*, nuint, nuint, delegate*<void*, void*, int>, int>, void>)funcTable[690])(baseValue, count, sizeOfElement, compareFunc);
+			((delegate* unmanaged[Cdecl]<void*, nuint, nuint, delegate*<void*, nuint, nuint, delegate*<void*, void*, int>, int>, void>)funcTable[676])(baseValue, count, sizeOfElement, compareFunc);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nuint, nuint, nint, void>)funcTable[690])((nint)baseValue, count, sizeOfElement, (nint)compareFunc);
+			((delegate* unmanaged[Cdecl]<nint, nuint, nuint, nint, void>)funcTable[676])((nint)baseValue, count, sizeOfElement, (nint)compareFunc);
 			#endif
 		}
 
@@ -341,9 +480,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static uint ImAlphaBlendColorsNative(uint colA, uint colB)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<uint, uint, uint>)funcTable[691])(colA, colB);
+			return ((delegate* unmanaged[Cdecl]<uint, uint, uint>)funcTable[677])(colA, colB);
 			#else
-			return (uint)((delegate* unmanaged[Cdecl]<uint, uint, uint>)funcTable[691])(colA, colB);
+			return (uint)((delegate* unmanaged[Cdecl]<uint, uint, uint>)funcTable[677])(colA, colB);
 			#endif
 		}
 
@@ -363,9 +502,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ImIsPowerOfTwoNative(int v)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<int, byte>)funcTable[692])(v);
+			return ((delegate* unmanaged[Cdecl]<int, byte>)funcTable[678])(v);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<int, byte>)funcTable[692])(v);
+			return (byte)((delegate* unmanaged[Cdecl]<int, byte>)funcTable[678])(v);
 			#endif
 		}
 
@@ -385,9 +524,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ImIsPowerOfTwoNative(ulong v)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ulong, byte>)funcTable[693])(v);
+			return ((delegate* unmanaged[Cdecl]<ulong, byte>)funcTable[679])(v);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<ulong, byte>)funcTable[693])(v);
+			return (byte)((delegate* unmanaged[Cdecl]<ulong, byte>)funcTable[679])(v);
 			#endif
 		}
 
@@ -407,9 +546,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImUpperPowerOfTwoNative(int v)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<int, int>)funcTable[694])(v);
+			return ((delegate* unmanaged[Cdecl]<int, int>)funcTable[680])(v);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<int, int>)funcTable[694])(v);
+			return (int)((delegate* unmanaged[Cdecl]<int, int>)funcTable[680])(v);
 			#endif
 		}
 
@@ -426,12 +565,34 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static uint ImCountSetBitsNative(uint v)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<uint, uint>)funcTable[681])(v);
+			#else
+			return (uint)((delegate* unmanaged[Cdecl]<uint, uint>)funcTable[681])(v);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint ImCountSetBits(uint v)
+		{
+			uint ret = ImCountSetBitsNative(v);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static int ImStricmpNative(byte* str1, byte* str2)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, int>)funcTable[695])(str1, str2);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, int>)funcTable[682])(str1, str2);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, nint, int>)funcTable[695])((nint)str1, (nint)str2);
+			return (int)((delegate* unmanaged[Cdecl]<nint, nint, int>)funcTable[682])((nint)str1, (nint)str2);
 			#endif
 		}
 
@@ -802,9 +963,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImStrnicmpNative(byte* str1, byte* str2, nuint count)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, int>)funcTable[696])(str1, str2, count);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, int>)funcTable[683])(str1, str2, count);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, nint, nuint, int>)funcTable[696])((nint)str1, (nint)str2, count);
+			return (int)((delegate* unmanaged[Cdecl]<nint, nint, nuint, int>)funcTable[683])((nint)str1, (nint)str2, count);
 			#endif
 		}
 
@@ -1175,9 +1336,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ImStrncpyNative(byte* dst, byte* src, nuint count)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, void>)funcTable[697])(dst, src, count);
+			((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, void>)funcTable[684])(dst, src, count);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, nuint, void>)funcTable[697])((nint)dst, (nint)src, count);
+			((delegate* unmanaged[Cdecl]<nint, nint, nuint, void>)funcTable[684])((nint)dst, (nint)src, count);
 			#endif
 		}
 
@@ -1465,9 +1626,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImStrdupNative(byte* str)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*>)funcTable[698])(str);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*>)funcTable[685])(str);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[698])((nint)str);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[685])((nint)str);
 			#endif
 		}
 
@@ -1601,12 +1762,34 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void* ImMemdupNative(void* src, nuint size)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<void*, nuint, void*>)funcTable[686])(src, size);
+			#else
+			return (void*)((delegate* unmanaged[Cdecl]<nint, nuint, nint>)funcTable[686])((nint)src, size);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void* ImMemdup(void* src, nuint size)
+		{
+			void* ret = ImMemdupNative(src, size);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static byte* ImStrdupcpyNative(byte* dst, nuint* pDstSize, byte* str)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, nuint*, byte*, byte*>)funcTable[699])(dst, pDstSize, str);
+			return ((delegate* unmanaged[Cdecl]<byte*, nuint*, byte*, byte*>)funcTable[687])(dst, pDstSize, str);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint>)funcTable[699])((nint)dst, (nint)pDstSize, (nint)str);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint>)funcTable[687])((nint)dst, (nint)pDstSize, (nint)str);
 			#endif
 		}
 
@@ -2195,9 +2378,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImStrchrRangeNative(byte* strBegin, byte* strEnd, byte c)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte, byte*>)funcTable[700])(strBegin, strEnd, c);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte, byte*>)funcTable[688])(strBegin, strEnd, c);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, byte, nint>)funcTable[700])((nint)strBegin, (nint)strEnd, c);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, byte, nint>)funcTable[688])((nint)strBegin, (nint)strEnd, c);
 			#endif
 		}
 
@@ -2925,34 +3108,12 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static int ImStrlenWNative(ushort* str)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ushort*, int>)funcTable[701])(str);
-			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, int>)funcTable[701])((nint)str);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static int ImStrlenW(ushort* str)
-		{
-			int ret = ImStrlenWNative(str);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static byte* ImStreolRangeNative(byte* str, byte* strEnd)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*>)funcTable[702])(str, strEnd);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*>)funcTable[689])(str, strEnd);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint>)funcTable[702])((nint)str, (nint)strEnd);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint>)funcTable[689])((nint)str, (nint)strEnd);
 			#endif
 		}
 
@@ -3680,34 +3841,12 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ushort* ImStrbolWNative(ushort* bufMidLine, ushort* bufBegin)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ushort*, ushort*, ushort*>)funcTable[703])(bufMidLine, bufBegin);
-			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint, nint>)funcTable[703])((nint)bufMidLine, (nint)bufBegin);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ushort* ImStrbolW(ushort* bufMidLine, ushort* bufBegin)
-		{
-			ushort* ret = ImStrbolWNative(bufMidLine, bufBegin);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static byte* ImStristrNative(byte* haystack, byte* haystackEnd, byte* needle, byte* needleEnd)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, byte*, byte*>)funcTable[704])(haystack, haystackEnd, needle, needleEnd);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, byte*, byte*>)funcTable[690])(haystack, haystackEnd, needle, needleEnd);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint, nint>)funcTable[704])((nint)haystack, (nint)haystackEnd, (nint)needle, (nint)needleEnd);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint, nint>)funcTable[690])((nint)haystack, (nint)haystackEnd, (nint)needle, (nint)needleEnd);
 			#endif
 		}
 
@@ -4885,138 +5024,6 @@ namespace Dalamud.Bindings.ImGui
 					pStr0[pStrOffset0] = 0;
 				}
 				string ret = Utils.DecodeStringUTF8(ImStristrNative((byte*)phaystack, haystackEnd, pStr0, needleEnd));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static byte* ImStristr(string haystack, byte* haystackEnd, ref byte needle, byte* needleEnd)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (haystack != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(haystack);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(haystack, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pneedle = &needle)
-			{
-				byte* ret = ImStristrNative(pStr0, haystackEnd, (byte*)pneedle, needleEnd);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static string ImStristrS(string haystack, byte* haystackEnd, ref byte needle, byte* needleEnd)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (haystack != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(haystack);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(haystack, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pneedle = &needle)
-			{
-				string ret = Utils.DecodeStringUTF8(ImStristrNative(pStr0, haystackEnd, (byte*)pneedle, needleEnd));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static byte* ImStristr(string haystack, byte* haystackEnd, ReadOnlySpan<byte> needle, byte* needleEnd)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (haystack != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(haystack);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(haystack, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pneedle = needle)
-			{
-				byte* ret = ImStristrNative(pStr0, haystackEnd, (byte*)pneedle, needleEnd);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static string ImStristrS(string haystack, byte* haystackEnd, ReadOnlySpan<byte> needle, byte* needleEnd)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (haystack != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(haystack);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(haystack, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pneedle = needle)
-			{
-				string ret = Utils.DecodeStringUTF8(ImStristrNative(pStr0, haystackEnd, (byte*)pneedle, needleEnd));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);

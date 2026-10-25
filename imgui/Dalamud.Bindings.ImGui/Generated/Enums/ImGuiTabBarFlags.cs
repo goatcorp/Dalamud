@@ -57,21 +57,31 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		FittingPolicyResizeDown = unchecked(64),
+		DrawSelectedOverline = unchecked(64),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		FittingPolicyScroll = unchecked(128),
+		FittingPolicyMixed = unchecked(128),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		FittingPolicyMask = unchecked(192),
+		FittingPolicyShrink = unchecked(256),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		FittingPolicyDefault = FittingPolicyResizeDown,
+		FittingPolicyScroll = unchecked(512),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		FittingPolicyMask = unchecked(896),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		FittingPolicyDefault = FittingPolicyMixed,
 	}
 }

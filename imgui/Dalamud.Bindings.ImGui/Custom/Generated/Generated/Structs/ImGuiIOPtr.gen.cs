@@ -31,21 +31,29 @@ public unsafe partial struct ImGuiIOPtr
 		{
 			ImGuiNative.AddMousePosEvent(Handle, x, y);
 		}
+		public unsafe void AddMouseSourceEvent(ImGuiMouseSource source)
+		{
+			ImGuiNative.AddMouseSourceEvent(Handle, source);
+		}
 		public unsafe void AddMouseViewportEvent(uint id)
 		{
 			ImGuiNative.AddMouseViewportEvent(Handle, id);
 		}
-		public unsafe void AddMouseWheelEvent(float whX, float whY)
+		public unsafe void AddMouseWheelEvent(float wheelX, float wheelY)
 		{
-			ImGuiNative.AddMouseWheelEvent(Handle, whX, whY);
+			ImGuiNative.AddMouseWheelEvent(Handle, wheelX, wheelY);
 		}
-		public unsafe void ClearInputCharacters()
+		public unsafe void ClearEventsQueue()
 		{
-			ImGuiNative.ClearInputCharacters(Handle);
+			ImGuiNative.ClearEventsQueue(Handle);
 		}
 		public unsafe void ClearInputKeys()
 		{
 			ImGuiNative.ClearInputKeys(Handle);
+		}
+		public unsafe void ClearInputMouse()
+		{
+			ImGuiNative.ClearInputMouse(Handle);
 		}
 		public unsafe void Destroy()
 		{

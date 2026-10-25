@@ -52,7 +52,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		SourceAutoExpirePayload = unchecked(32),
+		PayloadAutoExpire = unchecked(32),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		PayloadNoCrossContext = unchecked(64),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		PayloadNoCrossProcess = unchecked(128),
 
 		/// <summary>
 		/// To be documented.
@@ -68,6 +78,11 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		AcceptNoPreviewTooltip = unchecked(4096),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AcceptDrawAsHovered = unchecked(8192),
 
 		/// <summary>
 		/// To be documented.

@@ -42,16 +42,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Clipboard = unchecked(4),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		Nav = unchecked(5),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		Count = unchecked(6),
+		Count = unchecked(4),
 	}
 }

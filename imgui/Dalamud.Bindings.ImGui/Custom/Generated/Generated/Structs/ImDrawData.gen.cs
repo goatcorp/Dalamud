@@ -11,6 +11,23 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImDrawData
 {
+		public unsafe void AddDrawList(ImDrawListPtr drawList)
+		{
+			fixed (ImDrawData* @this = &this)
+			{
+				ImGuiNative.AddDrawList(@this, drawList);
+			}
+		}
+		public unsafe void AddDrawList(ref ImDrawList drawList)
+		{
+			fixed (ImDrawData* @this = &this)
+			{
+				fixed (ImDrawList* pdrawList = &drawList)
+				{
+					ImGuiNative.AddDrawList(@this, (ImDrawList*)pdrawList);
+				}
+			}
+		}
 		public unsafe void Clear()
 		{
 			fixed (ImDrawData* @this = &this)

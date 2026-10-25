@@ -23,141 +23,106 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		LineWeight = unchecked(0),
+		DefaultSize = unchecked(0),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Marker = unchecked(1),
+		MinSize = unchecked(1),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MarkerSize = unchecked(2),
+		BorderSize = unchecked(2),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MarkerWeight = unchecked(3),
+		MinorAlpha = unchecked(3),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		FillAlpha = unchecked(4),
+		MajorTickLen = unchecked(4),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ErrorBarSize = unchecked(5),
+		MinorTickLen = unchecked(5),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ErrorBarWeight = unchecked(6),
+		MajorTickSize = unchecked(6),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DigitalHeight = unchecked(7),
+		MinorTickSize = unchecked(7),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DigitalGap = unchecked(8),
+		MajorGridSize = unchecked(8),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		BorderSize = unchecked(9),
+		MinorGridSize = unchecked(9),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MinorAlpha = unchecked(10),
+		Padding = unchecked(10),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MajorTickLen = unchecked(11),
+		LabelPadding = unchecked(11),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MinorTickLen = unchecked(12),
+		LegendPadding = unchecked(12),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MajorTickSize = unchecked(13),
+		LegendInnerPadding = unchecked(13),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MinorTickSize = unchecked(14),
+		LegendSpacing = unchecked(14),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MajorGridSize = unchecked(15),
+		MousePosPadding = unchecked(15),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MinorGridSize = unchecked(16),
+		AnnotationPadding = unchecked(16),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Padding = unchecked(17),
+		FitPadding = unchecked(17),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		LabelPadding = unchecked(18),
+		DigitalPadding = unchecked(18),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		LegendPadding = unchecked(19),
+		DigitalSpacing = unchecked(19),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		LegendInnerPadding = unchecked(20),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		LegendSpacing = unchecked(21),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		MousePosPadding = unchecked(22),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		AnnotationPadding = unchecked(23),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		FitPadding = unchecked(24),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		DefaultSize = unchecked(25),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		MinSize = unchecked(26),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		Count = unchecked(27),
+		Count = unchecked(20),
 	}
 }

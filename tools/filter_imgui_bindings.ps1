@@ -20,11 +20,6 @@ $sourcePaths = (
     $null
 )
 
-# replace "ImGuiKey.GamepadStart"
-$tmp = Get-Content -Path "$repoRoot\imgui\Dalamud.Bindings.ImGui\Generated\Enums\ImGuiKeyPrivate.cs" -Raw
-$tmp = $tmp.Replace("unchecked((int)GamepadStart)", "unchecked((int)ImGuiKey.GamepadStart)").Trim()
-$tmp.Trim() | Set-Content -Path "$repoRoot\imgui\Dalamud.Bindings.ImGui\Generated\Enums\ImGuiKeyPrivate.cs" -Encoding ascii
-
 try
 {
     Remove-Item -Path "$repoRoot\imgui\Dalamud.Bindings.ImGui\Generated\Handles\ImTextureID.cs" -Force
@@ -43,6 +38,7 @@ foreach ($sourcePath in $sourcePaths)
 
     $targetPath = "$( Split-Path $( Split-Path $sourcePath ) )/Custom/Generated/$( Split-Path $( Split-Path $sourcePath ) -Leaf )/$( Split-Path $sourcePath -Leaf )"
     $null = New-Item -Path $targetPath -Type Container -Force
+    Get-ChildItem -Path $targetPath -Filter "*.cs" | Remove-Item
 
     $namespace = $null
     $classes = New-Object -TypeName "System.Collections.Generic.Dictionary[string, System.Collections.Generic.Dictionary[string, System.Collections.Generic.List[System.Text.RegularExpressions.Match]]]"
@@ -64,6 +60,7 @@ foreach ($sourcePath in $sourcePaths)
         $fileData = Get-Content -Path $file.FullName -Raw
         $fileData = [Regex]::Replace($fileData, '#else\s*$[\s\S]*?^\s*#endif\s*$', '#endif', 'Multiline')
         $fileData = [Regex]::Replace($fileData, '^\s*(#if(?:def)?\s+.*|#endif\s*)$', '', 'Multiline')
+        $fileData = [Regex]::Replace($fileData, '(?<=\b\d+)\.f\b', '.0f')
         $namespace = $namespaceDefPattern.Match($fileData).Groups["namespace"].Value
         $classDefMatches = $classDefPattern.Matches($fileData)
         foreach ($using in $usingPattern.Matches($fileData))
@@ -132,11 +129,11 @@ foreach ($sourcePath in $sourcePaths)
     }
 
     $husks = $husks.ToString()
-    $husks = [Regex]::Replace($husks, '^\s*//.*\r\n', '', 'Multiline')
-    $husks = [Regex]::Replace($husks, '^\s*using .*;\r\n', '', 'Multiline')
+    $husks = [Regex]::Replace($husks, '^\s*//.*\r?\n', '', 'Multiline')
+    $husks = [Regex]::Replace($husks, '^\s*using .*;\r?\n', '', 'Multiline')
     # $husks = $emptyClassPattern.Replace($husks, '')
     # $husks = $emptyNamespacePattern.Replace($husks, '')
-    $husks = [Regex]::Replace($husks, '\s*\r\n', "`r`n", 'Multiline').Trim()
+    $husks = [Regex]::Replace($husks, '\s*\r?\n', "`r`n", 'Multiline').Trim()
     if ($husks -ne '')
     {
         $husks = [Regex]::Replace($husks, '\}\s*' + [Regex]::Escape("namespace $namespace") + '\s*\{', "", 'Multiline').Trim()
@@ -183,7 +180,10 @@ foreach ($sourcePath in $sourcePaths)
 
                 # discard specific functions
                 if ($methodName.StartsWith("ImGuiTextRange") -or
-                    $methodName.StartsWith("AddInputCharacter"))
+                    $methodName.StartsWith("AddInputCharacter") -or
+                    $methodName -eq "GetTextDesc" -or
+                    $methodName -eq "SetTextCallbacks" -or
+                    $methodName -eq "AddTextLayout")
                 {
                     $null = $discardMethods.Add($methodName)
                     continue
@@ -247,6 +247,12 @@ foreach ($sourcePath in $sourcePaths)
                 continue
             }
 
+            # The delegate version lets the delegates be collected. ImGuiNative.Custom.cs declares the one to use.
+            if ($isNative -and $methodName.Value -eq "SetTextCallbacksNative")
+            {
+                continue
+            }
+
             foreach ($overload in $methods)
             {
                 if ($isNative)
@@ -260,6 +266,7 @@ foreach ($sourcePath in $sourcePaths)
                 $tmp = $referNativeFunctionQualified.Replace($tmp, '$1Native.$2')
                 $tmp = $tmp -creplace '(?<=Get[A-Za-z0-9_]+\()ref ([A-Za-z*]+) self(?=, |\))', 'this scoped in $1 self'
                 $tmp = $tmp -creplace '(?<=\()(ref )?([A-Za-z*]+) self(?=, |\))', 'this $1$2 self'
+                $tmp = $tmp -creplace 'public (?=static void PushFont\()', 'internal '
                 $null = $sb.Append($tmp)
             }
         }

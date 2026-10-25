@@ -30,7 +30,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int CmdListsCount;
+		public int FrameCount;
 
 		/// <summary>
 		/// To be documented.
@@ -45,7 +45,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImDrawList** CmdLists;
+		public ImVector<ImDrawListPtr> CmdLists;
 
 		/// <summary>
 		/// To be documented.
@@ -67,14 +67,19 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe ImGuiViewport* OwnerViewport;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImVector<ImTextureDataPtr>* Textures;
+
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImDrawData(bool valid = default, int cmdListsCount = default, int totalIdxCount = default, int totalVtxCount = default, ImDrawListPtrPtr cmdLists = default, Vector2 displayPos = default, Vector2 displaySize = default, Vector2 framebufferScale = default, ImGuiViewport* ownerViewport = default)
+		public unsafe ImDrawData(bool valid = default, int frameCount = default, int totalIdxCount = default, int totalVtxCount = default, ImVector<ImDrawListPtr> cmdLists = default, Vector2 displayPos = default, Vector2 displaySize = default, Vector2 framebufferScale = default, ImGuiViewportPtr ownerViewport = default, ImVector<ImTextureDataPtr>* textures = default)
 		{
 			Valid = valid ? (byte)1 : (byte)0;
-			CmdListsCount = cmdListsCount;
+			FrameCount = frameCount;
 			TotalIdxCount = totalIdxCount;
 			TotalVtxCount = totalVtxCount;
 			CmdLists = cmdLists;
@@ -82,8 +87,34 @@ namespace Dalamud.Bindings.ImGui
 			DisplaySize = displaySize;
 			FramebufferScale = framebufferScale;
 			OwnerViewport = ownerViewport;
+			Textures = textures;
 		}
 
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddDrawList(ImDrawListPtr drawList)
+		{
+			fixed (ImDrawData* @this = &this)
+			{
+				ImGui.AddDrawListNative(@this, drawList);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddDrawList(ref ImDrawList drawList)
+		{
+			fixed (ImDrawData* @this = &this)
+			{
+				fixed (ImDrawList* pdrawList = &drawList)
+				{
+					ImGui.AddDrawListNative(@this, (ImDrawList*)pdrawList);
+				}
+			}
+		}
 
 		/// <summary>
 		/// To be documented.
@@ -179,7 +210,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int CmdListsCount => ref Unsafe.AsRef<int>(&Handle->CmdListsCount);
+		public ref int FrameCount => ref Unsafe.AsRef<int>(&Handle->FrameCount);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -191,7 +222,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImDrawListPtrPtr CmdLists => ref Unsafe.AsRef<ImDrawListPtrPtr>(&Handle->CmdLists);
+		public ref ImVector<ImDrawListPtr> CmdLists => ref Unsafe.AsRef<ImVector<ImDrawListPtr>>(&Handle->CmdLists);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -208,6 +239,29 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref ImGuiViewportPtr OwnerViewport => ref Unsafe.AsRef<ImGuiViewportPtr>(&Handle->OwnerViewport);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImVector<ImTextureDataPtr> Textures => ref Unsafe.AsRef<ImVector<ImTextureDataPtr>>(Handle->Textures);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddDrawList(ImDrawListPtr drawList)
+		{
+			ImGui.AddDrawListNative(Handle, drawList);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddDrawList(ref ImDrawList drawList)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				ImGui.AddDrawListNative(Handle, (ImDrawList*)pdrawList);
+			}
+		}
+
 		/// <summary>
 		/// To be documented.
 		/// </summary>

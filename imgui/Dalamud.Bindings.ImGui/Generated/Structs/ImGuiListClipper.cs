@@ -35,6 +35,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public int UserIndex;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public int ItemsCount;
 
 		/// <summary>
@@ -45,7 +50,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float StartPosY;
+		public ImGuiListClipperFlags Flags;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public double StartPosY;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public double StartSeekOffsetY;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImGuiContext* Ctx;
 
 		/// <summary>
 		/// To be documented.
@@ -56,13 +76,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiListClipper(int displayStart = default, int displayEnd = default, int itemsCount = default, float itemsHeight = default, float startPosY = default, void* tempData = default)
+		public unsafe ImGuiListClipper(int displayStart = default, int displayEnd = default, int userIndex = default, int itemsCount = default, float itemsHeight = default, ImGuiListClipperFlags flags = default, double startPosY = default, double startSeekOffsetY = default, ImGuiContextPtr ctx = default, void* tempData = default)
 		{
 			DisplayStart = displayStart;
 			DisplayEnd = displayEnd;
+			UserIndex = userIndex;
 			ItemsCount = itemsCount;
 			ItemsHeight = itemsHeight;
+			Flags = flags;
 			StartPosY = startPosY;
+			StartSeekOffsetY = startSeekOffsetY;
+			Ctx = ctx;
 			TempData = tempData;
 		}
 
@@ -114,11 +138,33 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void ForceDisplayRangeByIndices(int itemMin, int itemMax)
+		public unsafe void IncludeItemByIndex(int itemIndex)
 		{
 			fixed (ImGuiListClipper* @this = &this)
 			{
-				ImGui.ForceDisplayRangeByIndicesNative(@this, itemMin, itemMax);
+				ImGui.IncludeItemByIndexNative(@this, itemIndex);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void IncludeItemsByIndex(int itemBegin, int itemEnd)
+		{
+			fixed (ImGuiListClipper* @this = &this)
+			{
+				ImGui.IncludeItemsByIndexNative(@this, itemBegin, itemEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void SeekCursorForItem(int itemIndex)
+		{
+			fixed (ImGuiListClipper* @this = &this)
+			{
+				ImGui.SeekCursorForItemNative(@this, itemIndex);
 			}
 		}
 
@@ -188,6 +234,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref int UserIndex => ref Unsafe.AsRef<int>(&Handle->UserIndex);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref int ItemsCount => ref Unsafe.AsRef<int>(&Handle->ItemsCount);
 		/// <summary>
 		/// To be documented.
@@ -196,7 +246,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float StartPosY => ref Unsafe.AsRef<float>(&Handle->StartPosY);
+		public ref ImGuiListClipperFlags Flags => ref Unsafe.AsRef<ImGuiListClipperFlags>(&Handle->Flags);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref double StartPosY => ref Unsafe.AsRef<double>(&Handle->StartPosY);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref double StartSeekOffsetY => ref Unsafe.AsRef<double>(&Handle->StartSeekOffsetY);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiContextPtr Ctx => ref Unsafe.AsRef<ImGuiContextPtr>(&Handle->Ctx);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -236,9 +298,25 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void ForceDisplayRangeByIndices(int itemMin, int itemMax)
+		public unsafe void IncludeItemByIndex(int itemIndex)
 		{
-			ImGui.ForceDisplayRangeByIndicesNative(Handle, itemMin, itemMax);
+			ImGui.IncludeItemByIndexNative(Handle, itemIndex);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void IncludeItemsByIndex(int itemBegin, int itemEnd)
+		{
+			ImGui.IncludeItemsByIndexNative(Handle, itemBegin, itemEnd);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void SeekCursorForItem(int itemIndex)
+		{
+			ImGui.SeekCursorForItemNative(Handle, itemIndex);
 		}
 
 		/// <summary>

@@ -47,6 +47,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MouseButtonDefault = MouseButtonLeft,
+		EnableNav = unchecked(8),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AllowOverlap = unchecked(4096),
 	}
 }

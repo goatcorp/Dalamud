@@ -27,11 +27,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		SelectOnNav = unchecked(2097152),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		SelectOnClick = unchecked(4194304),
 
 		/// <summary>
@@ -47,16 +42,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DrawHoveredWhenHeld = unchecked(33554432),
+		SetNavIdOnHover = unchecked(33554432),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		SetNavIdOnHover = unchecked(67108864),
+		NoPadWithHalfSpacing = unchecked(67108864),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoPadWithHalfSpacing = unchecked(134217728),
+		NoSetKeyOwner = unchecked(134217728),
 	}
 }

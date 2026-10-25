@@ -20,10 +20,7 @@ public unsafe partial class ImGuiP
         MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ImGuiPNative.GetName(self.Handle));
 
     public static ReadOnlySpan<byte> GetTabNameU8(this ImGuiTabBarPtr self, ImGuiTabItemPtr tab) =>
-        MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ImGuiPNative.GetTabName(self.Handle, tab.Handle));
-
-    public static ReadOnlySpan<byte> GetNavInputNameU8(this ImGuiNavInput n) =>
-        MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ImGuiPNative.GetNavInputName(n));
+        MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ImGuiPNative.TabBarGetTabName(self.Handle, tab.Handle));
 
     public static ReadOnlySpan<byte> TableGetColumnNameU8(this ImGuiTablePtr table, int columnN) =>
         MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ImGuiPNative.TableGetColumnName(table.Handle, columnN));
@@ -66,8 +63,6 @@ public unsafe partial class ImGuiP
 
     public static string GetTabName(this ImGuiTabBarPtr self, in ImGuiTabItem tab) =>
         Encoding.UTF8.GetString(GetTabNameU8(self, tab));
-
-    public static string GetNavInputName(this ImGuiNavInput n) => Encoding.UTF8.GetString(GetNavInputNameU8(n));
 
     public static string TableGetColumnName(this ImGuiTablePtr table, int columnN) =>
         Encoding.UTF8.GetString(TableGetColumnNameU8(table, columnN));

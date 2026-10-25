@@ -30,67 +30,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte FontAtlasOwnedByContext;
+		public byte WithinFrameScope;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiIO IO;
+		public byte WithinFrameScopeWithImplicitWindow;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiPlatformIO PlatformIO;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImVector<ImGuiInputEvent> InputEventsQueue;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImVector<ImGuiInputEvent> InputEventsTrail;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImGuiStyle Style;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImGuiConfigFlags ConfigFlagsCurrFrame;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImGuiConfigFlags ConfigFlagsLastFrame;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe ImFont* Font;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float FontSize;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float FontBaseSize;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImDrawListSharedData DrawListSharedData;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public double Time;
+		public byte TestEngineHookItems;
 
 		/// <summary>
 		/// To be documented.
@@ -115,32 +65,132 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte WithinFrameScope;
+		public double Time;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte WithinFrameScopeWithImplicitWindow;
+		public byte ContextName_0;
+		public byte ContextName_1;
+		public byte ContextName_2;
+		public byte ContextName_3;
+		public byte ContextName_4;
+		public byte ContextName_5;
+		public byte ContextName_6;
+		public byte ContextName_7;
+		public byte ContextName_8;
+		public byte ContextName_9;
+		public byte ContextName_10;
+		public byte ContextName_11;
+		public byte ContextName_12;
+		public byte ContextName_13;
+		public byte ContextName_14;
+		public byte ContextName_15;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte WithinEndChild;
+		public ImGuiIO IO;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte GcCompactAll;
+		public ImGuiPlatformIO PlatformIO;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte TestEngineHookItems;
+		public ImGuiStyle Style;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiConfigFlags ConfigFlagsCurrFrame;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiConfigFlags ConfigFlagsLastFrame;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImVector<ImFontAtlasPtr> FontAtlases;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImFont* Font;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImFontBaked* FontBaked;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float FontSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float FontSizeBase;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float FontBakedScale;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float CurrentPixelDensity;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float CurrentDpiScale;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImDrawListSharedData DrawListSharedData;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint WithinEndChildID;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint WithinEndPopupID;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public unsafe void* TestEngine;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImVector<ImGuiInputEvent> InputEventsQueue;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImVector<ImGuiInputEvent> InputEventsTrail;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiMouseSource InputEventsNextMouseSource;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint InputEventsNextEventId;
 
 		/// <summary>
 		/// To be documented.
@@ -175,7 +225,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public Vector2 WindowsHoverPadding;
+		public float WindowsBorderHoverPadding;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint DebugBreakInWindow;
 
 		/// <summary>
 		/// To be documented.
@@ -195,7 +250,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiDockNode* HoveredDockNode;
+		public unsafe ImGuiWindow* HoveredWindowBeforeClear;
 
 		/// <summary>
 		/// To be documented.
@@ -215,12 +270,42 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float WheelingWindowTimer;
+		public int WheelingWindowStartFrame;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public uint DebugHookIdInfo;
+		public int WheelingWindowScrolledFrame;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float WheelingWindowReleaseTimer;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public Vector2 WheelingWindowWheelRemainder;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public Vector2 WheelingAxisAvg;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe byte* MixedValueLabel;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint DebugDrawIdConflictsId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint DebugHookIdInfoId;
 
 		/// <summary>
 		/// To be documented.
@@ -235,22 +320,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte HoveredIdAllowOverlap;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte HoveredIdUsingMouseWheel;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte HoveredIdPreviousFrameUsingMouseWheel;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte HoveredIdDisabled;
+		public int HoveredIdPreviousFrameItemCount;
 
 		/// <summary>
 		/// To be documented.
@@ -261,6 +331,26 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public float HoveredIdNotActiveTimer;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte HoveredIdAllowOverlap;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte HoveredIdIsDisabled;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte ItemUnclipByLog;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte AnyIdHasBeenEditedThisFrame;
 
 		/// <summary>
 		/// To be documented.
@@ -281,6 +371,16 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public byte ActiveIdIsJustActivated;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte ActiveIdWasSelected;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte ActiveIdWasSoleSelected;
 
 		/// <summary>
 		/// To be documented.
@@ -310,12 +410,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public Vector2 ActiveIdClickOffset;
+		public byte ActiveIdFromShortcut;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiWindow* ActiveIdWindow;
+		public sbyte ActiveIdMouseButton;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint ActiveIdDisabledId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public Vector2 ActiveIdClickOffset;
 
 		/// <summary>
 		/// To be documented.
@@ -325,7 +435,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int ActiveIdMouseButton;
+		public unsafe ImGuiWindow* ActiveIdWindow;
 
 		/// <summary>
 		/// To be documented.
@@ -335,17 +445,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte ActiveIdPreviousFrameIsAlive;
+		public ImGuiDeactivatedItemData DeactivatedItemData;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte ActiveIdPreviousFrameHasBeenEditedBefore;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe ImGuiWindow* ActiveIdPreviousFrameWindow;
+		public ImGuiDataTypeStorage ActiveIdValueOnActivation;
 
 		/// <summary>
 		/// To be documented.
@@ -360,7 +465,196 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte ActiveIdUsingMouseWheel;
+		public byte LastActiveIdWasSelected;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte LastActiveIdWasSoleSelected;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public double LastKeyModsChangeTime;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public double LastKeyModsChangeFromNoneTime;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public double LastKeyboardKeyPressTime;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImBitArrayForNamedKeys KeysMayBeCharInput;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiKeyOwnerData KeysOwnerData_0;
+		public ImGuiKeyOwnerData KeysOwnerData_1;
+		public ImGuiKeyOwnerData KeysOwnerData_2;
+		public ImGuiKeyOwnerData KeysOwnerData_3;
+		public ImGuiKeyOwnerData KeysOwnerData_4;
+		public ImGuiKeyOwnerData KeysOwnerData_5;
+		public ImGuiKeyOwnerData KeysOwnerData_6;
+		public ImGuiKeyOwnerData KeysOwnerData_7;
+		public ImGuiKeyOwnerData KeysOwnerData_8;
+		public ImGuiKeyOwnerData KeysOwnerData_9;
+		public ImGuiKeyOwnerData KeysOwnerData_10;
+		public ImGuiKeyOwnerData KeysOwnerData_11;
+		public ImGuiKeyOwnerData KeysOwnerData_12;
+		public ImGuiKeyOwnerData KeysOwnerData_13;
+		public ImGuiKeyOwnerData KeysOwnerData_14;
+		public ImGuiKeyOwnerData KeysOwnerData_15;
+		public ImGuiKeyOwnerData KeysOwnerData_16;
+		public ImGuiKeyOwnerData KeysOwnerData_17;
+		public ImGuiKeyOwnerData KeysOwnerData_18;
+		public ImGuiKeyOwnerData KeysOwnerData_19;
+		public ImGuiKeyOwnerData KeysOwnerData_20;
+		public ImGuiKeyOwnerData KeysOwnerData_21;
+		public ImGuiKeyOwnerData KeysOwnerData_22;
+		public ImGuiKeyOwnerData KeysOwnerData_23;
+		public ImGuiKeyOwnerData KeysOwnerData_24;
+		public ImGuiKeyOwnerData KeysOwnerData_25;
+		public ImGuiKeyOwnerData KeysOwnerData_26;
+		public ImGuiKeyOwnerData KeysOwnerData_27;
+		public ImGuiKeyOwnerData KeysOwnerData_28;
+		public ImGuiKeyOwnerData KeysOwnerData_29;
+		public ImGuiKeyOwnerData KeysOwnerData_30;
+		public ImGuiKeyOwnerData KeysOwnerData_31;
+		public ImGuiKeyOwnerData KeysOwnerData_32;
+		public ImGuiKeyOwnerData KeysOwnerData_33;
+		public ImGuiKeyOwnerData KeysOwnerData_34;
+		public ImGuiKeyOwnerData KeysOwnerData_35;
+		public ImGuiKeyOwnerData KeysOwnerData_36;
+		public ImGuiKeyOwnerData KeysOwnerData_37;
+		public ImGuiKeyOwnerData KeysOwnerData_38;
+		public ImGuiKeyOwnerData KeysOwnerData_39;
+		public ImGuiKeyOwnerData KeysOwnerData_40;
+		public ImGuiKeyOwnerData KeysOwnerData_41;
+		public ImGuiKeyOwnerData KeysOwnerData_42;
+		public ImGuiKeyOwnerData KeysOwnerData_43;
+		public ImGuiKeyOwnerData KeysOwnerData_44;
+		public ImGuiKeyOwnerData KeysOwnerData_45;
+		public ImGuiKeyOwnerData KeysOwnerData_46;
+		public ImGuiKeyOwnerData KeysOwnerData_47;
+		public ImGuiKeyOwnerData KeysOwnerData_48;
+		public ImGuiKeyOwnerData KeysOwnerData_49;
+		public ImGuiKeyOwnerData KeysOwnerData_50;
+		public ImGuiKeyOwnerData KeysOwnerData_51;
+		public ImGuiKeyOwnerData KeysOwnerData_52;
+		public ImGuiKeyOwnerData KeysOwnerData_53;
+		public ImGuiKeyOwnerData KeysOwnerData_54;
+		public ImGuiKeyOwnerData KeysOwnerData_55;
+		public ImGuiKeyOwnerData KeysOwnerData_56;
+		public ImGuiKeyOwnerData KeysOwnerData_57;
+		public ImGuiKeyOwnerData KeysOwnerData_58;
+		public ImGuiKeyOwnerData KeysOwnerData_59;
+		public ImGuiKeyOwnerData KeysOwnerData_60;
+		public ImGuiKeyOwnerData KeysOwnerData_61;
+		public ImGuiKeyOwnerData KeysOwnerData_62;
+		public ImGuiKeyOwnerData KeysOwnerData_63;
+		public ImGuiKeyOwnerData KeysOwnerData_64;
+		public ImGuiKeyOwnerData KeysOwnerData_65;
+		public ImGuiKeyOwnerData KeysOwnerData_66;
+		public ImGuiKeyOwnerData KeysOwnerData_67;
+		public ImGuiKeyOwnerData KeysOwnerData_68;
+		public ImGuiKeyOwnerData KeysOwnerData_69;
+		public ImGuiKeyOwnerData KeysOwnerData_70;
+		public ImGuiKeyOwnerData KeysOwnerData_71;
+		public ImGuiKeyOwnerData KeysOwnerData_72;
+		public ImGuiKeyOwnerData KeysOwnerData_73;
+		public ImGuiKeyOwnerData KeysOwnerData_74;
+		public ImGuiKeyOwnerData KeysOwnerData_75;
+		public ImGuiKeyOwnerData KeysOwnerData_76;
+		public ImGuiKeyOwnerData KeysOwnerData_77;
+		public ImGuiKeyOwnerData KeysOwnerData_78;
+		public ImGuiKeyOwnerData KeysOwnerData_79;
+		public ImGuiKeyOwnerData KeysOwnerData_80;
+		public ImGuiKeyOwnerData KeysOwnerData_81;
+		public ImGuiKeyOwnerData KeysOwnerData_82;
+		public ImGuiKeyOwnerData KeysOwnerData_83;
+		public ImGuiKeyOwnerData KeysOwnerData_84;
+		public ImGuiKeyOwnerData KeysOwnerData_85;
+		public ImGuiKeyOwnerData KeysOwnerData_86;
+		public ImGuiKeyOwnerData KeysOwnerData_87;
+		public ImGuiKeyOwnerData KeysOwnerData_88;
+		public ImGuiKeyOwnerData KeysOwnerData_89;
+		public ImGuiKeyOwnerData KeysOwnerData_90;
+		public ImGuiKeyOwnerData KeysOwnerData_91;
+		public ImGuiKeyOwnerData KeysOwnerData_92;
+		public ImGuiKeyOwnerData KeysOwnerData_93;
+		public ImGuiKeyOwnerData KeysOwnerData_94;
+		public ImGuiKeyOwnerData KeysOwnerData_95;
+		public ImGuiKeyOwnerData KeysOwnerData_96;
+		public ImGuiKeyOwnerData KeysOwnerData_97;
+		public ImGuiKeyOwnerData KeysOwnerData_98;
+		public ImGuiKeyOwnerData KeysOwnerData_99;
+		public ImGuiKeyOwnerData KeysOwnerData_100;
+		public ImGuiKeyOwnerData KeysOwnerData_101;
+		public ImGuiKeyOwnerData KeysOwnerData_102;
+		public ImGuiKeyOwnerData KeysOwnerData_103;
+		public ImGuiKeyOwnerData KeysOwnerData_104;
+		public ImGuiKeyOwnerData KeysOwnerData_105;
+		public ImGuiKeyOwnerData KeysOwnerData_106;
+		public ImGuiKeyOwnerData KeysOwnerData_107;
+		public ImGuiKeyOwnerData KeysOwnerData_108;
+		public ImGuiKeyOwnerData KeysOwnerData_109;
+		public ImGuiKeyOwnerData KeysOwnerData_110;
+		public ImGuiKeyOwnerData KeysOwnerData_111;
+		public ImGuiKeyOwnerData KeysOwnerData_112;
+		public ImGuiKeyOwnerData KeysOwnerData_113;
+		public ImGuiKeyOwnerData KeysOwnerData_114;
+		public ImGuiKeyOwnerData KeysOwnerData_115;
+		public ImGuiKeyOwnerData KeysOwnerData_116;
+		public ImGuiKeyOwnerData KeysOwnerData_117;
+		public ImGuiKeyOwnerData KeysOwnerData_118;
+		public ImGuiKeyOwnerData KeysOwnerData_119;
+		public ImGuiKeyOwnerData KeysOwnerData_120;
+		public ImGuiKeyOwnerData KeysOwnerData_121;
+		public ImGuiKeyOwnerData KeysOwnerData_122;
+		public ImGuiKeyOwnerData KeysOwnerData_123;
+		public ImGuiKeyOwnerData KeysOwnerData_124;
+		public ImGuiKeyOwnerData KeysOwnerData_125;
+		public ImGuiKeyOwnerData KeysOwnerData_126;
+		public ImGuiKeyOwnerData KeysOwnerData_127;
+		public ImGuiKeyOwnerData KeysOwnerData_128;
+		public ImGuiKeyOwnerData KeysOwnerData_129;
+		public ImGuiKeyOwnerData KeysOwnerData_130;
+		public ImGuiKeyOwnerData KeysOwnerData_131;
+		public ImGuiKeyOwnerData KeysOwnerData_132;
+		public ImGuiKeyOwnerData KeysOwnerData_133;
+		public ImGuiKeyOwnerData KeysOwnerData_134;
+		public ImGuiKeyOwnerData KeysOwnerData_135;
+		public ImGuiKeyOwnerData KeysOwnerData_136;
+		public ImGuiKeyOwnerData KeysOwnerData_137;
+		public ImGuiKeyOwnerData KeysOwnerData_138;
+		public ImGuiKeyOwnerData KeysOwnerData_139;
+		public ImGuiKeyOwnerData KeysOwnerData_140;
+		public ImGuiKeyOwnerData KeysOwnerData_141;
+		public ImGuiKeyOwnerData KeysOwnerData_142;
+		public ImGuiKeyOwnerData KeysOwnerData_143;
+		public ImGuiKeyOwnerData KeysOwnerData_144;
+		public ImGuiKeyOwnerData KeysOwnerData_145;
+		public ImGuiKeyOwnerData KeysOwnerData_146;
+		public ImGuiKeyOwnerData KeysOwnerData_147;
+		public ImGuiKeyOwnerData KeysOwnerData_148;
+		public ImGuiKeyOwnerData KeysOwnerData_149;
+		public ImGuiKeyOwnerData KeysOwnerData_150;
+		public ImGuiKeyOwnerData KeysOwnerData_151;
+		public ImGuiKeyOwnerData KeysOwnerData_152;
+		public ImGuiKeyOwnerData KeysOwnerData_153;
+		public ImGuiKeyOwnerData KeysOwnerData_154;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiKeyRoutingTable KeysRoutingTable;
 
 		/// <summary>
 		/// To be documented.
@@ -370,17 +664,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public uint ActiveIdUsingNavInputMask;
+		public byte ActiveIdUsingAllKeyboardKeys;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public nuint ActiveIdUsingKeyInputMask;
+		public int DebugBreakInShortcutRouting;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint CurrentFocusScopeId;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ImGuiItemFlags CurrentItemFlags;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint DebugLocateId;
 
 		/// <summary>
 		/// To be documented.
@@ -400,6 +704,21 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte DebugShowGroupRects;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte GcCompactAll;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiCol DebugFlashStyleColorIdx;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ImVector<ImGuiColorMod> ColorStack;
 
 		/// <summary>
@@ -410,12 +729,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImVector<ImFontPtr> FontStack;
+		public ImVector<ImFontStackData> FontStack;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImVector<uint> FocusScopeStack;
+		public ImVector<ImGuiFocusScopeData> FocusScopeStack;
 
 		/// <summary>
 		/// To be documented.
@@ -440,17 +759,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int BeginMenuCount;
+		public ImVector<ImGuiTreeNodeStackData> TreeNodeStack;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ImVector<ImGuiViewportPPtr> Viewports;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float CurrentDpiScale;
 
 		/// <summary>
 		/// To be documented.
@@ -480,12 +794,42 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int ViewportFrontMostStampCount;
+		public ImRect PlatformMonitorsFullWorkRect;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiWindow* NavWindow;
+		public int ViewportCreatedCount;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int PlatformWindowsCreatedCount;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int ViewportFocusedStampCount;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte NavCursorVisible;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte NavHighlightItemUnderNav;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte NavMousePosDirty;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte NavIdIsAlive;
 
 		/// <summary>
 		/// To be documented.
@@ -495,7 +839,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe ImGuiWindow* NavWindow;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public uint NavFocusScopeId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiNavLayer NavLayer;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiItemFlags NavIdItemFlags;
 
 		/// <summary>
 		/// To be documented.
@@ -515,27 +874,32 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public uint NavActivateInputId;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public ImGuiActivateFlags NavActivateFlags;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public uint NavJustMovedToId;
+		public ImVector<ImGuiFocusScopeData> NavFocusRoute;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public uint NavJustMovedToFocusScopeId;
+		public uint NavHighlightActivatedId;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiModFlags NavJustMovedToKeyMods;
+		public float NavHighlightActivatedTimer;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint NavOpenContextMenuItemId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint NavOpenContextMenuWindowId;
 
 		/// <summary>
 		/// To be documented.
@@ -555,27 +919,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiNavLayer NavLayer;
+		public long NavLastValidSelectionUserData;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte NavIdIsAlive;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte NavMousePosDirty;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte NavDisableHighlight;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte NavDisableMouseHover;
+		public sbyte NavCursorHideFrames;
 
 		/// <summary>
 		/// To be documented.
@@ -595,12 +944,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public uint NavInitResultId;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImRect NavInitResultRectRel;
+		public ImGuiNavItemData NavInitResult;
 
 		/// <summary>
 		/// To be documented.
@@ -630,7 +974,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiModFlags NavMoveKeyMods;
+		public int NavMoveKeyMods;
 
 		/// <summary>
 		/// To be documented.
@@ -695,6 +1039,61 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public uint NavJustMovedFromFocusScopeId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint NavJustMovedToId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint NavJustMovedToFocusScopeId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int NavJustMovedToKeyMods;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte NavJustMovedToIsTabbing;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte NavJustMovedToIsInit;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte NavJustMovedToHasSelectionData;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte ConfigNavEnableTabbing;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte ConfigNavWindowingWithGamepad;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int ConfigNavWindowingKeyNext;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int ConfigNavWindowingKeyPrev;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe ImGuiWindow* NavWindowingTarget;
 
 		/// <summary>
@@ -720,17 +1119,32 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ImGuiInputSource NavWindowingInputSource;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte NavWindowingToggleLayer;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float DimBgRatio;
+		public ImGuiKey NavWindowingToggleKey;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiMouseCursor MouseCursor;
+		public Vector2 NavWindowingAccumDeltaPos;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public Vector2 NavWindowingAccumDeltaSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float DimBgRatio;
 
 		/// <summary>
 		/// To be documented.
@@ -775,12 +1189,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ImRect DragDropTargetClipRect;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public uint DragDropTargetId;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiDragDropFlags DragDropAcceptFlags;
+		public uint DragDropTargetFullViewport;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiDragDropFlags DragDropAcceptFlagsCurr;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiDragDropFlags DragDropAcceptFlagsPrev;
 
 		/// <summary>
 		/// To be documented.
@@ -850,6 +1279,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public uint DebugBreakInTable;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public int TablesTempDataStacked;
 
 		/// <summary>
@@ -895,6 +1329,71 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ImGuiBoxSelectState BoxSelectState;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImGuiMultiSelectTempData* CurrentMultiSelect;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int MultiSelectTempDataStacked;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImVector<ImGuiMultiSelectTempData> MultiSelectTempData;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImPoolImGuiMultiSelectState MultiSelectStorage;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint HoverItemDelayId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint HoverItemDelayIdPreviousFrame;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float HoverItemDelayTimer;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float HoverItemDelayClearTimer;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint HoverItemUnlockedStationaryId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint HoverWindowUnlockedStationaryId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiMouseCursor MouseCursor;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float MouseStationaryTimer;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public Vector2 MouseLastValidPos;
 
 		/// <summary>
@@ -905,7 +1404,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImFont InputTextPasswordFont;
+		public ImGuiTextIndex InputTextLineIndex;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiInputTextDeactivatedState InputTextDeactivatedState;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int InputTextPasswordMaskCount;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint InputTextReactivateId;
 
 		/// <summary>
 		/// To be documented.
@@ -915,22 +1429,42 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiColorEditFlags ColorEditOptions;
+		public ImGuiDataTypeStorage DataTypeZeroValue;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float ColorEditLastHue;
+		public int BeginMenuDepth;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float ColorEditLastSat;
+		public int BeginComboDepth;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public uint ColorEditLastColor;
+		public uint ColorEditCurrentID;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint ColorEditSavedID;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float ColorEditSavedHue;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float ColorEditSavedSat;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint ColorEditSavedColor;
 
 		/// <summary>
 		/// To be documented.
@@ -941,6 +1475,26 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ImGuiComboPreviewData ComboPreviewData;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImRect WindowResizeBorderExpectedRect;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte WindowResizeRelativeMode;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public short ScrollbarSeekMode;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float ScrollbarClickDeltaToGrabCenter;
 
 		/// <summary>
 		/// To be documented.
@@ -975,11 +1529,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float ScrollbarClickDeltaToGrabCenter;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public float DisabledAlphaBackup;
 
 		/// <summary>
@@ -995,7 +1544,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float TooltipSlowDelay;
+		public unsafe ImGuiWindow* TooltipPreviousWindow;
 
 		/// <summary>
 		/// To be documented.
@@ -1010,6 +1559,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ImGuiTypingSelectState TypingSelectState;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ImGuiPlatformImeData PlatformImeData;
 
 		/// <summary>
@@ -1020,17 +1574,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public uint PlatformImeViewport;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte PlatformLocaleDecimalPoint;
+		public ImVector<ImTextureDataPtr> UserTextures;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ImGuiDockContext DockContext;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void* DockNodeWindowMenuHandler;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiPackedDate SessionDate;
 
 		/// <summary>
 		/// To be documented.
@@ -1075,12 +1634,45 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void* DemoMarkerCallback;
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe byte* LocalizationTable_0;
+		public unsafe byte* LocalizationTable_1;
+		public unsafe byte* LocalizationTable_2;
+		public unsafe byte* LocalizationTable_3;
+		public unsafe byte* LocalizationTable_4;
+		public unsafe byte* LocalizationTable_5;
+		public unsafe byte* LocalizationTable_6;
+		public unsafe byte* LocalizationTable_7;
+		public unsafe byte* LocalizationTable_8;
+		public unsafe byte* LocalizationTable_9;
+		public unsafe byte* LocalizationTable_10;
+		public unsafe byte* LocalizationTable_11;
+		public unsafe byte* LocalizationTable_12;
+		public unsafe byte* LocalizationTable_13;
+		public unsafe byte* LocalizationTable_14;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte LogEnabled;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiLogType LogType;
+		public byte LogLineFirstItem;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiLogFlags LogFlags;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImGuiWindow* LogWindow;
 
 		/// <summary>
 		/// To be documented.
@@ -1110,11 +1702,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte LogLineFirstItem;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public int LogDepthRef;
 
 		/// <summary>
@@ -1130,6 +1717,45 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void* ErrorCallback;
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void* ErrorCallbackUserData;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public Vector2 ErrorTooltipLockedPos;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte ErrorFirst;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int ErrorCountCurrentFrame;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiErrorRecoveryState StackSizesInNewFrame;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImGuiErrorRecoveryState* StackSizesInBeginForCurrentWindow;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int DebugDrawIdConflictsCount;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ImGuiDebugLogFlags DebugLogFlags;
 
 		/// <summary>
@@ -1140,7 +1766,52 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ImGuiTextIndex DebugLogIndex;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int DebugLogSkippedErrors;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiDebugLogFlags DebugLogAutoDisableFlags;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte DebugLogAutoDisableFrames;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte DebugLocateFrames;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte DebugBreakInLocateId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int DebugBreakKeyChord;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public sbyte DebugBeginReturnValueCullDepth;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte DebugItemPickerActive;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte DebugItemPickerMouseButton;
 
 		/// <summary>
 		/// To be documented.
@@ -1150,12 +1821,37 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public float DebugFlashStyleColorTime;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public Vector4 DebugFlashStyleColorBackup;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ImGuiMetricsConfig DebugMetricsConfig;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiStackTool DebugStackTool;
+		public ImGuiDebugItemPathQuery DebugItemPathQuery;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiIDStackTool DebugIDStackTool;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiDebugAllocInfo DebugAllocInfo;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImGuiDockNode* DebugHoveredDockNode;
 
 		/// <summary>
 		/// To be documented.
@@ -1220,66 +1916,6 @@ namespace Dalamud.Bindings.ImGui
 		public float FramerateSecPerFrame_57;
 		public float FramerateSecPerFrame_58;
 		public float FramerateSecPerFrame_59;
-		public float FramerateSecPerFrame_60;
-		public float FramerateSecPerFrame_61;
-		public float FramerateSecPerFrame_62;
-		public float FramerateSecPerFrame_63;
-		public float FramerateSecPerFrame_64;
-		public float FramerateSecPerFrame_65;
-		public float FramerateSecPerFrame_66;
-		public float FramerateSecPerFrame_67;
-		public float FramerateSecPerFrame_68;
-		public float FramerateSecPerFrame_69;
-		public float FramerateSecPerFrame_70;
-		public float FramerateSecPerFrame_71;
-		public float FramerateSecPerFrame_72;
-		public float FramerateSecPerFrame_73;
-		public float FramerateSecPerFrame_74;
-		public float FramerateSecPerFrame_75;
-		public float FramerateSecPerFrame_76;
-		public float FramerateSecPerFrame_77;
-		public float FramerateSecPerFrame_78;
-		public float FramerateSecPerFrame_79;
-		public float FramerateSecPerFrame_80;
-		public float FramerateSecPerFrame_81;
-		public float FramerateSecPerFrame_82;
-		public float FramerateSecPerFrame_83;
-		public float FramerateSecPerFrame_84;
-		public float FramerateSecPerFrame_85;
-		public float FramerateSecPerFrame_86;
-		public float FramerateSecPerFrame_87;
-		public float FramerateSecPerFrame_88;
-		public float FramerateSecPerFrame_89;
-		public float FramerateSecPerFrame_90;
-		public float FramerateSecPerFrame_91;
-		public float FramerateSecPerFrame_92;
-		public float FramerateSecPerFrame_93;
-		public float FramerateSecPerFrame_94;
-		public float FramerateSecPerFrame_95;
-		public float FramerateSecPerFrame_96;
-		public float FramerateSecPerFrame_97;
-		public float FramerateSecPerFrame_98;
-		public float FramerateSecPerFrame_99;
-		public float FramerateSecPerFrame_100;
-		public float FramerateSecPerFrame_101;
-		public float FramerateSecPerFrame_102;
-		public float FramerateSecPerFrame_103;
-		public float FramerateSecPerFrame_104;
-		public float FramerateSecPerFrame_105;
-		public float FramerateSecPerFrame_106;
-		public float FramerateSecPerFrame_107;
-		public float FramerateSecPerFrame_108;
-		public float FramerateSecPerFrame_109;
-		public float FramerateSecPerFrame_110;
-		public float FramerateSecPerFrame_111;
-		public float FramerateSecPerFrame_112;
-		public float FramerateSecPerFrame_113;
-		public float FramerateSecPerFrame_114;
-		public float FramerateSecPerFrame_115;
-		public float FramerateSecPerFrame_116;
-		public float FramerateSecPerFrame_117;
-		public float FramerateSecPerFrame_118;
-		public float FramerateSecPerFrame_119;
 
 		/// <summary>
 		/// To be documented.
@@ -1316,87 +1952,360 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public ImVector<byte> TempBuffer;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte TempKeychordName_0;
+		public byte TempKeychordName_1;
+		public byte TempKeychordName_2;
+		public byte TempKeychordName_3;
+		public byte TempKeychordName_4;
+		public byte TempKeychordName_5;
+		public byte TempKeychordName_6;
+		public byte TempKeychordName_7;
+		public byte TempKeychordName_8;
+		public byte TempKeychordName_9;
+		public byte TempKeychordName_10;
+		public byte TempKeychordName_11;
+		public byte TempKeychordName_12;
+		public byte TempKeychordName_13;
+		public byte TempKeychordName_14;
+		public byte TempKeychordName_15;
+		public byte TempKeychordName_16;
+		public byte TempKeychordName_17;
+		public byte TempKeychordName_18;
+		public byte TempKeychordName_19;
+		public byte TempKeychordName_20;
+		public byte TempKeychordName_21;
+		public byte TempKeychordName_22;
+		public byte TempKeychordName_23;
+		public byte TempKeychordName_24;
+		public byte TempKeychordName_25;
+		public byte TempKeychordName_26;
+		public byte TempKeychordName_27;
+		public byte TempKeychordName_28;
+		public byte TempKeychordName_29;
+		public byte TempKeychordName_30;
+		public byte TempKeychordName_31;
+		public byte TempKeychordName_32;
+		public byte TempKeychordName_33;
+		public byte TempKeychordName_34;
+		public byte TempKeychordName_35;
+		public byte TempKeychordName_36;
+		public byte TempKeychordName_37;
+		public byte TempKeychordName_38;
+		public byte TempKeychordName_39;
+		public byte TempKeychordName_40;
+		public byte TempKeychordName_41;
+		public byte TempKeychordName_42;
+		public byte TempKeychordName_43;
+		public byte TempKeychordName_44;
+		public byte TempKeychordName_45;
+		public byte TempKeychordName_46;
+		public byte TempKeychordName_47;
+		public byte TempKeychordName_48;
+		public byte TempKeychordName_49;
+		public byte TempKeychordName_50;
+		public byte TempKeychordName_51;
+		public byte TempKeychordName_52;
+		public byte TempKeychordName_53;
+		public byte TempKeychordName_54;
+		public byte TempKeychordName_55;
+		public byte TempKeychordName_56;
+		public byte TempKeychordName_57;
+		public byte TempKeychordName_58;
+		public byte TempKeychordName_59;
+		public byte TempKeychordName_60;
+		public byte TempKeychordName_61;
+		public byte TempKeychordName_62;
+		public byte TempKeychordName_63;
+
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiContext(bool initialized = default, bool fontAtlasOwnedByContext = default, ImGuiIO io = default, ImGuiPlatformIO platformIo = default, ImVector<ImGuiInputEvent> inputEventsQueue = default, ImVector<ImGuiInputEvent> inputEventsTrail = default, ImGuiStyle style = default, ImGuiConfigFlags configFlagsCurrFrame = default, ImGuiConfigFlags configFlagsLastFrame = default, ImFontPtr font = default, float fontSize = default, float fontBaseSize = default, ImDrawListSharedData drawListSharedData = default, double time = default, int frameCount = default, int frameCountEnded = default, int frameCountPlatformEnded = default, int frameCountRendered = default, bool withinFrameScope = default, bool withinFrameScopeWithImplicitWindow = default, bool withinEndChild = default, bool gcCompactAll = default, bool testEngineHookItems = default, void* testEngine = default, ImVector<ImGuiWindowPtr> windows = default, ImVector<ImGuiWindowPtr> windowsFocusOrder = default, ImVector<ImGuiWindowPtr> windowsTempSortBuffer = default, ImVector<ImGuiWindowStackData> currentWindowStack = default, ImGuiStorage windowsById = default, int windowsActiveCount = default, Vector2 windowsHoverPadding = default, ImGuiWindow* currentWindow = default, ImGuiWindow* hoveredWindow = default, ImGuiWindow* hoveredWindowUnderMovingWindow = default, ImGuiDockNode* hoveredDockNode = default, ImGuiWindow* movingWindow = default, ImGuiWindow* wheelingWindow = default, Vector2 wheelingWindowRefMousePos = default, float wheelingWindowTimer = default, uint debugHookIdInfo = default, uint hoveredId = default, uint hoveredIdPreviousFrame = default, bool hoveredIdAllowOverlap = default, bool hoveredIdUsingMouseWheel = default, bool hoveredIdPreviousFrameUsingMouseWheel = default, bool hoveredIdDisabled = default, float hoveredIdTimer = default, float hoveredIdNotActiveTimer = default, uint activeId = default, uint activeIdIsAlive = default, float activeIdTimer = default, bool activeIdIsJustActivated = default, bool activeIdAllowOverlap = default, bool activeIdNoClearOnFocusLoss = default, bool activeIdHasBeenPressedBefore = default, bool activeIdHasBeenEditedBefore = default, bool activeIdHasBeenEditedThisFrame = default, Vector2 activeIdClickOffset = default, ImGuiWindow* activeIdWindow = default, ImGuiInputSource activeIdSource = default, int activeIdMouseButton = default, uint activeIdPreviousFrame = default, bool activeIdPreviousFrameIsAlive = default, bool activeIdPreviousFrameHasBeenEditedBefore = default, ImGuiWindow* activeIdPreviousFrameWindow = default, uint lastActiveId = default, float lastActiveIdTimer = default, bool activeIdUsingMouseWheel = default, uint activeIdUsingNavDirMask = default, uint activeIdUsingNavInputMask = default, nuint activeIdUsingKeyInputMask = default, ImGuiItemFlags currentItemFlags = default, ImGuiNextItemData nextItemData = default, ImGuiLastItemData lastItemData = default, ImGuiNextWindowData nextWindowData = default, ImVector<ImGuiColorMod> colorStack = default, ImVector<ImGuiStyleMod> styleVarStack = default, ImVector<ImFontPtr> fontStack = default, ImVector<uint> focusScopeStack = default, ImVector<ImGuiItemFlags> itemFlagsStack = default, ImVector<ImGuiGroupData> groupStack = default, ImVector<ImGuiPopupData> openPopupStack = default, ImVector<ImGuiPopupData> beginPopupStack = default, int beginMenuCount = default, ImVector<ImGuiViewportPPtr> viewports = default, float currentDpiScale = default, ImGuiViewportP* currentViewport = default, ImGuiViewportP* mouseViewport = default, ImGuiViewportP* mouseLastHoveredViewport = default, uint platformLastFocusedViewportId = default, ImGuiPlatformMonitor fallbackMonitor = default, int viewportFrontMostStampCount = default, ImGuiWindow* navWindow = default, uint navId = default, uint navFocusScopeId = default, uint navActivateId = default, uint navActivateDownId = default, uint navActivatePressedId = default, uint navActivateInputId = default, ImGuiActivateFlags navActivateFlags = default, uint navJustMovedToId = default, uint navJustMovedToFocusScopeId = default, ImGuiModFlags navJustMovedToKeyMods = default, uint navNextActivateId = default, ImGuiActivateFlags navNextActivateFlags = default, ImGuiInputSource navInputSource = default, ImGuiNavLayer navLayer = default, bool navIdIsAlive = default, bool navMousePosDirty = default, bool navDisableHighlight = default, bool navDisableMouseHover = default, bool navAnyRequest = default, bool navInitRequest = default, bool navInitRequestFromMove = default, uint navInitResultId = default, ImRect navInitResultRectRel = default, bool navMoveSubmitted = default, bool navMoveScoringItems = default, bool navMoveForwardToNextFrame = default, ImGuiNavMoveFlags navMoveFlags = default, ImGuiScrollFlags navMoveScrollFlags = default, ImGuiModFlags navMoveKeyMods = default, ImGuiDir navMoveDir = default, ImGuiDir navMoveDirForDebug = default, ImGuiDir navMoveClipDir = default, ImRect navScoringRect = default, ImRect navScoringNoClipRect = default, int navScoringDebugCount = default, int navTabbingDir = default, int navTabbingCounter = default, ImGuiNavItemData navMoveResultLocal = default, ImGuiNavItemData navMoveResultLocalVisible = default, ImGuiNavItemData navMoveResultOther = default, ImGuiNavItemData navTabbingResultFirst = default, ImGuiWindow* navWindowingTarget = default, ImGuiWindow* navWindowingTargetAnim = default, ImGuiWindow* navWindowingListWindow = default, float navWindowingTimer = default, float navWindowingHighlightAlpha = default, bool navWindowingToggleLayer = default, float dimBgRatio = default, ImGuiMouseCursor mouseCursor = default, bool dragDropActive = default, bool dragDropWithinSource = default, bool dragDropWithinTarget = default, ImGuiDragDropFlags dragDropSourceFlags = default, int dragDropSourceFrameCount = default, int dragDropMouseButton = default, ImGuiPayload dragDropPayload = default, ImRect dragDropTargetRect = default, uint dragDropTargetId = default, ImGuiDragDropFlags dragDropAcceptFlags = default, float dragDropAcceptIdCurrRectSurface = default, uint dragDropAcceptIdCurr = default, uint dragDropAcceptIdPrev = default, int dragDropAcceptFrameCount = default, uint dragDropHoldJustPressedId = default, ImVector<byte> dragDropPayloadBufHeap = default, byte* dragDropPayloadBufLocal = default, int clipperTempDataStacked = default, ImVector<ImGuiListClipperData> clipperTempData = default, ImGuiTable* currentTable = default, int tablesTempDataStacked = default, ImVector<ImGuiTableTempData> tablesTempData = default, ImPoolImGuiTable tables = default, ImVector<float> tablesLastTimeActive = default, ImVector<ImDrawChannel> drawChannelsTempMergeBuffer = default, ImGuiTabBar* currentTabBar = default, ImPoolImGuiTabBar tabBars = default, ImVector<ImGuiPtrOrIndex> currentTabBarStack = default, ImVector<ImGuiShrinkWidthItem> shrinkWidthBuffer = default, Vector2 mouseLastValidPos = default, ImGuiInputTextState inputTextState = default, ImFont inputTextPasswordFont = default, uint tempInputId = default, ImGuiColorEditFlags colorEditOptions = default, float colorEditLastHue = default, float colorEditLastSat = default, uint colorEditLastColor = default, Vector4 colorPickerRef = default, ImGuiComboPreviewData comboPreviewData = default, float sliderGrabClickOffset = default, float sliderCurrentAccum = default, bool sliderCurrentAccumDirty = default, bool dragCurrentAccumDirty = default, float dragCurrentAccum = default, float dragSpeedDefaultRatio = default, float scrollbarClickDeltaToGrabCenter = default, float disabledAlphaBackup = default, short disabledStackSize = default, short tooltipOverrideCount = default, float tooltipSlowDelay = default, ImVector<byte> clipboardHandlerData = default, ImVector<uint> menusIdSubmittedThisFrame = default, ImGuiPlatformImeData platformImeData = default, ImGuiPlatformImeData platformImeDataPrev = default, uint platformImeViewport = default, byte platformLocaleDecimalPoint = default, ImGuiDockContext dockContext = default, bool settingsLoaded = default, float settingsDirtyTimer = default, ImGuiTextBuffer settingsIniData = default, ImVector<ImGuiSettingsHandler> settingsHandlers = default, ImChunkStreamImGuiWindowSettings settingsWindows = default, ImChunkStreamImGuiTableSettings settingsTables = default, ImVector<ImGuiContextHook> hooks = default, uint hookIdNext = default, bool logEnabled = default, ImGuiLogType logType = default, ImFileHandle logFile = default, ImGuiTextBuffer logBuffer = default, byte* logNextPrefix = default, byte* logNextSuffix = default, float logLinePosY = default, bool logLineFirstItem = default, int logDepthRef = default, int logDepthToExpand = default, int logDepthToExpandDefault = default, ImGuiDebugLogFlags debugLogFlags = default, ImGuiTextBuffer debugLogBuf = default, bool debugItemPickerActive = default, uint debugItemPickerBreakId = default, ImGuiMetricsConfig debugMetricsConfig = default, ImGuiStackTool debugStackTool = default, float* framerateSecPerFrame = default, int framerateSecPerFrameIdx = default, int framerateSecPerFrameCount = default, float framerateSecPerFrameAccum = default, int wantCaptureMouseNextFrame = default, int wantCaptureKeyboardNextFrame = default, int wantTextInputNextFrame = default, ImVector<byte> tempBuffer = default)
+		public unsafe ImGuiContext(bool initialized = default, bool withinFrameScope = default, bool withinFrameScopeWithImplicitWindow = default, bool testEngineHookItems = default, int frameCount = default, int frameCountEnded = default, int frameCountPlatformEnded = default, int frameCountRendered = default, double time = default, byte* contextName = default, ImGuiIO io = default, ImGuiPlatformIO platformIo = default, ImGuiStyle style = default, ImGuiConfigFlags configFlagsCurrFrame = default, ImGuiConfigFlags configFlagsLastFrame = default, ImVector<ImFontAtlasPtr> fontAtlases = default, ImFontPtr font = default, ImFontBaked* fontBaked = default, float fontSize = default, float fontSizeBase = default, float fontBakedScale = default, float currentPixelDensity = default, float currentDpiScale = default, ImDrawListSharedData drawListSharedData = default, uint withinEndChildId = default, uint withinEndPopupId = default, void* testEngine = default, ImVector<ImGuiInputEvent> inputEventsQueue = default, ImVector<ImGuiInputEvent> inputEventsTrail = default, ImGuiMouseSource inputEventsNextMouseSource = default, uint inputEventsNextEventId = default, ImVector<ImGuiWindowPtr> windows = default, ImVector<ImGuiWindowPtr> windowsFocusOrder = default, ImVector<ImGuiWindowPtr> windowsTempSortBuffer = default, ImVector<ImGuiWindowStackData> currentWindowStack = default, ImGuiStorage windowsById = default, int windowsActiveCount = default, float windowsBorderHoverPadding = default, uint debugBreakInWindow = default, ImGuiWindow* currentWindow = default, ImGuiWindow* hoveredWindow = default, ImGuiWindow* hoveredWindowUnderMovingWindow = default, ImGuiWindow* hoveredWindowBeforeClear = default, ImGuiWindow* movingWindow = default, ImGuiWindow* wheelingWindow = default, Vector2 wheelingWindowRefMousePos = default, int wheelingWindowStartFrame = default, int wheelingWindowScrolledFrame = default, float wheelingWindowReleaseTimer = default, Vector2 wheelingWindowWheelRemainder = default, Vector2 wheelingAxisAvg = default, byte* mixedValueLabel = default, uint debugDrawIdConflictsId = default, uint debugHookIdInfoId = default, uint hoveredId = default, uint hoveredIdPreviousFrame = default, int hoveredIdPreviousFrameItemCount = default, float hoveredIdTimer = default, float hoveredIdNotActiveTimer = default, bool hoveredIdAllowOverlap = default, bool hoveredIdIsDisabled = default, bool itemUnclipByLog = default, bool anyIdHasBeenEditedThisFrame = default, uint activeId = default, uint activeIdIsAlive = default, float activeIdTimer = default, bool activeIdIsJustActivated = default, bool activeIdWasSelected = default, bool activeIdWasSoleSelected = default, bool activeIdAllowOverlap = default, bool activeIdNoClearOnFocusLoss = default, bool activeIdHasBeenPressedBefore = default, bool activeIdHasBeenEditedBefore = default, bool activeIdHasBeenEditedThisFrame = default, bool activeIdFromShortcut = default, sbyte activeIdMouseButton = default, uint activeIdDisabledId = default, Vector2 activeIdClickOffset = default, ImGuiInputSource activeIdSource = default, ImGuiWindow* activeIdWindow = default, uint activeIdPreviousFrame = default, ImGuiDeactivatedItemData deactivatedItemData = default, ImGuiDataTypeStorage activeIdValueOnActivation = default, uint lastActiveId = default, float lastActiveIdTimer = default, bool lastActiveIdWasSelected = default, bool lastActiveIdWasSoleSelected = default, double lastKeyModsChangeTime = default, double lastKeyModsChangeFromNoneTime = default, double lastKeyboardKeyPressTime = default, ImBitArrayForNamedKeys keysMayBeCharInput = default, ImGuiKeyOwnerData* keysOwnerData = default, ImGuiKeyRoutingTable keysRoutingTable = default, uint activeIdUsingNavDirMask = default, bool activeIdUsingAllKeyboardKeys = default, int debugBreakInShortcutRouting = default, uint currentFocusScopeId = default, ImGuiItemFlags currentItemFlags = default, uint debugLocateId = default, ImGuiNextItemData nextItemData = default, ImGuiLastItemData lastItemData = default, ImGuiNextWindowData nextWindowData = default, bool debugShowGroupRects = default, bool gcCompactAll = default, ImGuiCol debugFlashStyleColorIdx = default, ImVector<ImGuiColorMod> colorStack = default, ImVector<ImGuiStyleMod> styleVarStack = default, ImVector<ImFontStackData> fontStack = default, ImVector<ImGuiFocusScopeData> focusScopeStack = default, ImVector<ImGuiItemFlags> itemFlagsStack = default, ImVector<ImGuiGroupData> groupStack = default, ImVector<ImGuiPopupData> openPopupStack = default, ImVector<ImGuiPopupData> beginPopupStack = default, ImVector<ImGuiTreeNodeStackData> treeNodeStack = default, ImVector<ImGuiViewportPPtr> viewports = default, ImGuiViewportP* currentViewport = default, ImGuiViewportP* mouseViewport = default, ImGuiViewportP* mouseLastHoveredViewport = default, uint platformLastFocusedViewportId = default, ImGuiPlatformMonitor fallbackMonitor = default, ImRect platformMonitorsFullWorkRect = default, int viewportCreatedCount = default, int platformWindowsCreatedCount = default, int viewportFocusedStampCount = default, bool navCursorVisible = default, bool navHighlightItemUnderNav = default, bool navMousePosDirty = default, bool navIdIsAlive = default, uint navId = default, ImGuiWindow* navWindow = default, uint navFocusScopeId = default, ImGuiNavLayer navLayer = default, ImGuiItemFlags navIdItemFlags = default, uint navActivateId = default, uint navActivateDownId = default, uint navActivatePressedId = default, ImGuiActivateFlags navActivateFlags = default, ImVector<ImGuiFocusScopeData> navFocusRoute = default, uint navHighlightActivatedId = default, float navHighlightActivatedTimer = default, uint navOpenContextMenuItemId = default, uint navOpenContextMenuWindowId = default, uint navNextActivateId = default, ImGuiActivateFlags navNextActivateFlags = default, ImGuiInputSource navInputSource = default, long navLastValidSelectionUserData = default, sbyte navCursorHideFrames = default, bool navAnyRequest = default, bool navInitRequest = default, bool navInitRequestFromMove = default, ImGuiNavItemData navInitResult = default, bool navMoveSubmitted = default, bool navMoveScoringItems = default, bool navMoveForwardToNextFrame = default, ImGuiNavMoveFlags navMoveFlags = default, ImGuiScrollFlags navMoveScrollFlags = default, int navMoveKeyMods = default, ImGuiDir navMoveDir = default, ImGuiDir navMoveDirForDebug = default, ImGuiDir navMoveClipDir = default, ImRect navScoringRect = default, ImRect navScoringNoClipRect = default, int navScoringDebugCount = default, int navTabbingDir = default, int navTabbingCounter = default, ImGuiNavItemData navMoveResultLocal = default, ImGuiNavItemData navMoveResultLocalVisible = default, ImGuiNavItemData navMoveResultOther = default, ImGuiNavItemData navTabbingResultFirst = default, uint navJustMovedFromFocusScopeId = default, uint navJustMovedToId = default, uint navJustMovedToFocusScopeId = default, int navJustMovedToKeyMods = default, bool navJustMovedToIsTabbing = default, bool navJustMovedToIsInit = default, bool navJustMovedToHasSelectionData = default, bool configNavEnableTabbing = default, bool configNavWindowingWithGamepad = default, int configNavWindowingKeyNext = default, int configNavWindowingKeyPrev = default, ImGuiWindow* navWindowingTarget = default, ImGuiWindow* navWindowingTargetAnim = default, ImGuiWindow* navWindowingListWindow = default, float navWindowingTimer = default, float navWindowingHighlightAlpha = default, ImGuiInputSource navWindowingInputSource = default, bool navWindowingToggleLayer = default, ImGuiKey navWindowingToggleKey = default, Vector2 navWindowingAccumDeltaPos = default, Vector2 navWindowingAccumDeltaSize = default, float dimBgRatio = default, bool dragDropActive = default, bool dragDropWithinSource = default, bool dragDropWithinTarget = default, ImGuiDragDropFlags dragDropSourceFlags = default, int dragDropSourceFrameCount = default, int dragDropMouseButton = default, ImGuiPayload dragDropPayload = default, ImRect dragDropTargetRect = default, ImRect dragDropTargetClipRect = default, uint dragDropTargetId = default, uint dragDropTargetFullViewport = default, ImGuiDragDropFlags dragDropAcceptFlagsCurr = default, ImGuiDragDropFlags dragDropAcceptFlagsPrev = default, float dragDropAcceptIdCurrRectSurface = default, uint dragDropAcceptIdCurr = default, uint dragDropAcceptIdPrev = default, int dragDropAcceptFrameCount = default, uint dragDropHoldJustPressedId = default, ImVector<byte> dragDropPayloadBufHeap = default, byte* dragDropPayloadBufLocal = default, int clipperTempDataStacked = default, ImVector<ImGuiListClipperData> clipperTempData = default, ImGuiTable* currentTable = default, uint debugBreakInTable = default, int tablesTempDataStacked = default, ImVector<ImGuiTableTempData> tablesTempData = default, ImPoolImGuiTable tables = default, ImVector<float> tablesLastTimeActive = default, ImVector<ImDrawChannel> drawChannelsTempMergeBuffer = default, ImGuiTabBar* currentTabBar = default, ImPoolImGuiTabBar tabBars = default, ImVector<ImGuiPtrOrIndex> currentTabBarStack = default, ImVector<ImGuiShrinkWidthItem> shrinkWidthBuffer = default, ImGuiBoxSelectState boxSelectState = default, ImGuiMultiSelectTempData* currentMultiSelect = default, int multiSelectTempDataStacked = default, ImVector<ImGuiMultiSelectTempData> multiSelectTempData = default, ImPoolImGuiMultiSelectState multiSelectStorage = default, uint hoverItemDelayId = default, uint hoverItemDelayIdPreviousFrame = default, float hoverItemDelayTimer = default, float hoverItemDelayClearTimer = default, uint hoverItemUnlockedStationaryId = default, uint hoverWindowUnlockedStationaryId = default, ImGuiMouseCursor mouseCursor = default, float mouseStationaryTimer = default, Vector2 mouseLastValidPos = default, ImGuiInputTextState inputTextState = default, ImGuiTextIndex inputTextLineIndex = default, ImGuiInputTextDeactivatedState inputTextDeactivatedState = default, int inputTextPasswordMaskCount = default, uint inputTextReactivateId = default, uint tempInputId = default, ImGuiDataTypeStorage dataTypeZeroValue = default, int beginMenuDepth = default, int beginComboDepth = default, uint colorEditCurrentId = default, uint colorEditSavedId = default, float colorEditSavedHue = default, float colorEditSavedSat = default, uint colorEditSavedColor = default, Vector4 colorPickerRef = default, ImGuiComboPreviewData comboPreviewData = default, ImRect windowResizeBorderExpectedRect = default, bool windowResizeRelativeMode = default, short scrollbarSeekMode = default, float scrollbarClickDeltaToGrabCenter = default, float sliderGrabClickOffset = default, float sliderCurrentAccum = default, bool sliderCurrentAccumDirty = default, bool dragCurrentAccumDirty = default, float dragCurrentAccum = default, float dragSpeedDefaultRatio = default, float disabledAlphaBackup = default, short disabledStackSize = default, short tooltipOverrideCount = default, ImGuiWindow* tooltipPreviousWindow = default, ImVector<byte> clipboardHandlerData = default, ImVector<uint> menusIdSubmittedThisFrame = default, ImGuiTypingSelectState typingSelectState = default, ImGuiPlatformImeData platformImeData = default, ImGuiPlatformImeData platformImeDataPrev = default, ImVector<ImTextureDataPtr> userTextures = default, ImGuiDockContext dockContext = default, delegate*<ImGuiContext*, ImGuiDockNode*, ImGuiTabBar*, void> dockNodeWindowMenuHandler = default, ImGuiPackedDate sessionDate = default, bool settingsLoaded = default, float settingsDirtyTimer = default, ImGuiTextBuffer settingsIniData = default, ImVector<ImGuiSettingsHandler> settingsHandlers = default, ImChunkStreamImGuiWindowSettings settingsWindows = default, ImChunkStreamImGuiTableSettings settingsTables = default, ImVector<ImGuiContextHook> hooks = default, uint hookIdNext = default, ImGuiDemoMarkerCallback demoMarkerCallback = default, byte** localizationTable = default, bool logEnabled = default, bool logLineFirstItem = default, ImGuiLogFlags logFlags = default, ImGuiWindow* logWindow = default, ImFileHandle logFile = default, ImGuiTextBuffer logBuffer = default, byte* logNextPrefix = default, byte* logNextSuffix = default, float logLinePosY = default, int logDepthRef = default, int logDepthToExpand = default, int logDepthToExpandDefault = default, ImGuiErrorCallback errorCallback = default, void* errorCallbackUserData = default, Vector2 errorTooltipLockedPos = default, bool errorFirst = default, int errorCountCurrentFrame = default, ImGuiErrorRecoveryState stackSizesInNewFrame = default, ImGuiErrorRecoveryState* stackSizesInBeginForCurrentWindow = default, int debugDrawIdConflictsCount = default, ImGuiDebugLogFlags debugLogFlags = default, ImGuiTextBuffer debugLogBuf = default, ImGuiTextIndex debugLogIndex = default, int debugLogSkippedErrors = default, ImGuiDebugLogFlags debugLogAutoDisableFlags = default, byte debugLogAutoDisableFrames = default, byte debugLocateFrames = default, bool debugBreakInLocateId = default, int debugBreakKeyChord = default, sbyte debugBeginReturnValueCullDepth = default, bool debugItemPickerActive = default, byte debugItemPickerMouseButton = default, uint debugItemPickerBreakId = default, float debugFlashStyleColorTime = default, Vector4 debugFlashStyleColorBackup = default, ImGuiMetricsConfig debugMetricsConfig = default, ImGuiDebugItemPathQuery debugItemPathQuery = default, ImGuiIDStackTool debugIdStackTool = default, ImGuiDebugAllocInfo debugAllocInfo = default, ImGuiDockNode* debugHoveredDockNode = default, float* framerateSecPerFrame = default, int framerateSecPerFrameIdx = default, int framerateSecPerFrameCount = default, float framerateSecPerFrameAccum = default, int wantCaptureMouseNextFrame = default, int wantCaptureKeyboardNextFrame = default, int wantTextInputNextFrame = default, ImVector<byte> tempBuffer = default, byte* tempKeychordName = default)
 		{
 			Initialized = initialized ? (byte)1 : (byte)0;
-			FontAtlasOwnedByContext = fontAtlasOwnedByContext ? (byte)1 : (byte)0;
-			IO = io;
-			PlatformIO = platformIo;
-			InputEventsQueue = inputEventsQueue;
-			InputEventsTrail = inputEventsTrail;
-			Style = style;
-			ConfigFlagsCurrFrame = configFlagsCurrFrame;
-			ConfigFlagsLastFrame = configFlagsLastFrame;
-			Font = font;
-			FontSize = fontSize;
-			FontBaseSize = fontBaseSize;
-			DrawListSharedData = drawListSharedData;
-			Time = time;
+			WithinFrameScope = withinFrameScope ? (byte)1 : (byte)0;
+			WithinFrameScopeWithImplicitWindow = withinFrameScopeWithImplicitWindow ? (byte)1 : (byte)0;
+			TestEngineHookItems = testEngineHookItems ? (byte)1 : (byte)0;
 			FrameCount = frameCount;
 			FrameCountEnded = frameCountEnded;
 			FrameCountPlatformEnded = frameCountPlatformEnded;
 			FrameCountRendered = frameCountRendered;
-			WithinFrameScope = withinFrameScope ? (byte)1 : (byte)0;
-			WithinFrameScopeWithImplicitWindow = withinFrameScopeWithImplicitWindow ? (byte)1 : (byte)0;
-			WithinEndChild = withinEndChild ? (byte)1 : (byte)0;
-			GcCompactAll = gcCompactAll ? (byte)1 : (byte)0;
-			TestEngineHookItems = testEngineHookItems ? (byte)1 : (byte)0;
+			Time = time;
+			if (contextName != default(byte*))
+			{
+				ContextName_0 = contextName[0];
+				ContextName_1 = contextName[1];
+				ContextName_2 = contextName[2];
+				ContextName_3 = contextName[3];
+				ContextName_4 = contextName[4];
+				ContextName_5 = contextName[5];
+				ContextName_6 = contextName[6];
+				ContextName_7 = contextName[7];
+				ContextName_8 = contextName[8];
+				ContextName_9 = contextName[9];
+				ContextName_10 = contextName[10];
+				ContextName_11 = contextName[11];
+				ContextName_12 = contextName[12];
+				ContextName_13 = contextName[13];
+				ContextName_14 = contextName[14];
+				ContextName_15 = contextName[15];
+			}
+			IO = io;
+			PlatformIO = platformIo;
+			Style = style;
+			ConfigFlagsCurrFrame = configFlagsCurrFrame;
+			ConfigFlagsLastFrame = configFlagsLastFrame;
+			FontAtlases = fontAtlases;
+			Font = font;
+			FontBaked = fontBaked;
+			FontSize = fontSize;
+			FontSizeBase = fontSizeBase;
+			FontBakedScale = fontBakedScale;
+			CurrentPixelDensity = currentPixelDensity;
+			CurrentDpiScale = currentDpiScale;
+			DrawListSharedData = drawListSharedData;
+			WithinEndChildID = withinEndChildId;
+			WithinEndPopupID = withinEndPopupId;
 			TestEngine = testEngine;
+			InputEventsQueue = inputEventsQueue;
+			InputEventsTrail = inputEventsTrail;
+			InputEventsNextMouseSource = inputEventsNextMouseSource;
+			InputEventsNextEventId = inputEventsNextEventId;
 			Windows = windows;
 			WindowsFocusOrder = windowsFocusOrder;
 			WindowsTempSortBuffer = windowsTempSortBuffer;
 			CurrentWindowStack = currentWindowStack;
 			WindowsById = windowsById;
 			WindowsActiveCount = windowsActiveCount;
-			WindowsHoverPadding = windowsHoverPadding;
+			WindowsBorderHoverPadding = windowsBorderHoverPadding;
+			DebugBreakInWindow = debugBreakInWindow;
 			CurrentWindow = currentWindow;
 			HoveredWindow = hoveredWindow;
 			HoveredWindowUnderMovingWindow = hoveredWindowUnderMovingWindow;
-			HoveredDockNode = hoveredDockNode;
+			HoveredWindowBeforeClear = hoveredWindowBeforeClear;
 			MovingWindow = movingWindow;
 			WheelingWindow = wheelingWindow;
 			WheelingWindowRefMousePos = wheelingWindowRefMousePos;
-			WheelingWindowTimer = wheelingWindowTimer;
-			DebugHookIdInfo = debugHookIdInfo;
+			WheelingWindowStartFrame = wheelingWindowStartFrame;
+			WheelingWindowScrolledFrame = wheelingWindowScrolledFrame;
+			WheelingWindowReleaseTimer = wheelingWindowReleaseTimer;
+			WheelingWindowWheelRemainder = wheelingWindowWheelRemainder;
+			WheelingAxisAvg = wheelingAxisAvg;
+			MixedValueLabel = mixedValueLabel;
+			DebugDrawIdConflictsId = debugDrawIdConflictsId;
+			DebugHookIdInfoId = debugHookIdInfoId;
 			HoveredId = hoveredId;
 			HoveredIdPreviousFrame = hoveredIdPreviousFrame;
-			HoveredIdAllowOverlap = hoveredIdAllowOverlap ? (byte)1 : (byte)0;
-			HoveredIdUsingMouseWheel = hoveredIdUsingMouseWheel ? (byte)1 : (byte)0;
-			HoveredIdPreviousFrameUsingMouseWheel = hoveredIdPreviousFrameUsingMouseWheel ? (byte)1 : (byte)0;
-			HoveredIdDisabled = hoveredIdDisabled ? (byte)1 : (byte)0;
+			HoveredIdPreviousFrameItemCount = hoveredIdPreviousFrameItemCount;
 			HoveredIdTimer = hoveredIdTimer;
 			HoveredIdNotActiveTimer = hoveredIdNotActiveTimer;
+			HoveredIdAllowOverlap = hoveredIdAllowOverlap ? (byte)1 : (byte)0;
+			HoveredIdIsDisabled = hoveredIdIsDisabled ? (byte)1 : (byte)0;
+			ItemUnclipByLog = itemUnclipByLog ? (byte)1 : (byte)0;
+			AnyIdHasBeenEditedThisFrame = anyIdHasBeenEditedThisFrame ? (byte)1 : (byte)0;
 			ActiveId = activeId;
 			ActiveIdIsAlive = activeIdIsAlive;
 			ActiveIdTimer = activeIdTimer;
 			ActiveIdIsJustActivated = activeIdIsJustActivated ? (byte)1 : (byte)0;
+			ActiveIdWasSelected = activeIdWasSelected ? (byte)1 : (byte)0;
+			ActiveIdWasSoleSelected = activeIdWasSoleSelected ? (byte)1 : (byte)0;
 			ActiveIdAllowOverlap = activeIdAllowOverlap ? (byte)1 : (byte)0;
 			ActiveIdNoClearOnFocusLoss = activeIdNoClearOnFocusLoss ? (byte)1 : (byte)0;
 			ActiveIdHasBeenPressedBefore = activeIdHasBeenPressedBefore ? (byte)1 : (byte)0;
 			ActiveIdHasBeenEditedBefore = activeIdHasBeenEditedBefore ? (byte)1 : (byte)0;
 			ActiveIdHasBeenEditedThisFrame = activeIdHasBeenEditedThisFrame ? (byte)1 : (byte)0;
-			ActiveIdClickOffset = activeIdClickOffset;
-			ActiveIdWindow = activeIdWindow;
-			ActiveIdSource = activeIdSource;
+			ActiveIdFromShortcut = activeIdFromShortcut ? (byte)1 : (byte)0;
 			ActiveIdMouseButton = activeIdMouseButton;
+			ActiveIdDisabledId = activeIdDisabledId;
+			ActiveIdClickOffset = activeIdClickOffset;
+			ActiveIdSource = activeIdSource;
+			ActiveIdWindow = activeIdWindow;
 			ActiveIdPreviousFrame = activeIdPreviousFrame;
-			ActiveIdPreviousFrameIsAlive = activeIdPreviousFrameIsAlive ? (byte)1 : (byte)0;
-			ActiveIdPreviousFrameHasBeenEditedBefore = activeIdPreviousFrameHasBeenEditedBefore ? (byte)1 : (byte)0;
-			ActiveIdPreviousFrameWindow = activeIdPreviousFrameWindow;
+			DeactivatedItemData = deactivatedItemData;
+			ActiveIdValueOnActivation = activeIdValueOnActivation;
 			LastActiveId = lastActiveId;
 			LastActiveIdTimer = lastActiveIdTimer;
-			ActiveIdUsingMouseWheel = activeIdUsingMouseWheel ? (byte)1 : (byte)0;
+			LastActiveIdWasSelected = lastActiveIdWasSelected ? (byte)1 : (byte)0;
+			LastActiveIdWasSoleSelected = lastActiveIdWasSoleSelected ? (byte)1 : (byte)0;
+			LastKeyModsChangeTime = lastKeyModsChangeTime;
+			LastKeyModsChangeFromNoneTime = lastKeyModsChangeFromNoneTime;
+			LastKeyboardKeyPressTime = lastKeyboardKeyPressTime;
+			KeysMayBeCharInput = keysMayBeCharInput;
+			if (keysOwnerData != default(ImGuiKeyOwnerData*))
+			{
+				KeysOwnerData_0 = keysOwnerData[0];
+				KeysOwnerData_1 = keysOwnerData[1];
+				KeysOwnerData_2 = keysOwnerData[2];
+				KeysOwnerData_3 = keysOwnerData[3];
+				KeysOwnerData_4 = keysOwnerData[4];
+				KeysOwnerData_5 = keysOwnerData[5];
+				KeysOwnerData_6 = keysOwnerData[6];
+				KeysOwnerData_7 = keysOwnerData[7];
+				KeysOwnerData_8 = keysOwnerData[8];
+				KeysOwnerData_9 = keysOwnerData[9];
+				KeysOwnerData_10 = keysOwnerData[10];
+				KeysOwnerData_11 = keysOwnerData[11];
+				KeysOwnerData_12 = keysOwnerData[12];
+				KeysOwnerData_13 = keysOwnerData[13];
+				KeysOwnerData_14 = keysOwnerData[14];
+				KeysOwnerData_15 = keysOwnerData[15];
+				KeysOwnerData_16 = keysOwnerData[16];
+				KeysOwnerData_17 = keysOwnerData[17];
+				KeysOwnerData_18 = keysOwnerData[18];
+				KeysOwnerData_19 = keysOwnerData[19];
+				KeysOwnerData_20 = keysOwnerData[20];
+				KeysOwnerData_21 = keysOwnerData[21];
+				KeysOwnerData_22 = keysOwnerData[22];
+				KeysOwnerData_23 = keysOwnerData[23];
+				KeysOwnerData_24 = keysOwnerData[24];
+				KeysOwnerData_25 = keysOwnerData[25];
+				KeysOwnerData_26 = keysOwnerData[26];
+				KeysOwnerData_27 = keysOwnerData[27];
+				KeysOwnerData_28 = keysOwnerData[28];
+				KeysOwnerData_29 = keysOwnerData[29];
+				KeysOwnerData_30 = keysOwnerData[30];
+				KeysOwnerData_31 = keysOwnerData[31];
+				KeysOwnerData_32 = keysOwnerData[32];
+				KeysOwnerData_33 = keysOwnerData[33];
+				KeysOwnerData_34 = keysOwnerData[34];
+				KeysOwnerData_35 = keysOwnerData[35];
+				KeysOwnerData_36 = keysOwnerData[36];
+				KeysOwnerData_37 = keysOwnerData[37];
+				KeysOwnerData_38 = keysOwnerData[38];
+				KeysOwnerData_39 = keysOwnerData[39];
+				KeysOwnerData_40 = keysOwnerData[40];
+				KeysOwnerData_41 = keysOwnerData[41];
+				KeysOwnerData_42 = keysOwnerData[42];
+				KeysOwnerData_43 = keysOwnerData[43];
+				KeysOwnerData_44 = keysOwnerData[44];
+				KeysOwnerData_45 = keysOwnerData[45];
+				KeysOwnerData_46 = keysOwnerData[46];
+				KeysOwnerData_47 = keysOwnerData[47];
+				KeysOwnerData_48 = keysOwnerData[48];
+				KeysOwnerData_49 = keysOwnerData[49];
+				KeysOwnerData_50 = keysOwnerData[50];
+				KeysOwnerData_51 = keysOwnerData[51];
+				KeysOwnerData_52 = keysOwnerData[52];
+				KeysOwnerData_53 = keysOwnerData[53];
+				KeysOwnerData_54 = keysOwnerData[54];
+				KeysOwnerData_55 = keysOwnerData[55];
+				KeysOwnerData_56 = keysOwnerData[56];
+				KeysOwnerData_57 = keysOwnerData[57];
+				KeysOwnerData_58 = keysOwnerData[58];
+				KeysOwnerData_59 = keysOwnerData[59];
+				KeysOwnerData_60 = keysOwnerData[60];
+				KeysOwnerData_61 = keysOwnerData[61];
+				KeysOwnerData_62 = keysOwnerData[62];
+				KeysOwnerData_63 = keysOwnerData[63];
+				KeysOwnerData_64 = keysOwnerData[64];
+				KeysOwnerData_65 = keysOwnerData[65];
+				KeysOwnerData_66 = keysOwnerData[66];
+				KeysOwnerData_67 = keysOwnerData[67];
+				KeysOwnerData_68 = keysOwnerData[68];
+				KeysOwnerData_69 = keysOwnerData[69];
+				KeysOwnerData_70 = keysOwnerData[70];
+				KeysOwnerData_71 = keysOwnerData[71];
+				KeysOwnerData_72 = keysOwnerData[72];
+				KeysOwnerData_73 = keysOwnerData[73];
+				KeysOwnerData_74 = keysOwnerData[74];
+				KeysOwnerData_75 = keysOwnerData[75];
+				KeysOwnerData_76 = keysOwnerData[76];
+				KeysOwnerData_77 = keysOwnerData[77];
+				KeysOwnerData_78 = keysOwnerData[78];
+				KeysOwnerData_79 = keysOwnerData[79];
+				KeysOwnerData_80 = keysOwnerData[80];
+				KeysOwnerData_81 = keysOwnerData[81];
+				KeysOwnerData_82 = keysOwnerData[82];
+				KeysOwnerData_83 = keysOwnerData[83];
+				KeysOwnerData_84 = keysOwnerData[84];
+				KeysOwnerData_85 = keysOwnerData[85];
+				KeysOwnerData_86 = keysOwnerData[86];
+				KeysOwnerData_87 = keysOwnerData[87];
+				KeysOwnerData_88 = keysOwnerData[88];
+				KeysOwnerData_89 = keysOwnerData[89];
+				KeysOwnerData_90 = keysOwnerData[90];
+				KeysOwnerData_91 = keysOwnerData[91];
+				KeysOwnerData_92 = keysOwnerData[92];
+				KeysOwnerData_93 = keysOwnerData[93];
+				KeysOwnerData_94 = keysOwnerData[94];
+				KeysOwnerData_95 = keysOwnerData[95];
+				KeysOwnerData_96 = keysOwnerData[96];
+				KeysOwnerData_97 = keysOwnerData[97];
+				KeysOwnerData_98 = keysOwnerData[98];
+				KeysOwnerData_99 = keysOwnerData[99];
+				KeysOwnerData_100 = keysOwnerData[100];
+				KeysOwnerData_101 = keysOwnerData[101];
+				KeysOwnerData_102 = keysOwnerData[102];
+				KeysOwnerData_103 = keysOwnerData[103];
+				KeysOwnerData_104 = keysOwnerData[104];
+				KeysOwnerData_105 = keysOwnerData[105];
+				KeysOwnerData_106 = keysOwnerData[106];
+				KeysOwnerData_107 = keysOwnerData[107];
+				KeysOwnerData_108 = keysOwnerData[108];
+				KeysOwnerData_109 = keysOwnerData[109];
+				KeysOwnerData_110 = keysOwnerData[110];
+				KeysOwnerData_111 = keysOwnerData[111];
+				KeysOwnerData_112 = keysOwnerData[112];
+				KeysOwnerData_113 = keysOwnerData[113];
+				KeysOwnerData_114 = keysOwnerData[114];
+				KeysOwnerData_115 = keysOwnerData[115];
+				KeysOwnerData_116 = keysOwnerData[116];
+				KeysOwnerData_117 = keysOwnerData[117];
+				KeysOwnerData_118 = keysOwnerData[118];
+				KeysOwnerData_119 = keysOwnerData[119];
+				KeysOwnerData_120 = keysOwnerData[120];
+				KeysOwnerData_121 = keysOwnerData[121];
+				KeysOwnerData_122 = keysOwnerData[122];
+				KeysOwnerData_123 = keysOwnerData[123];
+				KeysOwnerData_124 = keysOwnerData[124];
+				KeysOwnerData_125 = keysOwnerData[125];
+				KeysOwnerData_126 = keysOwnerData[126];
+				KeysOwnerData_127 = keysOwnerData[127];
+				KeysOwnerData_128 = keysOwnerData[128];
+				KeysOwnerData_129 = keysOwnerData[129];
+				KeysOwnerData_130 = keysOwnerData[130];
+				KeysOwnerData_131 = keysOwnerData[131];
+				KeysOwnerData_132 = keysOwnerData[132];
+				KeysOwnerData_133 = keysOwnerData[133];
+				KeysOwnerData_134 = keysOwnerData[134];
+				KeysOwnerData_135 = keysOwnerData[135];
+				KeysOwnerData_136 = keysOwnerData[136];
+				KeysOwnerData_137 = keysOwnerData[137];
+				KeysOwnerData_138 = keysOwnerData[138];
+				KeysOwnerData_139 = keysOwnerData[139];
+				KeysOwnerData_140 = keysOwnerData[140];
+				KeysOwnerData_141 = keysOwnerData[141];
+				KeysOwnerData_142 = keysOwnerData[142];
+				KeysOwnerData_143 = keysOwnerData[143];
+				KeysOwnerData_144 = keysOwnerData[144];
+				KeysOwnerData_145 = keysOwnerData[145];
+				KeysOwnerData_146 = keysOwnerData[146];
+				KeysOwnerData_147 = keysOwnerData[147];
+				KeysOwnerData_148 = keysOwnerData[148];
+				KeysOwnerData_149 = keysOwnerData[149];
+				KeysOwnerData_150 = keysOwnerData[150];
+				KeysOwnerData_151 = keysOwnerData[151];
+				KeysOwnerData_152 = keysOwnerData[152];
+				KeysOwnerData_153 = keysOwnerData[153];
+				KeysOwnerData_154 = keysOwnerData[154];
+			}
+			KeysRoutingTable = keysRoutingTable;
 			ActiveIdUsingNavDirMask = activeIdUsingNavDirMask;
-			ActiveIdUsingNavInputMask = activeIdUsingNavInputMask;
-			ActiveIdUsingKeyInputMask = activeIdUsingKeyInputMask;
+			ActiveIdUsingAllKeyboardKeys = activeIdUsingAllKeyboardKeys ? (byte)1 : (byte)0;
+			DebugBreakInShortcutRouting = debugBreakInShortcutRouting;
+			CurrentFocusScopeId = currentFocusScopeId;
 			CurrentItemFlags = currentItemFlags;
+			DebugLocateId = debugLocateId;
 			NextItemData = nextItemData;
 			LastItemData = lastItemData;
 			NextWindowData = nextWindowData;
+			DebugShowGroupRects = debugShowGroupRects ? (byte)1 : (byte)0;
+			GcCompactAll = gcCompactAll ? (byte)1 : (byte)0;
+			DebugFlashStyleColorIdx = debugFlashStyleColorIdx;
 			ColorStack = colorStack;
 			StyleVarStack = styleVarStack;
 			FontStack = fontStack;
@@ -1405,39 +2314,44 @@ namespace Dalamud.Bindings.ImGui
 			GroupStack = groupStack;
 			OpenPopupStack = openPopupStack;
 			BeginPopupStack = beginPopupStack;
-			BeginMenuCount = beginMenuCount;
+			TreeNodeStack = treeNodeStack;
 			Viewports = viewports;
-			CurrentDpiScale = currentDpiScale;
 			CurrentViewport = currentViewport;
 			MouseViewport = mouseViewport;
 			MouseLastHoveredViewport = mouseLastHoveredViewport;
 			PlatformLastFocusedViewportId = platformLastFocusedViewportId;
 			FallbackMonitor = fallbackMonitor;
-			ViewportFrontMostStampCount = viewportFrontMostStampCount;
-			NavWindow = navWindow;
+			PlatformMonitorsFullWorkRect = platformMonitorsFullWorkRect;
+			ViewportCreatedCount = viewportCreatedCount;
+			PlatformWindowsCreatedCount = platformWindowsCreatedCount;
+			ViewportFocusedStampCount = viewportFocusedStampCount;
+			NavCursorVisible = navCursorVisible ? (byte)1 : (byte)0;
+			NavHighlightItemUnderNav = navHighlightItemUnderNav ? (byte)1 : (byte)0;
+			NavMousePosDirty = navMousePosDirty ? (byte)1 : (byte)0;
+			NavIdIsAlive = navIdIsAlive ? (byte)1 : (byte)0;
 			NavId = navId;
+			NavWindow = navWindow;
 			NavFocusScopeId = navFocusScopeId;
+			NavLayer = navLayer;
+			NavIdItemFlags = navIdItemFlags;
 			NavActivateId = navActivateId;
 			NavActivateDownId = navActivateDownId;
 			NavActivatePressedId = navActivatePressedId;
-			NavActivateInputId = navActivateInputId;
 			NavActivateFlags = navActivateFlags;
-			NavJustMovedToId = navJustMovedToId;
-			NavJustMovedToFocusScopeId = navJustMovedToFocusScopeId;
-			NavJustMovedToKeyMods = navJustMovedToKeyMods;
+			NavFocusRoute = navFocusRoute;
+			NavHighlightActivatedId = navHighlightActivatedId;
+			NavHighlightActivatedTimer = navHighlightActivatedTimer;
+			NavOpenContextMenuItemId = navOpenContextMenuItemId;
+			NavOpenContextMenuWindowId = navOpenContextMenuWindowId;
 			NavNextActivateId = navNextActivateId;
 			NavNextActivateFlags = navNextActivateFlags;
 			NavInputSource = navInputSource;
-			NavLayer = navLayer;
-			NavIdIsAlive = navIdIsAlive ? (byte)1 : (byte)0;
-			NavMousePosDirty = navMousePosDirty ? (byte)1 : (byte)0;
-			NavDisableHighlight = navDisableHighlight ? (byte)1 : (byte)0;
-			NavDisableMouseHover = navDisableMouseHover ? (byte)1 : (byte)0;
+			NavLastValidSelectionUserData = navLastValidSelectionUserData;
+			NavCursorHideFrames = navCursorHideFrames;
 			NavAnyRequest = navAnyRequest ? (byte)1 : (byte)0;
 			NavInitRequest = navInitRequest ? (byte)1 : (byte)0;
 			NavInitRequestFromMove = navInitRequestFromMove ? (byte)1 : (byte)0;
-			NavInitResultId = navInitResultId;
-			NavInitResultRectRel = navInitResultRectRel;
+			NavInitResult = navInitResult;
 			NavMoveSubmitted = navMoveSubmitted ? (byte)1 : (byte)0;
 			NavMoveScoringItems = navMoveScoringItems ? (byte)1 : (byte)0;
 			NavMoveForwardToNextFrame = navMoveForwardToNextFrame ? (byte)1 : (byte)0;
@@ -1456,14 +2370,28 @@ namespace Dalamud.Bindings.ImGui
 			NavMoveResultLocalVisible = navMoveResultLocalVisible;
 			NavMoveResultOther = navMoveResultOther;
 			NavTabbingResultFirst = navTabbingResultFirst;
+			NavJustMovedFromFocusScopeId = navJustMovedFromFocusScopeId;
+			NavJustMovedToId = navJustMovedToId;
+			NavJustMovedToFocusScopeId = navJustMovedToFocusScopeId;
+			NavJustMovedToKeyMods = navJustMovedToKeyMods;
+			NavJustMovedToIsTabbing = navJustMovedToIsTabbing ? (byte)1 : (byte)0;
+			NavJustMovedToIsInit = navJustMovedToIsInit ? (byte)1 : (byte)0;
+			NavJustMovedToHasSelectionData = navJustMovedToHasSelectionData ? (byte)1 : (byte)0;
+			ConfigNavEnableTabbing = configNavEnableTabbing ? (byte)1 : (byte)0;
+			ConfigNavWindowingWithGamepad = configNavWindowingWithGamepad ? (byte)1 : (byte)0;
+			ConfigNavWindowingKeyNext = configNavWindowingKeyNext;
+			ConfigNavWindowingKeyPrev = configNavWindowingKeyPrev;
 			NavWindowingTarget = navWindowingTarget;
 			NavWindowingTargetAnim = navWindowingTargetAnim;
 			NavWindowingListWindow = navWindowingListWindow;
 			NavWindowingTimer = navWindowingTimer;
 			NavWindowingHighlightAlpha = navWindowingHighlightAlpha;
+			NavWindowingInputSource = navWindowingInputSource;
 			NavWindowingToggleLayer = navWindowingToggleLayer ? (byte)1 : (byte)0;
+			NavWindowingToggleKey = navWindowingToggleKey;
+			NavWindowingAccumDeltaPos = navWindowingAccumDeltaPos;
+			NavWindowingAccumDeltaSize = navWindowingAccumDeltaSize;
 			DimBgRatio = dimBgRatio;
-			MouseCursor = mouseCursor;
 			DragDropActive = dragDropActive ? (byte)1 : (byte)0;
 			DragDropWithinSource = dragDropWithinSource ? (byte)1 : (byte)0;
 			DragDropWithinTarget = dragDropWithinTarget ? (byte)1 : (byte)0;
@@ -1472,8 +2400,11 @@ namespace Dalamud.Bindings.ImGui
 			DragDropMouseButton = dragDropMouseButton;
 			DragDropPayload = dragDropPayload;
 			DragDropTargetRect = dragDropTargetRect;
+			DragDropTargetClipRect = dragDropTargetClipRect;
 			DragDropTargetId = dragDropTargetId;
-			DragDropAcceptFlags = dragDropAcceptFlags;
+			DragDropTargetFullViewport = dragDropTargetFullViewport;
+			DragDropAcceptFlagsCurr = dragDropAcceptFlagsCurr;
+			DragDropAcceptFlagsPrev = dragDropAcceptFlagsPrev;
 			DragDropAcceptIdCurrRectSurface = dragDropAcceptIdCurrRectSurface;
 			DragDropAcceptIdCurr = dragDropAcceptIdCurr;
 			DragDropAcceptIdPrev = dragDropAcceptIdPrev;
@@ -1502,6 +2433,7 @@ namespace Dalamud.Bindings.ImGui
 			ClipperTempDataStacked = clipperTempDataStacked;
 			ClipperTempData = clipperTempData;
 			CurrentTable = currentTable;
+			DebugBreakInTable = debugBreakInTable;
 			TablesTempDataStacked = tablesTempDataStacked;
 			TablesTempData = tablesTempData;
 			Tables = tables;
@@ -1511,34 +2443,59 @@ namespace Dalamud.Bindings.ImGui
 			TabBars = tabBars;
 			CurrentTabBarStack = currentTabBarStack;
 			ShrinkWidthBuffer = shrinkWidthBuffer;
+			BoxSelectState = boxSelectState;
+			CurrentMultiSelect = currentMultiSelect;
+			MultiSelectTempDataStacked = multiSelectTempDataStacked;
+			MultiSelectTempData = multiSelectTempData;
+			MultiSelectStorage = multiSelectStorage;
+			HoverItemDelayId = hoverItemDelayId;
+			HoverItemDelayIdPreviousFrame = hoverItemDelayIdPreviousFrame;
+			HoverItemDelayTimer = hoverItemDelayTimer;
+			HoverItemDelayClearTimer = hoverItemDelayClearTimer;
+			HoverItemUnlockedStationaryId = hoverItemUnlockedStationaryId;
+			HoverWindowUnlockedStationaryId = hoverWindowUnlockedStationaryId;
+			MouseCursor = mouseCursor;
+			MouseStationaryTimer = mouseStationaryTimer;
 			MouseLastValidPos = mouseLastValidPos;
 			InputTextState = inputTextState;
-			InputTextPasswordFont = inputTextPasswordFont;
+			InputTextLineIndex = inputTextLineIndex;
+			InputTextDeactivatedState = inputTextDeactivatedState;
+			InputTextPasswordMaskCount = inputTextPasswordMaskCount;
+			InputTextReactivateId = inputTextReactivateId;
 			TempInputId = tempInputId;
-			ColorEditOptions = colorEditOptions;
-			ColorEditLastHue = colorEditLastHue;
-			ColorEditLastSat = colorEditLastSat;
-			ColorEditLastColor = colorEditLastColor;
+			DataTypeZeroValue = dataTypeZeroValue;
+			BeginMenuDepth = beginMenuDepth;
+			BeginComboDepth = beginComboDepth;
+			ColorEditCurrentID = colorEditCurrentId;
+			ColorEditSavedID = colorEditSavedId;
+			ColorEditSavedHue = colorEditSavedHue;
+			ColorEditSavedSat = colorEditSavedSat;
+			ColorEditSavedColor = colorEditSavedColor;
 			ColorPickerRef = colorPickerRef;
 			ComboPreviewData = comboPreviewData;
+			WindowResizeBorderExpectedRect = windowResizeBorderExpectedRect;
+			WindowResizeRelativeMode = windowResizeRelativeMode ? (byte)1 : (byte)0;
+			ScrollbarSeekMode = scrollbarSeekMode;
+			ScrollbarClickDeltaToGrabCenter = scrollbarClickDeltaToGrabCenter;
 			SliderGrabClickOffset = sliderGrabClickOffset;
 			SliderCurrentAccum = sliderCurrentAccum;
 			SliderCurrentAccumDirty = sliderCurrentAccumDirty ? (byte)1 : (byte)0;
 			DragCurrentAccumDirty = dragCurrentAccumDirty ? (byte)1 : (byte)0;
 			DragCurrentAccum = dragCurrentAccum;
 			DragSpeedDefaultRatio = dragSpeedDefaultRatio;
-			ScrollbarClickDeltaToGrabCenter = scrollbarClickDeltaToGrabCenter;
 			DisabledAlphaBackup = disabledAlphaBackup;
 			DisabledStackSize = disabledStackSize;
 			TooltipOverrideCount = tooltipOverrideCount;
-			TooltipSlowDelay = tooltipSlowDelay;
+			TooltipPreviousWindow = tooltipPreviousWindow;
 			ClipboardHandlerData = clipboardHandlerData;
 			MenusIdSubmittedThisFrame = menusIdSubmittedThisFrame;
+			TypingSelectState = typingSelectState;
 			PlatformImeData = platformImeData;
 			PlatformImeDataPrev = platformImeDataPrev;
-			PlatformImeViewport = platformImeViewport;
-			PlatformLocaleDecimalPoint = platformLocaleDecimalPoint;
+			UserTextures = userTextures;
 			DockContext = dockContext;
+			DockNodeWindowMenuHandler = (void*)dockNodeWindowMenuHandler;
+			SessionDate = sessionDate;
 			SettingsLoaded = settingsLoaded ? (byte)1 : (byte)0;
 			SettingsDirtyTimer = settingsDirtyTimer;
 			SettingsIniData = settingsIniData;
@@ -1547,23 +2504,65 @@ namespace Dalamud.Bindings.ImGui
 			SettingsTables = settingsTables;
 			Hooks = hooks;
 			HookIdNext = hookIdNext;
+			DemoMarkerCallback = (void*)Marshal.GetFunctionPointerForDelegate(demoMarkerCallback);
+			if (localizationTable != default(byte**))
+			{
+				LocalizationTable_0 = localizationTable[0];
+				LocalizationTable_1 = localizationTable[1];
+				LocalizationTable_2 = localizationTable[2];
+				LocalizationTable_3 = localizationTable[3];
+				LocalizationTable_4 = localizationTable[4];
+				LocalizationTable_5 = localizationTable[5];
+				LocalizationTable_6 = localizationTable[6];
+				LocalizationTable_7 = localizationTable[7];
+				LocalizationTable_8 = localizationTable[8];
+				LocalizationTable_9 = localizationTable[9];
+				LocalizationTable_10 = localizationTable[10];
+				LocalizationTable_11 = localizationTable[11];
+				LocalizationTable_12 = localizationTable[12];
+				LocalizationTable_13 = localizationTable[13];
+				LocalizationTable_14 = localizationTable[14];
+			}
 			LogEnabled = logEnabled ? (byte)1 : (byte)0;
-			LogType = logType;
+			LogLineFirstItem = logLineFirstItem ? (byte)1 : (byte)0;
+			LogFlags = logFlags;
+			LogWindow = logWindow;
 			LogFile = logFile;
 			LogBuffer = logBuffer;
 			LogNextPrefix = logNextPrefix;
 			LogNextSuffix = logNextSuffix;
 			LogLinePosY = logLinePosY;
-			LogLineFirstItem = logLineFirstItem ? (byte)1 : (byte)0;
 			LogDepthRef = logDepthRef;
 			LogDepthToExpand = logDepthToExpand;
 			LogDepthToExpandDefault = logDepthToExpandDefault;
+			ErrorCallback = (void*)Marshal.GetFunctionPointerForDelegate(errorCallback);
+			ErrorCallbackUserData = errorCallbackUserData;
+			ErrorTooltipLockedPos = errorTooltipLockedPos;
+			ErrorFirst = errorFirst ? (byte)1 : (byte)0;
+			ErrorCountCurrentFrame = errorCountCurrentFrame;
+			StackSizesInNewFrame = stackSizesInNewFrame;
+			StackSizesInBeginForCurrentWindow = stackSizesInBeginForCurrentWindow;
+			DebugDrawIdConflictsCount = debugDrawIdConflictsCount;
 			DebugLogFlags = debugLogFlags;
 			DebugLogBuf = debugLogBuf;
+			DebugLogIndex = debugLogIndex;
+			DebugLogSkippedErrors = debugLogSkippedErrors;
+			DebugLogAutoDisableFlags = debugLogAutoDisableFlags;
+			DebugLogAutoDisableFrames = debugLogAutoDisableFrames;
+			DebugLocateFrames = debugLocateFrames;
+			DebugBreakInLocateId = debugBreakInLocateId ? (byte)1 : (byte)0;
+			DebugBreakKeyChord = debugBreakKeyChord;
+			DebugBeginReturnValueCullDepth = debugBeginReturnValueCullDepth;
 			DebugItemPickerActive = debugItemPickerActive ? (byte)1 : (byte)0;
+			DebugItemPickerMouseButton = debugItemPickerMouseButton;
 			DebugItemPickerBreakId = debugItemPickerBreakId;
+			DebugFlashStyleColorTime = debugFlashStyleColorTime;
+			DebugFlashStyleColorBackup = debugFlashStyleColorBackup;
 			DebugMetricsConfig = debugMetricsConfig;
-			DebugStackTool = debugStackTool;
+			DebugItemPathQuery = debugItemPathQuery;
+			DebugIDStackTool = debugIdStackTool;
+			DebugAllocInfo = debugAllocInfo;
+			DebugHoveredDockNode = debugHoveredDockNode;
 			if (framerateSecPerFrame != default(float*))
 			{
 				FramerateSecPerFrame_0 = framerateSecPerFrame[0];
@@ -1626,66 +2625,6 @@ namespace Dalamud.Bindings.ImGui
 				FramerateSecPerFrame_57 = framerateSecPerFrame[57];
 				FramerateSecPerFrame_58 = framerateSecPerFrame[58];
 				FramerateSecPerFrame_59 = framerateSecPerFrame[59];
-				FramerateSecPerFrame_60 = framerateSecPerFrame[60];
-				FramerateSecPerFrame_61 = framerateSecPerFrame[61];
-				FramerateSecPerFrame_62 = framerateSecPerFrame[62];
-				FramerateSecPerFrame_63 = framerateSecPerFrame[63];
-				FramerateSecPerFrame_64 = framerateSecPerFrame[64];
-				FramerateSecPerFrame_65 = framerateSecPerFrame[65];
-				FramerateSecPerFrame_66 = framerateSecPerFrame[66];
-				FramerateSecPerFrame_67 = framerateSecPerFrame[67];
-				FramerateSecPerFrame_68 = framerateSecPerFrame[68];
-				FramerateSecPerFrame_69 = framerateSecPerFrame[69];
-				FramerateSecPerFrame_70 = framerateSecPerFrame[70];
-				FramerateSecPerFrame_71 = framerateSecPerFrame[71];
-				FramerateSecPerFrame_72 = framerateSecPerFrame[72];
-				FramerateSecPerFrame_73 = framerateSecPerFrame[73];
-				FramerateSecPerFrame_74 = framerateSecPerFrame[74];
-				FramerateSecPerFrame_75 = framerateSecPerFrame[75];
-				FramerateSecPerFrame_76 = framerateSecPerFrame[76];
-				FramerateSecPerFrame_77 = framerateSecPerFrame[77];
-				FramerateSecPerFrame_78 = framerateSecPerFrame[78];
-				FramerateSecPerFrame_79 = framerateSecPerFrame[79];
-				FramerateSecPerFrame_80 = framerateSecPerFrame[80];
-				FramerateSecPerFrame_81 = framerateSecPerFrame[81];
-				FramerateSecPerFrame_82 = framerateSecPerFrame[82];
-				FramerateSecPerFrame_83 = framerateSecPerFrame[83];
-				FramerateSecPerFrame_84 = framerateSecPerFrame[84];
-				FramerateSecPerFrame_85 = framerateSecPerFrame[85];
-				FramerateSecPerFrame_86 = framerateSecPerFrame[86];
-				FramerateSecPerFrame_87 = framerateSecPerFrame[87];
-				FramerateSecPerFrame_88 = framerateSecPerFrame[88];
-				FramerateSecPerFrame_89 = framerateSecPerFrame[89];
-				FramerateSecPerFrame_90 = framerateSecPerFrame[90];
-				FramerateSecPerFrame_91 = framerateSecPerFrame[91];
-				FramerateSecPerFrame_92 = framerateSecPerFrame[92];
-				FramerateSecPerFrame_93 = framerateSecPerFrame[93];
-				FramerateSecPerFrame_94 = framerateSecPerFrame[94];
-				FramerateSecPerFrame_95 = framerateSecPerFrame[95];
-				FramerateSecPerFrame_96 = framerateSecPerFrame[96];
-				FramerateSecPerFrame_97 = framerateSecPerFrame[97];
-				FramerateSecPerFrame_98 = framerateSecPerFrame[98];
-				FramerateSecPerFrame_99 = framerateSecPerFrame[99];
-				FramerateSecPerFrame_100 = framerateSecPerFrame[100];
-				FramerateSecPerFrame_101 = framerateSecPerFrame[101];
-				FramerateSecPerFrame_102 = framerateSecPerFrame[102];
-				FramerateSecPerFrame_103 = framerateSecPerFrame[103];
-				FramerateSecPerFrame_104 = framerateSecPerFrame[104];
-				FramerateSecPerFrame_105 = framerateSecPerFrame[105];
-				FramerateSecPerFrame_106 = framerateSecPerFrame[106];
-				FramerateSecPerFrame_107 = framerateSecPerFrame[107];
-				FramerateSecPerFrame_108 = framerateSecPerFrame[108];
-				FramerateSecPerFrame_109 = framerateSecPerFrame[109];
-				FramerateSecPerFrame_110 = framerateSecPerFrame[110];
-				FramerateSecPerFrame_111 = framerateSecPerFrame[111];
-				FramerateSecPerFrame_112 = framerateSecPerFrame[112];
-				FramerateSecPerFrame_113 = framerateSecPerFrame[113];
-				FramerateSecPerFrame_114 = framerateSecPerFrame[114];
-				FramerateSecPerFrame_115 = framerateSecPerFrame[115];
-				FramerateSecPerFrame_116 = framerateSecPerFrame[116];
-				FramerateSecPerFrame_117 = framerateSecPerFrame[117];
-				FramerateSecPerFrame_118 = framerateSecPerFrame[118];
-				FramerateSecPerFrame_119 = framerateSecPerFrame[119];
 			}
 			FramerateSecPerFrameIdx = framerateSecPerFrameIdx;
 			FramerateSecPerFrameCount = framerateSecPerFrameCount;
@@ -1694,88 +2633,360 @@ namespace Dalamud.Bindings.ImGui
 			WantCaptureKeyboardNextFrame = wantCaptureKeyboardNextFrame;
 			WantTextInputNextFrame = wantTextInputNextFrame;
 			TempBuffer = tempBuffer;
+			if (tempKeychordName != default(byte*))
+			{
+				TempKeychordName_0 = tempKeychordName[0];
+				TempKeychordName_1 = tempKeychordName[1];
+				TempKeychordName_2 = tempKeychordName[2];
+				TempKeychordName_3 = tempKeychordName[3];
+				TempKeychordName_4 = tempKeychordName[4];
+				TempKeychordName_5 = tempKeychordName[5];
+				TempKeychordName_6 = tempKeychordName[6];
+				TempKeychordName_7 = tempKeychordName[7];
+				TempKeychordName_8 = tempKeychordName[8];
+				TempKeychordName_9 = tempKeychordName[9];
+				TempKeychordName_10 = tempKeychordName[10];
+				TempKeychordName_11 = tempKeychordName[11];
+				TempKeychordName_12 = tempKeychordName[12];
+				TempKeychordName_13 = tempKeychordName[13];
+				TempKeychordName_14 = tempKeychordName[14];
+				TempKeychordName_15 = tempKeychordName[15];
+				TempKeychordName_16 = tempKeychordName[16];
+				TempKeychordName_17 = tempKeychordName[17];
+				TempKeychordName_18 = tempKeychordName[18];
+				TempKeychordName_19 = tempKeychordName[19];
+				TempKeychordName_20 = tempKeychordName[20];
+				TempKeychordName_21 = tempKeychordName[21];
+				TempKeychordName_22 = tempKeychordName[22];
+				TempKeychordName_23 = tempKeychordName[23];
+				TempKeychordName_24 = tempKeychordName[24];
+				TempKeychordName_25 = tempKeychordName[25];
+				TempKeychordName_26 = tempKeychordName[26];
+				TempKeychordName_27 = tempKeychordName[27];
+				TempKeychordName_28 = tempKeychordName[28];
+				TempKeychordName_29 = tempKeychordName[29];
+				TempKeychordName_30 = tempKeychordName[30];
+				TempKeychordName_31 = tempKeychordName[31];
+				TempKeychordName_32 = tempKeychordName[32];
+				TempKeychordName_33 = tempKeychordName[33];
+				TempKeychordName_34 = tempKeychordName[34];
+				TempKeychordName_35 = tempKeychordName[35];
+				TempKeychordName_36 = tempKeychordName[36];
+				TempKeychordName_37 = tempKeychordName[37];
+				TempKeychordName_38 = tempKeychordName[38];
+				TempKeychordName_39 = tempKeychordName[39];
+				TempKeychordName_40 = tempKeychordName[40];
+				TempKeychordName_41 = tempKeychordName[41];
+				TempKeychordName_42 = tempKeychordName[42];
+				TempKeychordName_43 = tempKeychordName[43];
+				TempKeychordName_44 = tempKeychordName[44];
+				TempKeychordName_45 = tempKeychordName[45];
+				TempKeychordName_46 = tempKeychordName[46];
+				TempKeychordName_47 = tempKeychordName[47];
+				TempKeychordName_48 = tempKeychordName[48];
+				TempKeychordName_49 = tempKeychordName[49];
+				TempKeychordName_50 = tempKeychordName[50];
+				TempKeychordName_51 = tempKeychordName[51];
+				TempKeychordName_52 = tempKeychordName[52];
+				TempKeychordName_53 = tempKeychordName[53];
+				TempKeychordName_54 = tempKeychordName[54];
+				TempKeychordName_55 = tempKeychordName[55];
+				TempKeychordName_56 = tempKeychordName[56];
+				TempKeychordName_57 = tempKeychordName[57];
+				TempKeychordName_58 = tempKeychordName[58];
+				TempKeychordName_59 = tempKeychordName[59];
+				TempKeychordName_60 = tempKeychordName[60];
+				TempKeychordName_61 = tempKeychordName[61];
+				TempKeychordName_62 = tempKeychordName[62];
+				TempKeychordName_63 = tempKeychordName[63];
+			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiContext(bool initialized = default, bool fontAtlasOwnedByContext = default, ImGuiIO io = default, ImGuiPlatformIO platformIo = default, ImVector<ImGuiInputEvent> inputEventsQueue = default, ImVector<ImGuiInputEvent> inputEventsTrail = default, ImGuiStyle style = default, ImGuiConfigFlags configFlagsCurrFrame = default, ImGuiConfigFlags configFlagsLastFrame = default, ImFontPtr font = default, float fontSize = default, float fontBaseSize = default, ImDrawListSharedData drawListSharedData = default, double time = default, int frameCount = default, int frameCountEnded = default, int frameCountPlatformEnded = default, int frameCountRendered = default, bool withinFrameScope = default, bool withinFrameScopeWithImplicitWindow = default, bool withinEndChild = default, bool gcCompactAll = default, bool testEngineHookItems = default, void* testEngine = default, ImVector<ImGuiWindowPtr> windows = default, ImVector<ImGuiWindowPtr> windowsFocusOrder = default, ImVector<ImGuiWindowPtr> windowsTempSortBuffer = default, ImVector<ImGuiWindowStackData> currentWindowStack = default, ImGuiStorage windowsById = default, int windowsActiveCount = default, Vector2 windowsHoverPadding = default, ImGuiWindow* currentWindow = default, ImGuiWindow* hoveredWindow = default, ImGuiWindow* hoveredWindowUnderMovingWindow = default, ImGuiDockNode* hoveredDockNode = default, ImGuiWindow* movingWindow = default, ImGuiWindow* wheelingWindow = default, Vector2 wheelingWindowRefMousePos = default, float wheelingWindowTimer = default, uint debugHookIdInfo = default, uint hoveredId = default, uint hoveredIdPreviousFrame = default, bool hoveredIdAllowOverlap = default, bool hoveredIdUsingMouseWheel = default, bool hoveredIdPreviousFrameUsingMouseWheel = default, bool hoveredIdDisabled = default, float hoveredIdTimer = default, float hoveredIdNotActiveTimer = default, uint activeId = default, uint activeIdIsAlive = default, float activeIdTimer = default, bool activeIdIsJustActivated = default, bool activeIdAllowOverlap = default, bool activeIdNoClearOnFocusLoss = default, bool activeIdHasBeenPressedBefore = default, bool activeIdHasBeenEditedBefore = default, bool activeIdHasBeenEditedThisFrame = default, Vector2 activeIdClickOffset = default, ImGuiWindow* activeIdWindow = default, ImGuiInputSource activeIdSource = default, int activeIdMouseButton = default, uint activeIdPreviousFrame = default, bool activeIdPreviousFrameIsAlive = default, bool activeIdPreviousFrameHasBeenEditedBefore = default, ImGuiWindow* activeIdPreviousFrameWindow = default, uint lastActiveId = default, float lastActiveIdTimer = default, bool activeIdUsingMouseWheel = default, uint activeIdUsingNavDirMask = default, uint activeIdUsingNavInputMask = default, nuint activeIdUsingKeyInputMask = default, ImGuiItemFlags currentItemFlags = default, ImGuiNextItemData nextItemData = default, ImGuiLastItemData lastItemData = default, ImGuiNextWindowData nextWindowData = default, ImVector<ImGuiColorMod> colorStack = default, ImVector<ImGuiStyleMod> styleVarStack = default, ImVector<ImFontPtr> fontStack = default, ImVector<uint> focusScopeStack = default, ImVector<ImGuiItemFlags> itemFlagsStack = default, ImVector<ImGuiGroupData> groupStack = default, ImVector<ImGuiPopupData> openPopupStack = default, ImVector<ImGuiPopupData> beginPopupStack = default, int beginMenuCount = default, ImVector<ImGuiViewportPPtr> viewports = default, float currentDpiScale = default, ImGuiViewportP* currentViewport = default, ImGuiViewportP* mouseViewport = default, ImGuiViewportP* mouseLastHoveredViewport = default, uint platformLastFocusedViewportId = default, ImGuiPlatformMonitor fallbackMonitor = default, int viewportFrontMostStampCount = default, ImGuiWindow* navWindow = default, uint navId = default, uint navFocusScopeId = default, uint navActivateId = default, uint navActivateDownId = default, uint navActivatePressedId = default, uint navActivateInputId = default, ImGuiActivateFlags navActivateFlags = default, uint navJustMovedToId = default, uint navJustMovedToFocusScopeId = default, ImGuiModFlags navJustMovedToKeyMods = default, uint navNextActivateId = default, ImGuiActivateFlags navNextActivateFlags = default, ImGuiInputSource navInputSource = default, ImGuiNavLayer navLayer = default, bool navIdIsAlive = default, bool navMousePosDirty = default, bool navDisableHighlight = default, bool navDisableMouseHover = default, bool navAnyRequest = default, bool navInitRequest = default, bool navInitRequestFromMove = default, uint navInitResultId = default, ImRect navInitResultRectRel = default, bool navMoveSubmitted = default, bool navMoveScoringItems = default, bool navMoveForwardToNextFrame = default, ImGuiNavMoveFlags navMoveFlags = default, ImGuiScrollFlags navMoveScrollFlags = default, ImGuiModFlags navMoveKeyMods = default, ImGuiDir navMoveDir = default, ImGuiDir navMoveDirForDebug = default, ImGuiDir navMoveClipDir = default, ImRect navScoringRect = default, ImRect navScoringNoClipRect = default, int navScoringDebugCount = default, int navTabbingDir = default, int navTabbingCounter = default, ImGuiNavItemData navMoveResultLocal = default, ImGuiNavItemData navMoveResultLocalVisible = default, ImGuiNavItemData navMoveResultOther = default, ImGuiNavItemData navTabbingResultFirst = default, ImGuiWindow* navWindowingTarget = default, ImGuiWindow* navWindowingTargetAnim = default, ImGuiWindow* navWindowingListWindow = default, float navWindowingTimer = default, float navWindowingHighlightAlpha = default, bool navWindowingToggleLayer = default, float dimBgRatio = default, ImGuiMouseCursor mouseCursor = default, bool dragDropActive = default, bool dragDropWithinSource = default, bool dragDropWithinTarget = default, ImGuiDragDropFlags dragDropSourceFlags = default, int dragDropSourceFrameCount = default, int dragDropMouseButton = default, ImGuiPayload dragDropPayload = default, ImRect dragDropTargetRect = default, uint dragDropTargetId = default, ImGuiDragDropFlags dragDropAcceptFlags = default, float dragDropAcceptIdCurrRectSurface = default, uint dragDropAcceptIdCurr = default, uint dragDropAcceptIdPrev = default, int dragDropAcceptFrameCount = default, uint dragDropHoldJustPressedId = default, ImVector<byte> dragDropPayloadBufHeap = default, Span<byte> dragDropPayloadBufLocal = default, int clipperTempDataStacked = default, ImVector<ImGuiListClipperData> clipperTempData = default, ImGuiTable* currentTable = default, int tablesTempDataStacked = default, ImVector<ImGuiTableTempData> tablesTempData = default, ImPoolImGuiTable tables = default, ImVector<float> tablesLastTimeActive = default, ImVector<ImDrawChannel> drawChannelsTempMergeBuffer = default, ImGuiTabBar* currentTabBar = default, ImPoolImGuiTabBar tabBars = default, ImVector<ImGuiPtrOrIndex> currentTabBarStack = default, ImVector<ImGuiShrinkWidthItem> shrinkWidthBuffer = default, Vector2 mouseLastValidPos = default, ImGuiInputTextState inputTextState = default, ImFont inputTextPasswordFont = default, uint tempInputId = default, ImGuiColorEditFlags colorEditOptions = default, float colorEditLastHue = default, float colorEditLastSat = default, uint colorEditLastColor = default, Vector4 colorPickerRef = default, ImGuiComboPreviewData comboPreviewData = default, float sliderGrabClickOffset = default, float sliderCurrentAccum = default, bool sliderCurrentAccumDirty = default, bool dragCurrentAccumDirty = default, float dragCurrentAccum = default, float dragSpeedDefaultRatio = default, float scrollbarClickDeltaToGrabCenter = default, float disabledAlphaBackup = default, short disabledStackSize = default, short tooltipOverrideCount = default, float tooltipSlowDelay = default, ImVector<byte> clipboardHandlerData = default, ImVector<uint> menusIdSubmittedThisFrame = default, ImGuiPlatformImeData platformImeData = default, ImGuiPlatformImeData platformImeDataPrev = default, uint platformImeViewport = default, byte platformLocaleDecimalPoint = default, ImGuiDockContext dockContext = default, bool settingsLoaded = default, float settingsDirtyTimer = default, ImGuiTextBuffer settingsIniData = default, ImVector<ImGuiSettingsHandler> settingsHandlers = default, ImChunkStreamImGuiWindowSettings settingsWindows = default, ImChunkStreamImGuiTableSettings settingsTables = default, ImVector<ImGuiContextHook> hooks = default, uint hookIdNext = default, bool logEnabled = default, ImGuiLogType logType = default, ImFileHandle logFile = default, ImGuiTextBuffer logBuffer = default, byte* logNextPrefix = default, byte* logNextSuffix = default, float logLinePosY = default, bool logLineFirstItem = default, int logDepthRef = default, int logDepthToExpand = default, int logDepthToExpandDefault = default, ImGuiDebugLogFlags debugLogFlags = default, ImGuiTextBuffer debugLogBuf = default, bool debugItemPickerActive = default, uint debugItemPickerBreakId = default, ImGuiMetricsConfig debugMetricsConfig = default, ImGuiStackTool debugStackTool = default, Span<float> framerateSecPerFrame = default, int framerateSecPerFrameIdx = default, int framerateSecPerFrameCount = default, float framerateSecPerFrameAccum = default, int wantCaptureMouseNextFrame = default, int wantCaptureKeyboardNextFrame = default, int wantTextInputNextFrame = default, ImVector<byte> tempBuffer = default)
+		public unsafe ImGuiContext(bool initialized = default, bool withinFrameScope = default, bool withinFrameScopeWithImplicitWindow = default, bool testEngineHookItems = default, int frameCount = default, int frameCountEnded = default, int frameCountPlatformEnded = default, int frameCountRendered = default, double time = default, Span<byte> contextName = default, ImGuiIO io = default, ImGuiPlatformIO platformIo = default, ImGuiStyle style = default, ImGuiConfigFlags configFlagsCurrFrame = default, ImGuiConfigFlags configFlagsLastFrame = default, ImVector<ImFontAtlasPtr> fontAtlases = default, ImFontPtr font = default, ImFontBaked* fontBaked = default, float fontSize = default, float fontSizeBase = default, float fontBakedScale = default, float currentPixelDensity = default, float currentDpiScale = default, ImDrawListSharedData drawListSharedData = default, uint withinEndChildId = default, uint withinEndPopupId = default, void* testEngine = default, ImVector<ImGuiInputEvent> inputEventsQueue = default, ImVector<ImGuiInputEvent> inputEventsTrail = default, ImGuiMouseSource inputEventsNextMouseSource = default, uint inputEventsNextEventId = default, ImVector<ImGuiWindowPtr> windows = default, ImVector<ImGuiWindowPtr> windowsFocusOrder = default, ImVector<ImGuiWindowPtr> windowsTempSortBuffer = default, ImVector<ImGuiWindowStackData> currentWindowStack = default, ImGuiStorage windowsById = default, int windowsActiveCount = default, float windowsBorderHoverPadding = default, uint debugBreakInWindow = default, ImGuiWindow* currentWindow = default, ImGuiWindow* hoveredWindow = default, ImGuiWindow* hoveredWindowUnderMovingWindow = default, ImGuiWindow* hoveredWindowBeforeClear = default, ImGuiWindow* movingWindow = default, ImGuiWindow* wheelingWindow = default, Vector2 wheelingWindowRefMousePos = default, int wheelingWindowStartFrame = default, int wheelingWindowScrolledFrame = default, float wheelingWindowReleaseTimer = default, Vector2 wheelingWindowWheelRemainder = default, Vector2 wheelingAxisAvg = default, byte* mixedValueLabel = default, uint debugDrawIdConflictsId = default, uint debugHookIdInfoId = default, uint hoveredId = default, uint hoveredIdPreviousFrame = default, int hoveredIdPreviousFrameItemCount = default, float hoveredIdTimer = default, float hoveredIdNotActiveTimer = default, bool hoveredIdAllowOverlap = default, bool hoveredIdIsDisabled = default, bool itemUnclipByLog = default, bool anyIdHasBeenEditedThisFrame = default, uint activeId = default, uint activeIdIsAlive = default, float activeIdTimer = default, bool activeIdIsJustActivated = default, bool activeIdWasSelected = default, bool activeIdWasSoleSelected = default, bool activeIdAllowOverlap = default, bool activeIdNoClearOnFocusLoss = default, bool activeIdHasBeenPressedBefore = default, bool activeIdHasBeenEditedBefore = default, bool activeIdHasBeenEditedThisFrame = default, bool activeIdFromShortcut = default, sbyte activeIdMouseButton = default, uint activeIdDisabledId = default, Vector2 activeIdClickOffset = default, ImGuiInputSource activeIdSource = default, ImGuiWindow* activeIdWindow = default, uint activeIdPreviousFrame = default, ImGuiDeactivatedItemData deactivatedItemData = default, ImGuiDataTypeStorage activeIdValueOnActivation = default, uint lastActiveId = default, float lastActiveIdTimer = default, bool lastActiveIdWasSelected = default, bool lastActiveIdWasSoleSelected = default, double lastKeyModsChangeTime = default, double lastKeyModsChangeFromNoneTime = default, double lastKeyboardKeyPressTime = default, ImBitArrayForNamedKeys keysMayBeCharInput = default, Span<ImGuiKeyOwnerData> keysOwnerData = default, ImGuiKeyRoutingTable keysRoutingTable = default, uint activeIdUsingNavDirMask = default, bool activeIdUsingAllKeyboardKeys = default, int debugBreakInShortcutRouting = default, uint currentFocusScopeId = default, ImGuiItemFlags currentItemFlags = default, uint debugLocateId = default, ImGuiNextItemData nextItemData = default, ImGuiLastItemData lastItemData = default, ImGuiNextWindowData nextWindowData = default, bool debugShowGroupRects = default, bool gcCompactAll = default, ImGuiCol debugFlashStyleColorIdx = default, ImVector<ImGuiColorMod> colorStack = default, ImVector<ImGuiStyleMod> styleVarStack = default, ImVector<ImFontStackData> fontStack = default, ImVector<ImGuiFocusScopeData> focusScopeStack = default, ImVector<ImGuiItemFlags> itemFlagsStack = default, ImVector<ImGuiGroupData> groupStack = default, ImVector<ImGuiPopupData> openPopupStack = default, ImVector<ImGuiPopupData> beginPopupStack = default, ImVector<ImGuiTreeNodeStackData> treeNodeStack = default, ImVector<ImGuiViewportPPtr> viewports = default, ImGuiViewportP* currentViewport = default, ImGuiViewportP* mouseViewport = default, ImGuiViewportP* mouseLastHoveredViewport = default, uint platformLastFocusedViewportId = default, ImGuiPlatformMonitor fallbackMonitor = default, ImRect platformMonitorsFullWorkRect = default, int viewportCreatedCount = default, int platformWindowsCreatedCount = default, int viewportFocusedStampCount = default, bool navCursorVisible = default, bool navHighlightItemUnderNav = default, bool navMousePosDirty = default, bool navIdIsAlive = default, uint navId = default, ImGuiWindow* navWindow = default, uint navFocusScopeId = default, ImGuiNavLayer navLayer = default, ImGuiItemFlags navIdItemFlags = default, uint navActivateId = default, uint navActivateDownId = default, uint navActivatePressedId = default, ImGuiActivateFlags navActivateFlags = default, ImVector<ImGuiFocusScopeData> navFocusRoute = default, uint navHighlightActivatedId = default, float navHighlightActivatedTimer = default, uint navOpenContextMenuItemId = default, uint navOpenContextMenuWindowId = default, uint navNextActivateId = default, ImGuiActivateFlags navNextActivateFlags = default, ImGuiInputSource navInputSource = default, long navLastValidSelectionUserData = default, sbyte navCursorHideFrames = default, bool navAnyRequest = default, bool navInitRequest = default, bool navInitRequestFromMove = default, ImGuiNavItemData navInitResult = default, bool navMoveSubmitted = default, bool navMoveScoringItems = default, bool navMoveForwardToNextFrame = default, ImGuiNavMoveFlags navMoveFlags = default, ImGuiScrollFlags navMoveScrollFlags = default, int navMoveKeyMods = default, ImGuiDir navMoveDir = default, ImGuiDir navMoveDirForDebug = default, ImGuiDir navMoveClipDir = default, ImRect navScoringRect = default, ImRect navScoringNoClipRect = default, int navScoringDebugCount = default, int navTabbingDir = default, int navTabbingCounter = default, ImGuiNavItemData navMoveResultLocal = default, ImGuiNavItemData navMoveResultLocalVisible = default, ImGuiNavItemData navMoveResultOther = default, ImGuiNavItemData navTabbingResultFirst = default, uint navJustMovedFromFocusScopeId = default, uint navJustMovedToId = default, uint navJustMovedToFocusScopeId = default, int navJustMovedToKeyMods = default, bool navJustMovedToIsTabbing = default, bool navJustMovedToIsInit = default, bool navJustMovedToHasSelectionData = default, bool configNavEnableTabbing = default, bool configNavWindowingWithGamepad = default, int configNavWindowingKeyNext = default, int configNavWindowingKeyPrev = default, ImGuiWindow* navWindowingTarget = default, ImGuiWindow* navWindowingTargetAnim = default, ImGuiWindow* navWindowingListWindow = default, float navWindowingTimer = default, float navWindowingHighlightAlpha = default, ImGuiInputSource navWindowingInputSource = default, bool navWindowingToggleLayer = default, ImGuiKey navWindowingToggleKey = default, Vector2 navWindowingAccumDeltaPos = default, Vector2 navWindowingAccumDeltaSize = default, float dimBgRatio = default, bool dragDropActive = default, bool dragDropWithinSource = default, bool dragDropWithinTarget = default, ImGuiDragDropFlags dragDropSourceFlags = default, int dragDropSourceFrameCount = default, int dragDropMouseButton = default, ImGuiPayload dragDropPayload = default, ImRect dragDropTargetRect = default, ImRect dragDropTargetClipRect = default, uint dragDropTargetId = default, uint dragDropTargetFullViewport = default, ImGuiDragDropFlags dragDropAcceptFlagsCurr = default, ImGuiDragDropFlags dragDropAcceptFlagsPrev = default, float dragDropAcceptIdCurrRectSurface = default, uint dragDropAcceptIdCurr = default, uint dragDropAcceptIdPrev = default, int dragDropAcceptFrameCount = default, uint dragDropHoldJustPressedId = default, ImVector<byte> dragDropPayloadBufHeap = default, Span<byte> dragDropPayloadBufLocal = default, int clipperTempDataStacked = default, ImVector<ImGuiListClipperData> clipperTempData = default, ImGuiTable* currentTable = default, uint debugBreakInTable = default, int tablesTempDataStacked = default, ImVector<ImGuiTableTempData> tablesTempData = default, ImPoolImGuiTable tables = default, ImVector<float> tablesLastTimeActive = default, ImVector<ImDrawChannel> drawChannelsTempMergeBuffer = default, ImGuiTabBar* currentTabBar = default, ImPoolImGuiTabBar tabBars = default, ImVector<ImGuiPtrOrIndex> currentTabBarStack = default, ImVector<ImGuiShrinkWidthItem> shrinkWidthBuffer = default, ImGuiBoxSelectState boxSelectState = default, ImGuiMultiSelectTempData* currentMultiSelect = default, int multiSelectTempDataStacked = default, ImVector<ImGuiMultiSelectTempData> multiSelectTempData = default, ImPoolImGuiMultiSelectState multiSelectStorage = default, uint hoverItemDelayId = default, uint hoverItemDelayIdPreviousFrame = default, float hoverItemDelayTimer = default, float hoverItemDelayClearTimer = default, uint hoverItemUnlockedStationaryId = default, uint hoverWindowUnlockedStationaryId = default, ImGuiMouseCursor mouseCursor = default, float mouseStationaryTimer = default, Vector2 mouseLastValidPos = default, ImGuiInputTextState inputTextState = default, ImGuiTextIndex inputTextLineIndex = default, ImGuiInputTextDeactivatedState inputTextDeactivatedState = default, int inputTextPasswordMaskCount = default, uint inputTextReactivateId = default, uint tempInputId = default, ImGuiDataTypeStorage dataTypeZeroValue = default, int beginMenuDepth = default, int beginComboDepth = default, uint colorEditCurrentId = default, uint colorEditSavedId = default, float colorEditSavedHue = default, float colorEditSavedSat = default, uint colorEditSavedColor = default, Vector4 colorPickerRef = default, ImGuiComboPreviewData comboPreviewData = default, ImRect windowResizeBorderExpectedRect = default, bool windowResizeRelativeMode = default, short scrollbarSeekMode = default, float scrollbarClickDeltaToGrabCenter = default, float sliderGrabClickOffset = default, float sliderCurrentAccum = default, bool sliderCurrentAccumDirty = default, bool dragCurrentAccumDirty = default, float dragCurrentAccum = default, float dragSpeedDefaultRatio = default, float disabledAlphaBackup = default, short disabledStackSize = default, short tooltipOverrideCount = default, ImGuiWindow* tooltipPreviousWindow = default, ImVector<byte> clipboardHandlerData = default, ImVector<uint> menusIdSubmittedThisFrame = default, ImGuiTypingSelectState typingSelectState = default, ImGuiPlatformImeData platformImeData = default, ImGuiPlatformImeData platformImeDataPrev = default, ImVector<ImTextureDataPtr> userTextures = default, ImGuiDockContext dockContext = default, delegate*<ImGuiContext*, ImGuiDockNode*, ImGuiTabBar*, void> dockNodeWindowMenuHandler = default, ImGuiPackedDate sessionDate = default, bool settingsLoaded = default, float settingsDirtyTimer = default, ImGuiTextBuffer settingsIniData = default, ImVector<ImGuiSettingsHandler> settingsHandlers = default, ImChunkStreamImGuiWindowSettings settingsWindows = default, ImChunkStreamImGuiTableSettings settingsTables = default, ImVector<ImGuiContextHook> hooks = default, uint hookIdNext = default, ImGuiDemoMarkerCallback demoMarkerCallback = default, Span<Pointer<byte>> localizationTable = default, bool logEnabled = default, bool logLineFirstItem = default, ImGuiLogFlags logFlags = default, ImGuiWindow* logWindow = default, ImFileHandle logFile = default, ImGuiTextBuffer logBuffer = default, byte* logNextPrefix = default, byte* logNextSuffix = default, float logLinePosY = default, int logDepthRef = default, int logDepthToExpand = default, int logDepthToExpandDefault = default, ImGuiErrorCallback errorCallback = default, void* errorCallbackUserData = default, Vector2 errorTooltipLockedPos = default, bool errorFirst = default, int errorCountCurrentFrame = default, ImGuiErrorRecoveryState stackSizesInNewFrame = default, ImGuiErrorRecoveryState* stackSizesInBeginForCurrentWindow = default, int debugDrawIdConflictsCount = default, ImGuiDebugLogFlags debugLogFlags = default, ImGuiTextBuffer debugLogBuf = default, ImGuiTextIndex debugLogIndex = default, int debugLogSkippedErrors = default, ImGuiDebugLogFlags debugLogAutoDisableFlags = default, byte debugLogAutoDisableFrames = default, byte debugLocateFrames = default, bool debugBreakInLocateId = default, int debugBreakKeyChord = default, sbyte debugBeginReturnValueCullDepth = default, bool debugItemPickerActive = default, byte debugItemPickerMouseButton = default, uint debugItemPickerBreakId = default, float debugFlashStyleColorTime = default, Vector4 debugFlashStyleColorBackup = default, ImGuiMetricsConfig debugMetricsConfig = default, ImGuiDebugItemPathQuery debugItemPathQuery = default, ImGuiIDStackTool debugIdStackTool = default, ImGuiDebugAllocInfo debugAllocInfo = default, ImGuiDockNode* debugHoveredDockNode = default, Span<float> framerateSecPerFrame = default, int framerateSecPerFrameIdx = default, int framerateSecPerFrameCount = default, float framerateSecPerFrameAccum = default, int wantCaptureMouseNextFrame = default, int wantCaptureKeyboardNextFrame = default, int wantTextInputNextFrame = default, ImVector<byte> tempBuffer = default, Span<byte> tempKeychordName = default)
 		{
 			Initialized = initialized ? (byte)1 : (byte)0;
-			FontAtlasOwnedByContext = fontAtlasOwnedByContext ? (byte)1 : (byte)0;
-			IO = io;
-			PlatformIO = platformIo;
-			InputEventsQueue = inputEventsQueue;
-			InputEventsTrail = inputEventsTrail;
-			Style = style;
-			ConfigFlagsCurrFrame = configFlagsCurrFrame;
-			ConfigFlagsLastFrame = configFlagsLastFrame;
-			Font = font;
-			FontSize = fontSize;
-			FontBaseSize = fontBaseSize;
-			DrawListSharedData = drawListSharedData;
-			Time = time;
+			WithinFrameScope = withinFrameScope ? (byte)1 : (byte)0;
+			WithinFrameScopeWithImplicitWindow = withinFrameScopeWithImplicitWindow ? (byte)1 : (byte)0;
+			TestEngineHookItems = testEngineHookItems ? (byte)1 : (byte)0;
 			FrameCount = frameCount;
 			FrameCountEnded = frameCountEnded;
 			FrameCountPlatformEnded = frameCountPlatformEnded;
 			FrameCountRendered = frameCountRendered;
-			WithinFrameScope = withinFrameScope ? (byte)1 : (byte)0;
-			WithinFrameScopeWithImplicitWindow = withinFrameScopeWithImplicitWindow ? (byte)1 : (byte)0;
-			WithinEndChild = withinEndChild ? (byte)1 : (byte)0;
-			GcCompactAll = gcCompactAll ? (byte)1 : (byte)0;
-			TestEngineHookItems = testEngineHookItems ? (byte)1 : (byte)0;
+			Time = time;
+			if (contextName != default(Span<byte>))
+			{
+				ContextName_0 = contextName[0];
+				ContextName_1 = contextName[1];
+				ContextName_2 = contextName[2];
+				ContextName_3 = contextName[3];
+				ContextName_4 = contextName[4];
+				ContextName_5 = contextName[5];
+				ContextName_6 = contextName[6];
+				ContextName_7 = contextName[7];
+				ContextName_8 = contextName[8];
+				ContextName_9 = contextName[9];
+				ContextName_10 = contextName[10];
+				ContextName_11 = contextName[11];
+				ContextName_12 = contextName[12];
+				ContextName_13 = contextName[13];
+				ContextName_14 = contextName[14];
+				ContextName_15 = contextName[15];
+			}
+			IO = io;
+			PlatformIO = platformIo;
+			Style = style;
+			ConfigFlagsCurrFrame = configFlagsCurrFrame;
+			ConfigFlagsLastFrame = configFlagsLastFrame;
+			FontAtlases = fontAtlases;
+			Font = font;
+			FontBaked = fontBaked;
+			FontSize = fontSize;
+			FontSizeBase = fontSizeBase;
+			FontBakedScale = fontBakedScale;
+			CurrentPixelDensity = currentPixelDensity;
+			CurrentDpiScale = currentDpiScale;
+			DrawListSharedData = drawListSharedData;
+			WithinEndChildID = withinEndChildId;
+			WithinEndPopupID = withinEndPopupId;
 			TestEngine = testEngine;
+			InputEventsQueue = inputEventsQueue;
+			InputEventsTrail = inputEventsTrail;
+			InputEventsNextMouseSource = inputEventsNextMouseSource;
+			InputEventsNextEventId = inputEventsNextEventId;
 			Windows = windows;
 			WindowsFocusOrder = windowsFocusOrder;
 			WindowsTempSortBuffer = windowsTempSortBuffer;
 			CurrentWindowStack = currentWindowStack;
 			WindowsById = windowsById;
 			WindowsActiveCount = windowsActiveCount;
-			WindowsHoverPadding = windowsHoverPadding;
+			WindowsBorderHoverPadding = windowsBorderHoverPadding;
+			DebugBreakInWindow = debugBreakInWindow;
 			CurrentWindow = currentWindow;
 			HoveredWindow = hoveredWindow;
 			HoveredWindowUnderMovingWindow = hoveredWindowUnderMovingWindow;
-			HoveredDockNode = hoveredDockNode;
+			HoveredWindowBeforeClear = hoveredWindowBeforeClear;
 			MovingWindow = movingWindow;
 			WheelingWindow = wheelingWindow;
 			WheelingWindowRefMousePos = wheelingWindowRefMousePos;
-			WheelingWindowTimer = wheelingWindowTimer;
-			DebugHookIdInfo = debugHookIdInfo;
+			WheelingWindowStartFrame = wheelingWindowStartFrame;
+			WheelingWindowScrolledFrame = wheelingWindowScrolledFrame;
+			WheelingWindowReleaseTimer = wheelingWindowReleaseTimer;
+			WheelingWindowWheelRemainder = wheelingWindowWheelRemainder;
+			WheelingAxisAvg = wheelingAxisAvg;
+			MixedValueLabel = mixedValueLabel;
+			DebugDrawIdConflictsId = debugDrawIdConflictsId;
+			DebugHookIdInfoId = debugHookIdInfoId;
 			HoveredId = hoveredId;
 			HoveredIdPreviousFrame = hoveredIdPreviousFrame;
-			HoveredIdAllowOverlap = hoveredIdAllowOverlap ? (byte)1 : (byte)0;
-			HoveredIdUsingMouseWheel = hoveredIdUsingMouseWheel ? (byte)1 : (byte)0;
-			HoveredIdPreviousFrameUsingMouseWheel = hoveredIdPreviousFrameUsingMouseWheel ? (byte)1 : (byte)0;
-			HoveredIdDisabled = hoveredIdDisabled ? (byte)1 : (byte)0;
+			HoveredIdPreviousFrameItemCount = hoveredIdPreviousFrameItemCount;
 			HoveredIdTimer = hoveredIdTimer;
 			HoveredIdNotActiveTimer = hoveredIdNotActiveTimer;
+			HoveredIdAllowOverlap = hoveredIdAllowOverlap ? (byte)1 : (byte)0;
+			HoveredIdIsDisabled = hoveredIdIsDisabled ? (byte)1 : (byte)0;
+			ItemUnclipByLog = itemUnclipByLog ? (byte)1 : (byte)0;
+			AnyIdHasBeenEditedThisFrame = anyIdHasBeenEditedThisFrame ? (byte)1 : (byte)0;
 			ActiveId = activeId;
 			ActiveIdIsAlive = activeIdIsAlive;
 			ActiveIdTimer = activeIdTimer;
 			ActiveIdIsJustActivated = activeIdIsJustActivated ? (byte)1 : (byte)0;
+			ActiveIdWasSelected = activeIdWasSelected ? (byte)1 : (byte)0;
+			ActiveIdWasSoleSelected = activeIdWasSoleSelected ? (byte)1 : (byte)0;
 			ActiveIdAllowOverlap = activeIdAllowOverlap ? (byte)1 : (byte)0;
 			ActiveIdNoClearOnFocusLoss = activeIdNoClearOnFocusLoss ? (byte)1 : (byte)0;
 			ActiveIdHasBeenPressedBefore = activeIdHasBeenPressedBefore ? (byte)1 : (byte)0;
 			ActiveIdHasBeenEditedBefore = activeIdHasBeenEditedBefore ? (byte)1 : (byte)0;
 			ActiveIdHasBeenEditedThisFrame = activeIdHasBeenEditedThisFrame ? (byte)1 : (byte)0;
-			ActiveIdClickOffset = activeIdClickOffset;
-			ActiveIdWindow = activeIdWindow;
-			ActiveIdSource = activeIdSource;
+			ActiveIdFromShortcut = activeIdFromShortcut ? (byte)1 : (byte)0;
 			ActiveIdMouseButton = activeIdMouseButton;
+			ActiveIdDisabledId = activeIdDisabledId;
+			ActiveIdClickOffset = activeIdClickOffset;
+			ActiveIdSource = activeIdSource;
+			ActiveIdWindow = activeIdWindow;
 			ActiveIdPreviousFrame = activeIdPreviousFrame;
-			ActiveIdPreviousFrameIsAlive = activeIdPreviousFrameIsAlive ? (byte)1 : (byte)0;
-			ActiveIdPreviousFrameHasBeenEditedBefore = activeIdPreviousFrameHasBeenEditedBefore ? (byte)1 : (byte)0;
-			ActiveIdPreviousFrameWindow = activeIdPreviousFrameWindow;
+			DeactivatedItemData = deactivatedItemData;
+			ActiveIdValueOnActivation = activeIdValueOnActivation;
 			LastActiveId = lastActiveId;
 			LastActiveIdTimer = lastActiveIdTimer;
-			ActiveIdUsingMouseWheel = activeIdUsingMouseWheel ? (byte)1 : (byte)0;
+			LastActiveIdWasSelected = lastActiveIdWasSelected ? (byte)1 : (byte)0;
+			LastActiveIdWasSoleSelected = lastActiveIdWasSoleSelected ? (byte)1 : (byte)0;
+			LastKeyModsChangeTime = lastKeyModsChangeTime;
+			LastKeyModsChangeFromNoneTime = lastKeyModsChangeFromNoneTime;
+			LastKeyboardKeyPressTime = lastKeyboardKeyPressTime;
+			KeysMayBeCharInput = keysMayBeCharInput;
+			if (keysOwnerData != default(Span<ImGuiKeyOwnerData>))
+			{
+				KeysOwnerData_0 = keysOwnerData[0];
+				KeysOwnerData_1 = keysOwnerData[1];
+				KeysOwnerData_2 = keysOwnerData[2];
+				KeysOwnerData_3 = keysOwnerData[3];
+				KeysOwnerData_4 = keysOwnerData[4];
+				KeysOwnerData_5 = keysOwnerData[5];
+				KeysOwnerData_6 = keysOwnerData[6];
+				KeysOwnerData_7 = keysOwnerData[7];
+				KeysOwnerData_8 = keysOwnerData[8];
+				KeysOwnerData_9 = keysOwnerData[9];
+				KeysOwnerData_10 = keysOwnerData[10];
+				KeysOwnerData_11 = keysOwnerData[11];
+				KeysOwnerData_12 = keysOwnerData[12];
+				KeysOwnerData_13 = keysOwnerData[13];
+				KeysOwnerData_14 = keysOwnerData[14];
+				KeysOwnerData_15 = keysOwnerData[15];
+				KeysOwnerData_16 = keysOwnerData[16];
+				KeysOwnerData_17 = keysOwnerData[17];
+				KeysOwnerData_18 = keysOwnerData[18];
+				KeysOwnerData_19 = keysOwnerData[19];
+				KeysOwnerData_20 = keysOwnerData[20];
+				KeysOwnerData_21 = keysOwnerData[21];
+				KeysOwnerData_22 = keysOwnerData[22];
+				KeysOwnerData_23 = keysOwnerData[23];
+				KeysOwnerData_24 = keysOwnerData[24];
+				KeysOwnerData_25 = keysOwnerData[25];
+				KeysOwnerData_26 = keysOwnerData[26];
+				KeysOwnerData_27 = keysOwnerData[27];
+				KeysOwnerData_28 = keysOwnerData[28];
+				KeysOwnerData_29 = keysOwnerData[29];
+				KeysOwnerData_30 = keysOwnerData[30];
+				KeysOwnerData_31 = keysOwnerData[31];
+				KeysOwnerData_32 = keysOwnerData[32];
+				KeysOwnerData_33 = keysOwnerData[33];
+				KeysOwnerData_34 = keysOwnerData[34];
+				KeysOwnerData_35 = keysOwnerData[35];
+				KeysOwnerData_36 = keysOwnerData[36];
+				KeysOwnerData_37 = keysOwnerData[37];
+				KeysOwnerData_38 = keysOwnerData[38];
+				KeysOwnerData_39 = keysOwnerData[39];
+				KeysOwnerData_40 = keysOwnerData[40];
+				KeysOwnerData_41 = keysOwnerData[41];
+				KeysOwnerData_42 = keysOwnerData[42];
+				KeysOwnerData_43 = keysOwnerData[43];
+				KeysOwnerData_44 = keysOwnerData[44];
+				KeysOwnerData_45 = keysOwnerData[45];
+				KeysOwnerData_46 = keysOwnerData[46];
+				KeysOwnerData_47 = keysOwnerData[47];
+				KeysOwnerData_48 = keysOwnerData[48];
+				KeysOwnerData_49 = keysOwnerData[49];
+				KeysOwnerData_50 = keysOwnerData[50];
+				KeysOwnerData_51 = keysOwnerData[51];
+				KeysOwnerData_52 = keysOwnerData[52];
+				KeysOwnerData_53 = keysOwnerData[53];
+				KeysOwnerData_54 = keysOwnerData[54];
+				KeysOwnerData_55 = keysOwnerData[55];
+				KeysOwnerData_56 = keysOwnerData[56];
+				KeysOwnerData_57 = keysOwnerData[57];
+				KeysOwnerData_58 = keysOwnerData[58];
+				KeysOwnerData_59 = keysOwnerData[59];
+				KeysOwnerData_60 = keysOwnerData[60];
+				KeysOwnerData_61 = keysOwnerData[61];
+				KeysOwnerData_62 = keysOwnerData[62];
+				KeysOwnerData_63 = keysOwnerData[63];
+				KeysOwnerData_64 = keysOwnerData[64];
+				KeysOwnerData_65 = keysOwnerData[65];
+				KeysOwnerData_66 = keysOwnerData[66];
+				KeysOwnerData_67 = keysOwnerData[67];
+				KeysOwnerData_68 = keysOwnerData[68];
+				KeysOwnerData_69 = keysOwnerData[69];
+				KeysOwnerData_70 = keysOwnerData[70];
+				KeysOwnerData_71 = keysOwnerData[71];
+				KeysOwnerData_72 = keysOwnerData[72];
+				KeysOwnerData_73 = keysOwnerData[73];
+				KeysOwnerData_74 = keysOwnerData[74];
+				KeysOwnerData_75 = keysOwnerData[75];
+				KeysOwnerData_76 = keysOwnerData[76];
+				KeysOwnerData_77 = keysOwnerData[77];
+				KeysOwnerData_78 = keysOwnerData[78];
+				KeysOwnerData_79 = keysOwnerData[79];
+				KeysOwnerData_80 = keysOwnerData[80];
+				KeysOwnerData_81 = keysOwnerData[81];
+				KeysOwnerData_82 = keysOwnerData[82];
+				KeysOwnerData_83 = keysOwnerData[83];
+				KeysOwnerData_84 = keysOwnerData[84];
+				KeysOwnerData_85 = keysOwnerData[85];
+				KeysOwnerData_86 = keysOwnerData[86];
+				KeysOwnerData_87 = keysOwnerData[87];
+				KeysOwnerData_88 = keysOwnerData[88];
+				KeysOwnerData_89 = keysOwnerData[89];
+				KeysOwnerData_90 = keysOwnerData[90];
+				KeysOwnerData_91 = keysOwnerData[91];
+				KeysOwnerData_92 = keysOwnerData[92];
+				KeysOwnerData_93 = keysOwnerData[93];
+				KeysOwnerData_94 = keysOwnerData[94];
+				KeysOwnerData_95 = keysOwnerData[95];
+				KeysOwnerData_96 = keysOwnerData[96];
+				KeysOwnerData_97 = keysOwnerData[97];
+				KeysOwnerData_98 = keysOwnerData[98];
+				KeysOwnerData_99 = keysOwnerData[99];
+				KeysOwnerData_100 = keysOwnerData[100];
+				KeysOwnerData_101 = keysOwnerData[101];
+				KeysOwnerData_102 = keysOwnerData[102];
+				KeysOwnerData_103 = keysOwnerData[103];
+				KeysOwnerData_104 = keysOwnerData[104];
+				KeysOwnerData_105 = keysOwnerData[105];
+				KeysOwnerData_106 = keysOwnerData[106];
+				KeysOwnerData_107 = keysOwnerData[107];
+				KeysOwnerData_108 = keysOwnerData[108];
+				KeysOwnerData_109 = keysOwnerData[109];
+				KeysOwnerData_110 = keysOwnerData[110];
+				KeysOwnerData_111 = keysOwnerData[111];
+				KeysOwnerData_112 = keysOwnerData[112];
+				KeysOwnerData_113 = keysOwnerData[113];
+				KeysOwnerData_114 = keysOwnerData[114];
+				KeysOwnerData_115 = keysOwnerData[115];
+				KeysOwnerData_116 = keysOwnerData[116];
+				KeysOwnerData_117 = keysOwnerData[117];
+				KeysOwnerData_118 = keysOwnerData[118];
+				KeysOwnerData_119 = keysOwnerData[119];
+				KeysOwnerData_120 = keysOwnerData[120];
+				KeysOwnerData_121 = keysOwnerData[121];
+				KeysOwnerData_122 = keysOwnerData[122];
+				KeysOwnerData_123 = keysOwnerData[123];
+				KeysOwnerData_124 = keysOwnerData[124];
+				KeysOwnerData_125 = keysOwnerData[125];
+				KeysOwnerData_126 = keysOwnerData[126];
+				KeysOwnerData_127 = keysOwnerData[127];
+				KeysOwnerData_128 = keysOwnerData[128];
+				KeysOwnerData_129 = keysOwnerData[129];
+				KeysOwnerData_130 = keysOwnerData[130];
+				KeysOwnerData_131 = keysOwnerData[131];
+				KeysOwnerData_132 = keysOwnerData[132];
+				KeysOwnerData_133 = keysOwnerData[133];
+				KeysOwnerData_134 = keysOwnerData[134];
+				KeysOwnerData_135 = keysOwnerData[135];
+				KeysOwnerData_136 = keysOwnerData[136];
+				KeysOwnerData_137 = keysOwnerData[137];
+				KeysOwnerData_138 = keysOwnerData[138];
+				KeysOwnerData_139 = keysOwnerData[139];
+				KeysOwnerData_140 = keysOwnerData[140];
+				KeysOwnerData_141 = keysOwnerData[141];
+				KeysOwnerData_142 = keysOwnerData[142];
+				KeysOwnerData_143 = keysOwnerData[143];
+				KeysOwnerData_144 = keysOwnerData[144];
+				KeysOwnerData_145 = keysOwnerData[145];
+				KeysOwnerData_146 = keysOwnerData[146];
+				KeysOwnerData_147 = keysOwnerData[147];
+				KeysOwnerData_148 = keysOwnerData[148];
+				KeysOwnerData_149 = keysOwnerData[149];
+				KeysOwnerData_150 = keysOwnerData[150];
+				KeysOwnerData_151 = keysOwnerData[151];
+				KeysOwnerData_152 = keysOwnerData[152];
+				KeysOwnerData_153 = keysOwnerData[153];
+				KeysOwnerData_154 = keysOwnerData[154];
+			}
+			KeysRoutingTable = keysRoutingTable;
 			ActiveIdUsingNavDirMask = activeIdUsingNavDirMask;
-			ActiveIdUsingNavInputMask = activeIdUsingNavInputMask;
-			ActiveIdUsingKeyInputMask = activeIdUsingKeyInputMask;
+			ActiveIdUsingAllKeyboardKeys = activeIdUsingAllKeyboardKeys ? (byte)1 : (byte)0;
+			DebugBreakInShortcutRouting = debugBreakInShortcutRouting;
+			CurrentFocusScopeId = currentFocusScopeId;
 			CurrentItemFlags = currentItemFlags;
+			DebugLocateId = debugLocateId;
 			NextItemData = nextItemData;
 			LastItemData = lastItemData;
 			NextWindowData = nextWindowData;
+			DebugShowGroupRects = debugShowGroupRects ? (byte)1 : (byte)0;
+			GcCompactAll = gcCompactAll ? (byte)1 : (byte)0;
+			DebugFlashStyleColorIdx = debugFlashStyleColorIdx;
 			ColorStack = colorStack;
 			StyleVarStack = styleVarStack;
 			FontStack = fontStack;
@@ -1784,39 +2995,44 @@ namespace Dalamud.Bindings.ImGui
 			GroupStack = groupStack;
 			OpenPopupStack = openPopupStack;
 			BeginPopupStack = beginPopupStack;
-			BeginMenuCount = beginMenuCount;
+			TreeNodeStack = treeNodeStack;
 			Viewports = viewports;
-			CurrentDpiScale = currentDpiScale;
 			CurrentViewport = currentViewport;
 			MouseViewport = mouseViewport;
 			MouseLastHoveredViewport = mouseLastHoveredViewport;
 			PlatformLastFocusedViewportId = platformLastFocusedViewportId;
 			FallbackMonitor = fallbackMonitor;
-			ViewportFrontMostStampCount = viewportFrontMostStampCount;
-			NavWindow = navWindow;
+			PlatformMonitorsFullWorkRect = platformMonitorsFullWorkRect;
+			ViewportCreatedCount = viewportCreatedCount;
+			PlatformWindowsCreatedCount = platformWindowsCreatedCount;
+			ViewportFocusedStampCount = viewportFocusedStampCount;
+			NavCursorVisible = navCursorVisible ? (byte)1 : (byte)0;
+			NavHighlightItemUnderNav = navHighlightItemUnderNav ? (byte)1 : (byte)0;
+			NavMousePosDirty = navMousePosDirty ? (byte)1 : (byte)0;
+			NavIdIsAlive = navIdIsAlive ? (byte)1 : (byte)0;
 			NavId = navId;
+			NavWindow = navWindow;
 			NavFocusScopeId = navFocusScopeId;
+			NavLayer = navLayer;
+			NavIdItemFlags = navIdItemFlags;
 			NavActivateId = navActivateId;
 			NavActivateDownId = navActivateDownId;
 			NavActivatePressedId = navActivatePressedId;
-			NavActivateInputId = navActivateInputId;
 			NavActivateFlags = navActivateFlags;
-			NavJustMovedToId = navJustMovedToId;
-			NavJustMovedToFocusScopeId = navJustMovedToFocusScopeId;
-			NavJustMovedToKeyMods = navJustMovedToKeyMods;
+			NavFocusRoute = navFocusRoute;
+			NavHighlightActivatedId = navHighlightActivatedId;
+			NavHighlightActivatedTimer = navHighlightActivatedTimer;
+			NavOpenContextMenuItemId = navOpenContextMenuItemId;
+			NavOpenContextMenuWindowId = navOpenContextMenuWindowId;
 			NavNextActivateId = navNextActivateId;
 			NavNextActivateFlags = navNextActivateFlags;
 			NavInputSource = navInputSource;
-			NavLayer = navLayer;
-			NavIdIsAlive = navIdIsAlive ? (byte)1 : (byte)0;
-			NavMousePosDirty = navMousePosDirty ? (byte)1 : (byte)0;
-			NavDisableHighlight = navDisableHighlight ? (byte)1 : (byte)0;
-			NavDisableMouseHover = navDisableMouseHover ? (byte)1 : (byte)0;
+			NavLastValidSelectionUserData = navLastValidSelectionUserData;
+			NavCursorHideFrames = navCursorHideFrames;
 			NavAnyRequest = navAnyRequest ? (byte)1 : (byte)0;
 			NavInitRequest = navInitRequest ? (byte)1 : (byte)0;
 			NavInitRequestFromMove = navInitRequestFromMove ? (byte)1 : (byte)0;
-			NavInitResultId = navInitResultId;
-			NavInitResultRectRel = navInitResultRectRel;
+			NavInitResult = navInitResult;
 			NavMoveSubmitted = navMoveSubmitted ? (byte)1 : (byte)0;
 			NavMoveScoringItems = navMoveScoringItems ? (byte)1 : (byte)0;
 			NavMoveForwardToNextFrame = navMoveForwardToNextFrame ? (byte)1 : (byte)0;
@@ -1835,14 +3051,28 @@ namespace Dalamud.Bindings.ImGui
 			NavMoveResultLocalVisible = navMoveResultLocalVisible;
 			NavMoveResultOther = navMoveResultOther;
 			NavTabbingResultFirst = navTabbingResultFirst;
+			NavJustMovedFromFocusScopeId = navJustMovedFromFocusScopeId;
+			NavJustMovedToId = navJustMovedToId;
+			NavJustMovedToFocusScopeId = navJustMovedToFocusScopeId;
+			NavJustMovedToKeyMods = navJustMovedToKeyMods;
+			NavJustMovedToIsTabbing = navJustMovedToIsTabbing ? (byte)1 : (byte)0;
+			NavJustMovedToIsInit = navJustMovedToIsInit ? (byte)1 : (byte)0;
+			NavJustMovedToHasSelectionData = navJustMovedToHasSelectionData ? (byte)1 : (byte)0;
+			ConfigNavEnableTabbing = configNavEnableTabbing ? (byte)1 : (byte)0;
+			ConfigNavWindowingWithGamepad = configNavWindowingWithGamepad ? (byte)1 : (byte)0;
+			ConfigNavWindowingKeyNext = configNavWindowingKeyNext;
+			ConfigNavWindowingKeyPrev = configNavWindowingKeyPrev;
 			NavWindowingTarget = navWindowingTarget;
 			NavWindowingTargetAnim = navWindowingTargetAnim;
 			NavWindowingListWindow = navWindowingListWindow;
 			NavWindowingTimer = navWindowingTimer;
 			NavWindowingHighlightAlpha = navWindowingHighlightAlpha;
+			NavWindowingInputSource = navWindowingInputSource;
 			NavWindowingToggleLayer = navWindowingToggleLayer ? (byte)1 : (byte)0;
+			NavWindowingToggleKey = navWindowingToggleKey;
+			NavWindowingAccumDeltaPos = navWindowingAccumDeltaPos;
+			NavWindowingAccumDeltaSize = navWindowingAccumDeltaSize;
 			DimBgRatio = dimBgRatio;
-			MouseCursor = mouseCursor;
 			DragDropActive = dragDropActive ? (byte)1 : (byte)0;
 			DragDropWithinSource = dragDropWithinSource ? (byte)1 : (byte)0;
 			DragDropWithinTarget = dragDropWithinTarget ? (byte)1 : (byte)0;
@@ -1851,8 +3081,11 @@ namespace Dalamud.Bindings.ImGui
 			DragDropMouseButton = dragDropMouseButton;
 			DragDropPayload = dragDropPayload;
 			DragDropTargetRect = dragDropTargetRect;
+			DragDropTargetClipRect = dragDropTargetClipRect;
 			DragDropTargetId = dragDropTargetId;
-			DragDropAcceptFlags = dragDropAcceptFlags;
+			DragDropTargetFullViewport = dragDropTargetFullViewport;
+			DragDropAcceptFlagsCurr = dragDropAcceptFlagsCurr;
+			DragDropAcceptFlagsPrev = dragDropAcceptFlagsPrev;
 			DragDropAcceptIdCurrRectSurface = dragDropAcceptIdCurrRectSurface;
 			DragDropAcceptIdCurr = dragDropAcceptIdCurr;
 			DragDropAcceptIdPrev = dragDropAcceptIdPrev;
@@ -1881,6 +3114,7 @@ namespace Dalamud.Bindings.ImGui
 			ClipperTempDataStacked = clipperTempDataStacked;
 			ClipperTempData = clipperTempData;
 			CurrentTable = currentTable;
+			DebugBreakInTable = debugBreakInTable;
 			TablesTempDataStacked = tablesTempDataStacked;
 			TablesTempData = tablesTempData;
 			Tables = tables;
@@ -1890,34 +3124,59 @@ namespace Dalamud.Bindings.ImGui
 			TabBars = tabBars;
 			CurrentTabBarStack = currentTabBarStack;
 			ShrinkWidthBuffer = shrinkWidthBuffer;
+			BoxSelectState = boxSelectState;
+			CurrentMultiSelect = currentMultiSelect;
+			MultiSelectTempDataStacked = multiSelectTempDataStacked;
+			MultiSelectTempData = multiSelectTempData;
+			MultiSelectStorage = multiSelectStorage;
+			HoverItemDelayId = hoverItemDelayId;
+			HoverItemDelayIdPreviousFrame = hoverItemDelayIdPreviousFrame;
+			HoverItemDelayTimer = hoverItemDelayTimer;
+			HoverItemDelayClearTimer = hoverItemDelayClearTimer;
+			HoverItemUnlockedStationaryId = hoverItemUnlockedStationaryId;
+			HoverWindowUnlockedStationaryId = hoverWindowUnlockedStationaryId;
+			MouseCursor = mouseCursor;
+			MouseStationaryTimer = mouseStationaryTimer;
 			MouseLastValidPos = mouseLastValidPos;
 			InputTextState = inputTextState;
-			InputTextPasswordFont = inputTextPasswordFont;
+			InputTextLineIndex = inputTextLineIndex;
+			InputTextDeactivatedState = inputTextDeactivatedState;
+			InputTextPasswordMaskCount = inputTextPasswordMaskCount;
+			InputTextReactivateId = inputTextReactivateId;
 			TempInputId = tempInputId;
-			ColorEditOptions = colorEditOptions;
-			ColorEditLastHue = colorEditLastHue;
-			ColorEditLastSat = colorEditLastSat;
-			ColorEditLastColor = colorEditLastColor;
+			DataTypeZeroValue = dataTypeZeroValue;
+			BeginMenuDepth = beginMenuDepth;
+			BeginComboDepth = beginComboDepth;
+			ColorEditCurrentID = colorEditCurrentId;
+			ColorEditSavedID = colorEditSavedId;
+			ColorEditSavedHue = colorEditSavedHue;
+			ColorEditSavedSat = colorEditSavedSat;
+			ColorEditSavedColor = colorEditSavedColor;
 			ColorPickerRef = colorPickerRef;
 			ComboPreviewData = comboPreviewData;
+			WindowResizeBorderExpectedRect = windowResizeBorderExpectedRect;
+			WindowResizeRelativeMode = windowResizeRelativeMode ? (byte)1 : (byte)0;
+			ScrollbarSeekMode = scrollbarSeekMode;
+			ScrollbarClickDeltaToGrabCenter = scrollbarClickDeltaToGrabCenter;
 			SliderGrabClickOffset = sliderGrabClickOffset;
 			SliderCurrentAccum = sliderCurrentAccum;
 			SliderCurrentAccumDirty = sliderCurrentAccumDirty ? (byte)1 : (byte)0;
 			DragCurrentAccumDirty = dragCurrentAccumDirty ? (byte)1 : (byte)0;
 			DragCurrentAccum = dragCurrentAccum;
 			DragSpeedDefaultRatio = dragSpeedDefaultRatio;
-			ScrollbarClickDeltaToGrabCenter = scrollbarClickDeltaToGrabCenter;
 			DisabledAlphaBackup = disabledAlphaBackup;
 			DisabledStackSize = disabledStackSize;
 			TooltipOverrideCount = tooltipOverrideCount;
-			TooltipSlowDelay = tooltipSlowDelay;
+			TooltipPreviousWindow = tooltipPreviousWindow;
 			ClipboardHandlerData = clipboardHandlerData;
 			MenusIdSubmittedThisFrame = menusIdSubmittedThisFrame;
+			TypingSelectState = typingSelectState;
 			PlatformImeData = platformImeData;
 			PlatformImeDataPrev = platformImeDataPrev;
-			PlatformImeViewport = platformImeViewport;
-			PlatformLocaleDecimalPoint = platformLocaleDecimalPoint;
+			UserTextures = userTextures;
 			DockContext = dockContext;
+			DockNodeWindowMenuHandler = (void*)dockNodeWindowMenuHandler;
+			SessionDate = sessionDate;
 			SettingsLoaded = settingsLoaded ? (byte)1 : (byte)0;
 			SettingsDirtyTimer = settingsDirtyTimer;
 			SettingsIniData = settingsIniData;
@@ -1926,23 +3185,65 @@ namespace Dalamud.Bindings.ImGui
 			SettingsTables = settingsTables;
 			Hooks = hooks;
 			HookIdNext = hookIdNext;
+			DemoMarkerCallback = (void*)Marshal.GetFunctionPointerForDelegate(demoMarkerCallback);
+			if (localizationTable != default(Span<Pointer<byte>>))
+			{
+				LocalizationTable_0 = localizationTable[0];
+				LocalizationTable_1 = localizationTable[1];
+				LocalizationTable_2 = localizationTable[2];
+				LocalizationTable_3 = localizationTable[3];
+				LocalizationTable_4 = localizationTable[4];
+				LocalizationTable_5 = localizationTable[5];
+				LocalizationTable_6 = localizationTable[6];
+				LocalizationTable_7 = localizationTable[7];
+				LocalizationTable_8 = localizationTable[8];
+				LocalizationTable_9 = localizationTable[9];
+				LocalizationTable_10 = localizationTable[10];
+				LocalizationTable_11 = localizationTable[11];
+				LocalizationTable_12 = localizationTable[12];
+				LocalizationTable_13 = localizationTable[13];
+				LocalizationTable_14 = localizationTable[14];
+			}
 			LogEnabled = logEnabled ? (byte)1 : (byte)0;
-			LogType = logType;
+			LogLineFirstItem = logLineFirstItem ? (byte)1 : (byte)0;
+			LogFlags = logFlags;
+			LogWindow = logWindow;
 			LogFile = logFile;
 			LogBuffer = logBuffer;
 			LogNextPrefix = logNextPrefix;
 			LogNextSuffix = logNextSuffix;
 			LogLinePosY = logLinePosY;
-			LogLineFirstItem = logLineFirstItem ? (byte)1 : (byte)0;
 			LogDepthRef = logDepthRef;
 			LogDepthToExpand = logDepthToExpand;
 			LogDepthToExpandDefault = logDepthToExpandDefault;
+			ErrorCallback = (void*)Marshal.GetFunctionPointerForDelegate(errorCallback);
+			ErrorCallbackUserData = errorCallbackUserData;
+			ErrorTooltipLockedPos = errorTooltipLockedPos;
+			ErrorFirst = errorFirst ? (byte)1 : (byte)0;
+			ErrorCountCurrentFrame = errorCountCurrentFrame;
+			StackSizesInNewFrame = stackSizesInNewFrame;
+			StackSizesInBeginForCurrentWindow = stackSizesInBeginForCurrentWindow;
+			DebugDrawIdConflictsCount = debugDrawIdConflictsCount;
 			DebugLogFlags = debugLogFlags;
 			DebugLogBuf = debugLogBuf;
+			DebugLogIndex = debugLogIndex;
+			DebugLogSkippedErrors = debugLogSkippedErrors;
+			DebugLogAutoDisableFlags = debugLogAutoDisableFlags;
+			DebugLogAutoDisableFrames = debugLogAutoDisableFrames;
+			DebugLocateFrames = debugLocateFrames;
+			DebugBreakInLocateId = debugBreakInLocateId ? (byte)1 : (byte)0;
+			DebugBreakKeyChord = debugBreakKeyChord;
+			DebugBeginReturnValueCullDepth = debugBeginReturnValueCullDepth;
 			DebugItemPickerActive = debugItemPickerActive ? (byte)1 : (byte)0;
+			DebugItemPickerMouseButton = debugItemPickerMouseButton;
 			DebugItemPickerBreakId = debugItemPickerBreakId;
+			DebugFlashStyleColorTime = debugFlashStyleColorTime;
+			DebugFlashStyleColorBackup = debugFlashStyleColorBackup;
 			DebugMetricsConfig = debugMetricsConfig;
-			DebugStackTool = debugStackTool;
+			DebugItemPathQuery = debugItemPathQuery;
+			DebugIDStackTool = debugIdStackTool;
+			DebugAllocInfo = debugAllocInfo;
+			DebugHoveredDockNode = debugHoveredDockNode;
 			if (framerateSecPerFrame != default(Span<float>))
 			{
 				FramerateSecPerFrame_0 = framerateSecPerFrame[0];
@@ -2005,66 +3306,6 @@ namespace Dalamud.Bindings.ImGui
 				FramerateSecPerFrame_57 = framerateSecPerFrame[57];
 				FramerateSecPerFrame_58 = framerateSecPerFrame[58];
 				FramerateSecPerFrame_59 = framerateSecPerFrame[59];
-				FramerateSecPerFrame_60 = framerateSecPerFrame[60];
-				FramerateSecPerFrame_61 = framerateSecPerFrame[61];
-				FramerateSecPerFrame_62 = framerateSecPerFrame[62];
-				FramerateSecPerFrame_63 = framerateSecPerFrame[63];
-				FramerateSecPerFrame_64 = framerateSecPerFrame[64];
-				FramerateSecPerFrame_65 = framerateSecPerFrame[65];
-				FramerateSecPerFrame_66 = framerateSecPerFrame[66];
-				FramerateSecPerFrame_67 = framerateSecPerFrame[67];
-				FramerateSecPerFrame_68 = framerateSecPerFrame[68];
-				FramerateSecPerFrame_69 = framerateSecPerFrame[69];
-				FramerateSecPerFrame_70 = framerateSecPerFrame[70];
-				FramerateSecPerFrame_71 = framerateSecPerFrame[71];
-				FramerateSecPerFrame_72 = framerateSecPerFrame[72];
-				FramerateSecPerFrame_73 = framerateSecPerFrame[73];
-				FramerateSecPerFrame_74 = framerateSecPerFrame[74];
-				FramerateSecPerFrame_75 = framerateSecPerFrame[75];
-				FramerateSecPerFrame_76 = framerateSecPerFrame[76];
-				FramerateSecPerFrame_77 = framerateSecPerFrame[77];
-				FramerateSecPerFrame_78 = framerateSecPerFrame[78];
-				FramerateSecPerFrame_79 = framerateSecPerFrame[79];
-				FramerateSecPerFrame_80 = framerateSecPerFrame[80];
-				FramerateSecPerFrame_81 = framerateSecPerFrame[81];
-				FramerateSecPerFrame_82 = framerateSecPerFrame[82];
-				FramerateSecPerFrame_83 = framerateSecPerFrame[83];
-				FramerateSecPerFrame_84 = framerateSecPerFrame[84];
-				FramerateSecPerFrame_85 = framerateSecPerFrame[85];
-				FramerateSecPerFrame_86 = framerateSecPerFrame[86];
-				FramerateSecPerFrame_87 = framerateSecPerFrame[87];
-				FramerateSecPerFrame_88 = framerateSecPerFrame[88];
-				FramerateSecPerFrame_89 = framerateSecPerFrame[89];
-				FramerateSecPerFrame_90 = framerateSecPerFrame[90];
-				FramerateSecPerFrame_91 = framerateSecPerFrame[91];
-				FramerateSecPerFrame_92 = framerateSecPerFrame[92];
-				FramerateSecPerFrame_93 = framerateSecPerFrame[93];
-				FramerateSecPerFrame_94 = framerateSecPerFrame[94];
-				FramerateSecPerFrame_95 = framerateSecPerFrame[95];
-				FramerateSecPerFrame_96 = framerateSecPerFrame[96];
-				FramerateSecPerFrame_97 = framerateSecPerFrame[97];
-				FramerateSecPerFrame_98 = framerateSecPerFrame[98];
-				FramerateSecPerFrame_99 = framerateSecPerFrame[99];
-				FramerateSecPerFrame_100 = framerateSecPerFrame[100];
-				FramerateSecPerFrame_101 = framerateSecPerFrame[101];
-				FramerateSecPerFrame_102 = framerateSecPerFrame[102];
-				FramerateSecPerFrame_103 = framerateSecPerFrame[103];
-				FramerateSecPerFrame_104 = framerateSecPerFrame[104];
-				FramerateSecPerFrame_105 = framerateSecPerFrame[105];
-				FramerateSecPerFrame_106 = framerateSecPerFrame[106];
-				FramerateSecPerFrame_107 = framerateSecPerFrame[107];
-				FramerateSecPerFrame_108 = framerateSecPerFrame[108];
-				FramerateSecPerFrame_109 = framerateSecPerFrame[109];
-				FramerateSecPerFrame_110 = framerateSecPerFrame[110];
-				FramerateSecPerFrame_111 = framerateSecPerFrame[111];
-				FramerateSecPerFrame_112 = framerateSecPerFrame[112];
-				FramerateSecPerFrame_113 = framerateSecPerFrame[113];
-				FramerateSecPerFrame_114 = framerateSecPerFrame[114];
-				FramerateSecPerFrame_115 = framerateSecPerFrame[115];
-				FramerateSecPerFrame_116 = framerateSecPerFrame[116];
-				FramerateSecPerFrame_117 = framerateSecPerFrame[117];
-				FramerateSecPerFrame_118 = framerateSecPerFrame[118];
-				FramerateSecPerFrame_119 = framerateSecPerFrame[119];
 			}
 			FramerateSecPerFrameIdx = framerateSecPerFrameIdx;
 			FramerateSecPerFrameCount = framerateSecPerFrameCount;
@@ -2073,20 +3314,104 @@ namespace Dalamud.Bindings.ImGui
 			WantCaptureKeyboardNextFrame = wantCaptureKeyboardNextFrame;
 			WantTextInputNextFrame = wantTextInputNextFrame;
 			TempBuffer = tempBuffer;
+			if (tempKeychordName != default(Span<byte>))
+			{
+				TempKeychordName_0 = tempKeychordName[0];
+				TempKeychordName_1 = tempKeychordName[1];
+				TempKeychordName_2 = tempKeychordName[2];
+				TempKeychordName_3 = tempKeychordName[3];
+				TempKeychordName_4 = tempKeychordName[4];
+				TempKeychordName_5 = tempKeychordName[5];
+				TempKeychordName_6 = tempKeychordName[6];
+				TempKeychordName_7 = tempKeychordName[7];
+				TempKeychordName_8 = tempKeychordName[8];
+				TempKeychordName_9 = tempKeychordName[9];
+				TempKeychordName_10 = tempKeychordName[10];
+				TempKeychordName_11 = tempKeychordName[11];
+				TempKeychordName_12 = tempKeychordName[12];
+				TempKeychordName_13 = tempKeychordName[13];
+				TempKeychordName_14 = tempKeychordName[14];
+				TempKeychordName_15 = tempKeychordName[15];
+				TempKeychordName_16 = tempKeychordName[16];
+				TempKeychordName_17 = tempKeychordName[17];
+				TempKeychordName_18 = tempKeychordName[18];
+				TempKeychordName_19 = tempKeychordName[19];
+				TempKeychordName_20 = tempKeychordName[20];
+				TempKeychordName_21 = tempKeychordName[21];
+				TempKeychordName_22 = tempKeychordName[22];
+				TempKeychordName_23 = tempKeychordName[23];
+				TempKeychordName_24 = tempKeychordName[24];
+				TempKeychordName_25 = tempKeychordName[25];
+				TempKeychordName_26 = tempKeychordName[26];
+				TempKeychordName_27 = tempKeychordName[27];
+				TempKeychordName_28 = tempKeychordName[28];
+				TempKeychordName_29 = tempKeychordName[29];
+				TempKeychordName_30 = tempKeychordName[30];
+				TempKeychordName_31 = tempKeychordName[31];
+				TempKeychordName_32 = tempKeychordName[32];
+				TempKeychordName_33 = tempKeychordName[33];
+				TempKeychordName_34 = tempKeychordName[34];
+				TempKeychordName_35 = tempKeychordName[35];
+				TempKeychordName_36 = tempKeychordName[36];
+				TempKeychordName_37 = tempKeychordName[37];
+				TempKeychordName_38 = tempKeychordName[38];
+				TempKeychordName_39 = tempKeychordName[39];
+				TempKeychordName_40 = tempKeychordName[40];
+				TempKeychordName_41 = tempKeychordName[41];
+				TempKeychordName_42 = tempKeychordName[42];
+				TempKeychordName_43 = tempKeychordName[43];
+				TempKeychordName_44 = tempKeychordName[44];
+				TempKeychordName_45 = tempKeychordName[45];
+				TempKeychordName_46 = tempKeychordName[46];
+				TempKeychordName_47 = tempKeychordName[47];
+				TempKeychordName_48 = tempKeychordName[48];
+				TempKeychordName_49 = tempKeychordName[49];
+				TempKeychordName_50 = tempKeychordName[50];
+				TempKeychordName_51 = tempKeychordName[51];
+				TempKeychordName_52 = tempKeychordName[52];
+				TempKeychordName_53 = tempKeychordName[53];
+				TempKeychordName_54 = tempKeychordName[54];
+				TempKeychordName_55 = tempKeychordName[55];
+				TempKeychordName_56 = tempKeychordName[56];
+				TempKeychordName_57 = tempKeychordName[57];
+				TempKeychordName_58 = tempKeychordName[58];
+				TempKeychordName_59 = tempKeychordName[59];
+				TempKeychordName_60 = tempKeychordName[60];
+				TempKeychordName_61 = tempKeychordName[61];
+				TempKeychordName_62 = tempKeychordName[62];
+				TempKeychordName_63 = tempKeychordName[63];
+			}
 		}
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void Destroy()
+		public unsafe Span<ImGuiKeyOwnerData> KeysOwnerData
+		
 		{
-			fixed (ImGuiContext* @this = &this)
+			get
 			{
-				ImGui.DestroyNative(@this);
+				fixed (ImGuiKeyOwnerData* p = &this.KeysOwnerData_0)
+				{
+					return new Span<ImGuiKeyOwnerData>(p, 155);
+				}
 			}
 		}
-
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Span<Pointer<byte>> LocalizationTable
+		
+		{
+			get
+			{
+				fixed (byte** p = &this.LocalizationTable_0)
+				{
+					return new Span<Pointer<byte>>(p, 15);
+				}
+			}
+		}
 	}
 
 	/// <summary>
@@ -2137,55 +3462,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool FontAtlasOwnedByContext => ref Unsafe.AsRef<bool>(&Handle->FontAtlasOwnedByContext);
+		public ref bool WithinFrameScope => ref Unsafe.AsRef<bool>(&Handle->WithinFrameScope);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiIO IO => ref Unsafe.AsRef<ImGuiIO>(&Handle->IO);
+		public ref bool WithinFrameScopeWithImplicitWindow => ref Unsafe.AsRef<bool>(&Handle->WithinFrameScopeWithImplicitWindow);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiPlatformIO PlatformIO => ref Unsafe.AsRef<ImGuiPlatformIO>(&Handle->PlatformIO);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImVector<ImGuiInputEvent> InputEventsQueue => ref Unsafe.AsRef<ImVector<ImGuiInputEvent>>(&Handle->InputEventsQueue);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImVector<ImGuiInputEvent> InputEventsTrail => ref Unsafe.AsRef<ImVector<ImGuiInputEvent>>(&Handle->InputEventsTrail);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImGuiStyle Style => ref Unsafe.AsRef<ImGuiStyle>(&Handle->Style);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImGuiConfigFlags ConfigFlagsCurrFrame => ref Unsafe.AsRef<ImGuiConfigFlags>(&Handle->ConfigFlagsCurrFrame);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImGuiConfigFlags ConfigFlagsLastFrame => ref Unsafe.AsRef<ImGuiConfigFlags>(&Handle->ConfigFlagsLastFrame);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImFontPtr Font => ref Unsafe.AsRef<ImFontPtr>(&Handle->Font);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float FontSize => ref Unsafe.AsRef<float>(&Handle->FontSize);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float FontBaseSize => ref Unsafe.AsRef<float>(&Handle->FontBaseSize);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImDrawListSharedData DrawListSharedData => ref Unsafe.AsRef<ImDrawListSharedData>(&Handle->DrawListSharedData);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref double Time => ref Unsafe.AsRef<double>(&Handle->Time);
+		public ref bool TestEngineHookItems => ref Unsafe.AsRef<bool>(&Handle->TestEngineHookItems);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2205,27 +3490,102 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool WithinFrameScope => ref Unsafe.AsRef<bool>(&Handle->WithinFrameScope);
+		public ref double Time => ref Unsafe.AsRef<double>(&Handle->Time);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool WithinFrameScopeWithImplicitWindow => ref Unsafe.AsRef<bool>(&Handle->WithinFrameScopeWithImplicitWindow);
+		public unsafe Span<byte> ContextName
+		
+		{
+			get
+			{
+				return new Span<byte>(&Handle->ContextName_0, 16);
+			}
+		}
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool WithinEndChild => ref Unsafe.AsRef<bool>(&Handle->WithinEndChild);
+		public ref ImGuiIO IO => ref Unsafe.AsRef<ImGuiIO>(&Handle->IO);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool GcCompactAll => ref Unsafe.AsRef<bool>(&Handle->GcCompactAll);
+		public ref ImGuiPlatformIO PlatformIO => ref Unsafe.AsRef<ImGuiPlatformIO>(&Handle->PlatformIO);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool TestEngineHookItems => ref Unsafe.AsRef<bool>(&Handle->TestEngineHookItems);
+		public ref ImGuiStyle Style => ref Unsafe.AsRef<ImGuiStyle>(&Handle->Style);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiConfigFlags ConfigFlagsCurrFrame => ref Unsafe.AsRef<ImGuiConfigFlags>(&Handle->ConfigFlagsCurrFrame);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiConfigFlags ConfigFlagsLastFrame => ref Unsafe.AsRef<ImGuiConfigFlags>(&Handle->ConfigFlagsLastFrame);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImVector<ImFontAtlasPtr> FontAtlases => ref Unsafe.AsRef<ImVector<ImFontAtlasPtr>>(&Handle->FontAtlases);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImFontPtr Font => ref Unsafe.AsRef<ImFontPtr>(&Handle->Font);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImFontBakedPtr FontBaked => ref Unsafe.AsRef<ImFontBakedPtr>(&Handle->FontBaked);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float FontSize => ref Unsafe.AsRef<float>(&Handle->FontSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float FontSizeBase => ref Unsafe.AsRef<float>(&Handle->FontSizeBase);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float FontBakedScale => ref Unsafe.AsRef<float>(&Handle->FontBakedScale);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float CurrentPixelDensity => ref Unsafe.AsRef<float>(&Handle->CurrentPixelDensity);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float CurrentDpiScale => ref Unsafe.AsRef<float>(&Handle->CurrentDpiScale);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImDrawListSharedData DrawListSharedData => ref Unsafe.AsRef<ImDrawListSharedData>(&Handle->DrawListSharedData);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint WithinEndChildID => ref Unsafe.AsRef<uint>(&Handle->WithinEndChildID);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint WithinEndPopupID => ref Unsafe.AsRef<uint>(&Handle->WithinEndPopupID);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public void* TestEngine { get => Handle->TestEngine; set => Handle->TestEngine = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImVector<ImGuiInputEvent> InputEventsQueue => ref Unsafe.AsRef<ImVector<ImGuiInputEvent>>(&Handle->InputEventsQueue);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImVector<ImGuiInputEvent> InputEventsTrail => ref Unsafe.AsRef<ImVector<ImGuiInputEvent>>(&Handle->InputEventsTrail);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiMouseSource InputEventsNextMouseSource => ref Unsafe.AsRef<ImGuiMouseSource>(&Handle->InputEventsNextMouseSource);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint InputEventsNextEventId => ref Unsafe.AsRef<uint>(&Handle->InputEventsNextEventId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2253,7 +3613,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref Vector2 WindowsHoverPadding => ref Unsafe.AsRef<Vector2>(&Handle->WindowsHoverPadding);
+		public ref float WindowsBorderHoverPadding => ref Unsafe.AsRef<float>(&Handle->WindowsBorderHoverPadding);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint DebugBreakInWindow => ref Unsafe.AsRef<uint>(&Handle->DebugBreakInWindow);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2269,7 +3633,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiDockNodePtr HoveredDockNode => ref Unsafe.AsRef<ImGuiDockNodePtr>(&Handle->HoveredDockNode);
+		public ref ImGuiWindowPtr HoveredWindowBeforeClear => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->HoveredWindowBeforeClear);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2285,11 +3649,35 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float WheelingWindowTimer => ref Unsafe.AsRef<float>(&Handle->WheelingWindowTimer);
+		public ref int WheelingWindowStartFrame => ref Unsafe.AsRef<int>(&Handle->WheelingWindowStartFrame);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint DebugHookIdInfo => ref Unsafe.AsRef<uint>(&Handle->DebugHookIdInfo);
+		public ref int WheelingWindowScrolledFrame => ref Unsafe.AsRef<int>(&Handle->WheelingWindowScrolledFrame);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float WheelingWindowReleaseTimer => ref Unsafe.AsRef<float>(&Handle->WheelingWindowReleaseTimer);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref Vector2 WheelingWindowWheelRemainder => ref Unsafe.AsRef<Vector2>(&Handle->WheelingWindowWheelRemainder);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref Vector2 WheelingAxisAvg => ref Unsafe.AsRef<Vector2>(&Handle->WheelingAxisAvg);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte* MixedValueLabel { get => Handle->MixedValueLabel; set => Handle->MixedValueLabel = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint DebugDrawIdConflictsId => ref Unsafe.AsRef<uint>(&Handle->DebugDrawIdConflictsId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint DebugHookIdInfoId => ref Unsafe.AsRef<uint>(&Handle->DebugHookIdInfoId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2301,19 +3689,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool HoveredIdAllowOverlap => ref Unsafe.AsRef<bool>(&Handle->HoveredIdAllowOverlap);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool HoveredIdUsingMouseWheel => ref Unsafe.AsRef<bool>(&Handle->HoveredIdUsingMouseWheel);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool HoveredIdPreviousFrameUsingMouseWheel => ref Unsafe.AsRef<bool>(&Handle->HoveredIdPreviousFrameUsingMouseWheel);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool HoveredIdDisabled => ref Unsafe.AsRef<bool>(&Handle->HoveredIdDisabled);
+		public ref int HoveredIdPreviousFrameItemCount => ref Unsafe.AsRef<int>(&Handle->HoveredIdPreviousFrameItemCount);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2322,6 +3698,22 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref float HoveredIdNotActiveTimer => ref Unsafe.AsRef<float>(&Handle->HoveredIdNotActiveTimer);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool HoveredIdAllowOverlap => ref Unsafe.AsRef<bool>(&Handle->HoveredIdAllowOverlap);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool HoveredIdIsDisabled => ref Unsafe.AsRef<bool>(&Handle->HoveredIdIsDisabled);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool ItemUnclipByLog => ref Unsafe.AsRef<bool>(&Handle->ItemUnclipByLog);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool AnyIdHasBeenEditedThisFrame => ref Unsafe.AsRef<bool>(&Handle->AnyIdHasBeenEditedThisFrame);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2338,6 +3730,14 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref bool ActiveIdIsJustActivated => ref Unsafe.AsRef<bool>(&Handle->ActiveIdIsJustActivated);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool ActiveIdWasSelected => ref Unsafe.AsRef<bool>(&Handle->ActiveIdWasSelected);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool ActiveIdWasSoleSelected => ref Unsafe.AsRef<bool>(&Handle->ActiveIdWasSoleSelected);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2361,11 +3761,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref Vector2 ActiveIdClickOffset => ref Unsafe.AsRef<Vector2>(&Handle->ActiveIdClickOffset);
+		public ref bool ActiveIdFromShortcut => ref Unsafe.AsRef<bool>(&Handle->ActiveIdFromShortcut);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiWindowPtr ActiveIdWindow => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->ActiveIdWindow);
+		public ref sbyte ActiveIdMouseButton => ref Unsafe.AsRef<sbyte>(&Handle->ActiveIdMouseButton);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint ActiveIdDisabledId => ref Unsafe.AsRef<uint>(&Handle->ActiveIdDisabledId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref Vector2 ActiveIdClickOffset => ref Unsafe.AsRef<Vector2>(&Handle->ActiveIdClickOffset);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2373,7 +3781,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int ActiveIdMouseButton => ref Unsafe.AsRef<int>(&Handle->ActiveIdMouseButton);
+		public ref ImGuiWindowPtr ActiveIdWindow => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->ActiveIdWindow);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2381,15 +3789,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool ActiveIdPreviousFrameIsAlive => ref Unsafe.AsRef<bool>(&Handle->ActiveIdPreviousFrameIsAlive);
+		public ref ImGuiDeactivatedItemData DeactivatedItemData => ref Unsafe.AsRef<ImGuiDeactivatedItemData>(&Handle->DeactivatedItemData);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool ActiveIdPreviousFrameHasBeenEditedBefore => ref Unsafe.AsRef<bool>(&Handle->ActiveIdPreviousFrameHasBeenEditedBefore);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImGuiWindowPtr ActiveIdPreviousFrameWindow => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->ActiveIdPreviousFrameWindow);
+		public ref ImGuiDataTypeStorage ActiveIdValueOnActivation => ref Unsafe.AsRef<ImGuiDataTypeStorage>(&Handle->ActiveIdValueOnActivation);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2401,7 +3805,42 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool ActiveIdUsingMouseWheel => ref Unsafe.AsRef<bool>(&Handle->ActiveIdUsingMouseWheel);
+		public ref bool LastActiveIdWasSelected => ref Unsafe.AsRef<bool>(&Handle->LastActiveIdWasSelected);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool LastActiveIdWasSoleSelected => ref Unsafe.AsRef<bool>(&Handle->LastActiveIdWasSoleSelected);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref double LastKeyModsChangeTime => ref Unsafe.AsRef<double>(&Handle->LastKeyModsChangeTime);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref double LastKeyModsChangeFromNoneTime => ref Unsafe.AsRef<double>(&Handle->LastKeyModsChangeFromNoneTime);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref double LastKeyboardKeyPressTime => ref Unsafe.AsRef<double>(&Handle->LastKeyboardKeyPressTime);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImBitArrayForNamedKeys KeysMayBeCharInput => ref Unsafe.AsRef<ImBitArrayForNamedKeys>(&Handle->KeysMayBeCharInput);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Span<ImGuiKeyOwnerData> KeysOwnerData
+		
+		{
+			get
+			{
+				return new Span<ImGuiKeyOwnerData>(&Handle->KeysOwnerData_0, 155);
+			}
+		}
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiKeyRoutingTable KeysRoutingTable => ref Unsafe.AsRef<ImGuiKeyRoutingTable>(&Handle->KeysRoutingTable);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2409,15 +3848,23 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint ActiveIdUsingNavInputMask => ref Unsafe.AsRef<uint>(&Handle->ActiveIdUsingNavInputMask);
+		public ref bool ActiveIdUsingAllKeyboardKeys => ref Unsafe.AsRef<bool>(&Handle->ActiveIdUsingAllKeyboardKeys);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref nuint ActiveIdUsingKeyInputMask => ref Unsafe.AsRef<nuint>(&Handle->ActiveIdUsingKeyInputMask);
+		public ref int DebugBreakInShortcutRouting => ref Unsafe.AsRef<int>(&Handle->DebugBreakInShortcutRouting);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint CurrentFocusScopeId => ref Unsafe.AsRef<uint>(&Handle->CurrentFocusScopeId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ref ImGuiItemFlags CurrentItemFlags => ref Unsafe.AsRef<ImGuiItemFlags>(&Handle->CurrentItemFlags);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint DebugLocateId => ref Unsafe.AsRef<uint>(&Handle->DebugLocateId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2433,6 +3880,18 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref bool DebugShowGroupRects => ref Unsafe.AsRef<bool>(&Handle->DebugShowGroupRects);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool GcCompactAll => ref Unsafe.AsRef<bool>(&Handle->GcCompactAll);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiCol DebugFlashStyleColorIdx => ref Unsafe.AsRef<ImGuiCol>(&Handle->DebugFlashStyleColorIdx);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref ImVector<ImGuiColorMod> ColorStack => ref Unsafe.AsRef<ImVector<ImGuiColorMod>>(&Handle->ColorStack);
 		/// <summary>
 		/// To be documented.
@@ -2441,11 +3900,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImVector<ImFontPtr> FontStack => ref Unsafe.AsRef<ImVector<ImFontPtr>>(&Handle->FontStack);
+		public ref ImVector<ImFontStackData> FontStack => ref Unsafe.AsRef<ImVector<ImFontStackData>>(&Handle->FontStack);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImVector<uint> FocusScopeStack => ref Unsafe.AsRef<ImVector<uint>>(&Handle->FocusScopeStack);
+		public ref ImVector<ImGuiFocusScopeData> FocusScopeStack => ref Unsafe.AsRef<ImVector<ImGuiFocusScopeData>>(&Handle->FocusScopeStack);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2465,15 +3924,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int BeginMenuCount => ref Unsafe.AsRef<int>(&Handle->BeginMenuCount);
+		public ref ImVector<ImGuiTreeNodeStackData> TreeNodeStack => ref Unsafe.AsRef<ImVector<ImGuiTreeNodeStackData>>(&Handle->TreeNodeStack);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ref ImVector<ImGuiViewportPPtr> Viewports => ref Unsafe.AsRef<ImVector<ImGuiViewportPPtr>>(&Handle->Viewports);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float CurrentDpiScale => ref Unsafe.AsRef<float>(&Handle->CurrentDpiScale);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2497,11 +3952,35 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int ViewportFrontMostStampCount => ref Unsafe.AsRef<int>(&Handle->ViewportFrontMostStampCount);
+		public ref ImRect PlatformMonitorsFullWorkRect => ref Unsafe.AsRef<ImRect>(&Handle->PlatformMonitorsFullWorkRect);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiWindowPtr NavWindow => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->NavWindow);
+		public ref int ViewportCreatedCount => ref Unsafe.AsRef<int>(&Handle->ViewportCreatedCount);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int PlatformWindowsCreatedCount => ref Unsafe.AsRef<int>(&Handle->PlatformWindowsCreatedCount);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int ViewportFocusedStampCount => ref Unsafe.AsRef<int>(&Handle->ViewportFocusedStampCount);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool NavCursorVisible => ref Unsafe.AsRef<bool>(&Handle->NavCursorVisible);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool NavHighlightItemUnderNav => ref Unsafe.AsRef<bool>(&Handle->NavHighlightItemUnderNav);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool NavMousePosDirty => ref Unsafe.AsRef<bool>(&Handle->NavMousePosDirty);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool NavIdIsAlive => ref Unsafe.AsRef<bool>(&Handle->NavIdIsAlive);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2509,7 +3988,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImGuiWindowPtr NavWindow => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->NavWindow);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref uint NavFocusScopeId => ref Unsafe.AsRef<uint>(&Handle->NavFocusScopeId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiNavLayer NavLayer => ref Unsafe.AsRef<ImGuiNavLayer>(&Handle->NavLayer);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiItemFlags NavIdItemFlags => ref Unsafe.AsRef<ImGuiItemFlags>(&Handle->NavIdItemFlags);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2525,23 +4016,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint NavActivateInputId => ref Unsafe.AsRef<uint>(&Handle->NavActivateInputId);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public ref ImGuiActivateFlags NavActivateFlags => ref Unsafe.AsRef<ImGuiActivateFlags>(&Handle->NavActivateFlags);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint NavJustMovedToId => ref Unsafe.AsRef<uint>(&Handle->NavJustMovedToId);
+		public ref ImVector<ImGuiFocusScopeData> NavFocusRoute => ref Unsafe.AsRef<ImVector<ImGuiFocusScopeData>>(&Handle->NavFocusRoute);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint NavJustMovedToFocusScopeId => ref Unsafe.AsRef<uint>(&Handle->NavJustMovedToFocusScopeId);
+		public ref uint NavHighlightActivatedId => ref Unsafe.AsRef<uint>(&Handle->NavHighlightActivatedId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiModFlags NavJustMovedToKeyMods => ref Unsafe.AsRef<ImGuiModFlags>(&Handle->NavJustMovedToKeyMods);
+		public ref float NavHighlightActivatedTimer => ref Unsafe.AsRef<float>(&Handle->NavHighlightActivatedTimer);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint NavOpenContextMenuItemId => ref Unsafe.AsRef<uint>(&Handle->NavOpenContextMenuItemId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint NavOpenContextMenuWindowId => ref Unsafe.AsRef<uint>(&Handle->NavOpenContextMenuWindowId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2557,23 +4052,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiNavLayer NavLayer => ref Unsafe.AsRef<ImGuiNavLayer>(&Handle->NavLayer);
+		public ref long NavLastValidSelectionUserData => ref Unsafe.AsRef<long>(&Handle->NavLastValidSelectionUserData);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool NavIdIsAlive => ref Unsafe.AsRef<bool>(&Handle->NavIdIsAlive);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool NavMousePosDirty => ref Unsafe.AsRef<bool>(&Handle->NavMousePosDirty);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool NavDisableHighlight => ref Unsafe.AsRef<bool>(&Handle->NavDisableHighlight);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool NavDisableMouseHover => ref Unsafe.AsRef<bool>(&Handle->NavDisableMouseHover);
+		public ref sbyte NavCursorHideFrames => ref Unsafe.AsRef<sbyte>(&Handle->NavCursorHideFrames);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2589,11 +4072,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint NavInitResultId => ref Unsafe.AsRef<uint>(&Handle->NavInitResultId);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImRect NavInitResultRectRel => ref Unsafe.AsRef<ImRect>(&Handle->NavInitResultRectRel);
+		public ref ImGuiNavItemData NavInitResult => ref Unsafe.AsRef<ImGuiNavItemData>(&Handle->NavInitResult);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2617,7 +4096,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiModFlags NavMoveKeyMods => ref Unsafe.AsRef<ImGuiModFlags>(&Handle->NavMoveKeyMods);
+		public ref int NavMoveKeyMods => ref Unsafe.AsRef<int>(&Handle->NavMoveKeyMods);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2669,6 +4148,50 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref uint NavJustMovedFromFocusScopeId => ref Unsafe.AsRef<uint>(&Handle->NavJustMovedFromFocusScopeId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint NavJustMovedToId => ref Unsafe.AsRef<uint>(&Handle->NavJustMovedToId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint NavJustMovedToFocusScopeId => ref Unsafe.AsRef<uint>(&Handle->NavJustMovedToFocusScopeId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int NavJustMovedToKeyMods => ref Unsafe.AsRef<int>(&Handle->NavJustMovedToKeyMods);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool NavJustMovedToIsTabbing => ref Unsafe.AsRef<bool>(&Handle->NavJustMovedToIsTabbing);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool NavJustMovedToIsInit => ref Unsafe.AsRef<bool>(&Handle->NavJustMovedToIsInit);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool NavJustMovedToHasSelectionData => ref Unsafe.AsRef<bool>(&Handle->NavJustMovedToHasSelectionData);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool ConfigNavEnableTabbing => ref Unsafe.AsRef<bool>(&Handle->ConfigNavEnableTabbing);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool ConfigNavWindowingWithGamepad => ref Unsafe.AsRef<bool>(&Handle->ConfigNavWindowingWithGamepad);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int ConfigNavWindowingKeyNext => ref Unsafe.AsRef<int>(&Handle->ConfigNavWindowingKeyNext);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int ConfigNavWindowingKeyPrev => ref Unsafe.AsRef<int>(&Handle->ConfigNavWindowingKeyPrev);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref ImGuiWindowPtr NavWindowingTarget => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->NavWindowingTarget);
 		/// <summary>
 		/// To be documented.
@@ -2689,15 +4212,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImGuiInputSource NavWindowingInputSource => ref Unsafe.AsRef<ImGuiInputSource>(&Handle->NavWindowingInputSource);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref bool NavWindowingToggleLayer => ref Unsafe.AsRef<bool>(&Handle->NavWindowingToggleLayer);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float DimBgRatio => ref Unsafe.AsRef<float>(&Handle->DimBgRatio);
+		public ref ImGuiKey NavWindowingToggleKey => ref Unsafe.AsRef<ImGuiKey>(&Handle->NavWindowingToggleKey);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiMouseCursor MouseCursor => ref Unsafe.AsRef<ImGuiMouseCursor>(&Handle->MouseCursor);
+		public ref Vector2 NavWindowingAccumDeltaPos => ref Unsafe.AsRef<Vector2>(&Handle->NavWindowingAccumDeltaPos);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref Vector2 NavWindowingAccumDeltaSize => ref Unsafe.AsRef<Vector2>(&Handle->NavWindowingAccumDeltaSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float DimBgRatio => ref Unsafe.AsRef<float>(&Handle->DimBgRatio);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2733,11 +4268,23 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImRect DragDropTargetClipRect => ref Unsafe.AsRef<ImRect>(&Handle->DragDropTargetClipRect);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref uint DragDropTargetId => ref Unsafe.AsRef<uint>(&Handle->DragDropTargetId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiDragDropFlags DragDropAcceptFlags => ref Unsafe.AsRef<ImGuiDragDropFlags>(&Handle->DragDropAcceptFlags);
+		public ref uint DragDropTargetFullViewport => ref Unsafe.AsRef<uint>(&Handle->DragDropTargetFullViewport);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiDragDropFlags DragDropAcceptFlagsCurr => ref Unsafe.AsRef<ImGuiDragDropFlags>(&Handle->DragDropAcceptFlagsCurr);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiDragDropFlags DragDropAcceptFlagsPrev => ref Unsafe.AsRef<ImGuiDragDropFlags>(&Handle->DragDropAcceptFlagsPrev);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2788,6 +4335,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref uint DebugBreakInTable => ref Unsafe.AsRef<uint>(&Handle->DebugBreakInTable);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref int TablesTempDataStacked => ref Unsafe.AsRef<int>(&Handle->TablesTempDataStacked);
 		/// <summary>
 		/// To be documented.
@@ -2824,6 +4375,58 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImGuiBoxSelectState BoxSelectState => ref Unsafe.AsRef<ImGuiBoxSelectState>(&Handle->BoxSelectState);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiMultiSelectTempDataPtr CurrentMultiSelect => ref Unsafe.AsRef<ImGuiMultiSelectTempDataPtr>(&Handle->CurrentMultiSelect);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int MultiSelectTempDataStacked => ref Unsafe.AsRef<int>(&Handle->MultiSelectTempDataStacked);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImVector<ImGuiMultiSelectTempData> MultiSelectTempData => ref Unsafe.AsRef<ImVector<ImGuiMultiSelectTempData>>(&Handle->MultiSelectTempData);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImPoolImGuiMultiSelectState MultiSelectStorage => ref Unsafe.AsRef<ImPoolImGuiMultiSelectState>(&Handle->MultiSelectStorage);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint HoverItemDelayId => ref Unsafe.AsRef<uint>(&Handle->HoverItemDelayId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint HoverItemDelayIdPreviousFrame => ref Unsafe.AsRef<uint>(&Handle->HoverItemDelayIdPreviousFrame);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float HoverItemDelayTimer => ref Unsafe.AsRef<float>(&Handle->HoverItemDelayTimer);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float HoverItemDelayClearTimer => ref Unsafe.AsRef<float>(&Handle->HoverItemDelayClearTimer);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint HoverItemUnlockedStationaryId => ref Unsafe.AsRef<uint>(&Handle->HoverItemUnlockedStationaryId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint HoverWindowUnlockedStationaryId => ref Unsafe.AsRef<uint>(&Handle->HoverWindowUnlockedStationaryId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiMouseCursor MouseCursor => ref Unsafe.AsRef<ImGuiMouseCursor>(&Handle->MouseCursor);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float MouseStationaryTimer => ref Unsafe.AsRef<float>(&Handle->MouseStationaryTimer);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref Vector2 MouseLastValidPos => ref Unsafe.AsRef<Vector2>(&Handle->MouseLastValidPos);
 		/// <summary>
 		/// To be documented.
@@ -2832,7 +4435,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImFont InputTextPasswordFont => ref Unsafe.AsRef<ImFont>(&Handle->InputTextPasswordFont);
+		public ref ImGuiTextIndex InputTextLineIndex => ref Unsafe.AsRef<ImGuiTextIndex>(&Handle->InputTextLineIndex);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiInputTextDeactivatedState InputTextDeactivatedState => ref Unsafe.AsRef<ImGuiInputTextDeactivatedState>(&Handle->InputTextDeactivatedState);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int InputTextPasswordMaskCount => ref Unsafe.AsRef<int>(&Handle->InputTextPasswordMaskCount);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint InputTextReactivateId => ref Unsafe.AsRef<uint>(&Handle->InputTextReactivateId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2840,19 +4455,35 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiColorEditFlags ColorEditOptions => ref Unsafe.AsRef<ImGuiColorEditFlags>(&Handle->ColorEditOptions);
+		public ref ImGuiDataTypeStorage DataTypeZeroValue => ref Unsafe.AsRef<ImGuiDataTypeStorage>(&Handle->DataTypeZeroValue);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float ColorEditLastHue => ref Unsafe.AsRef<float>(&Handle->ColorEditLastHue);
+		public ref int BeginMenuDepth => ref Unsafe.AsRef<int>(&Handle->BeginMenuDepth);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float ColorEditLastSat => ref Unsafe.AsRef<float>(&Handle->ColorEditLastSat);
+		public ref int BeginComboDepth => ref Unsafe.AsRef<int>(&Handle->BeginComboDepth);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint ColorEditLastColor => ref Unsafe.AsRef<uint>(&Handle->ColorEditLastColor);
+		public ref uint ColorEditCurrentID => ref Unsafe.AsRef<uint>(&Handle->ColorEditCurrentID);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint ColorEditSavedID => ref Unsafe.AsRef<uint>(&Handle->ColorEditSavedID);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float ColorEditSavedHue => ref Unsafe.AsRef<float>(&Handle->ColorEditSavedHue);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float ColorEditSavedSat => ref Unsafe.AsRef<float>(&Handle->ColorEditSavedSat);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint ColorEditSavedColor => ref Unsafe.AsRef<uint>(&Handle->ColorEditSavedColor);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2861,6 +4492,22 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref ImGuiComboPreviewData ComboPreviewData => ref Unsafe.AsRef<ImGuiComboPreviewData>(&Handle->ComboPreviewData);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImRect WindowResizeBorderExpectedRect => ref Unsafe.AsRef<ImRect>(&Handle->WindowResizeBorderExpectedRect);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool WindowResizeRelativeMode => ref Unsafe.AsRef<bool>(&Handle->WindowResizeRelativeMode);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref short ScrollbarSeekMode => ref Unsafe.AsRef<short>(&Handle->ScrollbarSeekMode);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float ScrollbarClickDeltaToGrabCenter => ref Unsafe.AsRef<float>(&Handle->ScrollbarClickDeltaToGrabCenter);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2888,10 +4535,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float ScrollbarClickDeltaToGrabCenter => ref Unsafe.AsRef<float>(&Handle->ScrollbarClickDeltaToGrabCenter);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public ref float DisabledAlphaBackup => ref Unsafe.AsRef<float>(&Handle->DisabledAlphaBackup);
 		/// <summary>
 		/// To be documented.
@@ -2904,7 +4547,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float TooltipSlowDelay => ref Unsafe.AsRef<float>(&Handle->TooltipSlowDelay);
+		public ref ImGuiWindowPtr TooltipPreviousWindow => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->TooltipPreviousWindow);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2916,6 +4559,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImGuiTypingSelectState TypingSelectState => ref Unsafe.AsRef<ImGuiTypingSelectState>(&Handle->TypingSelectState);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref ImGuiPlatformImeData PlatformImeData => ref Unsafe.AsRef<ImGuiPlatformImeData>(&Handle->PlatformImeData);
 		/// <summary>
 		/// To be documented.
@@ -2924,15 +4571,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint PlatformImeViewport => ref Unsafe.AsRef<uint>(&Handle->PlatformImeViewport);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref byte PlatformLocaleDecimalPoint => ref Unsafe.AsRef<byte>(&Handle->PlatformLocaleDecimalPoint);
+		public ref ImVector<ImTextureDataPtr> UserTextures => ref Unsafe.AsRef<ImVector<ImTextureDataPtr>>(&Handle->UserTextures);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ref ImGuiDockContext DockContext => ref Unsafe.AsRef<ImGuiDockContext>(&Handle->DockContext);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public void* DockNodeWindowMenuHandler { get => Handle->DockNodeWindowMenuHandler; set => Handle->DockNodeWindowMenuHandler = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiPackedDate SessionDate => ref Unsafe.AsRef<ImGuiPackedDate>(&Handle->SessionDate);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2968,11 +4619,26 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public void* DemoMarkerCallback { get => Handle->DemoMarkerCallback; set => Handle->DemoMarkerCallback = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref bool LogEnabled => ref Unsafe.AsRef<bool>(&Handle->LogEnabled);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiLogType LogType => ref Unsafe.AsRef<ImGuiLogType>(&Handle->LogType);
+		public ref bool LogLineFirstItem => ref Unsafe.AsRef<bool>(&Handle->LogLineFirstItem);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiLogFlags LogFlags => ref Unsafe.AsRef<ImGuiLogFlags>(&Handle->LogFlags);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiWindowPtr LogWindow => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->LogWindow);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -2996,10 +4662,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool LogLineFirstItem => ref Unsafe.AsRef<bool>(&Handle->LogLineFirstItem);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public ref int LogDepthRef => ref Unsafe.AsRef<int>(&Handle->LogDepthRef);
 		/// <summary>
 		/// To be documented.
@@ -3012,6 +4674,38 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public void* ErrorCallback { get => Handle->ErrorCallback; set => Handle->ErrorCallback = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public void* ErrorCallbackUserData { get => Handle->ErrorCallbackUserData; set => Handle->ErrorCallbackUserData = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref Vector2 ErrorTooltipLockedPos => ref Unsafe.AsRef<Vector2>(&Handle->ErrorTooltipLockedPos);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool ErrorFirst => ref Unsafe.AsRef<bool>(&Handle->ErrorFirst);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int ErrorCountCurrentFrame => ref Unsafe.AsRef<int>(&Handle->ErrorCountCurrentFrame);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiErrorRecoveryState StackSizesInNewFrame => ref Unsafe.AsRef<ImGuiErrorRecoveryState>(&Handle->StackSizesInNewFrame);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiErrorRecoveryStatePtr StackSizesInBeginForCurrentWindow => ref Unsafe.AsRef<ImGuiErrorRecoveryStatePtr>(&Handle->StackSizesInBeginForCurrentWindow);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int DebugDrawIdConflictsCount => ref Unsafe.AsRef<int>(&Handle->DebugDrawIdConflictsCount);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref ImGuiDebugLogFlags DebugLogFlags => ref Unsafe.AsRef<ImGuiDebugLogFlags>(&Handle->DebugLogFlags);
 		/// <summary>
 		/// To be documented.
@@ -3020,7 +4714,43 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImGuiTextIndex DebugLogIndex => ref Unsafe.AsRef<ImGuiTextIndex>(&Handle->DebugLogIndex);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int DebugLogSkippedErrors => ref Unsafe.AsRef<int>(&Handle->DebugLogSkippedErrors);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiDebugLogFlags DebugLogAutoDisableFlags => ref Unsafe.AsRef<ImGuiDebugLogFlags>(&Handle->DebugLogAutoDisableFlags);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref byte DebugLogAutoDisableFrames => ref Unsafe.AsRef<byte>(&Handle->DebugLogAutoDisableFrames);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref byte DebugLocateFrames => ref Unsafe.AsRef<byte>(&Handle->DebugLocateFrames);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool DebugBreakInLocateId => ref Unsafe.AsRef<bool>(&Handle->DebugBreakInLocateId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int DebugBreakKeyChord => ref Unsafe.AsRef<int>(&Handle->DebugBreakKeyChord);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref sbyte DebugBeginReturnValueCullDepth => ref Unsafe.AsRef<sbyte>(&Handle->DebugBeginReturnValueCullDepth);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref bool DebugItemPickerActive => ref Unsafe.AsRef<bool>(&Handle->DebugItemPickerActive);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref byte DebugItemPickerMouseButton => ref Unsafe.AsRef<byte>(&Handle->DebugItemPickerMouseButton);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -3028,11 +4758,31 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref float DebugFlashStyleColorTime => ref Unsafe.AsRef<float>(&Handle->DebugFlashStyleColorTime);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref Vector4 DebugFlashStyleColorBackup => ref Unsafe.AsRef<Vector4>(&Handle->DebugFlashStyleColorBackup);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref ImGuiMetricsConfig DebugMetricsConfig => ref Unsafe.AsRef<ImGuiMetricsConfig>(&Handle->DebugMetricsConfig);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiStackTool DebugStackTool => ref Unsafe.AsRef<ImGuiStackTool>(&Handle->DebugStackTool);
+		public ref ImGuiDebugItemPathQuery DebugItemPathQuery => ref Unsafe.AsRef<ImGuiDebugItemPathQuery>(&Handle->DebugItemPathQuery);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiIDStackTool DebugIDStackTool => ref Unsafe.AsRef<ImGuiIDStackTool>(&Handle->DebugIDStackTool);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiDebugAllocInfo DebugAllocInfo => ref Unsafe.AsRef<ImGuiDebugAllocInfo>(&Handle->DebugAllocInfo);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiDockNodePtr DebugHoveredDockNode => ref Unsafe.AsRef<ImGuiDockNodePtr>(&Handle->DebugHoveredDockNode);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -3041,7 +4791,7 @@ namespace Dalamud.Bindings.ImGui
 		{
 			get
 			{
-				return new Span<float>(&Handle->FramerateSecPerFrame_0, 120);
+				return new Span<float>(&Handle->FramerateSecPerFrame_0, 60);
 			}
 		}
 		/// <summary>
@@ -3075,11 +4825,14 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void Destroy()
+		public unsafe Span<byte> TempKeychordName
+		
 		{
-			ImGui.DestroyNative(Handle);
+			get
+			{
+				return new Span<byte>(&Handle->TempKeychordName_0, 64);
+			}
 		}
-
 	}
 
 }

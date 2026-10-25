@@ -40,7 +40,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImDrawListFlags Flags;
+		public ImDrawFlags Flags;
 
 		/// <summary>
 		/// To be documented.
@@ -55,27 +55,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe byte* OwnerName;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public unsafe ImDrawVert* VtxWritePtr;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public unsafe ushort* IdxWritePtr;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImVector<Vector4> ClipRectStack;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImVector<ImTextureID> TextureIdStack;
 
 		/// <summary>
 		/// To be documented.
@@ -95,13 +80,48 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ImVector<Vector4> ClipRectStack;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImVector<ImTextureRef> TextureStack;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImVector<byte> CallbacksDataBuf;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImSmallStackImDrawFlags3 DrawFlagsStack;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public float FringeScale;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float InvFringeScale;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte FringeScaleIsInteger;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe byte* OwnerName;
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImDrawList(ImVector<ImDrawCmd> cmdBuffer = default, ImVector<ushort> idxBuffer = default, ImVector<ImDrawVert> vtxBuffer = default, ImDrawListFlags flags = default, uint vtxCurrentIdx = default, ImDrawListSharedData* data = default, byte* ownerName = default, ImDrawVert* vtxWritePtr = default, ushort* idxWritePtr = default, ImVector<Vector4> clipRectStack = default, ImVector<ImTextureID> textureIdStack = default, ImVector<Vector2> path = default, ImDrawCmdHeader cmdHeader = default, ImDrawListSplitter splitter = default, float fringeScale = default)
+		public unsafe ImDrawList(ImVector<ImDrawCmd> cmdBuffer = default, ImVector<ushort> idxBuffer = default, ImVector<ImDrawVert> vtxBuffer = default, ImDrawFlags flags = default, uint vtxCurrentIdx = default, ImDrawListSharedData* data = default, ImDrawVert* vtxWritePtr = default, ushort* idxWritePtr = default, ImVector<Vector2> path = default, ImDrawCmdHeader cmdHeader = default, ImDrawListSplitter splitter = default, ImVector<Vector4> clipRectStack = default, ImVector<ImTextureRef> textureStack = default, ImVector<byte> callbacksDataBuf = default, ImSmallStackImDrawFlags3 drawFlagsStack = default, float fringeScale = default, float invFringeScale = default, bool fringeScaleIsInteger = default, byte* ownerName = default)
 		{
 			CmdBuffer = cmdBuffer;
 			IdxBuffer = idxBuffer;
@@ -109,17 +129,90 @@ namespace Dalamud.Bindings.ImGui
 			Flags = flags;
 			VtxCurrentIdx = vtxCurrentIdx;
 			Data = data;
-			OwnerName = ownerName;
 			VtxWritePtr = vtxWritePtr;
 			IdxWritePtr = idxWritePtr;
-			ClipRectStack = clipRectStack;
-			TextureIdStack = textureIdStack;
 			Path = path;
 			CmdHeader = cmdHeader;
 			Splitter = splitter;
+			ClipRectStack = clipRectStack;
+			TextureStack = textureStack;
+			CallbacksDataBuf = callbacksDataBuf;
+			DrawFlagsStack = drawFlagsStack;
 			FringeScale = fringeScale;
+			InvFringeScale = invFringeScale;
+			FringeScaleIsInteger = fringeScaleIsInteger ? (byte)1 : (byte)0;
+			OwnerName = ownerName;
 		}
 
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddLine(Vector2 p1, Vector2 p2, uint col, float thickness, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui._AddLineNative(@this, p1, p2, col, thickness, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddPolyline(Vector2* points, int numPoints, uint col, float thickness, ImDrawFlags flags, float maxInnerOffset)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui._AddPolylineNative(@this, points, numPoints, col, thickness, flags, maxInnerOffset);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddPolyline(ref Vector2 points, int numPoints, uint col, float thickness, ImDrawFlags flags, float maxInnerOffset)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (Vector2* ppoints = &points)
+				{
+					ImGui._AddPolylineNative(@this, (Vector2*)ppoints, numPoints, col, thickness, flags, maxInnerOffset);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddRectBaked(Vector2 pMin, Vector2 pMax, uint col, float r, float t, Vector4 texUvs, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui._AddRectBakedNative(@this, pMin, pMax, col, r, t, texUvs, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddRectFilledBaked(Vector2 pMin, Vector2 pMax, uint col, float r, Vector4 texUvs, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui._AddRectFilledBakedNative(@this, pMin, pMax, col, r, texUvs, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddRectTinyRounding(Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui._AddRectTinyRoundingNative(@this, pMin, pMax, col, rounding, thickness, flags);
+			}
+		}
 
 		/// <summary>
 		/// To be documented.
@@ -129,6 +222,18 @@ namespace Dalamud.Bindings.ImGui
 			fixed (ImDrawList* @this = &this)
 			{
 				int ret = ImGui._CalcCircleAutoSegmentCountNative(@this, radius);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe float _CalculateCenterBiasedOffset(float thickness)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				float ret = ImGui._CalculateCenterBiasedOffsetNative(@this, thickness);
 				return ret;
 			}
 		}
@@ -158,11 +263,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void _OnChangedTextureID()
+		public unsafe void _OnChangedTexture()
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui._OnChangedTextureIDNative(@this);
+				ImGui._OnChangedTextureNative(@this);
 			}
 		}
 
@@ -224,6 +329,177 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, Vector2* outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui._SelectLineTextureNative(@this, screenThickness, outuv0, outuv1, outFringe, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, Vector2* outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (Vector2* poutuv0 = &outuv0)
+				{
+					ImGui._SelectLineTextureNative(@this, screenThickness, (Vector2*)poutuv0, outuv1, outFringe, flags);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, ref Vector2 outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (Vector2* poutuv1 = &outuv1)
+				{
+					ImGui._SelectLineTextureNative(@this, screenThickness, outuv0, (Vector2*)poutuv1, outFringe, flags);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, ref Vector2 outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (Vector2* poutuv0 = &outuv0)
+				{
+					fixed (Vector2* poutuv1 = &outuv1)
+					{
+						ImGui._SelectLineTextureNative(@this, screenThickness, (Vector2*)poutuv0, (Vector2*)poutuv1, outFringe, flags);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, Vector2* outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (float* poutFringe = &outFringe)
+				{
+					ImGui._SelectLineTextureNative(@this, screenThickness, outuv0, outuv1, (float*)poutFringe, flags);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, Vector2* outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (Vector2* poutuv0 = &outuv0)
+				{
+					fixed (float* poutFringe = &outFringe)
+					{
+						ImGui._SelectLineTextureNative(@this, screenThickness, (Vector2*)poutuv0, outuv1, (float*)poutFringe, flags);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, ref Vector2 outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (Vector2* poutuv1 = &outuv1)
+				{
+					fixed (float* poutFringe = &outFringe)
+					{
+						ImGui._SelectLineTextureNative(@this, screenThickness, outuv0, (Vector2*)poutuv1, (float*)poutFringe, flags);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, ref Vector2 outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (Vector2* poutuv0 = &outuv0)
+				{
+					fixed (Vector2* poutuv1 = &outuv1)
+					{
+						fixed (float* poutFringe = &outFringe)
+						{
+							ImGui._SelectLineTextureNative(@this, screenThickness, (Vector2*)poutuv0, (Vector2*)poutuv1, (float*)poutFringe, flags);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SetDrawListSharedData(ImDrawListSharedData* data)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui._SetDrawListSharedDataNative(@this, data);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SetDrawListSharedData(ref ImDrawListSharedData data)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (ImDrawListSharedData* pdata = &data)
+				{
+					ImGui._SetDrawListSharedDataNative(@this, (ImDrawListSharedData*)pdata);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SetPixelDensity(float pixelDensity)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui._SetPixelDensityNative(@this, pixelDensity);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SetTexture(ImTextureRef texRef)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui._SetTextureNative(@this, texRef);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void _TryMergeDrawCmds()
 		{
 			fixed (ImDrawList* @this = &this)
@@ -235,11 +511,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void AddBezierCubic(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, int numSegments, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddBezierCubicNative(@this, p1, p2, p3, p4, col, thickness, numSegments, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void AddBezierCubic(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, int numSegments)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddBezierCubicNative(@this, p1, p2, p3, p4, col, thickness, numSegments);
+				ImGui.AddBezierCubicNative(@this, p1, p2, p3, p4, col, thickness, numSegments, (ImDrawFlags)(0));
 			}
 		}
 
@@ -250,7 +537,29 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddBezierCubicNative(@this, p1, p2, p3, p4, col, thickness, (int)(0));
+				ImGui.AddBezierCubicNative(@this, p1, p2, p3, p4, col, thickness, (int)(0), (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddBezierCubic(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddBezierCubicNative(@this, p1, p2, p3, p4, col, thickness, (int)(0), flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddBezierQuadratic(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, int numSegments, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddBezierQuadraticNative(@this, p1, p2, p3, col, thickness, numSegments, flags);
 			}
 		}
 
@@ -261,7 +570,7 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddBezierQuadraticNative(@this, p1, p2, p3, col, thickness, numSegments);
+				ImGui.AddBezierQuadraticNative(@this, p1, p2, p3, col, thickness, numSegments, (ImDrawFlags)(0));
 			}
 		}
 
@@ -272,18 +581,73 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddBezierQuadraticNative(@this, p1, p2, p3, col, thickness, (int)(0));
+				ImGui.AddBezierQuadraticNative(@this, p1, p2, p3, col, thickness, (int)(0), (ImDrawFlags)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddCallback(ImDrawCallback callback, void* callbackData)
+		public unsafe void AddBezierQuadratic(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddCallbackNative(@this, callback, callbackData);
+				ImGui.AddBezierQuadraticNative(@this, p1, p2, p3, col, thickness, (int)(0), flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCallback(ImDrawCallback callback, void* userdata, nuint userdataSize)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddCallbackNative(@this, callback, userdata, userdataSize);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCallback(ImDrawCallback callback, void* userdata)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddCallbackNative(@this, callback, userdata, (nuint)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCallback(ImDrawCallback callback)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddCallbackNative(@this, callback, (void*)(default), (nuint)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCallback(ImDrawCallback callback, nuint userdataSize)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddCallbackNative(@this, callback, (void*)(default), userdataSize);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, int numSegments, float thickness, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddCircleNative(@this, center, radius, col, numSegments, thickness, flags);
 			}
 		}
 
@@ -294,7 +658,7 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddCircleNative(@this, center, radius, col, numSegments, thickness);
+				ImGui.AddCircleNative(@this, center, radius, col, numSegments, thickness, (ImDrawFlags)(0));
 			}
 		}
 
@@ -305,7 +669,7 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddCircleNative(@this, center, radius, col, numSegments, (float)(1.0f));
+				ImGui.AddCircleNative(@this, center, radius, col, numSegments, (float)(1.0f), (ImDrawFlags)(0));
 			}
 		}
 
@@ -316,7 +680,7 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddCircleNative(@this, center, radius, col, (int)(0), (float)(1.0f));
+				ImGui.AddCircleNative(@this, center, radius, col, (int)(0), (float)(1.0f), (ImDrawFlags)(0));
 			}
 		}
 
@@ -327,7 +691,40 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddCircleNative(@this, center, radius, col, (int)(0), thickness);
+				ImGui.AddCircleNative(@this, center, radius, col, (int)(0), thickness, (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, int numSegments, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddCircleNative(@this, center, radius, col, numSegments, (float)(1.0f), flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddCircleNative(@this, center, radius, col, (int)(0), (float)(1.0f), flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, float thickness, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddCircleNative(@this, center, radius, col, (int)(0), thickness, flags);
 			}
 		}
 
@@ -356,11 +753,61 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void AddConcavePolyFilled(Vector2* points, int numPoints, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddConcavePolyFilledNative(@this, points, numPoints, col);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddConcavePolyFilled(ref Vector2 points, int numPoints, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (Vector2* ppoints = &points)
+				{
+					ImGui.AddConcavePolyFilledNative(@this, (Vector2*)ppoints, numPoints, col);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddConvexPolyFilled(Vector2* points, int numPoints, uint col, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddConvexPolyFilledNative(@this, points, numPoints, col, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void AddConvexPolyFilled(Vector2* points, int numPoints, uint col)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddConvexPolyFilledNative(@this, points, numPoints, col);
+				ImGui.AddConvexPolyFilledNative(@this, points, numPoints, col, (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddConvexPolyFilled(ref Vector2 points, int numPoints, uint col, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (Vector2* ppoints = &points)
+				{
+					ImGui.AddConvexPolyFilledNative(@this, (Vector2*)ppoints, numPoints, col, flags);
+				}
 			}
 		}
 
@@ -373,7 +820,7 @@ namespace Dalamud.Bindings.ImGui
 			{
 				fixed (Vector2* ppoints = &points)
 				{
-					ImGui.AddConvexPolyFilledNative(@this, (Vector2*)ppoints, numPoints, col);
+					ImGui.AddConvexPolyFilledNative(@this, (Vector2*)ppoints, numPoints, col, (ImDrawFlags)(0));
 				}
 			}
 		}
@@ -392,198 +839,407 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments, float thickness, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageNative(@this, userTextureId, pMin, pMax, uvMin, uvMax, col);
+				ImGui.AddEllipseNative(@this, center, radius, col, rot, numSegments, thickness, flags);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments, float thickness)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageNative(@this, userTextureId, pMin, pMax, uvMin, uvMax, (uint)(4294967295));
+				ImGui.AddEllipseNative(@this, center, radius, col, rot, numSegments, thickness, (ImDrawFlags)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageNative(@this, userTextureId, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+				ImGui.AddEllipseNative(@this, center, radius, col, rot, numSegments, (float)(1.0f), (ImDrawFlags)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageNative(@this, userTextureId, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+				ImGui.AddEllipseNative(@this, center, radius, col, rot, (int)(0), (float)(1.0f), (ImDrawFlags)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageNative(@this, userTextureId, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), col);
+				ImGui.AddEllipseNative(@this, center, radius, col, (float)(0.0f), (int)(0), (float)(1.0f), (ImDrawFlags)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageNative(@this, userTextureId, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), col);
+				ImGui.AddEllipseNative(@this, center, radius, col, (float)(0.0f), numSegments, (float)(1.0f), (ImDrawFlags)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, float thickness)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageQuadNative(@this, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col);
+				ImGui.AddEllipseNative(@this, center, radius, col, rot, (int)(0), thickness, (ImDrawFlags)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments, float thickness)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageQuadNative(@this, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, uv4, (uint)(4294967295));
+				ImGui.AddEllipseNative(@this, center, radius, col, (float)(0.0f), numSegments, thickness, (ImDrawFlags)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageQuadNative(@this, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+				ImGui.AddEllipseNative(@this, center, radius, col, rot, numSegments, (float)(1.0f), flags);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageQuadNative(@this, userTextureId, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+				ImGui.AddEllipseNative(@this, center, radius, col, rot, (int)(0), (float)(1.0f), flags);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageQuadNative(@this, userTextureId, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+				ImGui.AddEllipseNative(@this, center, radius, col, (float)(0.0f), (int)(0), (float)(1.0f), flags);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageQuadNative(@this, userTextureId, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+				ImGui.AddEllipseNative(@this, center, radius, col, (float)(0.0f), numSegments, (float)(1.0f), flags);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, float thickness, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageQuadNative(@this, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), col);
+				ImGui.AddEllipseNative(@this, center, radius, col, rot, (int)(0), thickness, flags);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments, float thickness, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageQuadNative(@this, userTextureId, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+				ImGui.AddEllipseNative(@this, center, radius, col, (float)(0.0f), numSegments, thickness, flags);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, uint col)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col, float rot, int numSegments)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageQuadNative(@this, userTextureId, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+				ImGui.AddEllipseFilledNative(@this, center, radius, col, rot, numSegments);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col, float rot)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageQuadNative(@this, userTextureId, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+				ImGui.AddEllipseFilledNative(@this, center, radius, col, rot, (int)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageRounded(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding, ImDrawFlags flags)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageRoundedNative(@this, userTextureId, pMin, pMax, uvMin, uvMax, col, rounding, flags);
+				ImGui.AddEllipseFilledNative(@this, center, radius, col, (float)(0.0f), (int)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageRounded(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col, int numSegments)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddImageRoundedNative(@this, userTextureId, pMin, pMax, uvMin, uvMax, col, rounding, (ImDrawFlags)(0));
+				ImGui.AddEllipseFilledNative(@this, center, radius, col, (float)(0.0f), numSegments);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageNative(@this, texRef, pMin, pMax, uvMin, uvMax, col);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageNative(@this, texRef, pMin, pMax, uvMin, uvMax, (uint)(4294967295));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageNative(@this, texRef, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageNative(@this, texRef, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageNative(@this, texRef, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), col);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageNative(@this, texRef, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), col);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageQuadNative(@this, texRef, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageQuadNative(@this, texRef, p1, p2, p3, p4, uv1, uv2, uv3, uv4, (uint)(4294967295));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageQuadNative(@this, texRef, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageQuadNative(@this, texRef, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageQuadNative(@this, texRef, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageQuadNative(@this, texRef, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageQuadNative(@this, texRef, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), col);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageQuadNative(@this, texRef, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageQuadNative(@this, texRef, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageQuadNative(@this, texRef, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageRounded(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageRoundedNative(@this, texRef, pMin, pMax, uvMin, uvMax, col, rounding, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageRounded(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddImageRoundedNative(@this, texRef, pMin, pMax, uvMin, uvMax, col, rounding, (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLine(Vector2 p1, Vector2 p2, uint col, float thickness, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddLineNative(@this, p1, p2, col, thickness, flags);
 			}
 		}
 
@@ -594,7 +1250,7 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddLineNative(@this, p1, p2, col, thickness);
+				ImGui.AddLineNative(@this, p1, p2, col, thickness, (ImDrawFlags)(0));
 			}
 		}
 
@@ -605,7 +1261,117 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddLineNative(@this, p1, p2, col, (float)(1.0f));
+				ImGui.AddLineNative(@this, p1, p2, col, (float)(1.0f), (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLine(Vector2 p1, Vector2 p2, uint col, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddLineNative(@this, p1, p2, col, (float)(1.0f), flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col, float thickness, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddLineHNative(@this, minX, maxX, y, col, thickness, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col, float thickness)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddLineHNative(@this, minX, maxX, y, col, thickness, (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddLineHNative(@this, minX, maxX, y, col, (float)(1.0f), (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddLineHNative(@this, minX, maxX, y, col, (float)(1.0f), flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col, float thickness, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddLineVNative(@this, x, minY, maxY, col, thickness, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col, float thickness)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddLineVNative(@this, x, minY, maxY, col, thickness, (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddLineVNative(@this, x, minY, maxY, col, (float)(1.0f), (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddLineVNative(@this, x, minY, maxY, col, (float)(1.0f), flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddNgon(Vector2 center, float radius, uint col, int numSegments, float thickness, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddNgonNative(@this, center, radius, col, numSegments, thickness, flags);
 			}
 		}
 
@@ -616,7 +1382,7 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddNgonNative(@this, center, radius, col, numSegments, thickness);
+				ImGui.AddNgonNative(@this, center, radius, col, numSegments, thickness, (ImDrawFlags)(0));
 			}
 		}
 
@@ -627,7 +1393,18 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddNgonNative(@this, center, radius, col, numSegments, (float)(1.0f));
+				ImGui.AddNgonNative(@this, center, radius, col, numSegments, (float)(1.0f), (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddNgon(Vector2 center, float radius, uint col, int numSegments, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddNgonNative(@this, center, radius, col, numSegments, (float)(1.0f), flags);
 			}
 		}
 
@@ -645,25 +1422,61 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddPolyline(Vector2* points, int numPoints, uint col, ImDrawFlags flags, float thickness)
+		public unsafe void AddPolyline(Vector2* points, int numPoints, uint col, float thickness, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddPolylineNative(@this, points, numPoints, col, flags, thickness);
+				ImGui.AddPolylineNative(@this, points, numPoints, col, thickness, flags);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddPolyline(ref Vector2 points, int numPoints, uint col, ImDrawFlags flags, float thickness)
+		public unsafe void AddPolyline(Vector2* points, int numPoints, uint col, float thickness)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddPolylineNative(@this, points, numPoints, col, thickness, (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddPolyline(ref Vector2 points, int numPoints, uint col, float thickness, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
 				fixed (Vector2* ppoints = &points)
 				{
-					ImGui.AddPolylineNative(@this, (Vector2*)ppoints, numPoints, col, flags, thickness);
+					ImGui.AddPolylineNative(@this, (Vector2*)ppoints, numPoints, col, thickness, flags);
 				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddPolyline(ref Vector2 points, int numPoints, uint col, float thickness)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				fixed (Vector2* ppoints = &points)
+				{
+					ImGui.AddPolylineNative(@this, (Vector2*)ppoints, numPoints, col, thickness, (ImDrawFlags)(0));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddQuad(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddQuadNative(@this, p1, p2, p3, p4, col, thickness, flags);
 			}
 		}
 
@@ -674,7 +1487,7 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddQuadNative(@this, p1, p2, p3, p4, col, thickness);
+				ImGui.AddQuadNative(@this, p1, p2, p3, p4, col, thickness, (ImDrawFlags)(0));
 			}
 		}
 
@@ -685,7 +1498,18 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddQuadNative(@this, p1, p2, p3, p4, col, (float)(1.0f));
+				ImGui.AddQuadNative(@this, p1, p2, p3, p4, col, (float)(1.0f), (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddQuad(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddQuadNative(@this, p1, p2, p3, p4, col, (float)(1.0f), flags);
 			}
 		}
 
@@ -703,55 +1527,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags, float thickness)
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddRectNative(@this, pMin, pMax, col, rounding, flags, thickness);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
-		{
-			fixed (ImDrawList* @this = &this)
-			{
-				ImGui.AddRectNative(@this, pMin, pMax, col, rounding, flags, (float)(1.0f));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding)
-		{
-			fixed (ImDrawList* @this = &this)
-			{
-				ImGui.AddRectNative(@this, pMin, pMax, col, rounding, (ImDrawFlags)(0), (float)(1.0f));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col)
-		{
-			fixed (ImDrawList* @this = &this)
-			{
-				ImGui.AddRectNative(@this, pMin, pMax, col, (float)(0.0f), (ImDrawFlags)(0), (float)(1.0f));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
-		{
-			fixed (ImDrawList* @this = &this)
-			{
-				ImGui.AddRectNative(@this, pMin, pMax, col, (float)(0.0f), flags, (float)(1.0f));
+				ImGui.AddRectNative(@this, pMin, pMax, col, rounding, thickness, flags);
 			}
 		}
 
@@ -762,18 +1542,51 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddRectNative(@this, pMin, pMax, col, rounding, (ImDrawFlags)(0), thickness);
+				ImGui.AddRectNative(@this, pMin, pMax, col, rounding, thickness, (ImDrawFlags)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags, float thickness)
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddRectNative(@this, pMin, pMax, col, (float)(0.0f), flags, thickness);
+				ImGui.AddRectNative(@this, pMin, pMax, col, rounding, (float)(1.0f), (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddRectNative(@this, pMin, pMax, col, (float)(0.0f), (float)(1.0f), (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddRectNative(@this, pMin, pMax, col, rounding, (float)(1.0f), flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddRectNative(@this, pMin, pMax, col, (float)(0.0f), (float)(1.0f), flags);
 			}
 		}
 
@@ -7454,11 +8267,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void AddTriangle(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddTriangleNative(@this, p1, p2, p3, col, thickness, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void AddTriangle(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddTriangleNative(@this, p1, p2, p3, col, thickness);
+				ImGui.AddTriangleNative(@this, p1, p2, p3, col, thickness, (ImDrawFlags)(0));
 			}
 		}
 
@@ -7469,7 +8293,18 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.AddTriangleNative(@this, p1, p2, p3, col, (float)(1.0f));
+				ImGui.AddTriangleNative(@this, p1, p2, p3, col, (float)(1.0f), (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddTriangle(Vector2 p1, Vector2 p2, Vector2 p3, uint col, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.AddTriangleNative(@this, p1, p2, p3, col, (float)(1.0f), flags);
 			}
 		}
 
@@ -7537,6 +8372,30 @@ namespace Dalamud.Bindings.ImGui
 			fixed (ImDrawList* @this = &this)
 			{
 				ImGui.DestroyNative(@this);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Vector2 GetClipRectMax()
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				Vector2 ret = ImGui.GetClipRectMaxNative(@this);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Vector2 GetClipRectMin()
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				Vector2 ret = ImGui.GetClipRectMinNative(@this);
+				return ret;
 			}
 		}
 
@@ -7631,11 +8490,55 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void PathEllipticalArcTo(Vector2 center, Vector2 radius, float rot, float aMin, float aMax, int numSegments)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.PathEllipticalArcToNative(@this, center, radius, rot, aMin, aMax, numSegments);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PathEllipticalArcTo(Vector2 center, Vector2 radius, float rot, float aMin, float aMax)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.PathEllipticalArcToNative(@this, center, radius, rot, aMin, aMax, (int)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PathFillConcave(uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.PathFillConcaveNative(@this, col);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PathFillConvex(uint col, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.PathFillConvexNative(@this, col, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void PathFillConvex(uint col)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.PathFillConvexNative(@this, col);
+				ImGui.PathFillConvexNative(@this, col, (ImDrawFlags)(0));
 			}
 		}
 
@@ -7708,33 +8611,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void PathStroke(uint col, ImDrawFlags flags, float thickness)
+		public unsafe void PathStroke(uint col, float thickness, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.PathStrokeNative(@this, col, flags, thickness);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void PathStroke(uint col, ImDrawFlags flags)
-		{
-			fixed (ImDrawList* @this = &this)
-			{
-				ImGui.PathStrokeNative(@this, col, flags, (float)(1.0f));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void PathStroke(uint col)
-		{
-			fixed (ImDrawList* @this = &this)
-			{
-				ImGui.PathStrokeNative(@this, col, (ImDrawFlags)(0), (float)(1.0f));
+				ImGui.PathStrokeNative(@this, col, thickness, flags);
 			}
 		}
 
@@ -7745,7 +8626,29 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.PathStrokeNative(@this, col, (ImDrawFlags)(0), thickness);
+				ImGui.PathStrokeNative(@this, col, thickness, (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PathStroke(uint col)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.PathStrokeNative(@this, col, (float)(1.0f), (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PathStroke(uint col, ImDrawFlags flags)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.PathStrokeNative(@this, col, (float)(1.0f), flags);
 			}
 		}
 
@@ -7763,11 +8666,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void PopTextureID()
+		public unsafe void PopDrawFlag()
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.PopTextureIDNative(@this);
+				ImGui.PopDrawFlagNative(@this);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PopTexture()
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.PopTextureNative(@this);
 			}
 		}
 
@@ -7895,11 +8809,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void PushTextureID(ImTextureID textureId)
+		public unsafe void PushDrawFlag(ImDrawFlags flags, bool enabled)
 		{
 			fixed (ImDrawList* @this = &this)
 			{
-				ImGui.PushTextureIDNative(@this, textureId);
+				ImGui.PushDrawFlagNative(@this, flags, enabled ? (byte)1 : (byte)0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PushTexture(ImTextureRef texRef)
+		{
+			fixed (ImDrawList* @this = &this)
+			{
+				ImGui.PushTextureNative(@this, texRef);
 			}
 		}
 
@@ -7961,7 +8886,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImDrawListFlags Flags => ref Unsafe.AsRef<ImDrawListFlags>(&Handle->Flags);
+		public ref ImDrawFlags Flags => ref Unsafe.AsRef<ImDrawFlags>(&Handle->Flags);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -7973,23 +8898,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte* OwnerName { get => Handle->OwnerName; set => Handle->OwnerName = value; }
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public ref ImDrawVertPtr VtxWritePtr => ref Unsafe.AsRef<ImDrawVertPtr>(&Handle->VtxWritePtr);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ushort* IdxWritePtr { get => Handle->IdxWritePtr; set => Handle->IdxWritePtr = value; }
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImVector<Vector4> ClipRectStack => ref Unsafe.AsRef<ImVector<Vector4>>(&Handle->ClipRectStack);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImVector<ImTextureID> TextureIdStack => ref Unsafe.AsRef<ImVector<ImTextureID>>(&Handle->TextureIdStack);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -8005,13 +8918,101 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImVector<Vector4> ClipRectStack => ref Unsafe.AsRef<ImVector<Vector4>>(&Handle->ClipRectStack);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImVector<ImTextureRef> TextureStack => ref Unsafe.AsRef<ImVector<ImTextureRef>>(&Handle->TextureStack);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImVector<byte> CallbacksDataBuf => ref Unsafe.AsRef<ImVector<byte>>(&Handle->CallbacksDataBuf);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImSmallStackImDrawFlags3 DrawFlagsStack => ref Unsafe.AsRef<ImSmallStackImDrawFlags3>(&Handle->DrawFlagsStack);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref float FringeScale => ref Unsafe.AsRef<float>(&Handle->FringeScale);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float InvFringeScale => ref Unsafe.AsRef<float>(&Handle->InvFringeScale);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool FringeScaleIsInteger => ref Unsafe.AsRef<bool>(&Handle->FringeScaleIsInteger);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte* OwnerName { get => Handle->OwnerName; set => Handle->OwnerName = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddLine(Vector2 p1, Vector2 p2, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGui._AddLineNative(Handle, p1, p2, col, thickness, flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddPolyline(Vector2* points, int numPoints, uint col, float thickness, ImDrawFlags flags, float maxInnerOffset)
+		{
+			ImGui._AddPolylineNative(Handle, points, numPoints, col, thickness, flags, maxInnerOffset);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddPolyline(ref Vector2 points, int numPoints, uint col, float thickness, ImDrawFlags flags, float maxInnerOffset)
+		{
+			fixed (Vector2* ppoints = &points)
+			{
+				ImGui._AddPolylineNative(Handle, (Vector2*)ppoints, numPoints, col, thickness, flags, maxInnerOffset);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddRectBaked(Vector2 pMin, Vector2 pMax, uint col, float r, float t, Vector4 texUvs, ImDrawFlags flags)
+		{
+			ImGui._AddRectBakedNative(Handle, pMin, pMax, col, r, t, texUvs, flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddRectFilledBaked(Vector2 pMin, Vector2 pMax, uint col, float r, Vector4 texUvs, ImDrawFlags flags)
+		{
+			ImGui._AddRectFilledBakedNative(Handle, pMin, pMax, col, r, texUvs, flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _AddRectTinyRounding(Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness, ImDrawFlags flags)
+		{
+			ImGui._AddRectTinyRoundingNative(Handle, pMin, pMax, col, rounding, thickness, flags);
+		}
+
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public unsafe int _CalcCircleAutoSegmentCount(float radius)
 		{
 			int ret = ImGui._CalcCircleAutoSegmentCountNative(Handle, radius);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe float _CalculateCenterBiasedOffset(float thickness)
+		{
+			float ret = ImGui._CalculateCenterBiasedOffsetNative(Handle, thickness);
 			return ret;
 		}
 
@@ -8034,9 +9035,9 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void _OnChangedTextureID()
+		public unsafe void _OnChangedTexture()
 		{
-			ImGui._OnChangedTextureIDNative(Handle);
+			ImGui._OnChangedTextureNative(Handle);
 		}
 
 		/// <summary>
@@ -8082,6 +9083,141 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, Vector2* outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			ImGui._SelectLineTextureNative(Handle, screenThickness, outuv0, outuv1, outFringe, flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, Vector2* outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv0 = &outuv0)
+			{
+				ImGui._SelectLineTextureNative(Handle, screenThickness, (Vector2*)poutuv0, outuv1, outFringe, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, ref Vector2 outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv1 = &outuv1)
+			{
+				ImGui._SelectLineTextureNative(Handle, screenThickness, outuv0, (Vector2*)poutuv1, outFringe, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, ref Vector2 outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv0 = &outuv0)
+			{
+				fixed (Vector2* poutuv1 = &outuv1)
+				{
+					ImGui._SelectLineTextureNative(Handle, screenThickness, (Vector2*)poutuv0, (Vector2*)poutuv1, outFringe, flags);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, Vector2* outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (float* poutFringe = &outFringe)
+			{
+				ImGui._SelectLineTextureNative(Handle, screenThickness, outuv0, outuv1, (float*)poutFringe, flags);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, Vector2* outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv0 = &outuv0)
+			{
+				fixed (float* poutFringe = &outFringe)
+				{
+					ImGui._SelectLineTextureNative(Handle, screenThickness, (Vector2*)poutuv0, outuv1, (float*)poutFringe, flags);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, ref Vector2 outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv1 = &outuv1)
+			{
+				fixed (float* poutFringe = &outFringe)
+				{
+					ImGui._SelectLineTextureNative(Handle, screenThickness, outuv0, (Vector2*)poutuv1, (float*)poutFringe, flags);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, ref Vector2 outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv0 = &outuv0)
+			{
+				fixed (Vector2* poutuv1 = &outuv1)
+				{
+					fixed (float* poutFringe = &outFringe)
+					{
+						ImGui._SelectLineTextureNative(Handle, screenThickness, (Vector2*)poutuv0, (Vector2*)poutuv1, (float*)poutFringe, flags);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SetDrawListSharedData(ImDrawListSharedData* data)
+		{
+			ImGui._SetDrawListSharedDataNative(Handle, data);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SetDrawListSharedData(ref ImDrawListSharedData data)
+		{
+			fixed (ImDrawListSharedData* pdata = &data)
+			{
+				ImGui._SetDrawListSharedDataNative(Handle, (ImDrawListSharedData*)pdata);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SetPixelDensity(float pixelDensity)
+		{
+			ImGui._SetPixelDensityNative(Handle, pixelDensity);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void _SetTexture(ImTextureRef texRef)
+		{
+			ImGui._SetTextureNative(Handle, texRef);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void _TryMergeDrawCmds()
 		{
 			ImGui._TryMergeDrawCmdsNative(Handle);
@@ -8090,9 +9226,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void AddBezierCubic(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, int numSegments, ImDrawFlags flags)
+		{
+			ImGui.AddBezierCubicNative(Handle, p1, p2, p3, p4, col, thickness, numSegments, flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void AddBezierCubic(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, int numSegments)
 		{
-			ImGui.AddBezierCubicNative(Handle, p1, p2, p3, p4, col, thickness, numSegments);
+			ImGui.AddBezierCubicNative(Handle, p1, p2, p3, p4, col, thickness, numSegments, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
@@ -8100,7 +9244,23 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddBezierCubic(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
 		{
-			ImGui.AddBezierCubicNative(Handle, p1, p2, p3, p4, col, thickness, (int)(0));
+			ImGui.AddBezierCubicNative(Handle, p1, p2, p3, p4, col, thickness, (int)(0), (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddBezierCubic(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGui.AddBezierCubicNative(Handle, p1, p2, p3, p4, col, thickness, (int)(0), flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddBezierQuadratic(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, int numSegments, ImDrawFlags flags)
+		{
+			ImGui.AddBezierQuadraticNative(Handle, p1, p2, p3, col, thickness, numSegments, flags);
 		}
 
 		/// <summary>
@@ -8108,7 +9268,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddBezierQuadratic(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, int numSegments)
 		{
-			ImGui.AddBezierQuadraticNative(Handle, p1, p2, p3, col, thickness, numSegments);
+			ImGui.AddBezierQuadraticNative(Handle, p1, p2, p3, col, thickness, numSegments, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
@@ -8116,15 +9276,55 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddBezierQuadratic(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
 		{
-			ImGui.AddBezierQuadraticNative(Handle, p1, p2, p3, col, thickness, (int)(0));
+			ImGui.AddBezierQuadraticNative(Handle, p1, p2, p3, col, thickness, (int)(0), (ImDrawFlags)(0));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddCallback(ImDrawCallback callback, void* callbackData)
+		public unsafe void AddBezierQuadratic(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, ImDrawFlags flags)
 		{
-			ImGui.AddCallbackNative(Handle, callback, callbackData);
+			ImGui.AddBezierQuadraticNative(Handle, p1, p2, p3, col, thickness, (int)(0), flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCallback(ImDrawCallback callback, void* userdata, nuint userdataSize)
+		{
+			ImGui.AddCallbackNative(Handle, callback, userdata, userdataSize);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCallback(ImDrawCallback callback, void* userdata)
+		{
+			ImGui.AddCallbackNative(Handle, callback, userdata, (nuint)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCallback(ImDrawCallback callback)
+		{
+			ImGui.AddCallbackNative(Handle, callback, (void*)(default), (nuint)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCallback(ImDrawCallback callback, nuint userdataSize)
+		{
+			ImGui.AddCallbackNative(Handle, callback, (void*)(default), userdataSize);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, int numSegments, float thickness, ImDrawFlags flags)
+		{
+			ImGui.AddCircleNative(Handle, center, radius, col, numSegments, thickness, flags);
 		}
 
 		/// <summary>
@@ -8132,7 +9332,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddCircle(Vector2 center, float radius, uint col, int numSegments, float thickness)
 		{
-			ImGui.AddCircleNative(Handle, center, radius, col, numSegments, thickness);
+			ImGui.AddCircleNative(Handle, center, radius, col, numSegments, thickness, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
@@ -8140,7 +9340,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddCircle(Vector2 center, float radius, uint col, int numSegments)
 		{
-			ImGui.AddCircleNative(Handle, center, radius, col, numSegments, (float)(1.0f));
+			ImGui.AddCircleNative(Handle, center, radius, col, numSegments, (float)(1.0f), (ImDrawFlags)(0));
 		}
 
 		/// <summary>
@@ -8148,7 +9348,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddCircle(Vector2 center, float radius, uint col)
 		{
-			ImGui.AddCircleNative(Handle, center, radius, col, (int)(0), (float)(1.0f));
+			ImGui.AddCircleNative(Handle, center, radius, col, (int)(0), (float)(1.0f), (ImDrawFlags)(0));
 		}
 
 		/// <summary>
@@ -8156,7 +9356,31 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddCircle(Vector2 center, float radius, uint col, float thickness)
 		{
-			ImGui.AddCircleNative(Handle, center, radius, col, (int)(0), thickness);
+			ImGui.AddCircleNative(Handle, center, radius, col, (int)(0), thickness, (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, int numSegments, ImDrawFlags flags)
+		{
+			ImGui.AddCircleNative(Handle, center, radius, col, numSegments, (float)(1.0f), flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, ImDrawFlags flags)
+		{
+			ImGui.AddCircleNative(Handle, center, radius, col, (int)(0), (float)(1.0f), flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGui.AddCircleNative(Handle, center, radius, col, (int)(0), thickness, flags);
 		}
 
 		/// <summary>
@@ -8178,9 +9402,47 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void AddConcavePolyFilled(Vector2* points, int numPoints, uint col)
+		{
+			ImGui.AddConcavePolyFilledNative(Handle, points, numPoints, col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddConcavePolyFilled(ref Vector2 points, int numPoints, uint col)
+		{
+			fixed (Vector2* ppoints = &points)
+			{
+				ImGui.AddConcavePolyFilledNative(Handle, (Vector2*)ppoints, numPoints, col);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddConvexPolyFilled(Vector2* points, int numPoints, uint col, ImDrawFlags flags)
+		{
+			ImGui.AddConvexPolyFilledNative(Handle, points, numPoints, col, flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void AddConvexPolyFilled(Vector2* points, int numPoints, uint col)
 		{
-			ImGui.AddConvexPolyFilledNative(Handle, points, numPoints, col);
+			ImGui.AddConvexPolyFilledNative(Handle, points, numPoints, col, (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddConvexPolyFilled(ref Vector2 points, int numPoints, uint col, ImDrawFlags flags)
+		{
+			fixed (Vector2* ppoints = &points)
+			{
+				ImGui.AddConvexPolyFilledNative(Handle, (Vector2*)ppoints, numPoints, col, flags);
+			}
 		}
 
 		/// <summary>
@@ -8190,7 +9452,7 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (Vector2* ppoints = &points)
 			{
-				ImGui.AddConvexPolyFilledNative(Handle, (Vector2*)ppoints, numPoints, col);
+				ImGui.AddConvexPolyFilledNative(Handle, (Vector2*)ppoints, numPoints, col, (ImDrawFlags)(0));
 			}
 		}
 
@@ -8205,145 +9467,297 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments, float thickness, ImDrawFlags flags)
 		{
-			ImGui.AddImageNative(Handle, userTextureId, pMin, pMax, uvMin, uvMax, col);
+			ImGui.AddEllipseNative(Handle, center, radius, col, rot, numSegments, thickness, flags);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments, float thickness)
 		{
-			ImGui.AddImageNative(Handle, userTextureId, pMin, pMax, uvMin, uvMax, (uint)(4294967295));
+			ImGui.AddEllipseNative(Handle, center, radius, col, rot, numSegments, thickness, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments)
 		{
-			ImGui.AddImageNative(Handle, userTextureId, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+			ImGui.AddEllipseNative(Handle, center, radius, col, rot, numSegments, (float)(1.0f), (ImDrawFlags)(0));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot)
 		{
-			ImGui.AddImageNative(Handle, userTextureId, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+			ImGui.AddEllipseNative(Handle, center, radius, col, rot, (int)(0), (float)(1.0f), (ImDrawFlags)(0));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col)
 		{
-			ImGui.AddImageNative(Handle, userTextureId, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), col);
+			ImGui.AddEllipseNative(Handle, center, radius, col, (float)(0.0f), (int)(0), (float)(1.0f), (ImDrawFlags)(0));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments)
 		{
-			ImGui.AddImageNative(Handle, userTextureId, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), col);
+			ImGui.AddEllipseNative(Handle, center, radius, col, (float)(0.0f), numSegments, (float)(1.0f), (ImDrawFlags)(0));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, float thickness)
 		{
-			ImGui.AddImageQuadNative(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col);
+			ImGui.AddEllipseNative(Handle, center, radius, col, rot, (int)(0), thickness, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments, float thickness)
 		{
-			ImGui.AddImageQuadNative(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, uv4, (uint)(4294967295));
+			ImGui.AddEllipseNative(Handle, center, radius, col, (float)(0.0f), numSegments, thickness, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments, ImDrawFlags flags)
 		{
-			ImGui.AddImageQuadNative(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			ImGui.AddEllipseNative(Handle, center, radius, col, rot, numSegments, (float)(1.0f), flags);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, ImDrawFlags flags)
 		{
-			ImGui.AddImageQuadNative(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			ImGui.AddEllipseNative(Handle, center, radius, col, rot, (int)(0), (float)(1.0f), flags);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, ImDrawFlags flags)
 		{
-			ImGui.AddImageQuadNative(Handle, userTextureId, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			ImGui.AddEllipseNative(Handle, center, radius, col, (float)(0.0f), (int)(0), (float)(1.0f), flags);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments, ImDrawFlags flags)
 		{
-			ImGui.AddImageQuadNative(Handle, userTextureId, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			ImGui.AddEllipseNative(Handle, center, radius, col, (float)(0.0f), numSegments, (float)(1.0f), flags);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, float thickness, ImDrawFlags flags)
 		{
-			ImGui.AddImageQuadNative(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), col);
+			ImGui.AddEllipseNative(Handle, center, radius, col, rot, (int)(0), thickness, flags);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments, float thickness, ImDrawFlags flags)
 		{
-			ImGui.AddImageQuadNative(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+			ImGui.AddEllipseNative(Handle, center, radius, col, (float)(0.0f), numSegments, thickness, flags);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, uint col)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col, float rot, int numSegments)
 		{
-			ImGui.AddImageQuadNative(Handle, userTextureId, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+			ImGui.AddEllipseFilledNative(Handle, center, radius, col, rot, numSegments);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col, float rot)
 		{
-			ImGui.AddImageQuadNative(Handle, userTextureId, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+			ImGui.AddEllipseFilledNative(Handle, center, radius, col, rot, (int)(0));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageRounded(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding, ImDrawFlags flags)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col)
 		{
-			ImGui.AddImageRoundedNative(Handle, userTextureId, pMin, pMax, uvMin, uvMax, col, rounding, flags);
+			ImGui.AddEllipseFilledNative(Handle, center, radius, col, (float)(0.0f), (int)(0));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddImageRounded(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col, int numSegments)
 		{
-			ImGui.AddImageRoundedNative(Handle, userTextureId, pMin, pMax, uvMin, uvMax, col, rounding, (ImDrawFlags)(0));
+			ImGui.AddEllipseFilledNative(Handle, center, radius, col, (float)(0.0f), numSegments);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col)
+		{
+			ImGui.AddImageNative(Handle, texRef, pMin, pMax, uvMin, uvMax, col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax)
+		{
+			ImGui.AddImageNative(Handle, texRef, pMin, pMax, uvMin, uvMax, (uint)(4294967295));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin)
+		{
+			ImGui.AddImageNative(Handle, texRef, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax)
+		{
+			ImGui.AddImageNative(Handle, texRef, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, uint col)
+		{
+			ImGui.AddImageNative(Handle, texRef, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, uint col)
+		{
+			ImGui.AddImageNative(Handle, texRef, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4, uint col)
+		{
+			ImGui.AddImageQuadNative(Handle, texRef, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
+		{
+			ImGui.AddImageQuadNative(Handle, texRef, p1, p2, p3, p4, uv1, uv2, uv3, uv4, (uint)(4294967295));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3)
+		{
+			ImGui.AddImageQuadNative(Handle, texRef, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2)
+		{
+			ImGui.AddImageQuadNative(Handle, texRef, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1)
+		{
+			ImGui.AddImageQuadNative(Handle, texRef, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
+		{
+			ImGui.AddImageQuadNative(Handle, texRef, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, uint col)
+		{
+			ImGui.AddImageQuadNative(Handle, texRef, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, uint col)
+		{
+			ImGui.AddImageQuadNative(Handle, texRef, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, uint col)
+		{
+			ImGui.AddImageQuadNative(Handle, texRef, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		{
+			ImGui.AddImageQuadNative(Handle, texRef, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageRounded(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding, ImDrawFlags flags)
+		{
+			ImGui.AddImageRoundedNative(Handle, texRef, pMin, pMax, uvMin, uvMax, col, rounding, flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddImageRounded(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding)
+		{
+			ImGui.AddImageRoundedNative(Handle, texRef, pMin, pMax, uvMin, uvMax, col, rounding, (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLine(Vector2 p1, Vector2 p2, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGui.AddLineNative(Handle, p1, p2, col, thickness, flags);
 		}
 
 		/// <summary>
@@ -8351,7 +9765,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddLine(Vector2 p1, Vector2 p2, uint col, float thickness)
 		{
-			ImGui.AddLineNative(Handle, p1, p2, col, thickness);
+			ImGui.AddLineNative(Handle, p1, p2, col, thickness, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
@@ -8359,7 +9773,87 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddLine(Vector2 p1, Vector2 p2, uint col)
 		{
-			ImGui.AddLineNative(Handle, p1, p2, col, (float)(1.0f));
+			ImGui.AddLineNative(Handle, p1, p2, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLine(Vector2 p1, Vector2 p2, uint col, ImDrawFlags flags)
+		{
+			ImGui.AddLineNative(Handle, p1, p2, col, (float)(1.0f), flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGui.AddLineHNative(Handle, minX, maxX, y, col, thickness, flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col, float thickness)
+		{
+			ImGui.AddLineHNative(Handle, minX, maxX, y, col, thickness, (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col)
+		{
+			ImGui.AddLineHNative(Handle, minX, maxX, y, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col, ImDrawFlags flags)
+		{
+			ImGui.AddLineHNative(Handle, minX, maxX, y, col, (float)(1.0f), flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGui.AddLineVNative(Handle, x, minY, maxY, col, thickness, flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col, float thickness)
+		{
+			ImGui.AddLineVNative(Handle, x, minY, maxY, col, thickness, (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col)
+		{
+			ImGui.AddLineVNative(Handle, x, minY, maxY, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col, ImDrawFlags flags)
+		{
+			ImGui.AddLineVNative(Handle, x, minY, maxY, col, (float)(1.0f), flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddNgon(Vector2 center, float radius, uint col, int numSegments, float thickness, ImDrawFlags flags)
+		{
+			ImGui.AddNgonNative(Handle, center, radius, col, numSegments, thickness, flags);
 		}
 
 		/// <summary>
@@ -8367,7 +9861,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddNgon(Vector2 center, float radius, uint col, int numSegments, float thickness)
 		{
-			ImGui.AddNgonNative(Handle, center, radius, col, numSegments, thickness);
+			ImGui.AddNgonNative(Handle, center, radius, col, numSegments, thickness, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
@@ -8375,7 +9869,15 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddNgon(Vector2 center, float radius, uint col, int numSegments)
 		{
-			ImGui.AddNgonNative(Handle, center, radius, col, numSegments, (float)(1.0f));
+			ImGui.AddNgonNative(Handle, center, radius, col, numSegments, (float)(1.0f), (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddNgon(Vector2 center, float radius, uint col, int numSegments, ImDrawFlags flags)
+		{
+			ImGui.AddNgonNative(Handle, center, radius, col, numSegments, (float)(1.0f), flags);
 		}
 
 		/// <summary>
@@ -8389,20 +9891,47 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddPolyline(Vector2* points, int numPoints, uint col, ImDrawFlags flags, float thickness)
+		public unsafe void AddPolyline(Vector2* points, int numPoints, uint col, float thickness, ImDrawFlags flags)
 		{
-			ImGui.AddPolylineNative(Handle, points, numPoints, col, flags, thickness);
+			ImGui.AddPolylineNative(Handle, points, numPoints, col, thickness, flags);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddPolyline(ref Vector2 points, int numPoints, uint col, ImDrawFlags flags, float thickness)
+		public unsafe void AddPolyline(Vector2* points, int numPoints, uint col, float thickness)
+		{
+			ImGui.AddPolylineNative(Handle, points, numPoints, col, thickness, (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddPolyline(ref Vector2 points, int numPoints, uint col, float thickness, ImDrawFlags flags)
 		{
 			fixed (Vector2* ppoints = &points)
 			{
-				ImGui.AddPolylineNative(Handle, (Vector2*)ppoints, numPoints, col, flags, thickness);
+				ImGui.AddPolylineNative(Handle, (Vector2*)ppoints, numPoints, col, thickness, flags);
 			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddPolyline(ref Vector2 points, int numPoints, uint col, float thickness)
+		{
+			fixed (Vector2* ppoints = &points)
+			{
+				ImGui.AddPolylineNative(Handle, (Vector2*)ppoints, numPoints, col, thickness, (ImDrawFlags)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddQuad(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGui.AddQuadNative(Handle, p1, p2, p3, p4, col, thickness, flags);
 		}
 
 		/// <summary>
@@ -8410,7 +9939,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddQuad(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
 		{
-			ImGui.AddQuadNative(Handle, p1, p2, p3, p4, col, thickness);
+			ImGui.AddQuadNative(Handle, p1, p2, p3, p4, col, thickness, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
@@ -8418,7 +9947,15 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddQuad(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
 		{
-			ImGui.AddQuadNative(Handle, p1, p2, p3, p4, col, (float)(1.0f));
+			ImGui.AddQuadNative(Handle, p1, p2, p3, p4, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddQuad(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, ImDrawFlags flags)
+		{
+			ImGui.AddQuadNative(Handle, p1, p2, p3, p4, col, (float)(1.0f), flags);
 		}
 
 		/// <summary>
@@ -8432,41 +9969,9 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags, float thickness)
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness, ImDrawFlags flags)
 		{
-			ImGui.AddRectNative(Handle, pMin, pMax, col, rounding, flags, thickness);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
-		{
-			ImGui.AddRectNative(Handle, pMin, pMax, col, rounding, flags, (float)(1.0f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding)
-		{
-			ImGui.AddRectNative(Handle, pMin, pMax, col, rounding, (ImDrawFlags)(0), (float)(1.0f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col)
-		{
-			ImGui.AddRectNative(Handle, pMin, pMax, col, (float)(0.0f), (ImDrawFlags)(0), (float)(1.0f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
-		{
-			ImGui.AddRectNative(Handle, pMin, pMax, col, (float)(0.0f), flags, (float)(1.0f));
+			ImGui.AddRectNative(Handle, pMin, pMax, col, rounding, thickness, flags);
 		}
 
 		/// <summary>
@@ -8474,15 +9979,39 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness)
 		{
-			ImGui.AddRectNative(Handle, pMin, pMax, col, rounding, (ImDrawFlags)(0), thickness);
+			ImGui.AddRectNative(Handle, pMin, pMax, col, rounding, thickness, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags, float thickness)
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding)
 		{
-			ImGui.AddRectNative(Handle, pMin, pMax, col, (float)(0.0f), flags, thickness);
+			ImGui.AddRectNative(Handle, pMin, pMax, col, rounding, (float)(1.0f), (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col)
+		{
+			ImGui.AddRectNative(Handle, pMin, pMax, col, (float)(0.0f), (float)(1.0f), (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
+		{
+			ImGui.AddRectNative(Handle, pMin, pMax, col, rounding, (float)(1.0f), flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
+		{
+			ImGui.AddRectNative(Handle, pMin, pMax, col, (float)(0.0f), (float)(1.0f), flags);
 		}
 
 		/// <summary>
@@ -14367,9 +15896,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void AddTriangle(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGui.AddTriangleNative(Handle, p1, p2, p3, col, thickness, flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void AddTriangle(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
 		{
-			ImGui.AddTriangleNative(Handle, p1, p2, p3, col, thickness);
+			ImGui.AddTriangleNative(Handle, p1, p2, p3, col, thickness, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
@@ -14377,7 +15914,15 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void AddTriangle(Vector2 p1, Vector2 p2, Vector2 p3, uint col)
 		{
-			ImGui.AddTriangleNative(Handle, p1, p2, p3, col, (float)(1.0f));
+			ImGui.AddTriangleNative(Handle, p1, p2, p3, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AddTriangle(Vector2 p1, Vector2 p2, Vector2 p3, uint col, ImDrawFlags flags)
+		{
+			ImGui.AddTriangleNative(Handle, p1, p2, p3, col, (float)(1.0f), flags);
 		}
 
 		/// <summary>
@@ -14427,6 +15972,24 @@ namespace Dalamud.Bindings.ImGui
 		public unsafe void Destroy()
 		{
 			ImGui.DestroyNative(Handle);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Vector2 GetClipRectMax()
+		{
+			Vector2 ret = ImGui.GetClipRectMaxNative(Handle);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Vector2 GetClipRectMin()
+		{
+			Vector2 ret = ImGui.GetClipRectMinNative(Handle);
+			return ret;
 		}
 
 		/// <summary>
@@ -14496,9 +16059,41 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void PathEllipticalArcTo(Vector2 center, Vector2 radius, float rot, float aMin, float aMax, int numSegments)
+		{
+			ImGui.PathEllipticalArcToNative(Handle, center, radius, rot, aMin, aMax, numSegments);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PathEllipticalArcTo(Vector2 center, Vector2 radius, float rot, float aMin, float aMax)
+		{
+			ImGui.PathEllipticalArcToNative(Handle, center, radius, rot, aMin, aMax, (int)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PathFillConcave(uint col)
+		{
+			ImGui.PathFillConcaveNative(Handle, col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PathFillConvex(uint col, ImDrawFlags flags)
+		{
+			ImGui.PathFillConvexNative(Handle, col, flags);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void PathFillConvex(uint col)
 		{
-			ImGui.PathFillConvexNative(Handle, col);
+			ImGui.PathFillConvexNative(Handle, col, (ImDrawFlags)(0));
 		}
 
 		/// <summary>
@@ -14552,25 +16147,9 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void PathStroke(uint col, ImDrawFlags flags, float thickness)
+		public unsafe void PathStroke(uint col, float thickness, ImDrawFlags flags)
 		{
-			ImGui.PathStrokeNative(Handle, col, flags, thickness);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void PathStroke(uint col, ImDrawFlags flags)
-		{
-			ImGui.PathStrokeNative(Handle, col, flags, (float)(1.0f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void PathStroke(uint col)
-		{
-			ImGui.PathStrokeNative(Handle, col, (ImDrawFlags)(0), (float)(1.0f));
+			ImGui.PathStrokeNative(Handle, col, thickness, flags);
 		}
 
 		/// <summary>
@@ -14578,7 +16157,23 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void PathStroke(uint col, float thickness)
 		{
-			ImGui.PathStrokeNative(Handle, col, (ImDrawFlags)(0), thickness);
+			ImGui.PathStrokeNative(Handle, col, thickness, (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PathStroke(uint col)
+		{
+			ImGui.PathStrokeNative(Handle, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PathStroke(uint col, ImDrawFlags flags)
+		{
+			ImGui.PathStrokeNative(Handle, col, (float)(1.0f), flags);
 		}
 
 		/// <summary>
@@ -14592,9 +16187,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void PopTextureID()
+		public unsafe void PopDrawFlag()
 		{
-			ImGui.PopTextureIDNative(Handle);
+			ImGui.PopDrawFlagNative(Handle);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PopTexture()
+		{
+			ImGui.PopTextureNative(Handle);
 		}
 
 		/// <summary>
@@ -14688,9 +16291,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void PushTextureID(ImTextureID textureId)
+		public unsafe void PushDrawFlag(ImDrawFlags flags, bool enabled)
 		{
-			ImGui.PushTextureIDNative(Handle, textureId);
+			ImGui.PushDrawFlagNative(Handle, flags, enabled ? (byte)1 : (byte)0);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void PushTexture(ImTextureRef texRef)
+		{
+			ImGui.PushTextureNative(Handle, texRef);
 		}
 
 	}

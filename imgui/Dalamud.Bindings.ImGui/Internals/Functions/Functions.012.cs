@@ -21,15 +21,88 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ImTextDescPtr desc, byte* textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd)
 		{
-			fixed (byte* ptext = text)
+			fixed (ImFont* pfont = &font)
 			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
 				fixed (byte* ptextEnd = textEnd)
 				{
-					fixed (ImRect* pclipRect = &clipRect)
+					Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, desc, textBegin, pStr0, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)pclipRect);
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ImTextDescPtr desc, byte* textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, desc, textBegin, pStr0, (byte*)ptextEnd, (byte**)(default), outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
 					}
 				}
 			}
@@ -38,15 +111,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ref byte textEnd, byte** outRemaining)
 		{
-			fixed (byte* ptext = text)
+			fixed (ImTextDesc* pdesc = &desc)
 			{
-				fixed (byte* ptextEnd = textEnd)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
-					fixed (ImRect* pclipRect = &clipRect)
+					fixed (byte* ptextEnd = &textEnd)
 					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
 					}
 				}
 			}
@@ -55,45 +129,153 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, string textEnd, Vector2* textSizeIfKnown, Vector2 align, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ref byte textEnd)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
+			fixed (ImTextDesc* pdesc = &desc)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
+					}
 				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (textEnd != null)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ref byte textEnd, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(textEnd);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
+					}
 				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
 			}
-			fixed (ImRect* pclipRect = &clipRect)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
 			{
-				RenderTextClippedNative(posMin, posMax, pStr0, pStr1, textSizeIfKnown, align, (ImRect*)pclipRect);
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				byte* pStr1 = null;
+				int pStrSize1 = 0;
+				if (textEnd != null)
+				{
+					pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize1 >= Utils.MaxStackallocSize)
+					{
+						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					}
+					else
+					{
+						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+						pStr1 = pStrStack1;
+					}
+					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+					pStr1[pStrOffset1] = 0;
+				}
+				Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, pStr1, outRemaining, outOffset);
 				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr1);
@@ -102,51 +284,52 @@ namespace Dalamud.Bindings.ImGui
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, string textEnd, Vector2* textSizeIfKnown, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, string textEnd, byte** outRemaining)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
+			fixed (ImTextDesc* pdesc = &desc)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
 				}
-				else
+				byte* pStr1 = null;
+				int pStrSize1 = 0;
+				if (textEnd != null)
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize1 >= Utils.MaxStackallocSize)
+					{
+						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					}
+					else
+					{
+						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+						pStr1 = pStrStack1;
+					}
+					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+					pStr1[pStrOffset1] = 0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (textEnd != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(textEnd);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			fixed (ImRect* pclipRect = &clipRect)
-			{
-				RenderTextClippedNative(posMin, posMax, pStr0, pStr1, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
+				Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, pStr1, outRemaining, (Vector2*)(default));
 				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr1);
@@ -155,55 +338,22 @@ namespace Dalamud.Bindings.ImGui
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, string textEnd)
 		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, Vector2* textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = &text)
+			fixed (ImTextDesc* pdesc = &desc)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (textEnd != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -213,727 +363,1025 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, align, (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, Vector2* textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
+				byte* pStr1 = null;
+				int pStrSize1 = 0;
 				if (textEnd != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
+					pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize1 >= Utils.MaxStackallocSize)
 					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
 					}
 					else
 					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
+						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+						pStr1 = pStrStack1;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
+					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+					pStr1[pStrOffset1] = 0;
 				}
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, Vector2* textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, Vector2* textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, align, (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, Vector2* textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, Vector2* textSizeIfKnown, ref ImRect clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = textEnd)
-			{
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, ref ImRect clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = textEnd)
-			{
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-			{
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, text, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-			{
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, text, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-			{
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, pStr0, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, byte* textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-			{
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, pStr0, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, text, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, text, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, byte* text, ReadOnlySpan<byte> textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (byte* ptextEnd = textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, text, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, byte* text, ReadOnlySpan<byte> textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptextEnd = textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, text, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, byte* text, string textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (textEnd != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-			{
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, text, pStr0, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, byte* text, string textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (textEnd != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-			{
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, text, pStr0, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, ref byte textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						fixed (ImRect* pclipRect = &clipRect)
-						{
-							RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, ref byte textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						fixed (ImRect* pclipRect = &clipRect)
-						{
-							RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						fixed (ImRect* pclipRect = &clipRect)
-						{
-							RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						fixed (ImRect* pclipRect = &clipRect)
-						{
-							RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, string textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (textEnd != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+				Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, pStr1, (byte**)(default), (Vector2*)(default));
 				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					Utils.Free(pStr1);
 				}
-				else
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
+					Utils.Free(pStr0);
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
+				return ret;
 			}
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, string textEnd, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
 			{
-				fixed (ImRect* pclipRect = &clipRect)
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
 				{
-					RenderTextClippedNative(posMin, posMax, pStr0, pStr1, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				byte* pStr1 = null;
+				int pStrSize1 = 0;
+				if (textEnd != null)
+				{
+					pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize1 >= Utils.MaxStackallocSize)
+					{
+						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					}
+					else
+					{
+						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+						pStr1 = pStrStack1;
+					}
+					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+					pStr1[pStrOffset1] = 0;
+				}
+				Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, pStr1, (byte**)(default), outOffset);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr1);
+				}
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, string textEnd, byte** outRemaining)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, string textEnd)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, string textEnd, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, byte** outRemaining)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, byte** outRemaining)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, outRemaining, outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ref byte textEnd, byte** outRemaining)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ref byte textEnd)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ref byte textEnd, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, (byte**)(default), outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, outRemaining, outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, (byte**)(default), outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
+					{
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ref byte textEnd, byte** outRemaining)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
+					{
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ref byte textEnd)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
+					{
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ref byte textEnd, Vector2* outOffset)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
+					{
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = textEndDisplay)
+					{
+						fixed (byte* ptextEnd = textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = textEndDisplay)
+					{
+						fixed (byte* ptextEnd = textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = textEndDisplay)
+					{
+						fixed (byte* ptextEnd = textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = textEndDisplay)
+					{
+						fixed (byte* ptextEnd = textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					byte* pStr1 = null;
+					int pStrSize1 = 0;
+					if (textEnd != null)
+					{
+						pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize1 >= Utils.MaxStackallocSize)
+						{
+							pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+						}
+						else
+						{
+							byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+							pStr1 = pStrStack1;
+						}
+						int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+						pStr1[pStrOffset1] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, pStr1, outRemaining, outOffset);
 					if (pStrSize1 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr1);
@@ -942,6 +1390,7 @@ namespace Dalamud.Bindings.ImGui
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -949,47 +1398,47 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, string textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, string textEnd, byte** outRemaining)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
+			fixed (ImFont* pfont = &font)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (ImTextDesc* pdesc = &desc)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (textEnd != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(textEnd);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-			{
-				fixed (ImRect* pclipRect = &clipRect)
-				{
-					RenderTextClippedNative(posMin, posMax, pStr0, pStr1, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					byte* pStr1 = null;
+					int pStrSize1 = 0;
+					if (textEnd != null)
+					{
+						pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize1 >= Utils.MaxStackallocSize)
+						{
+							pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+						}
+						else
+						{
+							byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+							pStr1 = pStrStack1;
+						}
+						int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+						pStr1[pStrOffset1] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, pStr1, outRemaining, (Vector2*)(default));
 					if (pStrSize1 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr1);
@@ -998,6 +1447,7 @@ namespace Dalamud.Bindings.ImGui
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -1005,76 +1455,235 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, string textEnd)
 		{
-			fixed (byte* ptext = &text)
+			fixed (ImFont* pfont = &font)
 			{
-				fixed (byte* ptextEnd = textEnd)
+				fixed (ImTextDesc* pdesc = &desc)
 				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
 					{
-						fixed (ImRect* pclipRect = &clipRect)
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
 						{
-							RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
 					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+					byte* pStr1 = null;
+					int pStrSize1 = 0;
+					if (textEnd != null)
 					{
-						fixed (ImRect* pclipRect = &clipRect)
+						pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize1 >= Utils.MaxStackallocSize)
 						{
-							RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
+							pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
 						}
+						else
+						{
+							byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+							pStr1 = pStrStack1;
+						}
+						int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+						pStr1[pStrOffset1] = 0;
 					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+					Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, pStr1, (byte**)(default), (Vector2*)(default));
+					if (pStrSize1 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr1);
+					}
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						Utils.Free(pStr0);
 					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
+					return ret;
 				}
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, string textEnd, Vector2* outOffset)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
 				{
-					fixed (ImRect* pclipRect = &clipRect)
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
 					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, pStr0, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					byte* pStr1 = null;
+					int pStrSize1 = 0;
+					if (textEnd != null)
+					{
+						pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize1 >= Utils.MaxStackallocSize)
+						{
+							pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+						}
+						else
+						{
+							byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+							pStr1 = pStrStack1;
+						}
+						int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+						pStr1[pStrOffset1] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, pStr1, (byte**)(default), outOffset);
+					if (pStrSize1 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr1);
+					}
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
+					{
+						fixed (byte* ptextEnd = textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
+					{
+						fixed (byte* ptextEnd = textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
+					{
+						fixed (byte* ptextEnd = textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
+					{
+						fixed (byte* ptextEnd = textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+							return ret;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textEnd != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, outOffset);
 						if (pStrSize0 >= Utils.MaxStackallocSize)
 						{
 							Utils.Free(pStr0);
 						}
+						return ret;
 					}
 				}
 			}
@@ -1083,36 +1692,37 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, string textEnd, byte** outRemaining)
 		{
-			fixed (byte* ptext = &text)
+			fixed (ImFont* pfont = &font)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
+				fixed (ImTextDesc* pdesc = &desc)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
 					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, pStr0, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textEnd != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, (Vector2*)(default));
 						if (pStrSize0 >= Utils.MaxStackallocSize)
 						{
 							Utils.Free(pStr0);
 						}
+						return ret;
 					}
 				}
 			}
@@ -1121,76 +1731,37 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, string textEnd)
 		{
-			fixed (byte* ptext = text)
+			fixed (ImFont* pfont = &font)
 			{
-				fixed (byte* ptextEnd = &textEnd)
+				fixed (ImTextDesc* pdesc = &desc)
 				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
 					{
-						fixed (ImRect* pclipRect = &clipRect)
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textEnd != null)
 						{
-							RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
+							pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
 						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						fixed (ImRect* pclipRect = &clipRect)
-						{
-							RenderTextClippedNative(posMin, posMax, (byte*)ptext, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, pStr0, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), (Vector2*)(default));
 						if (pStrSize0 >= Utils.MaxStackallocSize)
 						{
 							Utils.Free(pStr0);
 						}
+						return ret;
 					}
 				}
 			}
@@ -1199,35 +1770,57 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ref byte textEndDisplay, string textEnd, Vector2* outOffset)
 		{
-			fixed (byte* ptext = text)
+			fixed (ImFont* pfont = &font)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
+				fixed (ImTextDesc* pdesc = &desc)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
+					fixed (byte* ptextEndDisplay = &textEndDisplay)
 					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
-					{
-						RenderTextClippedNative(posMin, posMax, (byte*)ptext, pStr0, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textEnd != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), outOffset);
 						if (pStrSize0 >= Utils.MaxStackallocSize)
 						{
 							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = textEndDisplay)
+					{
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+							return ret;
 						}
 					}
 				}
@@ -1237,35 +1830,18 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, byte** outRemaining)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
+			fixed (ImFont* pfont = &font)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (ImTextDesc* pdesc = &desc)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
+					fixed (byte* ptextEndDisplay = textEndDisplay)
 					{
-						RenderTextClippedNative(posMin, posMax, pStr0, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
+						fixed (byte* ptextEnd = &textEnd)
 						{
-							Utils.Free(pStr0);
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+							return ret;
 						}
 					}
 				}
@@ -1275,35 +1851,18 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
+			fixed (ImFont* pfont = &font)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (ImTextDesc* pdesc = &desc)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
+					fixed (byte* ptextEndDisplay = textEndDisplay)
 					{
-						RenderTextClippedNative(posMin, posMax, pStr0, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
+						fixed (byte* ptextEnd = &textEnd)
 						{
-							Utils.Free(pStr0);
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+							return ret;
 						}
 					}
 				}
@@ -1313,35 +1872,18 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, Vector2* outOffset)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
+			fixed (ImFont* pfont = &font)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (ImTextDesc* pdesc = &desc)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
+					fixed (byte* ptextEndDisplay = textEndDisplay)
 					{
-						RenderTextClippedNative(posMin, posMax, pStr0, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)pclipRect);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
+						fixed (byte* ptextEnd = &textEnd)
 						{
-							Utils.Free(pStr0);
+							Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+							return ret;
 						}
 					}
 				}
@@ -1351,36 +1893,37 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClipped(Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, ref Vector2 textSizeIfKnown, ref ImRect clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
+			fixed (ImFont* pfont = &font)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (ImTextDesc* pdesc = &desc)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					fixed (ImRect* pclipRect = &clipRect)
+					fixed (byte* ptextEndDisplay = textEndDisplay)
 					{
-						RenderTextClippedNative(posMin, posMax, pStr0, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)pclipRect);
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textEnd != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, outOffset);
 						if (pStrSize0 >= Utils.MaxStackallocSize)
 						{
 							Utils.Free(pStr0);
 						}
+						return ret;
 					}
 				}
 			}
@@ -1389,190 +1932,586 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void RenderTextClippedExNative(ImDrawList* drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRect* clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, byte** outRemaining)
 		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImDrawList*, Vector2, Vector2, byte*, byte*, Vector2*, Vector2, ImRect*, void>)funcTable[1177])(drawList, posMin, posMax, text, textEnd, textSizeIfKnown, align, clipRect);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, Vector2, Vector2, nint, nint, nint, Vector2, nint, void>)funcTable[1177])((nint)drawList, posMin, posMax, (nint)text, (nint)textEnd, (nint)textSizeIfKnown, align, (nint)clipRect);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			RenderTextClippedExNative(drawList, posMin, posMax, text, textEnd, textSizeIfKnown, align, clipRect);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			RenderTextClippedExNative(drawList, posMin, posMax, text, textEnd, textSizeIfKnown, align, (ImRect*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, Vector2* textSizeIfKnown)
-		{
-			RenderTextClippedExNative(drawList, posMin, posMax, text, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			RenderTextClippedExNative(drawList, posMin, posMax, text, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (ImFont* pfont = &font)
 			{
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, textEnd, textSizeIfKnown, align, clipRect);
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = textEndDisplay)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textEnd != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, (Vector2*)(default));
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (ImFont* pfont = &font)
 			{
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, textEnd, textSizeIfKnown, align, (ImRect*)(default));
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = textEndDisplay)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textEnd != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), (Vector2*)(default));
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, Vector2* textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (ImFont* pfont = &font)
 			{
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (byte* ptextEndDisplay = textEndDisplay)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textEnd != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), outOffset);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (ImFont* pfont = &font)
 			{
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, outRemaining, outOffset);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ref byte textEnd, byte** outRemaining)
 		{
-			fixed (byte* ptext = &text)
+			fixed (ImFont* pfont = &font)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, align, clipRect);
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ref byte textEnd)
 		{
-			fixed (byte* ptext = &text)
+			fixed (ImFont* pfont = &font)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, align, (ImRect*)(default));
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, Vector2* textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ref byte textEnd, Vector2* outOffset)
 		{
-			fixed (byte* ptext = &text)
+			fixed (ImFont* pfont = &font)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, (byte**)(default), outOffset);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
 		{
-			fixed (byte* ptext = &text)
+			fixed (ImFont* pfont = &font)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, outRemaining, outOffset);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
 		{
-			fixed (byte* ptext = text)
+			fixed (ImFont* pfont = &font)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, align, clipRect);
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd)
 		{
-			fixed (byte* ptext = text)
+			fixed (ImFont* pfont = &font)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, align, (ImRect*)(default));
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, Vector2* textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ref ImFont font, ref ImTextDesc desc, byte* textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
 		{
-			fixed (byte* ptext = text)
+			fixed (ImFont* pfont = &font)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEndDisplay != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative((ImFont*)pfont, (ImTextDesc*)pdesc, textBegin, pStr0, (byte*)ptextEnd, (byte**)(default), outOffset);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
 		{
-			fixed (byte* ptext = text)
+			fixed (byte* ptextBegin = &textBegin)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
+					}
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, ref byte textEnd, byte** outRemaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, ref byte textEnd)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, ref byte textEnd, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, string textBegin, string textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (text != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1582,926 +2521,14 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			RenderTextClippedExNative(drawList, posMin, posMax, pStr0, textEnd, textSizeIfKnown, align, clipRect);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			RenderTextClippedExNative(drawList, posMin, posMax, pStr0, textEnd, textSizeIfKnown, align, (ImRect*)(default));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, Vector2* textSizeIfKnown)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			RenderTextClippedExNative(drawList, posMin, posMax, pStr0, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			RenderTextClippedExNative(drawList, posMin, posMax, pStr0, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, align, clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, align, (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = text)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, align, clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = text)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, align, (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = text)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = text)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (text != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, textEnd, textSizeIfKnown, align, clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (text != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, textEnd, textSizeIfKnown, align, (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (text != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (text != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, textEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (byte* ptextEnd = textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (byte* ptextEnd = textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (byte* ptextEnd = textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (byte* ptextEnd = textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, string textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (textEnd != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			RenderTextClippedExNative(drawList, posMin, posMax, text, pStr0, textSizeIfKnown, align, clipRect);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, string textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (textEnd != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			RenderTextClippedExNative(drawList, posMin, posMax, text, pStr0, textSizeIfKnown, align, (ImRect*)(default));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, string textEnd, Vector2* textSizeIfKnown)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (textEnd != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			RenderTextClippedExNative(drawList, posMin, posMax, text, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, string textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (textEnd != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			RenderTextClippedExNative(drawList, posMin, posMax, text, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, string textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, pStr0, textSizeIfKnown, align, clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, string textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, pStr0, textSizeIfKnown, align, (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, string textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, string textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, ref byte textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, ref byte textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, string textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
 			byte* pStr1 = null;
 			int pStrSize1 = 0;
-			if (textEnd != null)
+			if (textEndDisplay != null)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+				pStrSize1 = Utils.GetByteCountUTF8(textEndDisplay);
 				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
 					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
@@ -2511,10 +2538,31 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
 					pStr1 = pStrStack1;
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+				int pStrOffset1 = Utils.EncodeStringUTF8(textEndDisplay, pStr1, pStrSize1);
 				pStr1[pStrOffset1] = 0;
 			}
-			RenderTextClippedExNative(drawList, posMin, posMax, pStr0, pStr1, textSizeIfKnown, align, clipRect);
+			byte* pStr2 = null;
+			int pStrSize2 = 0;
+			if (textEnd != null)
+			{
+				pStrSize2 = Utils.GetByteCountUTF8(textEnd);
+				if (pStrSize2 >= Utils.MaxStackallocSize)
+				{
+					pStr2 = Utils.Alloc<byte>(pStrSize2 + 1);
+				}
+				else
+				{
+					byte* pStrStack2 = stackalloc byte[pStrSize2 + 1];
+					pStr2 = pStrStack2;
+				}
+				int pStrOffset2 = Utils.EncodeStringUTF8(textEnd, pStr2, pStrSize2);
+				pStr2[pStrOffset2] = 0;
+			}
+			Vector2 ret = CalcTextSizeExNative(font, desc, pStr0, pStr1, pStr2, outRemaining, outOffset);
+			if (pStrSize2 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr2);
+			}
 			if (pStrSize1 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr1);
@@ -2523,18 +2571,19 @@ namespace Dalamud.Bindings.ImGui
 			{
 				Utils.Free(pStr0);
 			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, string textEnd, Vector2* textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, string textBegin, string textEndDisplay, string textEnd, byte** outRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (text != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -2544,14 +2593,14 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
 			byte* pStr1 = null;
 			int pStrSize1 = 0;
-			if (textEnd != null)
+			if (textEndDisplay != null)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+				pStrSize1 = Utils.GetByteCountUTF8(textEndDisplay);
 				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
 					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
@@ -2561,10 +2610,31 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
 					pStr1 = pStrStack1;
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+				int pStrOffset1 = Utils.EncodeStringUTF8(textEndDisplay, pStr1, pStrSize1);
 				pStr1[pStrOffset1] = 0;
 			}
-			RenderTextClippedExNative(drawList, posMin, posMax, pStr0, pStr1, textSizeIfKnown, align, (ImRect*)(default));
+			byte* pStr2 = null;
+			int pStrSize2 = 0;
+			if (textEnd != null)
+			{
+				pStrSize2 = Utils.GetByteCountUTF8(textEnd);
+				if (pStrSize2 >= Utils.MaxStackallocSize)
+				{
+					pStr2 = Utils.Alloc<byte>(pStrSize2 + 1);
+				}
+				else
+				{
+					byte* pStrStack2 = stackalloc byte[pStrSize2 + 1];
+					pStr2 = pStrStack2;
+				}
+				int pStrOffset2 = Utils.EncodeStringUTF8(textEnd, pStr2, pStrSize2);
+				pStr2[pStrOffset2] = 0;
+			}
+			Vector2 ret = CalcTextSizeExNative(font, desc, pStr0, pStr1, pStr2, outRemaining, (Vector2*)(default));
+			if (pStrSize2 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr2);
+			}
 			if (pStrSize1 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr1);
@@ -2573,18 +2643,19 @@ namespace Dalamud.Bindings.ImGui
 			{
 				Utils.Free(pStr0);
 			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, string textEnd, Vector2* textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, string textBegin, string textEndDisplay, string textEnd)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (text != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -2594,14 +2665,14 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
 			byte* pStr1 = null;
 			int pStrSize1 = 0;
-			if (textEnd != null)
+			if (textEndDisplay != null)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+				pStrSize1 = Utils.GetByteCountUTF8(textEndDisplay);
 				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
 					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
@@ -2611,10 +2682,31 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
 					pStr1 = pStrStack1;
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+				int pStrOffset1 = Utils.EncodeStringUTF8(textEndDisplay, pStr1, pStrSize1);
 				pStr1[pStrOffset1] = 0;
 			}
-			RenderTextClippedExNative(drawList, posMin, posMax, pStr0, pStr1, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+			byte* pStr2 = null;
+			int pStrSize2 = 0;
+			if (textEnd != null)
+			{
+				pStrSize2 = Utils.GetByteCountUTF8(textEnd);
+				if (pStrSize2 >= Utils.MaxStackallocSize)
+				{
+					pStr2 = Utils.Alloc<byte>(pStrSize2 + 1);
+				}
+				else
+				{
+					byte* pStrStack2 = stackalloc byte[pStrSize2 + 1];
+					pStr2 = pStrStack2;
+				}
+				int pStrOffset2 = Utils.EncodeStringUTF8(textEnd, pStr2, pStrSize2);
+				pStr2[pStrOffset2] = 0;
+			}
+			Vector2 ret = CalcTextSizeExNative(font, desc, pStr0, pStr1, pStr2, (byte**)(default), (Vector2*)(default));
+			if (pStrSize2 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr2);
+			}
 			if (pStrSize1 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr1);
@@ -2623,18 +2715,19 @@ namespace Dalamud.Bindings.ImGui
 			{
 				Utils.Free(pStr0);
 			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, string textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, string textBegin, string textEndDisplay, string textEnd, Vector2* outOffset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (text != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -2644,14 +2737,14 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
 			byte* pStr1 = null;
 			int pStrSize1 = 0;
-			if (textEnd != null)
+			if (textEndDisplay != null)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+				pStrSize1 = Utils.GetByteCountUTF8(textEndDisplay);
 				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
 					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
@@ -2661,10 +2754,31 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
 					pStr1 = pStrStack1;
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+				int pStrOffset1 = Utils.EncodeStringUTF8(textEndDisplay, pStr1, pStrSize1);
 				pStr1[pStrOffset1] = 0;
 			}
-			RenderTextClippedExNative(drawList, posMin, posMax, pStr0, pStr1, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+			byte* pStr2 = null;
+			int pStrSize2 = 0;
+			if (textEnd != null)
+			{
+				pStrSize2 = Utils.GetByteCountUTF8(textEnd);
+				if (pStrSize2 >= Utils.MaxStackallocSize)
+				{
+					pStr2 = Utils.Alloc<byte>(pStrSize2 + 1);
+				}
+				else
+				{
+					byte* pStrStack2 = stackalloc byte[pStrSize2 + 1];
+					pStr2 = pStrStack2;
+				}
+				int pStrOffset2 = Utils.EncodeStringUTF8(textEnd, pStr2, pStrSize2);
+				pStr2[pStrOffset2] = 0;
+			}
+			Vector2 ret = CalcTextSizeExNative(font, desc, pStr0, pStr1, pStr2, (byte**)(default), outOffset);
+			if (pStrSize2 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr2);
+			}
 			if (pStrSize1 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr1);
@@ -2673,712 +2787,22 @@ namespace Dalamud.Bindings.ImGui
 			{
 				Utils.Free(pStr0);
 			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
 		{
-			fixed (byte* ptext = &text)
+			fixed (byte* ptextBegin = &textBegin)
 			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (byte* ptextEnd = textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, align, clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (byte* ptext = &text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, align, (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (byte* ptext = &text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (byte* ptextEnd = &textEnd)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, align, clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (byte* ptext = text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, align, (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (byte* ptext = text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (textEnd != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, Vector2* textSizeIfKnown)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* ptextEnd = textEnd)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					fixed (byte* ptextEnd = &textEnd)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					fixed (byte* ptextEnd = &textEnd)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, ref byte textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					fixed (byte* ptextEnd = &textEnd)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, ref byte textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					fixed (byte* ptextEnd = &textEnd)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					fixed (byte* ptextEnd = textEnd)
 					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
 					}
 				}
 			}
@@ -3387,15 +2811,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = &textBegin)
 			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					fixed (byte* ptextEnd = textEnd)
 					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
 					}
 				}
 			}
@@ -3404,15 +2829,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = &textBegin)
 			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					fixed (byte* ptextEnd = textEnd)
 					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
 					}
 				}
 			}
@@ -3421,15 +2847,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = &textBegin)
 			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					fixed (byte* ptextEnd = textEnd)
 					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
 					}
 				}
 			}
@@ -3438,15 +2865,447 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, string textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, string textEnd, byte** outRemaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, string textEnd)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ref byte textEndDisplay, string textEnd, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, byte** outRemaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, byte** outRemaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3456,7 +3315,295 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, outRemaining, outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, ref byte textEnd, byte** outRemaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, ref byte textEnd)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, ref byte textEnd, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, (byte**)(default), outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, outRemaining, outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, (byte**)(default), outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				byte* pStr1 = null;
@@ -3476,7 +3623,7 @@ namespace Dalamud.Bindings.ImGui
 					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
 					pStr1[pStrOffset1] = 0;
 				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, pStr1, textSizeIfKnown, align, clipRect);
+				Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, pStr1, outRemaining, outOffset);
 				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr1);
@@ -3485,21 +3632,22 @@ namespace Dalamud.Bindings.ImGui
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, string textEnd, Vector2* textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, string textEnd, byte** outRemaining)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = &textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3509,7 +3657,7 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				byte* pStr1 = null;
@@ -3529,7 +3677,7 @@ namespace Dalamud.Bindings.ImGui
 					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
 					pStr1[pStrOffset1] = 0;
 				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, pStr1, textSizeIfKnown, align, (ImRect*)(default));
+				Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, pStr1, outRemaining, (Vector2*)(default));
 				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr1);
@@ -3538,21 +3686,22 @@ namespace Dalamud.Bindings.ImGui
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, string textEnd, Vector2* textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, string textEnd)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = &textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3562,7 +3711,7 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				byte* pStr1 = null;
@@ -3582,7 +3731,7 @@ namespace Dalamud.Bindings.ImGui
 					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
 					pStr1[pStrOffset1] = 0;
 				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, pStr1, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+				Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, pStr1, (byte**)(default), (Vector2*)(default));
 				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr1);
@@ -3591,21 +3740,22 @@ namespace Dalamud.Bindings.ImGui
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, string textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ref byte textBegin, string textEndDisplay, string textEnd, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = &textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3615,7 +3765,7 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				byte* pStr1 = null;
@@ -3635,7 +3785,7 @@ namespace Dalamud.Bindings.ImGui
 					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
 					pStr1[pStrOffset1] = 0;
 				}
-				RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, pStr1, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+				Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, pStr1, (byte**)(default), outOffset);
 				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr1);
@@ -3644,229 +3794,23 @@ namespace Dalamud.Bindings.ImGui
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				fixed (byte* ptext = &text)
-				{
-					fixed (byte* ptextEnd = textEnd)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					fixed (byte* ptextEnd = textEnd)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					fixed (byte* ptextEnd = textEnd)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					fixed (byte* ptextEnd = textEnd)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (textEnd != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, align, clipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, Vector2* textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (textEnd != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, align, (ImRect*)(default));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, Vector2* textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (textEnd != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, string textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (textEnd != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					fixed (byte* ptextEnd = &textEnd)
 					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
 					}
 				}
 			}
@@ -3875,15 +3819,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, ref byte textEnd, byte** outRemaining)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					fixed (byte* ptextEnd = &textEnd)
 					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
 					}
 				}
 			}
@@ -3892,15 +3837,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, Vector2* textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, ref byte textEnd)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					fixed (byte* ptextEnd = &textEnd)
 					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
 					}
 				}
 			}
@@ -3909,15 +3855,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, ref byte textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, ref byte textEnd, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					fixed (byte* ptextEnd = &textEnd)
 					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
 					}
 				}
 			}
@@ -3926,11 +3873,83 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					byte* pStr0 = null;
 					int pStrSize0 = 0;
@@ -3949,11 +3968,12 @@ namespace Dalamud.Bindings.ImGui
 						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
 						pStr0[pStrOffset0] = 0;
 					}
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, align, clipRect);
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, outOffset);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -3961,11 +3981,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, Vector2* textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, string textEnd, byte** outRemaining)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					byte* pStr0 = null;
 					int pStrSize0 = 0;
@@ -3984,11 +4004,12 @@ namespace Dalamud.Bindings.ImGui
 						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
 						pStr0[pStrOffset0] = 0;
 					}
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, align, (ImRect*)(default));
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, (Vector2*)(default));
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -3996,11 +4017,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, Vector2* textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, string textEnd)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					byte* pStr0 = null;
 					int pStrSize0 = 0;
@@ -4019,11 +4040,12 @@ namespace Dalamud.Bindings.ImGui
 						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
 						pStr0[pStrOffset0] = 0;
 					}
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), (Vector2*)(default));
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -4031,11 +4053,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, string textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ref byte textEndDisplay, string textEnd, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				fixed (byte* ptext = text)
+				fixed (byte* ptextEndDisplay = &textEndDisplay)
 				{
 					byte* pStr0 = null;
 					int pStrSize0 = 0;
@@ -4054,10 +4076,29 @@ namespace Dalamud.Bindings.ImGui
 						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
 						pStr0[pStrOffset0] = 0;
 					}
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, pStr0, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), outOffset);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+						return ret;
 					}
 				}
 			}
@@ -4066,15 +4107,213 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, byte** outRemaining)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, ref byte textEnd, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+						return ret;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, byte** outRemaining)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, outRemaining, (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEndDisplay, string textEnd, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEndDisplay = textEndDisplay)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, (byte*)ptextEndDisplay, pStr0, (byte**)(default), outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			fixed (byte* ptextBegin = textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4084,16 +4323,17 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				fixed (byte* ptextEnd = &textEnd)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, outRemaining, outOffset);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -4101,15 +4341,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, Vector2* textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, ref byte textEnd, byte** outRemaining)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4119,16 +4359,17 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				fixed (byte* ptextEnd = &textEnd)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -4136,15 +4377,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, Vector2* textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, ref byte textEnd)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4154,16 +4395,17 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				fixed (byte* ptextEnd = &textEnd)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -4171,15 +4413,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, ref byte textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, ref byte textEnd, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4189,16 +4431,17 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				fixed (byte* ptextEnd = &textEnd)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, (byte**)(default), outOffset);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -4206,15 +4449,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4224,16 +4467,17 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				fixed (byte* ptextEnd = textEnd)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, align, clipRect);
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, outRemaining, outOffset);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -4241,15 +4485,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4259,16 +4503,17 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				fixed (byte* ptextEnd = textEnd)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, align, (ImRect*)(default));
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -4276,15 +4521,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4294,16 +4539,17 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				fixed (byte* ptextEnd = textEnd)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -4311,15 +4557,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, ReadOnlySpan<byte> textEnd, Vector2* textSizeIfKnown, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, ReadOnlySpan<byte> textEnd, Vector2* outOffset)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextBegin = textBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (text != null)
+				if (textEndDisplay != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4329,16 +4575,17 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
 				fixed (byte* ptextEnd = textEnd)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, (byte*)ptextEnd, textSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+					Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, (byte*)ptextEnd, (byte**)(default), outOffset);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -4346,225 +4593,229 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, string textEnd, byte** outRemaining, Vector2* outOffset)
 		{
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, textEnd, (Vector2*)ptextSizeIfKnown, align, clipRect);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align)
-		{
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, ref Vector2 textSizeIfKnown)
-		{
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, ref Vector2 textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-			{
-				RenderTextClippedExNative(drawList, posMin, posMax, text, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, textEnd, (Vector2*)ptextSizeIfKnown, align, clipRect);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
 				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+				byte* pStr1 = null;
+				int pStrSize1 = 0;
+				if (textEnd != null)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)(default));
+					pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize1 >= Utils.MaxStackallocSize)
+					{
+						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					}
+					else
+					{
+						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+						pStr1 = pStrStack1;
+					}
+					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+					pStr1[pStrOffset1] = 0;
 				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, ref Vector2 textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+				Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, pStr1, outRemaining, outOffset);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+					Utils.Free(pStr1);
 				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, ref Vector2 textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, text, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, string textEnd, byte** outRemaining)
 		{
-			fixed (byte* ptext = &text)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
 				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, align, clipRect);
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
 				}
+				byte* pStr1 = null;
+				int pStrSize1 = 0;
+				if (textEnd != null)
+				{
+					pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize1 >= Utils.MaxStackallocSize)
+					{
+						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					}
+					else
+					{
+						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+						pStr1 = pStrStack1;
+					}
+					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+					pStr1[pStrOffset1] = 0;
+				}
+				Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, pStr1, outRemaining, (Vector2*)(default));
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr1);
+				}
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, string textEnd)
 		{
-			fixed (byte* ptext = &text)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
 				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)(default));
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
 				}
+				byte* pStr1 = null;
+				int pStrSize1 = 0;
+				if (textEnd != null)
+				{
+					pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize1 >= Utils.MaxStackallocSize)
+					{
+						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					}
+					else
+					{
+						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+						pStr1 = pStrStack1;
+					}
+					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+					pStr1[pStrOffset1] = 0;
+				}
+				Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, pStr1, (byte**)(default), (Vector2*)(default));
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr1);
+				}
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, ref Vector2 textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, ReadOnlySpan<byte> textBegin, string textEndDisplay, string textEnd, Vector2* outOffset)
 		{
-			fixed (byte* ptext = &text)
+			fixed (byte* ptextBegin = textBegin)
 			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEndDisplay != null)
 				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+					pStrSize0 = Utils.GetByteCountUTF8(textEndDisplay);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEndDisplay, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
 				}
+				byte* pStr1 = null;
+				int pStrSize1 = 0;
+				if (textEnd != null)
+				{
+					pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize1 >= Utils.MaxStackallocSize)
+					{
+						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					}
+					else
+					{
+						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+						pStr1 = pStrStack1;
+					}
+					int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+					pStr1[pStrOffset1] = 0;
+				}
+				Vector2 ret = CalcTextSizeExNative(font, desc, (byte*)ptextBegin, pStr0, pStr1, (byte**)(default), outOffset);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr1);
+				}
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, ref Vector2 textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = &text)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, align, clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, ref Vector2 textSizeIfKnown)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, ref Vector2 textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (byte* ptext = text)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, string textBegin, ref byte textEndDisplay, ref byte textEnd, byte** outRemaining, Vector2* outOffset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (text != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4574,15 +4825,19 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+			fixed (byte* ptextEndDisplay = &textEndDisplay)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, textEnd, (Vector2*)ptextSizeIfKnown, align, clipRect);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (byte* ptextEnd = &textEnd)
 				{
-					Utils.Free(pStr0);
+					Vector2 ret = CalcTextSizeExNative(font, desc, pStr0, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
 				}
 			}
 		}
@@ -4590,13 +4845,13 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, string textBegin, ref byte textEndDisplay, ref byte textEnd, byte** outRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (text != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4606,15 +4861,19 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+			fixed (byte* ptextEndDisplay = &textEndDisplay)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (byte* ptextEnd = &textEnd)
 				{
-					Utils.Free(pStr0);
+					Vector2 ret = CalcTextSizeExNative(font, desc, pStr0, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
 				}
 			}
 		}
@@ -4622,13 +4881,13 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, ref Vector2 textSizeIfKnown)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, string textBegin, ref byte textEndDisplay, ref byte textEnd)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (text != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4638,15 +4897,19 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+			fixed (byte* ptextEndDisplay = &textEndDisplay)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (byte* ptextEnd = &textEnd)
 				{
-					Utils.Free(pStr0);
+					Vector2 ret = CalcTextSizeExNative(font, desc, pStr0, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), (Vector2*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
 				}
 			}
 		}
@@ -4654,13 +4917,13 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, ref Vector2 textSizeIfKnown, ImRectPtr clipRect)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, string textBegin, ref byte textEndDisplay, ref byte textEnd, Vector2* outOffset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (text != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4670,186 +4933,55 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+			fixed (byte* ptextEndDisplay = &textEndDisplay)
 			{
-				RenderTextClippedExNative(drawList, posMin, posMax, pStr0, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret = CalcTextSizeExNative(font, desc, pStr0, (byte*)ptextEndDisplay, (byte*)ptextEnd, (byte**)(default), outOffset);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, string textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining, Vector2* outOffset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					Utils.Free(pStr0);
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextEndDisplay = &textEndDisplay)
 			{
-				fixed (byte* ptext = &text)
+				fixed (byte* ptextEnd = textEnd)
 				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, align, clipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, ref Vector2 textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ref byte text, byte* textEnd, ref Vector2 textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = &text)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = text)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, align, clipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = text)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, ref Vector2 textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = text)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, ReadOnlySpan<byte> text, byte* textEnd, ref Vector2 textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				fixed (byte* ptext = text)
-				{
-					fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-					{
-						RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, (byte*)ptext, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (text != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, textEnd, (Vector2*)ptextSizeIfKnown, align, clipRect);
+					Vector2 ret = CalcTextSizeExNative(font, desc, pStr0, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, outOffset);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
+					return ret;
 				}
 			}
 		}
@@ -4857,174 +4989,35 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, ref Vector2 textSizeIfKnown, Vector2 align)
+		public static Vector2 CalcTextSizeEx(ImFontPtr font, ImTextDescPtr desc, string textBegin, ref byte textEndDisplay, ReadOnlySpan<byte> textEnd, byte** outRemaining)
 		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (text != null)
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
+				else
 				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, textEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)(default));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
 				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, ref Vector2 textSizeIfKnown)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
+			fixed (byte* ptextEndDisplay = &textEndDisplay)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (text != null)
+				fixed (byte* ptextEnd = textEnd)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
+					Vector2 ret = CalcTextSizeExNative(font, desc, pStr0, (byte*)ptextEndDisplay, (byte*)ptextEnd, outRemaining, (Vector2*)(default));
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						Utils.Free(pStr0);
 					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ref ImDrawList drawList, Vector2 posMin, Vector2 posMax, string text, byte* textEnd, ref Vector2 textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (ImDrawList* pdrawList = &drawList)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (text != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(text);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative((ImDrawList*)pdrawList, posMin, posMax, pStr0, textEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, align, clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, ref Vector2 textSizeIfKnown, Vector2 align)
-		{
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, align, (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, ref Vector2 textSizeIfKnown)
-		{
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), (ImRect*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ref byte textEnd, ref Vector2 textSizeIfKnown, ImRectPtr clipRect)
-		{
-			fixed (byte* ptextEnd = &textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, (Vector2)(new Vector2(0,0)), clipRect);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void RenderTextClippedEx(ImDrawListPtr drawList, Vector2 posMin, Vector2 posMax, byte* text, ReadOnlySpan<byte> textEnd, ref Vector2 textSizeIfKnown, Vector2 align, ImRectPtr clipRect)
-		{
-			fixed (byte* ptextEnd = textEnd)
-			{
-				fixed (Vector2* ptextSizeIfKnown = &textSizeIfKnown)
-				{
-					RenderTextClippedExNative(drawList, posMin, posMax, text, (byte*)ptextEnd, (Vector2*)ptextSizeIfKnown, align, clipRect);
+					return ret;
 				}
 			}
 		}

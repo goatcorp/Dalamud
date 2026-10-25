@@ -38,19 +38,36 @@ public static unsafe partial class ImGui
     }
 
     public static bool BeginChild(
-        ImU8String strId, Vector2 size = default, bool border = false, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
+        ImU8String strId, Vector2 size = default, ImGuiChildFlags childFlags = ImGuiChildFlags.None,
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags.None)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiNative.BeginChild(strIdPtr, size, border ? (byte)1 : (byte)0, flags) != 0;
+            var r = ImGuiNative.BeginChild(strIdPtr, size, childFlags, windowFlags) != 0;
             strId.Recycle();
             return r;
         }
     }
 
     public static bool BeginChild(
-        uint id, Vector2 size = default, bool border = false, ImGuiWindowFlags flags = ImGuiWindowFlags.None) =>
-        ImGuiNative.BeginChild(id, size, border ? (byte)1 : (byte)0, flags) != 0;
+        uint id, Vector2 size = default, ImGuiChildFlags childFlags = ImGuiChildFlags.None,
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags.None) =>
+        ImGuiNative.BeginChild(id, size, childFlags, windowFlags) != 0;
+
+    public static bool ImageButton(
+        ImU8String strId, ImTextureRef texRef, Vector2 imageSize, Vector2 uv0, Vector2 uv1, Vector4 bgCol,
+        Vector4 tintCol)
+    {
+        fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
+        {
+            var r = ImGuiNative.ImageButton(strIdPtr, texRef, imageSize, uv0, uv1, bgCol, tintCol) != 0;
+            strId.Recycle();
+            return r;
+        }
+    }
+
+    public static bool ImageButton(ImU8String strId, ImTextureRef texRef, Vector2 imageSize) =>
+        ImageButton(strId, texRef, imageSize, Vector2.Zero, Vector2.One, Vector4.Zero, Vector4.One);
 
     public static bool BeginCombo(
         ImU8String label, ImU8String previewValue, ImGuiComboFlags flags = ImGuiComboFlags.None)
@@ -96,7 +113,7 @@ public static unsafe partial class ImGui
     }
 
     public static bool BeginPopupContextItem(
-        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
+        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.None)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
@@ -107,7 +124,7 @@ public static unsafe partial class ImGui
     }
 
     public static bool BeginPopupContextWindow(
-        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
+        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.None)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
@@ -118,7 +135,7 @@ public static unsafe partial class ImGui
     }
 
     public static bool BeginPopupContextVoid(
-        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
+        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.None)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
@@ -320,10 +337,32 @@ public static unsafe partial class ImGui
 
     public static bool Draw(ImGuiTextFilterPtr self, ImU8String label = default, float width = 0.0f)
     {
-        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference("Filter (inc,-exc)"u8))
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference("Filter"u8))
         {
-            var r = ImGuiNative.Draw(self.Handle, labelPtr, width) != 0;
+            if (width != 0.0f)
+                SetNextItemWidth(width);
+            var r = ImGuiNative.Draw(self.Handle, labelPtr) != 0;
             label.Recycle();
+            return r;
+        }
+    }
+
+    /// <summary>Draws the filter input box with a hint shown while it is empty.</summary>
+    /// <param name="self">The filter.</param>
+    /// <param name="label">The label. Uses "Filter" if null.</param>
+    /// <param name="hint">The hint. Uses "incl -excl" if null.</param>
+    /// <param name="width">The width. 0 keeps the current item width.</param>
+    /// <returns>Whether the filter changed.</returns>
+    public static bool DrawWithHint(ImGuiTextFilterPtr self, ImU8String label, ImU8String hint, float width = 0.0f)
+    {
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference("Filter"u8))
+        fixed (byte* hintPtr = &hint.GetPinnableNullTerminatedReference("incl -excl"u8))
+        {
+            if (width != 0.0f)
+                SetNextItemWidth(width);
+            var r = ImGuiNative.DrawWithHint(self.Handle, labelPtr, hintPtr) != 0;
+            label.Recycle();
+            hint.Recycle();
             return r;
         }
     }
@@ -336,14 +375,6 @@ public static unsafe partial class ImGui
             defaultFilter.Recycle();
             return r;
         }
-    }
-
-    public static ImGuiTextRangePtr ImGuiTextRange() => ImGuiNative.ImGuiTextRange();
-
-    public static ImGuiTextRangePtr ImGuiTextRange(ReadOnlySpan<byte> text)
-    {
-        fixed (byte* textPtr = text)
-            return ImGuiNative.ImGuiTextRange(textPtr, textPtr + text.Length);
     }
 
     public static bool InvisibleButton(
@@ -464,7 +495,7 @@ public static unsafe partial class ImGui
         ImGuiNative.OpenPopup(id, popupFlags);
 
     public static void OpenPopupOnItemClick(
-        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.MouseButtonDefault)
+        ImU8String strId, ImGuiPopupFlags popupFlags = ImGuiPopupFlags.None)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
             ImGuiNative.OpenPopupOnItemClick(strIdPtr, popupFlags);
@@ -539,6 +570,15 @@ public static unsafe partial class ImGui
         }
     }
 
+    /// <summary>Draws a horizontal separator with text.</summary>
+    /// <param name="label">The text.</param>
+    public static void SeparatorText(ImU8String label)
+    {
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+            ImGuiNative.SeparatorText(labelPtr);
+        label.Recycle();
+    }
+
     public static void SetClipboardText(ImU8String text)
     {
         fixed (byte* textPtr = &text.GetPinnableNullTerminatedReference())
@@ -610,13 +650,6 @@ public static unsafe partial class ImGui
         name.Recycle();
     }
 
-    public static void ShowFontSelector(ImU8String label)
-    {
-        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
-            ImGuiNative.ShowFontSelector(labelPtr);
-        label.Recycle();
-    }
-
     public static bool ShowStyleSelector(ImU8String label)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
@@ -661,6 +694,35 @@ public static unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiNative.TableSetupColumn(labelPtr, flags, initWidthOrWeight, userId);
         label.Recycle();
+    }
+
+    /// <summary>Draws a hyperlink-styled text button.</summary>
+    /// <param name="label">The label.</param>
+    /// <returns>Whether it was clicked.</returns>
+    public static bool TextLink(ImU8String label)
+    {
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        {
+            var r = ImGuiNative.TextLink(labelPtr) != 0;
+            label.Recycle();
+            return r;
+        }
+    }
+
+    /// <summary>Draws a hyperlink-styled text button that opens a URL when clicked.</summary>
+    /// <param name="label">The label.</param>
+    /// <param name="url">The URL. Uses the label if null.</param>
+    /// <returns>Whether it was clicked.</returns>
+    public static bool TextLinkOpenURL(ImU8String label, ImU8String url = default)
+    {
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* urlPtr = &url.GetPinnableNullTerminatedReference())
+        {
+            var r = ImGuiNative.TextLinkOpenURL(labelPtr, urlPtr) != 0;
+            label.Recycle();
+            url.Recycle();
+            return r;
+        }
     }
 
     public static void TreePush(ImU8String strId)

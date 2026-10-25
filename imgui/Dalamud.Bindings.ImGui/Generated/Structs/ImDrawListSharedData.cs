@@ -25,12 +25,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImTextureID TexIdCommon;
+		public Vector2 TexUvWhitePixel;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public Vector2 TexUvWhitePixel;
+		public unsafe Vector4* TexUvLines;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Vector4* TexUvCorners;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImFontAtlas* FontAtlas;
 
 		/// <summary>
 		/// To be documented.
@@ -45,12 +55,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float CurveTessellationTol;
+		public ImDrawShapeTexUvs ShapeTexUvs;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float CircleSegmentMaxError;
+		public unsafe ImTextureData* ShapeTex;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void* TextLayoutFn;
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void* FontMetricsFn;
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float FontScale;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float CurveTessellationMaxError;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float CircleTessellationMaxError;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImDrawFlags InitialDrawFlags;
 
 		/// <summary>
 		/// To be documented.
@@ -60,7 +98,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImDrawListFlags InitialFlags;
+		public ImVector<Vector2> TempBuffer;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImVector<ImDrawListPtr> DrawLists;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImGuiContext* Context;
 
 		/// <summary>
 		/// To be documented.
@@ -187,25 +235,30 @@ namespace Dalamud.Bindings.ImGui
 		public byte CircleSegmentCounts_62;
 		public byte CircleSegmentCounts_63;
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe Vector4* TexUvLines;
-
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImDrawListSharedData(ImTextureID texIdCommon = default, Vector2 texUvWhitePixel = default, ImFont* font = default, float fontSize = default, float curveTessellationTol = default, float circleSegmentMaxError = default, Vector4 clipRectFullscreen = default, ImDrawListFlags initialFlags = default, Vector2* arcFastVtx = default, float arcFastRadiusCutoff = default, byte* circleSegmentCounts = default, Vector4* texUvLines = default)
+		public unsafe ImDrawListSharedData(Vector2 texUvWhitePixel = default, Vector4* texUvLines = default, Vector4* texUvCorners = default, ImFontAtlas* fontAtlas = default, ImFont* font = default, float fontSize = default, ImDrawShapeTexUvs shapeTexUvs = default, ImTextureDataPtr shapeTex = default, ImTextLayoutFn textLayoutFn = default, ImFontMetricsFn fontMetricsFn = default, float fontScale = default, float curveTessellationMaxError = default, float circleTessellationMaxError = default, ImDrawFlags initialDrawFlags = default, Vector4 clipRectFullscreen = default, ImVector<Vector2> tempBuffer = default, ImVector<ImDrawListPtr> drawLists = default, ImGuiContext* context = default, Vector2* arcFastVtx = default, float arcFastRadiusCutoff = default, byte* circleSegmentCounts = default)
 		{
-			TexIdCommon = texIdCommon;
 			TexUvWhitePixel = texUvWhitePixel;
+			TexUvLines = texUvLines;
+			TexUvCorners = texUvCorners;
+			FontAtlas = fontAtlas;
 			Font = font;
 			FontSize = fontSize;
-			CurveTessellationTol = curveTessellationTol;
-			CircleSegmentMaxError = circleSegmentMaxError;
+			ShapeTexUvs = shapeTexUvs;
+			ShapeTex = shapeTex;
+			TextLayoutFn = (void*)Marshal.GetFunctionPointerForDelegate(textLayoutFn);
+			FontMetricsFn = (void*)Marshal.GetFunctionPointerForDelegate(fontMetricsFn);
+			FontScale = fontScale;
+			CurveTessellationMaxError = curveTessellationMaxError;
+			CircleTessellationMaxError = circleTessellationMaxError;
+			InitialDrawFlags = initialDrawFlags;
 			ClipRectFullscreen = clipRectFullscreen;
-			InitialFlags = initialFlags;
+			TempBuffer = tempBuffer;
+			DrawLists = drawLists;
+			Context = context;
 			if (arcFastVtx != default(Vector2*))
 			{
 				ArcFastVtx_0 = arcFastVtx[0];
@@ -325,22 +378,31 @@ namespace Dalamud.Bindings.ImGui
 				CircleSegmentCounts_62 = circleSegmentCounts[62];
 				CircleSegmentCounts_63 = circleSegmentCounts[63];
 			}
-			TexUvLines = texUvLines;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImDrawListSharedData(ImTextureID texIdCommon = default, Vector2 texUvWhitePixel = default, ImFont* font = default, float fontSize = default, float curveTessellationTol = default, float circleSegmentMaxError = default, Vector4 clipRectFullscreen = default, ImDrawListFlags initialFlags = default, Span<Vector2> arcFastVtx = default, float arcFastRadiusCutoff = default, Span<byte> circleSegmentCounts = default, Vector4* texUvLines = default)
+		public unsafe ImDrawListSharedData(Vector2 texUvWhitePixel = default, Vector4* texUvLines = default, Vector4* texUvCorners = default, ImFontAtlas* fontAtlas = default, ImFont* font = default, float fontSize = default, ImDrawShapeTexUvs shapeTexUvs = default, ImTextureDataPtr shapeTex = default, ImTextLayoutFn textLayoutFn = default, ImFontMetricsFn fontMetricsFn = default, float fontScale = default, float curveTessellationMaxError = default, float circleTessellationMaxError = default, ImDrawFlags initialDrawFlags = default, Vector4 clipRectFullscreen = default, ImVector<Vector2> tempBuffer = default, ImVector<ImDrawListPtr> drawLists = default, ImGuiContext* context = default, Span<Vector2> arcFastVtx = default, float arcFastRadiusCutoff = default, Span<byte> circleSegmentCounts = default)
 		{
-			TexIdCommon = texIdCommon;
 			TexUvWhitePixel = texUvWhitePixel;
+			TexUvLines = texUvLines;
+			TexUvCorners = texUvCorners;
+			FontAtlas = fontAtlas;
 			Font = font;
 			FontSize = fontSize;
-			CurveTessellationTol = curveTessellationTol;
-			CircleSegmentMaxError = circleSegmentMaxError;
+			ShapeTexUvs = shapeTexUvs;
+			ShapeTex = shapeTex;
+			TextLayoutFn = (void*)Marshal.GetFunctionPointerForDelegate(textLayoutFn);
+			FontMetricsFn = (void*)Marshal.GetFunctionPointerForDelegate(fontMetricsFn);
+			FontScale = fontScale;
+			CurveTessellationMaxError = curveTessellationMaxError;
+			CircleTessellationMaxError = circleTessellationMaxError;
+			InitialDrawFlags = initialDrawFlags;
 			ClipRectFullscreen = clipRectFullscreen;
-			InitialFlags = initialFlags;
+			TempBuffer = tempBuffer;
+			DrawLists = drawLists;
+			Context = context;
 			if (arcFastVtx != default(Span<Vector2>))
 			{
 				ArcFastVtx_0 = arcFastVtx[0];
@@ -460,7 +522,6 @@ namespace Dalamud.Bindings.ImGui
 				CircleSegmentCounts_62 = circleSegmentCounts[62];
 				CircleSegmentCounts_63 = circleSegmentCounts[63];
 			}
-			TexUvLines = texUvLines;
 		}
 
 
@@ -478,17 +539,6 @@ namespace Dalamud.Bindings.ImGui
 				}
 			}
 		}
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImDrawListSharedData* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
-
 	}
 
 	/// <summary>
@@ -535,11 +585,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImTextureID TexIdCommon => ref Unsafe.AsRef<ImTextureID>(&Handle->TexIdCommon);
+		public ref Vector2 TexUvWhitePixel => ref Unsafe.AsRef<Vector2>(&Handle->TexUvWhitePixel);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref Vector2 TexUvWhitePixel => ref Unsafe.AsRef<Vector2>(&Handle->TexUvWhitePixel);
+		public Vector4* TexUvLines { get => Handle->TexUvLines; set => Handle->TexUvLines = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public Vector4* TexUvCorners { get => Handle->TexUvCorners; set => Handle->TexUvCorners = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImFontAtlasPtr FontAtlas => ref Unsafe.AsRef<ImFontAtlasPtr>(&Handle->FontAtlas);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -551,11 +609,35 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float CurveTessellationTol => ref Unsafe.AsRef<float>(&Handle->CurveTessellationTol);
+		public ref ImDrawShapeTexUvs ShapeTexUvs => ref Unsafe.AsRef<ImDrawShapeTexUvs>(&Handle->ShapeTexUvs);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float CircleSegmentMaxError => ref Unsafe.AsRef<float>(&Handle->CircleSegmentMaxError);
+		public ref ImTextureDataPtr ShapeTex => ref Unsafe.AsRef<ImTextureDataPtr>(&Handle->ShapeTex);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public void* TextLayoutFn { get => Handle->TextLayoutFn; set => Handle->TextLayoutFn = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public void* FontMetricsFn { get => Handle->FontMetricsFn; set => Handle->FontMetricsFn = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float FontScale => ref Unsafe.AsRef<float>(&Handle->FontScale);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float CurveTessellationMaxError => ref Unsafe.AsRef<float>(&Handle->CurveTessellationMaxError);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float CircleTessellationMaxError => ref Unsafe.AsRef<float>(&Handle->CircleTessellationMaxError);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImDrawFlags InitialDrawFlags => ref Unsafe.AsRef<ImDrawFlags>(&Handle->InitialDrawFlags);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -563,7 +645,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImDrawListFlags InitialFlags => ref Unsafe.AsRef<ImDrawListFlags>(&Handle->InitialFlags);
+		public ref ImVector<Vector2> TempBuffer => ref Unsafe.AsRef<ImVector<Vector2>>(&Handle->TempBuffer);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImVector<ImDrawListPtr> DrawLists => ref Unsafe.AsRef<ImVector<ImDrawListPtr>>(&Handle->DrawLists);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiContextPtr Context => ref Unsafe.AsRef<ImGuiContextPtr>(&Handle->Context);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -590,18 +680,6 @@ namespace Dalamud.Bindings.ImGui
 				return new Span<byte>(&Handle->CircleSegmentCounts_0, 64);
 			}
 		}
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public Vector4* TexUvLines { get => Handle->TexUvLines; set => Handle->TexUvLines = value; }
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
 	}
 
 }

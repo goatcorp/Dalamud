@@ -18,4 +18,22 @@ public unsafe partial struct ImGuiViewport
 				ImGuiNative.Destroy(@this);
 			}
 		}
+		public unsafe Vector2 GetCenter()
+		{
+			fixed (ImGuiViewport* @this = &this)
+			{
+				Vector2 ret = ImGuiNative.GetCenter(@this);
+				return ret;
+			}
+		}
+		public unsafe Vector2 GetWorkCenter()
+		{
+			fixed (ImGuiViewport* @this = &this)
+			{
+				Vector2 ret = ImGuiNative.GetWorkCenter(@this);
+				return ret;
+			}
+		}
 }
+// DISCARDED: GetDebugName
+// DISCARDED: GetDebugNameS

@@ -32,14 +32,20 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public float WheelY;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiMouseSource MouseSource;
+
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiInputEventMouseWheel(float wheelX = default, float wheelY = default)
+		public unsafe ImGuiInputEventMouseWheel(float wheelX = default, float wheelY = default, ImGuiMouseSource mouseSource = default)
 		{
 			WheelX = wheelX;
 			WheelY = wheelY;
+			MouseSource = mouseSource;
 		}
 
 

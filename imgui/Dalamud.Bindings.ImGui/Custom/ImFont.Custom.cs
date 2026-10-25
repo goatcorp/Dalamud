@@ -2,37 +2,25 @@ using System.Numerics;
 
 namespace Dalamud.Bindings.ImGui;
 
-public unsafe partial struct ImFont
+/// <summary>An opaque handle of a font. Native code never reads what it points to.</summary>
+public unsafe partial struct ImFontPtr
 {
-    public readonly int CalcWordWrapPositionA(float scale, ReadOnlySpan<byte> text, float wrapWidth)
+    /// <summary>Draws one character, like the removed <c>ImFont::RenderChar</c>.</summary>
+    /// <param name="drawList">The draw list.</param>
+    /// <param name="size">Size in pixels (after global scaling).</param>
+    /// <param name="pos">Top-left position of the line.</param>
+    /// <param name="col">Color.</param>
+    /// <param name="codepoint">The character.</param>
+    public void RenderChar(ImDrawListPtr drawList, float size, Vector2 pos, uint col, uint codepoint)
     {
-        fixed (ImFont* thisPtr = &this) return ImGui.CalcWordWrapPositionA(thisPtr, scale, text, wrapWidth);
+        if (!System.Text.Rune.TryCreate(codepoint, out var rune))
+            return;
+        Span<byte> buf = stackalloc byte[4];
+        var len = rune.EncodeToUtf8(buf);
+        ImGuiP.GetTextDesc(out var desc, drawList: drawList);
+        desc.Size = size;
+        fixed (byte* p = buf)
+            ImGuiNative.AddTextEx(
+                drawList, this.Handle, &desc, pos, col, p, p + len, null, ImTextRenderFlags.None, null);
     }
-
-    public readonly void RenderText(
-        ImDrawListPtr drawList, float size, Vector2 pos, uint col, Vector4 clipRect, ImU8String text,
-        float wrapWidth = 0.0f, bool cpuFineClip = false)
-    {
-        fixed (ImFont* thisPtr =
-                   &this) ImGui.RenderText(thisPtr, drawList, size, pos, col, clipRect, text, wrapWidth, cpuFineClip);
-    }
-}
-
-public partial struct ImFontPtr
-{
-    public readonly int CalcWordWrapPositionA(float scale, ImU8String text, float wrapWidth) =>
-        ImGui.CalcWordWrapPositionA(this, scale, text, wrapWidth);
-
-    public readonly void RenderText(
-        ImDrawListPtr drawList, float size, Vector2 pos, uint col, Vector4 clipRect, ImU8String text,
-        float wrapWidth = 0.0f, bool cpuFineClip = false) => ImGui.RenderText(
-        this,
-        drawList,
-        size,
-        pos,
-        col,
-        clipRect,
-        text,
-        wrapWidth,
-        cpuFineClip);
 }

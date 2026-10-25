@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Dalamud.Bindings.ImGui;
@@ -16,16 +17,39 @@ public static unsafe partial class ImGuiP
         text.Recycle();
     }
 
+    /// <summary>Gets the layout parameters of text in the current font, as ImGui lays it out.</summary>
+    /// <param name="desc">Receives the layout parameters.</param>
+    /// <param name="wrapWidth">Wrap width. 0 or less disables wrapping.</param>
+    /// <param name="flags">Layout flags.</param>
+    /// <param name="drawList">The draw list to take the font size and pixel density from, or null for the current
+    /// context's.</param>
+    public static void GetTextDesc(
+        out ImTextDesc desc, float wrapWidth = 0.0f, ImTextLayoutFlags flags = ImTextLayoutFlags.None,
+        ImDrawListPtr drawList = default)
+    {
+        Unsafe.SkipInit(out desc);
+        fixed (ImTextDesc* p = &desc)
+            ImGuiPNative.GetTextDesc(p, wrapWidth, flags, drawList);
+    }
+
     public static int FindRenderedTextEnd(
         ReadOnlySpan<byte> text, out ReadOnlySpan<byte> before, out ReadOnlySpan<byte> after)
     {
-        fixed (byte* ptr = text)
+        if (text.IsEmpty)
         {
-            var r = (int)(ImGuiPNative.FindRenderedTextEnd(ptr, ptr + text.Length) - ptr);
-            before = text[..r];
-            after = text[r..];
-            return r;
+            before = after = text;
+            return 0;
         }
+
+        // Native reads past the end to tell an already cut label, so it gets a NUL-terminated copy.
+        var terminated = new ImU8String(text, true);
+        int r;
+        fixed (byte* ptr = terminated)
+            r = (int)(ImGuiPNative.FindRenderedTextEnd(ptr, ptr + text.Length) - ptr);
+        terminated.Recycle();
+        before = text[..r];
+        after = text[r..];
+        return r;
     }
 
     public static int FindRenderedTextEnd(
@@ -44,10 +68,10 @@ public static unsafe partial class ImGuiP
         fixed (byte* strPtr = str)
         {
             var seed = *self.IDStack.Back;
-            var id = ImGuiPNative.ImHashStr(strPtr, (nuint)str.Length, seed);
+            var id = ImGuiPNative.HashLabel(strPtr, strPtr + str.Length, seed);
             var g = ImGui.GetCurrentContext();
-            if (g.DebugHookIdInfo == id)
-                DebugHookIdInfo(id, (ImGuiDataType)ImGuiDataTypePrivate.String, strPtr, strPtr + str.Length);
+            if (g.DebugHookIdInfoId == id)
+                DebugHookIdInfo(id, ImGuiDataType.String, strPtr, strPtr + str.Length);
             str.Recycle();
             return id;
         }
@@ -73,16 +97,20 @@ public static unsafe partial class ImGuiP
 
     public static void ImParseFormatSanitizeForPrinting(ReadOnlySpan<byte> fmtIn, Span<byte> fmtOut)
     {
-        fixed (byte* fmtInPtr = fmtIn)
+        var fmt = new ImU8String(fmtIn);
+        fixed (byte* fmtInPtr = &fmt.GetPinnableNullTerminatedReference())
         fixed (byte* fmtOutPtr = fmtOut)
             ImGuiPNative.ImParseFormatSanitizeForPrinting(fmtInPtr, fmtOutPtr, (nuint)fmtOut.Length);
+        fmt.Recycle();
     }
 
     public static void ImParseFormatSanitizeForScanning(ReadOnlySpan<byte> fmtIn, Span<byte> fmtOut)
     {
-        fixed (byte* fmtInPtr = fmtIn)
+        var fmt = new ImU8String(fmtIn);
+        fixed (byte* fmtInPtr = &fmt.GetPinnableNullTerminatedReference())
         fixed (byte* fmtOutPtr = fmtOut)
             ImGuiPNative.ImParseFormatSanitizeForScanning(fmtInPtr, fmtOutPtr, (nuint)fmtOut.Length);
+        fmt.Recycle();
     }
 
     public static int ImStrchrRange<T>(ReadOnlySpan<T> str, T c, out ReadOnlySpan<T> before, out ReadOnlySpan<T> after)
@@ -140,7 +168,7 @@ public static unsafe partial class ImGuiP
 
     public static void RenderText(Vector2 pos, ImU8String text, bool hideTextAfterHash = true)
     {
-        fixed (byte* textPtr = text)
+        fixed (byte* textPtr = &text.GetPinnableNullTerminatedReference())
             ImGuiPNative.RenderText(pos, textPtr, textPtr + text.Length, hideTextAfterHash ? (byte)1 : (byte)0);
         text.Recycle();
     }
@@ -160,7 +188,7 @@ public static unsafe partial class ImGuiP
     {
         var textSizeIfKnownOrDefault = textSizeIfKnown ?? default;
         var clipRectOrDefault = clipRect ?? default;
-        fixed (byte* textPtr = text)
+        fixed (byte* textPtr = &text.GetPinnableNullTerminatedReference())
             ImGuiPNative.RenderTextClipped(
                 posMin,
                 posMax,
@@ -193,7 +221,7 @@ public static unsafe partial class ImGuiP
     }
 
     public static void RenderTextEllipsis(
-        ImDrawListPtr drawList, scoped in Vector2 posMin, scoped in Vector2 posMax, float clipMaxX, float ellipsisMaxX,
+        ImDrawListPtr drawList, scoped in Vector2 posMin, scoped in Vector2 posMax, float ellipsisMaxX,
         ImU8String text, scoped in Vector2? textSizeIfKnown = null)
     {
         var textSizeIfKnownOrDefault = textSizeIfKnown ?? default;
@@ -202,7 +230,6 @@ public static unsafe partial class ImGuiP
                 drawList.Handle,
                 posMin,
                 posMax,
-                clipMaxX,
                 ellipsisMaxX,
                 textPtr,
                 textPtr + text.Length,

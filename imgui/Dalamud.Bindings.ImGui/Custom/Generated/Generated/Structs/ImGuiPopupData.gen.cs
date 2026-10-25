@@ -11,11 +11,4 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiPopupData
 {
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiPopupData* @this = &this)
-			{
-				ImGuiNative.Destroy(@this);
-			}
-		}
 }
