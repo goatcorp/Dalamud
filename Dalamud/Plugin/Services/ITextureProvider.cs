@@ -6,7 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.ImGuiSeStringRenderer;
+using Dalamud.Interface;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -51,8 +52,9 @@ public interface ITextureProvider : IDalamudService
     /// </summary>
     /// <param name="debugName">Name for debug display purposes.</param>
     /// <returns>A new draw list texture.</returns>
-    /// <remarks>No new resource is allocated upfront; it will be done when <see cref="IDrawListTextureWrap.Size"/> is
-    /// set with positive values for both components.</remarks>
+    /// <remarks>No resource is allocated until <see cref="IDrawListTextureWrap.Size"/> is set with positive width and
+    /// height. Wrap one-shot text drawing in <see cref="Interface.Fonts.ImGuiTextExtensions.extension(ImGui).PushCompleteGlyphs"/>
+    /// so uncached glyphs are rasterized synchronously instead of skipped.</remarks>
     IDrawListTextureWrap CreateDrawListTexture(string? debugName = null);
 
     /// <summary>Creates a texture from the given existing texture, cropping and converting pixel format as needed.
@@ -187,15 +189,28 @@ public interface ITextureProvider : IDalamudService
         string? debugName = null,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Creates a texture by drawing a SeString onto it.</summary>
-    /// <param name="text">SeString to render.</param>
-    /// <param name="drawParams">Parameters for drawing.</param>
+    /// <summary>Renders formatted or plain text into a new texture.</summary>
+    /// <param name="text">The text.</param>
+    /// <param name="markup">The markup.</param>
+    /// <param name="style">The text style. The default uses the Dalamud default font.</param>
+    /// <param name="scale">The scale applied to lengths in <see cref="StyleUnit.Px"/>, or 0 for the global scale.
+    /// </param>
+    /// <param name="wrapWidth">The width in pixels to wrap text at, or the maximum value for no wrap.</param>
     /// <param name="debugName">Name for debug display purposes.</param>
     /// <returns>The new texture.</returns>
-    /// <remarks>Can be only be used from the main thread.</remarks>
-    IDalamudTextureWrap CreateTextureFromSeString(
-        ReadOnlySpan<byte> text,
-        scoped in SeStringDrawParams drawParams = default,
+    /// <exception cref="ArgumentOutOfRangeException">If <paramref name="scale"/> is negative or not finite.
+    /// </exception>
+    /// <remarks><ul>
+    /// <li>Can only be used from the main thread.</li>
+    /// <li>Use <see cref="ImGuiTextExtensions.extension(ImGui).PushTextCallback"/> for customizing its behavior.</li>
+    /// </ul></remarks>
+    /// <seealso cref="TextureProviderExtensions.extension(ITextureProvider).CreateTextureFromSeString"/>
+    IDalamudTextureWrap CreateTextureFromText(
+        ImU8String text,
+        TextMarkup markup,
+        scoped in TextStyle style = default,
+        float scale = 0,
+        float wrapWidth = float.MaxValue,
         string? debugName = null);
 
     /// <summary>Gets the supported bitmap decoders.</summary>
