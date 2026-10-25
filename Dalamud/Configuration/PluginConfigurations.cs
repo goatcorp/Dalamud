@@ -1,6 +1,7 @@
 using System.IO;
 using System.Reflection;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
 
@@ -176,6 +177,7 @@ public sealed class PluginConfigurations
             {
                 TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
                 TypeNameHandling = TypeNameHandling.Objects,
+                SerializationBinder = MovedTypeSerializationBinder.Instance,
             });
     }
 
@@ -189,6 +191,7 @@ public sealed class PluginConfigurations
         {
             TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
             TypeNameHandling = TypeNameHandling.Objects,
+            SerializationBinder = MovedTypeSerializationBinder.Instance,
         };
 
         private DalamudAssemblyTypeNameForcingJsonConverter()
