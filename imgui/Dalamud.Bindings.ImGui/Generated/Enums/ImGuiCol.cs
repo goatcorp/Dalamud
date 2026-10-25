@@ -117,186 +117,226 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		SliderGrab = unchecked(19),
+		CheckboxSelectedBg = unchecked(19),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		SliderGrabActive = unchecked(20),
+		SliderGrab = unchecked(20),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Button = unchecked(21),
+		SliderGrabActive = unchecked(21),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ButtonHovered = unchecked(22),
+		Button = unchecked(22),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ButtonActive = unchecked(23),
+		ButtonHovered = unchecked(23),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Header = unchecked(24),
+		ButtonActive = unchecked(24),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		HeaderHovered = unchecked(25),
+		Header = unchecked(25),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		HeaderActive = unchecked(26),
+		HeaderHovered = unchecked(26),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Separator = unchecked(27),
+		HeaderActive = unchecked(27),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		SeparatorHovered = unchecked(28),
+		Separator = unchecked(28),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		SeparatorActive = unchecked(29),
+		SeparatorHovered = unchecked(29),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ResizeGrip = unchecked(30),
+		SeparatorActive = unchecked(30),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ResizeGripHovered = unchecked(31),
+		ResizeGrip = unchecked(31),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ResizeGripActive = unchecked(32),
+		ResizeGripHovered = unchecked(32),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Tab = unchecked(33),
+		ResizeGripActive = unchecked(33),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TabHovered = unchecked(34),
+		InputTextCursor = unchecked(34),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TabActive = unchecked(35),
+		TabHovered = unchecked(35),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TabUnfocused = unchecked(36),
+		Tab = unchecked(36),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TabUnfocusedActive = unchecked(37),
+		TabSelected = unchecked(37),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DockingPreview = unchecked(38),
+		TabSelectedOverline = unchecked(38),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DockingEmptyBg = unchecked(39),
+		TabDimmed = unchecked(39),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		PlotLines = unchecked(40),
+		TabDimmedSelected = unchecked(40),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		PlotLinesHovered = unchecked(41),
+		TabDimmedSelectedOverline = unchecked(41),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		PlotHistogram = unchecked(42),
+		DockingPreview = unchecked(42),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		PlotHistogramHovered = unchecked(43),
+		DockingEmptyBg = unchecked(43),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TableHeaderBg = unchecked(44),
+		PlotLines = unchecked(44),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TableBorderStrong = unchecked(45),
+		PlotLinesHovered = unchecked(45),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TableBorderLight = unchecked(46),
+		PlotHistogram = unchecked(46),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TableRowBg = unchecked(47),
+		PlotHistogramHovered = unchecked(47),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TableRowBgAlt = unchecked(48),
+		TableHeaderBg = unchecked(48),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TextSelectedBg = unchecked(49),
+		TableBorderStrong = unchecked(49),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DragDropTarget = unchecked(50),
+		TableBorderLight = unchecked(50),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NavHighlight = unchecked(51),
+		TableRowBg = unchecked(51),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NavWindowingHighlight = unchecked(52),
+		TableRowBgAlt = unchecked(52),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NavWindowingDimBg = unchecked(53),
+		TextLink = unchecked(53),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ModalWindowDimBg = unchecked(54),
+		TextSelectedBg = unchecked(54),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Count = unchecked(55),
+		TreeLines = unchecked(55),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		DragDropTarget = unchecked(56),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		DragDropTargetBg = unchecked(57),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		UnsavedMarker = unchecked(58),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NavCursor = unchecked(59),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NavWindowingHighlight = unchecked(60),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NavWindowingDimBg = unchecked(61),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ModalWindowDimBg = unchecked(62),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Count = unchecked(63),
 	}
 }

@@ -35,6 +35,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public uint FocusRouteParentWindowId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ImGuiViewportFlags ViewportFlagsOverrideSet;
 
 		/// <summary>
@@ -62,20 +67,27 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public byte DockingAllowUnclassed;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void* PlatformIconData;
+
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiWindowClass(uint classId = default, uint parentViewportId = default, ImGuiViewportFlags viewportFlagsOverrideSet = default, ImGuiViewportFlags viewportFlagsOverrideClear = default, ImGuiTabItemFlags tabItemFlagsOverrideSet = default, ImGuiDockNodeFlags dockNodeFlagsOverrideSet = default, bool dockingAlwaysTabBar = default, bool dockingAllowUnclassed = default)
+		public unsafe ImGuiWindowClass(uint classId = default, uint parentViewportId = default, uint focusRouteParentWindowId = default, ImGuiViewportFlags viewportFlagsOverrideSet = default, ImGuiViewportFlags viewportFlagsOverrideClear = default, ImGuiTabItemFlags tabItemFlagsOverrideSet = default, ImGuiDockNodeFlags dockNodeFlagsOverrideSet = default, bool dockingAlwaysTabBar = default, bool dockingAllowUnclassed = default, void* platformIconData = default)
 		{
 			ClassId = classId;
 			ParentViewportId = parentViewportId;
+			FocusRouteParentWindowId = focusRouteParentWindowId;
 			ViewportFlagsOverrideSet = viewportFlagsOverrideSet;
 			ViewportFlagsOverrideClear = viewportFlagsOverrideClear;
 			TabItemFlagsOverrideSet = tabItemFlagsOverrideSet;
 			DockNodeFlagsOverrideSet = dockNodeFlagsOverrideSet;
 			DockingAlwaysTabBar = dockingAlwaysTabBar ? (byte)1 : (byte)0;
 			DockingAllowUnclassed = dockingAllowUnclassed ? (byte)1 : (byte)0;
+			PlatformIconData = platformIconData;
 		}
 
 
@@ -144,6 +156,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref uint FocusRouteParentWindowId => ref Unsafe.AsRef<uint>(&Handle->FocusRouteParentWindowId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref ImGuiViewportFlags ViewportFlagsOverrideSet => ref Unsafe.AsRef<ImGuiViewportFlags>(&Handle->ViewportFlagsOverrideSet);
 		/// <summary>
 		/// To be documented.
@@ -165,6 +181,10 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref bool DockingAllowUnclassed => ref Unsafe.AsRef<bool>(&Handle->DockingAllowUnclassed);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public void* PlatformIconData { get => Handle->PlatformIconData; set => Handle->PlatformIconData = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>

@@ -566,6 +566,18 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe bool HasTickLabelsInside()
+		{
+			fixed (ImPlotAxis* @this = &this)
+			{
+				byte ret = ImPlot.HasTickLabelsInsideNative(@this);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe bool HasTickMarks()
 		{
 			fixed (ImPlotAxis* @this = &this)
@@ -1236,6 +1248,15 @@ namespace Dalamud.Bindings.ImPlot
 		public unsafe bool HasTickLabels()
 		{
 			byte ret = ImPlot.HasTickLabelsNative(Handle);
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool HasTickLabelsInside()
+		{
+			byte ret = ImPlot.HasTickLabelsInsideNative(Handle);
 			return ret != 0;
 		}
 

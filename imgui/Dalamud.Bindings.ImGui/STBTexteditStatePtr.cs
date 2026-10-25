@@ -13,6 +13,12 @@ namespace Dalamud.Bindings.ImGui
             Handle = handle;
         }
 
+        public readonly ref int Cursor => ref Handle->Cursor;
+
+        public readonly ref int SelectStart => ref Handle->SelectStart;
+
+        public readonly ref int SelectEnd => ref Handle->SelectEnd;
+
         public override readonly bool Equals(object obj)
         {
             return obj is STBTexteditStatePtr ptr && Equals(ptr);

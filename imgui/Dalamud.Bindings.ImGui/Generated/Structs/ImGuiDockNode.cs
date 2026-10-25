@@ -96,12 +96,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiWindowClass WindowClass;
+		public uint LastBgColor;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public uint LastBgColor;
+		public ImGuiWindowClass WindowClass;
 
 		/// <summary>
 		/// To be documented.
@@ -158,14 +158,20 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public uint WantCloseTabId;
 
-		public ImGuiDataAuthority RawBits0;
-		public bool RawBits1;
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint RefViewportId;
+
+		public byte RawBits0;
+		public byte RawBits1;
 		public bool RawBits2;
+		public bool RawBits3;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiDockNode(uint id = default, ImGuiDockNodeFlags sharedFlags = default, ImGuiDockNodeFlags localFlags = default, ImGuiDockNodeFlags localFlagsInWindows = default, ImGuiDockNodeFlags mergedFlags = default, ImGuiDockNodeState state = default, ImGuiDockNode* parentNode = default, ImGuiDockNode** childNodes = default, ImVector<ImGuiWindowPtr> windows = default, ImGuiTabBar* tabBar = default, Vector2 pos = default, Vector2 size = default, Vector2 sizeRef = default, ImGuiAxis splitAxis = default, ImGuiWindowClass windowClass = default, uint lastBgColor = default, ImGuiWindowPtr hostWindow = default, ImGuiWindowPtr visibleWindow = default, ImGuiDockNode* centralNode = default, ImGuiDockNode* onlyNodeWithWindows = default, int countNodeWithWindows = default, int lastFrameAlive = default, int lastFrameActive = default, int lastFrameFocused = default, uint lastFocusedNodeId = default, uint selectedTabId = default, uint wantCloseTabId = default, ImGuiDataAuthority authorityForPos = default, ImGuiDataAuthority authorityForSize = default, ImGuiDataAuthority authorityForViewport = default, bool isVisible = default, bool isFocused = default, bool isBgDrawnThisFrame = default, bool hasCloseButton = default, bool hasWindowMenuButton = default, bool hasCentralNodeChild = default, bool wantCloseAll = default, bool wantLockSizeOnce = default, bool wantMouseMove = default, bool wantHiddenTabBarUpdate = default, bool wantHiddenTabBarToggle = default)
+		public unsafe ImGuiDockNode(uint id = default, ImGuiDockNodeFlags sharedFlags = default, ImGuiDockNodeFlags localFlags = default, ImGuiDockNodeFlags localFlagsInWindows = default, ImGuiDockNodeFlags mergedFlags = default, ImGuiDockNodeState state = default, ImGuiDockNode* parentNode = default, ImGuiDockNode** childNodes = default, ImVector<ImGuiWindowPtr> windows = default, ImGuiTabBar* tabBar = default, Vector2 pos = default, Vector2 size = default, Vector2 sizeRef = default, ImGuiAxis splitAxis = default, uint lastBgColor = default, ImGuiWindowClass windowClass = default, ImGuiWindowPtr hostWindow = default, ImGuiWindowPtr visibleWindow = default, ImGuiDockNode* centralNode = default, ImGuiDockNode* onlyNodeWithWindows = default, int countNodeWithWindows = default, int lastFrameAlive = default, int lastFrameActive = default, int lastFrameFocused = default, uint lastFocusedNodeId = default, uint selectedTabId = default, uint wantCloseTabId = default, uint refViewportId = default, byte authorityForPos = default, byte authorityForSize = default, byte authorityForViewport = default, bool isVisible = default, bool isFocused = default, bool isBgDrawnThisFrame = default, bool hasCloseButton = default, bool hasWindowMenuButton = default, bool hasCentralNodeChild = default, bool wantCloseAll = default, bool wantLockSizeOnce = default, bool wantMouseMove = default, bool wantHiddenTabBarUpdate = default, bool wantHiddenTabBarToggle = default)
 		{
 			ID = id;
 			SharedFlags = sharedFlags;
@@ -185,8 +191,8 @@ namespace Dalamud.Bindings.ImGui
 			Size = size;
 			SizeRef = sizeRef;
 			SplitAxis = splitAxis;
-			WindowClass = windowClass;
 			LastBgColor = lastBgColor;
+			WindowClass = windowClass;
 			HostWindow = hostWindow;
 			VisibleWindow = visibleWindow;
 			CentralNode = centralNode;
@@ -198,6 +204,7 @@ namespace Dalamud.Bindings.ImGui
 			LastFocusedNodeId = lastFocusedNodeId;
 			SelectedTabId = selectedTabId;
 			WantCloseTabId = wantCloseTabId;
+			RefViewportId = refViewportId;
 			AuthorityForPos = authorityForPos;
 			AuthorityForSize = authorityForSize;
 			AuthorityForViewport = authorityForViewport;
@@ -217,7 +224,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiDockNode(uint id = default, ImGuiDockNodeFlags sharedFlags = default, ImGuiDockNodeFlags localFlags = default, ImGuiDockNodeFlags localFlagsInWindows = default, ImGuiDockNodeFlags mergedFlags = default, ImGuiDockNodeState state = default, ImGuiDockNode* parentNode = default, Span<Pointer<ImGuiDockNode>> childNodes = default, ImVector<ImGuiWindowPtr> windows = default, ImGuiTabBar* tabBar = default, Vector2 pos = default, Vector2 size = default, Vector2 sizeRef = default, ImGuiAxis splitAxis = default, ImGuiWindowClass windowClass = default, uint lastBgColor = default, ImGuiWindowPtr hostWindow = default, ImGuiWindowPtr visibleWindow = default, ImGuiDockNode* centralNode = default, ImGuiDockNode* onlyNodeWithWindows = default, int countNodeWithWindows = default, int lastFrameAlive = default, int lastFrameActive = default, int lastFrameFocused = default, uint lastFocusedNodeId = default, uint selectedTabId = default, uint wantCloseTabId = default, ImGuiDataAuthority authorityForPos = default, ImGuiDataAuthority authorityForSize = default, ImGuiDataAuthority authorityForViewport = default, bool isVisible = default, bool isFocused = default, bool isBgDrawnThisFrame = default, bool hasCloseButton = default, bool hasWindowMenuButton = default, bool hasCentralNodeChild = default, bool wantCloseAll = default, bool wantLockSizeOnce = default, bool wantMouseMove = default, bool wantHiddenTabBarUpdate = default, bool wantHiddenTabBarToggle = default)
+		public unsafe ImGuiDockNode(uint id = default, ImGuiDockNodeFlags sharedFlags = default, ImGuiDockNodeFlags localFlags = default, ImGuiDockNodeFlags localFlagsInWindows = default, ImGuiDockNodeFlags mergedFlags = default, ImGuiDockNodeState state = default, ImGuiDockNode* parentNode = default, Span<Pointer<ImGuiDockNode>> childNodes = default, ImVector<ImGuiWindowPtr> windows = default, ImGuiTabBar* tabBar = default, Vector2 pos = default, Vector2 size = default, Vector2 sizeRef = default, ImGuiAxis splitAxis = default, uint lastBgColor = default, ImGuiWindowClass windowClass = default, ImGuiWindowPtr hostWindow = default, ImGuiWindowPtr visibleWindow = default, ImGuiDockNode* centralNode = default, ImGuiDockNode* onlyNodeWithWindows = default, int countNodeWithWindows = default, int lastFrameAlive = default, int lastFrameActive = default, int lastFrameFocused = default, uint lastFocusedNodeId = default, uint selectedTabId = default, uint wantCloseTabId = default, uint refViewportId = default, byte authorityForPos = default, byte authorityForSize = default, byte authorityForViewport = default, bool isVisible = default, bool isFocused = default, bool isBgDrawnThisFrame = default, bool hasCloseButton = default, bool hasWindowMenuButton = default, bool hasCentralNodeChild = default, bool wantCloseAll = default, bool wantLockSizeOnce = default, bool wantMouseMove = default, bool wantHiddenTabBarUpdate = default, bool wantHiddenTabBarToggle = default)
 		{
 			ID = id;
 			SharedFlags = sharedFlags;
@@ -237,8 +244,8 @@ namespace Dalamud.Bindings.ImGui
 			Size = size;
 			SizeRef = sizeRef;
 			SplitAxis = splitAxis;
-			WindowClass = windowClass;
 			LastBgColor = lastBgColor;
+			WindowClass = windowClass;
 			HostWindow = hostWindow;
 			VisibleWindow = visibleWindow;
 			CentralNode = centralNode;
@@ -250,6 +257,7 @@ namespace Dalamud.Bindings.ImGui
 			LastFocusedNodeId = lastFocusedNodeId;
 			SelectedTabId = selectedTabId;
 			WantCloseTabId = wantCloseTabId;
+			RefViewportId = refViewportId;
 			AuthorityForPos = authorityForPos;
 			AuthorityForSize = authorityForSize;
 			AuthorityForViewport = authorityForViewport;
@@ -267,33 +275,33 @@ namespace Dalamud.Bindings.ImGui
 		}
 
 
-		public ImGuiDataAuthority AuthorityForPos { get => Bitfield.Get(RawBits0, 0, 3); set => Bitfield.Set(ref RawBits0, value, 0, 3); }
+		public byte AuthorityForPos { get => Bitfield.Get(RawBits0, 0, 3); set => Bitfield.Set(ref RawBits0, value, 0, 3); }
 
-		public ImGuiDataAuthority AuthorityForSize { get => Bitfield.Get(RawBits0, 3, 3); set => Bitfield.Set(ref RawBits0, value, 3, 3); }
+		public byte AuthorityForSize { get => Bitfield.Get(RawBits0, 3, 3); set => Bitfield.Set(ref RawBits0, value, 3, 3); }
 
-		public ImGuiDataAuthority AuthorityForViewport { get => Bitfield.Get(RawBits0, 6, 3); set => Bitfield.Set(ref RawBits0, value, 6, 3); }
+		public byte AuthorityForViewport { get => Bitfield.Get(RawBits1, 0, 3); set => Bitfield.Set(ref RawBits1, value, 0, 3); }
 
-		public bool IsVisible { get => Bitfield.Get(RawBits1, 0, 1); set => Bitfield.Set(ref RawBits1, value, 0, 1); }
+		public bool IsVisible { get => Bitfield.Get(RawBits2, 0, 1); set => Bitfield.Set(ref RawBits2, value, 0, 1); }
 
-		public bool IsFocused { get => Bitfield.Get(RawBits1, 1, 1); set => Bitfield.Set(ref RawBits1, value, 1, 1); }
+		public bool IsFocused { get => Bitfield.Get(RawBits2, 1, 1); set => Bitfield.Set(ref RawBits2, value, 1, 1); }
 
-		public bool IsBgDrawnThisFrame { get => Bitfield.Get(RawBits1, 2, 1); set => Bitfield.Set(ref RawBits1, value, 2, 1); }
+		public bool IsBgDrawnThisFrame { get => Bitfield.Get(RawBits2, 2, 1); set => Bitfield.Set(ref RawBits2, value, 2, 1); }
 
-		public bool HasCloseButton { get => Bitfield.Get(RawBits1, 3, 1); set => Bitfield.Set(ref RawBits1, value, 3, 1); }
+		public bool HasCloseButton { get => Bitfield.Get(RawBits2, 3, 1); set => Bitfield.Set(ref RawBits2, value, 3, 1); }
 
-		public bool HasWindowMenuButton { get => Bitfield.Get(RawBits1, 4, 1); set => Bitfield.Set(ref RawBits1, value, 4, 1); }
+		public bool HasWindowMenuButton { get => Bitfield.Get(RawBits2, 4, 1); set => Bitfield.Set(ref RawBits2, value, 4, 1); }
 
-		public bool HasCentralNodeChild { get => Bitfield.Get(RawBits1, 5, 1); set => Bitfield.Set(ref RawBits1, value, 5, 1); }
+		public bool HasCentralNodeChild { get => Bitfield.Get(RawBits2, 5, 1); set => Bitfield.Set(ref RawBits2, value, 5, 1); }
 
-		public bool WantCloseAll { get => Bitfield.Get(RawBits1, 6, 1); set => Bitfield.Set(ref RawBits1, value, 6, 1); }
+		public bool WantCloseAll { get => Bitfield.Get(RawBits2, 6, 1); set => Bitfield.Set(ref RawBits2, value, 6, 1); }
 
-		public bool WantLockSizeOnce { get => Bitfield.Get(RawBits1, 7, 1); set => Bitfield.Set(ref RawBits1, value, 7, 1); }
+		public bool WantLockSizeOnce { get => Bitfield.Get(RawBits2, 7, 1); set => Bitfield.Set(ref RawBits2, value, 7, 1); }
 
-		public bool WantMouseMove { get => Bitfield.Get(RawBits2, 0, 1); set => Bitfield.Set(ref RawBits2, value, 0, 1); }
+		public bool WantMouseMove { get => Bitfield.Get(RawBits3, 0, 1); set => Bitfield.Set(ref RawBits3, value, 0, 1); }
 
-		public bool WantHiddenTabBarUpdate { get => Bitfield.Get(RawBits2, 1, 1); set => Bitfield.Set(ref RawBits2, value, 1, 1); }
+		public bool WantHiddenTabBarUpdate { get => Bitfield.Get(RawBits3, 1, 1); set => Bitfield.Set(ref RawBits3, value, 1, 1); }
 
-		public bool WantHiddenTabBarToggle { get => Bitfield.Get(RawBits2, 2, 1); set => Bitfield.Set(ref RawBits2, value, 2, 1); }
+		public bool WantHiddenTabBarToggle { get => Bitfield.Get(RawBits3, 2, 1); set => Bitfield.Set(ref RawBits3, value, 2, 1); }
 
 		/// <summary>
 		/// To be documented.
@@ -410,11 +418,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiWindowClass WindowClass => ref Unsafe.AsRef<ImGuiWindowClass>(&Handle->WindowClass);
+		public ref uint LastBgColor => ref Unsafe.AsRef<uint>(&Handle->LastBgColor);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint LastBgColor => ref Unsafe.AsRef<uint>(&Handle->LastBgColor);
+		public ref ImGuiWindowClass WindowClass => ref Unsafe.AsRef<ImGuiWindowClass>(&Handle->WindowClass);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -462,15 +470,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiDataAuthority AuthorityForPos { get => Handle->AuthorityForPos; set => Handle->AuthorityForPos = value; }
+		public ref uint RefViewportId => ref Unsafe.AsRef<uint>(&Handle->RefViewportId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiDataAuthority AuthorityForSize { get => Handle->AuthorityForSize; set => Handle->AuthorityForSize = value; }
+		public byte AuthorityForPos { get => Handle->AuthorityForPos; set => Handle->AuthorityForPos = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiDataAuthority AuthorityForViewport { get => Handle->AuthorityForViewport; set => Handle->AuthorityForViewport = value; }
+		public byte AuthorityForSize { get => Handle->AuthorityForSize; set => Handle->AuthorityForSize = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte AuthorityForViewport { get => Handle->AuthorityForViewport; set => Handle->AuthorityForViewport = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>

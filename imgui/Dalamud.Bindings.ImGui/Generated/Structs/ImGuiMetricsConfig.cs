@@ -30,7 +30,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte ShowStackTool;
+		public byte ShowIDStackTool;
 
 		/// <summary>
 		/// To be documented.
@@ -60,6 +60,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte ShowTextEncodingViewer;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte ShowTextureUsedRect;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte ShowDockingNodes;
 
 		/// <summary>
@@ -72,126 +82,56 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public int ShowTablesRectsType;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int HighlightMonitorIdx;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiMetricsConfig(bool showDebugLog = default, bool showStackTool = default, bool showWindowsRects = default, bool showWindowsBeginOrder = default, bool showTablesRects = default, bool showDrawCmdMesh = default, bool showDrawCmdBoundingBoxes = default, bool showDockingNodes = default, int showWindowsRectsType = default, int showTablesRectsType = default)
+		public uint HighlightViewportID;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int SettingsDiscardMonths;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte SettingsHighlightOldEntries;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte ShowFontPreview;
+
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImGuiMetricsConfig(bool showDebugLog = default, bool showIdStackTool = default, bool showWindowsRects = default, bool showWindowsBeginOrder = default, bool showTablesRects = default, bool showDrawCmdMesh = default, bool showDrawCmdBoundingBoxes = default, bool showTextEncodingViewer = default, bool showTextureUsedRect = default, bool showDockingNodes = default, int showWindowsRectsType = default, int showTablesRectsType = default, int highlightMonitorIdx = default, uint highlightViewportId = default, int settingsDiscardMonths = default, bool settingsHighlightOldEntries = default, bool showFontPreview = default)
 		{
 			ShowDebugLog = showDebugLog ? (byte)1 : (byte)0;
-			ShowStackTool = showStackTool ? (byte)1 : (byte)0;
+			ShowIDStackTool = showIdStackTool ? (byte)1 : (byte)0;
 			ShowWindowsRects = showWindowsRects ? (byte)1 : (byte)0;
 			ShowWindowsBeginOrder = showWindowsBeginOrder ? (byte)1 : (byte)0;
 			ShowTablesRects = showTablesRects ? (byte)1 : (byte)0;
 			ShowDrawCmdMesh = showDrawCmdMesh ? (byte)1 : (byte)0;
 			ShowDrawCmdBoundingBoxes = showDrawCmdBoundingBoxes ? (byte)1 : (byte)0;
+			ShowTextEncodingViewer = showTextEncodingViewer ? (byte)1 : (byte)0;
+			ShowTextureUsedRect = showTextureUsedRect ? (byte)1 : (byte)0;
 			ShowDockingNodes = showDockingNodes ? (byte)1 : (byte)0;
 			ShowWindowsRectsType = showWindowsRectsType;
 			ShowTablesRectsType = showTablesRectsType;
+			HighlightMonitorIdx = highlightMonitorIdx;
+			HighlightViewportID = highlightViewportId;
+			SettingsDiscardMonths = settingsDiscardMonths;
+			SettingsHighlightOldEntries = settingsHighlightOldEntries ? (byte)1 : (byte)0;
+			ShowFontPreview = showFontPreview ? (byte)1 : (byte)0;
 		}
 
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiMetricsConfig* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
-
-	}
-
-	/// <summary>
-	/// To be documented.
-	/// </summary>
-	#if NET5_0_OR_GREATER
-	[DebuggerDisplay("{DebuggerDisplay,nq}")]
-	#endif
-	public unsafe struct ImGuiMetricsConfigPtr : IEquatable<ImGuiMetricsConfigPtr>
-	{
-		public ImGuiMetricsConfigPtr(ImGuiMetricsConfig* handle) { Handle = handle; }
-
-		public ImGuiMetricsConfig* Handle;
-
-		public bool IsNull => Handle == null;
-
-		public static ImGuiMetricsConfigPtr Null => new ImGuiMetricsConfigPtr(null);
-
-		public ImGuiMetricsConfig this[int index] { get => Handle[index]; set => Handle[index] = value; }
-
-		public static implicit operator ImGuiMetricsConfigPtr(ImGuiMetricsConfig* handle) => new ImGuiMetricsConfigPtr(handle);
-
-		public static implicit operator ImGuiMetricsConfig*(ImGuiMetricsConfigPtr handle) => handle.Handle;
-
-		public static bool operator ==(ImGuiMetricsConfigPtr left, ImGuiMetricsConfigPtr right) => left.Handle == right.Handle;
-
-		public static bool operator !=(ImGuiMetricsConfigPtr left, ImGuiMetricsConfigPtr right) => left.Handle != right.Handle;
-
-		public static bool operator ==(ImGuiMetricsConfigPtr left, ImGuiMetricsConfig* right) => left.Handle == right;
-
-		public static bool operator !=(ImGuiMetricsConfigPtr left, ImGuiMetricsConfig* right) => left.Handle != right;
-
-		public bool Equals(ImGuiMetricsConfigPtr other) => Handle == other.Handle;
-
-		/// <inheritdoc/>
-		public override bool Equals(object obj) => obj is ImGuiMetricsConfigPtr handle && Equals(handle);
-
-		/// <inheritdoc/>
-		public override int GetHashCode() => ((nuint)Handle).GetHashCode();
-
-		#if NET5_0_OR_GREATER
-		private string DebuggerDisplay => string.Format("ImGuiMetricsConfigPtr [0x{0}]", ((nuint)Handle).ToString("X"));
-		#endif
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool ShowDebugLog => ref Unsafe.AsRef<bool>(&Handle->ShowDebugLog);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool ShowStackTool => ref Unsafe.AsRef<bool>(&Handle->ShowStackTool);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool ShowWindowsRects => ref Unsafe.AsRef<bool>(&Handle->ShowWindowsRects);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool ShowWindowsBeginOrder => ref Unsafe.AsRef<bool>(&Handle->ShowWindowsBeginOrder);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool ShowTablesRects => ref Unsafe.AsRef<bool>(&Handle->ShowTablesRects);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool ShowDrawCmdMesh => ref Unsafe.AsRef<bool>(&Handle->ShowDrawCmdMesh);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool ShowDrawCmdBoundingBoxes => ref Unsafe.AsRef<bool>(&Handle->ShowDrawCmdBoundingBoxes);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref bool ShowDockingNodes => ref Unsafe.AsRef<bool>(&Handle->ShowDockingNodes);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref int ShowWindowsRectsType => ref Unsafe.AsRef<int>(&Handle->ShowWindowsRectsType);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref int ShowTablesRectsType => ref Unsafe.AsRef<int>(&Handle->ShowTablesRectsType);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
 
 	}
 

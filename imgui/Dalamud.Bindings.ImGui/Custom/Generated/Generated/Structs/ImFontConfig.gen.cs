@@ -11,11 +11,4 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImFontConfig
 {
-		public unsafe void Destroy()
-		{
-			fixed (ImFontConfig* @this = &this)
-			{
-				ImGuiNative.Destroy(@this);
-			}
-		}
 }

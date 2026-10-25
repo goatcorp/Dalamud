@@ -27,6 +27,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		OverridePreviousTooltip = unchecked(1),
+		OverridePrevious = unchecked(2),
 	}
 }

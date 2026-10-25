@@ -31,7 +31,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiModFlags PanMod;
+		public int PanMod;
 
 		/// <summary>
 		/// To be documented.
@@ -51,17 +51,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiModFlags SelectMod;
+		public int SelectMod;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiModFlags SelectHorzMod;
+		public int SelectHorzMod;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiModFlags SelectVertMod;
+		public int SelectVertMod;
 
 		/// <summary>
 		/// To be documented.
@@ -71,12 +71,12 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiModFlags OverrideMod;
+		public int OverrideMod;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiModFlags ZoomMod;
+		public int ZoomMod;
 
 		/// <summary>
 		/// To be documented.
@@ -87,7 +87,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImPlotInputMap(ImGuiMouseButton pan = default, ImGuiModFlags panMod = default, ImGuiMouseButton fit = default, ImGuiMouseButton select = default, ImGuiMouseButton selectCancel = default, ImGuiModFlags selectMod = default, ImGuiModFlags selectHorzMod = default, ImGuiModFlags selectVertMod = default, ImGuiMouseButton menu = default, ImGuiModFlags overrideMod = default, ImGuiModFlags zoomMod = default, float zoomRate = default)
+		public unsafe ImPlotInputMap(ImGuiMouseButton pan = default, int panMod = default, ImGuiMouseButton fit = default, ImGuiMouseButton select = default, ImGuiMouseButton selectCancel = default, int selectMod = default, int selectHorzMod = default, int selectVertMod = default, ImGuiMouseButton menu = default, int overrideMod = default, int zoomMod = default, float zoomRate = default)
 		{
 			Pan = pan;
 			PanMod = panMod;
@@ -165,7 +165,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiModFlags PanMod => ref Unsafe.AsRef<ImGuiModFlags>(&Handle->PanMod);
+		public ref int PanMod => ref Unsafe.AsRef<int>(&Handle->PanMod);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -181,15 +181,15 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiModFlags SelectMod => ref Unsafe.AsRef<ImGuiModFlags>(&Handle->SelectMod);
+		public ref int SelectMod => ref Unsafe.AsRef<int>(&Handle->SelectMod);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiModFlags SelectHorzMod => ref Unsafe.AsRef<ImGuiModFlags>(&Handle->SelectHorzMod);
+		public ref int SelectHorzMod => ref Unsafe.AsRef<int>(&Handle->SelectHorzMod);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiModFlags SelectVertMod => ref Unsafe.AsRef<ImGuiModFlags>(&Handle->SelectVertMod);
+		public ref int SelectVertMod => ref Unsafe.AsRef<int>(&Handle->SelectVertMod);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -197,11 +197,11 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiModFlags OverrideMod => ref Unsafe.AsRef<ImGuiModFlags>(&Handle->OverrideMod);
+		public ref int OverrideMod => ref Unsafe.AsRef<int>(&Handle->OverrideMod);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiModFlags ZoomMod => ref Unsafe.AsRef<ImGuiModFlags>(&Handle->ZoomMod);
+		public ref int ZoomMod => ref Unsafe.AsRef<int>(&Handle->ZoomMod);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

@@ -11,11 +11,4 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImDrawListSharedData
 {
-		public unsafe void Destroy()
-		{
-			fixed (ImDrawListSharedData* @this = &this)
-			{
-				ImGuiNative.Destroy(@this);
-			}
-		}
 }

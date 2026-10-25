@@ -25,12 +25,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiNextItemDataFlags Flags;
+		public ImGuiNextItemDataFlags HasFlags;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float Width;
+		public ImGuiItemFlags ItemFlagsSet;
 
 		/// <summary>
 		/// To be documented.
@@ -40,37 +40,68 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiCond OpenCond;
+		public long SelectionUserData;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float Width;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int Shortcut;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiInputFlags ShortcutFlags;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public byte OpenVal;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte OpenCond;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiNextItemData(ImGuiNextItemDataFlags flags = default, float width = default, uint focusScopeId = default, ImGuiCond openCond = default, bool openVal = default)
+		public ImGuiDataTypeStorage RefVal;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint StorageId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint ColorMarker;
+
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImGuiNextItemData(ImGuiNextItemDataFlags hasFlags = default, ImGuiItemFlags itemFlagsSet = default, uint focusScopeId = default, long selectionUserData = default, float width = default, int shortcut = default, ImGuiInputFlags shortcutFlags = default, bool openVal = default, byte openCond = default, ImGuiDataTypeStorage refVal = default, uint storageId = default, uint colorMarker = default)
 		{
-			Flags = flags;
-			Width = width;
+			HasFlags = hasFlags;
+			ItemFlagsSet = itemFlagsSet;
 			FocusScopeId = focusScopeId;
-			OpenCond = openCond;
+			SelectionUserData = selectionUserData;
+			Width = width;
+			Shortcut = shortcut;
+			ShortcutFlags = shortcutFlags;
 			OpenVal = openVal ? (byte)1 : (byte)0;
+			OpenCond = openCond;
+			RefVal = refVal;
+			StorageId = storageId;
+			ColorMarker = colorMarker;
 		}
 
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiNextItemData* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
 
 	}
 
@@ -118,11 +149,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiNextItemDataFlags Flags => ref Unsafe.AsRef<ImGuiNextItemDataFlags>(&Handle->Flags);
+		public ref ImGuiNextItemDataFlags HasFlags => ref Unsafe.AsRef<ImGuiNextItemDataFlags>(&Handle->HasFlags);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float Width => ref Unsafe.AsRef<float>(&Handle->Width);
+		public ref ImGuiItemFlags ItemFlagsSet => ref Unsafe.AsRef<ImGuiItemFlags>(&Handle->ItemFlagsSet);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -130,7 +161,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiCond OpenCond => ref Unsafe.AsRef<ImGuiCond>(&Handle->OpenCond);
+		public ref long SelectionUserData => ref Unsafe.AsRef<long>(&Handle->SelectionUserData);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float Width => ref Unsafe.AsRef<float>(&Handle->Width);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int Shortcut => ref Unsafe.AsRef<int>(&Handle->Shortcut);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiInputFlags ShortcutFlags => ref Unsafe.AsRef<ImGuiInputFlags>(&Handle->ShortcutFlags);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -138,11 +181,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
+		public ref byte OpenCond => ref Unsafe.AsRef<byte>(&Handle->OpenCond);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiDataTypeStorage RefVal => ref Unsafe.AsRef<ImGuiDataTypeStorage>(&Handle->RefVal);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint StorageId => ref Unsafe.AsRef<uint>(&Handle->StorageId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint ColorMarker => ref Unsafe.AsRef<uint>(&Handle->ColorMarker);
 	}
 
 }

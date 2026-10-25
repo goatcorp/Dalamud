@@ -11,11 +11,4 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImVec2Ih
 {
-		public unsafe void Destroy()
-		{
-			fixed (ImVec2Ih* @this = &this)
-			{
-				ImGuiNative.Destroy(@this);
-			}
-		}
 }

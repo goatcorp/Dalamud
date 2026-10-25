@@ -6,19 +6,28 @@ namespace Dalamud.Bindings.ImGui;
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public static unsafe partial class ImGui
 {
+    /// <summary>Adds a callback that the renderer calls when it reaches this point of the draw list.</summary>
+    /// <param name="self">The draw list.</param>
+    /// <param name="callback">The callback.</param>
+    /// <param name="callbackData">The data the callback gets in <see cref="ImDrawCmd.UserCallbackData"/>.</param>
+    /// <remarks>Dalamud's renderer binds straight-alpha blending before invoking the callback, while its pixel shader
+    /// outputs premultiplied alpha. A callback that draws must bind its own pixel shader and restore render state
+    /// afterward, such as with <see cref="ImDrawCallbackEnum.ResetRenderState"/>. If Dalamud's pixel shader remains
+    /// bound, the renderer restores its text resources and blend state.</remarks>
     public static void AddCallback(
         ImDrawListPtr self, delegate*<ImDrawListPtr, ImDrawCmdPtr, void> callback, void* callbackData = null) =>
-        ImGuiNative.AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)callback, callbackData);
+        ImGuiNative.AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)callback, callbackData, 0);
 
+    /// <inheritdoc cref="AddCallback(ImDrawListPtr, delegate*{ImDrawListPtr, ImDrawCmdPtr, void}, void*)"/>
     public static void AddCallback(
         ImDrawListPtr self, delegate*<ref ImDrawList, ref ImDrawCmd, void> callback, void* callbackData = null) =>
-        ImGuiNative.AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)callback, callbackData);
+        ImGuiNative.AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)callback, callbackData, 0);
 
     public static void AddCallback(ImDrawListPtr self, ImDrawCallbackEnum presetCallback)
     {
         if (!Enum.IsDefined(presetCallback))
             throw new ArgumentOutOfRangeException(nameof(presetCallback), presetCallback, null);
-        ImGuiNative.AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)(nint)presetCallback);
+        ImGuiNative.AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)(nint)presetCallback, null, 0);
     }
 
     public static ImGuiPayloadPtr AcceptDragDropPayload(
@@ -30,63 +39,6 @@ public static unsafe partial class ImGui
             type.Recycle();
             return r;
         }
-    }
-
-    public static ImFontPtr AddFontFromFileTTF(
-        ImFontAtlasPtr self, ImU8String filename, float sizePixels, ImFontConfigPtr fontCfg = default,
-        ushort* glyphRanges = null)
-    {
-        fixed (byte* filenamePtr = &filename.GetPinnableNullTerminatedReference())
-        {
-            var r = ImGuiNative.AddFontFromFileTTF(self, filenamePtr, sizePixels, fontCfg, glyphRanges);
-            filename.Recycle();
-            return r;
-        }
-    }
-
-    public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(
-        ImFontAtlasPtr self, ImU8String compressedFontDatabase85, float sizePixels,
-        ImFontConfigPtr fontCfg = default, ushort* glyphRanges = null)
-    {
-        fixed (byte* compressedFontDatabase85Ptr = &compressedFontDatabase85.GetPinnableNullTerminatedReference())
-        {
-            var r = ImGuiNative.AddFontFromMemoryCompressedBase85TTF(
-                self,
-                compressedFontDatabase85Ptr,
-                sizePixels,
-                fontCfg,
-                glyphRanges);
-            compressedFontDatabase85.Recycle();
-            return r;
-        }
-    }
-
-    public static ImFontPtr AddFontFromMemoryCompressedTTF(
-        ImFontAtlasPtr self, ReadOnlySpan<byte> compressedFontData, float sizePixels, ImFontConfigPtr fontCfg = default,
-        ushort* glyphRanges = null)
-    {
-        fixed (byte* compressedFontPtr = compressedFontData)
-            return ImGuiNative.AddFontFromMemoryCompressedTTF(
-                self,
-                compressedFontPtr,
-                compressedFontData.Length,
-                sizePixels,
-                fontCfg,
-                glyphRanges);
-    }
-
-    public static ImFontPtr AddFontFromMemoryTTF(
-        ImFontAtlasPtr self, ReadOnlySpan<byte> fontData, float sizePixels, ImFontConfigPtr fontCfg = default,
-        ushort* glyphRanges = null)
-    {
-        fixed (byte* fontDataPtr = fontData)
-            return ImGuiNative.AddFontFromMemoryTTF(
-                self,
-                fontDataPtr,
-                fontData.Length,
-                sizePixels,
-                fontCfg,
-                glyphRanges);
     }
 
     public static void AddInputCharacter(ImGuiIOPtr self, char c) => ImGuiNative.AddInputCharacter(self, c);
