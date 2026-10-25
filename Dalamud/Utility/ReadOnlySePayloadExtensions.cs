@@ -22,9 +22,27 @@ public static class ReadOnlySePayloadExtensions
         return payload.AsSpan().IsLink(linkType);
     }
 
-    /// <inheritdoc cref="ReadOnlySePayloadSpanExtensions.TryParseDalamudLink(ReadOnlySePayloadSpan, out DalamudLinkPayload)"/>
-    public static bool TryParseDalamudLink(this ReadOnlySePayload rosp, out DalamudLinkPayload payload)
+    /// <inheritdoc cref="ReadOnlySePayloadSpanExtensions.IsLinkTerminator(ReadOnlySePayloadSpan)"/>
+    public static bool IsLinkTerminator(this ReadOnlySePayload payload)
     {
-        return rosp.AsSpan().TryParseDalamudLink(out payload);
+        return payload.AsSpan().IsLinkTerminator();
+    }
+
+    /// <inheritdoc cref="ReadOnlySePayloadSpanExtensions.TryReadLink(ReadOnlySePayloadSpan, out LinkMacroPayloadType, out ReadOnlySeExpressionSpan, out ReadOnlySeExpressionSpan, out ReadOnlySeExpressionSpan, out ReadOnlySeExpressionSpan)"/>
+    public static bool TryReadLink(
+        this ReadOnlySePayload payload,
+        out LinkMacroPayloadType linkType,
+        out ReadOnlySeExpressionSpan expr1,
+        out ReadOnlySeExpressionSpan expr2,
+        out ReadOnlySeExpressionSpan expr3,
+        out ReadOnlySeExpressionSpan expr4)
+    {
+        return payload.AsSpan().TryReadLink(out linkType, out expr1, out expr2, out expr3, out expr4);
+    }
+
+    /// <inheritdoc cref="ReadOnlySePayloadSpanExtensions.TryReadDalamudLink(ReadOnlySePayloadSpan, out DalamudLinkPayload)"/>
+    public static bool TryReadDalamudLink(this ReadOnlySePayload rosp, out DalamudLinkPayload payload)
+    {
+        return rosp.AsSpan().TryReadDalamudLink(out payload);
     }
 }

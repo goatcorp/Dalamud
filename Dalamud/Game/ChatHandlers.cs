@@ -131,7 +131,7 @@ internal partial class ChatHandlers : IServiceType
                     .PushColorType(500)
                     .Append("  [ ")
                     .PushDalamudLink(dalamudLinkPayload)
-                    .Append(Loc.Localize("DalamudClickToViewChangelogs", "Click here to view the changelog."))
+                    .Append(Loc.Localize("DalamudClickToViewChangelogs", "Click here to view the changelog"))
                     .PopLink()
                     .Append(" ]")
                     .PopColorType()

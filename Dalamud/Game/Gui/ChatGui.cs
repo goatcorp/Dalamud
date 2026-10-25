@@ -461,7 +461,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             foreach (var payload in seStringSpan)
             {
                 // read DalamudLink
-                if (payload.TryParseDalamudLink(out var dalamudLinkPayload))
+                if (payload.TryReadDalamudLink(out var dalamudLinkPayload))
                 {
                     if (this.RegisteredLinkHandlers.TryGetValue((dalamudLinkPayload.PluginName, dalamudLinkPayload.CommandId), out var value))
                     {

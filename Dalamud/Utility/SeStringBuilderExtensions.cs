@@ -12,6 +12,8 @@ using SeString = Dalamud.Game.Text.SeString;
 
 namespace Dalamud.Utility;
 
+// Note: Do not forget to add forwards to RentedSeStringBuilder.
+
 /// <summary>
 /// Extension methods for SeStringBuilder.
 /// </summary>

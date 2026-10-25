@@ -340,7 +340,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                 if (this.alignToFramePadding)
                     ImGui.AlignTextToFramePadding();
                 ImGui.Text($"Hovered[{offset}]: {new ReadOnlySeStringSpan(envelope).ToString()}; {payload}");
-                if (clicked && payload.TryParseDalamudLink(out var dalamudLinkPayload) && dalamudLinkPayload.PluginName == "test")
+                if (clicked && payload.TryReadDalamudLink(out var dalamudLinkPayload) && dalamudLinkPayload.PluginName == "test")
                     Util.OpenLink(dalamudLinkPayload.ExtraString);
             }
             else

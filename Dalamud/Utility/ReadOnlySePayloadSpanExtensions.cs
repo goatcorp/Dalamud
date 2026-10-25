@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Dalamud.Game.Text;
 
 using Lumina.Text.Payloads;
@@ -39,14 +41,79 @@ public static class ReadOnlySePayloadSpanExtensions
     }
 
     /// <summary>
-    /// Attempts to parse a Dalamud link payload from the specified payload span.
+    /// Determines whether the specified payload represents a link terminator.
     /// </summary>
-    /// <param name="rosps">The payload span to parse.</param>
-    /// <param name="payload">When this method returns, contains the parsed <see cref="DalamudLinkPayload"/> if parsing succeeded, or <see langword="default"/> if parsing failed.</param>
-    /// <returns><see langword="true"/> if the payload was successfully parsed into a <see cref="DalamudLinkPayload"/>; otherwise, <see langword="false"/>.</returns>
-    public static bool TryParseDalamudLink(this ReadOnlySePayloadSpan rosps, out DalamudLinkPayload payload)
+    /// <param name="payload">The payload to check.</param>
+    /// <returns><see langword="true"/> if the payload is a link terminator; otherwise, <see langword="false"/>.</returns>
+    public static bool IsLinkTerminator(this ReadOnlySePayloadSpan payload)
     {
-        payload = default;
+        return payload.IsLink(LinkMacroPayloadType.Terminator);
+    }
+
+    /// <summary>
+    /// Attempts to read link parameters from the specified payload.
+    /// </summary>
+    /// <param name="payload">The payload to read from.</param>
+    /// <param name="linkType">The link type.</param>
+    /// <param name="expr1">The first integer expression.</param>
+    /// <param name="expr2">The second integer expression.</param>
+    /// <param name="expr3">The third integer expression.</param>
+    /// <param name="expr4">An optional string expression.</param>
+    /// <returns><see langword="true"/> if the payload is a link and its expressions were successfully read; otherwise, <see langword="false"/>.</returns>
+    public static bool TryReadLink(
+        this ReadOnlySePayloadSpan payload,
+        out LinkMacroPayloadType linkType,
+        out ReadOnlySeExpressionSpan expr1,
+        out ReadOnlySeExpressionSpan expr2,
+        out ReadOnlySeExpressionSpan expr3,
+        out ReadOnlySeExpressionSpan expr4)
+    {
+        linkType = default;
+        expr1 = default;
+        expr2 = default;
+        expr3 = default;
+        expr4 = default;
+
+        var enu = payload.GetEnumerator();
+
+        if (!enu.MoveNext() || !enu.Current.TryGetInt(out var typeInt))
+            return false;
+
+        linkType = (LinkMacroPayloadType)typeInt;
+
+        if (!enu.MoveNext())
+            return false;
+
+        expr1 = enu.Current;
+
+        if (!enu.MoveNext())
+            return false;
+
+        expr2 = enu.Current;
+
+        if (!enu.MoveNext())
+            return false;
+
+        expr3 = enu.Current;
+
+        // probably an optional display string
+        if (!enu.MoveNext())
+            return true;
+
+        expr4 = enu.Current;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to read a Dalamud link payload from the specified payload.
+    /// </summary>
+    /// <param name="rosps">The payload to read from.</param>
+    /// <param name="payload">The parsed <see cref="DalamudLinkPayload"/> if parsing succeeded, or <see langword="default"/> if parsing failed.</param>
+    /// <returns><see langword="true"/> if the payload was successfully parsed into a <see cref="DalamudLinkPayload"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool TryReadDalamudLink(this ReadOnlySePayloadSpan rosps, [NotNullWhen(true)] out DalamudLinkPayload? payload)
+    {
+        payload = null;
 
         if (!rosps.IsLink(DalamudLinkPayload.LinkType))
             return false;
