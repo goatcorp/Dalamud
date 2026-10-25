@@ -80,6 +80,7 @@ public class StyleModelV1 : StyleModel
             { "ScrollbarGrabHovered", new Vector4(0.41f, 0.41f, 0.41f, 1) },
             { "ScrollbarGrabActive", new Vector4(0.51f, 0.51f, 0.51f, 1) },
             { "CheckMark", new Vector4(0.86f, 0.86f, 0.86f, 1) },
+            { "CheckboxSelectedBg", new Vector4(0.29f, 0.29f, 0.29f, 0.54f) },
             { "SliderGrab", new Vector4(0.54f, 0.54f, 0.54f, 1) },
             { "SliderGrabActive", new Vector4(0.67f, 0.67f, 0.67f, 1) },
             { "Button", new Vector4(0.71f, 0.71f, 0.71f, 0.4f) },
@@ -94,11 +95,14 @@ public class StyleModelV1 : StyleModel
             { "ResizeGrip", new Vector4(0.79f, 0.79f, 0.79f, 0.25f) },
             { "ResizeGripHovered", new Vector4(0.78f, 0.78f, 0.78f, 0.67f) },
             { "ResizeGripActive", new Vector4(0.3647059f, 0.078431375f, 0.078431375f, 0.94509804f) },
+            { "InputTextCursor", new Vector4(1, 1, 1, 1) },
             { "Tab", new Vector4(0.23f, 0.23f, 0.23f, 0.86f) },
             { "TabHovered", new Vector4(0.58371043f, 0.30374074f, 0.30374074f, 0.7647059f) },
             { "TabActive", new Vector4(0.47963798f, 0.15843244f, 0.15843244f, 0.7647059f) },
+            { "TabSelectedOverline", new Vector4(0.58371043f, 0.30374074f, 0.30374074f, 1) },
             { "TabUnfocused", new Vector4(0.068f, 0.10199998f, 0.14800003f, 0.9724f) },
             { "TabUnfocusedActive", new Vector4(0.13599998f, 0.26199996f, 0.424f, 1) },
+            { "TabDimmedSelectedOverline", new Vector4(0.5f, 0.5f, 0.5f, 0) },
             { "DockingPreview", new Vector4(0.26f, 0.59f, 0.98f, 0.7f) },
             { "DockingEmptyBg", new Vector4(0.2f, 0.2f, 0.2f, 1) },
             { "PlotLines", new Vector4(0.61f, 0.61f, 0.61f, 1) },
@@ -110,8 +114,12 @@ public class StyleModelV1 : StyleModel
             { "TableBorderLight", new Vector4(0.23f, 0.23f, 0.25f, 1) },
             { "TableRowBg", new Vector4(0, 0, 0, 0) },
             { "TableRowBgAlt", new Vector4(1, 1, 1, 0.06f) },
+            { "TextLink", new Vector4(0.26f, 0.59f, 0.98f, 1) },
             { "TextSelectedBg", new Vector4(0.26f, 0.59f, 0.98f, 0.35f) },
+            { "TreeLines", new Vector4(0.43f, 0.43f, 0.5f, 0.5f) },
             { "DragDropTarget", new Vector4(1, 1, 0, 0.9f) },
+            { "DragDropTargetBg", new Vector4(0, 0, 0, 0) },
+            { "UnsavedMarker", new Vector4(1, 1, 1, 1) },
             { "NavHighlight", new Vector4(0.26f, 0.59f, 0.98f, 1) },
             { "NavWindowingHighlight", new Vector4(1, 1, 1, 0.7f) },
             { "NavWindowingDimBg", new Vector4(0.8f, 0.8f, 0.8f, 0.2f) },
@@ -209,6 +217,7 @@ public class StyleModelV1 : StyleModel
             { "ScrollbarGrabHovered", new Vector4(0.41f, 0.41f, 0.41f, 1f) },
             { "ScrollbarGrabActive", new Vector4(0.51f, 0.51f, 0.51f, 1f) },
             { "CheckMark", new Vector4(0.86f, 0.86f, 0.86f, 1f) },
+            { "CheckboxSelectedBg", new Vector4(0.29f, 0.29f, 0.29f, 0.54f) },
             { "SliderGrab", new Vector4(0.54f, 0.54f, 0.54f, 1f) },
             { "SliderGrabActive", new Vector4(0.67f, 0.67f, 0.67f, 1f) },
             { "Button", new Vector4(0.71f, 0.71f, 0.71f, 0.4f) },
@@ -223,11 +232,14 @@ public class StyleModelV1 : StyleModel
             { "ResizeGrip", new Vector4(0.79f, 0.79f, 0.79f, 0.25f) },
             { "ResizeGripHovered", new Vector4(0.78f, 0.78f, 0.78f, 0.67f) },
             { "ResizeGripActive", new Vector4(0.88f, 0.88f, 0.88f, 0.95f) },
+            { "InputTextCursor", new Vector4(1f, 1f, 1f, 1f) },
             { "Tab", new Vector4(0.23f, 0.23f, 0.23f, 0.86f) },
             { "TabHovered", new Vector4(0.71f, 0.71f, 0.71f, 0.8f) },
             { "TabActive", new Vector4(0.36f, 0.36f, 0.36f, 1f) },
+            { "TabSelectedOverline", new Vector4(0.6f, 0.6f, 0.6f, 1f) },
             { "TabUnfocused", new Vector4(0.068f, 0.10199998f, 0.14800003f, 0.9724f) },
             { "TabUnfocusedActive", new Vector4(0.13599998f, 0.26199996f, 0.424f, 1f) },
+            { "TabDimmedSelectedOverline", new Vector4(0.5f, 0.5f, 0.5f, 0f) },
             { "DockingPreview", new Vector4(0.26f, 0.59f, 0.98f, 0.7f) },
             { "DockingEmptyBg", new Vector4(0.2f, 0.2f, 0.2f, 1f) },
             { "PlotLines", new Vector4(0.61f, 0.61f, 0.61f, 1f) },
@@ -239,8 +251,12 @@ public class StyleModelV1 : StyleModel
             { "TableBorderLight", new Vector4(0.23f, 0.23f, 0.25f, 1f) },
             { "TableRowBg", new Vector4(0f, 0f, 0f, 0f) },
             { "TableRowBgAlt", new Vector4(1f, 1f, 1f, 0.06f) },
+            { "TextLink", new Vector4(0.26f, 0.59f, 0.98f, 1f) },
             { "TextSelectedBg", new Vector4(0.26f, 0.59f, 0.98f, 0.35f) },
+            { "TreeLines", new Vector4(0.43f, 0.43f, 0.5f, 0.5f) },
             { "DragDropTarget", new Vector4(1f, 1f, 0f, 0.9f) },
+            { "DragDropTargetBg", new Vector4(0f, 0f, 0f, 0f) },
+            { "UnsavedMarker", new Vector4(1f, 1f, 1f, 1f) },
             { "NavHighlight", new Vector4(0.26f, 0.59f, 0.98f, 1f) },
             { "NavWindowingHighlight", new Vector4(1f, 1f, 1f, 0.7f) },
             { "NavWindowingDimBg", new Vector4(0.8f, 0.8f, 0.8f, 0.2f) },
@@ -338,6 +354,7 @@ public class StyleModelV1 : StyleModel
             { "ScrollbarGrabHovered", new Vector4(0.41f, 0.41f, 0.41f, 1) },
             { "ScrollbarGrabActive", new Vector4(0.51f, 0.51f, 0.51f, 1) },
             { "CheckMark", new Vector4(0.86f, 0.86f, 0.86f, 1) },
+            { "CheckboxSelectedBg", new Vector4(0.29f, 0.29f, 0.29f, 0.54f) },
             { "SliderGrab", new Vector4(0.54f, 0.54f, 0.54f, 1) },
             { "SliderGrabActive", new Vector4(0.67f, 0.67f, 0.67f, 1) },
             { "Button", new Vector4(0.71f, 0.71f, 0.71f, 0.4f) },
@@ -352,11 +369,14 @@ public class StyleModelV1 : StyleModel
             { "ResizeGrip", new Vector4(0.79f, 0.79f, 0.79f, 0.25f) },
             { "ResizeGripHovered", new Vector4(0.78f, 0.78f, 0.78f, 0.67f) },
             { "ResizeGripActive", new Vector4(0.3647059f, 0.078431375f, 0.078431375f, 0.94509804f) },
+            { "InputTextCursor", new Vector4(1, 1, 1, 1) },
             { "Tab", new Vector4(0.23f, 0.23f, 0.23f, 0.86f) },
             { "TabHovered", new Vector4(0.58371043f, 0.30374074f, 0.30374074f, 0.7647059f) },
             { "TabActive", new Vector4(0.47963798f, 0.15843244f, 0.15843244f, 0.7647059f) },
+            { "TabSelectedOverline", new Vector4(0.58371043f, 0.30374074f, 0.30374074f, 1) },
             { "TabUnfocused", new Vector4(0.068f, 0.10199998f, 0.14800003f, 0.9724f) },
             { "TabUnfocusedActive", new Vector4(0.13599998f, 0.26199996f, 0.424f, 1) },
+            { "TabDimmedSelectedOverline", new Vector4(0.5f, 0.5f, 0.5f, 0) },
             { "DockingPreview", new Vector4(0.26f, 0.59f, 0.98f, 0.7f) },
             { "DockingEmptyBg", new Vector4(0.2f, 0.2f, 0.2f, 1) },
             { "PlotLines", new Vector4(0.61f, 0.61f, 0.61f, 1) },
@@ -368,8 +388,12 @@ public class StyleModelV1 : StyleModel
             { "TableBorderLight", new Vector4(0.23f, 0.23f, 0.25f, 1) },
             { "TableRowBg", new Vector4(0, 0, 0, 0) },
             { "TableRowBgAlt", new Vector4(1, 1, 1, 0.06f) },
+            { "TextLink", new Vector4(0.26f, 0.59f, 0.98f, 1) },
             { "TextSelectedBg", new Vector4(0.26f, 0.59f, 0.98f, 0.35f) },
+            { "TreeLines", new Vector4(0.43f, 0.43f, 0.5f, 0.5f) },
             { "DragDropTarget", new Vector4(1, 1, 0, 0.9f) },
+            { "DragDropTargetBg", new Vector4(0, 0, 0, 0) },
+            { "UnsavedMarker", new Vector4(1, 1, 1, 1) },
             { "NavHighlight", new Vector4(0.26f, 0.59f, 0.98f, 1) },
             { "NavWindowingHighlight", new Vector4(1, 1, 1, 0.7f) },
             { "NavWindowingDimBg", new Vector4(0.8f, 0.8f, 0.8f, 0.2f) },
@@ -660,7 +684,8 @@ public class StyleModelV1 : StyleModel
                 continue;
             }
 
-            style.Colors[(int)imGuiCol] = this.Colors[imGuiCol.ToString()];
+            if (this.TryGetColor(imGuiCol, out var color))
+                style.Colors[(int)imGuiCol] = color;
         }
 
         this.BuiltInColors?.Apply();
@@ -704,9 +729,26 @@ public class StyleModelV1 : StyleModel
                 continue;
             }
 
-            this.PushColorHelper(imGuiCol, this.Colors[imGuiCol.ToString()]);
+            if (this.TryGetColor(imGuiCol, out var color))
+                this.PushColorHelper(imGuiCol, color);
         }
 
         this.DonePushing();
+    }
+
+    private bool TryGetColor(ImGuiCol imGuiCol, out Vector4 color)
+    {
+        if (this.Colors.TryGetValue(imGuiCol.ToString(), out color))
+            return true;
+
+        var oldName = imGuiCol switch
+        {
+            ImGuiCol.NavCursor => "NavHighlight", // renamed in 1.91.4
+            ImGuiCol.TabSelected => "TabActive", // renamed in 1.90.9
+            ImGuiCol.TabDimmed => "TabUnfocused", // renamed in 1.90.9
+            ImGuiCol.TabDimmedSelected => "TabUnfocusedActive", // renamed in 1.90.9
+            _ => null,
+        };
+        return oldName is not null && this.Colors.TryGetValue(oldName, out color);
     }
 }

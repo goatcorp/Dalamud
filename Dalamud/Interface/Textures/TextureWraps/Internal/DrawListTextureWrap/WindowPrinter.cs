@@ -33,10 +33,9 @@ internal sealed unsafe partial class DrawListTextureWrap
         var drawData = new ImDrawData
         {
             Valid = 1,
-            CmdListsCount = numDrawList,
             TotalIdxCount = 0,
             TotalVtxCount = 0,
-            CmdLists = drawLists,
+            CmdLists = new(numDrawList, numDrawList, (ImDrawListPtr*)drawLists),
             DisplayPos = windowPtr.Pos,
             DisplaySize = windowPtr.Size,
             FramebufferScale = scale,
@@ -44,8 +43,8 @@ internal sealed unsafe partial class DrawListTextureWrap
         AddWindowToDrawData(windowPtr, ref drawLists);
         for (var i = 0; i < numDrawList; i++)
         {
-            drawData.TotalVtxCount += drawData.CmdLists[i]->VtxBuffer.Size;
-            drawData.TotalIdxCount += drawData.CmdLists[i]->IdxBuffer.Size;
+            drawData.TotalVtxCount += drawData.CmdLists[i].VtxBuffer.Size;
+            drawData.TotalIdxCount += drawData.CmdLists[i].IdxBuffer.Size;
         }
 
         this.Draw(drawData);
@@ -54,18 +53,18 @@ internal sealed unsafe partial class DrawListTextureWrap
 
         static bool IsWindowActiveAndVisible(ImGuiWindowPtr window) => window is { Active: true, Hidden: false };
 
+        static bool HasDrawList(ImGuiWindowPtr window) =>
+            window.DrawList.CmdBuffer.Size switch
+            {
+                0 => false,
+                1 => window.DrawList.CmdBuffer[0].ElemCount != 0 || window.DrawList.CmdBuffer[0].UserCallback != null,
+                _ => true,
+            };
+
         static void AddWindowToDrawData(ImGuiWindowPtr window, ref ImDrawList** wptr)
         {
-            switch (window.DrawList.CmdBuffer.Size)
-            {
-                case 0:
-                case 1 when window.DrawList.CmdBuffer[0].ElemCount == 0 &&
-                            window.DrawList.CmdBuffer[0].UserCallback == null:
-                    break;
-                default:
-                    *wptr++ = window.DrawList;
-                    break;
-            }
+            if (HasDrawList(window))
+                *wptr++ = window.DrawList;
 
             for (var i = 0; i < window.DC.ChildWindows.Size; i++)
             {
@@ -77,13 +76,7 @@ internal sealed unsafe partial class DrawListTextureWrap
 
         static int CountDrawList(ImGuiWindowPtr window)
         {
-            var res = window.DrawList.CmdBuffer.Size switch
-            {
-                0 => 0,
-                1 when window.DrawList.CmdBuffer[0].ElemCount == 0 &&
-                       window.DrawList.CmdBuffer[0].UserCallback == null => 0,
-                _ => 1,
-            };
+            var res = HasDrawList(window) ? 1 : 0;
             for (var i = 0; i < window.DC.ChildWindows.Size; i++)
             {
                 var child = window.DC.ChildWindows[i];
