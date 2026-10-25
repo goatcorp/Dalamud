@@ -1,4 +1,6 @@
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Fonts;
+using Dalamud.Interface.Internal;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -8,9 +10,6 @@ public static partial class ImRaii
     /// <summary> A wrapper around pushing fonts. </summary>
     public sealed class FontDisposable : IDisposable
     {
-        internal static int FontPushCounter;
-        internal static ImFontPtr DefaultPushed;
-
         /// <summary> Gets the number of fonts currently pushed using this disposable. </summary>
         public int Count { get; private set; }
 
@@ -19,26 +18,32 @@ public static partial class ImRaii
         [Obsolete("Use `ImRaii.DefaultFont()` instead.")]
         // ReSharper disable once MemberHidesStaticFromOuterClass
         public static FontDisposable DefaultFont()
-            => new FontDisposable().Push(DefaultPushed, FontPushCounter > 0);
+            => PushDefaultFont();
 
         /// <summary> Push the default font if any other font is currently pushed. </summary>
         /// <returns> A disposable object that can be used to push further fonts and pops those fonts after leaving scope. Use with using. </returns>
-        public static FontDisposable PushDefaultFont()
-            => new FontDisposable().Push(DefaultPushed, FontPushCounter > 0);
+        public static unsafe FontDisposable PushDefaultFont()
+        {
+            if (ImGui.GetCurrentContext().Handle->FontStack.Size > 1 &&
+                Service<InterfaceManager>.GetNullable()?.DefaultFontRef is { } defaultFont)
+            {
+                return new FontDisposable().InternalPush(defaultFont);
+            }
 
-        /// <summary> Push a font to the font stack. </summary>
+            return new FontDisposable();
+        }
+
+        /// <summary> Pushes a font onto the font stack with its inherent style and size. </summary>
         /// <param name="font"> The font to push. </param>
         /// <param name="condition"> If this is false, the font is not pushed. </param>
         /// <returns> A disposable object that can be used to push further fonts and pops those fonts after leaving scope. Use with using. </returns>
         /// <remarks> If you need to keep fonts pushed longer than the current scope, use without using and use <seealso cref="PopUnsafe"/>. </remarks>
+        /// <seealso cref="TextStyle.PushFamily"/>
         public FontDisposable Push(ImFontPtr font, bool condition = true)
             => condition ? this.InternalPush(font) : this;
 
         private FontDisposable InternalPush(ImFontPtr font)
         {
-            if (FontPushCounter++ == 0)
-                DefaultPushed = ImGui.GetFont();
-
             ImGui.PushFont(font);
             ++this.Count;
             return this;
@@ -50,7 +55,6 @@ public static partial class ImRaii
         {
             num = Math.Min(num, this.Count);
             this.Count -= num;
-            FontPushCounter -= num;
             while (num-- > 0)
                 ImGui.PopFont();
         }

@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
@@ -86,16 +87,16 @@ internal class LogMessageMonitorWidget : IDataWindowWidget
         ImGui.Text(data.LogMessageId.ToString());
 
         ImGui.TableNextColumn();
-        ImGuiHelpers.SeStringWrapped(data.Source);
+        ImGui.TextSeString(data.Source, wrap: true);
 
         ImGui.TableNextColumn();
-        ImGuiHelpers.SeStringWrapped(data.Target);
+        ImGui.TextSeString(data.Target, wrap: true);
 
         ImGui.TableNextColumn();
         ImGui.Text(data.Parameters);
 
         ImGui.TableNextColumn();
-        ImGuiHelpers.SeStringWrapped(data.Formatted);
+        ImGui.TextSeString(data.Formatted, wrap: true);
     }
 
     private void DrawFilterInput()
