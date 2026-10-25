@@ -46,6 +46,13 @@ public unsafe partial struct ImGuiIO
 				ImGuiNative.AddMousePosEvent(@this, x, y);
 			}
 		}
+		public unsafe void AddMouseSourceEvent(ImGuiMouseSource source)
+		{
+			fixed (ImGuiIO* @this = &this)
+			{
+				ImGuiNative.AddMouseSourceEvent(@this, source);
+			}
+		}
 		public unsafe void AddMouseViewportEvent(uint id)
 		{
 			fixed (ImGuiIO* @this = &this)
@@ -53,18 +60,18 @@ public unsafe partial struct ImGuiIO
 				ImGuiNative.AddMouseViewportEvent(@this, id);
 			}
 		}
-		public unsafe void AddMouseWheelEvent(float whX, float whY)
+		public unsafe void AddMouseWheelEvent(float wheelX, float wheelY)
 		{
 			fixed (ImGuiIO* @this = &this)
 			{
-				ImGuiNative.AddMouseWheelEvent(@this, whX, whY);
+				ImGuiNative.AddMouseWheelEvent(@this, wheelX, wheelY);
 			}
 		}
-		public unsafe void ClearInputCharacters()
+		public unsafe void ClearEventsQueue()
 		{
 			fixed (ImGuiIO* @this = &this)
 			{
-				ImGuiNative.ClearInputCharacters(@this);
+				ImGuiNative.ClearEventsQueue(@this);
 			}
 		}
 		public unsafe void ClearInputKeys()
@@ -72,6 +79,13 @@ public unsafe partial struct ImGuiIO
 			fixed (ImGuiIO* @this = &this)
 			{
 				ImGuiNative.ClearInputKeys(@this);
+			}
+		}
+		public unsafe void ClearInputMouse()
+		{
+			fixed (ImGuiIO* @this = &this)
+			{
+				ImGuiNative.ClearInputMouse(@this);
 			}
 		}
 		public unsafe void Destroy()

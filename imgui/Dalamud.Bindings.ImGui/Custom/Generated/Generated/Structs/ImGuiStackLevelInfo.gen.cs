@@ -11,11 +11,4 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiStackLevelInfo
 {
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiStackLevelInfo* @this = &this)
-			{
-				ImGuiNative.Destroy(@this);
-			}
-		}
 }

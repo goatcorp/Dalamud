@@ -38,5 +38,20 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		TryToPreserveState = unchecked(4),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		FromTabbing = unchecked(8),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		FromShortcut = unchecked(16),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		FromFocusApi = unchecked(32),
 	}
 }

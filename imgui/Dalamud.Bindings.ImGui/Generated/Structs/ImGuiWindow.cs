@@ -25,6 +25,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe ImGuiContext* Ctx;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe byte* Name;
 
 		/// <summary>
@@ -41,6 +46,11 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ImGuiWindowFlags FlagsPreviousFrame;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiChildFlags ChildFlags;
 
 		/// <summary>
 		/// To be documented.
@@ -115,6 +125,46 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public float TitleBarHeight;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float MenuBarHeight;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float DecoOuterSizeX1;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float DecoOuterSizeY1;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float DecoOuterSizeX2;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float DecoOuterSizeY2;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float DecoInnerSizeX1;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float DecoInnerSizeY1;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public int NameBufLen;
 
 		/// <summary>
@@ -131,6 +181,11 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public uint ChildId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint PopupId;
 
 		/// <summary>
 		/// To be documented.
@@ -175,6 +230,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte ScrollbarXStabilizeEnabled;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte ScrollbarXStabilizeToggledHistory;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte ViewportOwned;
 
 		/// <summary>
@@ -210,6 +275,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte SkipRefresh;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte Appearing;
 
 		/// <summary>
@@ -235,12 +305,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte ResizeBorderHovered;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte ResizeBorderHeld;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public short BeginCount;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public short BeginCountPreviousFrame;
 
 		/// <summary>
 		/// To be documented.
@@ -260,7 +340,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public uint PopupId;
+		public ImGuiDir AutoPosLastDirection;
 
 		/// <summary>
 		/// To be documented.
@@ -275,17 +355,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte AutoFitChildAxises;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public byte AutoFitOnlyGrows;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImGuiDir AutoPosLastDirection;
 
 		/// <summary>
 		/// To be documented.
@@ -307,7 +377,8 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public sbyte DisableInputsFrames;
 
-		public ImGuiCond RawBits0;
+		public ImGuiWindowBgClickFlags RawBits0;
+		public ImGuiCond RawBits1;
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -391,11 +462,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float ItemWidthDefault;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public ImGuiStorage StateStorage;
 
 		/// <summary>
@@ -411,7 +477,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float FontDpiScale;
+		public float FontWindowScaleParents;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float FontRefSize;
 
 		/// <summary>
 		/// To be documented.
@@ -466,6 +537,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe ImGuiWindow* ParentWindowForFocusRoute;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe ImGuiWindow* NavLastChildNavWindow;
 
 		/// <summary>
@@ -483,6 +559,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public Vector2 NavPreferredScoringPosRel_0;
+		public Vector2 NavPreferredScoringPosRel_1;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint NavRootFocusScopeId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public int MemoryDrawListIdxCapacity;
 
 		/// <summary>
@@ -495,7 +582,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public byte MemoryCompacted;
 
-		public bool RawBits1;
+		public bool RawBits2;
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -524,28 +611,20 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiItemStatusFlags DockTabItemStatusFlags;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImRect DockTabItemRect;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public byte InheritNoInputs;
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiWindow(byte* name = default, uint id = default, ImGuiWindowFlags flags = default, ImGuiWindowFlags flagsPreviousFrame = default, ImGuiWindowClass windowClass = default, ImGuiViewportP* viewport = default, uint viewportId = default, Vector2 viewportPos = default, int viewportAllowPlatformMonitorExtend = default, Vector2 pos = default, Vector2 size = default, Vector2 sizeFull = default, Vector2 contentSize = default, Vector2 contentSizeIdeal = default, Vector2 contentSizeExplicit = default, Vector2 windowPadding = default, float windowRounding = default, float windowBorderSize = default, int nameBufLen = default, uint moveId = default, uint tabId = default, uint childId = default, Vector2 scroll = default, Vector2 scrollMax = default, Vector2 scrollTarget = default, Vector2 scrollTargetCenterRatio = default, Vector2 scrollTargetEdgeSnapDist = default, Vector2 scrollbarSizes = default, bool scrollbarX = default, bool scrollbarY = default, bool viewportOwned = default, bool active = default, bool wasActive = default, bool writeAccessed = default, bool collapsed = default, bool wantCollapseToggle = default, bool skipItems = default, bool appearing = default, bool hidden = default, bool isFallbackWindow = default, bool isExplicitChild = default, bool hasCloseButton = default, byte resizeBorderHeld = default, short beginCount = default, short beginOrderWithinParent = default, short beginOrderWithinContext = default, short focusOrder = default, uint popupId = default, sbyte autoFitFramesX = default, sbyte autoFitFramesY = default, sbyte autoFitChildAxises = default, bool autoFitOnlyGrows = default, ImGuiDir autoPosLastDirection = default, sbyte hiddenFramesCanSkipItems = default, sbyte hiddenFramesCannotSkipItems = default, sbyte hiddenFramesForRenderOnly = default, sbyte disableInputsFrames = default, ImGuiCond setWindowPosAllowFlags = default, ImGuiCond setWindowSizeAllowFlags = default, ImGuiCond setWindowCollapsedAllowFlags = default, ImGuiCond setWindowDockAllowFlags = default, Vector2 setWindowPosVal = default, Vector2 setWindowPosPivot = default, ImVector<uint> idStack = default, ImGuiWindowTempData dc = default, ImRect outerRectClipped = default, ImRect innerRect = default, ImRect innerClipRect = default, ImRect workRect = default, ImRect parentWorkRect = default, ImRect clipRect = default, ImRect contentRegionRect = default, ImVec2Ih hitTestHoleSize = default, ImVec2Ih hitTestHoleOffset = default, int lastFrameActive = default, int lastFrameJustFocused = default, float lastTimeActive = default, float itemWidthDefault = default, ImGuiStorage stateStorage = default, ImVector<ImGuiOldColumns> columnsStorage = default, float fontWindowScale = default, float fontDpiScale = default, int settingsOffset = default, ImDrawListPtr drawList = default, ImDrawList drawListInst = default, ImGuiWindow* parentWindow = default, ImGuiWindow* parentWindowInBeginStack = default, ImGuiWindow* rootWindow = default, ImGuiWindow* rootWindowPopupTree = default, ImGuiWindow* rootWindowDockTree = default, ImGuiWindow* rootWindowForTitleBarHighlight = default, ImGuiWindow* rootWindowForNav = default, ImGuiWindow* navLastChildNavWindow = default, uint* navLastIds = default, ImRect* navRectRel = default, int memoryDrawListIdxCapacity = default, int memoryDrawListVtxCapacity = default, bool memoryCompacted = default, bool dockIsActive = default, bool dockNodeIsVisible = default, bool dockTabIsVisible = default, bool dockTabWantClose = default, short dockOrder = default, ImGuiWindowDockStyle dockStyle = default, ImGuiDockNode* dockNode = default, ImGuiDockNode* dockNodeAsHost = default, uint dockId = default, ImGuiItemStatusFlags dockTabItemStatusFlags = default, ImRect dockTabItemRect = default, bool inheritNoInputs = default)
+		public unsafe ImGuiWindow(ImGuiContextPtr ctx = default, byte* name = default, uint id = default, ImGuiWindowFlags flags = default, ImGuiWindowFlags flagsPreviousFrame = default, ImGuiChildFlags childFlags = default, ImGuiWindowClass windowClass = default, ImGuiViewportP* viewport = default, uint viewportId = default, Vector2 viewportPos = default, int viewportAllowPlatformMonitorExtend = default, Vector2 pos = default, Vector2 size = default, Vector2 sizeFull = default, Vector2 contentSize = default, Vector2 contentSizeIdeal = default, Vector2 contentSizeExplicit = default, Vector2 windowPadding = default, float windowRounding = default, float windowBorderSize = default, float titleBarHeight = default, float menuBarHeight = default, float decoOuterSizeX1 = default, float decoOuterSizeY1 = default, float decoOuterSizeX2 = default, float decoOuterSizeY2 = default, float decoInnerSizeX1 = default, float decoInnerSizeY1 = default, int nameBufLen = default, uint moveId = default, uint tabId = default, uint childId = default, uint popupId = default, Vector2 scroll = default, Vector2 scrollMax = default, Vector2 scrollTarget = default, Vector2 scrollTargetCenterRatio = default, Vector2 scrollTargetEdgeSnapDist = default, Vector2 scrollbarSizes = default, bool scrollbarX = default, bool scrollbarY = default, bool scrollbarXStabilizeEnabled = default, byte scrollbarXStabilizeToggledHistory = default, bool viewportOwned = default, bool active = default, bool wasActive = default, bool writeAccessed = default, bool collapsed = default, bool wantCollapseToggle = default, bool skipItems = default, bool skipRefresh = default, bool appearing = default, bool hidden = default, bool isFallbackWindow = default, bool isExplicitChild = default, bool hasCloseButton = default, byte resizeBorderHovered = default, byte resizeBorderHeld = default, short beginCount = default, short beginCountPreviousFrame = default, short beginOrderWithinParent = default, short beginOrderWithinContext = default, short focusOrder = default, ImGuiDir autoPosLastDirection = default, sbyte autoFitFramesX = default, sbyte autoFitFramesY = default, bool autoFitOnlyGrows = default, sbyte hiddenFramesCanSkipItems = default, sbyte hiddenFramesCannotSkipItems = default, sbyte hiddenFramesForRenderOnly = default, sbyte disableInputsFrames = default, ImGuiWindowBgClickFlags bgClickFlags = default, ImGuiCond setWindowPosAllowFlags = default, ImGuiCond setWindowSizeAllowFlags = default, ImGuiCond setWindowCollapsedAllowFlags = default, ImGuiCond setWindowDockAllowFlags = default, Vector2 setWindowPosVal = default, Vector2 setWindowPosPivot = default, ImVector<uint> idStack = default, ImGuiWindowTempData dc = default, ImRect outerRectClipped = default, ImRect innerRect = default, ImRect innerClipRect = default, ImRect workRect = default, ImRect parentWorkRect = default, ImRect clipRect = default, ImRect contentRegionRect = default, ImVec2Ih hitTestHoleSize = default, ImVec2Ih hitTestHoleOffset = default, int lastFrameActive = default, int lastFrameJustFocused = default, float lastTimeActive = default, ImGuiStorage stateStorage = default, ImVector<ImGuiOldColumns> columnsStorage = default, float fontWindowScale = default, float fontWindowScaleParents = default, float fontRefSize = default, int settingsOffset = default, ImDrawListPtr drawList = default, ImDrawList drawListInst = default, ImGuiWindow* parentWindow = default, ImGuiWindow* parentWindowInBeginStack = default, ImGuiWindow* rootWindow = default, ImGuiWindow* rootWindowPopupTree = default, ImGuiWindow* rootWindowDockTree = default, ImGuiWindow* rootWindowForTitleBarHighlight = default, ImGuiWindow* rootWindowForNav = default, ImGuiWindow* parentWindowForFocusRoute = default, ImGuiWindow* navLastChildNavWindow = default, uint* navLastIds = default, ImRect* navRectRel = default, Vector2* navPreferredScoringPosRel = default, uint navRootFocusScopeId = default, int memoryDrawListIdxCapacity = default, int memoryDrawListVtxCapacity = default, bool memoryCompacted = default, bool dockIsActive = default, bool dockNodeIsVisible = default, bool dockTabIsVisible = default, bool dockTabWantClose = default, short dockOrder = default, ImGuiWindowDockStyle dockStyle = default, ImGuiDockNode* dockNode = default, ImGuiDockNode* dockNodeAsHost = default, uint dockId = default, bool inheritNoInputs = default)
 		{
+			Ctx = ctx;
 			Name = name;
 			ID = id;
 			Flags = flags;
 			FlagsPreviousFrame = flagsPreviousFrame;
+			ChildFlags = childFlags;
 			WindowClass = windowClass;
 			Viewport = viewport;
 			ViewportId = viewportId;
@@ -560,10 +639,19 @@ namespace Dalamud.Bindings.ImGui
 			WindowPadding = windowPadding;
 			WindowRounding = windowRounding;
 			WindowBorderSize = windowBorderSize;
+			TitleBarHeight = titleBarHeight;
+			MenuBarHeight = menuBarHeight;
+			DecoOuterSizeX1 = decoOuterSizeX1;
+			DecoOuterSizeY1 = decoOuterSizeY1;
+			DecoOuterSizeX2 = decoOuterSizeX2;
+			DecoOuterSizeY2 = decoOuterSizeY2;
+			DecoInnerSizeX1 = decoInnerSizeX1;
+			DecoInnerSizeY1 = decoInnerSizeY1;
 			NameBufLen = nameBufLen;
 			MoveId = moveId;
 			TabId = tabId;
 			ChildId = childId;
+			PopupId = popupId;
 			Scroll = scroll;
 			ScrollMax = scrollMax;
 			ScrollTarget = scrollTarget;
@@ -572,6 +660,8 @@ namespace Dalamud.Bindings.ImGui
 			ScrollbarSizes = scrollbarSizes;
 			ScrollbarX = scrollbarX ? (byte)1 : (byte)0;
 			ScrollbarY = scrollbarY ? (byte)1 : (byte)0;
+			ScrollbarXStabilizeEnabled = scrollbarXStabilizeEnabled ? (byte)1 : (byte)0;
+			ScrollbarXStabilizeToggledHistory = scrollbarXStabilizeToggledHistory;
 			ViewportOwned = viewportOwned ? (byte)1 : (byte)0;
 			Active = active ? (byte)1 : (byte)0;
 			WasActive = wasActive ? (byte)1 : (byte)0;
@@ -579,26 +669,28 @@ namespace Dalamud.Bindings.ImGui
 			Collapsed = collapsed ? (byte)1 : (byte)0;
 			WantCollapseToggle = wantCollapseToggle ? (byte)1 : (byte)0;
 			SkipItems = skipItems ? (byte)1 : (byte)0;
+			SkipRefresh = skipRefresh ? (byte)1 : (byte)0;
 			Appearing = appearing ? (byte)1 : (byte)0;
 			Hidden = hidden ? (byte)1 : (byte)0;
 			IsFallbackWindow = isFallbackWindow ? (byte)1 : (byte)0;
 			IsExplicitChild = isExplicitChild ? (byte)1 : (byte)0;
 			HasCloseButton = hasCloseButton ? (byte)1 : (byte)0;
+			ResizeBorderHovered = resizeBorderHovered;
 			ResizeBorderHeld = resizeBorderHeld;
 			BeginCount = beginCount;
+			BeginCountPreviousFrame = beginCountPreviousFrame;
 			BeginOrderWithinParent = beginOrderWithinParent;
 			BeginOrderWithinContext = beginOrderWithinContext;
 			FocusOrder = focusOrder;
-			PopupId = popupId;
+			AutoPosLastDirection = autoPosLastDirection;
 			AutoFitFramesX = autoFitFramesX;
 			AutoFitFramesY = autoFitFramesY;
-			AutoFitChildAxises = autoFitChildAxises;
 			AutoFitOnlyGrows = autoFitOnlyGrows ? (byte)1 : (byte)0;
-			AutoPosLastDirection = autoPosLastDirection;
 			HiddenFramesCanSkipItems = hiddenFramesCanSkipItems;
 			HiddenFramesCannotSkipItems = hiddenFramesCannotSkipItems;
 			HiddenFramesForRenderOnly = hiddenFramesForRenderOnly;
 			DisableInputsFrames = disableInputsFrames;
+			BgClickFlags = bgClickFlags;
 			SetWindowPosAllowFlags = setWindowPosAllowFlags;
 			SetWindowSizeAllowFlags = setWindowSizeAllowFlags;
 			SetWindowCollapsedAllowFlags = setWindowCollapsedAllowFlags;
@@ -619,11 +711,11 @@ namespace Dalamud.Bindings.ImGui
 			LastFrameActive = lastFrameActive;
 			LastFrameJustFocused = lastFrameJustFocused;
 			LastTimeActive = lastTimeActive;
-			ItemWidthDefault = itemWidthDefault;
 			StateStorage = stateStorage;
 			ColumnsStorage = columnsStorage;
 			FontWindowScale = fontWindowScale;
-			FontDpiScale = fontDpiScale;
+			FontWindowScaleParents = fontWindowScaleParents;
+			FontRefSize = fontRefSize;
 			SettingsOffset = settingsOffset;
 			DrawList = drawList;
 			DrawListInst = drawListInst;
@@ -634,6 +726,7 @@ namespace Dalamud.Bindings.ImGui
 			RootWindowDockTree = rootWindowDockTree;
 			RootWindowForTitleBarHighlight = rootWindowForTitleBarHighlight;
 			RootWindowForNav = rootWindowForNav;
+			ParentWindowForFocusRoute = parentWindowForFocusRoute;
 			NavLastChildNavWindow = navLastChildNavWindow;
 			if (navLastIds != default(uint*))
 			{
@@ -645,6 +738,12 @@ namespace Dalamud.Bindings.ImGui
 				NavRectRel_0 = navRectRel[0];
 				NavRectRel_1 = navRectRel[1];
 			}
+			if (navPreferredScoringPosRel != default(Vector2*))
+			{
+				NavPreferredScoringPosRel_0 = navPreferredScoringPosRel[0];
+				NavPreferredScoringPosRel_1 = navPreferredScoringPosRel[1];
+			}
+			NavRootFocusScopeId = navRootFocusScopeId;
 			MemoryDrawListIdxCapacity = memoryDrawListIdxCapacity;
 			MemoryDrawListVtxCapacity = memoryDrawListVtxCapacity;
 			MemoryCompacted = memoryCompacted ? (byte)1 : (byte)0;
@@ -657,20 +756,20 @@ namespace Dalamud.Bindings.ImGui
 			DockNode = dockNode;
 			DockNodeAsHost = dockNodeAsHost;
 			DockId = dockId;
-			DockTabItemStatusFlags = dockTabItemStatusFlags;
-			DockTabItemRect = dockTabItemRect;
 			InheritNoInputs = inheritNoInputs ? (byte)1 : (byte)0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiWindow(byte* name = default, uint id = default, ImGuiWindowFlags flags = default, ImGuiWindowFlags flagsPreviousFrame = default, ImGuiWindowClass windowClass = default, ImGuiViewportP* viewport = default, uint viewportId = default, Vector2 viewportPos = default, int viewportAllowPlatformMonitorExtend = default, Vector2 pos = default, Vector2 size = default, Vector2 sizeFull = default, Vector2 contentSize = default, Vector2 contentSizeIdeal = default, Vector2 contentSizeExplicit = default, Vector2 windowPadding = default, float windowRounding = default, float windowBorderSize = default, int nameBufLen = default, uint moveId = default, uint tabId = default, uint childId = default, Vector2 scroll = default, Vector2 scrollMax = default, Vector2 scrollTarget = default, Vector2 scrollTargetCenterRatio = default, Vector2 scrollTargetEdgeSnapDist = default, Vector2 scrollbarSizes = default, bool scrollbarX = default, bool scrollbarY = default, bool viewportOwned = default, bool active = default, bool wasActive = default, bool writeAccessed = default, bool collapsed = default, bool wantCollapseToggle = default, bool skipItems = default, bool appearing = default, bool hidden = default, bool isFallbackWindow = default, bool isExplicitChild = default, bool hasCloseButton = default, byte resizeBorderHeld = default, short beginCount = default, short beginOrderWithinParent = default, short beginOrderWithinContext = default, short focusOrder = default, uint popupId = default, sbyte autoFitFramesX = default, sbyte autoFitFramesY = default, sbyte autoFitChildAxises = default, bool autoFitOnlyGrows = default, ImGuiDir autoPosLastDirection = default, sbyte hiddenFramesCanSkipItems = default, sbyte hiddenFramesCannotSkipItems = default, sbyte hiddenFramesForRenderOnly = default, sbyte disableInputsFrames = default, ImGuiCond setWindowPosAllowFlags = default, ImGuiCond setWindowSizeAllowFlags = default, ImGuiCond setWindowCollapsedAllowFlags = default, ImGuiCond setWindowDockAllowFlags = default, Vector2 setWindowPosVal = default, Vector2 setWindowPosPivot = default, ImVector<uint> idStack = default, ImGuiWindowTempData dc = default, ImRect outerRectClipped = default, ImRect innerRect = default, ImRect innerClipRect = default, ImRect workRect = default, ImRect parentWorkRect = default, ImRect clipRect = default, ImRect contentRegionRect = default, ImVec2Ih hitTestHoleSize = default, ImVec2Ih hitTestHoleOffset = default, int lastFrameActive = default, int lastFrameJustFocused = default, float lastTimeActive = default, float itemWidthDefault = default, ImGuiStorage stateStorage = default, ImVector<ImGuiOldColumns> columnsStorage = default, float fontWindowScale = default, float fontDpiScale = default, int settingsOffset = default, ImDrawListPtr drawList = default, ImDrawList drawListInst = default, ImGuiWindow* parentWindow = default, ImGuiWindow* parentWindowInBeginStack = default, ImGuiWindow* rootWindow = default, ImGuiWindow* rootWindowPopupTree = default, ImGuiWindow* rootWindowDockTree = default, ImGuiWindow* rootWindowForTitleBarHighlight = default, ImGuiWindow* rootWindowForNav = default, ImGuiWindow* navLastChildNavWindow = default, Span<uint> navLastIds = default, Span<ImRect> navRectRel = default, int memoryDrawListIdxCapacity = default, int memoryDrawListVtxCapacity = default, bool memoryCompacted = default, bool dockIsActive = default, bool dockNodeIsVisible = default, bool dockTabIsVisible = default, bool dockTabWantClose = default, short dockOrder = default, ImGuiWindowDockStyle dockStyle = default, ImGuiDockNode* dockNode = default, ImGuiDockNode* dockNodeAsHost = default, uint dockId = default, ImGuiItemStatusFlags dockTabItemStatusFlags = default, ImRect dockTabItemRect = default, bool inheritNoInputs = default)
+		public unsafe ImGuiWindow(ImGuiContextPtr ctx = default, byte* name = default, uint id = default, ImGuiWindowFlags flags = default, ImGuiWindowFlags flagsPreviousFrame = default, ImGuiChildFlags childFlags = default, ImGuiWindowClass windowClass = default, ImGuiViewportP* viewport = default, uint viewportId = default, Vector2 viewportPos = default, int viewportAllowPlatformMonitorExtend = default, Vector2 pos = default, Vector2 size = default, Vector2 sizeFull = default, Vector2 contentSize = default, Vector2 contentSizeIdeal = default, Vector2 contentSizeExplicit = default, Vector2 windowPadding = default, float windowRounding = default, float windowBorderSize = default, float titleBarHeight = default, float menuBarHeight = default, float decoOuterSizeX1 = default, float decoOuterSizeY1 = default, float decoOuterSizeX2 = default, float decoOuterSizeY2 = default, float decoInnerSizeX1 = default, float decoInnerSizeY1 = default, int nameBufLen = default, uint moveId = default, uint tabId = default, uint childId = default, uint popupId = default, Vector2 scroll = default, Vector2 scrollMax = default, Vector2 scrollTarget = default, Vector2 scrollTargetCenterRatio = default, Vector2 scrollTargetEdgeSnapDist = default, Vector2 scrollbarSizes = default, bool scrollbarX = default, bool scrollbarY = default, bool scrollbarXStabilizeEnabled = default, byte scrollbarXStabilizeToggledHistory = default, bool viewportOwned = default, bool active = default, bool wasActive = default, bool writeAccessed = default, bool collapsed = default, bool wantCollapseToggle = default, bool skipItems = default, bool skipRefresh = default, bool appearing = default, bool hidden = default, bool isFallbackWindow = default, bool isExplicitChild = default, bool hasCloseButton = default, byte resizeBorderHovered = default, byte resizeBorderHeld = default, short beginCount = default, short beginCountPreviousFrame = default, short beginOrderWithinParent = default, short beginOrderWithinContext = default, short focusOrder = default, ImGuiDir autoPosLastDirection = default, sbyte autoFitFramesX = default, sbyte autoFitFramesY = default, bool autoFitOnlyGrows = default, sbyte hiddenFramesCanSkipItems = default, sbyte hiddenFramesCannotSkipItems = default, sbyte hiddenFramesForRenderOnly = default, sbyte disableInputsFrames = default, ImGuiWindowBgClickFlags bgClickFlags = default, ImGuiCond setWindowPosAllowFlags = default, ImGuiCond setWindowSizeAllowFlags = default, ImGuiCond setWindowCollapsedAllowFlags = default, ImGuiCond setWindowDockAllowFlags = default, Vector2 setWindowPosVal = default, Vector2 setWindowPosPivot = default, ImVector<uint> idStack = default, ImGuiWindowTempData dc = default, ImRect outerRectClipped = default, ImRect innerRect = default, ImRect innerClipRect = default, ImRect workRect = default, ImRect parentWorkRect = default, ImRect clipRect = default, ImRect contentRegionRect = default, ImVec2Ih hitTestHoleSize = default, ImVec2Ih hitTestHoleOffset = default, int lastFrameActive = default, int lastFrameJustFocused = default, float lastTimeActive = default, ImGuiStorage stateStorage = default, ImVector<ImGuiOldColumns> columnsStorage = default, float fontWindowScale = default, float fontWindowScaleParents = default, float fontRefSize = default, int settingsOffset = default, ImDrawListPtr drawList = default, ImDrawList drawListInst = default, ImGuiWindow* parentWindow = default, ImGuiWindow* parentWindowInBeginStack = default, ImGuiWindow* rootWindow = default, ImGuiWindow* rootWindowPopupTree = default, ImGuiWindow* rootWindowDockTree = default, ImGuiWindow* rootWindowForTitleBarHighlight = default, ImGuiWindow* rootWindowForNav = default, ImGuiWindow* parentWindowForFocusRoute = default, ImGuiWindow* navLastChildNavWindow = default, Span<uint> navLastIds = default, Span<ImRect> navRectRel = default, Span<Vector2> navPreferredScoringPosRel = default, uint navRootFocusScopeId = default, int memoryDrawListIdxCapacity = default, int memoryDrawListVtxCapacity = default, bool memoryCompacted = default, bool dockIsActive = default, bool dockNodeIsVisible = default, bool dockTabIsVisible = default, bool dockTabWantClose = default, short dockOrder = default, ImGuiWindowDockStyle dockStyle = default, ImGuiDockNode* dockNode = default, ImGuiDockNode* dockNodeAsHost = default, uint dockId = default, bool inheritNoInputs = default)
 		{
+			Ctx = ctx;
 			Name = name;
 			ID = id;
 			Flags = flags;
 			FlagsPreviousFrame = flagsPreviousFrame;
+			ChildFlags = childFlags;
 			WindowClass = windowClass;
 			Viewport = viewport;
 			ViewportId = viewportId;
@@ -685,10 +784,19 @@ namespace Dalamud.Bindings.ImGui
 			WindowPadding = windowPadding;
 			WindowRounding = windowRounding;
 			WindowBorderSize = windowBorderSize;
+			TitleBarHeight = titleBarHeight;
+			MenuBarHeight = menuBarHeight;
+			DecoOuterSizeX1 = decoOuterSizeX1;
+			DecoOuterSizeY1 = decoOuterSizeY1;
+			DecoOuterSizeX2 = decoOuterSizeX2;
+			DecoOuterSizeY2 = decoOuterSizeY2;
+			DecoInnerSizeX1 = decoInnerSizeX1;
+			DecoInnerSizeY1 = decoInnerSizeY1;
 			NameBufLen = nameBufLen;
 			MoveId = moveId;
 			TabId = tabId;
 			ChildId = childId;
+			PopupId = popupId;
 			Scroll = scroll;
 			ScrollMax = scrollMax;
 			ScrollTarget = scrollTarget;
@@ -697,6 +805,8 @@ namespace Dalamud.Bindings.ImGui
 			ScrollbarSizes = scrollbarSizes;
 			ScrollbarX = scrollbarX ? (byte)1 : (byte)0;
 			ScrollbarY = scrollbarY ? (byte)1 : (byte)0;
+			ScrollbarXStabilizeEnabled = scrollbarXStabilizeEnabled ? (byte)1 : (byte)0;
+			ScrollbarXStabilizeToggledHistory = scrollbarXStabilizeToggledHistory;
 			ViewportOwned = viewportOwned ? (byte)1 : (byte)0;
 			Active = active ? (byte)1 : (byte)0;
 			WasActive = wasActive ? (byte)1 : (byte)0;
@@ -704,26 +814,28 @@ namespace Dalamud.Bindings.ImGui
 			Collapsed = collapsed ? (byte)1 : (byte)0;
 			WantCollapseToggle = wantCollapseToggle ? (byte)1 : (byte)0;
 			SkipItems = skipItems ? (byte)1 : (byte)0;
+			SkipRefresh = skipRefresh ? (byte)1 : (byte)0;
 			Appearing = appearing ? (byte)1 : (byte)0;
 			Hidden = hidden ? (byte)1 : (byte)0;
 			IsFallbackWindow = isFallbackWindow ? (byte)1 : (byte)0;
 			IsExplicitChild = isExplicitChild ? (byte)1 : (byte)0;
 			HasCloseButton = hasCloseButton ? (byte)1 : (byte)0;
+			ResizeBorderHovered = resizeBorderHovered;
 			ResizeBorderHeld = resizeBorderHeld;
 			BeginCount = beginCount;
+			BeginCountPreviousFrame = beginCountPreviousFrame;
 			BeginOrderWithinParent = beginOrderWithinParent;
 			BeginOrderWithinContext = beginOrderWithinContext;
 			FocusOrder = focusOrder;
-			PopupId = popupId;
+			AutoPosLastDirection = autoPosLastDirection;
 			AutoFitFramesX = autoFitFramesX;
 			AutoFitFramesY = autoFitFramesY;
-			AutoFitChildAxises = autoFitChildAxises;
 			AutoFitOnlyGrows = autoFitOnlyGrows ? (byte)1 : (byte)0;
-			AutoPosLastDirection = autoPosLastDirection;
 			HiddenFramesCanSkipItems = hiddenFramesCanSkipItems;
 			HiddenFramesCannotSkipItems = hiddenFramesCannotSkipItems;
 			HiddenFramesForRenderOnly = hiddenFramesForRenderOnly;
 			DisableInputsFrames = disableInputsFrames;
+			BgClickFlags = bgClickFlags;
 			SetWindowPosAllowFlags = setWindowPosAllowFlags;
 			SetWindowSizeAllowFlags = setWindowSizeAllowFlags;
 			SetWindowCollapsedAllowFlags = setWindowCollapsedAllowFlags;
@@ -744,11 +856,11 @@ namespace Dalamud.Bindings.ImGui
 			LastFrameActive = lastFrameActive;
 			LastFrameJustFocused = lastFrameJustFocused;
 			LastTimeActive = lastTimeActive;
-			ItemWidthDefault = itemWidthDefault;
 			StateStorage = stateStorage;
 			ColumnsStorage = columnsStorage;
 			FontWindowScale = fontWindowScale;
-			FontDpiScale = fontDpiScale;
+			FontWindowScaleParents = fontWindowScaleParents;
+			FontRefSize = fontRefSize;
 			SettingsOffset = settingsOffset;
 			DrawList = drawList;
 			DrawListInst = drawListInst;
@@ -759,6 +871,7 @@ namespace Dalamud.Bindings.ImGui
 			RootWindowDockTree = rootWindowDockTree;
 			RootWindowForTitleBarHighlight = rootWindowForTitleBarHighlight;
 			RootWindowForNav = rootWindowForNav;
+			ParentWindowForFocusRoute = parentWindowForFocusRoute;
 			NavLastChildNavWindow = navLastChildNavWindow;
 			if (navLastIds != default(Span<uint>))
 			{
@@ -770,6 +883,12 @@ namespace Dalamud.Bindings.ImGui
 				NavRectRel_0 = navRectRel[0];
 				NavRectRel_1 = navRectRel[1];
 			}
+			if (navPreferredScoringPosRel != default(Span<Vector2>))
+			{
+				NavPreferredScoringPosRel_0 = navPreferredScoringPosRel[0];
+				NavPreferredScoringPosRel_1 = navPreferredScoringPosRel[1];
+			}
+			NavRootFocusScopeId = navRootFocusScopeId;
 			MemoryDrawListIdxCapacity = memoryDrawListIdxCapacity;
 			MemoryDrawListVtxCapacity = memoryDrawListVtxCapacity;
 			MemoryCompacted = memoryCompacted ? (byte)1 : (byte)0;
@@ -782,27 +901,27 @@ namespace Dalamud.Bindings.ImGui
 			DockNode = dockNode;
 			DockNodeAsHost = dockNodeAsHost;
 			DockId = dockId;
-			DockTabItemStatusFlags = dockTabItemStatusFlags;
-			DockTabItemRect = dockTabItemRect;
 			InheritNoInputs = inheritNoInputs ? (byte)1 : (byte)0;
 		}
 
 
-		public ImGuiCond SetWindowPosAllowFlags { get => Bitfield.Get(RawBits0, 0, 8); set => Bitfield.Set(ref RawBits0, value, 0, 8); }
+		public ImGuiWindowBgClickFlags BgClickFlags { get => Bitfield.Get(RawBits0, 0, 8); set => Bitfield.Set(ref RawBits0, value, 0, 8); }
 
-		public ImGuiCond SetWindowSizeAllowFlags { get => Bitfield.Get(RawBits0, 8, 8); set => Bitfield.Set(ref RawBits0, value, 8, 8); }
+		public ImGuiCond SetWindowPosAllowFlags { get => Bitfield.Get(RawBits1, 0, 8); set => Bitfield.Set(ref RawBits1, value, 0, 8); }
 
-		public ImGuiCond SetWindowCollapsedAllowFlags { get => Bitfield.Get(RawBits0, 16, 8); set => Bitfield.Set(ref RawBits0, value, 16, 8); }
+		public ImGuiCond SetWindowSizeAllowFlags { get => Bitfield.Get(RawBits1, 8, 8); set => Bitfield.Set(ref RawBits1, value, 8, 8); }
 
-		public ImGuiCond SetWindowDockAllowFlags { get => Bitfield.Get(RawBits0, 24, 8); set => Bitfield.Set(ref RawBits0, value, 24, 8); }
+		public ImGuiCond SetWindowCollapsedAllowFlags { get => Bitfield.Get(RawBits1, 16, 8); set => Bitfield.Set(ref RawBits1, value, 16, 8); }
 
-		public bool DockIsActive { get => Bitfield.Get(RawBits1, 0, 1); set => Bitfield.Set(ref RawBits1, value, 0, 1); }
+		public ImGuiCond SetWindowDockAllowFlags { get => Bitfield.Get(RawBits1, 24, 8); set => Bitfield.Set(ref RawBits1, value, 24, 8); }
 
-		public bool DockNodeIsVisible { get => Bitfield.Get(RawBits1, 1, 1); set => Bitfield.Set(ref RawBits1, value, 1, 1); }
+		public bool DockIsActive { get => Bitfield.Get(RawBits2, 0, 1); set => Bitfield.Set(ref RawBits2, value, 0, 1); }
 
-		public bool DockTabIsVisible { get => Bitfield.Get(RawBits1, 2, 1); set => Bitfield.Set(ref RawBits1, value, 2, 1); }
+		public bool DockNodeIsVisible { get => Bitfield.Get(RawBits2, 1, 1); set => Bitfield.Set(ref RawBits2, value, 1, 1); }
 
-		public bool DockTabWantClose { get => Bitfield.Get(RawBits1, 3, 1); set => Bitfield.Set(ref RawBits1, value, 3, 1); }
+		public bool DockTabIsVisible { get => Bitfield.Get(RawBits2, 2, 1); set => Bitfield.Set(ref RawBits2, value, 2, 1); }
+
+		public bool DockTabWantClose { get => Bitfield.Get(RawBits2, 3, 1); set => Bitfield.Set(ref RawBits2, value, 3, 1); }
 
 		/// <summary>
 		/// To be documented.
@@ -815,6 +934,20 @@ namespace Dalamud.Bindings.ImGui
 				fixed (ImRect* p = &this.NavRectRel_0)
 				{
 					return new Span<ImRect>(p, 2);
+				}
+			}
+		}
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Span<Vector2> NavPreferredScoringPosRel
+		
+		{
+			get
+			{
+				fixed (Vector2* p = &this.NavPreferredScoringPosRel_0)
+				{
+					return new Span<Vector2>(p, 2);
 				}
 			}
 		}
@@ -864,6 +997,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImGuiContextPtr Ctx => ref Unsafe.AsRef<ImGuiContextPtr>(&Handle->Ctx);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte* Name { get => Handle->Name; set => Handle->Name = value; }
 		/// <summary>
 		/// To be documented.
@@ -877,6 +1014,10 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref ImGuiWindowFlags FlagsPreviousFrame => ref Unsafe.AsRef<ImGuiWindowFlags>(&Handle->FlagsPreviousFrame);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiChildFlags ChildFlags => ref Unsafe.AsRef<ImGuiChildFlags>(&Handle->ChildFlags);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -936,6 +1077,38 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref float TitleBarHeight => ref Unsafe.AsRef<float>(&Handle->TitleBarHeight);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float MenuBarHeight => ref Unsafe.AsRef<float>(&Handle->MenuBarHeight);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float DecoOuterSizeX1 => ref Unsafe.AsRef<float>(&Handle->DecoOuterSizeX1);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float DecoOuterSizeY1 => ref Unsafe.AsRef<float>(&Handle->DecoOuterSizeY1);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float DecoOuterSizeX2 => ref Unsafe.AsRef<float>(&Handle->DecoOuterSizeX2);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float DecoOuterSizeY2 => ref Unsafe.AsRef<float>(&Handle->DecoOuterSizeY2);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float DecoInnerSizeX1 => ref Unsafe.AsRef<float>(&Handle->DecoInnerSizeX1);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float DecoInnerSizeY1 => ref Unsafe.AsRef<float>(&Handle->DecoInnerSizeY1);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref int NameBufLen => ref Unsafe.AsRef<int>(&Handle->NameBufLen);
 		/// <summary>
 		/// To be documented.
@@ -949,6 +1122,10 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref uint ChildId => ref Unsafe.AsRef<uint>(&Handle->ChildId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint PopupId => ref Unsafe.AsRef<uint>(&Handle->PopupId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -984,6 +1161,14 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref bool ScrollbarXStabilizeEnabled => ref Unsafe.AsRef<bool>(&Handle->ScrollbarXStabilizeEnabled);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref byte ScrollbarXStabilizeToggledHistory => ref Unsafe.AsRef<byte>(&Handle->ScrollbarXStabilizeToggledHistory);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref bool ViewportOwned => ref Unsafe.AsRef<bool>(&Handle->ViewportOwned);
 		/// <summary>
 		/// To be documented.
@@ -1012,6 +1197,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref bool SkipRefresh => ref Unsafe.AsRef<bool>(&Handle->SkipRefresh);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref bool Appearing => ref Unsafe.AsRef<bool>(&Handle->Appearing);
 		/// <summary>
 		/// To be documented.
@@ -1032,11 +1221,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref byte ResizeBorderHovered => ref Unsafe.AsRef<byte>(&Handle->ResizeBorderHovered);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref byte ResizeBorderHeld => ref Unsafe.AsRef<byte>(&Handle->ResizeBorderHeld);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ref short BeginCount => ref Unsafe.AsRef<short>(&Handle->BeginCount);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref short BeginCountPreviousFrame => ref Unsafe.AsRef<short>(&Handle->BeginCountPreviousFrame);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1052,7 +1249,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint PopupId => ref Unsafe.AsRef<uint>(&Handle->PopupId);
+		public ref ImGuiDir AutoPosLastDirection => ref Unsafe.AsRef<ImGuiDir>(&Handle->AutoPosLastDirection);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1064,15 +1261,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte AutoFitChildAxises => ref Unsafe.AsRef<sbyte>(&Handle->AutoFitChildAxises);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public ref bool AutoFitOnlyGrows => ref Unsafe.AsRef<bool>(&Handle->AutoFitOnlyGrows);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImGuiDir AutoPosLastDirection => ref Unsafe.AsRef<ImGuiDir>(&Handle->AutoPosLastDirection);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1089,6 +1278,10 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref sbyte DisableInputsFrames => ref Unsafe.AsRef<sbyte>(&Handle->DisableInputsFrames);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiWindowBgClickFlags BgClickFlags { get => Handle->BgClickFlags; set => Handle->BgClickFlags = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1172,10 +1365,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float ItemWidthDefault => ref Unsafe.AsRef<float>(&Handle->ItemWidthDefault);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public ref ImGuiStorage StateStorage => ref Unsafe.AsRef<ImGuiStorage>(&Handle->StateStorage);
 		/// <summary>
 		/// To be documented.
@@ -1188,7 +1377,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float FontDpiScale => ref Unsafe.AsRef<float>(&Handle->FontDpiScale);
+		public ref float FontWindowScaleParents => ref Unsafe.AsRef<float>(&Handle->FontWindowScaleParents);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float FontRefSize => ref Unsafe.AsRef<float>(&Handle->FontRefSize);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1232,6 +1425,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImGuiWindowPtr ParentWindowForFocusRoute => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->ParentWindowForFocusRoute);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref ImGuiWindowPtr NavLastChildNavWindow => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->NavLastChildNavWindow);
 		/// <summary>
 		/// To be documented.
@@ -1255,6 +1452,21 @@ namespace Dalamud.Bindings.ImGui
 				return new Span<ImRect>(&Handle->NavRectRel_0, 2);
 			}
 		}
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Span<Vector2> NavPreferredScoringPosRel
+		
+		{
+			get
+			{
+				return new Span<Vector2>(&Handle->NavPreferredScoringPosRel_0, 2);
+			}
+		}
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint NavRootFocusScopeId => ref Unsafe.AsRef<uint>(&Handle->NavRootFocusScopeId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1303,14 +1515,6 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref uint DockId => ref Unsafe.AsRef<uint>(&Handle->DockId);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImGuiItemStatusFlags DockTabItemStatusFlags => ref Unsafe.AsRef<ImGuiItemStatusFlags>(&Handle->DockTabItemStatusFlags);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImRect DockTabItemRect => ref Unsafe.AsRef<ImRect>(&Handle->DockTabItemRect);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

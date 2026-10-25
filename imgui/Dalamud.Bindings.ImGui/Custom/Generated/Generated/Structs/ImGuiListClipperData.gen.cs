@@ -11,11 +11,4 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiListClipperData
 {
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiListClipperData* @this = &this)
-			{
-				ImGuiNative.Destroy(@this);
-			}
-		}
 }

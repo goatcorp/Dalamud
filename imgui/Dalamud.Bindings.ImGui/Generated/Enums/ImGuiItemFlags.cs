@@ -32,41 +32,51 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ButtonRepeat = unchecked(2),
+		NoNav = unchecked(2),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Disabled = unchecked(4),
+		NoNavDefaultFocus = unchecked(4),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoNav = unchecked(8),
+		ButtonRepeat = unchecked(8),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoNavDefaultFocus = unchecked(16),
+		AutoClosePopups = unchecked(16),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		SelectableDontClosePopup = unchecked(32),
+		AllowDuplicateId = unchecked(32),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MixedValue = unchecked(64),
+		Disabled = unchecked(64),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ReadOnly = unchecked(128),
+		LiveEditOnInputText = unchecked(128),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Inputable = unchecked(256),
+		LiveEditOnInputScalar = unchecked(256),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		LiveEditOnInput = unchecked(384),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		MixedValue = unchecked(512),
 	}
 }

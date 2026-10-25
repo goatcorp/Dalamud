@@ -173,41 +173,108 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImGuiContext* CreateContextNative(ImFontAtlas* sharedFontAtlas)
+		internal static ImTextureRef* ImTextureRefNative()
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ImGuiContext*>)funcTable[6])(sharedFontAtlas);
+			return ((delegate* unmanaged[Cdecl]<ImTextureRef*>)funcTable[6])();
 			#else
-			return (ImGuiContext*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[6])((nint)sharedFontAtlas);
+			return (ImTextureRef*)((delegate* unmanaged[Cdecl]<nint>)funcTable[6])();
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ImGuiContextPtr CreateContext(ImFontAtlasPtr sharedFontAtlas)
+		public static ImTextureRefPtr ImTextureRef()
 		{
-			ImGuiContextPtr ret = CreateContextNative(sharedFontAtlas);
+			ImTextureRefPtr ret = ImTextureRefNative();
 			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ImGuiContextPtr CreateContext()
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void DestroyNative(ImTextureRef* self)
 		{
-			ImGuiContextPtr ret = CreateContextNative((ImFontAtlas*)(default));
-			return ret;
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImTextureRef*, void>)funcTable[7])(self);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[7])((nint)self);
+			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ImGuiContextPtr CreateContext(ref ImFontAtlas sharedFontAtlas)
+		public static void Destroy(ImTextureRefPtr self)
 		{
-			fixed (ImFontAtlas* psharedFontAtlas = &sharedFontAtlas)
+			DestroyNative(self);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Destroy(ref ImTextureRef self)
+		{
+			fixed (ImTextureRef* pself = &self)
 			{
-				ImGuiContextPtr ret = CreateContextNative((ImFontAtlas*)psharedFontAtlas);
+				DestroyNative((ImTextureRef*)pself);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static ImTextureRef* ImTextureRefNative(ImTextureID texId)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImTextureID, ImTextureRef*>)funcTable[8])(texId);
+			#else
+			return (ImTextureRef*)((delegate* unmanaged[Cdecl]<ImTextureID, nint>)funcTable[8])(texId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static ImTextureRefPtr ImTextureRef(ImTextureID texId)
+		{
+			ImTextureRefPtr ret = ImTextureRefNative(texId);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static ImTextureID GetTexIDNative(ImTextureRef* self)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImTextureRef*, ImTextureID>)funcTable[9])(self);
+			#else
+			return (ImTextureID)((delegate* unmanaged[Cdecl]<nint, ImTextureID>)funcTable[9])((nint)self);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static ImTextureID GetTexID(ImTextureRefPtr self)
+		{
+			ImTextureID ret = GetTexIDNative(self);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static ImTextureID GetTexID(ref ImTextureRef self)
+		{
+			fixed (ImTextureRef* pself = &self)
+			{
+				ImTextureID ret = GetTexIDNative((ImTextureRef*)pself);
 				return ret;
 			}
 		}
@@ -216,61 +283,42 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void DestroyContextNative(ImGuiContext* ctx)
+		internal static void SetTextCallbacksNative(ImTextLayoutFn layout, ImFontMetricsFn metrics)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiContext*, void>)funcTable[7])(ctx);
+			((delegate* unmanaged[Cdecl]<delegate*<ImFont*, ImTextDesc*, byte*, byte*, ImTextLayout**, int>, delegate*<ImFont*, float, float, ImTextMetrics*, void>, void>)funcTable[10])((delegate*<ImFont*, ImTextDesc*, byte*, byte*, ImTextLayout**, int>)Utils.GetFunctionPointerForDelegate(layout), (delegate*<ImFont*, float, float, ImTextMetrics*, void>)Utils.GetFunctionPointerForDelegate(metrics));
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[7])((nint)ctx);
+			((delegate* unmanaged[Cdecl]<nint, nint, void>)funcTable[10])((nint)Utils.GetFunctionPointerForDelegate(layout), (nint)Utils.GetFunctionPointerForDelegate(metrics));
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void DestroyContext(ImGuiContextPtr ctx)
+		public static void SetTextCallbacks(ImTextLayoutFn layout, ImFontMetricsFn metrics)
 		{
-			DestroyContextNative(ctx);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void DestroyContext()
-		{
-			DestroyContextNative((ImGuiContext*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void DestroyContext(ref ImGuiContext ctx)
-		{
-			fixed (ImGuiContext* pctx = &ctx)
-			{
-				DestroyContextNative((ImGuiContext*)pctx);
-			}
+			SetTextCallbacksNative(layout, metrics);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImGuiContext* GetCurrentContextNative()
+		internal static ImTextMetrics GetFontMetricsNative()
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImGuiContext*>)funcTable[8])();
+			return ((delegate* unmanaged[Cdecl]<ImTextMetrics>)funcTable[11])();
 			#else
-			return (ImGuiContext*)((delegate* unmanaged[Cdecl]<nint>)funcTable[8])();
+			return (ImTextMetrics)((delegate* unmanaged[Cdecl]<ImTextMetrics>)funcTable[11])();
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ImGuiContextPtr GetCurrentContext()
+		public static ImTextMetrics GetFontMetrics()
 		{
-			ImGuiContextPtr ret = GetCurrentContextNative();
+			ImTextMetrics ret = GetFontMetricsNative();
 			return ret;
 		}
 
@@ -278,53 +326,21 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetCurrentContextNative(ImGuiContext* ctx)
+		internal static ImTextureData* GetShapeTextureNative()
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiContext*, void>)funcTable[9])(ctx);
+			return ((delegate* unmanaged[Cdecl]<ImTextureData*>)funcTable[12])();
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[9])((nint)ctx);
+			return (ImTextureData*)((delegate* unmanaged[Cdecl]<nint>)funcTable[12])();
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void SetCurrentContext(ImGuiContextPtr ctx)
+		public static ImTextureDataPtr GetShapeTexture()
 		{
-			SetCurrentContextNative(ctx);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetCurrentContext(ref ImGuiContext ctx)
-		{
-			fixed (ImGuiContext* pctx = &ctx)
-			{
-				SetCurrentContextNative((ImGuiContext*)pctx);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImGuiIO* GetIONative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImGuiIO*>)funcTable[10])();
-			#else
-			return (ImGuiIO*)((delegate* unmanaged[Cdecl]<nint>)funcTable[10])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImGuiIOPtr GetIO()
-		{
-			ImGuiIOPtr ret = GetIONative();
+			ImTextureDataPtr ret = GetShapeTextureNative();
 			return ret;
 		}
 
@@ -332,146 +348,75 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImGuiStyle* GetStyleNative()
+		internal static void SetShapeTextureSizeNative(int width, int height)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImGuiStyle*>)funcTable[11])();
+			((delegate* unmanaged[Cdecl]<int, int, void>)funcTable[13])(width, height);
 			#else
-			return (ImGuiStyle*)((delegate* unmanaged[Cdecl]<nint>)funcTable[11])();
+			((delegate* unmanaged[Cdecl]<int, int, void>)funcTable[13])(width, height);
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ImGuiStylePtr GetStyle()
+		public static void SetShapeTextureSize(int width, int height)
 		{
-			ImGuiStylePtr ret = GetStyleNative();
+			SetShapeTextureSizeNative(width, height);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static ulong TextLayoutNative(ImTextLayout* layout, uint id)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImTextLayout*, uint, ulong>)funcTable[14])(layout, id);
+			#else
+			return (ulong)((delegate* unmanaged[Cdecl]<nint, uint, ulong>)funcTable[14])((nint)layout, id);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static ulong TextLayout(ImTextLayoutPtr layout, uint id)
+		{
+			ulong ret = TextLayoutNative(layout, id);
 			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void NewFrameNative()
+		public static ulong TextLayout(ImTextLayoutPtr layout)
 		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[12])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[12])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void NewFrame()
-		{
-			NewFrameNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void EndFrameNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[13])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[13])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void EndFrame()
-		{
-			EndFrameNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void RenderNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[14])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[14])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void Render()
-		{
-			RenderNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImDrawData* GetDrawDataNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImDrawData*>)funcTable[15])();
-			#else
-			return (ImDrawData*)((delegate* unmanaged[Cdecl]<nint>)funcTable[15])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImDrawDataPtr GetDrawData()
-		{
-			ImDrawDataPtr ret = GetDrawDataNative();
+			ulong ret = TextLayoutNative(layout, (uint)(0));
 			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ShowDemoWindowNative(bool* pOpen)
+		public static ulong TextLayout(ref ImTextLayout layout, uint id)
 		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<bool*, void>)funcTable[16])(pOpen);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[16])((nint)pOpen);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowDemoWindow(bool* pOpen)
-		{
-			ShowDemoWindowNative(pOpen);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowDemoWindow()
-		{
-			ShowDemoWindowNative((bool*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowDemoWindow(ref bool pOpen)
-		{
-			fixed (bool* ppOpen = &pOpen)
+			fixed (ImTextLayout* playout = &layout)
 			{
-				ShowDemoWindowNative((bool*)ppOpen);
+				ulong ret = TextLayoutNative((ImTextLayout*)playout, id);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static ulong TextLayout(ref ImTextLayout layout)
+		{
+			fixed (ImTextLayout* playout = &layout)
+			{
+				ulong ret = TextLayoutNative((ImTextLayout*)playout, (uint)(0));
+				return ret;
 			}
 		}
 
@@ -479,4377 +424,1977 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ShowMetricsWindowNative(bool* pOpen)
+		internal static void AddTextExNative(ImDrawList* drawList, ImFont* font, ImTextDesc* desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransform* transform)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<bool*, void>)funcTable[17])(pOpen);
+			((delegate* unmanaged[Cdecl]<ImDrawList*, ImFont*, ImTextDesc*, Vector2, uint, byte*, byte*, Vector4*, ImTextRenderFlags, ImTextTransform*, void>)funcTable[15])(drawList, font, desc, pos, col, textBegin, textEnd, clipRect, renderFlags, transform);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[17])((nint)pOpen);
+			((delegate* unmanaged[Cdecl]<nint, nint, nint, Vector2, uint, nint, nint, nint, ImTextRenderFlags, nint, void>)funcTable[15])((nint)drawList, (nint)font, (nint)desc, pos, col, (nint)textBegin, (nint)textEnd, (nint)clipRect, renderFlags, (nint)transform);
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void ShowMetricsWindow(bool* pOpen)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			ShowMetricsWindowNative(pOpen);
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, clipRect, renderFlags, transform);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void ShowMetricsWindow()
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
 		{
-			ShowMetricsWindowNative((bool*)(default));
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void ShowMetricsWindow(ref bool pOpen)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect)
 		{
-			fixed (bool* ppOpen = &pOpen)
-			{
-				ShowMetricsWindowNative((bool*)ppOpen);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ShowDebugLogWindowNative(bool* pOpen)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<bool*, void>)funcTable[18])(pOpen);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[18])((nint)pOpen);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowDebugLogWindow(bool* pOpen)
-		{
-			ShowDebugLogWindowNative(pOpen);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowDebugLogWindow()
-		{
-			ShowDebugLogWindowNative((bool*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowDebugLogWindow(ref bool pOpen)
-		{
-			fixed (bool* ppOpen = &pOpen)
-			{
-				ShowDebugLogWindowNative((bool*)ppOpen);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ShowStackToolWindowNative(bool* pOpen)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<bool*, void>)funcTable[19])(pOpen);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[19])((nint)pOpen);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowStackToolWindow(bool* pOpen)
-		{
-			ShowStackToolWindowNative(pOpen);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowStackToolWindow()
-		{
-			ShowStackToolWindowNative((bool*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowStackToolWindow(ref bool pOpen)
-		{
-			fixed (bool* ppOpen = &pOpen)
-			{
-				ShowStackToolWindowNative((bool*)ppOpen);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ShowAboutWindowNative(bool* pOpen)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<bool*, void>)funcTable[20])(pOpen);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[20])((nint)pOpen);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowAboutWindow(bool* pOpen)
-		{
-			ShowAboutWindowNative(pOpen);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowAboutWindow()
-		{
-			ShowAboutWindowNative((bool*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowAboutWindow(ref bool pOpen)
-		{
-			fixed (bool* ppOpen = &pOpen)
-			{
-				ShowAboutWindowNative((bool*)ppOpen);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ShowStyleEditorNative(ImGuiStyle* reference)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiStyle*, void>)funcTable[21])(reference);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[21])((nint)reference);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowStyleEditor(ImGuiStylePtr reference)
-		{
-			ShowStyleEditorNative(reference);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowStyleEditor()
-		{
-			ShowStyleEditorNative((ImGuiStyle*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowStyleEditor(ref ImGuiStyle reference)
-		{
-			fixed (ImGuiStyle* preference = &reference)
-			{
-				ShowStyleEditorNative((ImGuiStyle*)preference);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte ShowStyleSelectorNative(byte* label)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte>)funcTable[22])(label);
-			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[22])((nint)label);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool ShowStyleSelector(byte* label)
-		{
-			byte ret = ShowStyleSelectorNative(label);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool ShowStyleSelector(ref byte label)
-		{
-			fixed (byte* plabel = &label)
-			{
-				byte ret = ShowStyleSelectorNative((byte*)plabel);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool ShowStyleSelector(ReadOnlySpan<byte> label)
-		{
-			fixed (byte* plabel = label)
-			{
-				byte ret = ShowStyleSelectorNative((byte*)plabel);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool ShowStyleSelector(string label)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = ShowStyleSelectorNative(pStr0);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ShowFontSelectorNative(byte* label)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[23])(label);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[23])((nint)label);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowFontSelector(byte* label)
-		{
-			ShowFontSelectorNative(label);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowFontSelector(ref byte label)
-		{
-			fixed (byte* plabel = &label)
-			{
-				ShowFontSelectorNative((byte*)plabel);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowFontSelector(ReadOnlySpan<byte> label)
-		{
-			fixed (byte* plabel = label)
-			{
-				ShowFontSelectorNative((byte*)plabel);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowFontSelector(string label)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			ShowFontSelectorNative(pStr0);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ShowUserGuideNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[24])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[24])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ShowUserGuide()
-		{
-			ShowUserGuideNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte* GetVersionNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*>)funcTable[25])();
-			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint>)funcTable[25])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static byte* GetVersion()
-		{
-			byte* ret = GetVersionNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static string GetVersionS()
-		{
-			string ret = Utils.DecodeStringUTF8(GetVersionNative());
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void StyleColorsDarkNative(ImGuiStyle* dst)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiStyle*, void>)funcTable[26])(dst);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[26])((nint)dst);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void StyleColorsDark(ImGuiStylePtr dst)
-		{
-			StyleColorsDarkNative(dst);
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void StyleColorsDark()
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd)
 		{
-			StyleColorsDarkNative((ImGuiStyle*)(default));
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void StyleColorsDark(ref ImGuiStyle dst)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin)
 		{
-			fixed (ImGuiStyle* pdst = &dst)
-			{
-				StyleColorsDarkNative((ImGuiStyle*)pdst);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void StyleColorsLightNative(ImGuiStyle* dst)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiStyle*, void>)funcTable[27])(dst);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[27])((nint)dst);
-			#endif
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void StyleColorsLight(ImGuiStylePtr dst)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect)
 		{
-			StyleColorsLightNative(dst);
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void StyleColorsLight()
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
 		{
-			StyleColorsLightNative((ImGuiStyle*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void StyleColorsLight(ref ImGuiStyle dst)
-		{
-			fixed (ImGuiStyle* pdst = &dst)
-			{
-				StyleColorsLightNative((ImGuiStyle*)pdst);
-			}
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void StyleColorsClassicNative(ImGuiStyle* dst)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags)
 		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiStyle*, void>)funcTable[28])(dst);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[28])((nint)dst);
-			#endif
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void StyleColorsClassic(ImGuiStylePtr dst)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
 		{
-			StyleColorsClassicNative(dst);
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void StyleColorsClassic()
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
 		{
-			StyleColorsClassicNative((ImGuiStyle*)(default));
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void StyleColorsClassic(ref ImGuiStyle dst)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextTransformPtr transform)
 		{
-			fixed (ImGuiStyle* pdst = &dst)
-			{
-				StyleColorsClassicNative((ImGuiStyle*)pdst);
-			}
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte BeginNative(byte* name, bool* pOpen, ImGuiWindowFlags flags)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextTransformPtr transform)
 		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, bool*, ImGuiWindowFlags, byte>)funcTable[29])(name, pOpen, flags);
-			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiWindowFlags, byte>)funcTable[29])((nint)name, (nint)pOpen, flags);
-			#endif
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(byte* name, bool* pOpen, ImGuiWindowFlags flags)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextTransformPtr transform)
 		{
-			byte ret = BeginNative(name, pOpen, flags);
-			return ret != 0;
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(byte* name, bool* pOpen)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			byte ret = BeginNative(name, pOpen, (ImGuiWindowFlags)(0));
-			return ret != 0;
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, transform);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(byte* name)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			byte ret = BeginNative(name, (bool*)(default), (ImGuiWindowFlags)(0));
-			return ret != 0;
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(byte* name, ImGuiWindowFlags flags)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			byte ret = BeginNative(name, (bool*)(default), flags);
-			return ret != 0;
+			AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, transform);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(ref byte name, bool* pOpen, ImGuiWindowFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* pname = &name)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte ret = BeginNative((byte*)pname, pOpen, flags);
-				return ret != 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, clipRect, renderFlags, transform);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(ref byte name, bool* pOpen)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* pname = &name)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte ret = BeginNative((byte*)pname, pOpen, (ImGuiWindowFlags)(0));
-				return ret != 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(ref byte name)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect)
 		{
-			fixed (byte* pname = &name)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte ret = BeginNative((byte*)pname, (bool*)(default), (ImGuiWindowFlags)(0));
-				return ret != 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(ref byte name, ImGuiWindowFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd)
 		{
-			fixed (byte* pname = &name)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte ret = BeginNative((byte*)pname, (bool*)(default), flags);
-				return ret != 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(ReadOnlySpan<byte> name, bool* pOpen, ImGuiWindowFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin)
 		{
-			fixed (byte* pname = name)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte ret = BeginNative((byte*)pname, pOpen, flags);
-				return ret != 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(ReadOnlySpan<byte> name, bool* pOpen)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect)
 		{
-			fixed (byte* pname = name)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte ret = BeginNative((byte*)pname, pOpen, (ImGuiWindowFlags)(0));
-				return ret != 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(ReadOnlySpan<byte> name)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* pname = name)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte ret = BeginNative((byte*)pname, (bool*)(default), (ImGuiWindowFlags)(0));
-				return ret != 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(ReadOnlySpan<byte> name, ImGuiWindowFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* pname = name)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte ret = BeginNative((byte*)pname, (bool*)(default), flags);
-				return ret != 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(string name, bool* pOpen, ImGuiWindowFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = BeginNative(pStr0, pOpen, flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				Utils.Free(pStr0);
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
 			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(string name, bool* pOpen)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
 			}
-			byte ret = BeginNative(pStr0, pOpen, (ImGuiWindowFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(string name)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextTransformPtr transform)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = BeginNative(pStr0, (bool*)(default), (ImGuiWindowFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				Utils.Free(pStr0);
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
 			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(string name, ImGuiWindowFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextTransformPtr transform)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
 			}
-			byte ret = BeginNative(pStr0, (bool*)(default), flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(byte* name, ref bool pOpen, ImGuiWindowFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextTransformPtr transform)
 		{
-			fixed (bool* ppOpen = &pOpen)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte ret = BeginNative(name, (bool*)ppOpen, flags);
-				return ret != 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(byte* name, ref bool pOpen)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (bool* ppOpen = &pOpen)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte ret = BeginNative(name, (bool*)ppOpen, (ImGuiWindowFlags)(0));
-				return ret != 0;
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, transform);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(ref byte name, ref bool pOpen, ImGuiWindowFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* pname = &name)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (bool* ppOpen = &pOpen)
-				{
-					byte ret = BeginNative((byte*)pname, (bool*)ppOpen, flags);
-					return ret != 0;
-				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Begin(ref byte name, ref bool pOpen)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* pname = &name)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (bool* ppOpen = &pOpen)
-				{
-					byte ret = BeginNative((byte*)pname, (bool*)ppOpen, (ImGuiWindowFlags)(0));
-					return ret != 0;
-				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, transform);
 			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool Begin(ReadOnlySpan<byte> name, ref bool pOpen, ImGuiWindowFlags flags)
-		{
-			fixed (byte* pname = name)
-			{
-				fixed (bool* ppOpen = &pOpen)
-				{
-					byte ret = BeginNative((byte*)pname, (bool*)ppOpen, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool Begin(ReadOnlySpan<byte> name, ref bool pOpen)
-		{
-			fixed (byte* pname = name)
-			{
-				fixed (bool* ppOpen = &pOpen)
-				{
-					byte ret = BeginNative((byte*)pname, (bool*)ppOpen, (ImGuiWindowFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool Begin(string name, ref bool pOpen, ImGuiWindowFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (bool* ppOpen = &pOpen)
-			{
-				byte ret = BeginNative(pStr0, (bool*)ppOpen, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool Begin(string name, ref bool pOpen)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (bool* ppOpen = &pOpen)
-			{
-				byte ret = BeginNative(pStr0, (bool*)ppOpen, (ImGuiWindowFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void EndNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[30])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[30])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void End()
-		{
-			EndNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte BeginChildNative(byte* strId, Vector2 size, byte border, ImGuiWindowFlags flags)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, Vector2, byte, ImGuiWindowFlags, byte>)funcTable[31])(strId, size, border, flags);
-			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, Vector2, byte, ImGuiWindowFlags, byte>)funcTable[31])((nint)strId, size, border, flags);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(byte* strId, Vector2 size, bool border, ImGuiWindowFlags flags)
-		{
-			byte ret = BeginChildNative(strId, size, border ? (byte)1 : (byte)0, flags);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(byte* strId, Vector2 size, bool border)
-		{
-			byte ret = BeginChildNative(strId, size, border ? (byte)1 : (byte)0, (ImGuiWindowFlags)(0));
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(byte* strId, Vector2 size)
-		{
-			byte ret = BeginChildNative(strId, size, (byte)(0), (ImGuiWindowFlags)(0));
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(byte* strId)
-		{
-			byte ret = BeginChildNative(strId, (Vector2)(new Vector2(0,0)), (byte)(0), (ImGuiWindowFlags)(0));
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(byte* strId, bool border)
-		{
-			byte ret = BeginChildNative(strId, (Vector2)(new Vector2(0,0)), border ? (byte)1 : (byte)0, (ImGuiWindowFlags)(0));
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(byte* strId, Vector2 size, ImGuiWindowFlags flags)
-		{
-			byte ret = BeginChildNative(strId, size, (byte)(0), flags);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(byte* strId, ImGuiWindowFlags flags)
-		{
-			byte ret = BeginChildNative(strId, (Vector2)(new Vector2(0,0)), (byte)(0), flags);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(byte* strId, bool border, ImGuiWindowFlags flags)
-		{
-			byte ret = BeginChildNative(strId, (Vector2)(new Vector2(0,0)), border ? (byte)1 : (byte)0, flags);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ref byte strId, Vector2 size, bool border, ImGuiWindowFlags flags)
-		{
-			fixed (byte* pstrId = &strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, size, border ? (byte)1 : (byte)0, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ref byte strId, Vector2 size, bool border)
-		{
-			fixed (byte* pstrId = &strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, size, border ? (byte)1 : (byte)0, (ImGuiWindowFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ref byte strId, Vector2 size)
-		{
-			fixed (byte* pstrId = &strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, size, (byte)(0), (ImGuiWindowFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ref byte strId)
-		{
-			fixed (byte* pstrId = &strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, (Vector2)(new Vector2(0,0)), (byte)(0), (ImGuiWindowFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ref byte strId, bool border)
-		{
-			fixed (byte* pstrId = &strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, (Vector2)(new Vector2(0,0)), border ? (byte)1 : (byte)0, (ImGuiWindowFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ref byte strId, Vector2 size, ImGuiWindowFlags flags)
-		{
-			fixed (byte* pstrId = &strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, size, (byte)(0), flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ref byte strId, ImGuiWindowFlags flags)
-		{
-			fixed (byte* pstrId = &strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, (Vector2)(new Vector2(0,0)), (byte)(0), flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ref byte strId, bool border, ImGuiWindowFlags flags)
-		{
-			fixed (byte* pstrId = &strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, (Vector2)(new Vector2(0,0)), border ? (byte)1 : (byte)0, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ReadOnlySpan<byte> strId, Vector2 size, bool border, ImGuiWindowFlags flags)
-		{
-			fixed (byte* pstrId = strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, size, border ? (byte)1 : (byte)0, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ReadOnlySpan<byte> strId, Vector2 size, bool border)
-		{
-			fixed (byte* pstrId = strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, size, border ? (byte)1 : (byte)0, (ImGuiWindowFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ReadOnlySpan<byte> strId, Vector2 size)
-		{
-			fixed (byte* pstrId = strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, size, (byte)(0), (ImGuiWindowFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ReadOnlySpan<byte> strId)
-		{
-			fixed (byte* pstrId = strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, (Vector2)(new Vector2(0,0)), (byte)(0), (ImGuiWindowFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ReadOnlySpan<byte> strId, bool border)
-		{
-			fixed (byte* pstrId = strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, (Vector2)(new Vector2(0,0)), border ? (byte)1 : (byte)0, (ImGuiWindowFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ReadOnlySpan<byte> strId, Vector2 size, ImGuiWindowFlags flags)
-		{
-			fixed (byte* pstrId = strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, size, (byte)(0), flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ReadOnlySpan<byte> strId, ImGuiWindowFlags flags)
-		{
-			fixed (byte* pstrId = strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, (Vector2)(new Vector2(0,0)), (byte)(0), flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(ReadOnlySpan<byte> strId, bool border, ImGuiWindowFlags flags)
-		{
-			fixed (byte* pstrId = strId)
-			{
-				byte ret = BeginChildNative((byte*)pstrId, (Vector2)(new Vector2(0,0)), border ? (byte)1 : (byte)0, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(string strId, Vector2 size, bool border, ImGuiWindowFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (strId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(strId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = BeginChildNative(pStr0, size, border ? (byte)1 : (byte)0, flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(string strId, Vector2 size, bool border)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (strId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(strId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = BeginChildNative(pStr0, size, border ? (byte)1 : (byte)0, (ImGuiWindowFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(string strId, Vector2 size)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (strId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(strId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = BeginChildNative(pStr0, size, (byte)(0), (ImGuiWindowFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(string strId)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (strId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(strId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = BeginChildNative(pStr0, (Vector2)(new Vector2(0,0)), (byte)(0), (ImGuiWindowFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(string strId, bool border)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (strId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(strId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = BeginChildNative(pStr0, (Vector2)(new Vector2(0,0)), border ? (byte)1 : (byte)0, (ImGuiWindowFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(string strId, Vector2 size, ImGuiWindowFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (strId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(strId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = BeginChildNative(pStr0, size, (byte)(0), flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(string strId, ImGuiWindowFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (strId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(strId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = BeginChildNative(pStr0, (Vector2)(new Vector2(0,0)), (byte)(0), flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(string strId, bool border, ImGuiWindowFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (strId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(strId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = BeginChildNative(pStr0, (Vector2)(new Vector2(0,0)), border ? (byte)1 : (byte)0, flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte BeginChildNative(uint id, Vector2 size, byte border, ImGuiWindowFlags flags)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<uint, Vector2, byte, ImGuiWindowFlags, byte>)funcTable[32])(id, size, border, flags);
-			#else
-			return (byte)((delegate* unmanaged[Cdecl]<uint, Vector2, byte, ImGuiWindowFlags, byte>)funcTable[32])(id, size, border, flags);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(uint id, Vector2 size, bool border, ImGuiWindowFlags flags)
-		{
-			byte ret = BeginChildNative(id, size, border ? (byte)1 : (byte)0, flags);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(uint id, Vector2 size, bool border)
-		{
-			byte ret = BeginChildNative(id, size, border ? (byte)1 : (byte)0, (ImGuiWindowFlags)(0));
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(uint id, Vector2 size)
-		{
-			byte ret = BeginChildNative(id, size, (byte)(0), (ImGuiWindowFlags)(0));
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(uint id)
-		{
-			byte ret = BeginChildNative(id, (Vector2)(new Vector2(0,0)), (byte)(0), (ImGuiWindowFlags)(0));
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(uint id, bool border)
-		{
-			byte ret = BeginChildNative(id, (Vector2)(new Vector2(0,0)), border ? (byte)1 : (byte)0, (ImGuiWindowFlags)(0));
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(uint id, Vector2 size, ImGuiWindowFlags flags)
-		{
-			byte ret = BeginChildNative(id, size, (byte)(0), flags);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(uint id, ImGuiWindowFlags flags)
-		{
-			byte ret = BeginChildNative(id, (Vector2)(new Vector2(0,0)), (byte)(0), flags);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool BeginChild(uint id, bool border, ImGuiWindowFlags flags)
-		{
-			byte ret = BeginChildNative(id, (Vector2)(new Vector2(0,0)), border ? (byte)1 : (byte)0, flags);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void EndChildNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[33])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[33])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void EndChild()
-		{
-			EndChildNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte IsWindowAppearingNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte>)funcTable[34])();
-			#else
-			return (byte)((delegate* unmanaged[Cdecl]<byte>)funcTable[34])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool IsWindowAppearing()
-		{
-			byte ret = IsWindowAppearingNative();
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte IsWindowCollapsedNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte>)funcTable[35])();
-			#else
-			return (byte)((delegate* unmanaged[Cdecl]<byte>)funcTable[35])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool IsWindowCollapsed()
-		{
-			byte ret = IsWindowCollapsedNative();
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte IsWindowFocusedNative(ImGuiFocusedFlags flags)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImGuiFocusedFlags, byte>)funcTable[36])(flags);
-			#else
-			return (byte)((delegate* unmanaged[Cdecl]<ImGuiFocusedFlags, byte>)funcTable[36])(flags);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool IsWindowFocused(ImGuiFocusedFlags flags)
-		{
-			byte ret = IsWindowFocusedNative(flags);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool IsWindowFocused()
-		{
-			byte ret = IsWindowFocusedNative((ImGuiFocusedFlags)(0));
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte IsWindowHoveredNative(ImGuiHoveredFlags flags)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImGuiHoveredFlags, byte>)funcTable[37])(flags);
-			#else
-			return (byte)((delegate* unmanaged[Cdecl]<ImGuiHoveredFlags, byte>)funcTable[37])(flags);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool IsWindowHovered(ImGuiHoveredFlags flags)
-		{
-			byte ret = IsWindowHoveredNative(flags);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool IsWindowHovered()
-		{
-			byte ret = IsWindowHoveredNative((ImGuiHoveredFlags)(0));
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImDrawList* GetWindowDrawListNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImDrawList*>)funcTable[38])();
-			#else
-			return (ImDrawList*)((delegate* unmanaged[Cdecl]<nint>)funcTable[38])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImDrawListPtr GetWindowDrawList()
-		{
-			ImDrawListPtr ret = GetWindowDrawListNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetWindowDpiScaleNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[39])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[39])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetWindowDpiScale()
-		{
-			float ret = GetWindowDpiScaleNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetWindowPosNative(Vector2* pOut)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, void>)funcTable[40])(pOut);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[40])((nint)pOut);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 GetWindowPos()
-		{
-			Vector2 ret;
-			GetWindowPosNative(&ret);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetWindowPos(Vector2* pOut)
-		{
-			GetWindowPosNative(pOut);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetWindowPos(ref Vector2 pOut)
-		{
-			fixed (Vector2* ppOut = &pOut)
-			{
-				GetWindowPosNative((Vector2*)ppOut);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetWindowSizeNative(Vector2* pOut)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, void>)funcTable[41])(pOut);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[41])((nint)pOut);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 GetWindowSize()
-		{
-			Vector2 ret;
-			GetWindowSizeNative(&ret);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetWindowSize(Vector2* pOut)
-		{
-			GetWindowSizeNative(pOut);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetWindowSize(ref Vector2 pOut)
-		{
-			fixed (Vector2* ppOut = &pOut)
-			{
-				GetWindowSizeNative((Vector2*)ppOut);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetWindowWidthNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[42])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[42])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetWindowWidth()
-		{
-			float ret = GetWindowWidthNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetWindowHeightNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[43])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[43])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetWindowHeight()
-		{
-			float ret = GetWindowHeightNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImGuiViewport* GetWindowViewportNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImGuiViewport*>)funcTable[44])();
-			#else
-			return (ImGuiViewport*)((delegate* unmanaged[Cdecl]<nint>)funcTable[44])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImGuiViewportPtr GetWindowViewport()
-		{
-			ImGuiViewportPtr ret = GetWindowViewportNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetNextWindowPosNative(Vector2 pos, ImGuiCond cond, Vector2 pivot)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, Vector2, void>)funcTable[45])(pos, cond, pivot);
-			#else
-			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, Vector2, void>)funcTable[45])(pos, cond, pivot);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowPos(Vector2 pos, ImGuiCond cond, Vector2 pivot)
-		{
-			SetNextWindowPosNative(pos, cond, pivot);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowPos(Vector2 pos, ImGuiCond cond)
-		{
-			SetNextWindowPosNative(pos, cond, (Vector2)(new Vector2(0,0)));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowPos(Vector2 pos)
-		{
-			SetNextWindowPosNative(pos, (ImGuiCond)(0), (Vector2)(new Vector2(0,0)));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowPos(Vector2 pos, Vector2 pivot)
-		{
-			SetNextWindowPosNative(pos, (ImGuiCond)(0), pivot);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetNextWindowSizeNative(Vector2 size, ImGuiCond cond)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[46])(size, cond);
-			#else
-			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[46])(size, cond);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowSize(Vector2 size, ImGuiCond cond)
-		{
-			SetNextWindowSizeNative(size, cond);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowSize(Vector2 size)
-		{
-			SetNextWindowSizeNative(size, (ImGuiCond)(0));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetNextWindowSizeConstraintsNative(Vector2 sizeMin, Vector2 sizeMax, ImGuiSizeCallback customCallback, void* customCallbackData)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2, Vector2, delegate*<ImGuiSizeCallbackData*, void>, void*, void>)funcTable[47])(sizeMin, sizeMax, (delegate*<ImGuiSizeCallbackData*, void>)Utils.GetFunctionPointerForDelegate(customCallback), customCallbackData);
-			#else
-			((delegate* unmanaged[Cdecl]<Vector2, Vector2, nint, nint, void>)funcTable[47])(sizeMin, sizeMax, (nint)Utils.GetFunctionPointerForDelegate(customCallback), (nint)customCallbackData);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowSizeConstraints(Vector2 sizeMin, Vector2 sizeMax, ImGuiSizeCallback customCallback, void* customCallbackData)
-		{
-			SetNextWindowSizeConstraintsNative(sizeMin, sizeMax, customCallback, customCallbackData);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowSizeConstraints(Vector2 sizeMin, Vector2 sizeMax, ImGuiSizeCallback customCallback)
-		{
-			SetNextWindowSizeConstraintsNative(sizeMin, sizeMax, customCallback, (void*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowSizeConstraints(Vector2 sizeMin, Vector2 sizeMax)
-		{
-			SetNextWindowSizeConstraintsNative(sizeMin, sizeMax, (ImGuiSizeCallback)(default), (void*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowSizeConstraints(Vector2 sizeMin, Vector2 sizeMax, void* customCallbackData)
-		{
-			SetNextWindowSizeConstraintsNative(sizeMin, sizeMax, (ImGuiSizeCallback)(default), customCallbackData);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetNextWindowContentSizeNative(Vector2 size)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[48])(size);
-			#else
-			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[48])(size);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowContentSize(Vector2 size)
-		{
-			SetNextWindowContentSizeNative(size);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetNextWindowCollapsedNative(byte collapsed, ImGuiCond cond)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[49])(collapsed, cond);
-			#else
-			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[49])(collapsed, cond);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowCollapsed(bool collapsed, ImGuiCond cond)
-		{
-			SetNextWindowCollapsedNative(collapsed ? (byte)1 : (byte)0, cond);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowCollapsed(bool collapsed)
-		{
-			SetNextWindowCollapsedNative(collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetNextWindowFocusNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[50])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[50])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowFocus()
-		{
-			SetNextWindowFocusNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetNextWindowBgAlphaNative(float alpha)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[51])(alpha);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[51])(alpha);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowBgAlpha(float alpha)
-		{
-			SetNextWindowBgAlphaNative(alpha);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetNextWindowViewportNative(uint viewportId)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<uint, void>)funcTable[52])(viewportId);
-			#else
-			((delegate* unmanaged[Cdecl]<uint, void>)funcTable[52])(viewportId);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextWindowViewport(uint viewportId)
-		{
-			SetNextWindowViewportNative(viewportId);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetWindowPosNative(Vector2 pos, ImGuiCond cond)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[53])(pos, cond);
-			#else
-			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[53])(pos, cond);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowPos(Vector2 pos, ImGuiCond cond)
-		{
-			SetWindowPosNative(pos, cond);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowPos(Vector2 pos)
-		{
-			SetWindowPosNative(pos, (ImGuiCond)(0));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetWindowSizeNative(Vector2 size, ImGuiCond cond)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[54])(size, cond);
-			#else
-			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[54])(size, cond);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowSize(Vector2 size, ImGuiCond cond)
-		{
-			SetWindowSizeNative(size, cond);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowSize(Vector2 size)
-		{
-			SetWindowSizeNative(size, (ImGuiCond)(0));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetWindowCollapsedNative(byte collapsed, ImGuiCond cond)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[55])(collapsed, cond);
-			#else
-			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[55])(collapsed, cond);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowCollapsed(bool collapsed, ImGuiCond cond)
-		{
-			SetWindowCollapsedNative(collapsed ? (byte)1 : (byte)0, cond);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowCollapsed(bool collapsed)
-		{
-			SetWindowCollapsedNative(collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetWindowFocusNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[56])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[56])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowFocus()
-		{
-			SetWindowFocusNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetWindowFontScaleNative(float scale)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[57])(scale);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[57])(scale);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowFontScale(float scale)
-		{
-			SetWindowFontScaleNative(scale);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetWindowPosNative(byte* name, Vector2 pos, ImGuiCond cond)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, Vector2, ImGuiCond, void>)funcTable[58])(name, pos, cond);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, Vector2, ImGuiCond, void>)funcTable[58])((nint)name, pos, cond);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowPos(byte* name, Vector2 pos, ImGuiCond cond)
-		{
-			SetWindowPosNative(name, pos, cond);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowPos(byte* name, Vector2 pos)
-		{
-			SetWindowPosNative(name, pos, (ImGuiCond)(0));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowPos(ref byte name, Vector2 pos, ImGuiCond cond)
-		{
-			fixed (byte* pname = &name)
-			{
-				SetWindowPosNative((byte*)pname, pos, cond);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowPos(ref byte name, Vector2 pos)
-		{
-			fixed (byte* pname = &name)
-			{
-				SetWindowPosNative((byte*)pname, pos, (ImGuiCond)(0));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowPos(ReadOnlySpan<byte> name, Vector2 pos, ImGuiCond cond)
-		{
-			fixed (byte* pname = name)
-			{
-				SetWindowPosNative((byte*)pname, pos, cond);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowPos(ReadOnlySpan<byte> name, Vector2 pos)
-		{
-			fixed (byte* pname = name)
-			{
-				SetWindowPosNative((byte*)pname, pos, (ImGuiCond)(0));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowPos(string name, Vector2 pos, ImGuiCond cond)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			SetWindowPosNative(pStr0, pos, cond);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowPos(string name, Vector2 pos)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			SetWindowPosNative(pStr0, pos, (ImGuiCond)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetWindowSizeNative(byte* name, Vector2 size, ImGuiCond cond)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, Vector2, ImGuiCond, void>)funcTable[59])(name, size, cond);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, Vector2, ImGuiCond, void>)funcTable[59])((nint)name, size, cond);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowSize(byte* name, Vector2 size, ImGuiCond cond)
-		{
-			SetWindowSizeNative(name, size, cond);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowSize(byte* name, Vector2 size)
-		{
-			SetWindowSizeNative(name, size, (ImGuiCond)(0));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowSize(ref byte name, Vector2 size, ImGuiCond cond)
-		{
-			fixed (byte* pname = &name)
-			{
-				SetWindowSizeNative((byte*)pname, size, cond);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowSize(ref byte name, Vector2 size)
-		{
-			fixed (byte* pname = &name)
-			{
-				SetWindowSizeNative((byte*)pname, size, (ImGuiCond)(0));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowSize(ReadOnlySpan<byte> name, Vector2 size, ImGuiCond cond)
-		{
-			fixed (byte* pname = name)
-			{
-				SetWindowSizeNative((byte*)pname, size, cond);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowSize(ReadOnlySpan<byte> name, Vector2 size)
-		{
-			fixed (byte* pname = name)
-			{
-				SetWindowSizeNative((byte*)pname, size, (ImGuiCond)(0));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowSize(string name, Vector2 size, ImGuiCond cond)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			SetWindowSizeNative(pStr0, size, cond);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowSize(string name, Vector2 size)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			SetWindowSizeNative(pStr0, size, (ImGuiCond)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetWindowCollapsedNative(byte* name, byte collapsed, ImGuiCond cond)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, byte, ImGuiCond, void>)funcTable[60])(name, collapsed, cond);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, byte, ImGuiCond, void>)funcTable[60])((nint)name, collapsed, cond);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowCollapsed(byte* name, bool collapsed, ImGuiCond cond)
-		{
-			SetWindowCollapsedNative(name, collapsed ? (byte)1 : (byte)0, cond);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowCollapsed(byte* name, bool collapsed)
-		{
-			SetWindowCollapsedNative(name, collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowCollapsed(ref byte name, bool collapsed, ImGuiCond cond)
-		{
-			fixed (byte* pname = &name)
-			{
-				SetWindowCollapsedNative((byte*)pname, collapsed ? (byte)1 : (byte)0, cond);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowCollapsed(ref byte name, bool collapsed)
-		{
-			fixed (byte* pname = &name)
-			{
-				SetWindowCollapsedNative((byte*)pname, collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowCollapsed(ReadOnlySpan<byte> name, bool collapsed, ImGuiCond cond)
-		{
-			fixed (byte* pname = name)
-			{
-				SetWindowCollapsedNative((byte*)pname, collapsed ? (byte)1 : (byte)0, cond);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowCollapsed(ReadOnlySpan<byte> name, bool collapsed)
-		{
-			fixed (byte* pname = name)
-			{
-				SetWindowCollapsedNative((byte*)pname, collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowCollapsed(string name, bool collapsed, ImGuiCond cond)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			SetWindowCollapsedNative(pStr0, collapsed ? (byte)1 : (byte)0, cond);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowCollapsed(string name, bool collapsed)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			SetWindowCollapsedNative(pStr0, collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetWindowFocusNative(byte* name)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[61])(name);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[61])((nint)name);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowFocus(byte* name)
-		{
-			SetWindowFocusNative(name);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowFocus(ref byte name)
-		{
-			fixed (byte* pname = &name)
-			{
-				SetWindowFocusNative((byte*)pname);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowFocus(ReadOnlySpan<byte> name)
-		{
-			fixed (byte* pname = name)
-			{
-				SetWindowFocusNative((byte*)pname);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetWindowFocus(string name)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (name != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(name);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			SetWindowFocusNative(pStr0);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetContentRegionAvailNative(Vector2* pOut)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, void>)funcTable[62])(pOut);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[62])((nint)pOut);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 GetContentRegionAvail()
-		{
-			Vector2 ret;
-			GetContentRegionAvailNative(&ret);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetContentRegionAvail(Vector2* pOut)
-		{
-			GetContentRegionAvailNative(pOut);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetContentRegionAvail(ref Vector2 pOut)
-		{
-			fixed (Vector2* ppOut = &pOut)
-			{
-				GetContentRegionAvailNative((Vector2*)ppOut);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetContentRegionMaxNative(Vector2* pOut)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, void>)funcTable[63])(pOut);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[63])((nint)pOut);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 GetContentRegionMax()
-		{
-			Vector2 ret;
-			GetContentRegionMaxNative(&ret);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetContentRegionMax(Vector2* pOut)
-		{
-			GetContentRegionMaxNative(pOut);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetContentRegionMax(ref Vector2 pOut)
-		{
-			fixed (Vector2* ppOut = &pOut)
-			{
-				GetContentRegionMaxNative((Vector2*)ppOut);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetWindowContentRegionMinNative(Vector2* pOut)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, void>)funcTable[64])(pOut);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[64])((nint)pOut);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 GetWindowContentRegionMin()
-		{
-			Vector2 ret;
-			GetWindowContentRegionMinNative(&ret);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetWindowContentRegionMin(Vector2* pOut)
-		{
-			GetWindowContentRegionMinNative(pOut);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetWindowContentRegionMin(ref Vector2 pOut)
-		{
-			fixed (Vector2* ppOut = &pOut)
-			{
-				GetWindowContentRegionMinNative((Vector2*)ppOut);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetWindowContentRegionMaxNative(Vector2* pOut)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, void>)funcTable[65])(pOut);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[65])((nint)pOut);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 GetWindowContentRegionMax()
-		{
-			Vector2 ret;
-			GetWindowContentRegionMaxNative(&ret);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetWindowContentRegionMax(Vector2* pOut)
-		{
-			GetWindowContentRegionMaxNative(pOut);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetWindowContentRegionMax(ref Vector2 pOut)
-		{
-			fixed (Vector2* ppOut = &pOut)
-			{
-				GetWindowContentRegionMaxNative((Vector2*)ppOut);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetScrollXNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[66])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[66])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetScrollX()
-		{
-			float ret = GetScrollXNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetScrollYNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[67])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[67])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetScrollY()
-		{
-			float ret = GetScrollYNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetScrollXNative(float scrollX)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[68])(scrollX);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[68])(scrollX);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetScrollX(float scrollX)
-		{
-			SetScrollXNative(scrollX);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetScrollYNative(float scrollY)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[69])(scrollY);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[69])(scrollY);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetScrollY(float scrollY)
-		{
-			SetScrollYNative(scrollY);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetScrollMaxXNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[70])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[70])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetScrollMaxX()
-		{
-			float ret = GetScrollMaxXNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetScrollMaxYNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[71])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[71])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetScrollMaxY()
-		{
-			float ret = GetScrollMaxYNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetScrollHereXNative(float centerXRatio)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[72])(centerXRatio);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[72])(centerXRatio);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetScrollHereX(float centerXRatio)
-		{
-			SetScrollHereXNative(centerXRatio);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetScrollHereX()
-		{
-			SetScrollHereXNative((float)(0.5f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetScrollHereYNative(float centerYRatio)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[73])(centerYRatio);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[73])(centerYRatio);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetScrollHereY(float centerYRatio)
-		{
-			SetScrollHereYNative(centerYRatio);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetScrollHereY()
-		{
-			SetScrollHereYNative((float)(0.5f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetScrollFromPosXNative(float localX, float centerXRatio)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[74])(localX, centerXRatio);
-			#else
-			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[74])(localX, centerXRatio);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetScrollFromPosX(float localX, float centerXRatio)
-		{
-			SetScrollFromPosXNative(localX, centerXRatio);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetScrollFromPosX(float localX)
-		{
-			SetScrollFromPosXNative(localX, (float)(0.5f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetScrollFromPosYNative(float localY, float centerYRatio)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[75])(localY, centerYRatio);
-			#else
-			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[75])(localY, centerYRatio);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetScrollFromPosY(float localY, float centerYRatio)
-		{
-			SetScrollFromPosYNative(localY, centerYRatio);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetScrollFromPosY(float localY)
-		{
-			SetScrollFromPosYNative(localY, (float)(0.5f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PushFontNative(ImFont* font)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFont*, void>)funcTable[76])(font);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[76])((nint)font);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushFont(ImFontPtr font)
-		{
-			PushFontNative(font);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PushFont(ref ImFont font)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
 			fixed (ImFont* pfont = &font)
 			{
-				PushFontNative((ImFont*)pfont);
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, clipRect, renderFlags, transform);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PopFontNative()
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
 		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[77])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[77])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PopFont()
-		{
-			PopFontNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PushStyleColorNative(ImGuiCol idx, uint col)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiCol, uint, void>)funcTable[78])(idx, col);
-			#else
-			((delegate* unmanaged[Cdecl]<ImGuiCol, uint, void>)funcTable[78])(idx, col);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushStyleColor(ImGuiCol idx, uint col)
-		{
-			PushStyleColorNative(idx, col);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PushStyleColorNative(ImGuiCol idx, Vector4 col)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiCol, Vector4, void>)funcTable[79])(idx, col);
-			#else
-			((delegate* unmanaged[Cdecl]<ImGuiCol, Vector4, void>)funcTable[79])(idx, col);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushStyleColor(ImGuiCol idx, Vector4 col)
-		{
-			PushStyleColorNative(idx, col);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PopStyleColorNative(int count)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<int, void>)funcTable[80])(count);
-			#else
-			((delegate* unmanaged[Cdecl]<int, void>)funcTable[80])(count);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PopStyleColor(int count)
-		{
-			PopStyleColorNative(count);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PopStyleColor()
-		{
-			PopStyleColorNative((int)(1));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PushStyleVarNative(ImGuiStyleVar idx, float val)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, float, void>)funcTable[81])(idx, val);
-			#else
-			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, float, void>)funcTable[81])(idx, val);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushStyleVar(ImGuiStyleVar idx, float val)
-		{
-			PushStyleVarNative(idx, val);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PushStyleVarNative(ImGuiStyleVar idx, Vector2 val)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, Vector2, void>)funcTable[82])(idx, val);
-			#else
-			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, Vector2, void>)funcTable[82])(idx, val);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushStyleVar(ImGuiStyleVar idx, Vector2 val)
-		{
-			PushStyleVarNative(idx, val);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PopStyleVarNative(int count)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<int, void>)funcTable[83])(count);
-			#else
-			((delegate* unmanaged[Cdecl]<int, void>)funcTable[83])(count);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PopStyleVar(int count)
-		{
-			PopStyleVarNative(count);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PopStyleVar()
-		{
-			PopStyleVarNative((int)(1));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PushAllowKeyboardFocusNative(byte allowKeyboardFocus)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte, void>)funcTable[84])(allowKeyboardFocus);
-			#else
-			((delegate* unmanaged[Cdecl]<byte, void>)funcTable[84])(allowKeyboardFocus);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushAllowKeyboardFocus(bool allowKeyboardFocus)
-		{
-			PushAllowKeyboardFocusNative(allowKeyboardFocus ? (byte)1 : (byte)0);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PopAllowKeyboardFocusNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[85])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[85])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PopAllowKeyboardFocus()
-		{
-			PopAllowKeyboardFocusNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PushButtonRepeatNative(byte repeat)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte, void>)funcTable[86])(repeat);
-			#else
-			((delegate* unmanaged[Cdecl]<byte, void>)funcTable[86])(repeat);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushButtonRepeat(bool repeat)
-		{
-			PushButtonRepeatNative(repeat ? (byte)1 : (byte)0);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PopButtonRepeatNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[87])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[87])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PopButtonRepeat()
-		{
-			PopButtonRepeatNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PushItemWidthNative(float itemWidth)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[88])(itemWidth);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[88])(itemWidth);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushItemWidth(float itemWidth)
-		{
-			PushItemWidthNative(itemWidth);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PopItemWidthNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[89])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[89])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PopItemWidth()
-		{
-			PopItemWidthNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetNextItemWidthNative(float itemWidth)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[90])(itemWidth);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[90])(itemWidth);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetNextItemWidth(float itemWidth)
-		{
-			SetNextItemWidthNative(itemWidth);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float CalcItemWidthNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[91])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[91])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float CalcItemWidth()
-		{
-			float ret = CalcItemWidthNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PushTextWrapPosNative(float wrapLocalPosX)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[92])(wrapLocalPosX);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[92])(wrapLocalPosX);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushTextWrapPos(float wrapLocalPosX)
-		{
-			PushTextWrapPosNative(wrapLocalPosX);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushTextWrapPos()
-		{
-			PushTextWrapPosNative((float)(0.0f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PopTextWrapPosNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[93])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[93])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PopTextWrapPos()
-		{
-			PopTextWrapPosNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImFont* GetFontNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFont*>)funcTable[94])();
-			#else
-			return (ImFont*)((delegate* unmanaged[Cdecl]<nint>)funcTable[94])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr GetFont()
-		{
-			ImFontPtr ret = GetFontNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetFontSizeNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[95])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[95])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetFontSize()
-		{
-			float ret = GetFontSizeNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImTextureID GetFontTexIdWhitePixelNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImTextureID>)funcTable[96])();
-			#else
-			return (ImTextureID)((delegate* unmanaged[Cdecl]<ImTextureID>)funcTable[96])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImTextureID GetFontTexIdWhitePixel()
-		{
-			ImTextureID ret = GetFontTexIdWhitePixelNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetFontTexUvWhitePixelNative(Vector2* pOut)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, void>)funcTable[97])(pOut);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[97])((nint)pOut);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 GetFontTexUvWhitePixel()
-		{
-			Vector2 ret;
-			GetFontTexUvWhitePixelNative(&ret);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetFontTexUvWhitePixel(Vector2* pOut)
-		{
-			GetFontTexUvWhitePixelNative(pOut);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetFontTexUvWhitePixel(ref Vector2 pOut)
-		{
-			fixed (Vector2* ppOut = &pOut)
+			fixed (ImFont* pfont = &font)
 			{
-				GetFontTexUvWhitePixelNative((Vector2*)ppOut);
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static uint GetColorU32Native(ImGuiCol idx, float alphaMul)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect)
 		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImGuiCol, float, uint>)funcTable[98])(idx, alphaMul);
-			#else
-			return (uint)((delegate* unmanaged[Cdecl]<ImGuiCol, float, uint>)funcTable[98])(idx, alphaMul);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static uint GetColorU32(ImGuiCol idx, float alphaMul)
-		{
-			uint ret = GetColorU32Native(idx, alphaMul);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static uint GetColorU32(ImGuiCol idx)
-		{
-			uint ret = GetColorU32Native(idx, (float)(1.0f));
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static uint GetColorU32Native(Vector4 col)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<Vector4, uint>)funcTable[99])(col);
-			#else
-			return (uint)((delegate* unmanaged[Cdecl]<Vector4, uint>)funcTable[99])(col);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static uint GetColorU32(Vector4 col)
-		{
-			uint ret = GetColorU32Native(col);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static uint GetColorU32Native(uint col)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<uint, uint>)funcTable[100])(col);
-			#else
-			return (uint)((delegate* unmanaged[Cdecl]<uint, uint>)funcTable[100])(col);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static uint GetColorU32(uint col)
-		{
-			uint ret = GetColorU32Native(col);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static Vector4* GetStyleColorVec4Native(ImGuiCol idx)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImGuiCol, Vector4*>)funcTable[101])(idx);
-			#else
-			return (Vector4*)((delegate* unmanaged[Cdecl]<ImGuiCol, nint>)funcTable[101])(idx);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector4* GetStyleColorVec4(ImGuiCol idx)
-		{
-			Vector4* ret = GetStyleColorVec4Native(idx);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SeparatorNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[102])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[102])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void Separator()
-		{
-			SeparatorNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SameLineNative(float offsetFromStartX, float spacing)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[103])(offsetFromStartX, spacing);
-			#else
-			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[103])(offsetFromStartX, spacing);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SameLine(float offsetFromStartX, float spacing)
-		{
-			SameLineNative(offsetFromStartX, spacing);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SameLine(float offsetFromStartX)
-		{
-			SameLineNative(offsetFromStartX, (float)(-1.0f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SameLine()
-		{
-			SameLineNative((float)(0.0f), (float)(-1.0f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void NewLineNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[104])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[104])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void NewLine()
-		{
-			NewLineNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SpacingNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[105])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[105])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void Spacing()
-		{
-			SpacingNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void DummyNative(Vector2 size)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[106])(size);
-			#else
-			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[106])(size);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void Dummy(Vector2 size)
-		{
-			DummyNative(size);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void IndentNative(float indentW)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[107])(indentW);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[107])(indentW);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void Indent(float indentW)
-		{
-			IndentNative(indentW);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void Indent()
-		{
-			IndentNative((float)(0.0f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void UnindentNative(float indentW)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[108])(indentW);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[108])(indentW);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void Unindent(float indentW)
-		{
-			UnindentNative(indentW);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void Unindent()
-		{
-			UnindentNative((float)(0.0f));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void BeginGroupNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[109])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[109])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void BeginGroup()
-		{
-			BeginGroupNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void EndGroupNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[110])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[110])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void EndGroup()
-		{
-			EndGroupNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetCursorPosNative(Vector2* pOut)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, void>)funcTable[111])(pOut);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[111])((nint)pOut);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 GetCursorPos()
-		{
-			Vector2 ret;
-			GetCursorPosNative(&ret);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetCursorPos(Vector2* pOut)
-		{
-			GetCursorPosNative(pOut);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetCursorPos(ref Vector2 pOut)
-		{
-			fixed (Vector2* ppOut = &pOut)
+			fixed (ImFont* pfont = &font)
 			{
-				GetCursorPosNative((Vector2*)ppOut);
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetCursorPosXNative()
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd)
 		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[112])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[112])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetCursorPosX()
-		{
-			float ret = GetCursorPosXNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetCursorPosYNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[113])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[113])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetCursorPosY()
-		{
-			float ret = GetCursorPosYNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetCursorPosNative(Vector2 localPos)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[114])(localPos);
-			#else
-			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[114])(localPos);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetCursorPos(Vector2 localPos)
-		{
-			SetCursorPosNative(localPos);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetCursorPosXNative(float localX)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[115])(localX);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[115])(localX);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetCursorPosX(float localX)
-		{
-			SetCursorPosXNative(localX);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetCursorPosYNative(float localY)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[116])(localY);
-			#else
-			((delegate* unmanaged[Cdecl]<float, void>)funcTable[116])(localY);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetCursorPosY(float localY)
-		{
-			SetCursorPosYNative(localY);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetCursorStartPosNative(Vector2* pOut)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, void>)funcTable[117])(pOut);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[117])((nint)pOut);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 GetCursorStartPos()
-		{
-			Vector2 ret;
-			GetCursorStartPosNative(&ret);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetCursorStartPos(Vector2* pOut)
-		{
-			GetCursorStartPosNative(pOut);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetCursorStartPos(ref Vector2 pOut)
-		{
-			fixed (Vector2* ppOut = &pOut)
+			fixed (ImFont* pfont = &font)
 			{
-				GetCursorStartPosNative((Vector2*)ppOut);
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetCursorScreenPosNative(Vector2* pOut)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin)
 		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, void>)funcTable[118])(pOut);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[118])((nint)pOut);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 GetCursorScreenPos()
-		{
-			Vector2 ret;
-			GetCursorScreenPosNative(&ret);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetCursorScreenPos(Vector2* pOut)
-		{
-			GetCursorScreenPosNative(pOut);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetCursorScreenPos(ref Vector2 pOut)
-		{
-			fixed (Vector2* ppOut = &pOut)
+			fixed (ImFont* pfont = &font)
 			{
-				GetCursorScreenPosNative((Vector2*)ppOut);
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetCursorScreenPosNative(Vector2 pos)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect)
 		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[119])(pos);
-			#else
-			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[119])(pos);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetCursorScreenPos(Vector2 pos)
-		{
-			SetCursorScreenPosNative(pos);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void AlignTextToFramePaddingNative()
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[120])();
-			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[120])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void AlignTextToFramePadding()
-		{
-			AlignTextToFramePaddingNative();
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetTextLineHeightNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[121])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[121])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetTextLineHeight()
-		{
-			float ret = GetTextLineHeightNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetTextLineHeightWithSpacingNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[122])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[122])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetTextLineHeightWithSpacing()
-		{
-			float ret = GetTextLineHeightWithSpacingNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetFrameHeightNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[123])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[123])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetFrameHeight()
-		{
-			float ret = GetFrameHeightNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static float GetFrameHeightWithSpacingNative()
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[124])();
-			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[124])();
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static float GetFrameHeightWithSpacing()
-		{
-			float ret = GetFrameHeightWithSpacingNative();
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PushIDNative(byte* strId)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[125])(strId);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[125])((nint)strId);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushID(byte* strId)
-		{
-			PushIDNative(strId);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushID(ref byte strId)
-		{
-			fixed (byte* pstrId = &strId)
+			fixed (ImFont* pfont = &font)
 			{
-				PushIDNative((byte*)pstrId);
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PushID(ReadOnlySpan<byte> strId)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* pstrId = strId)
+			fixed (ImFont* pfont = &font)
 			{
-				PushIDNative((byte*)pstrId);
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PushID(string strId)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), clipRect, renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (strId != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(strId);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4859,10 +2404,10 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			PushIDNative(pStr0);
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, clipRect, renderFlags, transform);
 			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr0);
@@ -4872,56 +2417,13 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PushIDNative(byte* strIdBegin, byte* strIdEnd)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, byte*, void>)funcTable[126])(strIdBegin, strIdEnd);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, void>)funcTable[126])((nint)strIdBegin, (nint)strIdEnd);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushID(byte* strIdBegin, byte* strIdEnd)
-		{
-			PushIDNative(strIdBegin, strIdEnd);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushID(ref byte strIdBegin, byte* strIdEnd)
-		{
-			fixed (byte* pstrIdBegin = &strIdBegin)
-			{
-				PushIDNative((byte*)pstrIdBegin, strIdEnd);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushID(ReadOnlySpan<byte> strIdBegin, byte* strIdEnd)
-		{
-			fixed (byte* pstrIdBegin = strIdBegin)
-			{
-				PushIDNative((byte*)pstrIdBegin, strIdEnd);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushID(string strIdBegin, byte* strIdEnd)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (strIdBegin != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4931,10 +2433,10 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			PushIDNative(pStr0, strIdEnd);
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
 			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr0);
@@ -4944,35 +2446,13 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PushID(byte* strIdBegin, ref byte strIdEnd)
-		{
-			fixed (byte* pstrIdEnd = &strIdEnd)
-			{
-				PushIDNative(strIdBegin, (byte*)pstrIdEnd);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushID(byte* strIdBegin, ReadOnlySpan<byte> strIdEnd)
-		{
-			fixed (byte* pstrIdEnd = strIdEnd)
-			{
-				PushIDNative(strIdBegin, (byte*)pstrIdEnd);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PushID(byte* strIdBegin, string strIdEnd)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (strIdEnd != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4982,10 +2462,10 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			PushIDNative(strIdBegin, pStr0);
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr0);
@@ -4995,13 +2475,390 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PushID(ref byte strIdBegin, ref byte strIdEnd)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd)
 		{
-			fixed (byte* pstrIdBegin = &strIdBegin)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
 			{
-				fixed (byte* pstrIdEnd = &strIdEnd)
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PushIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ImTextRenderFlags renderFlags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ImTextTransformPtr transform)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)(default), renderFlags, transform);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), clipRect, renderFlags, transform);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, transform);
 				}
 			}
 		}
@@ -5009,13 +2866,2143 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PushID(ReadOnlySpan<byte> strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* pstrIdBegin = strIdBegin)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (byte* pstrIdEnd = strIdEnd)
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					PushIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, clipRect, renderFlags, transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)(default), renderFlags, transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), clipRect, renderFlags, transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, clipRect, renderFlags, transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)(default), renderFlags, transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), (Vector4*)(default), renderFlags, transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), clipRect, renderFlags, transform);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, clipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), clipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)(default), renderFlags, transform);
+					}
 				}
 			}
 		}

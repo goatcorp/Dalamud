@@ -53,6 +53,77 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void AnnotationCollectionAppend(Vector2 pos, Vector2 off, uint bg, uint fg, bool clamp, byte* fmt)
+		{
+			fixed (ImPlotAnnotationCollection* @this = &this)
+			{
+				ImPlot.AppendNative(@this, pos, off, bg, fg, clamp ? (byte)1 : (byte)0, fmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AnnotationCollectionAppend(Vector2 pos, Vector2 off, uint bg, uint fg, bool clamp, ref byte fmt)
+		{
+			fixed (ImPlotAnnotationCollection* @this = &this)
+			{
+				fixed (byte* pfmt = &fmt)
+				{
+					ImPlot.AppendNative(@this, pos, off, bg, fg, clamp ? (byte)1 : (byte)0, (byte*)pfmt);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AnnotationCollectionAppend(Vector2 pos, Vector2 off, uint bg, uint fg, bool clamp, ReadOnlySpan<byte> fmt)
+		{
+			fixed (ImPlotAnnotationCollection* @this = &this)
+			{
+				fixed (byte* pfmt = fmt)
+				{
+					ImPlot.AppendNative(@this, pos, off, bg, fg, clamp ? (byte)1 : (byte)0, (byte*)pfmt);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AnnotationCollectionAppend(Vector2 pos, Vector2 off, uint bg, uint fg, bool clamp, string fmt)
+		{
+			fixed (ImPlotAnnotationCollection* @this = &this)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (fmt != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(fmt);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				ImPlot.AppendNative(@this, pos, off, bg, fg, clamp ? (byte)1 : (byte)0, pStr0);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void Append(Vector2 pos, Vector2 off, uint bg, uint fg, bool clamp, byte* fmt)
 		{
 			fixed (ImPlotAnnotationCollection* @this = &this)
@@ -293,6 +364,65 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		public ref int Size => ref Unsafe.AsRef<int>(&Handle->Size);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AnnotationCollectionAppend(Vector2 pos, Vector2 off, uint bg, uint fg, bool clamp, byte* fmt)
+		{
+			ImPlot.AppendNative(Handle, pos, off, bg, fg, clamp ? (byte)1 : (byte)0, fmt);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AnnotationCollectionAppend(Vector2 pos, Vector2 off, uint bg, uint fg, bool clamp, ref byte fmt)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				ImPlot.AppendNative(Handle, pos, off, bg, fg, clamp ? (byte)1 : (byte)0, (byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AnnotationCollectionAppend(Vector2 pos, Vector2 off, uint bg, uint fg, bool clamp, ReadOnlySpan<byte> fmt)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				ImPlot.AppendNative(Handle, pos, off, bg, fg, clamp ? (byte)1 : (byte)0, (byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void AnnotationCollectionAppend(Vector2 pos, Vector2 off, uint bg, uint fg, bool clamp, string fmt)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			ImPlot.AppendNative(Handle, pos, off, bg, fg, clamp ? (byte)1 : (byte)0, pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
 		/// <summary>
 		/// To be documented.
 		/// </summary>

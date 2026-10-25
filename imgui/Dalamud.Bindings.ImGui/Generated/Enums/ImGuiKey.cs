@@ -27,6 +27,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		NamedKeyBegin = unchecked(512),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		Tab = unchecked(512),
 
 		/// <summary>
@@ -387,336 +392,456 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Apostrophe = unchecked(584),
+		F13 = unchecked(584),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Comma = unchecked(585),
+		F14 = unchecked(585),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Minus = unchecked(586),
+		F15 = unchecked(586),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Period = unchecked(587),
+		F16 = unchecked(587),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Slash = unchecked(588),
+		F17 = unchecked(588),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Semicolon = unchecked(589),
+		F18 = unchecked(589),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Equal = unchecked(590),
+		F19 = unchecked(590),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		LeftBracket = unchecked(591),
+		F20 = unchecked(591),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Backslash = unchecked(592),
+		F21 = unchecked(592),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RightBracket = unchecked(593),
+		F22 = unchecked(593),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GraveAccent = unchecked(594),
+		F23 = unchecked(594),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CapsLock = unchecked(595),
+		F24 = unchecked(595),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ScrollLock = unchecked(596),
+		Apostrophe = unchecked(596),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NumLock = unchecked(597),
+		Comma = unchecked(597),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		PrintScreen = unchecked(598),
+		Minus = unchecked(598),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Pause = unchecked(599),
+		Period = unchecked(599),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Keypad0 = unchecked(600),
+		Slash = unchecked(600),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Keypad1 = unchecked(601),
+		Semicolon = unchecked(601),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Keypad2 = unchecked(602),
+		Equal = unchecked(602),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Keypad3 = unchecked(603),
+		LeftBracket = unchecked(603),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Keypad4 = unchecked(604),
+		Backslash = unchecked(604),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Keypad5 = unchecked(605),
+		RightBracket = unchecked(605),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Keypad6 = unchecked(606),
+		GraveAccent = unchecked(606),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Keypad7 = unchecked(607),
+		CapsLock = unchecked(607),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Keypad8 = unchecked(608),
+		ScrollLock = unchecked(608),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Keypad9 = unchecked(609),
+		NumLock = unchecked(609),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		KeypadDecimal = unchecked(610),
+		PrintScreen = unchecked(610),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		KeypadDivide = unchecked(611),
+		Pause = unchecked(611),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		KeypadMultiply = unchecked(612),
+		Keypad0 = unchecked(612),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		KeypadSubtract = unchecked(613),
+		Keypad1 = unchecked(613),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		KeypadAdd = unchecked(614),
+		Keypad2 = unchecked(614),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		KeypadEnter = unchecked(615),
+		Keypad3 = unchecked(615),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		KeypadEqual = unchecked(616),
+		Keypad4 = unchecked(616),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadStart = unchecked(617),
+		Keypad5 = unchecked(617),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadBack = unchecked(618),
+		Keypad6 = unchecked(618),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadFaceUp = unchecked(619),
+		Keypad7 = unchecked(619),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadFaceDown = unchecked(620),
+		Keypad8 = unchecked(620),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadFaceLeft = unchecked(621),
+		Keypad9 = unchecked(621),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadFaceRight = unchecked(622),
+		KeypadDecimal = unchecked(622),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadDpadUp = unchecked(623),
+		KeypadDivide = unchecked(623),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadDpadDown = unchecked(624),
+		KeypadMultiply = unchecked(624),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadDpadLeft = unchecked(625),
+		KeypadSubtract = unchecked(625),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadDpadRight = unchecked(626),
+		KeypadAdd = unchecked(626),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadL1 = unchecked(627),
+		KeypadEnter = unchecked(627),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadR1 = unchecked(628),
+		KeypadEqual = unchecked(628),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadL2 = unchecked(629),
+		AppBack = unchecked(629),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadR2 = unchecked(630),
+		AppForward = unchecked(630),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadL3 = unchecked(631),
+		Oem102 = unchecked(631),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadR3 = unchecked(632),
+		GamepadStart = unchecked(632),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadLStickUp = unchecked(633),
+		GamepadBack = unchecked(633),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadLStickDown = unchecked(634),
+		GamepadFaceLeft = unchecked(634),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadLStickLeft = unchecked(635),
+		GamepadFaceRight = unchecked(635),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadLStickRight = unchecked(636),
+		GamepadFaceUp = unchecked(636),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadRStickUp = unchecked(637),
+		GamepadFaceDown = unchecked(637),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadRStickDown = unchecked(638),
+		GamepadDpadLeft = unchecked(638),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadRStickLeft = unchecked(639),
+		GamepadDpadRight = unchecked(639),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GamepadRStickRight = unchecked(640),
+		GamepadDpadUp = unchecked(640),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ModCtrl = unchecked(641),
+		GamepadDpadDown = unchecked(641),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ModShift = unchecked(642),
+		GamepadL1 = unchecked(642),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ModAlt = unchecked(643),
+		GamepadR1 = unchecked(643),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ModSuper = unchecked(644),
+		GamepadL2 = unchecked(644),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Count = unchecked(645),
+		GamepadR2 = unchecked(645),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NamedKeyBegin = unchecked(512),
+		GamepadL3 = unchecked(646),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NamedKeyEnd = Count,
+		GamepadR3 = unchecked(647),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NamedKeyCount = unchecked(133),
+		GamepadLStickLeft = unchecked(648),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		KeysDataSize = Count,
+		GamepadLStickRight = unchecked(649),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		KeysDataOffset = unchecked(0),
+		GamepadLStickUp = unchecked(650),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		GamepadLStickDown = unchecked(651),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		GamepadRStickLeft = unchecked(652),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		GamepadRStickRight = unchecked(653),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		GamepadRStickUp = unchecked(654),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		GamepadRStickDown = unchecked(655),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		MouseLeft = unchecked(656),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		MouseRight = unchecked(657),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		MouseMiddle = unchecked(658),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		MouseX1 = unchecked(659),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		MouseX2 = unchecked(660),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		MouseWheelX = unchecked(661),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		MouseWheelY = unchecked(662),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ReservedForModCtrl = unchecked(663),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ReservedForModShift = unchecked(664),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ReservedForModAlt = unchecked(665),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ReservedForModSuper = unchecked(666),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NamedKeyEnd = unchecked(667),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NamedKeyCount = unchecked(155),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ModNone = unchecked(0),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ModCtrl = unchecked(4096),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ModShift = unchecked(8192),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ModAlt = unchecked(16384),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ModSuper = unchecked(32768),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ModMask = unchecked(61440),
 	}
 }

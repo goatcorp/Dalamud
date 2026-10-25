@@ -27,31 +27,46 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Tab = unchecked(1),
+		TabHovered = unchecked(1),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TabHovered = unchecked(2),
+		TabFocused = unchecked(2),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TabActive = unchecked(3),
+		TabSelected = unchecked(3),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TabUnfocused = unchecked(4),
+		TabSelectedOverline = unchecked(4),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TabUnfocusedActive = unchecked(5),
+		TabDimmed = unchecked(5),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Count = unchecked(6),
+		TabDimmedSelected = unchecked(6),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		TabDimmedSelectedOverline = unchecked(7),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		UnsavedMarker = unchecked(8),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Count = unchecked(9),
 	}
 }

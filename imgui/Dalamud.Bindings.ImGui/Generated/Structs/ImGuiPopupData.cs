@@ -35,7 +35,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiWindow* SourceWindow;
+		public unsafe ImGuiWindow* RestoreNavWindow;
 
 		/// <summary>
 		/// To be documented.
@@ -66,11 +66,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiPopupData(uint popupId = default, ImGuiWindowPtr window = default, ImGuiWindowPtr sourceWindow = default, int parentNavLayer = default, int openFrameCount = default, uint openParentId = default, Vector2 openPopupPos = default, Vector2 openMousePos = default)
+		public unsafe ImGuiPopupData(uint popupId = default, ImGuiWindowPtr window = default, ImGuiWindowPtr restoreNavWindow = default, int parentNavLayer = default, int openFrameCount = default, uint openParentId = default, Vector2 openPopupPos = default, Vector2 openMousePos = default)
 		{
 			PopupId = popupId;
 			Window = window;
-			SourceWindow = sourceWindow;
+			RestoreNavWindow = restoreNavWindow;
 			ParentNavLayer = parentNavLayer;
 			OpenFrameCount = openFrameCount;
 			OpenParentId = openParentId;
@@ -78,17 +78,6 @@ namespace Dalamud.Bindings.ImGui
 			OpenMousePos = openMousePos;
 		}
 
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiPopupData* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
 
 	}
 
@@ -144,7 +133,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiWindowPtr SourceWindow => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->SourceWindow);
+		public ref ImGuiWindowPtr RestoreNavWindow => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->RestoreNavWindow);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -165,14 +154,6 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref Vector2 OpenMousePos => ref Unsafe.AsRef<Vector2>(&Handle->OpenMousePos);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
 	}
 
 }

@@ -53,6 +53,77 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void TagCollectionAppend(ImAxis axis, double value, uint bg, uint fg, byte* fmt)
+		{
+			fixed (ImPlotTagCollection* @this = &this)
+			{
+				ImPlot.AppendNative(@this, axis, value, bg, fg, fmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void TagCollectionAppend(ImAxis axis, double value, uint bg, uint fg, ref byte fmt)
+		{
+			fixed (ImPlotTagCollection* @this = &this)
+			{
+				fixed (byte* pfmt = &fmt)
+				{
+					ImPlot.AppendNative(@this, axis, value, bg, fg, (byte*)pfmt);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void TagCollectionAppend(ImAxis axis, double value, uint bg, uint fg, ReadOnlySpan<byte> fmt)
+		{
+			fixed (ImPlotTagCollection* @this = &this)
+			{
+				fixed (byte* pfmt = fmt)
+				{
+					ImPlot.AppendNative(@this, axis, value, bg, fg, (byte*)pfmt);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void TagCollectionAppend(ImAxis axis, double value, uint bg, uint fg, string fmt)
+		{
+			fixed (ImPlotTagCollection* @this = &this)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (fmt != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(fmt);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				ImPlot.AppendNative(@this, axis, value, bg, fg, pStr0);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void Append(ImAxis axis, double value, uint bg, uint fg, byte* fmt)
 		{
 			fixed (ImPlotTagCollection* @this = &this)
@@ -293,6 +364,65 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		public ref int Size => ref Unsafe.AsRef<int>(&Handle->Size);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void TagCollectionAppend(ImAxis axis, double value, uint bg, uint fg, byte* fmt)
+		{
+			ImPlot.AppendNative(Handle, axis, value, bg, fg, fmt);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void TagCollectionAppend(ImAxis axis, double value, uint bg, uint fg, ref byte fmt)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				ImPlot.AppendNative(Handle, axis, value, bg, fg, (byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void TagCollectionAppend(ImAxis axis, double value, uint bg, uint fg, ReadOnlySpan<byte> fmt)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				ImPlot.AppendNative(Handle, axis, value, bg, fg, (byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void TagCollectionAppend(ImAxis axis, double value, uint bg, uint fg, string fmt)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			ImPlot.AppendNative(Handle, axis, value, bg, fg, pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
 		/// <summary>
 		/// To be documented.
 		/// </summary>

@@ -60,22 +60,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ulong EnabledMaskByDisplayOrder;
+		public ImBitArrayPtr EnabledMaskByDisplayOrder;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ulong EnabledMaskByIndex;
+		public ImBitArrayPtr EnabledMaskByIndex;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ulong VisibleMaskByIndex;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ulong RequestOutputMaskByIndex;
+		public ImBitArrayPtr VisibleMaskByIndex;
 
 		/// <summary>
 		/// To be documented.
@@ -135,6 +130,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public float RowCellPaddingY;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public float RowTextBaseline;
 
 		/// <summary>
@@ -177,6 +177,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public float BorderSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public float HostIndentX;
 
 		/// <summary>
@@ -193,11 +198,6 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public float CellPaddingX;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float CellPaddingY;
 
 		/// <summary>
 		/// To be documented.
@@ -243,6 +243,16 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public float RefScale;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float AngledHeadersHeight;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float AngledHeadersSlope;
 
 		/// <summary>
 		/// To be documented.
@@ -322,7 +332,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiTableColumnSortSpecs SortSpecsSingle;
+		public ImGuiTableSortSpecs SortSpecs;
 
 		/// <summary>
 		/// To be documented.
@@ -332,132 +342,152 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiTableSortSpecs SortSpecs;
+		public ImGuiTableColumnSortSpecs SortSpecsSingle;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte SortSpecsCount;
+		public short SortSpecsCount;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte ColumnsEnabledCount;
+		public short ColumnsEnabledCount;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte ColumnsEnabledFixedCount;
+		public short ColumnsEnabledFixedCount;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte DeclColumnsCount;
+		public short DeclColumnsCount;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte HoveredColumnBody;
+		public short AngledHeadersCount;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte HoveredColumnBorder;
+		public short HoveredColumnBody;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte AutoFitSingleColumn;
+		public short HoveredColumnBorder;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte ResizedColumn;
+		public short HighlightColumnHeader;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte LastResizedColumn;
+		public short AutoFitSingleColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte HeldHeaderColumn;
+		public short ResizedColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte ReorderColumn;
+		public short LastResizedColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte ReorderColumnDir;
+		public short HeldHeaderColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte LeftMostEnabledColumn;
+		public short LastHeldHeaderColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte RightMostEnabledColumn;
+		public short ReorderColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte LeftMostStretchedColumn;
+		public short ReorderColumnDstOrder;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte RightMostStretchedColumn;
+		public short LeftMostEnabledColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte ContextPopupColumn;
+		public short RightMostEnabledColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte FreezeRowsRequest;
+		public short LeftMostStretchedColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte FreezeRowsCount;
+		public short RightMostStretchedColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte FreezeColumnsRequest;
+		public short ContextPopupColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte FreezeColumnsCount;
+		public short FreezeRowsRequest;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte RowCellDataCurrent;
+		public short FreezeRowsCount;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte DummyDrawChannel;
+		public short FreezeColumnsRequest;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte Bg2DrawChannelCurrent;
+		public short FreezeColumnsCount;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte Bg2DrawChannelUnfrozen;
+		public short RowCellDataCurrent;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ushort DummyDrawChannel;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ushort Bg2DrawChannelCurrent;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ushort Bg2DrawChannelUnfrozen;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public sbyte NavLayer;
 
 		/// <summary>
 		/// To be documented.
@@ -472,7 +502,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte IsNewTable;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte IsInitializing;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte IsReconcileMode;
 
 		/// <summary>
 		/// To be documented.
@@ -492,6 +532,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte DisableDefaultContextMenu;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte IsSettingsRequestLoad;
 
 		/// <summary>
@@ -507,6 +552,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte IsDefaultVisibility;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte IsResetAllRequest;
 
 		/// <summary>
@@ -517,12 +567,37 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte IsResetVisibilityRequest;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte IsUnfrozenRows;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public byte IsDefaultSizingPolicy;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte IsActiveIdAliveBeforeTable;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte IsActiveIdInTable;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte HasScrollbarYCurr;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte HasScrollbarYPrev;
 
 		/// <summary>
 		/// To be documented.
@@ -538,7 +613,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiTable(uint id = default, ImGuiTableFlags flags = default, void* rawData = default, ImGuiTableTempData* tempData = default, ImSpanImGuiTableColumn columns = default, ImSpanImGuiTableColumnIdx displayOrderToIndex = default, ImSpanImGuiTableCellData rowCellData = default, ulong enabledMaskByDisplayOrder = default, ulong enabledMaskByIndex = default, ulong visibleMaskByIndex = default, ulong requestOutputMaskByIndex = default, ImGuiTableFlags settingsLoadedFlags = default, int settingsOffset = default, int lastFrameActive = default, int columnsCount = default, int currentRow = default, int currentColumn = default, short instanceCurrent = default, short instanceInteracted = default, float rowPosY1 = default, float rowPosY2 = default, float rowMinHeight = default, float rowTextBaseline = default, float rowIndentOffsetX = default, ImGuiTableRowFlags rowFlags = default, ImGuiTableRowFlags lastRowFlags = default, int rowBgColorCounter = default, uint* rowBgColor = default, uint borderColorStrong = default, uint borderColorLight = default, float borderX1 = default, float borderX2 = default, float hostIndentX = default, float minColumnWidth = default, float outerPaddingX = default, float cellPaddingX = default, float cellPaddingY = default, float cellSpacingX1 = default, float cellSpacingX2 = default, float innerWidth = default, float columnsGivenWidth = default, float columnsAutoFitWidth = default, float columnsStretchSumWeights = default, float resizedColumnNextWidth = default, float resizeLockMinContentsX2 = default, float refScale = default, ImRect outerRect = default, ImRect innerRect = default, ImRect workRect = default, ImRect innerClipRect = default, ImRect bgClipRect = default, ImRect bg0ClipRectForDrawCmd = default, ImRect bg2ClipRectForDrawCmd = default, ImRect hostClipRect = default, ImRect hostBackupInnerClipRect = default, ImGuiWindowPtr outerWindow = default, ImGuiWindowPtr innerWindow = default, ImGuiTextBuffer columnsNames = default, ImDrawListSplitterPtr drawSplitter = default, ImGuiTableInstanceData instanceDataFirst = default, ImVector<ImGuiTableInstanceData> instanceDataExtra = default, ImGuiTableColumnSortSpecs sortSpecsSingle = default, ImVector<ImGuiTableColumnSortSpecs> sortSpecsMulti = default, ImGuiTableSortSpecs sortSpecs = default, sbyte sortSpecsCount = default, sbyte columnsEnabledCount = default, sbyte columnsEnabledFixedCount = default, sbyte declColumnsCount = default, sbyte hoveredColumnBody = default, sbyte hoveredColumnBorder = default, sbyte autoFitSingleColumn = default, sbyte resizedColumn = default, sbyte lastResizedColumn = default, sbyte heldHeaderColumn = default, sbyte reorderColumn = default, sbyte reorderColumnDir = default, sbyte leftMostEnabledColumn = default, sbyte rightMostEnabledColumn = default, sbyte leftMostStretchedColumn = default, sbyte rightMostStretchedColumn = default, sbyte contextPopupColumn = default, sbyte freezeRowsRequest = default, sbyte freezeRowsCount = default, sbyte freezeColumnsRequest = default, sbyte freezeColumnsCount = default, sbyte rowCellDataCurrent = default, byte dummyDrawChannel = default, byte bg2DrawChannelCurrent = default, byte bg2DrawChannelUnfrozen = default, bool isLayoutLocked = default, bool isInsideRow = default, bool isInitializing = default, bool isSortSpecsDirty = default, bool isUsingHeaders = default, bool isContextPopupOpen = default, bool isSettingsRequestLoad = default, bool isSettingsDirty = default, bool isDefaultDisplayOrder = default, bool isResetAllRequest = default, bool isResetDisplayOrderRequest = default, bool isUnfrozenRows = default, bool isDefaultSizingPolicy = default, bool memoryCompacted = default, bool hostSkipItems = default)
+		public unsafe ImGuiTable(uint id = default, ImGuiTableFlags flags = default, void* rawData = default, ImGuiTableTempData* tempData = default, ImSpanImGuiTableColumn columns = default, ImSpanImGuiTableColumnIdx displayOrderToIndex = default, ImSpanImGuiTableCellData rowCellData = default, ImBitArrayPtr enabledMaskByDisplayOrder = default, ImBitArrayPtr enabledMaskByIndex = default, ImBitArrayPtr visibleMaskByIndex = default, ImGuiTableFlags settingsLoadedFlags = default, int settingsOffset = default, int lastFrameActive = default, int columnsCount = default, int currentRow = default, int currentColumn = default, short instanceCurrent = default, short instanceInteracted = default, float rowPosY1 = default, float rowPosY2 = default, float rowMinHeight = default, float rowCellPaddingY = default, float rowTextBaseline = default, float rowIndentOffsetX = default, ImGuiTableRowFlags rowFlags = default, ImGuiTableRowFlags lastRowFlags = default, int rowBgColorCounter = default, uint* rowBgColor = default, uint borderColorStrong = default, uint borderColorLight = default, float borderX1 = default, float borderX2 = default, float borderSize = default, float hostIndentX = default, float minColumnWidth = default, float outerPaddingX = default, float cellPaddingX = default, float cellSpacingX1 = default, float cellSpacingX2 = default, float innerWidth = default, float columnsGivenWidth = default, float columnsAutoFitWidth = default, float columnsStretchSumWeights = default, float resizedColumnNextWidth = default, float resizeLockMinContentsX2 = default, float refScale = default, float angledHeadersHeight = default, float angledHeadersSlope = default, ImRect outerRect = default, ImRect innerRect = default, ImRect workRect = default, ImRect innerClipRect = default, ImRect bgClipRect = default, ImRect bg0ClipRectForDrawCmd = default, ImRect bg2ClipRectForDrawCmd = default, ImRect hostClipRect = default, ImRect hostBackupInnerClipRect = default, ImGuiWindowPtr outerWindow = default, ImGuiWindowPtr innerWindow = default, ImGuiTextBuffer columnsNames = default, ImDrawListSplitterPtr drawSplitter = default, ImGuiTableInstanceData instanceDataFirst = default, ImVector<ImGuiTableInstanceData> instanceDataExtra = default, ImGuiTableSortSpecs sortSpecs = default, ImVector<ImGuiTableColumnSortSpecs> sortSpecsMulti = default, ImGuiTableColumnSortSpecs sortSpecsSingle = default, short sortSpecsCount = default, short columnsEnabledCount = default, short columnsEnabledFixedCount = default, short declColumnsCount = default, short angledHeadersCount = default, short hoveredColumnBody = default, short hoveredColumnBorder = default, short highlightColumnHeader = default, short autoFitSingleColumn = default, short resizedColumn = default, short lastResizedColumn = default, short heldHeaderColumn = default, short lastHeldHeaderColumn = default, short reorderColumn = default, short reorderColumnDstOrder = default, short leftMostEnabledColumn = default, short rightMostEnabledColumn = default, short leftMostStretchedColumn = default, short rightMostStretchedColumn = default, short contextPopupColumn = default, short freezeRowsRequest = default, short freezeRowsCount = default, short freezeColumnsRequest = default, short freezeColumnsCount = default, short rowCellDataCurrent = default, ushort dummyDrawChannel = default, ushort bg2DrawChannelCurrent = default, ushort bg2DrawChannelUnfrozen = default, sbyte navLayer = default, bool isLayoutLocked = default, bool isInsideRow = default, bool isNewTable = default, bool isInitializing = default, bool isReconcileMode = default, bool isSortSpecsDirty = default, bool isUsingHeaders = default, bool isContextPopupOpen = default, bool disableDefaultContextMenu = default, bool isSettingsRequestLoad = default, bool isSettingsDirty = default, bool isDefaultDisplayOrder = default, bool isDefaultVisibility = default, bool isResetAllRequest = default, bool isResetDisplayOrderRequest = default, bool isResetVisibilityRequest = default, bool isUnfrozenRows = default, bool isDefaultSizingPolicy = default, bool isActiveIdAliveBeforeTable = default, bool isActiveIdInTable = default, bool hasScrollbarYCurr = default, bool hasScrollbarYPrev = default, bool memoryCompacted = default, bool hostSkipItems = default)
 		{
 			ID = id;
 			Flags = flags;
@@ -550,7 +625,6 @@ namespace Dalamud.Bindings.ImGui
 			EnabledMaskByDisplayOrder = enabledMaskByDisplayOrder;
 			EnabledMaskByIndex = enabledMaskByIndex;
 			VisibleMaskByIndex = visibleMaskByIndex;
-			RequestOutputMaskByIndex = requestOutputMaskByIndex;
 			SettingsLoadedFlags = settingsLoadedFlags;
 			SettingsOffset = settingsOffset;
 			LastFrameActive = lastFrameActive;
@@ -562,6 +636,7 @@ namespace Dalamud.Bindings.ImGui
 			RowPosY1 = rowPosY1;
 			RowPosY2 = rowPosY2;
 			RowMinHeight = rowMinHeight;
+			RowCellPaddingY = rowCellPaddingY;
 			RowTextBaseline = rowTextBaseline;
 			RowIndentOffsetX = rowIndentOffsetX;
 			RowFlags = rowFlags;
@@ -576,11 +651,11 @@ namespace Dalamud.Bindings.ImGui
 			BorderColorLight = borderColorLight;
 			BorderX1 = borderX1;
 			BorderX2 = borderX2;
+			BorderSize = borderSize;
 			HostIndentX = hostIndentX;
 			MinColumnWidth = minColumnWidth;
 			OuterPaddingX = outerPaddingX;
 			CellPaddingX = cellPaddingX;
-			CellPaddingY = cellPaddingY;
 			CellSpacingX1 = cellSpacingX1;
 			CellSpacingX2 = cellSpacingX2;
 			InnerWidth = innerWidth;
@@ -590,6 +665,8 @@ namespace Dalamud.Bindings.ImGui
 			ResizedColumnNextWidth = resizedColumnNextWidth;
 			ResizeLockMinContentsX2 = resizeLockMinContentsX2;
 			RefScale = refScale;
+			AngledHeadersHeight = angledHeadersHeight;
+			AngledHeadersSlope = angledHeadersSlope;
 			OuterRect = outerRect;
 			InnerRect = innerRect;
 			WorkRect = workRect;
@@ -605,21 +682,24 @@ namespace Dalamud.Bindings.ImGui
 			DrawSplitter = drawSplitter;
 			InstanceDataFirst = instanceDataFirst;
 			InstanceDataExtra = instanceDataExtra;
-			SortSpecsSingle = sortSpecsSingle;
-			SortSpecsMulti = sortSpecsMulti;
 			SortSpecs = sortSpecs;
+			SortSpecsMulti = sortSpecsMulti;
+			SortSpecsSingle = sortSpecsSingle;
 			SortSpecsCount = sortSpecsCount;
 			ColumnsEnabledCount = columnsEnabledCount;
 			ColumnsEnabledFixedCount = columnsEnabledFixedCount;
 			DeclColumnsCount = declColumnsCount;
+			AngledHeadersCount = angledHeadersCount;
 			HoveredColumnBody = hoveredColumnBody;
 			HoveredColumnBorder = hoveredColumnBorder;
+			HighlightColumnHeader = highlightColumnHeader;
 			AutoFitSingleColumn = autoFitSingleColumn;
 			ResizedColumn = resizedColumn;
 			LastResizedColumn = lastResizedColumn;
 			HeldHeaderColumn = heldHeaderColumn;
+			LastHeldHeaderColumn = lastHeldHeaderColumn;
 			ReorderColumn = reorderColumn;
-			ReorderColumnDir = reorderColumnDir;
+			ReorderColumnDstOrder = reorderColumnDstOrder;
 			LeftMostEnabledColumn = leftMostEnabledColumn;
 			RightMostEnabledColumn = rightMostEnabledColumn;
 			LeftMostStretchedColumn = leftMostStretchedColumn;
@@ -633,19 +713,29 @@ namespace Dalamud.Bindings.ImGui
 			DummyDrawChannel = dummyDrawChannel;
 			Bg2DrawChannelCurrent = bg2DrawChannelCurrent;
 			Bg2DrawChannelUnfrozen = bg2DrawChannelUnfrozen;
+			NavLayer = navLayer;
 			IsLayoutLocked = isLayoutLocked ? (byte)1 : (byte)0;
 			IsInsideRow = isInsideRow ? (byte)1 : (byte)0;
+			IsNewTable = isNewTable ? (byte)1 : (byte)0;
 			IsInitializing = isInitializing ? (byte)1 : (byte)0;
+			IsReconcileMode = isReconcileMode ? (byte)1 : (byte)0;
 			IsSortSpecsDirty = isSortSpecsDirty ? (byte)1 : (byte)0;
 			IsUsingHeaders = isUsingHeaders ? (byte)1 : (byte)0;
 			IsContextPopupOpen = isContextPopupOpen ? (byte)1 : (byte)0;
+			DisableDefaultContextMenu = disableDefaultContextMenu ? (byte)1 : (byte)0;
 			IsSettingsRequestLoad = isSettingsRequestLoad ? (byte)1 : (byte)0;
 			IsSettingsDirty = isSettingsDirty ? (byte)1 : (byte)0;
 			IsDefaultDisplayOrder = isDefaultDisplayOrder ? (byte)1 : (byte)0;
+			IsDefaultVisibility = isDefaultVisibility ? (byte)1 : (byte)0;
 			IsResetAllRequest = isResetAllRequest ? (byte)1 : (byte)0;
 			IsResetDisplayOrderRequest = isResetDisplayOrderRequest ? (byte)1 : (byte)0;
+			IsResetVisibilityRequest = isResetVisibilityRequest ? (byte)1 : (byte)0;
 			IsUnfrozenRows = isUnfrozenRows ? (byte)1 : (byte)0;
 			IsDefaultSizingPolicy = isDefaultSizingPolicy ? (byte)1 : (byte)0;
+			IsActiveIdAliveBeforeTable = isActiveIdAliveBeforeTable ? (byte)1 : (byte)0;
+			IsActiveIdInTable = isActiveIdInTable ? (byte)1 : (byte)0;
+			HasScrollbarYCurr = hasScrollbarYCurr ? (byte)1 : (byte)0;
+			HasScrollbarYPrev = hasScrollbarYPrev ? (byte)1 : (byte)0;
 			MemoryCompacted = memoryCompacted ? (byte)1 : (byte)0;
 			HostSkipItems = hostSkipItems ? (byte)1 : (byte)0;
 		}
@@ -653,7 +743,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiTable(uint id = default, ImGuiTableFlags flags = default, void* rawData = default, ImGuiTableTempData* tempData = default, ImSpanImGuiTableColumn columns = default, ImSpanImGuiTableColumnIdx displayOrderToIndex = default, ImSpanImGuiTableCellData rowCellData = default, ulong enabledMaskByDisplayOrder = default, ulong enabledMaskByIndex = default, ulong visibleMaskByIndex = default, ulong requestOutputMaskByIndex = default, ImGuiTableFlags settingsLoadedFlags = default, int settingsOffset = default, int lastFrameActive = default, int columnsCount = default, int currentRow = default, int currentColumn = default, short instanceCurrent = default, short instanceInteracted = default, float rowPosY1 = default, float rowPosY2 = default, float rowMinHeight = default, float rowTextBaseline = default, float rowIndentOffsetX = default, ImGuiTableRowFlags rowFlags = default, ImGuiTableRowFlags lastRowFlags = default, int rowBgColorCounter = default, Span<uint> rowBgColor = default, uint borderColorStrong = default, uint borderColorLight = default, float borderX1 = default, float borderX2 = default, float hostIndentX = default, float minColumnWidth = default, float outerPaddingX = default, float cellPaddingX = default, float cellPaddingY = default, float cellSpacingX1 = default, float cellSpacingX2 = default, float innerWidth = default, float columnsGivenWidth = default, float columnsAutoFitWidth = default, float columnsStretchSumWeights = default, float resizedColumnNextWidth = default, float resizeLockMinContentsX2 = default, float refScale = default, ImRect outerRect = default, ImRect innerRect = default, ImRect workRect = default, ImRect innerClipRect = default, ImRect bgClipRect = default, ImRect bg0ClipRectForDrawCmd = default, ImRect bg2ClipRectForDrawCmd = default, ImRect hostClipRect = default, ImRect hostBackupInnerClipRect = default, ImGuiWindowPtr outerWindow = default, ImGuiWindowPtr innerWindow = default, ImGuiTextBuffer columnsNames = default, ImDrawListSplitterPtr drawSplitter = default, ImGuiTableInstanceData instanceDataFirst = default, ImVector<ImGuiTableInstanceData> instanceDataExtra = default, ImGuiTableColumnSortSpecs sortSpecsSingle = default, ImVector<ImGuiTableColumnSortSpecs> sortSpecsMulti = default, ImGuiTableSortSpecs sortSpecs = default, sbyte sortSpecsCount = default, sbyte columnsEnabledCount = default, sbyte columnsEnabledFixedCount = default, sbyte declColumnsCount = default, sbyte hoveredColumnBody = default, sbyte hoveredColumnBorder = default, sbyte autoFitSingleColumn = default, sbyte resizedColumn = default, sbyte lastResizedColumn = default, sbyte heldHeaderColumn = default, sbyte reorderColumn = default, sbyte reorderColumnDir = default, sbyte leftMostEnabledColumn = default, sbyte rightMostEnabledColumn = default, sbyte leftMostStretchedColumn = default, sbyte rightMostStretchedColumn = default, sbyte contextPopupColumn = default, sbyte freezeRowsRequest = default, sbyte freezeRowsCount = default, sbyte freezeColumnsRequest = default, sbyte freezeColumnsCount = default, sbyte rowCellDataCurrent = default, byte dummyDrawChannel = default, byte bg2DrawChannelCurrent = default, byte bg2DrawChannelUnfrozen = default, bool isLayoutLocked = default, bool isInsideRow = default, bool isInitializing = default, bool isSortSpecsDirty = default, bool isUsingHeaders = default, bool isContextPopupOpen = default, bool isSettingsRequestLoad = default, bool isSettingsDirty = default, bool isDefaultDisplayOrder = default, bool isResetAllRequest = default, bool isResetDisplayOrderRequest = default, bool isUnfrozenRows = default, bool isDefaultSizingPolicy = default, bool memoryCompacted = default, bool hostSkipItems = default)
+		public unsafe ImGuiTable(uint id = default, ImGuiTableFlags flags = default, void* rawData = default, ImGuiTableTempData* tempData = default, ImSpanImGuiTableColumn columns = default, ImSpanImGuiTableColumnIdx displayOrderToIndex = default, ImSpanImGuiTableCellData rowCellData = default, ImBitArrayPtr enabledMaskByDisplayOrder = default, ImBitArrayPtr enabledMaskByIndex = default, ImBitArrayPtr visibleMaskByIndex = default, ImGuiTableFlags settingsLoadedFlags = default, int settingsOffset = default, int lastFrameActive = default, int columnsCount = default, int currentRow = default, int currentColumn = default, short instanceCurrent = default, short instanceInteracted = default, float rowPosY1 = default, float rowPosY2 = default, float rowMinHeight = default, float rowCellPaddingY = default, float rowTextBaseline = default, float rowIndentOffsetX = default, ImGuiTableRowFlags rowFlags = default, ImGuiTableRowFlags lastRowFlags = default, int rowBgColorCounter = default, Span<uint> rowBgColor = default, uint borderColorStrong = default, uint borderColorLight = default, float borderX1 = default, float borderX2 = default, float borderSize = default, float hostIndentX = default, float minColumnWidth = default, float outerPaddingX = default, float cellPaddingX = default, float cellSpacingX1 = default, float cellSpacingX2 = default, float innerWidth = default, float columnsGivenWidth = default, float columnsAutoFitWidth = default, float columnsStretchSumWeights = default, float resizedColumnNextWidth = default, float resizeLockMinContentsX2 = default, float refScale = default, float angledHeadersHeight = default, float angledHeadersSlope = default, ImRect outerRect = default, ImRect innerRect = default, ImRect workRect = default, ImRect innerClipRect = default, ImRect bgClipRect = default, ImRect bg0ClipRectForDrawCmd = default, ImRect bg2ClipRectForDrawCmd = default, ImRect hostClipRect = default, ImRect hostBackupInnerClipRect = default, ImGuiWindowPtr outerWindow = default, ImGuiWindowPtr innerWindow = default, ImGuiTextBuffer columnsNames = default, ImDrawListSplitterPtr drawSplitter = default, ImGuiTableInstanceData instanceDataFirst = default, ImVector<ImGuiTableInstanceData> instanceDataExtra = default, ImGuiTableSortSpecs sortSpecs = default, ImVector<ImGuiTableColumnSortSpecs> sortSpecsMulti = default, ImGuiTableColumnSortSpecs sortSpecsSingle = default, short sortSpecsCount = default, short columnsEnabledCount = default, short columnsEnabledFixedCount = default, short declColumnsCount = default, short angledHeadersCount = default, short hoveredColumnBody = default, short hoveredColumnBorder = default, short highlightColumnHeader = default, short autoFitSingleColumn = default, short resizedColumn = default, short lastResizedColumn = default, short heldHeaderColumn = default, short lastHeldHeaderColumn = default, short reorderColumn = default, short reorderColumnDstOrder = default, short leftMostEnabledColumn = default, short rightMostEnabledColumn = default, short leftMostStretchedColumn = default, short rightMostStretchedColumn = default, short contextPopupColumn = default, short freezeRowsRequest = default, short freezeRowsCount = default, short freezeColumnsRequest = default, short freezeColumnsCount = default, short rowCellDataCurrent = default, ushort dummyDrawChannel = default, ushort bg2DrawChannelCurrent = default, ushort bg2DrawChannelUnfrozen = default, sbyte navLayer = default, bool isLayoutLocked = default, bool isInsideRow = default, bool isNewTable = default, bool isInitializing = default, bool isReconcileMode = default, bool isSortSpecsDirty = default, bool isUsingHeaders = default, bool isContextPopupOpen = default, bool disableDefaultContextMenu = default, bool isSettingsRequestLoad = default, bool isSettingsDirty = default, bool isDefaultDisplayOrder = default, bool isDefaultVisibility = default, bool isResetAllRequest = default, bool isResetDisplayOrderRequest = default, bool isResetVisibilityRequest = default, bool isUnfrozenRows = default, bool isDefaultSizingPolicy = default, bool isActiveIdAliveBeforeTable = default, bool isActiveIdInTable = default, bool hasScrollbarYCurr = default, bool hasScrollbarYPrev = default, bool memoryCompacted = default, bool hostSkipItems = default)
 		{
 			ID = id;
 			Flags = flags;
@@ -665,7 +755,6 @@ namespace Dalamud.Bindings.ImGui
 			EnabledMaskByDisplayOrder = enabledMaskByDisplayOrder;
 			EnabledMaskByIndex = enabledMaskByIndex;
 			VisibleMaskByIndex = visibleMaskByIndex;
-			RequestOutputMaskByIndex = requestOutputMaskByIndex;
 			SettingsLoadedFlags = settingsLoadedFlags;
 			SettingsOffset = settingsOffset;
 			LastFrameActive = lastFrameActive;
@@ -677,6 +766,7 @@ namespace Dalamud.Bindings.ImGui
 			RowPosY1 = rowPosY1;
 			RowPosY2 = rowPosY2;
 			RowMinHeight = rowMinHeight;
+			RowCellPaddingY = rowCellPaddingY;
 			RowTextBaseline = rowTextBaseline;
 			RowIndentOffsetX = rowIndentOffsetX;
 			RowFlags = rowFlags;
@@ -691,11 +781,11 @@ namespace Dalamud.Bindings.ImGui
 			BorderColorLight = borderColorLight;
 			BorderX1 = borderX1;
 			BorderX2 = borderX2;
+			BorderSize = borderSize;
 			HostIndentX = hostIndentX;
 			MinColumnWidth = minColumnWidth;
 			OuterPaddingX = outerPaddingX;
 			CellPaddingX = cellPaddingX;
-			CellPaddingY = cellPaddingY;
 			CellSpacingX1 = cellSpacingX1;
 			CellSpacingX2 = cellSpacingX2;
 			InnerWidth = innerWidth;
@@ -705,6 +795,8 @@ namespace Dalamud.Bindings.ImGui
 			ResizedColumnNextWidth = resizedColumnNextWidth;
 			ResizeLockMinContentsX2 = resizeLockMinContentsX2;
 			RefScale = refScale;
+			AngledHeadersHeight = angledHeadersHeight;
+			AngledHeadersSlope = angledHeadersSlope;
 			OuterRect = outerRect;
 			InnerRect = innerRect;
 			WorkRect = workRect;
@@ -720,21 +812,24 @@ namespace Dalamud.Bindings.ImGui
 			DrawSplitter = drawSplitter;
 			InstanceDataFirst = instanceDataFirst;
 			InstanceDataExtra = instanceDataExtra;
-			SortSpecsSingle = sortSpecsSingle;
-			SortSpecsMulti = sortSpecsMulti;
 			SortSpecs = sortSpecs;
+			SortSpecsMulti = sortSpecsMulti;
+			SortSpecsSingle = sortSpecsSingle;
 			SortSpecsCount = sortSpecsCount;
 			ColumnsEnabledCount = columnsEnabledCount;
 			ColumnsEnabledFixedCount = columnsEnabledFixedCount;
 			DeclColumnsCount = declColumnsCount;
+			AngledHeadersCount = angledHeadersCount;
 			HoveredColumnBody = hoveredColumnBody;
 			HoveredColumnBorder = hoveredColumnBorder;
+			HighlightColumnHeader = highlightColumnHeader;
 			AutoFitSingleColumn = autoFitSingleColumn;
 			ResizedColumn = resizedColumn;
 			LastResizedColumn = lastResizedColumn;
 			HeldHeaderColumn = heldHeaderColumn;
+			LastHeldHeaderColumn = lastHeldHeaderColumn;
 			ReorderColumn = reorderColumn;
-			ReorderColumnDir = reorderColumnDir;
+			ReorderColumnDstOrder = reorderColumnDstOrder;
 			LeftMostEnabledColumn = leftMostEnabledColumn;
 			RightMostEnabledColumn = rightMostEnabledColumn;
 			LeftMostStretchedColumn = leftMostStretchedColumn;
@@ -748,19 +843,29 @@ namespace Dalamud.Bindings.ImGui
 			DummyDrawChannel = dummyDrawChannel;
 			Bg2DrawChannelCurrent = bg2DrawChannelCurrent;
 			Bg2DrawChannelUnfrozen = bg2DrawChannelUnfrozen;
+			NavLayer = navLayer;
 			IsLayoutLocked = isLayoutLocked ? (byte)1 : (byte)0;
 			IsInsideRow = isInsideRow ? (byte)1 : (byte)0;
+			IsNewTable = isNewTable ? (byte)1 : (byte)0;
 			IsInitializing = isInitializing ? (byte)1 : (byte)0;
+			IsReconcileMode = isReconcileMode ? (byte)1 : (byte)0;
 			IsSortSpecsDirty = isSortSpecsDirty ? (byte)1 : (byte)0;
 			IsUsingHeaders = isUsingHeaders ? (byte)1 : (byte)0;
 			IsContextPopupOpen = isContextPopupOpen ? (byte)1 : (byte)0;
+			DisableDefaultContextMenu = disableDefaultContextMenu ? (byte)1 : (byte)0;
 			IsSettingsRequestLoad = isSettingsRequestLoad ? (byte)1 : (byte)0;
 			IsSettingsDirty = isSettingsDirty ? (byte)1 : (byte)0;
 			IsDefaultDisplayOrder = isDefaultDisplayOrder ? (byte)1 : (byte)0;
+			IsDefaultVisibility = isDefaultVisibility ? (byte)1 : (byte)0;
 			IsResetAllRequest = isResetAllRequest ? (byte)1 : (byte)0;
 			IsResetDisplayOrderRequest = isResetDisplayOrderRequest ? (byte)1 : (byte)0;
+			IsResetVisibilityRequest = isResetVisibilityRequest ? (byte)1 : (byte)0;
 			IsUnfrozenRows = isUnfrozenRows ? (byte)1 : (byte)0;
 			IsDefaultSizingPolicy = isDefaultSizingPolicy ? (byte)1 : (byte)0;
+			IsActiveIdAliveBeforeTable = isActiveIdAliveBeforeTable ? (byte)1 : (byte)0;
+			IsActiveIdInTable = isActiveIdInTable ? (byte)1 : (byte)0;
+			HasScrollbarYCurr = hasScrollbarYCurr ? (byte)1 : (byte)0;
+			HasScrollbarYPrev = hasScrollbarYPrev ? (byte)1 : (byte)0;
 			MemoryCompacted = memoryCompacted ? (byte)1 : (byte)0;
 			HostSkipItems = hostSkipItems ? (byte)1 : (byte)0;
 		}
@@ -844,19 +949,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ulong EnabledMaskByDisplayOrder => ref Unsafe.AsRef<ulong>(&Handle->EnabledMaskByDisplayOrder);
+		public ref ImBitArrayPtr EnabledMaskByDisplayOrder => ref Unsafe.AsRef<ImBitArrayPtr>(&Handle->EnabledMaskByDisplayOrder);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ulong EnabledMaskByIndex => ref Unsafe.AsRef<ulong>(&Handle->EnabledMaskByIndex);
+		public ref ImBitArrayPtr EnabledMaskByIndex => ref Unsafe.AsRef<ImBitArrayPtr>(&Handle->EnabledMaskByIndex);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ulong VisibleMaskByIndex => ref Unsafe.AsRef<ulong>(&Handle->VisibleMaskByIndex);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ulong RequestOutputMaskByIndex => ref Unsafe.AsRef<ulong>(&Handle->RequestOutputMaskByIndex);
+		public ref ImBitArrayPtr VisibleMaskByIndex => ref Unsafe.AsRef<ImBitArrayPtr>(&Handle->VisibleMaskByIndex);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -901,6 +1002,10 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref float RowMinHeight => ref Unsafe.AsRef<float>(&Handle->RowMinHeight);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float RowCellPaddingY => ref Unsafe.AsRef<float>(&Handle->RowCellPaddingY);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -951,6 +1056,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref float BorderSize => ref Unsafe.AsRef<float>(&Handle->BorderSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref float HostIndentX => ref Unsafe.AsRef<float>(&Handle->HostIndentX);
 		/// <summary>
 		/// To be documented.
@@ -964,10 +1073,6 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref float CellPaddingX => ref Unsafe.AsRef<float>(&Handle->CellPaddingX);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float CellPaddingY => ref Unsafe.AsRef<float>(&Handle->CellPaddingY);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1004,6 +1109,14 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref float RefScale => ref Unsafe.AsRef<float>(&Handle->RefScale);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float AngledHeadersHeight => ref Unsafe.AsRef<float>(&Handle->AngledHeadersHeight);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float AngledHeadersSlope => ref Unsafe.AsRef<float>(&Handle->AngledHeadersSlope);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1067,7 +1180,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiTableColumnSortSpecs SortSpecsSingle => ref Unsafe.AsRef<ImGuiTableColumnSortSpecs>(&Handle->SortSpecsSingle);
+		public ref ImGuiTableSortSpecs SortSpecs => ref Unsafe.AsRef<ImGuiTableSortSpecs>(&Handle->SortSpecs);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1075,107 +1188,123 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiTableSortSpecs SortSpecs => ref Unsafe.AsRef<ImGuiTableSortSpecs>(&Handle->SortSpecs);
+		public ref ImGuiTableColumnSortSpecs SortSpecsSingle => ref Unsafe.AsRef<ImGuiTableColumnSortSpecs>(&Handle->SortSpecsSingle);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte SortSpecsCount => ref Unsafe.AsRef<sbyte>(&Handle->SortSpecsCount);
+		public ref short SortSpecsCount => ref Unsafe.AsRef<short>(&Handle->SortSpecsCount);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte ColumnsEnabledCount => ref Unsafe.AsRef<sbyte>(&Handle->ColumnsEnabledCount);
+		public ref short ColumnsEnabledCount => ref Unsafe.AsRef<short>(&Handle->ColumnsEnabledCount);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte ColumnsEnabledFixedCount => ref Unsafe.AsRef<sbyte>(&Handle->ColumnsEnabledFixedCount);
+		public ref short ColumnsEnabledFixedCount => ref Unsafe.AsRef<short>(&Handle->ColumnsEnabledFixedCount);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte DeclColumnsCount => ref Unsafe.AsRef<sbyte>(&Handle->DeclColumnsCount);
+		public ref short DeclColumnsCount => ref Unsafe.AsRef<short>(&Handle->DeclColumnsCount);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte HoveredColumnBody => ref Unsafe.AsRef<sbyte>(&Handle->HoveredColumnBody);
+		public ref short AngledHeadersCount => ref Unsafe.AsRef<short>(&Handle->AngledHeadersCount);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte HoveredColumnBorder => ref Unsafe.AsRef<sbyte>(&Handle->HoveredColumnBorder);
+		public ref short HoveredColumnBody => ref Unsafe.AsRef<short>(&Handle->HoveredColumnBody);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte AutoFitSingleColumn => ref Unsafe.AsRef<sbyte>(&Handle->AutoFitSingleColumn);
+		public ref short HoveredColumnBorder => ref Unsafe.AsRef<short>(&Handle->HoveredColumnBorder);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte ResizedColumn => ref Unsafe.AsRef<sbyte>(&Handle->ResizedColumn);
+		public ref short HighlightColumnHeader => ref Unsafe.AsRef<short>(&Handle->HighlightColumnHeader);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte LastResizedColumn => ref Unsafe.AsRef<sbyte>(&Handle->LastResizedColumn);
+		public ref short AutoFitSingleColumn => ref Unsafe.AsRef<short>(&Handle->AutoFitSingleColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte HeldHeaderColumn => ref Unsafe.AsRef<sbyte>(&Handle->HeldHeaderColumn);
+		public ref short ResizedColumn => ref Unsafe.AsRef<short>(&Handle->ResizedColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte ReorderColumn => ref Unsafe.AsRef<sbyte>(&Handle->ReorderColumn);
+		public ref short LastResizedColumn => ref Unsafe.AsRef<short>(&Handle->LastResizedColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte ReorderColumnDir => ref Unsafe.AsRef<sbyte>(&Handle->ReorderColumnDir);
+		public ref short HeldHeaderColumn => ref Unsafe.AsRef<short>(&Handle->HeldHeaderColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte LeftMostEnabledColumn => ref Unsafe.AsRef<sbyte>(&Handle->LeftMostEnabledColumn);
+		public ref short LastHeldHeaderColumn => ref Unsafe.AsRef<short>(&Handle->LastHeldHeaderColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte RightMostEnabledColumn => ref Unsafe.AsRef<sbyte>(&Handle->RightMostEnabledColumn);
+		public ref short ReorderColumn => ref Unsafe.AsRef<short>(&Handle->ReorderColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte LeftMostStretchedColumn => ref Unsafe.AsRef<sbyte>(&Handle->LeftMostStretchedColumn);
+		public ref short ReorderColumnDstOrder => ref Unsafe.AsRef<short>(&Handle->ReorderColumnDstOrder);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte RightMostStretchedColumn => ref Unsafe.AsRef<sbyte>(&Handle->RightMostStretchedColumn);
+		public ref short LeftMostEnabledColumn => ref Unsafe.AsRef<short>(&Handle->LeftMostEnabledColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte ContextPopupColumn => ref Unsafe.AsRef<sbyte>(&Handle->ContextPopupColumn);
+		public ref short RightMostEnabledColumn => ref Unsafe.AsRef<short>(&Handle->RightMostEnabledColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte FreezeRowsRequest => ref Unsafe.AsRef<sbyte>(&Handle->FreezeRowsRequest);
+		public ref short LeftMostStretchedColumn => ref Unsafe.AsRef<short>(&Handle->LeftMostStretchedColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte FreezeRowsCount => ref Unsafe.AsRef<sbyte>(&Handle->FreezeRowsCount);
+		public ref short RightMostStretchedColumn => ref Unsafe.AsRef<short>(&Handle->RightMostStretchedColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte FreezeColumnsRequest => ref Unsafe.AsRef<sbyte>(&Handle->FreezeColumnsRequest);
+		public ref short ContextPopupColumn => ref Unsafe.AsRef<short>(&Handle->ContextPopupColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte FreezeColumnsCount => ref Unsafe.AsRef<sbyte>(&Handle->FreezeColumnsCount);
+		public ref short FreezeRowsRequest => ref Unsafe.AsRef<short>(&Handle->FreezeRowsRequest);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte RowCellDataCurrent => ref Unsafe.AsRef<sbyte>(&Handle->RowCellDataCurrent);
+		public ref short FreezeRowsCount => ref Unsafe.AsRef<short>(&Handle->FreezeRowsCount);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte DummyDrawChannel => ref Unsafe.AsRef<byte>(&Handle->DummyDrawChannel);
+		public ref short FreezeColumnsRequest => ref Unsafe.AsRef<short>(&Handle->FreezeColumnsRequest);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte Bg2DrawChannelCurrent => ref Unsafe.AsRef<byte>(&Handle->Bg2DrawChannelCurrent);
+		public ref short FreezeColumnsCount => ref Unsafe.AsRef<short>(&Handle->FreezeColumnsCount);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte Bg2DrawChannelUnfrozen => ref Unsafe.AsRef<byte>(&Handle->Bg2DrawChannelUnfrozen);
+		public ref short RowCellDataCurrent => ref Unsafe.AsRef<short>(&Handle->RowCellDataCurrent);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ushort DummyDrawChannel => ref Unsafe.AsRef<ushort>(&Handle->DummyDrawChannel);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ushort Bg2DrawChannelCurrent => ref Unsafe.AsRef<ushort>(&Handle->Bg2DrawChannelCurrent);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ushort Bg2DrawChannelUnfrozen => ref Unsafe.AsRef<ushort>(&Handle->Bg2DrawChannelUnfrozen);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref sbyte NavLayer => ref Unsafe.AsRef<sbyte>(&Handle->NavLayer);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1187,7 +1316,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref bool IsNewTable => ref Unsafe.AsRef<bool>(&Handle->IsNewTable);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref bool IsInitializing => ref Unsafe.AsRef<bool>(&Handle->IsInitializing);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool IsReconcileMode => ref Unsafe.AsRef<bool>(&Handle->IsReconcileMode);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1203,6 +1340,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref bool DisableDefaultContextMenu => ref Unsafe.AsRef<bool>(&Handle->DisableDefaultContextMenu);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref bool IsSettingsRequestLoad => ref Unsafe.AsRef<bool>(&Handle->IsSettingsRequestLoad);
 		/// <summary>
 		/// To be documented.
@@ -1215,6 +1356,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref bool IsDefaultVisibility => ref Unsafe.AsRef<bool>(&Handle->IsDefaultVisibility);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref bool IsResetAllRequest => ref Unsafe.AsRef<bool>(&Handle->IsResetAllRequest);
 		/// <summary>
 		/// To be documented.
@@ -1223,11 +1368,31 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref bool IsResetVisibilityRequest => ref Unsafe.AsRef<bool>(&Handle->IsResetVisibilityRequest);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref bool IsUnfrozenRows => ref Unsafe.AsRef<bool>(&Handle->IsUnfrozenRows);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ref bool IsDefaultSizingPolicy => ref Unsafe.AsRef<bool>(&Handle->IsDefaultSizingPolicy);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool IsActiveIdAliveBeforeTable => ref Unsafe.AsRef<bool>(&Handle->IsActiveIdAliveBeforeTable);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool IsActiveIdInTable => ref Unsafe.AsRef<bool>(&Handle->IsActiveIdInTable);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool HasScrollbarYCurr => ref Unsafe.AsRef<bool>(&Handle->HasScrollbarYCurr);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool HasScrollbarYPrev => ref Unsafe.AsRef<bool>(&Handle->HasScrollbarYPrev);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

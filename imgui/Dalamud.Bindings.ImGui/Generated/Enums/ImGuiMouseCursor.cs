@@ -67,11 +67,21 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NotAllowed = unchecked(8),
+		Wait = unchecked(8),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Count = unchecked(9),
+		Progress = unchecked(9),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NotAllowed = unchecked(10),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Count = unchecked(11),
 	}
 }

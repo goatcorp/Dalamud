@@ -11,11 +11,4 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiNavItemData
 {
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiNavItemData* @this = &this)
-			{
-				ImGuiNative.Destroy(@this);
-			}
-		}
 }

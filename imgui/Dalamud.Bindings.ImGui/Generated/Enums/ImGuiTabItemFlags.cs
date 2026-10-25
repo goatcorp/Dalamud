@@ -63,5 +63,10 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		Trailing = unchecked(128),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoAssumedClosure = unchecked(256),
 	}
 }

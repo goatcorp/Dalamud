@@ -52,42 +52,42 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoDocking = unchecked(65536),
+		NoResizeX = unchecked(65536),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoDockingSplitMe = unchecked(131072),
+		NoResizeY = unchecked(131072),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoDockingSplitOther = unchecked(262144),
+		DockedWindowsInFocusRoute = unchecked(262144),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoDockingOverMe = unchecked(524288),
+		NoDockingSplitOther = unchecked(524288),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoDockingOverOther = unchecked(1048576),
+		NoDockingOverMe = unchecked(1048576),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoDockingOverEmpty = unchecked(2097152),
+		NoDockingOverOther = unchecked(2097152),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoResizeX = unchecked(4194304),
+		NoDockingOverEmpty = unchecked(4194304),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoResizeY = unchecked(8388608),
+		NoDocking = unchecked(7864336),
 
 		/// <summary>
 		/// To be documented.
@@ -97,21 +97,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoResizeFlagsMask = unchecked(12582944),
+		NoResizeFlagsMask = unchecked(196640),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		LocalFlagsMask = unchecked(12713072),
+		LocalFlagsTransferMask = unchecked(260208),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		LocalFlagsTransferMask = unchecked(12712048),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		SavedFlagsMask = unchecked(12712992),
+		SavedFlagsMask = unchecked(261152),
 	}
 }

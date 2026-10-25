@@ -54,5 +54,15 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		Horizontal = unchecked(32),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Sort = unchecked(64),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Reverse = unchecked(128),
 	}
 }

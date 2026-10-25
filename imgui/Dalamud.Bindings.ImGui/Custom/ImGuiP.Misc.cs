@@ -21,7 +21,8 @@ public unsafe partial class ImGuiP
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiPNative.BeginChildEx(namePtr, id, sizeArg, border ? (byte)1 : (byte)0, flags) != 0;
+            var childFlags = border ? ImGuiChildFlags.Borders : ImGuiChildFlags.None;
+            var r = ImGuiPNative.BeginChildEx(namePtr, id, sizeArg, childFlags, flags) != 0;
             name.Recycle();
             return r;
         }
@@ -122,7 +123,7 @@ public unsafe partial class ImGuiP
         fixed (byte* bufPtr = &buf.GetPinnableNullTerminatedReference())
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
         {
-            var r = ImGuiPNative.DataTypeApplyFromText(bufPtr, dataType, &data, formatPtr) != 0;
+            var r = ImGuiPNative.DataTypeApplyFromText(bufPtr, dataType, &data, formatPtr, null) != 0;
             format.Recycle();
             buf.Recycle();
             return r;
@@ -197,16 +198,6 @@ public unsafe partial class ImGuiP
         {
             var r = ImGuiPNative.DragBehavior(id, dataType, pV, vSpeed, pMin, pMax, formatPtr, flags) != 0;
             format.Recycle();
-            return r;
-        }
-    }
-
-    public static ImGuiWindowSettingsPtr FindOrCreateWindowSettings(ImU8String name)
-    {
-        fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
-        {
-            var r = ImGuiPNative.FindOrCreateWindowSettings(namePtr);
-            name.Recycle();
             return r;
         }
     }
@@ -286,52 +277,6 @@ public unsafe partial class ImGuiP
             filename.Recycle();
             mode.Recycle();
             return r;
-        }
-    }
-
-    public static void ImFontAtlasBuildMultiplyRectAlpha8(
-        ReadOnlySpan<byte> table, ReadOnlySpan<byte> pixels, int x, int y, int w, int h, int stride)
-    {
-        fixed (byte* tablePtr = table)
-        fixed (byte* pixelsPtr = pixels)
-            ImGuiPNative.ImFontAtlasBuildMultiplyRectAlpha8(tablePtr, pixelsPtr, x, y, w, h, stride);
-    }
-
-    public static void ImFontAtlasBuildRender32bppRectFromString(
-        ImFontAtlasPtr atlas, int textureIndex, int x, int y, int w, int h, ReadOnlySpan<byte> inStr, byte inMarkerChar,
-        uint inMarkerPixelValue)
-    {
-        fixed (byte* inStrPtr = inStr)
-        {
-            ImGuiPNative.ImFontAtlasBuildRender32bppRectFromString(
-                atlas,
-                textureIndex,
-                x,
-                y,
-                w,
-                h,
-                inStrPtr,
-                inMarkerChar,
-                inMarkerPixelValue);
-        }
-    }
-
-    public static void ImFontAtlasBuildRender8bppRectFromString(
-        ImFontAtlasPtr atlas, int textureIndex, int x, int y, int w, int h, ReadOnlySpan<byte> inStr, byte inMarkerChar,
-        byte inMarkerPixelValue)
-    {
-        fixed (byte* inStrPtr = inStr)
-        {
-            ImGuiPNative.ImFontAtlasBuildRender8bppRectFromString(
-                atlas,
-                textureIndex,
-                x,
-                y,
-                w,
-                h,
-                inStrPtr,
-                inMarkerChar,
-                inMarkerPixelValue);
         }
     }
 
@@ -427,9 +372,9 @@ public unsafe partial class ImGuiP
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
-            Vector2 v;
-            ImGuiPNative.TabItemCalcSize(&v, labelPtr, hasCloseButton ? (byte)1 : (byte)0);
-            return v;
+            var r = ImGuiPNative.TabItemCalcSize(labelPtr, hasCloseButton ? (byte)1 : (byte)0);
+            label.Recycle();
+            return r;
         }
     }
 

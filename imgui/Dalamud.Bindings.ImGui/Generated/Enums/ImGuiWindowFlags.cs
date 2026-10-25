@@ -107,32 +107,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AlwaysUseWindowPadding = unchecked(65536),
+		NoNavInputs = unchecked(65536),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoNavInputs = unchecked(262144),
+		NoNavFocus = unchecked(131072),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoNavFocus = unchecked(524288),
+		UnsavedDocument = unchecked(262144),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		UnsavedDocument = unchecked(1048576),
+		NoDocking = unchecked(524288),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoDocking = unchecked(2097152),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		NoNav = unchecked(786432),
+		NoNav = unchecked(196608),
 
 		/// <summary>
 		/// To be documented.
@@ -142,12 +137,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoInputs = unchecked(786944),
+		NoInputs = unchecked(197120),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NavFlattened = unchecked(8388608),
+		DockNodeHost = unchecked(8388608),
 
 		/// <summary>
 		/// To be documented.
@@ -173,10 +168,5 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		ChildMenu = unchecked(268435456),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		DockNodeHost = unchecked(536870912),
 	}
 }

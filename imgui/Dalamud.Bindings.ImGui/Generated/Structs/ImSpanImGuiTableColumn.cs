@@ -36,7 +36,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImSpanImGuiTableColumn(ImGuiTableColumn* data = default, ImGuiTableColumn* dataEnd = default)
+		public unsafe ImSpanImGuiTableColumn(ImGuiTableColumnPtr data = default, ImGuiTableColumnPtr dataEnd = default)
 		{
 			Data = data;
 			DataEnd = dataEnd;

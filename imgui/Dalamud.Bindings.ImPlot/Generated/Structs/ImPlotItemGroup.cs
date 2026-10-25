@@ -43,16 +43,22 @@ namespace Dalamud.Bindings.ImPlot
 		/// </summary>
 		public int ColormapIdx;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImPlotMarker MarkerIdx;
+
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImPlotItemGroup(uint id = default, ImPlotLegend legend = default, ImPoolImPlotItem itemPool = default, int colormapIdx = default)
+		public unsafe ImPlotItemGroup(uint id = default, ImPlotLegend legend = default, ImPoolImPlotItem itemPool = default, int colormapIdx = default, ImPlotMarker markerIdx = default)
 		{
 			ID = id;
 			Legend = legend;
 			ItemPool = itemPool;
 			ColormapIdx = colormapIdx;
+			MarkerIdx = markerIdx;
 		}
 
 
@@ -410,6 +416,10 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		public ref int ColormapIdx => ref Unsafe.AsRef<int>(&Handle->ColormapIdx);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImPlotMarker MarkerIdx => ref Unsafe.AsRef<ImPlotMarker>(&Handle->MarkerIdx);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

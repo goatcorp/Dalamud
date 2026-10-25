@@ -30,7 +30,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImTextureID TextureId;
+		public ImTextureRef TexRef;
 
 		/// <summary>
 		/// To be documented.
@@ -56,19 +56,31 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe void* UserCallbackData;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int UserCallbackDataSize;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImDrawCmd(Vector4 clipRect = default, ImTextureID textureId = default, uint vtxOffset = default, uint idxOffset = default, uint elemCount = default, ImDrawCallback userCallback = default, void* userCallbackData = default)
+		public int UserCallbackDataOffset;
+
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImDrawCmd(Vector4 clipRect = default, ImTextureRef texRef = default, uint vtxOffset = default, uint idxOffset = default, uint elemCount = default, ImDrawCallback userCallback = default, void* userCallbackData = default, int userCallbackDataSize = default, int userCallbackDataOffset = default)
 		{
 			ClipRect = clipRect;
-			TextureId = textureId;
+			TexRef = texRef;
 			VtxOffset = vtxOffset;
 			IdxOffset = idxOffset;
 			ElemCount = elemCount;
 			UserCallback = (void*)Marshal.GetFunctionPointerForDelegate(userCallback);
 			UserCallbackData = userCallbackData;
+			UserCallbackDataSize = userCallbackDataSize;
+			UserCallbackDataOffset = userCallbackDataOffset;
 		}
 
 
@@ -145,7 +157,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImTextureID TextureId => ref Unsafe.AsRef<ImTextureID>(&Handle->TextureId);
+		public ref ImTextureRef TexRef => ref Unsafe.AsRef<ImTextureRef>(&Handle->TexRef);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -166,6 +178,14 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public void* UserCallbackData { get => Handle->UserCallbackData; set => Handle->UserCallbackData = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int UserCallbackDataSize => ref Unsafe.AsRef<int>(&Handle->UserCallbackDataSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int UserCallbackDataOffset => ref Unsafe.AsRef<int>(&Handle->UserCallbackDataOffset);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

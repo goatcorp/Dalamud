@@ -27,127 +27,132 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DefaultHide = unchecked(1),
+		Disabled = unchecked(1),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DefaultSort = unchecked(2),
+		DefaultHide = unchecked(2),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		WidthStretch = unchecked(4),
+		DefaultSort = unchecked(4),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		WidthFixed = unchecked(8),
+		WidthStretch = unchecked(8),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoResize = unchecked(16),
+		WidthFixed = unchecked(16),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoReorder = unchecked(32),
+		NoResize = unchecked(32),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoHide = unchecked(64),
+		NoReorder = unchecked(64),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoClip = unchecked(128),
+		NoHide = unchecked(128),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoSort = unchecked(256),
+		NoClip = unchecked(256),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoSortAscending = unchecked(512),
+		NoSort = unchecked(512),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoSortDescending = unchecked(1024),
+		NoSortAscending = unchecked(1024),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoHeaderWidth = unchecked(2048),
+		NoSortDescending = unchecked(2048),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		PreferSortAscending = unchecked(4096),
+		NoHeaderLabel = unchecked(4096),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		PreferSortDescending = unchecked(8192),
+		NoHeaderWidth = unchecked(8192),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		IndentEnable = unchecked(16384),
+		PreferSortAscending = unchecked(16384),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		IndentDisable = unchecked(32768),
+		PreferSortDescending = unchecked(32768),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		IsEnabled = unchecked(1048576),
+		IndentEnable = unchecked(65536),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		IsVisible = unchecked(2097152),
+		IndentDisable = unchecked(131072),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		IsSorted = unchecked(4194304),
+		AngledHeader = unchecked(262144),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		IsHovered = unchecked(8388608),
+		IsEnabled = unchecked(16777216),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Disabled = unchecked(65536),
+		IsVisible = unchecked(33554432),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoHeaderLabel = unchecked(131072),
+		IsSorted = unchecked(67108864),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		WidthMask = unchecked(12),
+		IsHovered = unchecked(134217728),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		IndentMask = unchecked(49152),
+		WidthMask = unchecked(24),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		StatusMask = unchecked(15728640),
+		IndentMask = unchecked(196608),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		StatusMask = unchecked(251658240),
 
 		/// <summary>
 		/// To be documented.

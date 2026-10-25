@@ -25,34 +25,47 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public uint TableInstanceID;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public float LastOuterHeight;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float LastFirstRowHeight;
+		public float LastTopHeadersRowHeight;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float LastFrozenHeight;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int HoveredRowLast;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int HoveredRowNext;
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiTableInstanceData(float lastOuterHeight = default, float lastFirstRowHeight = default)
+		public unsafe ImGuiTableInstanceData(uint tableInstanceId = default, float lastOuterHeight = default, float lastTopHeadersRowHeight = default, float lastFrozenHeight = default, int hoveredRowLast = default, int hoveredRowNext = default)
 		{
+			TableInstanceID = tableInstanceId;
 			LastOuterHeight = lastOuterHeight;
-			LastFirstRowHeight = lastFirstRowHeight;
+			LastTopHeadersRowHeight = lastTopHeadersRowHeight;
+			LastFrozenHeight = lastFrozenHeight;
+			HoveredRowLast = hoveredRowLast;
+			HoveredRowNext = hoveredRowNext;
 		}
 
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiTableInstanceData* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
 
 	}
 
@@ -100,19 +113,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref uint TableInstanceID => ref Unsafe.AsRef<uint>(&Handle->TableInstanceID);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref float LastOuterHeight => ref Unsafe.AsRef<float>(&Handle->LastOuterHeight);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float LastFirstRowHeight => ref Unsafe.AsRef<float>(&Handle->LastFirstRowHeight);
+		public ref float LastTopHeadersRowHeight => ref Unsafe.AsRef<float>(&Handle->LastTopHeadersRowHeight);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
+		public ref float LastFrozenHeight => ref Unsafe.AsRef<float>(&Handle->LastFrozenHeight);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int HoveredRowLast => ref Unsafe.AsRef<int>(&Handle->HoveredRowLast);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int HoveredRowNext => ref Unsafe.AsRef<int>(&Handle->HoveredRowNext);
 	}
 
 }

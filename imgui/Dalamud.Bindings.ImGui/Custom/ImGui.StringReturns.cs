@@ -53,21 +53,10 @@ public unsafe partial class ImGui
             return MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ImGuiNative.c_str(selfPtr));
     }
 
-    public static ReadOnlySpan<byte> GetDebugNameU8(this ImFontPtr self) =>
-        MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ImGuiNative.GetDebugName(self.Handle));
-
-    public static ReadOnlySpan<byte> GetDebugNameU8(this scoped in ImFont self)
-    {
-        fixed (ImFont* selfPtr = &self)
-            return MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ImGuiNative.GetDebugName(selfPtr));
-    }
-
     public static string GetVersion() => Encoding.UTF8.GetString(GetVersionU8());
     public static string TableGetColumnName(int columnN = -1) => Encoding.UTF8.GetString(TableGetColumnNameU8(columnN));
     public static string GetStyleColorName(this ImGuiCol idx) => Encoding.UTF8.GetString(GetStyleColorNameU8(idx));
     public static string GetKeyName(this ImGuiKey key) => Encoding.UTF8.GetString(GetKeyNameU8(key));
     public static string GetClipboardText() => Encoding.UTF8.GetString(GetClipboardTextU8());
     public static string SaveIniSettingsToMemory() => Encoding.UTF8.GetString(SaveIniSettingsToMemoryU8());
-    public static string GetDebugName(this ImFontPtr self) => Encoding.UTF8.GetString(GetDebugNameU8(self));
-    public static string GetDebugName(this scoped in ImFont self) => Encoding.UTF8.GetString(GetDebugNameU8(self));
 }

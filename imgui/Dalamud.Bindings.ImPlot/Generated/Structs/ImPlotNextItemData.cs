@@ -26,56 +26,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public Vector4 Colors_0;
-		public Vector4 Colors_1;
-		public Vector4 Colors_2;
-		public Vector4 Colors_3;
-		public Vector4 Colors_4;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float LineWeight;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImPlotMarker Marker;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float MarkerSize;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float MarkerWeight;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float FillAlpha;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float ErrorBarSize;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float ErrorBarWeight;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float DigitalBitHeight;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float DigitalBitGap;
+		public ImPlotSpec Spec;
 
 		/// <summary>
 		/// To be documented.
@@ -100,6 +51,11 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte RenderMarkers;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte HasHidden;
 
 		/// <summary>
@@ -116,80 +72,20 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImPlotNextItemData(Vector4* colors = default, float lineWeight = default, ImPlotMarker marker = default, float markerSize = default, float markerWeight = default, float fillAlpha = default, float errorBarSize = default, float errorBarWeight = default, float digitalBitHeight = default, float digitalBitGap = default, bool renderLine = default, bool renderFill = default, bool renderMarkerLine = default, bool renderMarkerFill = default, bool hasHidden = default, bool hidden = default, ImPlotCond hiddenCond = default)
+		public unsafe ImPlotNextItemData(ImPlotSpec spec = default, bool renderLine = default, bool renderFill = default, bool renderMarkerLine = default, bool renderMarkerFill = default, bool renderMarkers = default, bool hasHidden = default, bool hidden = default, ImPlotCond hiddenCond = default)
 		{
-			if (colors != default(Vector4*))
-			{
-				Colors_0 = colors[0];
-				Colors_1 = colors[1];
-				Colors_2 = colors[2];
-				Colors_3 = colors[3];
-				Colors_4 = colors[4];
-			}
-			LineWeight = lineWeight;
-			Marker = marker;
-			MarkerSize = markerSize;
-			MarkerWeight = markerWeight;
-			FillAlpha = fillAlpha;
-			ErrorBarSize = errorBarSize;
-			ErrorBarWeight = errorBarWeight;
-			DigitalBitHeight = digitalBitHeight;
-			DigitalBitGap = digitalBitGap;
+			Spec = spec;
 			RenderLine = renderLine ? (byte)1 : (byte)0;
 			RenderFill = renderFill ? (byte)1 : (byte)0;
 			RenderMarkerLine = renderMarkerLine ? (byte)1 : (byte)0;
 			RenderMarkerFill = renderMarkerFill ? (byte)1 : (byte)0;
-			HasHidden = hasHidden ? (byte)1 : (byte)0;
-			Hidden = hidden ? (byte)1 : (byte)0;
-			HiddenCond = hiddenCond;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe ImPlotNextItemData(Span<Vector4> colors = default, float lineWeight = default, ImPlotMarker marker = default, float markerSize = default, float markerWeight = default, float fillAlpha = default, float errorBarSize = default, float errorBarWeight = default, float digitalBitHeight = default, float digitalBitGap = default, bool renderLine = default, bool renderFill = default, bool renderMarkerLine = default, bool renderMarkerFill = default, bool hasHidden = default, bool hidden = default, ImPlotCond hiddenCond = default)
-		{
-			if (colors != default(Span<Vector4>))
-			{
-				Colors_0 = colors[0];
-				Colors_1 = colors[1];
-				Colors_2 = colors[2];
-				Colors_3 = colors[3];
-				Colors_4 = colors[4];
-			}
-			LineWeight = lineWeight;
-			Marker = marker;
-			MarkerSize = markerSize;
-			MarkerWeight = markerWeight;
-			FillAlpha = fillAlpha;
-			ErrorBarSize = errorBarSize;
-			ErrorBarWeight = errorBarWeight;
-			DigitalBitHeight = digitalBitHeight;
-			DigitalBitGap = digitalBitGap;
-			RenderLine = renderLine ? (byte)1 : (byte)0;
-			RenderFill = renderFill ? (byte)1 : (byte)0;
-			RenderMarkerLine = renderMarkerLine ? (byte)1 : (byte)0;
-			RenderMarkerFill = renderMarkerFill ? (byte)1 : (byte)0;
+			RenderMarkers = renderMarkers ? (byte)1 : (byte)0;
 			HasHidden = hasHidden ? (byte)1 : (byte)0;
 			Hidden = hidden ? (byte)1 : (byte)0;
 			HiddenCond = hiddenCond;
 		}
 
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe Span<Vector4> Colors
-		
-		{
-			get
-			{
-				fixed (Vector4* p = &this.Colors_0)
-				{
-					return new Span<Vector4>(p, 5);
-				}
-			}
-		}
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -258,50 +154,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe Span<Vector4> Colors
-		
-		{
-			get
-			{
-				return new Span<Vector4>(&Handle->Colors_0, 5);
-			}
-		}
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float LineWeight => ref Unsafe.AsRef<float>(&Handle->LineWeight);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImPlotMarker Marker => ref Unsafe.AsRef<ImPlotMarker>(&Handle->Marker);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float MarkerSize => ref Unsafe.AsRef<float>(&Handle->MarkerSize);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float MarkerWeight => ref Unsafe.AsRef<float>(&Handle->MarkerWeight);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float FillAlpha => ref Unsafe.AsRef<float>(&Handle->FillAlpha);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float ErrorBarSize => ref Unsafe.AsRef<float>(&Handle->ErrorBarSize);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float ErrorBarWeight => ref Unsafe.AsRef<float>(&Handle->ErrorBarWeight);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float DigitalBitHeight => ref Unsafe.AsRef<float>(&Handle->DigitalBitHeight);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float DigitalBitGap => ref Unsafe.AsRef<float>(&Handle->DigitalBitGap);
+		public ref ImPlotSpec Spec => ref Unsafe.AsRef<ImPlotSpec>(&Handle->Spec);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -318,6 +171,10 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		public ref bool RenderMarkerFill => ref Unsafe.AsRef<bool>(&Handle->RenderMarkerFill);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool RenderMarkers => ref Unsafe.AsRef<bool>(&Handle->RenderMarkers);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

@@ -32,7 +32,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoDockingInCentralNode = unchecked(4),
+		NoDockingOverCentralNode = unchecked(4),
 
 		/// <summary>
 		/// To be documented.
@@ -42,7 +42,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoSplit = unchecked(16),
+		NoDockingSplit = unchecked(16),
 
 		/// <summary>
 		/// To be documented.
@@ -53,5 +53,10 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		AutoHideTabBar = unchecked(64),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoUndocking = unchecked(128),
 	}
 }

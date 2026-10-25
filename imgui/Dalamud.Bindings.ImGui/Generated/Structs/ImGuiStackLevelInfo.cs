@@ -37,224 +37,29 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public byte QuerySuccess;
 
-		public ImGuiDataType RawBits0;
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte Desc_0;
-		public byte Desc_1;
-		public byte Desc_2;
-		public byte Desc_3;
-		public byte Desc_4;
-		public byte Desc_5;
-		public byte Desc_6;
-		public byte Desc_7;
-		public byte Desc_8;
-		public byte Desc_9;
-		public byte Desc_10;
-		public byte Desc_11;
-		public byte Desc_12;
-		public byte Desc_13;
-		public byte Desc_14;
-		public byte Desc_15;
-		public byte Desc_16;
-		public byte Desc_17;
-		public byte Desc_18;
-		public byte Desc_19;
-		public byte Desc_20;
-		public byte Desc_21;
-		public byte Desc_22;
-		public byte Desc_23;
-		public byte Desc_24;
-		public byte Desc_25;
-		public byte Desc_26;
-		public byte Desc_27;
-		public byte Desc_28;
-		public byte Desc_29;
-		public byte Desc_30;
-		public byte Desc_31;
-		public byte Desc_32;
-		public byte Desc_33;
-		public byte Desc_34;
-		public byte Desc_35;
-		public byte Desc_36;
-		public byte Desc_37;
-		public byte Desc_38;
-		public byte Desc_39;
-		public byte Desc_40;
-		public byte Desc_41;
-		public byte Desc_42;
-		public byte Desc_43;
-		public byte Desc_44;
-		public byte Desc_45;
-		public byte Desc_46;
-		public byte Desc_47;
-		public byte Desc_48;
-		public byte Desc_49;
-		public byte Desc_50;
-		public byte Desc_51;
-		public byte Desc_52;
-		public byte Desc_53;
-		public byte Desc_54;
-		public byte Desc_55;
-		public byte Desc_56;
+		public sbyte DataType;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int DescOffset;
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiStackLevelInfo(uint id = default, sbyte queryFrameCount = default, bool querySuccess = default, ImGuiDataType dataType = default, byte* desc = default)
+		public unsafe ImGuiStackLevelInfo(uint id = default, sbyte queryFrameCount = default, bool querySuccess = default, sbyte dataType = default, int descOffset = default)
 		{
 			ID = id;
 			QueryFrameCount = queryFrameCount;
 			QuerySuccess = querySuccess ? (byte)1 : (byte)0;
 			DataType = dataType;
-			if (desc != default(byte*))
-			{
-				Desc_0 = desc[0];
-				Desc_1 = desc[1];
-				Desc_2 = desc[2];
-				Desc_3 = desc[3];
-				Desc_4 = desc[4];
-				Desc_5 = desc[5];
-				Desc_6 = desc[6];
-				Desc_7 = desc[7];
-				Desc_8 = desc[8];
-				Desc_9 = desc[9];
-				Desc_10 = desc[10];
-				Desc_11 = desc[11];
-				Desc_12 = desc[12];
-				Desc_13 = desc[13];
-				Desc_14 = desc[14];
-				Desc_15 = desc[15];
-				Desc_16 = desc[16];
-				Desc_17 = desc[17];
-				Desc_18 = desc[18];
-				Desc_19 = desc[19];
-				Desc_20 = desc[20];
-				Desc_21 = desc[21];
-				Desc_22 = desc[22];
-				Desc_23 = desc[23];
-				Desc_24 = desc[24];
-				Desc_25 = desc[25];
-				Desc_26 = desc[26];
-				Desc_27 = desc[27];
-				Desc_28 = desc[28];
-				Desc_29 = desc[29];
-				Desc_30 = desc[30];
-				Desc_31 = desc[31];
-				Desc_32 = desc[32];
-				Desc_33 = desc[33];
-				Desc_34 = desc[34];
-				Desc_35 = desc[35];
-				Desc_36 = desc[36];
-				Desc_37 = desc[37];
-				Desc_38 = desc[38];
-				Desc_39 = desc[39];
-				Desc_40 = desc[40];
-				Desc_41 = desc[41];
-				Desc_42 = desc[42];
-				Desc_43 = desc[43];
-				Desc_44 = desc[44];
-				Desc_45 = desc[45];
-				Desc_46 = desc[46];
-				Desc_47 = desc[47];
-				Desc_48 = desc[48];
-				Desc_49 = desc[49];
-				Desc_50 = desc[50];
-				Desc_51 = desc[51];
-				Desc_52 = desc[52];
-				Desc_53 = desc[53];
-				Desc_54 = desc[54];
-				Desc_55 = desc[55];
-				Desc_56 = desc[56];
-			}
+			DescOffset = descOffset;
 		}
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe ImGuiStackLevelInfo(uint id = default, sbyte queryFrameCount = default, bool querySuccess = default, ImGuiDataType dataType = default, Span<byte> desc = default)
-		{
-			ID = id;
-			QueryFrameCount = queryFrameCount;
-			QuerySuccess = querySuccess ? (byte)1 : (byte)0;
-			DataType = dataType;
-			if (desc != default(Span<byte>))
-			{
-				Desc_0 = desc[0];
-				Desc_1 = desc[1];
-				Desc_2 = desc[2];
-				Desc_3 = desc[3];
-				Desc_4 = desc[4];
-				Desc_5 = desc[5];
-				Desc_6 = desc[6];
-				Desc_7 = desc[7];
-				Desc_8 = desc[8];
-				Desc_9 = desc[9];
-				Desc_10 = desc[10];
-				Desc_11 = desc[11];
-				Desc_12 = desc[12];
-				Desc_13 = desc[13];
-				Desc_14 = desc[14];
-				Desc_15 = desc[15];
-				Desc_16 = desc[16];
-				Desc_17 = desc[17];
-				Desc_18 = desc[18];
-				Desc_19 = desc[19];
-				Desc_20 = desc[20];
-				Desc_21 = desc[21];
-				Desc_22 = desc[22];
-				Desc_23 = desc[23];
-				Desc_24 = desc[24];
-				Desc_25 = desc[25];
-				Desc_26 = desc[26];
-				Desc_27 = desc[27];
-				Desc_28 = desc[28];
-				Desc_29 = desc[29];
-				Desc_30 = desc[30];
-				Desc_31 = desc[31];
-				Desc_32 = desc[32];
-				Desc_33 = desc[33];
-				Desc_34 = desc[34];
-				Desc_35 = desc[35];
-				Desc_36 = desc[36];
-				Desc_37 = desc[37];
-				Desc_38 = desc[38];
-				Desc_39 = desc[39];
-				Desc_40 = desc[40];
-				Desc_41 = desc[41];
-				Desc_42 = desc[42];
-				Desc_43 = desc[43];
-				Desc_44 = desc[44];
-				Desc_45 = desc[45];
-				Desc_46 = desc[46];
-				Desc_47 = desc[47];
-				Desc_48 = desc[48];
-				Desc_49 = desc[49];
-				Desc_50 = desc[50];
-				Desc_51 = desc[51];
-				Desc_52 = desc[52];
-				Desc_53 = desc[53];
-				Desc_54 = desc[54];
-				Desc_55 = desc[55];
-				Desc_56 = desc[56];
-			}
-		}
-
-
-		public ImGuiDataType DataType { get => Bitfield.Get(RawBits0, 0, 8); set => Bitfield.Set(ref RawBits0, value, 0, 8); }
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiStackLevelInfo* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
 
 	}
 
@@ -314,26 +119,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiDataType DataType { get => Handle->DataType; set => Handle->DataType = value; }
+		public ref sbyte DataType => ref Unsafe.AsRef<sbyte>(&Handle->DataType);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe Span<byte> Desc
-		
-		{
-			get
-			{
-				return new Span<byte>(&Handle->Desc_0, 57);
-			}
-		}
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
+		public ref int DescOffset => ref Unsafe.AsRef<int>(&Handle->DescOffset);
 	}
 
 }

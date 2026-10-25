@@ -27,51 +27,61 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MouseButtonLeft = unchecked(0),
+		MouseButtonLeft = unchecked(4),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MouseButtonRight = unchecked(1),
+		MouseButtonRight = unchecked(8),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MouseButtonMiddle = unchecked(2),
+		MouseButtonMiddle = unchecked(12),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MouseButtonMask = unchecked(31),
+		NoReopen = unchecked(32),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MouseButtonDefault = unchecked(1),
+		NoOpenOverExistingPopup = unchecked(128),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoOpenOverExistingPopup = unchecked(32),
+		NoOpenOverItems = unchecked(256),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoOpenOverItems = unchecked(64),
+		AnyPopupId = unchecked(1024),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AnyPopupId = unchecked(128),
+		AnyPopupLevel = unchecked(2048),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AnyPopupLevel = unchecked(256),
+		AnyPopup = unchecked(3072),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AnyPopup = unchecked(384),
+		MouseButtonShift = unchecked(2),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		MouseButtonMask = unchecked(12),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		InvalidMask = unchecked(3),
 	}
 }
