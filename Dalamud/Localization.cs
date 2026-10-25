@@ -58,6 +58,10 @@ public class Localization : IServiceType
     /// </summary>
     public CultureInfo DalamudLanguageCultureInfo { get; private set; }
 
+    /// <summary>Gets the code of the language set up, such as "ko", or "en" for the fallbacks.</summary>
+    /// <remarks>It is set before <see cref="LocalizationChanged"/> is raised.</remarks>
+    internal string LanguageCode { get; private set; } = FallbackLangCode;
+
     /// <summary>
     /// Gets an instance of <see cref="CultureInfo"/> that corresponds to a Dalamud <paramref name="langCode"/>.
     /// </summary>
@@ -117,6 +121,7 @@ public class Localization : IServiceType
     public void SetupWithFallbacks()
     {
         this.DalamudLanguageCultureInfo = CultureInfo.InvariantCulture;
+        this.LanguageCode = FallbackLangCode;
 
         Loc.SetupWithFallbacks(this.assembly);
 
@@ -141,6 +146,7 @@ public class Localization : IServiceType
         {
             var locData = this.ReadLocData(langCode);
             Loc.Setup(locData, this.assembly);
+            this.LanguageCode = langCode;
 
             this.InvokeLocalizationChanged(langCode, () => Loc.Setup(locData, this.assembly));
         }
