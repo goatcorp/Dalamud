@@ -40,6 +40,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public Vector2 BackupCursorPosPrevLine;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ImVec1 BackupIndent;
 
 		/// <summary>
@@ -65,12 +70,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte BackupActiveIdPreviousFrameIsAlive;
+		public byte BackupAnyIdHasBeenEditedThisFrame;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte BackupDeactivatedIdIsAlive;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public byte BackupHoveredIdIsAlive;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte BackupIsSameLine;
 
 		/// <summary>
 		/// To be documented.
@@ -81,18 +96,21 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiGroupData(uint windowId = default, Vector2 backupCursorPos = default, Vector2 backupCursorMaxPos = default, ImVec1 backupIndent = default, ImVec1 backupGroupOffset = default, Vector2 backupCurrLineSize = default, float backupCurrLineTextBaseOffset = default, uint backupActiveIdIsAlive = default, bool backupActiveIdPreviousFrameIsAlive = default, bool backupHoveredIdIsAlive = default, bool emitItem = default)
+		public unsafe ImGuiGroupData(uint windowId = default, Vector2 backupCursorPos = default, Vector2 backupCursorMaxPos = default, Vector2 backupCursorPosPrevLine = default, ImVec1 backupIndent = default, ImVec1 backupGroupOffset = default, Vector2 backupCurrLineSize = default, float backupCurrLineTextBaseOffset = default, uint backupActiveIdIsAlive = default, bool backupAnyIdHasBeenEditedThisFrame = default, bool backupDeactivatedIdIsAlive = default, bool backupHoveredIdIsAlive = default, bool backupIsSameLine = default, bool emitItem = default)
 		{
 			WindowID = windowId;
 			BackupCursorPos = backupCursorPos;
 			BackupCursorMaxPos = backupCursorMaxPos;
+			BackupCursorPosPrevLine = backupCursorPosPrevLine;
 			BackupIndent = backupIndent;
 			BackupGroupOffset = backupGroupOffset;
 			BackupCurrLineSize = backupCurrLineSize;
 			BackupCurrLineTextBaseOffset = backupCurrLineTextBaseOffset;
 			BackupActiveIdIsAlive = backupActiveIdIsAlive;
-			BackupActiveIdPreviousFrameIsAlive = backupActiveIdPreviousFrameIsAlive ? (byte)1 : (byte)0;
+			BackupAnyIdHasBeenEditedThisFrame = backupAnyIdHasBeenEditedThisFrame ? (byte)1 : (byte)0;
+			BackupDeactivatedIdIsAlive = backupDeactivatedIdIsAlive ? (byte)1 : (byte)0;
 			BackupHoveredIdIsAlive = backupHoveredIdIsAlive ? (byte)1 : (byte)0;
+			BackupIsSameLine = backupIsSameLine ? (byte)1 : (byte)0;
 			EmitItem = emitItem ? (byte)1 : (byte)0;
 		}
 
@@ -155,6 +173,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref Vector2 BackupCursorPosPrevLine => ref Unsafe.AsRef<Vector2>(&Handle->BackupCursorPosPrevLine);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref ImVec1 BackupIndent => ref Unsafe.AsRef<ImVec1>(&Handle->BackupIndent);
 		/// <summary>
 		/// To be documented.
@@ -175,11 +197,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool BackupActiveIdPreviousFrameIsAlive => ref Unsafe.AsRef<bool>(&Handle->BackupActiveIdPreviousFrameIsAlive);
+		public ref bool BackupAnyIdHasBeenEditedThisFrame => ref Unsafe.AsRef<bool>(&Handle->BackupAnyIdHasBeenEditedThisFrame);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool BackupDeactivatedIdIsAlive => ref Unsafe.AsRef<bool>(&Handle->BackupDeactivatedIdIsAlive);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ref bool BackupHoveredIdIsAlive => ref Unsafe.AsRef<bool>(&Handle->BackupHoveredIdIsAlive);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool BackupIsSameLine => ref Unsafe.AsRef<bool>(&Handle->BackupIsSameLine);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

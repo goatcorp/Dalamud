@@ -11,11 +11,4 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiInputTextState
 {
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiInputTextState* @this = &this)
-			{
-				ImGuiNative.Destroy(@this);
-			}
-		}
 }

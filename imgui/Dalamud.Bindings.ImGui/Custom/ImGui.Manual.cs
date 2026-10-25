@@ -44,37 +44,6 @@ public unsafe partial class ImGui
         return nul == -1 ? buf : buf[..nul];
     }
 
-    public static int ImTextStrFromUtf8(
-        Span<char> outBuf, ReadOnlySpan<byte> inText, out ReadOnlySpan<byte> inRemaining)
-    {
-        fixed (char* outBufPtr = outBuf)
-        fixed (byte* inTextPtr = inText)
-        {
-            byte* inRemainingPtr;
-            var r = ImGuiNative.ImTextStrFromUtf8(
-                (ushort*)outBufPtr,
-                outBuf.Length,
-                inTextPtr,
-                inTextPtr + inText.Length,
-                &inRemainingPtr);
-            inRemaining = inText[(int)(inRemainingPtr - inTextPtr)..];
-            return r;
-        }
-    }
-
-    public static Span<byte> ImTextStrToUtf8(Span<byte> outBuf, ReadOnlySpan<char> inText)
-    {
-        fixed (byte* outBufPtr = outBuf)
-        fixed (char* inTextPtr = inText)
-        {
-            return outBuf[..ImGuiNative.ImTextStrToUtf8(
-                              outBufPtr,
-                              outBuf.Length,
-                              (ushort*)inTextPtr,
-                              (ushort*)inTextPtr + inText.Length)];
-        }
-    }
-
     public delegate int ImGuiInputTextCallbackDelegate(scoped ref ImGuiInputTextCallbackData data);
 
     public delegate int ImGuiInputTextCallbackPtrDelegate(ImGuiInputTextCallbackDataPtr data);
@@ -624,7 +593,7 @@ public unsafe partial class ImGui
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (byte* bufPtr = buf)
         {
-            var r = ImGuiNative.TempInputText(bb, id, labelPtr, bufPtr, buf.Length, flags) != 0;
+            var r = ImGuiNative.TempInputText(bb, id, labelPtr, bufPtr, (nuint)buf.Length, flags, null, null) != 0;
             label.Recycle();
             return r;
         }

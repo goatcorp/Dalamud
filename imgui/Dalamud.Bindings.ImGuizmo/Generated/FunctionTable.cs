@@ -25,26 +25,53 @@ namespace Dalamud.Bindings.ImGuizmo
 		/// </summary>
 		public static void InitApi(INativeContext context)
 		{
-			funcTable = new FunctionTable(context, 19);
+			funcTable = new FunctionTable(context, 46);
 			funcTable.Load(0, "ImGuizmo_SetDrawlist");
 			funcTable.Load(1, "ImGuizmo_BeginFrame");
 			funcTable.Load(2, "ImGuizmo_SetImGuiContext");
 			funcTable.Load(3, "ImGuizmo_IsOver_Nil");
 			funcTable.Load(4, "ImGuizmo_IsUsing");
-			funcTable.Load(5, "ImGuizmo_Enable");
-			funcTable.Load(6, "ImGuizmo_DecomposeMatrixToComponents");
-			funcTable.Load(7, "ImGuizmo_RecomposeMatrixFromComponents");
-			funcTable.Load(8, "ImGuizmo_SetRect");
-			funcTable.Load(9, "ImGuizmo_SetOrthographic");
-			funcTable.Load(10, "ImGuizmo_DrawCubes");
-			funcTable.Load(11, "ImGuizmo_DrawGrid");
-			funcTable.Load(12, "ImGuizmo_Manipulate");
-			funcTable.Load(13, "ImGuizmo_ViewManipulate_Float");
-			funcTable.Load(14, "ImGuizmo_ViewManipulate_FloatPtr");
-			funcTable.Load(15, "ImGuizmo_SetID");
-			funcTable.Load(16, "ImGuizmo_IsOver_OPERATION");
-			funcTable.Load(17, "ImGuizmo_SetGizmoSizeClipSpace");
-			funcTable.Load(18, "ImGuizmo_AllowAxisFlip");
+			funcTable.Load(5, "ImGuizmo_IsUsingViewManipulate");
+			funcTable.Load(6, "ImGuizmo_IsViewManipulateHovered");
+			funcTable.Load(7, "ImGuizmo_IsUsingAny");
+			funcTable.Load(8, "ImGuizmo_Enable");
+			funcTable.Load(9, "ImGuizmo_DecomposeMatrixToComponents");
+			funcTable.Load(10, "ImGuizmo_RecomposeMatrixFromComponents");
+			funcTable.Load(11, "ImGuizmo_SetRect");
+			funcTable.Load(12, "ImGuizmo_SetOrthographic");
+			funcTable.Load(13, "ImGuizmo_DrawAxes");
+			funcTable.Load(14, "ImGuizmo_DrawCubes");
+			funcTable.Load(15, "ImGuizmo_DrawGrid");
+			funcTable.Load(16, "ImGuizmo_DrawGridCustom");
+			funcTable.Load(17, "ImGuizmo_DrawGridCustomColor");
+			funcTable.Load(18, "ImGuizmo_Manipulate");
+			funcTable.Load(19, "ImGuizmo_ViewManipulate_Float");
+			funcTable.Load(20, "ImGuizmo_ViewManipulate_FloatPtr");
+			funcTable.Load(21, "ImGuizmo_SetAlternativeWindow");
+			funcTable.Load(22, "ImGuizmo_SetID");
+			funcTable.Load(23, "ImGuizmo_PushID_Str");
+			funcTable.Load(24, "ImGuizmo_PushID_StrStr");
+			funcTable.Load(25, "ImGuizmo_PushID_Ptr");
+			funcTable.Load(26, "ImGuizmo_PushID_Int");
+			funcTable.Load(27, "ImGuizmo_PopID");
+			funcTable.Load(28, "ImGuizmo_GetID_Str");
+			funcTable.Load(29, "ImGuizmo_GetID_StrStr");
+			funcTable.Load(30, "ImGuizmo_GetID_Ptr");
+			funcTable.Load(31, "ImGuizmo_IsOver_OPERATION");
+			funcTable.Load(32, "ImGuizmo_SetGizmoSizeClipSpace");
+			funcTable.Load(33, "ImGuizmo_GetActiveHandleType");
+			funcTable.Load(34, "ImGuizmo_GetHoveredHandleType");
+			funcTable.Load(35, "ImGuizmo_GetActiveMoveType");
+			funcTable.Load(36, "ImGuizmo_GetHoveredMoveType");
+			funcTable.Load(37, "ImGuizmo_AllowAxisFlip");
+			funcTable.Load(38, "ImGuizmo_SetAxisLimit");
+			funcTable.Load(39, "ImGuizmo_SetAxisMask");
+			funcTable.Load(40, "ImGuizmo_SetPlaneLimit");
+			funcTable.Load(41, "ImGuizmo_IsOver_FloatPtr");
+			funcTable.Load(42, "ImGuizmo_ComputeMouseRay");
+			funcTable.Load(43, "Style_Style");
+			funcTable.Load(44, "Style_destroy");
+			funcTable.Load(45, "ImGuizmo_GetStyle");
 		}
 
 		public static void FreeApi()

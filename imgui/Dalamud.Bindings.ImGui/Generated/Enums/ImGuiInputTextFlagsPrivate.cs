@@ -27,11 +27,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoMarkEdited = unchecked(134217728),
+		TempInput = unchecked(134217728),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MergedItem = unchecked(268435456),
+		LocalizeDecimalPoint = unchecked(268435456),
 	}
 }

@@ -27,11 +27,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AlwaysClamp = unchecked(16),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		Logarithmic = unchecked(32),
 
 		/// <summary>
@@ -43,6 +38,36 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		NoInput = unchecked(128),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		WrapAround = unchecked(256),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ClampOnInput = unchecked(512),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ClampZeroRange = unchecked(1024),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoSpeedTweaks = unchecked(2048),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ColorMarkers = unchecked(4096),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AlwaysClamp = unchecked(1536),
 
 		/// <summary>
 		/// To be documented.

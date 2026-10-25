@@ -27,7 +27,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DontClosePopups = unchecked(1),
+		NoAutoClosePopups = unchecked(1),
 
 		/// <summary>
 		/// To be documented.
@@ -47,6 +47,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AllowItemOverlap = unchecked(16),
+		AllowOverlap = unchecked(16),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Highlight = unchecked(32),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		SelectOnNav = unchecked(64),
 	}
 }

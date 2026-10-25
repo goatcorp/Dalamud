@@ -45,6 +45,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public Vector2 FramebufferScale;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public Vector2 WorkPos;
 
 		/// <summary>
@@ -65,6 +70,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe ImGuiViewport* ParentViewport;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe ImDrawData* DrawData;
 
 		/// <summary>
@@ -80,12 +90,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe void* PlatformIconData;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe void* PlatformHandle;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public unsafe void* PlatformHandleRaw;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte PlatformWindowCreated;
 
 		/// <summary>
 		/// To be documented.
@@ -106,21 +126,25 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiViewport(uint id = default, ImGuiViewportFlags flags = default, Vector2 pos = default, Vector2 size = default, Vector2 workPos = default, Vector2 workSize = default, float dpiScale = default, uint parentViewportId = default, ImDrawDataPtr drawData = default, void* rendererUserData = default, void* platformUserData = default, void* platformHandle = default, void* platformHandleRaw = default, bool platformRequestMove = default, bool platformRequestResize = default, bool platformRequestClose = default)
+		public unsafe ImGuiViewport(uint id = default, ImGuiViewportFlags flags = default, Vector2 pos = default, Vector2 size = default, Vector2 framebufferScale = default, Vector2 workPos = default, Vector2 workSize = default, float dpiScale = default, uint parentViewportId = default, ImGuiViewport* parentViewport = default, ImDrawData* drawData = default, void* rendererUserData = default, void* platformUserData = default, void* platformIconData = default, void* platformHandle = default, void* platformHandleRaw = default, bool platformWindowCreated = default, bool platformRequestMove = default, bool platformRequestResize = default, bool platformRequestClose = default)
 		{
 			ID = id;
 			Flags = flags;
 			Pos = pos;
 			Size = size;
+			FramebufferScale = framebufferScale;
 			WorkPos = workPos;
 			WorkSize = workSize;
 			DpiScale = dpiScale;
 			ParentViewportId = parentViewportId;
+			ParentViewport = parentViewport;
 			DrawData = drawData;
 			RendererUserData = rendererUserData;
 			PlatformUserData = platformUserData;
+			PlatformIconData = platformIconData;
 			PlatformHandle = platformHandle;
 			PlatformHandleRaw = platformHandleRaw;
+			PlatformWindowCreated = platformWindowCreated ? (byte)1 : (byte)0;
 			PlatformRequestMove = platformRequestMove ? (byte)1 : (byte)0;
 			PlatformRequestResize = platformRequestResize ? (byte)1 : (byte)0;
 			PlatformRequestClose = platformRequestClose ? (byte)1 : (byte)0;
@@ -135,6 +159,54 @@ namespace Dalamud.Bindings.ImGui
 			fixed (ImGuiViewport* @this = &this)
 			{
 				ImGui.DestroyNative(@this);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Vector2 GetCenter()
+		{
+			fixed (ImGuiViewport* @this = &this)
+			{
+				Vector2 ret = ImGui.GetCenterNative(@this);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe byte* GetDebugName()
+		{
+			fixed (ImGuiViewport* @this = &this)
+			{
+				byte* ret = ImGui.GetDebugNameNative(@this);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe string GetDebugNameS()
+		{
+			fixed (ImGuiViewport* @this = &this)
+			{
+				string ret = Utils.DecodeStringUTF8(ImGui.GetDebugNameNative(@this));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Vector2 GetWorkCenter()
+		{
+			fixed (ImGuiViewport* @this = &this)
+			{
+				Vector2 ret = ImGui.GetWorkCenterNative(@this);
+				return ret;
 			}
 		}
 
@@ -200,6 +272,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref Vector2 FramebufferScale => ref Unsafe.AsRef<Vector2>(&Handle->FramebufferScale);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref Vector2 WorkPos => ref Unsafe.AsRef<Vector2>(&Handle->WorkPos);
 		/// <summary>
 		/// To be documented.
@@ -216,6 +292,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImGuiViewportPtr ParentViewport => ref Unsafe.AsRef<ImGuiViewportPtr>(&Handle->ParentViewport);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref ImDrawDataPtr DrawData => ref Unsafe.AsRef<ImDrawDataPtr>(&Handle->DrawData);
 		/// <summary>
 		/// To be documented.
@@ -228,11 +308,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public void* PlatformIconData { get => Handle->PlatformIconData; set => Handle->PlatformIconData = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public void* PlatformHandle { get => Handle->PlatformHandle; set => Handle->PlatformHandle = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public void* PlatformHandleRaw { get => Handle->PlatformHandleRaw; set => Handle->PlatformHandleRaw = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool PlatformWindowCreated => ref Unsafe.AsRef<bool>(&Handle->PlatformWindowCreated);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -251,6 +339,42 @@ namespace Dalamud.Bindings.ImGui
 		public unsafe void Destroy()
 		{
 			ImGui.DestroyNative(Handle);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Vector2 GetCenter()
+		{
+			Vector2 ret = ImGui.GetCenterNative(Handle);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe byte* GetDebugName()
+		{
+			byte* ret = ImGui.GetDebugNameNative(Handle);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe string GetDebugNameS()
+		{
+			string ret = Utils.DecodeStringUTF8(ImGui.GetDebugNameNative(Handle));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Vector2 GetWorkCenter()
+		{
+			Vector2 ret = ImGui.GetWorkCenterNative(Handle);
+			return ret;
 		}
 
 	}

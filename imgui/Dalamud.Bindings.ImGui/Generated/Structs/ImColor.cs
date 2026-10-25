@@ -51,28 +51,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void HSV(float h, float s, float v, float a)
-		{
-			fixed (ImColor* @this = &this)
-			{
-				ImGui.HSVNative(@this, h, s, v, a);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void HSV(float h, float s, float v)
-		{
-			fixed (ImColor* @this = &this)
-			{
-				ImGui.HSVNative(@this, h, s, v, (float)(1.0f));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public unsafe void SetHSV(float h, float s, float v, float a)
 		{
 			fixed (ImColor* @this = &this)
@@ -145,22 +123,6 @@ namespace Dalamud.Bindings.ImGui
 		public unsafe void Destroy()
 		{
 			ImGui.DestroyNative(Handle);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void HSV(float h, float s, float v, float a)
-		{
-			ImGui.HSVNative(Handle, h, s, v, a);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void HSV(float h, float s, float v)
-		{
-			ImGui.HSVNative(Handle, h, s, v, (float)(1.0f));
 		}
 
 		/// <summary>

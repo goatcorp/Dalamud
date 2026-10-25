@@ -42,32 +42,52 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AllowWhenBlockedByPopup = unchecked(8),
+		NoPopupHierarchy = unchecked(8),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AllowWhenBlockedByActiveItem = unchecked(32),
+		DockHierarchy = unchecked(16),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AllowWhenOverlapped = unchecked(64),
+		AllowWhenBlockedByPopup = unchecked(32),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AllowWhenDisabled = unchecked(128),
+		AllowWhenBlockedByActiveItem = unchecked(128),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoNavOverride = unchecked(256),
+		AllowWhenOverlappedByItem = unchecked(256),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RectOnly = unchecked(104),
+		AllowWhenOverlappedByWindow = unchecked(512),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AllowWhenDisabled = unchecked(1024),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoNavOverride = unchecked(2048),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AllowWhenOverlapped = unchecked(768),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		RectOnly = unchecked(928),
 
 		/// <summary>
 		/// To be documented.
@@ -77,11 +97,31 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoPopupHierarchy = unchecked(512),
+		ForTooltip = unchecked(4096),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DockHierarchy = unchecked(1024),
+		Stationary = unchecked(8192),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		DelayNone = unchecked(16384),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		DelayShort = unchecked(32768),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		DelayNormal = unchecked(65536),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoSharedDelay = unchecked(131072),
 	}
 }

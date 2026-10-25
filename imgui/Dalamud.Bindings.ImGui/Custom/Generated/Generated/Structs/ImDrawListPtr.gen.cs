@@ -11,9 +11,41 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImDrawListPtr
 {
+		public unsafe void _AddLine(Vector2 p1, Vector2 p2, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGuiNative._AddLine(Handle, p1, p2, col, thickness, flags);
+		}
+		public unsafe void _AddPolyline(Vector2* points, int numPoints, uint col, float thickness, ImDrawFlags flags, float maxInnerOffset)
+		{
+			ImGuiNative._AddPolyline(Handle, points, numPoints, col, thickness, flags, maxInnerOffset);
+		}
+		public unsafe void _AddPolyline(ref Vector2 points, int numPoints, uint col, float thickness, ImDrawFlags flags, float maxInnerOffset)
+		{
+			fixed (Vector2* ppoints = &points)
+			{
+				ImGuiNative._AddPolyline(Handle, (Vector2*)ppoints, numPoints, col, thickness, flags, maxInnerOffset);
+			}
+		}
+		public unsafe void _AddRectBaked(Vector2 pMin, Vector2 pMax, uint col, float r, float t, Vector4 texUvs, ImDrawFlags flags)
+		{
+			ImGuiNative._AddRectBaked(Handle, pMin, pMax, col, r, t, texUvs, flags);
+		}
+		public unsafe void _AddRectFilledBaked(Vector2 pMin, Vector2 pMax, uint col, float r, Vector4 texUvs, ImDrawFlags flags)
+		{
+			ImGuiNative._AddRectFilledBaked(Handle, pMin, pMax, col, r, texUvs, flags);
+		}
+		public unsafe void _AddRectTinyRounding(Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness, ImDrawFlags flags)
+		{
+			ImGuiNative._AddRectTinyRounding(Handle, pMin, pMax, col, rounding, thickness, flags);
+		}
 		public unsafe int _CalcCircleAutoSegmentCount(float radius)
 		{
 			int ret = ImGuiNative._CalcCircleAutoSegmentCount(Handle, radius);
+			return ret;
+		}
+		public unsafe float _CalculateCenterBiasedOffset(float thickness)
+		{
+			float ret = ImGuiNative._CalculateCenterBiasedOffset(Handle, thickness);
 			return ret;
 		}
 		public unsafe void _ClearFreeMemory()
@@ -24,9 +56,9 @@ public unsafe partial struct ImDrawListPtr
 		{
 			ImGuiNative._OnChangedClipRect(Handle);
 		}
-		public unsafe void _OnChangedTextureID()
+		public unsafe void _OnChangedTexture()
 		{
-			ImGuiNative._OnChangedTextureID(Handle);
+			ImGuiNative._OnChangedTexture(Handle);
 		}
 		public unsafe void _OnChangedVtxOffset()
 		{
@@ -48,45 +80,176 @@ public unsafe partial struct ImDrawListPtr
 		{
 			ImGuiNative._ResetForNewFrame(Handle);
 		}
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, Vector2* outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			ImGuiNative._SelectLineTexture(Handle, screenThickness, outuv0, outuv1, outFringe, flags);
+		}
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, Vector2* outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv0 = &outuv0)
+			{
+				ImGuiNative._SelectLineTexture(Handle, screenThickness, (Vector2*)poutuv0, outuv1, outFringe, flags);
+			}
+		}
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, ref Vector2 outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv1 = &outuv1)
+			{
+				ImGuiNative._SelectLineTexture(Handle, screenThickness, outuv0, (Vector2*)poutuv1, outFringe, flags);
+			}
+		}
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, ref Vector2 outuv1, float* outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv0 = &outuv0)
+			{
+				fixed (Vector2* poutuv1 = &outuv1)
+				{
+					ImGuiNative._SelectLineTexture(Handle, screenThickness, (Vector2*)poutuv0, (Vector2*)poutuv1, outFringe, flags);
+				}
+			}
+		}
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, Vector2* outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (float* poutFringe = &outFringe)
+			{
+				ImGuiNative._SelectLineTexture(Handle, screenThickness, outuv0, outuv1, (float*)poutFringe, flags);
+			}
+		}
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, Vector2* outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv0 = &outuv0)
+			{
+				fixed (float* poutFringe = &outFringe)
+				{
+					ImGuiNative._SelectLineTexture(Handle, screenThickness, (Vector2*)poutuv0, outuv1, (float*)poutFringe, flags);
+				}
+			}
+		}
+		public unsafe void _SelectLineTexture(float screenThickness, Vector2* outuv0, ref Vector2 outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv1 = &outuv1)
+			{
+				fixed (float* poutFringe = &outFringe)
+				{
+					ImGuiNative._SelectLineTexture(Handle, screenThickness, outuv0, (Vector2*)poutuv1, (float*)poutFringe, flags);
+				}
+			}
+		}
+		public unsafe void _SelectLineTexture(float screenThickness, ref Vector2 outuv0, ref Vector2 outuv1, ref float outFringe, ImDrawFlags flags)
+		{
+			fixed (Vector2* poutuv0 = &outuv0)
+			{
+				fixed (Vector2* poutuv1 = &outuv1)
+				{
+					fixed (float* poutFringe = &outFringe)
+					{
+						ImGuiNative._SelectLineTexture(Handle, screenThickness, (Vector2*)poutuv0, (Vector2*)poutuv1, (float*)poutFringe, flags);
+					}
+				}
+			}
+		}
+		public unsafe void _SetDrawListSharedData(ImDrawListSharedData* data)
+		{
+			ImGuiNative._SetDrawListSharedData(Handle, data);
+		}
+		public unsafe void _SetDrawListSharedData(ref ImDrawListSharedData data)
+		{
+			fixed (ImDrawListSharedData* pdata = &data)
+			{
+				ImGuiNative._SetDrawListSharedData(Handle, (ImDrawListSharedData*)pdata);
+			}
+		}
+		public unsafe void _SetPixelDensity(float pixelDensity)
+		{
+			ImGuiNative._SetPixelDensity(Handle, pixelDensity);
+		}
+		public unsafe void _SetTexture(ImTextureRef texRef)
+		{
+			ImGuiNative._SetTexture(Handle, texRef);
+		}
 		public unsafe void _TryMergeDrawCmds()
 		{
 			ImGuiNative._TryMergeDrawCmds(Handle);
 		}
+		public unsafe void AddBezierCubic(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, int numSegments, ImDrawFlags flags)
+		{
+			ImGuiNative.AddBezierCubic(Handle, p1, p2, p3, p4, col, thickness, numSegments, flags);
+		}
 		public unsafe void AddBezierCubic(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, int numSegments)
 		{
-			ImGuiNative.AddBezierCubic(Handle, p1, p2, p3, p4, col, thickness, numSegments);
+			ImGuiNative.AddBezierCubic(Handle, p1, p2, p3, p4, col, thickness, numSegments, (ImDrawFlags)(0));
 		}
 		public unsafe void AddBezierCubic(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
 		{
-			ImGuiNative.AddBezierCubic(Handle, p1, p2, p3, p4, col, thickness, (int)(0));
+			ImGuiNative.AddBezierCubic(Handle, p1, p2, p3, p4, col, thickness, (int)(0), (ImDrawFlags)(0));
+		}
+		public unsafe void AddBezierCubic(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGuiNative.AddBezierCubic(Handle, p1, p2, p3, p4, col, thickness, (int)(0), flags);
+		}
+		public unsafe void AddBezierQuadratic(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, int numSegments, ImDrawFlags flags)
+		{
+			ImGuiNative.AddBezierQuadratic(Handle, p1, p2, p3, col, thickness, numSegments, flags);
 		}
 		public unsafe void AddBezierQuadratic(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, int numSegments)
 		{
-			ImGuiNative.AddBezierQuadratic(Handle, p1, p2, p3, col, thickness, numSegments);
+			ImGuiNative.AddBezierQuadratic(Handle, p1, p2, p3, col, thickness, numSegments, (ImDrawFlags)(0));
 		}
 		public unsafe void AddBezierQuadratic(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
 		{
-			ImGuiNative.AddBezierQuadratic(Handle, p1, p2, p3, col, thickness, (int)(0));
+			ImGuiNative.AddBezierQuadratic(Handle, p1, p2, p3, col, thickness, (int)(0), (ImDrawFlags)(0));
 		}
-		public unsafe void AddCallback(ImDrawCallback callback, void* callbackData)
+		public unsafe void AddBezierQuadratic(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, ImDrawFlags flags)
 		{
-			ImGuiNative.AddCallback(Handle, callback, callbackData);
+			ImGuiNative.AddBezierQuadratic(Handle, p1, p2, p3, col, thickness, (int)(0), flags);
+		}
+		public unsafe void AddCallback(ImDrawCallback callback, void* userdata, nuint userdataSize)
+		{
+			ImGuiNative.AddCallback(Handle, callback, userdata, userdataSize);
+		}
+		public unsafe void AddCallback(ImDrawCallback callback, void* userdata)
+		{
+			ImGuiNative.AddCallback(Handle, callback, userdata, (nuint)(0));
+		}
+		public unsafe void AddCallback(ImDrawCallback callback)
+		{
+			ImGuiNative.AddCallback(Handle, callback, (void*)(default), (nuint)(0));
+		}
+		public unsafe void AddCallback(ImDrawCallback callback, nuint userdataSize)
+		{
+			ImGuiNative.AddCallback(Handle, callback, (void*)(default), userdataSize);
+		}
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, int numSegments, float thickness, ImDrawFlags flags)
+		{
+			ImGuiNative.AddCircle(Handle, center, radius, col, numSegments, thickness, flags);
 		}
 		public unsafe void AddCircle(Vector2 center, float radius, uint col, int numSegments, float thickness)
 		{
-			ImGuiNative.AddCircle(Handle, center, radius, col, numSegments, thickness);
+			ImGuiNative.AddCircle(Handle, center, radius, col, numSegments, thickness, (ImDrawFlags)(0));
 		}
 		public unsafe void AddCircle(Vector2 center, float radius, uint col, int numSegments)
 		{
-			ImGuiNative.AddCircle(Handle, center, radius, col, numSegments, (float)(1.0f));
+			ImGuiNative.AddCircle(Handle, center, radius, col, numSegments, (float)(1.0f), (ImDrawFlags)(0));
 		}
 		public unsafe void AddCircle(Vector2 center, float radius, uint col)
 		{
-			ImGuiNative.AddCircle(Handle, center, radius, col, (int)(0), (float)(1.0f));
+			ImGuiNative.AddCircle(Handle, center, radius, col, (int)(0), (float)(1.0f), (ImDrawFlags)(0));
 		}
 		public unsafe void AddCircle(Vector2 center, float radius, uint col, float thickness)
 		{
-			ImGuiNative.AddCircle(Handle, center, radius, col, (int)(0), thickness);
+			ImGuiNative.AddCircle(Handle, center, radius, col, (int)(0), thickness, (ImDrawFlags)(0));
+		}
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, int numSegments, ImDrawFlags flags)
+		{
+			ImGuiNative.AddCircle(Handle, center, radius, col, numSegments, (float)(1.0f), flags);
+		}
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, ImDrawFlags flags)
+		{
+			ImGuiNative.AddCircle(Handle, center, radius, col, (int)(0), (float)(1.0f), flags);
+		}
+		public unsafe void AddCircle(Vector2 center, float radius, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGuiNative.AddCircle(Handle, center, radius, col, (int)(0), thickness, flags);
 		}
 		public unsafe void AddCircleFilled(Vector2 center, float radius, uint col, int numSegments)
 		{
@@ -96,163 +259,320 @@ public unsafe partial struct ImDrawListPtr
 		{
 			ImGuiNative.AddCircleFilled(Handle, center, radius, col, (int)(0));
 		}
+		public unsafe void AddConcavePolyFilled(Vector2* points, int numPoints, uint col)
+		{
+			ImGuiNative.AddConcavePolyFilled(Handle, points, numPoints, col);
+		}
+		public unsafe void AddConcavePolyFilled(ref Vector2 points, int numPoints, uint col)
+		{
+			fixed (Vector2* ppoints = &points)
+			{
+				ImGuiNative.AddConcavePolyFilled(Handle, (Vector2*)ppoints, numPoints, col);
+			}
+		}
+		public unsafe void AddConvexPolyFilled(Vector2* points, int numPoints, uint col, ImDrawFlags flags)
+		{
+			ImGuiNative.AddConvexPolyFilled(Handle, points, numPoints, col, flags);
+		}
 		public unsafe void AddConvexPolyFilled(Vector2* points, int numPoints, uint col)
 		{
-			ImGuiNative.AddConvexPolyFilled(Handle, points, numPoints, col);
+			ImGuiNative.AddConvexPolyFilled(Handle, points, numPoints, col, (ImDrawFlags)(0));
+		}
+		public unsafe void AddConvexPolyFilled(ref Vector2 points, int numPoints, uint col, ImDrawFlags flags)
+		{
+			fixed (Vector2* ppoints = &points)
+			{
+				ImGuiNative.AddConvexPolyFilled(Handle, (Vector2*)ppoints, numPoints, col, flags);
+			}
 		}
 		public unsafe void AddConvexPolyFilled(ref Vector2 points, int numPoints, uint col)
 		{
 			fixed (Vector2* ppoints = &points)
 			{
-				ImGuiNative.AddConvexPolyFilled(Handle, (Vector2*)ppoints, numPoints, col);
+				ImGuiNative.AddConvexPolyFilled(Handle, (Vector2*)ppoints, numPoints, col, (ImDrawFlags)(0));
 			}
 		}
 		public unsafe void AddDrawCmd()
 		{
 			ImGuiNative.AddDrawCmd(Handle);
 		}
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments, float thickness, ImDrawFlags flags)
 		{
-			ImGuiNative.AddImage(Handle, userTextureId, pMin, pMax, uvMin, uvMax, col);
+			ImGuiNative.AddEllipse(Handle, center, radius, col, rot, numSegments, thickness, flags);
 		}
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments, float thickness)
 		{
-			ImGuiNative.AddImage(Handle, userTextureId, pMin, pMax, uvMin, uvMax, (uint)(4294967295));
+			ImGuiNative.AddEllipse(Handle, center, radius, col, rot, numSegments, thickness, (ImDrawFlags)(0));
 		}
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments)
 		{
-			ImGuiNative.AddImage(Handle, userTextureId, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+			ImGuiNative.AddEllipse(Handle, center, radius, col, rot, numSegments, (float)(1.0f), (ImDrawFlags)(0));
 		}
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot)
 		{
-			ImGuiNative.AddImage(Handle, userTextureId, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+			ImGuiNative.AddEllipse(Handle, center, radius, col, rot, (int)(0), (float)(1.0f), (ImDrawFlags)(0));
 		}
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col)
 		{
-			ImGuiNative.AddImage(Handle, userTextureId, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), col);
+			ImGuiNative.AddEllipse(Handle, center, radius, col, (float)(0.0f), (int)(0), (float)(1.0f), (ImDrawFlags)(0));
 		}
-		public unsafe void AddImage(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments)
 		{
-			ImGuiNative.AddImage(Handle, userTextureId, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), col);
+			ImGuiNative.AddEllipse(Handle, center, radius, col, (float)(0.0f), numSegments, (float)(1.0f), (ImDrawFlags)(0));
 		}
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, float thickness)
 		{
-			ImGuiNative.AddImageQuad(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col);
+			ImGuiNative.AddEllipse(Handle, center, radius, col, rot, (int)(0), thickness, (ImDrawFlags)(0));
 		}
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments, float thickness)
 		{
-			ImGuiNative.AddImageQuad(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, uv4, (uint)(4294967295));
+			ImGuiNative.AddEllipse(Handle, center, radius, col, (float)(0.0f), numSegments, thickness, (ImDrawFlags)(0));
 		}
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, int numSegments, ImDrawFlags flags)
 		{
-			ImGuiNative.AddImageQuad(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			ImGuiNative.AddEllipse(Handle, center, radius, col, rot, numSegments, (float)(1.0f), flags);
 		}
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, ImDrawFlags flags)
 		{
-			ImGuiNative.AddImageQuad(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			ImGuiNative.AddEllipse(Handle, center, radius, col, rot, (int)(0), (float)(1.0f), flags);
 		}
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, ImDrawFlags flags)
 		{
-			ImGuiNative.AddImageQuad(Handle, userTextureId, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			ImGuiNative.AddEllipse(Handle, center, radius, col, (float)(0.0f), (int)(0), (float)(1.0f), flags);
 		}
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments, ImDrawFlags flags)
 		{
-			ImGuiNative.AddImageQuad(Handle, userTextureId, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+			ImGuiNative.AddEllipse(Handle, center, radius, col, (float)(0.0f), numSegments, (float)(1.0f), flags);
 		}
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, float rot, float thickness, ImDrawFlags flags)
 		{
-			ImGuiNative.AddImageQuad(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), col);
+			ImGuiNative.AddEllipse(Handle, center, radius, col, rot, (int)(0), thickness, flags);
 		}
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, uint col)
+		public unsafe void AddEllipse(Vector2 center, Vector2 radius, uint col, int numSegments, float thickness, ImDrawFlags flags)
 		{
-			ImGuiNative.AddImageQuad(Handle, userTextureId, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+			ImGuiNative.AddEllipse(Handle, center, radius, col, (float)(0.0f), numSegments, thickness, flags);
 		}
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, uint col)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col, float rot, int numSegments)
 		{
-			ImGuiNative.AddImageQuad(Handle, userTextureId, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+			ImGuiNative.AddEllipseFilled(Handle, center, radius, col, rot, numSegments);
 		}
-		public unsafe void AddImageQuad(ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col, float rot)
 		{
-			ImGuiNative.AddImageQuad(Handle, userTextureId, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+			ImGuiNative.AddEllipseFilled(Handle, center, radius, col, rot, (int)(0));
 		}
-		public unsafe void AddImageRounded(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding, ImDrawFlags flags)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col)
 		{
-			ImGuiNative.AddImageRounded(Handle, userTextureId, pMin, pMax, uvMin, uvMax, col, rounding, flags);
+			ImGuiNative.AddEllipseFilled(Handle, center, radius, col, (float)(0.0f), (int)(0));
 		}
-		public unsafe void AddImageRounded(ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding)
+		public unsafe void AddEllipseFilled(Vector2 center, Vector2 radius, uint col, int numSegments)
 		{
-			ImGuiNative.AddImageRounded(Handle, userTextureId, pMin, pMax, uvMin, uvMax, col, rounding, (ImDrawFlags)(0));
+			ImGuiNative.AddEllipseFilled(Handle, center, radius, col, (float)(0.0f), numSegments);
+		}
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col)
+		{
+			ImGuiNative.AddImage(Handle, texRef, pMin, pMax, uvMin, uvMax, col);
+		}
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax)
+		{
+			ImGuiNative.AddImage(Handle, texRef, pMin, pMax, uvMin, uvMax, (uint)(4294967295));
+		}
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin)
+		{
+			ImGuiNative.AddImage(Handle, texRef, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+		}
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax)
+		{
+			ImGuiNative.AddImage(Handle, texRef, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), (uint)(4294967295));
+		}
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, uint col)
+		{
+			ImGuiNative.AddImage(Handle, texRef, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), col);
+		}
+		public unsafe void AddImage(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, uint col)
+		{
+			ImGuiNative.AddImage(Handle, texRef, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), col);
+		}
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4, uint col)
+		{
+			ImGuiNative.AddImageQuad(Handle, texRef, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col);
+		}
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
+		{
+			ImGuiNative.AddImageQuad(Handle, texRef, p1, p2, p3, p4, uv1, uv2, uv3, uv4, (uint)(4294967295));
+		}
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3)
+		{
+			ImGuiNative.AddImageQuad(Handle, texRef, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+		}
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2)
+		{
+			ImGuiNative.AddImageQuad(Handle, texRef, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+		}
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1)
+		{
+			ImGuiNative.AddImageQuad(Handle, texRef, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+		}
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
+		{
+			ImGuiNative.AddImageQuad(Handle, texRef, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
+		}
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, uint col)
+		{
+			ImGuiNative.AddImageQuad(Handle, texRef, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), col);
+		}
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, uint col)
+		{
+			ImGuiNative.AddImageQuad(Handle, texRef, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+		}
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, uint col)
+		{
+			ImGuiNative.AddImageQuad(Handle, texRef, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+		}
+		public unsafe void AddImageQuad(ImTextureRef texRef, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		{
+			ImGuiNative.AddImageQuad(Handle, texRef, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
+		}
+		public unsafe void AddImageRounded(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding, ImDrawFlags flags)
+		{
+			ImGuiNative.AddImageRounded(Handle, texRef, pMin, pMax, uvMin, uvMax, col, rounding, flags);
+		}
+		public unsafe void AddImageRounded(ImTextureRef texRef, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding)
+		{
+			ImGuiNative.AddImageRounded(Handle, texRef, pMin, pMax, uvMin, uvMax, col, rounding, (ImDrawFlags)(0));
+		}
+		public unsafe void AddLine(Vector2 p1, Vector2 p2, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGuiNative.AddLine(Handle, p1, p2, col, thickness, flags);
 		}
 		public unsafe void AddLine(Vector2 p1, Vector2 p2, uint col, float thickness)
 		{
-			ImGuiNative.AddLine(Handle, p1, p2, col, thickness);
+			ImGuiNative.AddLine(Handle, p1, p2, col, thickness, (ImDrawFlags)(0));
 		}
 		public unsafe void AddLine(Vector2 p1, Vector2 p2, uint col)
 		{
-			ImGuiNative.AddLine(Handle, p1, p2, col, (float)(1.0f));
+			ImGuiNative.AddLine(Handle, p1, p2, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+		public unsafe void AddLine(Vector2 p1, Vector2 p2, uint col, ImDrawFlags flags)
+		{
+			ImGuiNative.AddLine(Handle, p1, p2, col, (float)(1.0f), flags);
+		}
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGuiNative.AddLineH(Handle, minX, maxX, y, col, thickness, flags);
+		}
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col, float thickness)
+		{
+			ImGuiNative.AddLineH(Handle, minX, maxX, y, col, thickness, (ImDrawFlags)(0));
+		}
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col)
+		{
+			ImGuiNative.AddLineH(Handle, minX, maxX, y, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+		public unsafe void AddLineH(float minX, float maxX, float y, uint col, ImDrawFlags flags)
+		{
+			ImGuiNative.AddLineH(Handle, minX, maxX, y, col, (float)(1.0f), flags);
+		}
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGuiNative.AddLineV(Handle, x, minY, maxY, col, thickness, flags);
+		}
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col, float thickness)
+		{
+			ImGuiNative.AddLineV(Handle, x, minY, maxY, col, thickness, (ImDrawFlags)(0));
+		}
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col)
+		{
+			ImGuiNative.AddLineV(Handle, x, minY, maxY, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+		public unsafe void AddLineV(float x, float minY, float maxY, uint col, ImDrawFlags flags)
+		{
+			ImGuiNative.AddLineV(Handle, x, minY, maxY, col, (float)(1.0f), flags);
+		}
+		public unsafe void AddNgon(Vector2 center, float radius, uint col, int numSegments, float thickness, ImDrawFlags flags)
+		{
+			ImGuiNative.AddNgon(Handle, center, radius, col, numSegments, thickness, flags);
 		}
 		public unsafe void AddNgon(Vector2 center, float radius, uint col, int numSegments, float thickness)
 		{
-			ImGuiNative.AddNgon(Handle, center, radius, col, numSegments, thickness);
+			ImGuiNative.AddNgon(Handle, center, radius, col, numSegments, thickness, (ImDrawFlags)(0));
 		}
 		public unsafe void AddNgon(Vector2 center, float radius, uint col, int numSegments)
 		{
-			ImGuiNative.AddNgon(Handle, center, radius, col, numSegments, (float)(1.0f));
+			ImGuiNative.AddNgon(Handle, center, radius, col, numSegments, (float)(1.0f), (ImDrawFlags)(0));
+		}
+		public unsafe void AddNgon(Vector2 center, float radius, uint col, int numSegments, ImDrawFlags flags)
+		{
+			ImGuiNative.AddNgon(Handle, center, radius, col, numSegments, (float)(1.0f), flags);
 		}
 		public unsafe void AddNgonFilled(Vector2 center, float radius, uint col, int numSegments)
 		{
 			ImGuiNative.AddNgonFilled(Handle, center, radius, col, numSegments);
 		}
-		public unsafe void AddPolyline(Vector2* points, int numPoints, uint col, ImDrawFlags flags, float thickness)
+		public unsafe void AddPolyline(Vector2* points, int numPoints, uint col, float thickness, ImDrawFlags flags)
 		{
-			ImGuiNative.AddPolyline(Handle, points, numPoints, col, flags, thickness);
+			ImGuiNative.AddPolyline(Handle, points, numPoints, col, thickness, flags);
 		}
-		public unsafe void AddPolyline(ref Vector2 points, int numPoints, uint col, ImDrawFlags flags, float thickness)
+		public unsafe void AddPolyline(Vector2* points, int numPoints, uint col, float thickness)
+		{
+			ImGuiNative.AddPolyline(Handle, points, numPoints, col, thickness, (ImDrawFlags)(0));
+		}
+		public unsafe void AddPolyline(ref Vector2 points, int numPoints, uint col, float thickness, ImDrawFlags flags)
 		{
 			fixed (Vector2* ppoints = &points)
 			{
-				ImGuiNative.AddPolyline(Handle, (Vector2*)ppoints, numPoints, col, flags, thickness);
+				ImGuiNative.AddPolyline(Handle, (Vector2*)ppoints, numPoints, col, thickness, flags);
 			}
+		}
+		public unsafe void AddPolyline(ref Vector2 points, int numPoints, uint col, float thickness)
+		{
+			fixed (Vector2* ppoints = &points)
+			{
+				ImGuiNative.AddPolyline(Handle, (Vector2*)ppoints, numPoints, col, thickness, (ImDrawFlags)(0));
+			}
+		}
+		public unsafe void AddQuad(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGuiNative.AddQuad(Handle, p1, p2, p3, p4, col, thickness, flags);
 		}
 		public unsafe void AddQuad(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
 		{
-			ImGuiNative.AddQuad(Handle, p1, p2, p3, p4, col, thickness);
+			ImGuiNative.AddQuad(Handle, p1, p2, p3, p4, col, thickness, (ImDrawFlags)(0));
 		}
 		public unsafe void AddQuad(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
 		{
-			ImGuiNative.AddQuad(Handle, p1, p2, p3, p4, col, (float)(1.0f));
+			ImGuiNative.AddQuad(Handle, p1, p2, p3, p4, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+		public unsafe void AddQuad(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, ImDrawFlags flags)
+		{
+			ImGuiNative.AddQuad(Handle, p1, p2, p3, p4, col, (float)(1.0f), flags);
 		}
 		public unsafe void AddQuadFilled(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
 		{
 			ImGuiNative.AddQuadFilled(Handle, p1, p2, p3, p4, col);
 		}
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags, float thickness)
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness, ImDrawFlags flags)
 		{
-			ImGuiNative.AddRect(Handle, pMin, pMax, col, rounding, flags, thickness);
-		}
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
-		{
-			ImGuiNative.AddRect(Handle, pMin, pMax, col, rounding, flags, (float)(1.0f));
-		}
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding)
-		{
-			ImGuiNative.AddRect(Handle, pMin, pMax, col, rounding, (ImDrawFlags)(0), (float)(1.0f));
-		}
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col)
-		{
-			ImGuiNative.AddRect(Handle, pMin, pMax, col, (float)(0.0f), (ImDrawFlags)(0), (float)(1.0f));
-		}
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
-		{
-			ImGuiNative.AddRect(Handle, pMin, pMax, col, (float)(0.0f), flags, (float)(1.0f));
+			ImGuiNative.AddRect(Handle, pMin, pMax, col, rounding, thickness, flags);
 		}
 		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness)
 		{
-			ImGuiNative.AddRect(Handle, pMin, pMax, col, rounding, (ImDrawFlags)(0), thickness);
+			ImGuiNative.AddRect(Handle, pMin, pMax, col, rounding, thickness, (ImDrawFlags)(0));
 		}
-		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags, float thickness)
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding)
 		{
-			ImGuiNative.AddRect(Handle, pMin, pMax, col, (float)(0.0f), flags, thickness);
+			ImGuiNative.AddRect(Handle, pMin, pMax, col, rounding, (float)(1.0f), (ImDrawFlags)(0));
+		}
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col)
+		{
+			ImGuiNative.AddRect(Handle, pMin, pMax, col, (float)(0.0f), (float)(1.0f), (ImDrawFlags)(0));
+		}
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
+		{
+			ImGuiNative.AddRect(Handle, pMin, pMax, col, rounding, (float)(1.0f), flags);
+		}
+		public unsafe void AddRect(Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
+		{
+			ImGuiNative.AddRect(Handle, pMin, pMax, col, (float)(0.0f), (float)(1.0f), flags);
 		}
 		public unsafe void AddRectFilled(Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
 		{
@@ -274,13 +594,21 @@ public unsafe partial struct ImDrawListPtr
 		{
 			ImGuiNative.AddRectFilledMultiColor(Handle, pMin, pMax, colUprLeft, colUprRight, colBotRight, colBotLeft);
 		}
+		public unsafe void AddTriangle(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, ImDrawFlags flags)
+		{
+			ImGuiNative.AddTriangle(Handle, p1, p2, p3, col, thickness, flags);
+		}
 		public unsafe void AddTriangle(Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
 		{
-			ImGuiNative.AddTriangle(Handle, p1, p2, p3, col, thickness);
+			ImGuiNative.AddTriangle(Handle, p1, p2, p3, col, thickness, (ImDrawFlags)(0));
 		}
 		public unsafe void AddTriangle(Vector2 p1, Vector2 p2, Vector2 p3, uint col)
 		{
-			ImGuiNative.AddTriangle(Handle, p1, p2, p3, col, (float)(1.0f));
+			ImGuiNative.AddTriangle(Handle, p1, p2, p3, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+		public unsafe void AddTriangle(Vector2 p1, Vector2 p2, Vector2 p3, uint col, ImDrawFlags flags)
+		{
+			ImGuiNative.AddTriangle(Handle, p1, p2, p3, col, (float)(1.0f), flags);
 		}
 		public unsafe void AddTriangleFilled(Vector2 p1, Vector2 p2, Vector2 p3, uint col)
 		{
@@ -306,6 +634,16 @@ public unsafe partial struct ImDrawListPtr
 		public unsafe void Destroy()
 		{
 			ImGuiNative.Destroy(Handle);
+		}
+		public unsafe Vector2 GetClipRectMax()
+		{
+			Vector2 ret = ImGuiNative.GetClipRectMax(Handle);
+			return ret;
+		}
+		public unsafe Vector2 GetClipRectMin()
+		{
+			Vector2 ret = ImGuiNative.GetClipRectMin(Handle);
+			return ret;
 		}
 		public unsafe void PathArcTo(Vector2 center, float radius, float aMin, float aMax, int numSegments)
 		{
@@ -339,9 +677,25 @@ public unsafe partial struct ImDrawListPtr
 		{
 			ImGuiNative.PathClear(Handle);
 		}
+		public unsafe void PathEllipticalArcTo(Vector2 center, Vector2 radius, float rot, float aMin, float aMax, int numSegments)
+		{
+			ImGuiNative.PathEllipticalArcTo(Handle, center, radius, rot, aMin, aMax, numSegments);
+		}
+		public unsafe void PathEllipticalArcTo(Vector2 center, Vector2 radius, float rot, float aMin, float aMax)
+		{
+			ImGuiNative.PathEllipticalArcTo(Handle, center, radius, rot, aMin, aMax, (int)(0));
+		}
+		public unsafe void PathFillConcave(uint col)
+		{
+			ImGuiNative.PathFillConcave(Handle, col);
+		}
+		public unsafe void PathFillConvex(uint col, ImDrawFlags flags)
+		{
+			ImGuiNative.PathFillConvex(Handle, col, flags);
+		}
 		public unsafe void PathFillConvex(uint col)
 		{
-			ImGuiNative.PathFillConvex(Handle, col);
+			ImGuiNative.PathFillConvex(Handle, col, (ImDrawFlags)(0));
 		}
 		public unsafe void PathLineTo(Vector2 pos)
 		{
@@ -367,29 +721,33 @@ public unsafe partial struct ImDrawListPtr
 		{
 			ImGuiNative.PathRect(Handle, rectMin, rectMax, (float)(0.0f), flags);
 		}
-		public unsafe void PathStroke(uint col, ImDrawFlags flags, float thickness)
+		public unsafe void PathStroke(uint col, float thickness, ImDrawFlags flags)
 		{
-			ImGuiNative.PathStroke(Handle, col, flags, thickness);
-		}
-		public unsafe void PathStroke(uint col, ImDrawFlags flags)
-		{
-			ImGuiNative.PathStroke(Handle, col, flags, (float)(1.0f));
-		}
-		public unsafe void PathStroke(uint col)
-		{
-			ImGuiNative.PathStroke(Handle, col, (ImDrawFlags)(0), (float)(1.0f));
+			ImGuiNative.PathStroke(Handle, col, thickness, flags);
 		}
 		public unsafe void PathStroke(uint col, float thickness)
 		{
-			ImGuiNative.PathStroke(Handle, col, (ImDrawFlags)(0), thickness);
+			ImGuiNative.PathStroke(Handle, col, thickness, (ImDrawFlags)(0));
+		}
+		public unsafe void PathStroke(uint col)
+		{
+			ImGuiNative.PathStroke(Handle, col, (float)(1.0f), (ImDrawFlags)(0));
+		}
+		public unsafe void PathStroke(uint col, ImDrawFlags flags)
+		{
+			ImGuiNative.PathStroke(Handle, col, (float)(1.0f), flags);
 		}
 		public unsafe void PopClipRect()
 		{
 			ImGuiNative.PopClipRect(Handle);
 		}
-		public unsafe void PopTextureID()
+		public unsafe void PopDrawFlag()
 		{
-			ImGuiNative.PopTextureID(Handle);
+			ImGuiNative.PopDrawFlag(Handle);
+		}
+		public unsafe void PopTexture()
+		{
+			ImGuiNative.PopTexture(Handle);
 		}
 		public unsafe void PrimQuadUV(Vector2 a, Vector2 b, Vector2 c, Vector2 d, Vector2 uvA, Vector2 uvB, Vector2 uvC, Vector2 uvD, uint col)
 		{
@@ -435,9 +793,13 @@ public unsafe partial struct ImDrawListPtr
 		{
 			ImGuiNative.PushClipRectFullScreen(Handle);
 		}
-		public unsafe void PushTextureID(ImTextureID textureId)
+		public unsafe void PushDrawFlag(ImDrawFlags flags, bool enabled)
 		{
-			ImGuiNative.PushTextureID(Handle, textureId);
+			ImGuiNative.PushDrawFlag(Handle, flags, enabled ? (byte)1 : (byte)0);
+		}
+		public unsafe void PushTexture(ImTextureRef texRef)
+		{
+			ImGuiNative.PushTexture(Handle, texRef);
 		}
 }
 // DISCARDED: AddText

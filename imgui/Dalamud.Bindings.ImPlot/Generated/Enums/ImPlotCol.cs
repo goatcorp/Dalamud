@@ -23,111 +23,86 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Line = unchecked(0),
+		FrameBg = unchecked(0),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Fill = unchecked(1),
+		Bg = unchecked(1),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MarkerOutline = unchecked(2),
+		Border = unchecked(2),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		MarkerFill = unchecked(3),
+		LegendBg = unchecked(3),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ErrorBar = unchecked(4),
+		LegendBorder = unchecked(4),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		FrameBg = unchecked(5),
+		LegendText = unchecked(5),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Bg = unchecked(6),
+		TitleText = unchecked(6),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Border = unchecked(7),
+		InlayText = unchecked(7),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		LegendBg = unchecked(8),
+		AxisText = unchecked(8),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		LegendBorder = unchecked(9),
+		AxisGrid = unchecked(9),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		LegendText = unchecked(10),
+		AxisTick = unchecked(10),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TitleText = unchecked(11),
+		AxisBg = unchecked(11),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		InlayText = unchecked(12),
+		AxisBgHovered = unchecked(12),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AxisText = unchecked(13),
+		AxisBgActive = unchecked(13),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AxisGrid = unchecked(14),
+		Selection = unchecked(14),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AxisTick = unchecked(15),
+		Crosshairs = unchecked(15),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AxisBg = unchecked(16),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		AxisBgHovered = unchecked(17),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		AxisBgActive = unchecked(18),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		Selection = unchecked(19),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		Crosshairs = unchecked(20),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		Count = unchecked(21),
+		Count = unchecked(16),
 	}
 }

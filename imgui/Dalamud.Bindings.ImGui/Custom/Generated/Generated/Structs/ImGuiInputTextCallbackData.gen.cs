@@ -47,5 +47,12 @@ public unsafe partial struct ImGuiInputTextCallbackData
 				ImGuiNative.SelectAll(@this);
 			}
 		}
+		public unsafe void SetSelection(int s, int e)
+		{
+			fixed (ImGuiInputTextCallbackData* @this = &this)
+			{
+				ImGuiNative.SetSelection(@this, s, e);
+			}
+		}
 }
 // DISCARDED: InsertChars

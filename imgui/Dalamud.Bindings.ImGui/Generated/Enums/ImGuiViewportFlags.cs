@@ -72,21 +72,26 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TopMost = unchecked(512),
+		NoAutoMerge = unchecked(512),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Minimized = unchecked(1024),
+		TopMost = unchecked(1024),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoAutoMerge = unchecked(2048),
+		CanHostOtherWindows = unchecked(2048),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CanHostOtherWindows = unchecked(4096),
+		IsMinimized = unchecked(4096),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		IsFocused = unchecked(8192),
 	}
 }

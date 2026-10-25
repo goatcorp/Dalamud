@@ -39,11 +39,25 @@ public unsafe partial struct ImGuiListClipper
 				ImGuiNative.End(@this);
 			}
 		}
-		public unsafe void ForceDisplayRangeByIndices(int itemMin, int itemMax)
+		public unsafe void IncludeItemByIndex(int itemIndex)
 		{
 			fixed (ImGuiListClipper* @this = &this)
 			{
-				ImGuiNative.ForceDisplayRangeByIndices(@this, itemMin, itemMax);
+				ImGuiNative.IncludeItemByIndex(@this, itemIndex);
+			}
+		}
+		public unsafe void IncludeItemsByIndex(int itemBegin, int itemEnd)
+		{
+			fixed (ImGuiListClipper* @this = &this)
+			{
+				ImGuiNative.IncludeItemsByIndex(@this, itemBegin, itemEnd);
+			}
+		}
+		public unsafe void SeekCursorForItem(int itemIndex)
+		{
+			fixed (ImGuiListClipper* @this = &this)
+			{
+				ImGuiNative.SeekCursorForItem(@this, itemIndex);
 			}
 		}
 		public unsafe bool Step()
