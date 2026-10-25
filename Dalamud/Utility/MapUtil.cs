@@ -375,7 +375,7 @@ public static class MapUtil
 
         var adjustedZ = z - transientRow.OffsetZ;
         var result = (int)adjustedZ;
-        if (adjustedZ < 0.0 && adjustedZ != result)
+        if (adjustedZ < 0.0f && adjustedZ != result)
             result -= 10;
         return result;
     }
