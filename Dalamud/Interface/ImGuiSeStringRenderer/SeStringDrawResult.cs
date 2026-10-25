@@ -7,8 +7,6 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer;
 /// <summary>Represents the result of a rendered interactable SeString.</summary>
 public ref struct SeStringDrawResult
 {
-    private ReadOnlySePayload? lazyPayload;
-
     /// <summary>Gets the visible size of the text rendered/to be rendered.</summary>
     public Vector2 Size { get; init; }
 
@@ -22,5 +20,15 @@ public ref struct SeStringDrawResult
     public ReadOnlySpan<byte> InteractedPayloadEnvelope { get; init; }
 
     /// <summary>Gets the interacted payload, or <c>null</c> if none.</summary>
-    public ReadOnlySePayload InteractedPayload => this.lazyPayload ??= new ReadOnlySeString(this.InteractedPayloadEnvelope).GetEnumerator().Current;
+    public ReadOnlySePayload? InteractedPayload => field ??= this.DecodeInteractedPayload();
+
+    private readonly ReadOnlySePayload? DecodeInteractedPayload()
+    {
+        foreach (var payload in new ReadOnlySeString(this.InteractedPayloadEnvelope))
+        {
+            return payload;
+        }
+
+        return null;
+    }
 }
