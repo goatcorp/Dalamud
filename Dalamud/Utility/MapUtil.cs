@@ -3,10 +3,197 @@ using System.Numerics;
 using Dalamud.Data;
 using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.Text;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
+using Lumina.Text.ReadOnly;
+
 namespace Dalamud.Utility;
+
+/// <summary>
+/// Represents world-space coordinate within a specific territory, map, and instance.
+/// </summary>
+public readonly struct WorldCoordinate
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WorldCoordinate"/> struct using raw coordinate values.
+    /// </summary>
+    /// <param name="territoryId">The TerritoryType RowId.</param>
+    /// <param name="mapId">The Map RowId.</param>
+    /// <param name="x">The world X coordinate.</param>
+    /// <param name="y">The world Y coordinate.</param>
+    /// <param name="z">The world Z coordinate.</param>
+    /// <param name="instanceId">The Instance Id.</param>
+    public WorldCoordinate(uint territoryId, uint mapId, float x, float y, float z, uint instanceId = 0)
+    {
+        this.TerritoryId = territoryId;
+        this.MapId = mapId;
+        this.X = x;
+        this.Y = y;
+        this.Z = z;
+        this.InstanceId = instanceId;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WorldCoordinate"/> struct using a <see cref="Vector3"/> position.
+    /// </summary>
+    /// <param name="territoryId">The TerritoryType RowId.</param>
+    /// <param name="mapId">The Map RowId.</param>
+    /// <param name="pos">The 3D vector position.</param>
+    /// <param name="instanceId">The Instance Id.</param>
+    public WorldCoordinate(uint territoryId, uint mapId, Vector3 pos, uint instanceId = 0)
+        : this(territoryId, mapId, pos.X, pos.Y, pos.Z, instanceId)
+    {
+    }
+
+    /// <summary>
+    /// Gets the TerritoryType RowId.
+    /// </summary>
+    public uint TerritoryId { get; }
+
+    /// <summary>
+    /// Gets the Map RowId.
+    /// </summary>
+    public uint MapId { get; }
+
+    /// <summary>
+    /// Gets the world X coordinate.
+    /// </summary>
+    public float X { get; }
+
+    /// <summary>
+    /// Gets the world Y coordinate.
+    /// </summary>
+    public float Y { get; }
+
+    /// <summary>
+    /// Gets the world Z coordinate.
+    /// </summary>
+    public float Z { get; }
+
+    /// <summary>
+    /// Gets the Instance Id.
+    /// </summary>
+    public uint InstanceId { get; }
+
+    /// <summary>
+    /// Converts this world-space coordinate into the corresponding map-space coordinate.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="MapCoordinate"/> representing the equivalent position on the map,
+    /// or a default value if the map data cannot be retrieved.
+    /// </returns>
+    public MapCoordinate ToMapCoordinate()
+    {
+        var dataManager = Service<DataManager>.Get();
+
+        var mapId = MapUtil.ResolveMapId(this.TerritoryId, this.MapId);
+        if (mapId == 0 || !dataManager.GetExcelSheet<Map>().TryGetRow(mapId, out var mapRow))
+            return default;
+
+        var offsetZ = MapUtil.NoOffsetZ;
+        if (!dataManager.GetExcelSheet<TerritoryTypeTransient>().TryGetRow(this.TerritoryId, out var transientRow))
+            offsetZ = transientRow.OffsetZ;
+
+        return new MapCoordinate(
+            this.TerritoryId,
+            this.MapId,
+            MapUtil.ConvertWorldCoordXZToMapCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
+            MapUtil.ConvertWorldCoordXZToMapCoord(this.Y, mapRow.SizeFactor, mapRow.OffsetX),
+            MapUtil.ConvertWorldCoordYToMapCoord(this.Z, offsetZ),
+            this.InstanceId);
+    }
+
+    /// <inheritdoc cref="SeString.CreateMapLink(WorldCoordinate)"/>
+    public ReadOnlySeString ToMapLink()
+    {
+        return SeString.CreateMapLink(this);
+    }
+}
+
+/// <summary>
+/// Represents map-space coordinate within a specific territory, map, and instance.
+/// </summary>
+public readonly struct MapCoordinate
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MapCoordinate"/> struct.
+    /// </summary>
+    /// <param name="territoryId">The TerritoryType RowId.</param>
+    /// <param name="mapId">The Map RowId.</param>
+    /// <param name="x">The map X coordinate.</param>
+    /// <param name="y">The map Y coordinate.</param>
+    /// <param name="z">The map Z coordinate. 0 when not given.</param>
+    /// <param name="instanceId">The Instance Id.</param>
+    public MapCoordinate(uint territoryId, uint mapId, float x, float y, float z = 0, uint instanceId = 0)
+    {
+        this.TerritoryId = territoryId;
+        this.MapId = mapId;
+        this.X = x;
+        this.Y = y;
+        this.Z = z;
+        this.InstanceId = instanceId;
+    }
+
+    /// <summary>
+    /// Gets the TerritoryType RowId.
+    /// </summary>
+    public uint TerritoryId { get; }
+
+    /// <summary>
+    /// Gets the Map RowId.
+    /// </summary>
+    public uint MapId { get; }
+
+    /// <summary>
+    /// Gets the world X coordinate.
+    /// </summary>
+    public float X { get; }
+
+    /// <summary>
+    /// Gets the world Y coordinate.
+    /// </summary>
+    public float Y { get; }
+
+    /// <summary>
+    /// Gets the world Z coordinate.
+    /// </summary>
+    public float Z { get; }
+
+    /// <summary>
+    /// Gets the Instance Id.
+    /// </summary>
+    public uint InstanceId { get; }
+
+    /// <summary>
+    /// Converts this map-space coordinate into the corresponding, approximate world-space coordinate.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="WorldCoordinate"/> representing the approximate position in the world,
+    /// or a default value if the map data cannot be retrieved.
+    /// </returns>
+    public WorldCoordinate ToWorldCoordinate()
+    {
+        var mapId = MapUtil.ResolveMapId(this.TerritoryId, this.MapId);
+        if (mapId == 0 || !Service<DataManager>.Get().GetExcelSheet<Map>().TryGetRow(mapId, out var mapRow))
+            return default;
+
+        return new WorldCoordinate(
+            this.TerritoryId,
+            this.MapId,
+            MapUtil.MapPosXYToWorldPos(this.X, mapRow.SizeFactor, mapRow.OffsetX),
+            MapUtil.MapPosXYToWorldPos(this.Y, mapRow.SizeFactor, mapRow.OffsetY),
+            MapUtil.MapPosZToWorldPos(this.Z),
+            this.InstanceId);
+    }
+
+    /// <inheritdoc cref="SeString.CreateMapLink(MapCoordinate)"/>
+    public ReadOnlySeString ToMapLink()
+    {
+        return SeString.CreateMapLink(this);
+    }
+}
 
 /// <summary>
 /// Utility helper class for game maps and coordinate translations that don't require state.
@@ -16,6 +203,16 @@ namespace Dalamud.Utility;
 /// </summary>
 public static class MapUtil
 {
+    /// <summary>
+    /// A raw Z coordinate of -30000 indicates that it has no value.
+    /// </summary>
+    public const int NoRawZ = -30000;
+
+    /// <summary>
+    /// A <see cref="TerritoryTypeTransient.OffsetZ"/> value of -10000 indicates that the map position should not display a Z coordinate.
+    /// </summary>
+    public const int NoOffsetZ = -10000;
+
     /// <summary>
     /// Helper method to convert one of the game's Vector3 X/Z provided by the game to a map coordinate suitable for
     /// display to the player.
@@ -44,7 +241,7 @@ public static class MapUtil
         // Derived from 48 83 EC 38 80 3D ?? ?? ?? ?? ?? 0F 29 74 24
 
         // zOffset of -10000 indicates that the map should not display a Z coordinate.
-        if (zOffset == -10000 && correctZOffset) zOffset = 0;
+        if (zOffset == NoOffsetZ && correctZOffset) zOffset = 0;
 
         return (value - zOffset) / 100;
     }
@@ -164,37 +361,46 @@ public static class MapUtil
     }
 
     /// <summary>
-    /// Converts a raw world X position to a user-friendly map X coordinate.
+    /// Helper method to convert one of the map's X/Y coordinate to a world coordinate.
     /// </summary>
-    /// <param name="map">The Map row.</param>
-    /// <param name="x">The raw X world position.</param>
-    /// <returns>The calculated map X coordinate.</returns>
-    public static uint ToMapCoordX(this Map map, float x)
-        => ToMapCoord(map, map.OffsetX, x);
-
-    /// <summary>
-    /// Converts a raw world position to a user-friendly map Y coordinate.
-    /// </summary>
-    /// <param name="map">The Map row.</param>
-    /// <param name="y">The raw coordinate position representing the map's Y-axis.</param>
-    /// <returns>The calculated map Y coordinate.</returns>
-    /// <remarks>
-    /// In FFXIV's 3D coordinate system, <c>Y</c> represents altitude/elevation, while <c>Z</c> represents north-south depth.<br/>
-    /// Pass the world position's <b>Z coordinate</b> into this method to calculate the 2D map's Y coordinate.
-    /// </remarks>
-    public static uint ToMapCoordY(this Map map, float y)
-        => ToMapCoord(map, map.OffsetY, y);
-
-    /// <summary>
-    /// Converts a raw world coordinate to a 1-41 map coordinate value.
-    /// </summary>
-    /// <param name="map">The Map row.</param>
-    /// <param name="offset">The coordinate offset (X or Y offset from map data).</param>
-    /// <param name="value">The raw coordinate position value to convert.</param>
-    /// <returns>The calculated integer map coordinate value.</returns>
-    private static uint ToMapCoord(this Map map, short offset, float value)
+    /// <param name="value">The coordinate value.</param>
+    /// <param name="scale">The SizeFactor value of the Map row.</param>
+    /// <param name="offset">The OffsetX/OffsetY value of the Map row.</param>
+    /// <returns>A 3D world coordinate.</returns>
+    internal static int MapPosXYToWorldPos(float value, float scale, short offset)
     {
-        var scale = map.SizeFactor / 100.0f;
-        return (uint)(10 - (int)((((value + offset) * scale) + 1024f) * -0.2f / scale));
+        const float networkAdjustment = 1f;
+        const float fudgeFactor = 0.05f;
+        var trueScale = scale / 100f;
+        return (int)((((value + fudgeFactor - networkAdjustment) * trueScale / 41f * 2048f) - 1024f) / trueScale - offset);
+    }
+
+    /// <summary>
+    /// Helper method to convert the map's Z coordinate to a world coordinate.
+    /// </summary>
+    /// <param name="z">The z-coordinate value.</param>
+    /// <returns>A 3D world coordinate.</returns>
+    internal static int MapPosZToWorldPos(float z)
+    {
+        return (int)(z * 100f);
+    }
+
+    /// <summary>
+    /// Resolves the Map Id for a given TerritoryType Id, or returns the provided default Map Id if specified.
+    /// </summary>
+    /// <param name="territoryTypeId">The Id of the TerritoryType to look up in the Excel sheet.</param>
+    /// <param name="defaultMapId">An optional fallback Map Id. If non-zero, this value is returned immediately.</param>
+    /// <returns>The resolved Map Id from the TerritoryType sheet, or the default Map Id.</returns>
+    internal static uint ResolveMapId(uint territoryTypeId, uint defaultMapId = 0)
+    {
+        if (defaultMapId != 0)
+            return defaultMapId;
+
+        if (territoryTypeId == 0)
+            return 0;
+
+        return Service<DataManager>.Get().GetExcelSheet<TerritoryType>().TryGetRow(territoryTypeId, out var territoryRow)
+            ? territoryRow.Map.RowId
+            : 0;
     }
 }

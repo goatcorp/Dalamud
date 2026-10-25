@@ -196,28 +196,25 @@ public static class SeStringBuilderExtensions
     }
 
     /// <summary>
-    /// Appends a formatted map link payload.
+    /// Appends a formatted map link payload for the position of a <see cref="WorldCoordinate"/>.
     /// </summary>
     /// <param name="builder">The builder to append the map link to.</param>
-    /// <param name="territoryId">The Id of the <c>TerritoryType</c> for this map link.</param>
-    /// <param name="mapId">The Id of the <c>Map</c> for this map link.</param>
-    /// <param name="xCoord">The human-readable X-coordinate for this link.</param>
-    /// <param name="yCoord">The human-readable Y-coordinate for this link.</param>
-    /// <param name="zCoord">An optional human-readable Z-coordinate for this link.</param>
-    /// <param name="instanceId">An optional area instance number to be included in this link.</param>
-    /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
+    /// <param name="worldPos">The world-space coordinate that should be linked.</param>
     /// <returns>The <see cref="SeStringBuilder"/> instance with the map link appended for method chaining.</returns>
-    public static SeStringBuilder PushMapLink(
-        this SeStringBuilder builder,
-        uint territoryId,
-        uint mapId,
-        float xCoord,
-        float yCoord,
-        float zCoord = 0,
-        int instanceId = 0,
-        float fudgeFactor = 0.05f)
+    public static SeStringBuilder PushMapLink(this SeStringBuilder builder, WorldCoordinate worldPos)
     {
-        return builder.Append(SeString.CreateMapLink(territoryId, mapId, xCoord, yCoord, zCoord, instanceId, fudgeFactor));
+        return builder.Append(SeString.CreateMapLink(worldPos));
+    }
+
+    /// <summary>
+    /// Appends a formatted map link payload for the position of a <see cref="WorldCoordinate"/>.
+    /// </summary>
+    /// <param name="builder">The builder to append the map link to.</param>
+    /// <param name="mapPos">The map-space coordinate that should be linked.</param>
+    /// <returns>The <see cref="SeStringBuilder"/> instance with the map link appended for method chaining.</returns>
+    public static SeStringBuilder PushMapLink(this SeStringBuilder builder, MapCoordinate mapPos)
+    {
+        return builder.Append(SeString.CreateMapLink(mapPos));
     }
 
     /// <summary>
