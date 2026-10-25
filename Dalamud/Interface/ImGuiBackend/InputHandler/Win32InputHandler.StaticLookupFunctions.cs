@@ -242,18 +242,16 @@ internal sealed partial class Win32InputHandler
     };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsGamepadKey(ImGuiKey key) => (int)key is >= 617 and <= 640;
+    private static bool IsGamepadKey(ImGuiKey key) =>
+        key is >= ImGuiKey.GamepadStart and <= ImGuiKey.GamepadRStickDown;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsMouseKey(ImGuiKey key) => key is >= ImGuiKey.MouseLeft and <= ImGuiKey.MouseWheelY;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsModKey(ImGuiKey key) =>
-        key is ImGuiKey.LeftShift
-            or ImGuiKey.RightShift
-            or ImGuiKey.ModShift
-            or ImGuiKey.LeftCtrl
-            or ImGuiKey.ModCtrl
-            or ImGuiKey.LeftAlt
-            or ImGuiKey.RightAlt
-            or ImGuiKey.ModAlt;
+        key is >= ImGuiKey.LeftCtrl and <= ImGuiKey.RightSuper
+            or >= ImGuiKey.ReservedForModCtrl and <= ImGuiKey.ReservedForModSuper;
 
     private static void AddKeyEvent(ImGuiKey key, bool down, int nativeKeycode, int nativeScancode = -1)
     {
@@ -269,20 +267,6 @@ internal sealed partial class Win32InputHandler
         io.AddKeyEvent(ImGuiKey.ModShift, IsVkDown(VK.VK_SHIFT));
         io.AddKeyEvent(ImGuiKey.ModAlt, IsVkDown(VK.VK_MENU));
         io.AddKeyEvent(ImGuiKey.ModSuper, IsVkDown(VK.VK_APPS));
-    }
-
-    private static void UpAllKeys()
-    {
-        var io = ImGui.GetIO();
-        for (var i = (int)ImGuiKey.NamedKeyBegin; i < (int)ImGuiKey.NamedKeyEnd; i++)
-            io.AddKeyEvent((ImGuiKey)i, false);
-    }
-
-    private static void UpAllMouseButton()
-    {
-        var io = ImGui.GetIO();
-        for (var i = 0; i < io.MouseDown.Length; i++)
-            io.MouseDown[i] = false;
     }
 
     private static bool IsVkDown(int key) => (TerraFX.Interop.Windows.Windows.GetKeyState(key) & 0x8000) != 0;

@@ -171,7 +171,7 @@ public class ExceptionWidget : IDataWindowWidget
         const string buttonText = "Copy to Clipboard";
         var buttonWidth = ImGui.CalcTextSize(buttonText).X + (ImGui.GetStyle().FramePadding.X * 2.0f);
 
-        ImGui.SameLine(ImGui.GetContentRegionMax().X - buttonWidth);
+        ImGui.SameLine(ImGuiHelpers.GetContentRegionMax().X - buttonWidth);
         if (ImGui.Button(buttonText))
         {
             ImGui.SetClipboardText(this.selectedException.Exception.ToString());

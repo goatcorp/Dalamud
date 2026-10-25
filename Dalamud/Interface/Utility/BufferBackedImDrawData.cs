@@ -38,13 +38,15 @@ public unsafe struct BufferBackedImDrawData : IDisposable
         var ds = (DataStruct*)res.buffer;
         *ds = default;
 
-        var atlas = ImGui.GetIO().Fonts;
+        var shapeTexture = ImGui.GetShapeTexture();
         ds->SharedData = *ImGui.GetDrawListSharedData().Handle;
-        ds->SharedData.TexIdCommon = atlas.Textures[atlas.TextureIndexCommon].TexID;
-        ds->SharedData.TexUvWhitePixel = atlas.TexUvWhitePixel;
-        ds->SharedData.TexUvLines = (Vector4*)Unsafe.AsPointer(ref atlas.TexUvLines[0]);
+
+        // The copy must not share the vectors. Drawing may reallocate TempBuffer and free the original.
+        ds->SharedData.TempBuffer = default;
+        ds->SharedData.DrawLists = default;
         ds->SharedData.Font = ImGui.GetIO().FontDefault;
-        ds->SharedData.FontSize = ds->SharedData.Font->FontSize;
+        // As ImGui sets it for a new frame, with the global scale.
+        ds->SharedData.FontSize = ImGui.GetStyle().FontSizeBase * ImGui.GetStyle().FontScaleMain;
         ds->SharedData.ClipRectFullscreen = new(
             float.NegativeInfinity,
             float.NegativeInfinity,
@@ -53,14 +55,15 @@ public unsafe struct BufferBackedImDrawData : IDisposable
 
         ds->List.Data = &ds->SharedData;
         ds->ListPtr = &ds->List;
-        ds->Data.CmdLists = &ds->ListPtr;
-        ds->Data.CmdListsCount = 1;
+        ds->Data.CmdLists = new(1, 1, (ImDrawListPtr*)&ds->ListPtr);
         ds->Data.FramebufferScale = Vector2.One;
         ds->Data.Valid = 1;
 
+        // Lines and polylines are drawn at no width without a density. It matches FramebufferScale.
         res.ListPtr._ResetForNewFrame();
+        res.ListPtr._SetPixelDensity(1);
         res.ListPtr.PushClipRectFullScreen();
-        res.ListPtr.PushTextureID(new(atlas.TextureIndexCommon));
+        res.ListPtr.PushTexture(new(shapeTexture.Handle));
         return res;
     }
 
@@ -77,6 +80,9 @@ public unsafe struct BufferBackedImDrawData : IDisposable
         if (this.buffer != 0)
         {
             this.ListPtr._ClearFreeMemory();
+            var ds = (DataStruct*)this.buffer;
+            if (ds->SharedData.TempBuffer.Data is not null)
+                ImGui.MemFree(ds->SharedData.TempBuffer.Data);
             Marshal.FreeHGlobal(this.buffer);
             this.buffer = 0;
         }

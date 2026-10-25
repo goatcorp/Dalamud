@@ -136,7 +136,7 @@ internal sealed class DevPluginsSettingsEntry : SettingsEntry
 
         ImGui.Columns(5);
         ImGui.SetColumnWidth(0, 18 + (5 * ImGuiHelpers.GlobalScale));
-        ImGui.SetColumnWidth(1, ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - (18 + 16 + 14 + 14) - ((5 + 45 + 26 + 120) * ImGuiHelpers.GlobalScale));
+        ImGui.SetColumnWidth(1, ImGuiHelpers.GetWindowContentRegionMax().X - ImGuiHelpers.GetWindowContentRegionMin().X - (18 + 16 + 14 + 14) - ((5 + 45 + 26 + 120) * ImGuiHelpers.GlobalScale));
         ImGui.SetColumnWidth(2, 16 + (120 * ImGuiHelpers.GlobalScale));
         ImGui.SetColumnWidth(3, 16 + (45 * ImGuiHelpers.GlobalScale));
         ImGui.SetColumnWidth(4, 14 + (26 * ImGuiHelpers.GlobalScale));
