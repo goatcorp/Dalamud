@@ -4,7 +4,12 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Player;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+
 using Lumina.Text.ReadOnly;
+
+using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
 
@@ -130,13 +135,29 @@ public interface IGameObject : IEquatable<IGameObject>
     /// <summary>
     /// Gets the address of the game object in memory.
     /// </summary>
-    IntPtr Address { get; }
+    nint Address { get; }
 
     /// <summary>
     /// Gets a value indicating whether this actor is still valid in memory.
     /// </summary>
     /// <returns>True or false.</returns>
     bool IsValid();
+
+    /// <summary>
+    /// Gets the current position of a GameObject as a <see cref="MapCoordinate"/> (visible to players in the
+    /// minimap or chat).
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if ClientState is unavailable.</exception>
+    /// <returns>A MapCoordinate of this object.</returns>
+    WorldCoordinate GetWorldCoordinate();
+
+    /// <summary>
+    /// Gets the current position of a GameObject as a <see cref="MapCoordinate"/> (visible to players in the
+    /// minimap or chat).
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if ClientState is unavailable.</exception>
+    /// <returns>A MapCoordinate of this object.</returns>
+    MapCoordinate GetMapCoordinate();
 }
 
 /// <summary>
@@ -148,7 +169,7 @@ internal partial class GameObject
     /// Initializes a new instance of the <see cref="GameObject"/> class.
     /// </summary>
     /// <param name="address">The address of this game object in memory.</param>
-    internal GameObject(IntPtr address)
+    internal GameObject(nint address)
     {
         this.Address = address;
     }
@@ -156,7 +177,7 @@ internal partial class GameObject
     /// <summary>
     /// Gets or sets the address of the game object in memory.
     /// </summary>
-    public IntPtr Address { get; internal set; }
+    public nint Address { get; internal set; }
 
     /// <summary>
     /// This allows you to <c>if (obj) {...}</c> to check for validity.
@@ -186,7 +207,7 @@ internal partial class GameObject
         if (actor == null)
             return false;
 
-        return Service<PlayerState>.Get().IsLoaded;
+        return Service<Player.PlayerState>.Get().IsLoaded;
     }
 
     /// <summary>
@@ -194,6 +215,29 @@ internal partial class GameObject
     /// </summary>
     /// <returns>True or false.</returns>
     public bool IsValid() => IsValid(this);
+
+    /// <inheritdoc/>
+    public virtual unsafe WorldCoordinate GetWorldCoordinate()
+    {
+        var territoryId = GameMain.Instance()->CurrentTerritoryTypeId;
+        if (territoryId == 0)
+            return default;
+
+        var mapId = TerritoryInfo.Instance()->ChatLinkMapIdOverride;
+        if (mapId == 0)
+            mapId = GameMain.Instance()->CurrentMapId;
+        if (mapId == 0)
+            return default;
+
+        var instanceId = (uint)CSFramework.Instance()->GetNetworkModuleProxy()->GetCurrentInstance();
+        return new WorldCoordinate(territoryId, mapId, this.Position.X, this.Position.Z, this.Position.Y, instanceId);
+    }
+
+    /// <inheritdoc/>
+    public virtual MapCoordinate GetMapCoordinate()
+    {
+        return this.GetWorldCoordinate().ToMapCoordinate();
+    }
 
     /// <inheritdoc/>
     bool IEquatable<IGameObject>.Equals(IGameObject other) => this.GameObjectId == other?.GameObjectId;
