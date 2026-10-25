@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Text;
 using Dalamud.Interface;
-using Dalamud.Interface.FontIdentifier;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.Style;
@@ -47,6 +47,8 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         TypeNameHandling = TypeNameHandling.All,
         TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
         Formatting = Formatting.Indented,
+        SerializationBinder = MovedTypeSerializationBinder.Instance,
+        Error = SkipDefaultFontError,
     };
 
     [JsonIgnore]
@@ -168,10 +170,17 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// </summary>
     public float GlobalUiScale { get; set; } = 1.0f;
 
+    /// <summary>Gets or sets the default font style, or null for the built-in one.</summary>
+    /// <remarks>Saved as <c>DefaultFont</c>. Older Dalamud versions used <c>DefaultFontSpec</c> with a different
+    /// schema and reset all settings if deserialization fails, so <c>DefaultFontSpec</c> is read-only for migration.
+    /// See <see cref="LegacyDefaultFontSpec"/>.</remarks>
+    [JsonProperty("DefaultFont")]
+    public TextStyle? DefaultTextStyle { get; set; }
+
     /// <summary>
-    /// Gets or sets the default font spec.
+    /// Gets or sets a value indicating whether text is drawn with subpixel rendering, where ClearType is on.
     /// </summary>
-    public IFontSpec? DefaultFontSpec { get; set; }
+    public bool UseSubpixelRendering { get; set; }
 
     /// <summary>Gets or sets the opacity of the IME state indicator.</summary>
     /// <value>0 will hide the state indicator. 1 will make the state indicator fully visible. Values outside the
@@ -545,6 +554,14 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// </summary>
     public bool ShowBadgesOnTitleScreen { get; set; } = true;
 
+    // Deserializes the legacy DefaultFontSpec JSON property into DefaultTextStyle when DefaultFont is absent.
+    [JsonProperty("DefaultFontSpec")]
+    [SuppressMessage("ReSharper", "UnusedMember.Local", Justification = "JSON")]
+    private TextStyle? LegacyDefaultFontSpec
+    {
+        set => this.DefaultTextStyle ??= value;
+    }
+
     /// <summary>
     /// Load a configuration from the provided path.
     /// </summary>
@@ -561,7 +578,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
             {
                 // If this reads as null, the file was empty, that's no good
                 deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(text, SerializerSettings)
-                    ?? throw new Exception("Read config was null.");
+                               ?? throw new Exception("Read config was null.");
             });
         }
         catch (FileNotFoundException)
@@ -627,6 +644,20 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
             this.Save();
             this.isSaveQueued = false;
         }
+    }
+
+    // Ignore serialization errors on DefaultFont or DefaultFontSpec so the rest of the configuration still loads.
+    private static void SkipDefaultFontError(object? sender, Newtonsoft.Json.Serialization.ErrorEventArgs e)
+    {
+        if (e.CurrentObject is not DalamudConfiguration
+            || (e.ErrorContext.Member is not ("DefaultFont" or "DefaultFontSpec")
+                && e.ErrorContext.Path?.StartsWith("DefaultFont", StringComparison.Ordinal) is not true))
+        {
+            return;
+        }
+
+        Log.Error(e.ErrorContext.Error, "Leaving out the default font at {Path}", e.ErrorContext.Path);
+        e.ErrorContext.Handled = true;
     }
 
     private void SetDefaults()
