@@ -4,6 +4,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Text;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
@@ -41,7 +42,7 @@ internal class CoordinatesWidget : IDataWindowWidget
         {
             ImGui.Text("ObjectTable.LocalPlayer:"u8);
             ImGui.SameLine();
-            ImGuiHelpers.SeStringWrapped(SeString.CreateMapLink(objectTable.LocalPlayer));
+            ImGui.TextSeString(SeString.CreateMapLink(objectTable.LocalPlayer), wrap: true);
 
             ImGui.Text("ObjectTable.LocalPlayer (WorldCoordinate):"u8);
             ImGui.SameLine();
@@ -96,7 +97,7 @@ internal class CoordinatesWidget : IDataWindowWidget
 
     private static void DrawCoordinate(WorldCoordinate wc)
     {
-        ImGuiHelpers.SeStringWrapped(SeString.CreateMapLink(wc));
+        ImGui.TextSeString(SeString.CreateMapLink(wc), wrap: true);
 
         using (ImRaii.PushIndent())
         {
@@ -128,7 +129,7 @@ internal class CoordinatesWidget : IDataWindowWidget
 
     private static void DrawCoordinate(MapCoordinate mc)
     {
-        ImGuiHelpers.SeStringWrapped(SeString.CreateMapLink(mc));
+        ImGui.TextSeString(SeString.CreateMapLink(mc), wrap: true);
 
         using (ImRaii.PushIndent())
         {

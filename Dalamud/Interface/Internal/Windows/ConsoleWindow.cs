@@ -13,6 +13,7 @@ using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Utility;
@@ -78,6 +79,8 @@ internal class ConsoleWindow : Window, IDisposable
     private int completionTabIdx = 0;
 
     private IActiveNotification? prevCopyNotification;
+
+    private TextStyleRange[] ranges = [];
 
     /// <summary>Initializes a new instance of the <see cref="ConsoleWindow"/> class.</summary>
     /// <param name="configuration">An instance of <see cref="DalamudConfiguration"/>.</param>
@@ -178,7 +181,7 @@ internal class ConsoleWindow : Window, IDisposable
         ImGui.BeginChild(
             "scrolling"u8,
             new Vector2(0, scrollingHeight),
-            false,
+            ImGuiChildFlags.None,
             ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
@@ -225,9 +228,9 @@ internal class ConsoleWindow : Window, IDisposable
                 }
 
                 ImGui.Selectable(
-                    "###console_null"u8,
+                    $"###console_null{i}",
                     true,
-                    ImGuiSelectableFlags.AllowItemOverlap | ImGuiSelectableFlags.SpanAllColumns);
+                    ImGuiSelectableFlags.AllowOverlap | ImGuiSelectableFlags.SpanAllColumns);
 
                 // This must be after ImGui.Selectable, it uses ImGui.IsItem... functions
                 this.HandleCopyMode(i, line);
@@ -250,11 +253,7 @@ internal class ConsoleWindow : Window, IDisposable
                 line.HighlightMatches ??= (this.compiledLogHighlight ?? this.compiledLogFilter)?.Matches(line.Line);
                 if (line.HighlightMatches is { } matches)
                 {
-                    this.DrawHighlighted(
-                        line.Line,
-                        matches,
-                        ImGui.GetColorU32(ImGuiCol.Text),
-                        ImGui.GetColorU32(ImGuiColors.HealerGreen));
+                    this.DrawHighlighted(line.Line, matches);
                 }
                 else
                 {
@@ -571,7 +570,8 @@ internal class ConsoleWindow : Window, IDisposable
         ImGui.SameLine();
 
         var inputWidth = 200.0f * ImGuiHelpers.GlobalScale;
-        var nextCursorPosX = ImGui.GetContentRegionMax().X - (2 * inputWidth) - ImGui.GetStyle().ItemSpacing.X;
+        var nextCursorPosX =
+            ImGuiHelpers.GetContentRegionMax().X - (2 * inputWidth) - ImGui.GetStyle().ItemSpacing.X;
         var breakInputLines = nextCursorPosX < 0;
         if (ImGui.GetCursorPosX() > nextCursorPosX)
         {
@@ -1087,55 +1087,21 @@ internal class ConsoleWindow : Window, IDisposable
         this.filteredLogEntries.Size = limit;
     }
 
-    private unsafe void DrawHighlighted(
-        ReadOnlySpan<char> line,
-        MatchCollection matches,
-        uint col,
-        uint highlightCol)
+    private void DrawHighlighted(ReadOnlySpan<char> line, MatchCollection matches)
     {
-        Span<int> charOffsets = stackalloc int[(matches.Count * 2) + 2];
-        var charOffsetsIndex = 1;
+        if (this.ranges.Length < matches.Count)
+            this.ranges = new TextStyleRange[Math.Max(matches.Count, this.ranges.Length * 2)];
+
+        // The layout applies the style alpha through the text color, so the style color is taken without it.
+        var count = 0;
         for (var j = 0; j < matches.Count; j++)
         {
             var g = matches[j].Groups[0];
-            charOffsets[charOffsetsIndex++] = g.Index;
-            charOffsets[charOffsetsIndex++] = g.Index + g.Length;
+            if (g.Length != 0)
+                this.ranges[count++] = TextStyleRange.Color(g.Index, g.Length, ImGuiColors.HealerGreen);
         }
 
-        charOffsets[charOffsetsIndex++] = line.Length;
-
-        var screenPos = ImGui.GetCursorScreenPos();
-        var drawList = ImGui.GetWindowDrawList().Handle;
-        var font = ImGui.GetFont();
-        var size = ImGui.GetFontSize();
-        var scale = size / font.FontSize;
-        var hotData = font.IndexedHotDataWrapped();
-        var lookup = font.IndexLookupWrapped();
-        var kern = (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NoKerning) == 0;
-        var lastc = '\0';
-        for (var i = 0; i < charOffsetsIndex - 1; i++)
-        {
-            var begin = charOffsets[i];
-            var end = charOffsets[i + 1];
-            if (begin == end)
-                continue;
-
-            for (var j = begin; j < end; j++)
-            {
-                var currc = line[j];
-                if (currc >= lookup.Length || lookup[currc] == ushort.MaxValue)
-                    currc = (char)font.FallbackChar;
-
-                if (kern)
-                    screenPos.X += scale * ImGui.GetFont().GetDistanceAdjustmentForPair(lastc, currc);
-                font.RenderChar(drawList, size, screenPos, i % 2 == 1 ? highlightCol : col, currc);
-
-                screenPos.X += scale * hotData[currc].AdvanceX;
-                lastc = currc;
-            }
-        }
-
-        ImGui.Dummy(screenPos - ImGui.GetCursorScreenPos());
+        ImGui.TextStyledRanges(line, this.ranges.AsSpan(0, count));
     }
 
     private record LogEntry

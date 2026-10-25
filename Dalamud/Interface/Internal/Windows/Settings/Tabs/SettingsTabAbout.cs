@@ -7,9 +7,7 @@ using CheapLoc;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui;
-using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -217,22 +215,18 @@ Contribute at: https://github.com/goatcorp/Dalamud
 ";
 
     private readonly Stopwatch creditsThrottler;
-    private readonly IFontAtlas privateAtlas;
+    private readonly TextStyle thankYouStyle = TextStyle.From(GameFontFamilyAndSize.TrumpGothic34);
 
+    private ImFontRef? thankYouFont;
     private string creditsText;
     private bool isBgmSet;
 
     private bool resetNow = false;
     private IDalamudTextureWrap? logoTexture;
-    private IFontHandle? thankYouFont;
 
     public SettingsTabAbout()
     {
         this.creditsThrottler = new();
-
-        this.privateAtlas = Service<FontAtlasFactory>
-                            .Get()
-                            .CreateFontAtlas(nameof(SettingsTabAbout), FontAtlasAutoRebuildMode.Async);
     }
 
     public override string Title => Loc.Localize("DalamudAbout", "About");
@@ -262,9 +256,10 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
         this.creditsThrottler.Restart();
 
-        this.thankYouFont ??= this.privateAtlas.NewGameFontHandle(new(GameFontFamilyAndSize.TrumpGothic34));
-
         this.resetNow = true;
+
+        // Loaded ahead, and held while the window lives, so that the text is not drawn in another font at first.
+        this.thankYouFont ??= this.thankYouStyle.GetFont();
 
         Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(true);
     }
@@ -326,9 +321,8 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
             ImGuiHelpers.ScaledDummy(0, 40f);
 
-            if (this.thankYouFont != null)
+            using ((this.thankYouFont ??= this.thankYouStyle.GetFont()).Push())
             {
-                using var fontPush = this.thankYouFont.Push();
                 var thankYouLenX = ImGui.CalcTextSize(ThankYouText).X;
 
                 ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
@@ -356,9 +350,4 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
         base.Draw();
     }
-
-    /// <summary>
-    /// Disposes of managed and unmanaged resources.
-    /// </summary>
-    public override void Dispose() => this.privateAtlas.Dispose();
 }

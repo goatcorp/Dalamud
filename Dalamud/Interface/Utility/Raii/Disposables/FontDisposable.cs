@@ -1,4 +1,5 @@
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Fonts;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Utility.Raii;
@@ -26,11 +27,12 @@ public static partial class ImRaii
         public static FontDisposable PushDefaultFont()
             => new FontDisposable().Push(DefaultPushed, FontPushCounter > 0);
 
-        /// <summary> Push a font to the font stack. </summary>
+        /// <summary> Push a font to the font stack as it is, with its own style. </summary>
         /// <param name="font"> The font to push. </param>
         /// <param name="condition"> If this is false, the font is not pushed. </param>
         /// <returns> A disposable object that can be used to push further fonts and pops those fonts after leaving scope. Use with using. </returns>
         /// <remarks> If you need to keep fonts pushed longer than the current scope, use without using and use <seealso cref="PopUnsafe"/>. </remarks>
+        /// <seealso cref="TextStyle.PushFamily"/>
         public FontDisposable Push(ImFontPtr font, bool condition = true)
             => condition ? this.InternalPush(font) : this;
 
