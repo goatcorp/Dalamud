@@ -8,13 +8,13 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// <summary>
 /// Widget for displaying test data for SE Font Symbols.
 /// </summary>
-internal class SeFontTestWidget : IDataWindowWidget
+internal class FontIconsSeIconCharWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = ["sefont", "sefonttest"];
 
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "SeFont Test";
+    public string DisplayName { get; init; } = "Font: Icons(SeIconChar)";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

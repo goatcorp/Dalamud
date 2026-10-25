@@ -5,20 +5,18 @@ using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.ImGuiSeStringRenderer;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Internal;
 using Dalamud.Interface.Utility.Raii;
-
-using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget to display FontAwesome Symbols.
 /// </summary>
-internal class FontAwesomeTestWidget : IDataWindowWidget
+internal class FontIconsFontAwesomeWidget : IDataWindowWidget
 {
     private static readonly string[] First = ["(Show All)", "(Undefined)"];
 
@@ -34,7 +32,7 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
     public string[]? CommandShortcuts { get; init; } = ["fa", "fatest", "fontawesome"];
 
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Font Awesome Test";
+    public string DisplayName { get; init; } = "Font: Icons(FontAwesomeIcon)";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -56,9 +54,10 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
         {
             if (this.iconSearchInput == string.Empty && this.selectedIconCategory <= 1)
             {
-                var en = InterfaceManager.IconFont.GlyphsWrapped()
-                                         .Select(x => (FontAwesomeIcon)x.Codepoint)
-                                         .Where(x => (ushort)x is >= 0xE000 and < 0xF000);
+                ImFontPtr iconFont = InterfaceManager.IconFont;
+                var en = Enumerable.Range(0xE000, 0x1000)
+                                 .Where(x => iconFont.IsGlyphInFont((uint)x))
+                                 .Select(x => (FontAwesomeIcon)x);
                 en = this.selectedIconCategory == 0
                          ? en.Concat(FontAwesomeHelpers.SearchIcons(string.Empty, string.Empty))
                          : en.Except(FontAwesomeHelpers.SearchIcons(string.Empty, string.Empty));
@@ -104,7 +103,8 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
             ImGui.Text($"{this.iconNames?[i]}");
             ImGuiHelpers.ScaledRelativeSameLine(280f);
 
-            using var pushedFont = ImRaii.PushFont(this.useFixedWidth ? InterfaceManager.IconFontFixedWidth : InterfaceManager.IconFont);
+            using var pushedFont = ImRaii.PushFont(
+                this.useFixedWidth ? InterfaceManager.IconFontFixedWidth : InterfaceManager.IconFont);
             ImGui.Text(this.icons[i].ToIconString());
             ImGuiHelpers.ScaledRelativeSameLine(320f);
             if (this.useFixedWidth
@@ -115,9 +115,9 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
                     this.DisplayName,
                     this.icons[i].ToString(),
                     Task.FromResult(
-                        Service<TextureManager>.Get().CreateTextureFromSeString(
-                            ReadOnlySeString.FromText(this.icons[i].ToIconString()),
-                            new SeStringDrawParams { Font = ImGui.GetFont(), FontSize = ImGui.GetFontSize(), ScreenOffset = Vector2.Zero })));
+                        Service<TextureManager>.Get().CreateTextureFromText(
+                            this.icons[i].ToIconString(),
+                            TextMarkup.Plain)));
             }
 
             ImGuiHelpers.ScaledDummy(2f);
