@@ -161,8 +161,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.DrawToPremul.ps.bin" />
-      <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.DrawToPremul.vs.bin" />
       <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.MakeStraight.ps.bin" />
       <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.MakeStraight.vs.bin" />
     </ItemGroup>
