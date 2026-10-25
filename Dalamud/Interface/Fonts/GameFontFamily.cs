@@ -1,4 +1,4 @@
-namespace Dalamud.Interface.GameFonts;
+namespace Dalamud.Interface.Fonts;
 
 /// <summary>
 /// Enum of available game font families.
