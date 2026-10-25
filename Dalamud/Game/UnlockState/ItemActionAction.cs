@@ -1,4 +1,4 @@
-using Lumina.Excel.Sheets;
+using Dalamud.Excel.Sheets;
 
 namespace Dalamud.Game.UnlockState;
 

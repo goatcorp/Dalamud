@@ -1,7 +1,7 @@
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.DutyState;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Plugin.Services;
 

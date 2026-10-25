@@ -1,7 +1,6 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
-using Dalamud.Game.Text;
 using Dalamud.Plugin.SelfTest;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
@@ -105,7 +104,7 @@ internal class ChatSelfTestStep : ISelfTestStep
 
     private void ChatOnOnChatMessage(IHandleableChatMessage message)
     {
-        if (message.LogKind == XivChatType.Echo && message.Message.TextValue == "DALAMUD")
+        if (message.LogKind == XivChatType.Echo && message.Message.ToString() == "DALAMUD")
         {
             this.hasSeenEchoMessage = true;
         }

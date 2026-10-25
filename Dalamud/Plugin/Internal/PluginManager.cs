@@ -15,10 +15,9 @@ using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.Chat;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC;
@@ -125,7 +124,7 @@ internal class PluginManager : IInternalDisposableService
         this.openInstallerWindowPluginChangelogsLink =
             Service<ChatGui>.GetAsync().ContinueWith(
                 chatGuiTask => chatGuiTask.Result.AddChatLinkHandler(
-                    (_, _) =>
+                    (_) =>
                     {
                         Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(
                             PluginInstallerOpenKind.Changelogs);
@@ -146,12 +145,12 @@ internal class PluginManager : IInternalDisposableService
     /// <summary>
     /// An event that fires when the installed plugins have changed.
     /// </summary>
-    public event Action? OnInstalledPluginsChanged;
+    public event Action? InstalledPluginsChanged;
 
     /// <summary>
     /// An event that fires when the available plugins have changed.
     /// </summary>
-    public event Action? OnAvailablePluginsChanged;
+    public event Action? AvailablePluginsChanged;
 
     /// <summary>
     /// Gets the current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
@@ -289,23 +288,21 @@ internal class PluginManager : IInternalDisposableService
                 var chatGui = chatGuiTask.Result;
                 if (updateMetadata is { Count: > 0 })
                 {
+                    using var rssb = new RentedSeStringBuilder();
                     chatGui.Print(
-                        new XivChatEntry
+                        new PrintableChatMessage
                         {
-                            Message = new SeString(
-                                new List<Payload>()
-                                {
-                                    new TextPayload(header),
-                                    new TextPayload("  ["),
-                                    new UIForegroundPayload(500),
-                                    this.openInstallerWindowPluginChangelogsLink.Result,
-                                    new TextPayload(
-                                        Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs")),
-                                    RawPayload.LinkTerminator,
-                                    new UIForegroundPayload(0),
-                                    new TextPayload("]"),
-                                }),
-                            Type = this.configuration.GeneralChatType,
+                            LogKind = this.configuration.GeneralChatType,
+                            Message = rssb.Builder
+                                .Append(header)
+                                .Append("  [")
+                                .PushColorType(500)
+                                .PushDalamudLink(this.openInstallerWindowPluginChangelogsLink.Result)
+                                .Append(Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs"))
+                                .PopLink()
+                                .PopColorType()
+                                .Append(']')
+                                .ToReadOnlySeString(),
                         });
 
                     foreach (var metadata in updateMetadata)
@@ -317,13 +314,13 @@ internal class PluginManager : IInternalDisposableService
                         else
                         {
                             chatGui.Print(
-                                new XivChatEntry
+                                new PrintableChatMessage
                                 {
                                     Message = Locs.DalamudPluginUpdateFailed(
                                         metadata.AffectedPlugin.Name,
                                         metadata.AffectedPlugin.Version,
                                         PluginUpdateStatus.LocalizeUpdateStatusKind(metadata.Status)),
-                                    Type = XivChatType.Urgent,
+                                    LogKind = XivChatType.Urgent,
                                 });
                         }
                     }
@@ -1844,14 +1841,14 @@ internal class PluginManager : IInternalDisposableService
     {
         this.DetectAvailablePluginUpdates();
 
-        this.OnAvailablePluginsChanged?.InvokeSafely();
+        this.AvailablePluginsChanged?.InvokeSafely();
     }
 
     private void NotifyInstalledPluginsChanged()
     {
         this.DetectAvailablePluginUpdates();
 
-        this.OnInstalledPluginsChanged?.InvokeSafely();
+        this.InstalledPluginsChanged?.InvokeSafely();
     }
 
     private void LoadAndStartLoadSyncPlugins()
@@ -1861,7 +1858,7 @@ internal class PluginManager : IInternalDisposableService
             using (Timings.Start("PM Load Plugin Repos"))
             {
                 _ = this.SetPluginReposFromConfigAsync(false);
-                this.OnInstalledPluginsChanged += () => Task.Run(Troubleshooting.LogTroubleshooting);
+                this.InstalledPluginsChanged += () => Task.Run(Troubleshooting.LogTroubleshooting);
 
                 Log.Information("Repos loaded!");
             }

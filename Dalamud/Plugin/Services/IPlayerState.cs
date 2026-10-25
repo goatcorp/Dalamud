@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.Player;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Plugin.Services;
 

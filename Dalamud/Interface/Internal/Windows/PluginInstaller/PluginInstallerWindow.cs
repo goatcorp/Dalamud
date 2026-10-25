@@ -177,8 +177,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             this.dalamudChangelogManager = new(pluginManager);
 
-            pluginManager.OnAvailablePluginsChanged += this.OnAvailablePluginsChanged;
-            pluginManager.OnInstalledPluginsChanged += this.OnInstalledPluginsChanged;
+            pluginManager.AvailablePluginsChanged += this.OnAvailablePluginsChanged;
+            pluginManager.InstalledPluginsChanged += this.OnInstalledPluginsChanged;
 
             for (var i = 0; i < this.testerImagePaths.Length; i++)
             {
@@ -260,8 +260,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         var pluginManager = Service<PluginManager>.GetNullable();
         if (pluginManager != null)
         {
-            pluginManager.OnAvailablePluginsChanged -= this.OnAvailablePluginsChanged;
-            pluginManager.OnInstalledPluginsChanged -= this.OnInstalledPluginsChanged;
+            pluginManager.AvailablePluginsChanged -= this.OnAvailablePluginsChanged;
+            pluginManager.InstalledPluginsChanged -= this.OnInstalledPluginsChanged;
         }
     }
 

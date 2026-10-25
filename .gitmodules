@@ -28,3 +28,7 @@
 [submodule "lib/libdeflate"]
 	path = lib/libdeflate
 	url = https://github.com/ebiggers/libdeflate.git
+[submodule "lib/EXDSchema"]
+	path = lib/EXDSchema
+	url = https://github.com/xivdev/EXDSchema.git
+	branch = latest

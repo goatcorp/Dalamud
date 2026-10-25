@@ -384,7 +384,7 @@ internal class AgentLifecyclePluginScoped : IInternalDisposableService, IAgentLi
     }
 
     /// <inheritdoc/>
-    public void UnregisterListener(params IAgentLifecycle.AgentEventDelegate[] handlers)
+    public void UnregisterListener(params IEnumerable<IAgentLifecycle.AgentEventDelegate> handlers)
     {
         using var scope = this.listenerLock.EnterScope();
 

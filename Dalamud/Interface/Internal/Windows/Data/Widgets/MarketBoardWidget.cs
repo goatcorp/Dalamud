@@ -3,7 +3,7 @@ using System.Globalization;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.MarketBoard;
-using Dalamud.Game.Network.Structures;
+using Dalamud.Game.Marketboard.Network.Structures;
 using Dalamud.Interface.Utility.Raii;
 
 using ImGuiTable = Dalamud.Interface.Utility.ImGuiTable;

@@ -1,5 +1,6 @@
 using Dalamud.Game.Gui.FlyText;
-using Dalamud.Game.Text.SeStringHandling;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Plugin.Services;
 
@@ -22,12 +23,12 @@ public interface IFlyTextGui : IDalamudService
     /// <param name="yOffset">The vertical offset to place the flytext at. 0 is default. Negative values result
     /// in text appearing higher on the screen. This does not change where the element begins to fade.</param>
     /// <param name="handled">Whether this flytext has been handled. If a subscriber sets this to true, the FlyText will not appear.</param>
-    delegate void OnFlyTextCreatedDelegate(
+    delegate void FlyTextCreatedDelegate(
         ref FlyTextKind kind,
         ref int val1,
         ref int val2,
-        ref SeString text1,
-        ref SeString text2,
+        ref ReadOnlySeString text1,
+        ref ReadOnlySeString text2,
         ref uint color,
         ref uint icon,
         ref uint damageTypeIcon,
@@ -37,7 +38,7 @@ public interface IFlyTextGui : IDalamudService
     /// <summary>
     /// The FlyText event that can be subscribed to.
     /// </summary>
-    event OnFlyTextCreatedDelegate? FlyTextCreated;
+    event FlyTextCreatedDelegate? FlyTextCreated;
 
     /// <summary>
     /// Displays a fly text in-game on the local player.
@@ -51,5 +52,5 @@ public interface IFlyTextGui : IDalamudService
     /// <param name="color">Color passed to the native flytext function. Changes flytext color.</param>
     /// <param name="icon">Icon ID passed to the native flytext function. Only displays with select FlyTextKind.</param>
     /// <param name="damageTypeIcon">Damage Type Icon ID passed to the native flytext function. Displayed next to damage values to denote damage type.</param>
-    void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon, uint damageTypeIcon);
+    void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, ReadOnlySeString text1, ReadOnlySeString text2, uint color, uint icon, uint damageTypeIcon);
 }

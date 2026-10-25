@@ -67,6 +67,9 @@
   <Project Path="Dalamud.Common/Dalamud.Common.csproj">
     <Platform Project="x64" />
   </Project>
+  <Project Path="Dalamud.Excel.Sheets/Dalamud.Excel.Sheets.csproj" Id="6d6fae42-bd7d-4d2a-9c32-a0881976d95c">
+    <Platform Project="x64" />
+  </Project>
   <Project Path="Dalamud.Injector/Dalamud.Injector.csproj">
     <Platform Project="x64" />
   </Project>

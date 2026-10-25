@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Dalamud.Game.Network.Structures;
+namespace Dalamud.Game.Marketboard.Network.Structures;
 
 /// <summary>
 /// This class represents the "Result Dialog" packet. This is also used e.g. for reduction results, but we only care about tax rates.

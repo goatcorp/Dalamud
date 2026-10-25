@@ -4,8 +4,10 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Config;
 using Dalamud.Game.Player;
@@ -28,16 +30,15 @@ using FFXIVClientStructs.Interop;
 
 using Lumina.Data.Structs.Excel;
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 using Lumina.Text;
 using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
-using AddonSheet = Lumina.Excel.Sheets.Addon;
+using AddonSheet = Dalamud.Excel.Sheets.Addon;
 using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
-using StatusSheet = Lumina.Excel.Sheets.Status;
+using StatusSheet = Dalamud.Excel.Sheets.Status;
 
 namespace Dalamud.Game.Text.Evaluator;
 
@@ -194,19 +195,6 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                                 .ExtractText()
                                 .StripSoftHyphen(),
             this);
-
-    // TODO: move this to MapUtil?
-    private static uint ConvertRawToMapPos(Map map, short offset, float value)
-    {
-        var scale = map.SizeFactor / 100.0f;
-        return (uint)(10 - (int)(((((value + offset) * scale) + 1024f) * -0.2f) / scale));
-    }
-
-    private static uint ConvertRawToMapPosX(Map map, float x)
-        => ConvertRawToMapPos(map, map.OffsetX, x);
-
-    private static uint ConvertRawToMapPosY(Map map, float y)
-        => ConvertRawToMapPos(map, map.OffsetY, y);
 
     private ClientLanguage GetEffectiveClientLanguage()
     {
@@ -1262,8 +1250,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
             var placeNameWithInstance = rssb.Builder.ToReadOnlySeString();
 
-            var mapPosX = ConvertRawToMapPosX(mapRow, rawX / 1000f);
-            var mapPosY = ConvertRawToMapPosY(mapRow, rawY / 1000f);
+            var mapPosX = mapRow.ToMapCoordX(rawX / 1000f);
+            var mapPosY = mapRow.ToMapCoordY(rawY / 1000f);
 
             var linkText = rawZ == -30000
                                ? this.EvaluateFromAddon(
@@ -1881,8 +1869,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 out var placeName))
             return false;
 
-        var mapPosX = ConvertRawToMapPosX(level.Map.Value, level.X);
-        var mapPosY = ConvertRawToMapPosY(level.Map.Value, level.Z); // Z is [sic]
+        var mapPosX = level.Map.Value.ToMapCoordX(level.X);
+        var mapPosY = level.Map.Value.ToMapCoordY(level.Z); // Z is [sic]
 
         context.Builder.Append(
             this.EvaluateFromAddon(

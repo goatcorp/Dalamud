@@ -58,21 +58,21 @@ public interface ICondition : IDalamudService
     /// </summary>
     /// <returns>Whether any single provided flag is set.</returns>
     /// <param name="flags">The condition flags to check.</param>
-    bool Any(params ConditionFlag[] flags);
+    bool Any(params IEnumerable<ConditionFlag> flags);
 
     /// <summary>
     /// Check that the specified condition flags are *not* present in the current conditions.
     /// </summary>
     /// <param name="except">The array of flags to check.</param>
     /// <returns>Returns false if any of the listed conditions are present, true otherwise.</returns>
-    bool AnyExcept(params ConditionFlag[] except);
+    bool AnyExcept(params IEnumerable<ConditionFlag> except);
 
     /// <summary>
     /// Check that *only* any of the condition flags specified are set.
     /// </summary>
     /// <param name="other">The array of flags to check.</param>
     /// <returns>Returns a bool.</returns>
-    bool OnlyAny(params ConditionFlag[] other);
+    bool OnlyAny(params IEnumerable<ConditionFlag> other);
 
     /// <summary>
     /// Check that *only* the specified flags are set. Unlike <see cref="OnlyAny"/>, this method requires that all the
@@ -80,5 +80,5 @@ public interface ICondition : IDalamudService
     /// </summary>
     /// <param name="other">The array of flags to check.</param>
     /// <returns>Returns a bool.</returns>
-    bool EqualTo(params ConditionFlag[] other);
+    bool EqualTo(params IEnumerable<ConditionFlag> other);
 }

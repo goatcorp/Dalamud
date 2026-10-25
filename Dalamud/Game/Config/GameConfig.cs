@@ -71,24 +71,24 @@ internal sealed class GameConfig : IInternalDisposableService, IGameConfig
     private unsafe delegate nint ConfigChangeDelegate(ConfigBase* configBase, ConfigEntry* configEntry);
 
     /// <inheritdoc/>
-    public event EventHandler<ConfigChangeEvent>? Changed;
+    public event IGameConfig.ConfigChangeEventDelegate? Changed;
 
-#pragma warning disable 67
+#pragma warning disable CS0067
     /// <summary>
     /// Unused internally, used as a proxy for System.Changed via GameConfigPluginScoped
     /// </summary>
-    public event EventHandler<ConfigChangeEvent>? SystemChanged;
+    public event IGameConfig.ConfigChangeEventDelegate? SystemChanged;
 
     /// <summary>
     /// Unused internally, used as a proxy for UiConfig.Changed via GameConfigPluginScoped
     /// </summary>
-    public event EventHandler<ConfigChangeEvent>? UiConfigChanged;
+    public event IGameConfig.ConfigChangeEventDelegate? UiConfigChanged;
 
     /// <summary>
     /// Unused internally, used as a proxy for UiControl.Changed via GameConfigPluginScoped
     /// </summary>
-    public event EventHandler<ConfigChangeEvent>? UiControlChanged;
-#pragma warning restore 67
+    public event IGameConfig.ConfigChangeEventDelegate? UiControlChanged;
+#pragma warning restore CS0067
 
     /// <summary>
     /// Gets a task representing the initialization state of this class.
@@ -240,7 +240,17 @@ internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 
             if (eventArgs == null) return returnValue;
 
-            this.Changed?.InvokeSafely(this, eventArgs);
+            foreach (var action in Delegate.EnumerateInvocationList(this.Changed))
+            {
+                try
+                {
+                    this.Changed.Invoke(eventArgs);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -285,16 +295,16 @@ internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
     }
 
     /// <inheritdoc/>
-    public event EventHandler<ConfigChangeEvent>? Changed;
+    public event IGameConfig.ConfigChangeEventDelegate? Changed;
 
     /// <inheritdoc/>
-    public event EventHandler<ConfigChangeEvent>? SystemChanged;
+    public event IGameConfig.ConfigChangeEventDelegate? SystemChanged;
 
     /// <inheritdoc/>
-    public event EventHandler<ConfigChangeEvent>? UiConfigChanged;
+    public event IGameConfig.ConfigChangeEventDelegate? UiConfigChanged;
 
     /// <inheritdoc/>
-    public event EventHandler<ConfigChangeEvent>? UiControlChanged;
+    public event IGameConfig.ConfigChangeEventDelegate? UiControlChanged;
 
     /// <inheritdoc/>
     public GameConfigSection System => this.gameConfigService.System;
@@ -461,11 +471,11 @@ internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
     public void Set(UiControlOption option, string value)
         => this.gameConfigService.Set(option, value);
 
-    private void ConfigChangedForward(object sender, ConfigChangeEvent data) => this.Changed?.Invoke(sender, data);
+    private void ConfigChangedForward(ConfigChangeEvent data) => this.Changed?.Invoke(data);
 
-    private void SystemConfigChangedForward(object sender, ConfigChangeEvent data) => this.SystemChanged?.Invoke(sender, data);
+    private void SystemConfigChangedForward(ConfigChangeEvent data) => this.SystemChanged?.Invoke(data);
 
-    private void UiConfigConfigChangedForward(object sender, ConfigChangeEvent data) => this.UiConfigChanged?.Invoke(sender, data);
+    private void UiConfigConfigChangedForward(ConfigChangeEvent data) => this.UiConfigChanged?.Invoke(data);
 
-    private void UiControlConfigChangedForward(object sender, ConfigChangeEvent data) => this.UiControlChanged?.Invoke(sender, data);
+    private void UiControlConfigChangedForward(ConfigChangeEvent data) => this.UiControlChanged?.Invoke(data);
 }

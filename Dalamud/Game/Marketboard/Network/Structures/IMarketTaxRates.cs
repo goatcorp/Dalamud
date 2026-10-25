@@ -1,4 +1,4 @@
-namespace Dalamud.Game.Network.Structures;
+namespace Dalamud.Game.Marketboard.Network.Structures;
 
 /// <summary>
 /// An interface that represents the tax rates received by the client when interacting with a retainer vocate.

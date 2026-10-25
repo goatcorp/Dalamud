@@ -16,6 +16,8 @@ using FFXIVClientStructs.STD;
 using Lumina.Excel;
 using Lumina.Text.ReadOnly;
 
+using LobMessageSheet = Dalamud.Excel.Sheets.LogMessage;
+
 namespace Dalamud.Game.Chat;
 
 /// <summary>
@@ -36,7 +38,7 @@ public interface ILogMessage : IEquatable<ILogMessage>
     /// <summary>
     /// Gets the GameData associated with this log message.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.LogMessage> GameData { get; }
+    RowRef<LobMessageSheet> GameData { get; }
 
     /// <summary>
     /// Gets the entity that is the source of this log message, if any.
@@ -114,7 +116,7 @@ internal unsafe class LogMessage : ILogMessage
     public uint LogMessageId => this.Pointer->LogMessageId;
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.LogMessage> GameData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.LogMessage>(this.Pointer->LogMessageId);
+    public RowRef<LobMessageSheet> GameData => LuminaUtils.CreateRef<LobMessageSheet>(this.Pointer->LogMessageId);
 
     /// <inheritdoc/>
     ILogMessageEntity? ILogMessage.SourceEntity => this.Pointer->SourceKind == EntityRelationKind.None ? null : this.SourceEntity;

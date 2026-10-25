@@ -3,11 +3,11 @@ using System.Linq;
 using System.Text;
 
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 
 using FFXIVClientStructs.FFXIV.Client.Game.Network;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.ClientState;
 

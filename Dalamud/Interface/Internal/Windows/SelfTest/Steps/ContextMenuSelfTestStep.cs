@@ -4,14 +4,14 @@ using System.Text;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.SelfTest;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
+using Lumina.Text.ReadOnly;
 
 using Serilog;
 
@@ -56,7 +56,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
         switch (this.currentSubStep)
         {
             case SubStep.Start:
-                contextMenu.OnMenuOpened += this.OnMenuOpened;
+                contextMenu.MenuOpened += this.OnMenuOpened;
                 this.currentSubStep++;
                 break;
             case SubStep.TestInventoryAndSubmenu:
@@ -118,7 +118,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
     public void CleanUp()
     {
         var contextMenu = Service<ContextMenu>.Get();
-        contextMenu.OnMenuOpened -= this.OnMenuOpened;
+        contextMenu.MenuOpened -= this.OnMenuOpened;
 
         this.currentSubStep = SubStep.Start;
         this.targetInventorySubmenuOpened = null;
@@ -143,12 +143,12 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                         IsSubmenu = true,
                         OnClicked = (IMenuItemClickedArgs a) =>
                         {
-                            SeString name;
+                            ReadOnlySeString name;
                             int count;
                             var targetItem = (a.Target as MenuTargetInventory)!.TargetItem;
                             if (targetItem is { } item)
                             {
-                                name = (this.itemSheet.GetRowOrDefault(item.BaseItemId)?.Name.ExtractText() ?? $"Unknown ({item.BaseItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);
+                                name = (this.itemSheet.GetRowOrDefault(item.BaseItemId)?.Name ?? $"Unknown ({item.BaseItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);
                                 count = item.Quantity;
                             }
                             else
@@ -224,7 +224,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                     b.Append("Unknown");
                 b.AppendLine($" ({character.Location.RowId})");
 
-                b.AppendLine($"Grand Company: {character.GrandCompany.ValueNullable?.Name.ExtractText() ?? "Unknown"} ({character.GrandCompany.RowId})");
+                b.AppendLine($"Grand Company: {character.GrandCompany.ValueNullable?.Singular.ExtractText() ?? "Unknown"} ({character.GrandCompany.RowId})");
                 b.AppendLine($"Client Language: {character.ClientLanguage}");
                 b.AppendLine($"Languages: {string.Join(", ", character.Languages)}");
                 b.AppendLine($"Gender: {character.Gender}");

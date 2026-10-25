@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Dalamud.Game.Network.Structures;
+namespace Dalamud.Game.Marketboard.Network.Structures;
 
 /// <summary>
 /// Represents market board purchase information. This message is received from the

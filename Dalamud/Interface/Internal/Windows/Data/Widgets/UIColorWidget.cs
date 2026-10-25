@@ -4,12 +4,11 @@ using System.Text;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Utility.Raii;
-
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -149,16 +148,16 @@ internal class UiColorWidget : IDataWindowWidget
                 ImGui.AlignTextToFramePadding();
                 using (ImRaii.PushId($"row{id}_grey"))
                 {
-                    if (this.DrawColorColumn(row.Unknown2) && adjacentRow.HasValue)
-                        DrawEdgePreview(id, row.Unknown2, adjacentRow.Value.Unknown2);
+                    if (this.DrawColorColumn(row.ClearGrey) && adjacentRow.HasValue)
+                        DrawEdgePreview(id, row.ClearGrey, adjacentRow.Value.ClearGrey);
                 }
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
                 using (ImRaii.PushId($"row{id}_pink"))
                 {
-                    if (this.DrawColorColumn(row.Unknown3) && adjacentRow.HasValue)
-                        DrawEdgePreview(id, row.Unknown3, adjacentRow.Value.Unknown3);
+                    if (this.DrawColorColumn(row.ClearPink) && adjacentRow.HasValue)
+                        DrawEdgePreview(id, row.ClearPink, adjacentRow.Value.ClearPink);
                 }
             }
         }

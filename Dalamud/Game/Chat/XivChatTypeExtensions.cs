@@ -1,6 +1,7 @@
+using Dalamud.Game.Text;
 using Dalamud.Utility;
 
-namespace Dalamud.Game.Text;
+namespace Dalamud.Game.Chat;
 
 /// <summary>
 /// Extension methods for the <see cref="XivChatType"/> type.

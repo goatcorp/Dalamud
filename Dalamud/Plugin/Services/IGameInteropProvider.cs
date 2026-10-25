@@ -1,7 +1,6 @@
 using System.Diagnostics;
 
 using Dalamud.Hooking;
-using Dalamud.Utility;
 using Dalamud.Utility.Signatures;
 
 namespace Dalamud.Plugin.Services;
@@ -9,33 +8,8 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Service responsible for the creation of hooks.
 /// </summary>
-[Api16ToDo("Remove backend selection")]
 public interface IGameInteropProvider : IDalamudService
 {
-    /// <summary>
-    /// Available hooking backends.
-    /// </summary>
-    enum HookBackend
-    {
-        /// <summary>
-        /// Choose the best backend automatically.
-        /// </summary>
-        Automatic,
-
-        /// <summary>
-        /// Use Reloaded hooks.
-        /// </summary>
-        [Obsolete("Backend selection is no longer supported and will be removed. Please do not specify a backend.")]
-        Reloaded,
-
-        /// <summary>
-        /// Use MinHook.
-        /// You should never have to use this without talking to us first.
-        /// </summary>
-        [Obsolete("Backend selection is no longer supported and will be removed. Please do not specify a backend.")]
-        MinHook,
-    }
-
     /// <summary>
     /// Initialize <see cref="Hook{T}"/> members decorated with the <see cref="SignatureAttribute"/>.
     /// Initialize any delegate members decorated with the <see cref="SignatureAttribute"/>.
@@ -69,59 +43,50 @@ public interface IGameInteropProvider : IDalamudService
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
     /// The hook is not activated until Enable() method is called.
-    /// Please do not use MinHook unless you have thoroughly troubleshot why Reloaded does not work.
     /// </summary>
     /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
     /// <param name="exportName">A name of the exported function name (e.g. send).</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="backend">Hooking library to use.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
+    Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour) where T : Delegate;
 
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
     /// The hook is not activated until Enable() method is called.
-    /// Please do not use MinHook unless you have thoroughly troubleshot why Reloaded does not work.
     /// </summary>
     /// <param name="procAddress">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="backend">Hooking library to use.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    Hook<T> HookFromAddress<T>(nint procAddress, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
+    Hook<T> HookFromAddress<T>(nint procAddress, T detour) where T : Delegate;
 
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
     /// The hook is not activated until Enable() method is called.
-    /// Please do not use MinHook unless you have thoroughly troubleshot why Reloaded does not work.
     /// </summary>
     /// <param name="procAddress">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="backend">Hooking library to use.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    Hook<T> HookFromAddress<T>(nuint procAddress, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
+    Hook<T> HookFromAddress<T>(nuint procAddress, T detour) where T : Delegate;
 
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
     /// The hook is not activated until Enable() method is called.
-    /// Please do not use MinHook unless you have thoroughly troubleshot why Reloaded does not work.
     /// </summary>
     /// <param name="procAddress">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="backend">Hooking library to use.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    unsafe Hook<T> HookFromAddress<T>(void* procAddress, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
+    unsafe Hook<T> HookFromAddress<T>(void* procAddress, T detour) where T : Delegate;
 
     /// <summary>
     /// Creates a hook from a signature into the Dalamud target module.
     /// </summary>
     /// <param name="signature">Signature of function to hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="backend">Hooking library to use.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    Hook<T> HookFromSignature<T>(string signature, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
+    Hook<T> HookFromSignature<T>(string signature, T detour) where T : Delegate;
 }

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 
 using Dalamud.Game.Gui.Dtr;
-using Dalamud.Game.Text.SeStringHandling;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Plugin.Services;
 
@@ -26,7 +27,7 @@ public interface IDtrBar : IDalamudService
     /// <param name="text">The text the entry shows.</param>
     /// <returns>The entry object used to update, hide and remove the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when an entry with the specified title exists.</exception>
-    IDtrBarEntry Get(string title, SeString? text = null);
+    IDtrBarEntry Get(string title, ReadOnlySeString text = default);
 
     /// <summary>
     /// Removes a DTR bar entry from the system.

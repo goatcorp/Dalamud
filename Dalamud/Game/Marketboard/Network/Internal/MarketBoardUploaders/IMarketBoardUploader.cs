@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-using Dalamud.Game.Network.Structures;
+using Dalamud.Game.Marketboard.Network.Structures;
 
 namespace Dalamud.Game.Marketboard.Network.Internal.MarketBoardUploaders;
 

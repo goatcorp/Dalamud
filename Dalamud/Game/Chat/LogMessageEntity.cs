@@ -1,12 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
 using Lumina.Excel;
-using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Chat;

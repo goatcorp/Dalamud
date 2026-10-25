@@ -2,12 +2,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Data;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Utility;
 
 using Lumina.Excel;
+using Lumina.Text.ReadOnly;
 
 using CSFateContext = FFXIVClientStructs.FFXIV.Client.Game.Fate.FateContext;
+using FateSheet = Dalamud.Excel.Sheets.Fate;
+using TerritoryTypeSheet = Dalamud.Excel.Sheets.TerritoryType;
 
 namespace Dalamud.Game.ClientState.Fates;
 
@@ -24,7 +26,7 @@ public interface IFate : IEquatable<IFate>
     /// <summary>
     /// Gets game data linked to this Fate.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.Fate> GameData { get; }
+    RowRef<FateSheet> GameData { get; }
 
     /// <summary>
     /// Gets the time this <see cref="Fate"/> started.
@@ -44,17 +46,17 @@ public interface IFate : IEquatable<IFate>
     /// <summary>
     /// Gets the displayname of this <see cref="Fate" />.
     /// </summary>
-    SeString Name { get; }
+    ReadOnlySeStringSpan Name { get; }
 
     /// <summary>
     /// Gets the description of this <see cref="Fate" />.
     /// </summary>
-    SeString Description { get; }
+    ReadOnlySeStringSpan Description { get; }
 
     /// <summary>
     /// Gets the objective of this <see cref="Fate" />.
     /// </summary>
-    SeString Objective { get; }
+    ReadOnlySeStringSpan Objective { get; }
 
     /// <summary>
     /// Gets the state of this <see cref="Fate"/> (Running, Ended, Failed, Preparation, WaitingForEnd).
@@ -109,7 +111,7 @@ public interface IFate : IEquatable<IFate>
     /// <summary>
     /// Gets the territory this <see cref="Fate"/> is located in.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.TerritoryType> TerritoryType { get; }
+    RowRef<TerritoryTypeSheet> TerritoryType { get; }
 
     /// <summary>
     /// Gets the address of this Fate in memory.
@@ -130,7 +132,7 @@ internal readonly unsafe struct Fate(CSFateContext* ptr) : IFate
     public ushort FateId => ptr->FateId;
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.Fate> GameData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Fate>(this.FateId);
+    public RowRef<FateSheet> GameData => LuminaUtils.CreateRef<FateSheet>(this.FateId);
 
     /// <inheritdoc/>
     public int StartTimeEpoch => ptr->StartTimeEpoch;
@@ -142,13 +144,13 @@ internal readonly unsafe struct Fate(CSFateContext* ptr) : IFate
     public long TimeRemaining => this.StartTimeEpoch + this.Duration - DateTimeOffset.Now.ToUnixTimeSeconds();
 
     /// <inheritdoc/>
-    public SeString Name => ptr->Name.AsDalamudSeString();
+    public ReadOnlySeStringSpan Name => ptr->Name.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public SeString Description => ptr->Description.AsDalamudSeString();
+    public ReadOnlySeStringSpan Description => ptr->Description.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
-    public SeString Objective => ptr->Objective.AsDalamudSeString();
+    public ReadOnlySeStringSpan Objective => ptr->Objective.AsReadOnlySeStringSpan();
 
     /// <inheritdoc/>
     public FateState State => (FateState)ptr->State;
@@ -183,7 +185,7 @@ internal readonly unsafe struct Fate(CSFateContext* ptr) : IFate
     /// <summary>
     /// Gets the territory this <see cref="Fate"/> is located in.
     /// </summary>
-    public RowRef<Lumina.Excel.Sheets.TerritoryType> TerritoryType => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(ptr->MapMarkers[0].MapMarkerData.TerritoryTypeId);
+    public RowRef<TerritoryTypeSheet> TerritoryType => LuminaUtils.CreateRef<TerritoryTypeSheet>(ptr->MapMarkers[0].MapMarkerData.TerritoryTypeId);
 
     public static bool operator ==(Fate x, Fate y) => x.Equals(y);
 

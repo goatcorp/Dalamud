@@ -3,7 +3,7 @@ using System.Numerics;
 using CheapLoc;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.ManagedFontAtlas;

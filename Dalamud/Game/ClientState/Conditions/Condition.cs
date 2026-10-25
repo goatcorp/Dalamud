@@ -102,7 +102,7 @@ internal sealed class Condition : IInternalDisposableService, ICondition
     }
 
     /// <inheritdoc/>
-    public bool Any(params ConditionFlag[] flags)
+    public bool Any(params IEnumerable<ConditionFlag> flags)
     {
         foreach (var flag in flags)
         {
@@ -117,19 +117,19 @@ internal sealed class Condition : IInternalDisposableService, ICondition
     }
 
     /// <inheritdoc/>
-    public bool AnyExcept(params ConditionFlag[] excluded)
+    public bool AnyExcept(params IEnumerable<ConditionFlag> excluded)
     {
         return !this.AsReadOnlySet().Intersect(excluded).Any();
     }
 
     /// <inheritdoc/>
-    public bool OnlyAny(params ConditionFlag[] other)
+    public bool OnlyAny(params IEnumerable<ConditionFlag> other)
     {
         return !this.AsReadOnlySet().Except(other).Any();
     }
 
     /// <inheritdoc/>
-    public bool EqualTo(params ConditionFlag[] other)
+    public bool EqualTo(params IEnumerable<ConditionFlag> other)
     {
         var resultSet = this.AsReadOnlySet();
         return resultSet.SetEquals(other);
@@ -222,16 +222,16 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
     public bool Any() => this.conditionService.Any();
 
     /// <inheritdoc/>
-    public bool Any(params ConditionFlag[] flags) => this.conditionService.Any(flags);
+    public bool Any(params IEnumerable<ConditionFlag> flags) => this.conditionService.Any(flags);
 
     /// <inheritdoc/>
-    public bool AnyExcept(params ConditionFlag[] except) => this.conditionService.AnyExcept(except);
+    public bool AnyExcept(params IEnumerable<ConditionFlag> except) => this.conditionService.AnyExcept(except);
 
     /// <inheritdoc/>
-    public bool OnlyAny(params ConditionFlag[] other) => this.conditionService.OnlyAny(other);
+    public bool OnlyAny(params IEnumerable<ConditionFlag> other) => this.conditionService.OnlyAny(other);
 
     /// <inheritdoc/>
-    public bool EqualTo(params ConditionFlag[] other) => this.conditionService.EqualTo(other);
+    public bool EqualTo(params IEnumerable<ConditionFlag> other) => this.conditionService.EqualTo(other);
 
     private void ConditionChangedForward(ConditionFlag flag, bool value) => this.ConditionChange?.Invoke(flag, value);
 }

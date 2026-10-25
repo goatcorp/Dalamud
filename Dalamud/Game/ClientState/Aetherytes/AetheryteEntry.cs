@@ -4,6 +4,8 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 using Lumina.Excel;
 
+using AetheryteSheet = Dalamud.Excel.Sheets.Aetheryte;
+
 namespace Dalamud.Game.ClientState.Aetherytes;
 
 /// <summary>
@@ -59,7 +61,7 @@ public interface IAetheryteEntry
     /// <summary>
     /// Gets the Aetheryte data related to this aetheryte.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.Aetheryte> AetheryteData { get; }
+    RowRef<AetheryteSheet> AetheryteData { get; }
 }
 
 /// <summary>
@@ -96,5 +98,5 @@ internal readonly struct AetheryteEntry(TeleportInfo data) : IAetheryteEntry
     public bool IsApartment => data.IsApartment;
 
     /// <inheritdoc />
-    public RowRef<Lumina.Excel.Sheets.Aetheryte> AetheryteData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Aetheryte>(this.AetheryteId);
+    public RowRef<AetheryteSheet> AetheryteData => LuminaUtils.CreateRef<AetheryteSheet>(this.AetheryteId);
 }

@@ -77,7 +77,7 @@ public interface IAgentLifecycle : IDalamudService
     /// Unregister all events that use the specified handlers.
     /// </summary>
     /// <param name="handlers">Handlers to remove.</param>
-    void UnregisterListener(params AgentEventDelegate[] handlers);
+    void UnregisterListener(params IEnumerable<AgentEventDelegate> handlers);
 
     /// <summary>
     /// Resolves an agents virtual table address back to the original unmodified table address.

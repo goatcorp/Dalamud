@@ -1,6 +1,6 @@
 using System.Text;
 
-using Dalamud.Game;
+using Dalamud.Common;
 
 namespace Dalamud.Interface.Textures;
 

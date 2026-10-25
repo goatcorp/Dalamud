@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 using CheapLoc;
 
-using Dalamud.Game.Text;
+using Dalamud.Game.Chat;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Utility.Internal;
 

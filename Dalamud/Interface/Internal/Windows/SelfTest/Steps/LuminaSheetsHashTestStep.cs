@@ -102,7 +102,7 @@ internal class LuminaSheetsHashTestStep : ISelfTestStep
         var dataManager = Service<DataManager>.Get();
         this.hashMismatches = [];
 
-        var sheetsType = typeof(Lumina.Excel.Sheets.Achievement);
+        var sheetsType = typeof(Excel.Sheets.Achievement);
         this.sheetTypes = sheetsType.Assembly
             .GetExportedTypes()
             .Where(type => type.Namespace == sheetsType.Namespace && Attribute.IsDefined(type, typeof(SheetAttribute)) && !string.IsNullOrEmpty(type.GetCustomAttribute<SheetAttribute>().Name))

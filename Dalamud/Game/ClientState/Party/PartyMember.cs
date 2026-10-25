@@ -5,12 +5,15 @@ using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Utility;
 
 using Lumina.Excel;
+using Lumina.Text.ReadOnly;
 
+using ClassJobSheet = Dalamud.Excel.Sheets.ClassJob;
 using CSPartyMember = FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember;
+using TerritoryTypeSheet = Dalamud.Excel.Sheets.TerritoryType;
+using WorldSheet = Dalamud.Excel.Sheets.World;
 
 namespace Dalamud.Game.ClientState.Party;
 
@@ -81,17 +84,17 @@ public interface IPartyMember : IEquatable<IPartyMember>
     /// <summary>
     /// Gets the territory this party member is located in.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.TerritoryType> Territory { get; }
+    RowRef<TerritoryTypeSheet> Territory { get; }
 
     /// <summary>
     /// Gets the World this party member resides in.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.World> World { get; }
+    RowRef<WorldSheet> World { get; }
 
     /// <summary>
     /// Gets the displayname of this party member.
     /// </summary>
-    SeString Name { get; }
+    ReadOnlySeStringSpan Name { get; }
 
     /// <summary>
     /// Gets the sex of this party member.
@@ -101,7 +104,7 @@ public interface IPartyMember : IEquatable<IPartyMember>
     /// <summary>
     /// Gets the classjob of this party member.
     /// </summary>
-    RowRef<Lumina.Excel.Sheets.ClassJob> ClassJob { get; }
+    RowRef<ClassJobSheet> ClassJob { get; }
 
     /// <summary>
     /// Gets the level of this party member.
@@ -149,19 +152,19 @@ internal readonly unsafe struct PartyMember(nint address) : IPartyMember
     public ushort MaxMP => this.Struct->MaxMP;
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.TerritoryType> Territory => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(this.Struct->TerritoryType);
+    public RowRef<TerritoryTypeSheet> Territory => LuminaUtils.CreateRef<TerritoryTypeSheet>(this.Struct->TerritoryType);
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.World> World => LuminaUtils.CreateRef<Lumina.Excel.Sheets.World>(this.Struct->HomeWorld);
+    public RowRef<WorldSheet> World => LuminaUtils.CreateRef<WorldSheet>(this.Struct->HomeWorld);
 
     /// <inheritdoc/>
-    public SeString Name => SeString.Parse(this.Struct->Name);
+    public ReadOnlySeStringSpan Name => this.Struct->Name;
 
     /// <inheritdoc/>
     public byte Sex => this.Struct->Sex;
 
     /// <inheritdoc/>
-    public RowRef<Lumina.Excel.Sheets.ClassJob> ClassJob => LuminaUtils.CreateRef<Lumina.Excel.Sheets.ClassJob>(this.Struct->ClassJob);
+    public RowRef<ClassJobSheet> ClassJob => LuminaUtils.CreateRef<ClassJobSheet>(this.Struct->ClassJob);
 
     /// <inheritdoc/>
     public byte Level => this.Struct->Level;

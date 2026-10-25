@@ -93,7 +93,7 @@ public struct FluentGlyphRangeBuilder
         UnicodeRange range2,
         UnicodeRange range3,
         UnicodeRange range4,
-        params UnicodeRange[] evenMoreRanges) =>
+        params IEnumerable<UnicodeRange> evenMoreRanges) =>
         this.With(range1.FirstCodePoint, (range1.FirstCodePoint + range1.Length) - 1)
             .With(range2.FirstCodePoint, (range2.FirstCodePoint + range2.Length) - 1)
             .With(range3.FirstCodePoint, (range3.FirstCodePoint + range3.Length) - 1)

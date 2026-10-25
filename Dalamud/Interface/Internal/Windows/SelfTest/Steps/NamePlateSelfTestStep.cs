@@ -2,9 +2,8 @@ using System.Collections.Generic;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.NamePlate;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin.SelfTest;
+using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -33,8 +32,8 @@ internal class NamePlateSelfTestStep : ISelfTestStep
         switch (this.currentSubStep)
         {
             case SubStep.Start:
-                namePlateGui.OnNamePlateUpdate += this.OnNamePlateUpdate;
-                namePlateGui.OnDataUpdate += this.OnDataUpdate;
+                namePlateGui.NamePlateUpdate += this.OnNamePlateUpdate;
+                namePlateGui.DataUpdate += this.OnDataUpdate;
                 namePlateGui.RequestRedraw();
                 this.updateCount = [];
                 this.currentSubStep++;
@@ -72,8 +71,8 @@ internal class NamePlateSelfTestStep : ISelfTestStep
     public void CleanUp()
     {
         var namePlateGui = Service<NamePlateGui>.Get();
-        namePlateGui.OnNamePlateUpdate -= this.OnNamePlateUpdate;
-        namePlateGui.OnDataUpdate -= this.OnDataUpdate;
+        namePlateGui.NamePlateUpdate -= this.OnNamePlateUpdate;
+        namePlateGui.DataUpdate -= this.OnDataUpdate;
         namePlateGui.RequestRedraw();
         this.updateCount = null;
         this.currentSubStep = SubStep.Start;
@@ -105,17 +104,22 @@ internal class NamePlateSelfTestStep : ISelfTestStep
             // Append GameObject address to name
             var gameObjectAddress = handler.GameObject?.Address ?? 0;
 
-            handler.Name = handler.Name.Append(new SeString(new UIForegroundPayload(9)))
-                                  .Append($" (0x{gameObjectAddress:X})")
-                                  .Append(new SeString(UIForegroundPayload.UIForegroundOff));
+            using var rssb = new RentedSeStringBuilder();
+            handler.Name = rssb.Builder
+                .Append(handler.Name)
+                .PushColorType(9)
+                .Append($" (0x{gameObjectAddress:X})")
+                .PopColorType()
+                .ToReadOnlySeString();
 
             // Track update count and set it as title
             var count = this.updateCount!.GetValueOrDefault(handler.GameObjectId);
             this.updateCount[handler.GameObjectId] = count + 1;
 
             handler.TitleParts.Text = $"Updates: {count}";
-            handler.TitleParts.TextWrap = (new SeString(new UIForegroundPayload(43)),
-                                              new SeString(UIForegroundPayload.UIForegroundOff));
+            handler.TitleParts.TextWrap = (
+                rssb.Builder.Clear().PushColorType(43).ToReadOnlySeString(),
+                rssb.Builder.Clear().PopColorType().ToReadOnlySeString());
             handler.DisplayTitle = true;
             handler.IsPrefixTitle = false;
         }

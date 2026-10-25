@@ -4,6 +4,7 @@ using System.Text;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
+using Dalamud.Excel.Sheets;
 using Dalamud.Game.Inventory;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal;
@@ -12,8 +13,6 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
-
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

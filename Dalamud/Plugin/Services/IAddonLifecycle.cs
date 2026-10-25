@@ -77,7 +77,7 @@ public interface IAddonLifecycle : IDalamudService
     /// Unregister all events that use the specified handlers.
     /// </summary>
     /// <param name="handlers">Handlers to remove.</param>
-    void UnregisterListener(params AddonEventDelegate[] handlers);
+    void UnregisterListener(params IEnumerable<AddonEventDelegate> handlers);
 
     /// <summary>
     /// Resolves an addons virtual table address back to the original unmodified table address.

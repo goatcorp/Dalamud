@@ -1,7 +1,6 @@
+using Dalamud.Excel.Sheets;
 using Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 using Dalamud.Plugin.SelfTest.Internal;
-
-using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest;
 
@@ -36,7 +35,7 @@ internal class DalamudSelfTests : IServiceType
             new LuminaSheetsHashTestStep(),
             new LuminaSelfTestStep<Item>(true),
             new LuminaSelfTestStep<Level>(true),
-            new LuminaSelfTestStep<Lumina.Excel.Sheets.Action>(true),
+            new LuminaSelfTestStep<global::Dalamud.Excel.Sheets.Action>(true),
             new LuminaSelfTestStep<Quest>(true),
             new LuminaSelfTestStep<TerritoryType>(false),
             new AgentLifecycleSelfTestStep(),
