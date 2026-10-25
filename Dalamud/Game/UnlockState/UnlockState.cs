@@ -1121,9 +1121,6 @@ internal class UnlockStatePluginScoped : IInternalDisposableService, IUnlockStat
     public bool IsTripleTriadCardUnlocked(TripleTriadCard row) => this.unlockStateService.IsTripleTriadCardUnlocked(row);
 
     /// <inheritdoc/>
-    public bool IsUnlockLinkUnlocked(uint unlockLink) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink);
-
-    /// <inheritdoc/>
     public bool IsUnlockLinkUnlocked(uint unlockLink, byte minimumQuestSequence) => this.unlockStateService.IsUnlockLinkUnlocked(unlockLink, minimumQuestSequence);
 
     /// <inheritdoc/>
