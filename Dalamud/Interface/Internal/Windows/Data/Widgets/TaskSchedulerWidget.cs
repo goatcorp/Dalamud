@@ -227,14 +227,6 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Freeze 1s"u8))
-        {
-            _ = framework.Run(() => Helper().Wait());
-            static async Task Helper() => await Task.Delay(1000);
-        }
-
-        ImGui.SameLine();
-
         if (ImGui.Button("Freeze Completely"u8))
         {
             _ = framework.Run(() => Helper().Wait());
