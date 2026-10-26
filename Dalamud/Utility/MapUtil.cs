@@ -164,17 +164,17 @@ public readonly struct MapCoordinate
     public uint MapId { get; }
 
     /// <summary>
-    /// Gets the world X coordinate.
+    /// Gets the map X coordinate.
     /// </summary>
     public float X { get; }
 
     /// <summary>
-    /// Gets the world Y coordinate.
+    /// Gets the map Y coordinate.
     /// </summary>
     public float Y { get; }
 
     /// <summary>
-    /// Gets the world Z coordinate.
+    /// Gets the map Z coordinate.
     /// </summary>
     public float? Z { get; }
 
