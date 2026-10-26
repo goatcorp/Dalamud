@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
+namespace Dalamud.Utility.Unicode;
 
 /// <summary><a href="https://www.unicode.org/reports/tr11/">Unicode east asian width</a>.</summary>
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Unicode Data")]
-internal enum UnicodeEastAsianWidthClass : byte
+public enum UnicodeEastAsianWidthClass : byte
 {
     /// <summary>East Asian Ambiguous.</summary>
     A,

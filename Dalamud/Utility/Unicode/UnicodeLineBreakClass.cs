@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
+namespace Dalamud.Utility.Unicode;
 
 /// <summary><a href="https://unicode.org/reports/tr14/#Table1">Unicode line break class</a>.</summary>
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Unicode Data")]
@@ -8,12 +8,12 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
     "StyleCop.CSharp.DocumentationRules",
     "SA1300:Element should begin with an uppercase letter",
     Justification = "Unicode Data")]
-internal enum UnicodeLineBreakClass : byte
+public enum UnicodeLineBreakClass : byte
 {
-    /// <summary>Start of text.</summary>
+    /// <summary>Start of text. Only for use with UAX #14.</summary>
     sot,
 
-    /// <summary>End of text.</summary>
+    /// <summary>End of text. Only for use with UAX #14.</summary>
     eot,
 
     /// <summary>Mandatory Break; NL, PARAGRAPH SEPARATOR; Cause a line break (after).</summary>
@@ -52,7 +52,7 @@ internal enum UnicodeLineBreakClass : byte
     /// <summary>Break Opportunity Before and After; Em dash; Provide a line break opportunity before and after the character.</summary>
     B2,
 
-    /// <summary>Break After; Spaces, hyphens; Generally provide a line break opportunity after the character.</summary>
+    /// <summary>Break After; Spaces, most sentence-terminal punctuation; Generally provide a line break opportunity after the character.</summary>
     BA,
 
     /// <summary>Break Before; Punctuation used in dictionaries; Generally provide a line break opportunity before the character.</summary>
@@ -60,6 +60,9 @@ internal enum UnicodeLineBreakClass : byte
 
     /// <summary>Hyphen; HYPHEN-MINUS; Provide a line break opportunity after the character, except in numeric context.</summary>
     HY,
+
+    /// <summary>Unambiguous Hyphen; HYPHEN; Generally provide a line break opportunity after the character, except word-initially.</summary>
+    HH,
 
     /// <summary>Contingent Break Opportunity; Inline objects; Provide a line break opportunity contingent on additional information.</summary>
     CB,
@@ -82,7 +85,7 @@ internal enum UnicodeLineBreakClass : byte
     /// <summary>Open Punctuation; “(“, “[“, “{“, etc.; Prohibit line breaks after.</summary>
     OP,
 
-    /// <summary>Quotation; Quotation marks; Act like they are both opening and closing.</summary>
+    /// <summary>Quotation; Quotation marks; Act like they are opening, closing, or both.</summary>
     QU,
 
     /// <summary>Infix Numeric Separator; . ,; Prevent breaks after any and before numeric.</summary>
@@ -130,7 +133,7 @@ internal enum UnicodeLineBreakClass : byte
     /// <summary>Hangul LVT Syllable; Hangul; Form Korean syllable blocks.</summary>
     H3,
 
-    /// <summary>Hebrew Letter; Hebrew; Do not break around a following hyphen; otherwise act as Alphabetic.</summary>
+    /// <summary>Hebrew Letter; Hebrew; Special rules around hyphens and SOLIDUS; otherwise act as Alphabetic.</summary>
     HL,
 
     /// <summary>Ideographic; Ideographs; Break before or after, except in some numeric context.</summary>
