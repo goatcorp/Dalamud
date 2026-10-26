@@ -207,7 +207,7 @@ public static class SeStringBuilderExtensions
     }
 
     /// <summary>
-    /// Appends a formatted map link payload for the position of a <see cref="WorldCoordinate"/>.
+    /// Appends a formatted map link payload for the position of a <see cref="MapCoordinate"/>.
     /// </summary>
     /// <param name="builder">The builder to append the map link to.</param>
     /// <param name="mapPos">The map-space coordinate that should be linked.</param>

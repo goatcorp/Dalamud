@@ -93,7 +93,7 @@ public readonly struct WorldCoordinate
             this.TerritoryId,
             this.MapId,
             MapUtil.ConvertWorldCoordXZToMapCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
-            MapUtil.ConvertWorldCoordXZToMapCoord(this.Y, mapRow.SizeFactor, mapRow.OffsetX),
+            MapUtil.ConvertWorldCoordXZToMapCoord(this.Y, mapRow.SizeFactor, mapRow.OffsetY),
             MapUtil.ConvertWorldCoordYToMapCoord(this.TerritoryId, this.Z) / 100f,
             this.InstanceId);
     }
