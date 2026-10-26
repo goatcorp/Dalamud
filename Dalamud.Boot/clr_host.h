@@ -3,7 +3,7 @@
 #include <optional>
 #include <string>
 
-#include <Windows.h>
+#include <windows.h>
 
 #include "CoreCLR.h"
 
