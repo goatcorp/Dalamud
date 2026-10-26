@@ -19,7 +19,7 @@ public readonly struct WorldCoordinate
     /// <param name="territoryId">The TerritoryType RowId.</param>
     /// <param name="mapId">The Map RowId.</param>
     /// <param name="x">The world X coordinate.</param>
-    /// <param name="y">The world Y coordinate.</param>
+    /// <param name="y">The world Y coordinate. This is the altitude of the object.</param>
     /// <param name="z">The world Z coordinate.</param>
     /// <param name="instanceId">The Instance Id.</param>
     public WorldCoordinate(uint territoryId, uint mapId, float x, float y, float z, uint instanceId = 0)
@@ -30,6 +30,18 @@ public readonly struct WorldCoordinate
         this.Y = y;
         this.Z = z;
         this.InstanceId = instanceId;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WorldCoordinate"/> struct using a <see cref="Vector3"/> position.
+    /// </summary>
+    /// <param name="territoryId">The TerritoryType RowId.</param>
+    /// <param name="mapId">The Map RowId.</param>
+    /// <param name="pos">The 3D vector position, where Y is the altitude.</param>
+    /// <param name="instanceId">The Instance Id.</param>
+    public WorldCoordinate(uint territoryId, uint mapId, Vector3 pos, uint instanceId = 0)
+        : this(territoryId, mapId, pos.X, pos.Y, pos.Z, instanceId)
+    {
     }
 
     /// <summary>
@@ -48,7 +60,7 @@ public readonly struct WorldCoordinate
     public float X { get; }
 
     /// <summary>
-    /// Gets the world Y coordinate.
+    /// Gets the world Y coordinate. This is the altitude.
     /// </summary>
     public float Y { get; }
 
@@ -80,9 +92,9 @@ public readonly struct WorldCoordinate
         return new MapCoordinate(
             this.TerritoryId,
             this.MapId,
-            MapUtil.ConvertWorldCoordXYToMapCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
-            MapUtil.ConvertWorldCoordXYToMapCoord(this.Y, mapRow.SizeFactor, mapRow.OffsetY),
-            MapUtil.ConvertWorldCoordZToMapCoord(this.TerritoryId, this.Z) / 100f,
+            MapUtil.ConvertWorldCoordXZToMapCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
+            MapUtil.ConvertWorldCoordXZToMapCoord(this.Z, mapRow.SizeFactor, mapRow.OffsetY),
+            MapUtil.ConvertWorldCoordYToMapCoord(this.TerritoryId, this.Y) / 100f,
             this.InstanceId);
     }
 
@@ -105,7 +117,7 @@ public readonly struct MapCoordinate
     /// <param name="mapId">The Map RowId.</param>
     /// <param name="x">The map X coordinate.</param>
     /// <param name="y">The map Y coordinate.</param>
-    /// <param name="z">An optional map Z coordinate.</param>
+    /// <param name="z">An optional map Z coordinate. This is the altitude.</param>
     /// <param name="instanceId">The Instance Id.</param>
     public MapCoordinate(uint territoryId, uint mapId, float x, float y, float? z = null, uint instanceId = 0)
     {
@@ -138,7 +150,7 @@ public readonly struct MapCoordinate
     public float Y { get; }
 
     /// <summary>
-    /// Gets the map Z coordinate.
+    /// Gets the optional map Z coordinate. This is the altitude.
     /// </summary>
     public float? Z { get; }
 
@@ -163,9 +175,9 @@ public readonly struct MapCoordinate
         return new WorldCoordinate(
             this.TerritoryId,
             this.MapId,
-            MapUtil.MapPosXYToWorldPos(this.X, mapRow.SizeFactor, mapRow.OffsetX),
-            MapUtil.MapPosXYToWorldPos(this.Y, mapRow.SizeFactor, mapRow.OffsetY),
+            MapUtil.ConvertMapCoordXYToWorldCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
             this.Z.HasValue ? this.Z.Value * 100f : MapUtil.NoRawZ,
+            MapUtil.ConvertMapCoordXYToWorldCoord(this.Y, mapRow.SizeFactor, mapRow.OffsetY),
             this.InstanceId);
     }
 
@@ -202,7 +214,7 @@ public static class MapUtil
     /// <param name="scale">The scale factor of the map, generally retrieved from Lumina.</param>
     /// <param name="offset">The dimension offset for either X or Z, generally retrieved from Lumina.</param>
     /// <returns>Returns a converted float for display to the player.</returns>
-    public static float ConvertWorldCoordXYToMapCoord(float value, uint scale, int offset)
+    public static float ConvertWorldCoordXZToMapCoord(float value, uint scale, int offset)
     {
         // Derived from E8 ?? ?? ?? ?? 0F B7 4B 1C and simplified.
 
@@ -228,6 +240,24 @@ public static class MapUtil
     }
 
     /// <summary>
+    /// Helper method to convert the 3D y-coordinate (the altitude) to a map coordinate.
+    /// </summary>
+    /// <param name="territoryId">The TerritoryType Id.</param>
+    /// <param name="y">The y-coordinate value.</param>
+    /// <returns>A 3D world coordinate.</returns>
+    public static int ConvertWorldCoordYToMapCoord(uint territoryId, float y)
+    {
+        if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryId, out var transientRow) || transientRow.OffsetZ == NoOffsetZ)
+            return MapUtil.NoRawZ;
+
+        var adjustedY = y - transientRow.OffsetZ;
+        var result = (int)adjustedY;
+        if (adjustedY < 0.0f && adjustedY != result)
+            result -= 10;
+        return result;
+    }
+
+    /// <summary>
     /// All-in-one helper method to convert a World Coordinate (internal to the game) to a Map Coordinate (visible to
     /// players in the minimap/elsewhere).
     /// </summary>
@@ -250,8 +280,8 @@ public static class MapUtil
         bool correctZOffset = false)
     {
         return new Vector3(
-            ConvertWorldCoordXYToMapCoord(worldCoordinates.X, scale, xOffset),
-            ConvertWorldCoordXYToMapCoord(worldCoordinates.Z, scale, yOffset),
+            ConvertWorldCoordXZToMapCoord(worldCoordinates.X, scale, xOffset),
+            ConvertWorldCoordXZToMapCoord(worldCoordinates.Z, scale, yOffset),
             ConvertWorldCoordYToMapCoord(worldCoordinates.Y, zOffset, correctZOffset));
     }
 
@@ -295,8 +325,8 @@ public static class MapUtil
         uint scale = 100)
     {
         return new Vector2(
-            ConvertWorldCoordXYToMapCoord(worldCoordinates.X, scale, xOffset),
-            ConvertWorldCoordXYToMapCoord(worldCoordinates.Y, scale, yOffset));
+            ConvertWorldCoordXZToMapCoord(worldCoordinates.X, scale, xOffset),
+            ConvertWorldCoordXZToMapCoord(worldCoordinates.Y, scale, yOffset));
     }
 
     /// <summary>
@@ -317,31 +347,13 @@ public static class MapUtil
     /// <param name="value">The coordinate value.</param>
     /// <param name="scale">The SizeFactor value of the Map row.</param>
     /// <param name="offset">The OffsetX/OffsetY value of the Map row.</param>
+    /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
     /// <returns>A 3D world coordinate.</returns>
-    internal static int MapPosXYToWorldPos(float value, float scale, short offset)
+    public static int ConvertMapCoordXYToWorldCoord(float value, float scale, short offset, float fudgeFactor = 0.5f)
     {
         const float networkAdjustment = 1f;
-        const float fudgeFactor = 0.05f;
         var trueScale = scale / 100f;
         return (int)((((value + fudgeFactor - networkAdjustment) * trueScale / 41f * 2048f) - 1024f) / trueScale - offset);
-    }
-
-    /// <summary>
-    /// Helper method to convert the map's Z coordinate to a world coordinate.
-    /// </summary>
-    /// <param name="territoryId">The TerritoryType Id.</param>
-    /// <param name="z">The z-coordinate value.</param>
-    /// <returns>A 3D world coordinate.</returns>
-    internal static int ConvertWorldCoordZToMapCoord(uint territoryId, float z)
-    {
-        if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryId, out var transientRow) || transientRow.OffsetZ == NoOffsetZ)
-            return MapUtil.NoRawZ;
-
-        var adjustedZ = z - transientRow.OffsetZ;
-        var result = (int)adjustedZ;
-        if (adjustedZ < 0.0f && adjustedZ != result)
-            result -= 10;
-        return result;
     }
 
     /// <summary>

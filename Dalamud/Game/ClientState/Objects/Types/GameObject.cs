@@ -1,7 +1,6 @@
 using System.Numerics;
 
 using Dalamud.Game.ClientState.Objects.Enums;
-using Dalamud.Game.Player;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -230,7 +229,7 @@ internal partial class GameObject
             return default;
 
         var instanceId = (uint)CSFramework.Instance()->GetNetworkModuleProxy()->GetCurrentInstance();
-        return new WorldCoordinate(territoryId, mapId, this.Position.X, this.Position.Z, this.Position.Y, instanceId);
+        return new WorldCoordinate(territoryId, mapId, this.Position, instanceId);
     }
 
     /// <inheritdoc/>

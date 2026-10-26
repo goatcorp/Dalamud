@@ -1,16 +1,10 @@
-using Dalamud.Data;
 using Dalamud.Excel.Sheets;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Utility;
 
-using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
-
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
-
-using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 
 namespace Dalamud.Game.Text;
 
@@ -112,8 +106,8 @@ public static class SeString
                 .AppendUIntExpression(worldPos.TerritoryId)
                 .AppendUIntExpression((worldPos.InstanceId << 16) | worldPos.MapId)
                 .AppendIntExpression((int)(worldPos.X * 1000f))
-                .AppendIntExpression((int)(worldPos.Y * 1000f))
-                .AppendIntExpression((int)worldPos.Z)
+                .AppendIntExpression((int)(worldPos.Z * 1000f))
+                .AppendIntExpression((int)worldPos.Y)
                 .AppendUIntExpression(0)
                 .EndMacro()
                 .ToReadOnlySeString());

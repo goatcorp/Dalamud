@@ -21,8 +21,8 @@ public static class SheetExtensions
                 row.Territory.RowId,
                 row.Map.RowId,
                 row.X,
-                row.Z,
-                row.Y);
+                row.Y,
+                row.Z);
         }
 
         /// <summary>
