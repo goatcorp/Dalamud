@@ -370,7 +370,7 @@ public static class MapUtil
     /// <returns>A 3D world coordinate.</returns>
     internal static int ConvertWorldCoordYToMapCoord(uint territoryId, float z)
     {
-        if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryId, out var transientRow))
+        if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryId, out var transientRow) || transientRow.OffsetZ == NoOffsetZ)
             return MapUtil.NoRawZ;
 
         var adjustedZ = z - transientRow.OffsetZ;
