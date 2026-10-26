@@ -11,7 +11,7 @@ namespace Dalamud.Utility;
 /// <summary>
 /// Represents world-space coordinate within a specific territory, map, and instance.
 /// </summary>
-public readonly struct WorldCoordinate
+public struct WorldCoordinate
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="WorldCoordinate"/> struct using raw coordinate values.
@@ -45,34 +45,34 @@ public readonly struct WorldCoordinate
     }
 
     /// <summary>
-    /// Gets the TerritoryType RowId.
+    /// Gets or sets the TerritoryType RowId.
     /// </summary>
-    public uint TerritoryId { get; }
+    public uint TerritoryId { get; set; }
 
     /// <summary>
-    /// Gets the Map RowId.
+    /// Gets or sets the Map RowId.
     /// </summary>
-    public uint MapId { get; }
+    public uint MapId { get; set; }
 
     /// <summary>
-    /// Gets the world X coordinate.
+    /// Gets or sets the world X coordinate.
     /// </summary>
-    public float X { get; }
+    public float X { get; set; }
 
     /// <summary>
-    /// Gets the world Y coordinate. This is the altitude.
+    /// Gets or sets the world Y coordinate. This is the altitude.
     /// </summary>
-    public float Y { get; }
+    public float Y { get; set; }
 
     /// <summary>
-    /// Gets the world Z coordinate.
+    /// Gets or sets the world Z coordinate.
     /// </summary>
-    public float Z { get; }
+    public float Z { get; set; }
 
     /// <summary>
-    /// Gets the Instance Id.
+    /// Gets or sets the Instance Id.
     /// </summary>
-    public uint InstanceId { get; }
+    public uint InstanceId { get; set; }
 
     /// <summary>
     /// Converts this world-space coordinate into the corresponding map-space coordinate.
@@ -108,7 +108,7 @@ public readonly struct WorldCoordinate
 /// <summary>
 /// Represents map-space coordinate within a specific territory, map, and instance.
 /// </summary>
-public readonly struct MapCoordinate
+public struct MapCoordinate
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MapCoordinate"/> struct.
@@ -130,34 +130,34 @@ public readonly struct MapCoordinate
     }
 
     /// <summary>
-    /// Gets the TerritoryType RowId.
+    /// Gets or sets the TerritoryType RowId.
     /// </summary>
-    public uint TerritoryId { get; }
+    public uint TerritoryId { get; set; }
 
     /// <summary>
-    /// Gets the Map RowId.
+    /// Gets or sets the Map RowId.
     /// </summary>
-    public uint MapId { get; }
+    public uint MapId { get; set; }
 
     /// <summary>
-    /// Gets the map X coordinate.
+    /// Gets or sets the map X coordinate.
     /// </summary>
-    public float X { get; }
+    public float X { get; set; }
 
     /// <summary>
-    /// Gets the map Y coordinate.
+    /// Gets or sets the map Y coordinate.
     /// </summary>
-    public float Y { get; }
+    public float Y { get; set; }
 
     /// <summary>
-    /// Gets the optional map Z coordinate. This is the altitude.
+    /// Gets or sets the optional map Z coordinate. This is the altitude.
     /// </summary>
-    public float? Z { get; }
+    public float? Z { get; set; }
 
     /// <summary>
-    /// Gets the Instance Id.
+    /// Gets or sets the Instance Id.
     /// </summary>
-    public uint InstanceId { get; }
+    public uint InstanceId { get; set; }
 
     /// <summary>
     /// Converts this map-space coordinate into the corresponding, approximate world-space coordinate.
