@@ -33,18 +33,6 @@ public readonly struct WorldCoordinate
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="WorldCoordinate"/> struct using a <see cref="Vector3"/> position.
-    /// </summary>
-    /// <param name="territoryId">The TerritoryType RowId.</param>
-    /// <param name="mapId">The Map RowId.</param>
-    /// <param name="pos">The 3D vector position.</param>
-    /// <param name="instanceId">The Instance Id.</param>
-    public WorldCoordinate(uint territoryId, uint mapId, Vector3 pos, uint instanceId = 0)
-        : this(territoryId, mapId, pos.X, pos.Y, pos.Z, instanceId)
-    {
-    }
-
-    /// <summary>
     /// Gets the TerritoryType RowId.
     /// </summary>
     public uint TerritoryId { get; }
@@ -127,30 +115,6 @@ public readonly struct MapCoordinate
         this.Y = y;
         this.Z = z;
         this.InstanceId = instanceId;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="MapCoordinate"/> struct using a <see cref="Vector2"/> position.
-    /// </summary>
-    /// <param name="territoryId">The TerritoryType RowId.</param>
-    /// <param name="mapId">The Map RowId.</param>
-    /// <param name="pos">The 2D vector position.</param>
-    /// <param name="instanceId">The Instance Id.</param>
-    public MapCoordinate(uint territoryId, uint mapId, Vector2 pos, uint instanceId = 0)
-        : this(territoryId, mapId, pos.X, pos.Y, null, instanceId)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="MapCoordinate"/> struct using a <see cref="Vector3"/> position.
-    /// </summary>
-    /// <param name="territoryId">The TerritoryType RowId.</param>
-    /// <param name="mapId">The Map RowId.</param>
-    /// <param name="pos">The 3D vector position.</param>
-    /// <param name="instanceId">The Instance Id.</param>
-    public MapCoordinate(uint territoryId, uint mapId, Vector3 pos, uint instanceId = 0)
-        : this(territoryId, mapId, pos.X, pos.Y, pos.Z, instanceId)
-    {
     }
 
     /// <summary>
