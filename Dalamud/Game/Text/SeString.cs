@@ -83,7 +83,7 @@ public static class SeString
     /// <returns>A ReadOnlySeString containing all of the macros necessary to display a map link in the chat log.</returns>
     public static ReadOnlySeString CreateMapLink(IGameObject obj)
     {
-        return CreateMapLink(obj.GetMapCoordinate());
+        return CreateMapLink(obj.GetWorldCoordinate());
     }
 
     /// <summary>
