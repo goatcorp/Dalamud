@@ -17,7 +17,7 @@ public struct WorldCoordinate
     /// Initializes a new instance of the <see cref="WorldCoordinate"/> struct using raw coordinate values.
     /// </summary>
     /// <param name="territoryId">The TerritoryType RowId.</param>
-    /// <param name="mapId">The Map RowId.</param>
+    /// <param name="mapId">The Map RowId.<br/>If set to 0, falls back to <see cref="TerritoryType.Map"/> from the given <paramref name="territoryId"/>.</param>
     /// <param name="x">The world X coordinate.</param>
     /// <param name="y">The world Y coordinate. This is the altitude of the object.</param>
     /// <param name="z">The world Z coordinate.</param>
@@ -36,7 +36,7 @@ public struct WorldCoordinate
     /// Initializes a new instance of the <see cref="WorldCoordinate"/> struct using a <see cref="Vector3"/> position.
     /// </summary>
     /// <param name="territoryId">The TerritoryType RowId.</param>
-    /// <param name="mapId">The Map RowId.</param>
+    /// <param name="mapId">The Map RowId.<br/>If set to 0, falls back to <see cref="TerritoryType.Map"/> from the given <paramref name="territoryId"/>.</param>
     /// <param name="pos">The 3D vector position, where Y is the altitude.</param>
     /// <param name="instanceId">The Instance Id.</param>
     public WorldCoordinate(uint territoryId, uint mapId, Vector3 pos, uint instanceId = 0)
@@ -50,7 +50,8 @@ public struct WorldCoordinate
     public uint TerritoryId { get; set; }
 
     /// <summary>
-    /// Gets or sets the Map RowId.
+    /// Gets or sets the Map RowId.<br/>
+    /// If set to 0, falls back to <see cref="TerritoryType.Map"/> from the given <see cref="TerritoryId"/>.
     /// </summary>
     public uint MapId { get; set; }
 
@@ -114,7 +115,7 @@ public struct MapCoordinate
     /// Initializes a new instance of the <see cref="MapCoordinate"/> struct.
     /// </summary>
     /// <param name="territoryId">The TerritoryType RowId.</param>
-    /// <param name="mapId">The Map RowId.</param>
+    /// <param name="mapId">The Map RowId.<br/>If set to 0, falls back to <see cref="TerritoryType.Map"/> from the given <paramref name="territoryId"/>.</param>
     /// <param name="x">The map X coordinate.</param>
     /// <param name="y">The map Y coordinate.</param>
     /// <param name="z">An optional map Z coordinate. This is the altitude.</param>
@@ -135,7 +136,8 @@ public struct MapCoordinate
     public uint TerritoryId { get; set; }
 
     /// <summary>
-    /// Gets or sets the Map RowId.
+    /// Gets or sets the Map RowId.<br/>
+    /// If set to 0, falls back to <see cref="TerritoryType.Map"/> from the given <see cref="TerritoryId"/>.
     /// </summary>
     public uint MapId { get; set; }
 
