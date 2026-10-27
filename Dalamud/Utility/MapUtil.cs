@@ -99,7 +99,7 @@ public struct WorldCoordinate
             this.InstanceId);
     }
 
-    /// <inheritdoc cref="SeString.CreateMapLink(WorldCoordinate)"/>
+    /// <inheritdoc cref="SeString.CreateMapLink(WorldCoordinate, uint)"/>
     public ReadOnlySeString ToMapLink()
     {
         return SeString.CreateMapLink(this);
