@@ -6,7 +6,7 @@
 
     <PropertyGroup Label="Feature">
         <Description>XIV Launcher addon framework</Description>
-        <DalamudVersion>15.0.3.7</DalamudVersion>
+        <DalamudVersion>15.0.3.9</DalamudVersion>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
@@ -215,10 +215,25 @@
         <Exec Command="echo|set /P =&quot;$(SCMVersion)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
     </Target>
 
-    <Target Name="GenerateStubVersionData" BeforeTargets="WriteVersionData" Condition="'$(SCMVersion)'=='' And '$(Configuration)'!='Release'">
+    <!-- did anything change? -->
+    <Target Name="CollectLocalBuildInputs" DependsOnTargets="$(CoreCompileDependsOn);GenerateSourceLinkFile">
+        <PropertyGroup>
+            <LocalBuildTimeFile>$(IntermediateOutputPath)LocalBuildTime.txt</LocalBuildTimeFile>
+        </PropertyGroup>
+        <ItemGroup>
+            <!-- see: target "CoreCompile" in Microsoft.CSharp.Core.targets -->
+            <LocalBuildInput Include="$(MSBuildAllProjects);@(Compile);@(_CoreCompileResourceInputs);$(ApplicationIcon);$(KeyOriginatorFile);@(ReferencePathWithRefAssemblies);@(CompiledLicenseFile);@(LinkResource);@(EmbeddedDocumentation);$(Win32Resource);$(Win32Manifest);@(CustomAdditionalCompileInputs);$(ResolvedCodeAnalysisRuleSet);@(AdditionalFiles);@(EmbeddedFiles);@(Analyzer);@(EditorConfigFiles);$(SourceLink)" Exclude="$(IntermediateOutputPath)CustomAssemblyInfo.cs" />
+        </ItemGroup>
+    </Target>
+
+    <Target Name="WriteLocalBuildTimeFile" DependsOnTargets="CollectLocalBuildInputs" Inputs="@(LocalBuildInput)" Outputs="$(LocalBuildTimeFile)">
+        <WriteLinesToFile File="$(LocalBuildTimeFile)" Lines="$([System.DateTime]::Now.ToString('yyyy-MM-dd HH:mm:ss'))" Overwrite="true" />
+    </Target>
+
+    <Target Name="GenerateStubVersionData" BeforeTargets="WriteVersionData" DependsOnTargets="WriteLocalBuildTimeFile" Condition="'$(SCMVersion)'=='' And '$(Configuration)'!='Release'">
         <!-- stub out version since it takes a while. -->
         <PropertyGroup>
-            <SCMVersion>Local build at $([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</SCMVersion>
+            <SCMVersion>Local build at $([System.IO.File]::ReadAllText('$(LocalBuildTimeFile)').Trim())</SCMVersion>
             <Branch>???</Branch>
             <CommitHashClientStructs>???</CommitHashClientStructs>
         </PropertyGroup>
@@ -235,28 +250,15 @@
         </ItemGroup>
         <!-- defines the AssemblyMetadata attribute that will be written -->
         <ItemGroup>
-            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(SCMVersion)' != ''">
-                <_Parameter1>SCMVersion</_Parameter1>
-                <_Parameter2>$(SCMVersion)</_Parameter2>
-            </AssemblyAttributes>
-            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(CommitCount)' != ''">
-                <_Parameter1>GitCommitCount</_Parameter1>
-                <_Parameter2>$(CommitCount)</_Parameter2>
-            </AssemblyAttributes>
-            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(Branch)' != ''">
-                <_Parameter1>GitBranch</_Parameter1>
-                <_Parameter2>$(Branch)</_Parameter2>
-            </AssemblyAttributes>
-            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(CommitHashClientStructs)' != ''">
-                <_Parameter1>GitHashClientStructs</_Parameter1>
-                <_Parameter2>$(CommitHashClientStructs)</_Parameter2>
-            </AssemblyAttributes>
-            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(CommitHash)' != ''">
-                <_Parameter1>GitHash</_Parameter1>
-                <_Parameter2>$(CommitHash)</_Parameter2>
-            </AssemblyAttributes>
+            <VersionMetadata Include="SCMVersion" Value="$(SCMVersion)" Condition="'$(SCMVersion)' != ''" />
+            <VersionMetadata Include="GitCommitCount" Value="$(CommitCount)" Condition="'$(CommitCount)' != ''" />
+            <VersionMetadata Include="GitBranch" Value="$(Branch)" Condition="'$(Branch)' != ''" />
+            <VersionMetadata Include="GitHashClientStructs" Value="$(CommitHashClientStructs)" Condition="'$(CommitHashClientStructs)' != ''" />
+            <VersionMetadata Include="GitHash" Value="$(CommitHash)" Condition="'$(CommitHash)' != ''" />
+            <AssemblyAttributes Include="AssemblyMetadata"><_Parameter1>%(VersionMetadata.Identity)</_Parameter1><_Parameter2>%(VersionMetadata.Value)</_Parameter2></AssemblyAttributes>
         </ItemGroup>
-        <!-- writes the attribute to the customAssemblyInfo file -->
-        <WriteCodeFragment Language="C#" OutputFile="$(CustomAssemblyInfoFile)" AssemblyAttributes="@(AssemblyAttributes)" />
+        <WriteCodeFragment Language="C#" OutputFile="$(CustomAssemblyInfoFile).tmp" AssemblyAttributes="@(AssemblyAttributes)" />
+        <ReadLinesFromFile File="$(CustomAssemblyInfoFile).tmp"><Output TaskParameter="Lines" ItemName="CustomAssemblyInfoFileLines" /></ReadLinesFromFile>
+        <WriteLinesToFile File="$(CustomAssemblyInfoFile)" Lines="@(CustomAssemblyInfoFileLines)" Overwrite="true" WriteOnlyWhenDifferent="true" />
     </Target>
 </Project>

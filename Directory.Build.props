@@ -5,6 +5,7 @@
         <TargetFramework>net10.0-windows</TargetFramework>
         <PlatformTarget>x64</PlatformTarget>
         <Platforms>x64</Platforms>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 
         <!-- preview, as docfx is late at upgrading Roslyn versions -->
         <LangVersion>preview</LangVersion>

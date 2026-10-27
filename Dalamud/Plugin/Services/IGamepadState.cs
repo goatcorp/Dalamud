@@ -17,8 +17,9 @@ public interface IGamepadState : IDalamudService
     nint GamepadInputAddress { get; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether gamepad input is intercepted for ImGui navigation, 
+    /// Gets or sets a value indicating whether gamepad input is intercepted for ImGui navigation,
     /// preventing it from passing through to the game.
+    /// Setting to true is ignored while plugin gamepad input is disabled in Dalamud settings.
     /// </summary>
     public bool EnableGamepadNav { get; set; }
 

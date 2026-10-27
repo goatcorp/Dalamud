@@ -29,6 +29,8 @@ GlobalLock
 GlobalUnlock
 GLOBAL_ALLOC_FLAGS
 
+GetSystemInfo
+
 VirtualAlloc
 VirtualProtect
 VirtualFree
