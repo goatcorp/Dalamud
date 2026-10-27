@@ -105,9 +105,9 @@ public static class SeString
                 .AppendIntExpression(3)
                 .AppendUIntExpression(worldPos.TerritoryId)
                 .AppendUIntExpression((worldPos.InstanceId << 16) | worldPos.MapId)
-                .AppendIntExpression((int)(worldPos.X * 1000f))
-                .AppendIntExpression((int)(worldPos.Z * 1000f))
-                .AppendIntExpression((int)worldPos.Y)
+                .AppendIntExpression((int)MathF.Round(worldPos.X * 1000f))
+                .AppendIntExpression((int)MathF.Round(worldPos.Z * 1000f))
+                .AppendIntExpression(worldPos.Y == MapUtil.NoRawZ ? MapUtil.NoRawZ : MapUtil.ApplyTerritoryOffsetToWorldCoordianteY(worldPos.TerritoryId, worldPos.Y))
                 .AppendUIntExpression(0)
                 .EndMacro()
                 .ToReadOnlySeString());

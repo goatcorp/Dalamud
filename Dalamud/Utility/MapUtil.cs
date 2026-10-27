@@ -95,7 +95,7 @@ public struct WorldCoordinate
             this.MapId,
             MapUtil.ConvertWorldCoordXZToMapCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
             MapUtil.ConvertWorldCoordXZToMapCoord(this.Z, mapRow.SizeFactor, mapRow.OffsetY),
-            MapUtil.ConvertWorldCoordYToMapCoord(this.TerritoryId, this.Y) / 100f,
+            this.Y == MapUtil.NoRawZ ? null : this.Y / 100f,
             this.InstanceId);
     }
 
@@ -247,7 +247,7 @@ public static class MapUtil
     /// <param name="territoryId">The TerritoryType Id.</param>
     /// <param name="y">The y-coordinate value.</param>
     /// <returns>A 3D world coordinate.</returns>
-    public static int ConvertWorldCoordYToMapCoord(uint territoryId, float y)
+    public static int ApplyTerritoryOffsetToWorldCoordianteY(uint territoryId, float y)
     {
         if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryId, out var transientRow) || transientRow.OffsetZ == NoOffsetZ)
             return MapUtil.NoRawZ;
