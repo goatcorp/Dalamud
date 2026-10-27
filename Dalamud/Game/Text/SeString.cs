@@ -94,8 +94,9 @@ public static class SeString
     /// Creates a ReadOnlySeString representing an entire macros chain that can be used to link a map position in the chat log.
     /// </summary>
     /// <param name="worldPos">The world-space coordinate.</param>
+    /// <param name="placeNameIdOverride">An optional PlaceName RowId that is used for the locations name.</param>
     /// <returns>A ReadOnlySeString containing all of the macros necessary to display a map link in the chat log.</returns>
-    public static ReadOnlySeString CreateMapLink(WorldCoordinate worldPos)
+    public static ReadOnlySeString CreateMapLink(WorldCoordinate worldPos, uint placeNameIdOverride = 0)
     {
         using var rssb = new RentedSeStringBuilder();
 
@@ -108,7 +109,7 @@ public static class SeString
                 .AppendIntExpression((int)MathF.Round(worldPos.X * 1000f))
                 .AppendIntExpression((int)MathF.Round(worldPos.Z * 1000f))
                 .AppendIntExpression(worldPos.Y == MapUtil.NoRawZ ? MapUtil.NoRawZ : MapUtil.ApplyTerritoryOffsetToWorldCoordianteY(worldPos.TerritoryId, worldPos.Y))
-                .AppendUIntExpression(0)
+                .AppendUIntExpression(placeNameIdOverride)
                 .EndMacro()
                 .ToReadOnlySeString());
     }
