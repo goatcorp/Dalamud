@@ -35,6 +35,7 @@ internal class DataWindow : Window, IDisposable
         new CommandWidget(),
         new ConditionWidget(),
         new ConfigurationWidget(),
+        new CoordinatesWidget(),
         new DataShareWidget(),
         new DtrBarWidget(),
         new ExceptionWidget(),
