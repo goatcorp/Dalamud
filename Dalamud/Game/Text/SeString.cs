@@ -20,7 +20,7 @@ public static class SeString
     /// <param name="isHq">Whether to link the high-quality variant of the item.</param>
     /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
     /// <returns>A ReadOnlySeString containing all the macros necessary to display an item link in the chat log.</returns>
-    public static ReadOnlySeString CreateItemLink(uint itemId, bool isHq, string? displayNameOverride = null)
+    public static ReadOnlySeString CreateItemLink(uint itemId, bool isHq, ReadOnlySeString displayNameOverride = default)
         => CreateItemLink(itemId, isHq ? ItemKind.Hq : ItemKind.Normal, displayNameOverride);
 
     /// <summary>
@@ -30,8 +30,8 @@ public static class SeString
     /// <param name="isHq">Whether to link the high-quality variant of the item.</param>
     /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
     /// <returns>A ReadOnlySeString containing all the macros necessary to display an item link in the chat log.</returns>
-    public static ReadOnlySeString CreateItemLink(Item item, bool isHq, string? displayNameOverride = null)
-        => CreateItemLink(item.RowId, isHq, displayNameOverride ?? item.Name.ExtractText());
+    public static ReadOnlySeString CreateItemLink(Item item, bool isHq, ReadOnlySeString displayNameOverride = default)
+        => CreateItemLink(item.RowId, isHq, !displayNameOverride.IsEmpty ? displayNameOverride : item.Name);
 
     /// <summary>
     /// Creates a ReadOnlySeString representing an entire macro chain that can be used to link an item in the chat log.
@@ -40,14 +40,14 @@ public static class SeString
     /// <param name="kind">The kind of item to link.</param>
     /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
     /// <returns>A ReadOnlySeString containing all the macros necessary to display an item link in the chat log.</returns>
-    public static ReadOnlySeString CreateItemLink(uint itemId, ItemKind kind = ItemKind.Normal, string? displayNameOverride = null)
+    public static ReadOnlySeString CreateItemLink(uint itemId, ItemKind kind = ItemKind.Normal, ReadOnlySeString displayNameOverride = default)
     {
         var clientState = Service<ClientState.ClientState>.Get();
         var evaluator = Service<SeStringEvaluator>.Get();
 
         var rawId = ItemUtil.GetRawId(itemId, kind);
 
-        var displayName = displayNameOverride ?? ItemUtil.GetItemName(rawId);
+        var displayName = !displayNameOverride.IsEmpty ? displayNameOverride : ItemUtil.GetItemName(rawId);
         if (displayName.IsEmpty)
             throw new Exception("Invalid item ID specified, could not determine item name.");
 

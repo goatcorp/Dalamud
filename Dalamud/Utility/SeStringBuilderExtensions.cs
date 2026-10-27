@@ -152,7 +152,7 @@ public static class SeStringBuilderExtensions
     /// <param name="itemId">The Id of the Item or EventItem to link. Automatically extracted into its base Id and <see cref="ItemKind"/>.</param>
     /// <param name="displayNameOverride">An optional name override to display instead of the actual item name.</param>
     /// <returns>The <see cref="SeStringBuilder"/> instance with the item link appended for method chaining.</returns>
-    public static SeStringBuilder PushItemLink(this SeStringBuilder builder, uint itemId, string? displayNameOverride = null)
+    public static SeStringBuilder PushItemLink(this SeStringBuilder builder, uint itemId, ReadOnlySeString displayNameOverride = default)
     {
         var (baseItemId, itemKind) = ItemUtil.GetBaseId(itemId);
         return builder.Append(SeString.CreateItemLink(baseItemId, itemKind, displayNameOverride));
@@ -166,7 +166,7 @@ public static class SeStringBuilderExtensions
     /// <param name="itemKind">The <see cref="ItemKind"/> variant of the item (e.g., normal, high-quality, collectable).</param>
     /// <param name="displayNameOverride">An optional name override to display instead of the actual item name.</param>
     /// <returns>The <see cref="SeStringBuilder"/> instance with the item link appended for method chaining.</returns>
-    public static SeStringBuilder PushItemLink(this SeStringBuilder builder, uint baseItemId, ItemKind itemKind, string? displayNameOverride = null)
+    public static SeStringBuilder PushItemLink(this SeStringBuilder builder, uint baseItemId, ItemKind itemKind, ReadOnlySeString displayNameOverride = default)
     {
         return builder.Append(SeString.CreateItemLink(baseItemId, itemKind, displayNameOverride));
     }
@@ -179,7 +179,7 @@ public static class SeStringBuilderExtensions
     /// <param name="isHq">Whether to link the high-quality variant of the item.</param>
     /// <param name="displayNameOverride">An optional name override to display instead of the actual item name.</param>
     /// <returns>The <see cref="SeStringBuilder"/> instance with the item link appended for method chaining.</returns>
-    public static SeStringBuilder PushItemLink(this SeStringBuilder builder, Item item, bool isHq, string? displayNameOverride = null)
+    public static SeStringBuilder PushItemLink(this SeStringBuilder builder, Item item, bool isHq, ReadOnlySeString displayNameOverride = default)
     {
         return builder.Append(SeString.CreateItemLink(item, isHq, displayNameOverride));
     }
