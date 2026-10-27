@@ -224,6 +224,18 @@ public static class MapUtil
     }
 
     /// <summary>
+    /// Helper method to convert one of the map's X/Y coordinate to a world coordinate.
+    /// </summary>
+    /// <param name="value">The coordinate value.</param>
+    /// <param name="scale">The SizeFactor value of the Map row.</param>
+    /// <param name="offset">The OffsetX/OffsetY value of the Map row.</param>
+    /// <returns>A 3D world coordinate.</returns>
+    public static float ConvertMapCoordXYToWorldCoord(float value, float scale, short offset)
+    {
+        return (value - 1.0f - (0.02f * offset) - (2048.0f / scale)) * 50.0f;
+    }
+
+    /// <summary>
     /// Helper method to convert a game Vector3 Y coordinate to a map coordinate suitable for display to the player.
     /// </summary>
     /// <param name="value">The raw float of a game Vector3 Y coordinate to convert.</param>
@@ -341,21 +353,6 @@ public static class MapUtil
     public static Vector2 WorldToMap(Vector2 worldCoordinates, Map map)
     {
         return WorldToMap(worldCoordinates, map.OffsetX, map.OffsetY, map.SizeFactor);
-    }
-
-    /// <summary>
-    /// Helper method to convert one of the map's X/Y coordinate to a world coordinate.
-    /// </summary>
-    /// <param name="value">The coordinate value.</param>
-    /// <param name="scale">The SizeFactor value of the Map row.</param>
-    /// <param name="offset">The OffsetX/OffsetY value of the Map row.</param>
-    /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
-    /// <returns>A 3D world coordinate.</returns>
-    public static int ConvertMapCoordXYToWorldCoord(float value, float scale, short offset, float fudgeFactor = 0.05f)
-    {
-        const float networkAdjustment = 1f;
-        var trueScale = scale / 100f;
-        return (int)((((value + fudgeFactor - networkAdjustment) * trueScale / 41f * 2048f) - 1024f) / trueScale - offset);
     }
 
     /// <summary>
