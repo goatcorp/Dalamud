@@ -68,7 +68,7 @@ public interface IFramework : IDalamudService
     TaskFactory GetTaskFactory();
 
     /// <summary>
-    /// Returns a task that completes after the given number of ticks. 
+    /// Returns a task that completes after the given number of ticks.
     /// </summary>
     /// <param name="numTicks">Number of ticks to delay.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -88,6 +88,7 @@ public interface IFramework : IDalamudService
     /// <para>See the remarks on <see cref="IFramework"/> if you need to choose which one to use, between
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
+    /// <para>Warning, calling this while already on the main thread will result in a deadlock. You can check <see cref="ThreadSafety.IsMainThread"/> to be sure before calling this function.</para>
     /// </remarks>
     Task Run(Action action, CancellationToken cancellationToken = default);
 
@@ -104,6 +105,7 @@ public interface IFramework : IDalamudService
     /// <para>See the remarks on <see cref="IFramework"/> if you need to choose which one to use, between
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
+    /// <para>Warning, calling this while already on the main thread will result in a deadlock. You can check <see cref="ThreadSafety.IsMainThread"/> to be sure before calling this function.</para>
     /// </remarks>
     Task<T> Run<T>(Func<T> action, CancellationToken cancellationToken = default);
 
@@ -119,6 +121,7 @@ public interface IFramework : IDalamudService
     /// <para>See the remarks on <see cref="IFramework"/> if you need to choose which one to use, between
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
+    /// <para>Warning, calling this while already on the main thread will result in a deadlock. You can check <see cref="ThreadSafety.IsMainThread"/> to be sure before calling this function.</para>
     /// </remarks>
     Task Run(Func<Task> action, CancellationToken cancellationToken = default);
 
@@ -135,6 +138,7 @@ public interface IFramework : IDalamudService
     /// <para>See the remarks on <see cref="IFramework"/> if you need to choose which one to use, between
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
+    /// <para>Warning, calling this while already on the main thread will result in a deadlock. You can check <see cref="ThreadSafety.IsMainThread"/> to be sure before calling this function.</para>
     /// </remarks>
     Task<T> Run<T>(Func<Task<T>> action, CancellationToken cancellationToken = default);
 
@@ -154,6 +158,7 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
+    [Obsolete($"Use {nameof(RunOnTick)} or {nameof(Run)} instead.")]
     Task<T> RunOnFrameworkThread<T>(Func<T> func);
 
     /// <summary>
@@ -171,6 +176,7 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
+    [Obsolete($"Use {nameof(RunOnTick)} or {nameof(Run)} instead.")]
     Task RunOnFrameworkThread(Action action);
 
     /// <summary>
@@ -189,7 +195,7 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
-    [Obsolete($"Use {nameof(RunOnTick)} instead.")]
+    [Obsolete($"Use {nameof(RunOnTick)} or {nameof(Run)} instead.")]
     Task<T> RunOnFrameworkThread<T>(Func<Task<T>> func);
 
     /// <summary>
@@ -207,7 +213,7 @@ public interface IFramework : IDalamudService
     /// <c>Run</c> and <c>RunOnFrameworkThread</c>. Note that <c>RunOnTick</c> is a fancy
     /// version of <c>RunOnFrameworkThread</c>.</para>
     /// </remarks>
-    [Obsolete($"Use {nameof(RunOnTick)} instead.")]
+    [Obsolete($"Use {nameof(RunOnTick)} or {nameof(Run)} instead.")]
     Task RunOnFrameworkThread(Func<Task> func);
 
     /// <summary>
