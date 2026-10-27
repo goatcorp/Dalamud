@@ -98,6 +98,9 @@ public static class SeString
     /// <returns>A ReadOnlySeString containing all of the macros necessary to display a map link in the chat log.</returns>
     public static ReadOnlySeString CreateMapLink(WorldCoordinate worldPos, uint placeNameIdOverride = 0)
     {
+        if (worldPos.TerritoryId == 0 || worldPos.MapId == 0)
+            return default;
+
         using var rssb = new RentedSeStringBuilder();
 
         return Service<SeStringEvaluator>.Get().Evaluate(rssb
