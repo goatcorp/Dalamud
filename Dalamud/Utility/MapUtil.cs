@@ -351,7 +351,7 @@ public static class MapUtil
     /// <param name="offset">The OffsetX/OffsetY value of the Map row.</param>
     /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
     /// <returns>A 3D world coordinate.</returns>
-    public static int ConvertMapCoordXYToWorldCoord(float value, float scale, short offset, float fudgeFactor = 0.5f)
+    public static int ConvertMapCoordXYToWorldCoord(float value, float scale, short offset, float fudgeFactor = 0.05f)
     {
         const float networkAdjustment = 1f;
         var trueScale = scale / 100f;
