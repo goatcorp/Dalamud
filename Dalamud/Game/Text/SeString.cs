@@ -102,8 +102,11 @@ public static class SeString
     /// <returns>A ReadOnlySeString containing all of the macros necessary to display a map link in the chat log.</returns>
     public static ReadOnlySeString CreateMapLink(WorldCoordinate worldPos, uint placeNameIdOverride = 0)
     {
-        if (worldPos.TerritoryId == 0 || worldPos.MapId == 0)
+        var mapId = MapUtil.ResolveMapId(worldPos.TerritoryId, worldPos.MapId);
+        if (worldPos.TerritoryId == 0 || mapId == 0)
+        {
             return default;
+        }
 
         using var rssb = new RentedSeStringBuilder();
 
@@ -112,9 +115,10 @@ public static class SeString
                 .AppendIntExpression(200)
                 .AppendIntExpression(3)
                 .AppendUIntExpression(worldPos.TerritoryId)
-                .AppendUIntExpression((worldPos.InstanceId << 16) | worldPos.MapId)
-                .AppendIntExpression((int)MathF.Round(worldPos.X * 1000f))
-                .AppendIntExpression((int)MathF.Round(worldPos.Z * 1000f))
+                .AppendUIntExpression((worldPos.InstanceId << 16) | mapId)
+                .AppendIntExpression(MapUtil.ConvertWorldCoordXZToRaw(worldPos.X))
+                .AppendIntExpression(MapUtil.ConvertWorldCoordXZToRaw(worldPos.Z))
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
                 .AppendIntExpression(worldPos.Y == MapUtil.NoRawZ ? MapUtil.NoRawZ : MapUtil.ApplyTerritoryOffsetToWorldCoordinateY(worldPos.TerritoryId, worldPos.Y))
                 .AppendUIntExpression(placeNameIdOverride)
                 .EndMacro()

@@ -231,6 +231,7 @@ public static class MapUtil
     /// <param name="scale">The scale factor of the map, generally retrieved from Lumina.</param>
     /// <param name="offset">The dimension offset for either X or Z, generally retrieved from Lumina.</param>
     /// <returns>Returns a converted float for display to the player.</returns>
+    // ReSharper disable once InconsistentNaming
     public static float ConvertWorldCoordXZToMapCoord(float value, uint scale, int offset)
     {
         // Derived from E8 ?? ?? ?? ?? 0F B7 4B 1C and simplified.
@@ -245,6 +246,7 @@ public static class MapUtil
     /// <param name="scale">The SizeFactor value of the Map row.</param>
     /// <param name="offset">The OffsetX/OffsetY value of the Map row.</param>
     /// <returns>A 3D world coordinate.</returns>
+    // ReSharper disable once InconsistentNaming
     public static float ConvertMapCoordXYToWorldCoord(float value, float scale, short offset)
     {
         return (value - 1.0f - (0.02f * offset) - (2048.0f / scale)) * 50.0f;
@@ -389,6 +391,17 @@ public static class MapUtil
         return Service<DataManager>.Get().GetExcelSheet<TerritoryType>().TryGetRow(territoryTypeId, out var territoryRow)
             ? territoryRow.Map.RowId
             : 0;
+    }
+
+    /// <summary>
+    /// Converts a world X/Z coordinate to the raw integer used by map links, e.g. 123.4567 -> 123457.
+    /// </summary>
+    /// <param name="value">The world X or Z coordinate.</param>
+    /// <returns>The raw coordinate.</returns>
+    // ReSharper disable once InconsistentNaming
+    internal static int ConvertWorldCoordXZToRaw(float value)
+    {
+        return (int)MathF.Round(value * 1000f);
     }
 
     /// <summary>
