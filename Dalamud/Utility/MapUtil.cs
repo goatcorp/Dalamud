@@ -90,12 +90,20 @@ public struct WorldCoordinate
         if (mapId == 0 || !dataManager.GetExcelSheet<Map>().TryGetRow(mapId, out var mapRow))
             return default;
 
+        float? z = null;
+
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if (this.Y != MapUtil.NoRawZ && MapUtil.TryGetOffsetZ(this.TerritoryId, out var offsetZ))
+        {
+            z = MapUtil.ConvertWorldCoordYToMapCoord(this.Y, offsetZ);
+        }
+
         return new MapCoordinate(
             this.TerritoryId,
             this.MapId,
             MapUtil.ConvertWorldCoordXZToMapCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
             MapUtil.ConvertWorldCoordXZToMapCoord(this.Z, mapRow.SizeFactor, mapRow.OffsetY),
-            this.Y == MapUtil.NoRawZ ? null : this.Y / 100f,
+            z,
             this.InstanceId);
     }
 
@@ -174,11 +182,18 @@ public struct MapCoordinate
         if (mapId == 0 || !Service<DataManager>.Get().GetExcelSheet<Map>().TryGetRow(mapId, out var mapRow))
             return default;
 
+        float y = MapUtil.NoRawZ;
+        if (this.Z.HasValue)
+        {
+            MapUtil.TryGetOffsetZ(this.TerritoryId, out var offsetZ);
+            y = MathF.Round(this.Z.Value * 100f, 2) + offsetZ;
+        }
+
         return new WorldCoordinate(
             this.TerritoryId,
             this.MapId,
             MapUtil.ConvertMapCoordXYToWorldCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
-            this.Z.HasValue ? this.Z.Value * 100f : MapUtil.NoRawZ,
+            y,
             MapUtil.ConvertMapCoordXYToWorldCoord(this.Y, mapRow.SizeFactor, mapRow.OffsetY),
             this.InstanceId);
     }
@@ -388,5 +403,24 @@ public static class MapUtil
         return Service<DataManager>.Get().GetExcelSheet<TerritoryType>().TryGetRow(territoryTypeId, out var territoryRow)
             ? territoryRow.Map.RowId
             : 0;
+    }
+
+    /// <summary>
+    /// Gets the <see cref="TerritoryTypeTransient.OffsetZ"/> of a territory that displays a Z coordinate.
+    /// </summary>
+    /// <param name="territoryTypeId">The TerritoryType Id.</param>
+    /// <param name="offsetZ">The OffsetZ, or 0 if the territory displays no Z coordinate.</param>
+    /// <returns>Whether the territory displays a Z coordinate.</returns>
+    internal static bool TryGetOffsetZ(uint territoryTypeId, out int offsetZ)
+    {
+        offsetZ = 0;
+
+        if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryTypeId, out var transientRow) || transientRow.OffsetZ == NoOffsetZ)
+        {
+            return false;
+        }
+
+        offsetZ = transientRow.OffsetZ;
+        return true;
     }
 }
