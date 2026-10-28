@@ -13,6 +13,8 @@ namespace Dalamud.Game.Text;
 /// </summary>
 public static class SeString
 {
+    private const float MapCoordinateBias = 0.0001f;
+
     /// <summary>
     /// Creates a ReadOnlySeString representing an entire macro chain that can be used to link an item in the chat log.
     /// </summary>
@@ -124,6 +126,11 @@ public static class SeString
     /// <returns>A ReadOnlySeString containing all of the macros necessary to display a map link in the chat log.</returns>
     public static ReadOnlySeString CreateMapLink(MapCoordinate mapPos)
     {
+        // Needed to fix some inaccuracies in the float math in the evaluator, used to be "fudgeFactor" in api15 but
+        // this value seems safe for every case I tested
+        mapPos.X += MapCoordinateBias;
+        mapPos.Y += MapCoordinateBias;
+
         return CreateMapLink(mapPos.ToWorldCoordinate());
     }
 
