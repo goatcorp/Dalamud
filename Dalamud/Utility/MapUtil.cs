@@ -274,32 +274,18 @@ public static class MapUtil
     /// <param name="territoryId">The TerritoryType Id.</param>
     /// <param name="y">The y-coordinate value.</param>
     /// <returns>An adjusted altitude.</returns>
-    public static int ApplyTerritoryOffsetToWorldCoordianteY(uint territoryId, float y)
+    public static int ApplyTerritoryOffsetToWorldCoordinateY(uint territoryId, float y)
     {
         if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryId, out var transientRow) || transientRow.OffsetZ == NoOffsetZ)
             return MapUtil.NoRawZ;
 
         var adjustedY = y - transientRow.OffsetZ;
         var result = (int)adjustedY;
+
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (adjustedY < 0.0f && adjustedY != result)
             result -= 10;
         return result;
-    }
-
-    /// <summary>
-    /// Helper method to remove the <see cref="TerritoryTypeTransient.OffsetZ"/> from a Y (altitude) value of a coordinate.
-    /// </summary>
-    /// <param name="territoryId">The TerritoryType Id.</param>
-    /// <param name="y">The y-coordinate value.</param>
-    /// <returns>An adjusted altitude.</returns>
-    public static float RemoveTerritoryOffsetFromWorldCoordinateY(uint territoryId, float y)
-    {
-        if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryId, out var transientRow) || transientRow.OffsetZ == NoOffsetZ)
-            return y;
-
-        if (y < 0.0f)
-            y += 10;
-        return y + transientRow.OffsetZ;
     }
 
     /// <summary>

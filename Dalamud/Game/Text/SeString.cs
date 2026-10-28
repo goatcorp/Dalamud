@@ -113,7 +113,7 @@ public static class SeString
                 .AppendUIntExpression((worldPos.InstanceId << 16) | worldPos.MapId)
                 .AppendIntExpression((int)MathF.Round(worldPos.X * 1000f))
                 .AppendIntExpression((int)MathF.Round(worldPos.Z * 1000f))
-                .AppendIntExpression(worldPos.Y == MapUtil.NoRawZ ? MapUtil.NoRawZ : MapUtil.ApplyTerritoryOffsetToWorldCoordianteY(worldPos.TerritoryId, worldPos.Y))
+                .AppendIntExpression(worldPos.Y == MapUtil.NoRawZ ? MapUtil.NoRawZ : MapUtil.ApplyTerritoryOffsetToWorldCoordinateY(worldPos.TerritoryId, worldPos.Y))
                 .AppendUIntExpression(placeNameIdOverride)
                 .EndMacro()
                 .ToReadOnlySeString());
