@@ -108,9 +108,9 @@ public struct WorldCoordinate
     }
 
     /// <inheritdoc cref="SeString.CreateMapLink(WorldCoordinate, uint)"/>
-    public ReadOnlySeString ToMapLink()
+    public ReadOnlySeString ToMapLink(uint placeNameIdOverride = 0)
     {
-        return SeString.CreateMapLink(this);
+        return SeString.CreateMapLink(this, placeNameIdOverride);
     }
 }
 

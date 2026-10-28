@@ -200,10 +200,11 @@ public static class SeStringBuilderExtensions
     /// </summary>
     /// <param name="builder">The builder to append the map link to.</param>
     /// <param name="worldPos">The world-space coordinate that should be linked.</param>
+    /// <param name="placeNameIdOverride">An optional PlaceName RowId that is used for the locations name.</param>
     /// <returns>The <see cref="SeStringBuilder"/> instance with the map link appended for method chaining.</returns>
-    public static SeStringBuilder PushMapLink(this SeStringBuilder builder, WorldCoordinate worldPos)
+    public static SeStringBuilder PushMapLink(this SeStringBuilder builder, WorldCoordinate worldPos, uint placeNameIdOverride = 0)
     {
-        return builder.Append(SeString.CreateMapLink(worldPos));
+        return builder.Append(SeString.CreateMapLink(worldPos, placeNameIdOverride));
     }
 
     /// <summary>
