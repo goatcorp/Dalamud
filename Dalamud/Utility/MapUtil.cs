@@ -198,10 +198,10 @@ public struct MapCoordinate
             this.InstanceId);
     }
 
-    /// <inheritdoc cref="SeString.CreateMapLink(MapCoordinate)"/>
-    public ReadOnlySeString ToMapLink()
+    /// <inheritdoc cref="SeString.CreateMapLink(MapCoordinate, uint)"/>
+    public ReadOnlySeString ToMapLink(uint placeNameIdOverride = 0)
     {
-        return SeString.CreateMapLink(this);
+        return SeString.CreateMapLink(this, placeNameIdOverride);
     }
 }
 
