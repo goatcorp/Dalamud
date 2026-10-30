@@ -240,4 +240,10 @@ public static class SeStringBuilderExtensions
     {
         return builder.Append(SeString.CreatePartyFinderSearchConditionsLink(message));
     }
+
+    /// <inheritdoc cref="SeStringBuilder.AppendIcon(uint)"/>
+    public static SeStringBuilder AppendIcon(this SeStringBuilder builder, BitmapFontIcon icon)
+    {
+        return builder.AppendIcon((uint)icon);
+    }
 }
