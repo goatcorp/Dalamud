@@ -5,13 +5,15 @@ using System.Text;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Fonts;
+using Dalamud.Interface.Fonts.Internal;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
 
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
-/// <summary>Samples of each part of the font API.</summary>
+/// <content>API sample rows for <see cref="FontSamplesImGuiWidget"/>.</content>
 internal partial class FontSamplesImGuiWidget
 {
     private const float BasisSizePx = 18;
@@ -27,14 +29,10 @@ internal partial class FontSamplesImGuiWidget
     private static readonly TextStyle GameAxis = TextStyle.From(GameFontFamily.Axis);
     private static readonly TextStyle AxisBasicProN = TextStyle.From("AXIS Basic ProN");
     private static readonly TextStyle SegoeUi = TextStyle.From(SegoeUiFamily);
-    private static readonly TextStyle SegoeUiLight = TextStyle.From("Segoe UI", FontStyle.Light);
     private static readonly TextStyle Bahnschrift = TextStyle.From("Bahnschrift");
     private static readonly TextStyle Calibri = TextStyle.From("Calibri");
-    private static readonly TextStyle MsGothic = TextStyle.From("MS Gothic") with { SizeBasis = FontSizeBasis.EmBox };
-    private static readonly TextStyle SimSun = TextStyle.From("SimSun") with { SizeBasis = FontSizeBasis.EmBox };
     private static readonly TextStyle NotoCjk = TextStyle.From(DalamudAsset.NotoSansCjkRegular);
     private static readonly TextStyle MonoItalic = TextStyle.Mono with { Italic = true };
-    private static readonly TextStyle KeptStyle = TextStyle.Mono with { Italic = true, Bold = true };
 
     private static readonly (byte[] Label, FontSizeBasis Basis)[] SizeBases =
     [
@@ -52,54 +50,43 @@ internal partial class FontSamplesImGuiWidget
 
     private static readonly float[] AxisPoints = [9.6f, 10, 10.5f, 11, 12, 13, 14];
     private static readonly int[] Weights = [100, 200, 300, 350, 400, 500, 600, 700, 800, 900, 950, 1000];
-    private static readonly string[] Locales = ["ja-JP", "zh-CN", "zh-TW", "zh-HK", "ko-KR"];
 
     private static readonly ImmutableArray<FontFeature> SmallCaps = [new("smcp")];
     private static readonly ImmutableArray<FontFeature> NoLigatures = [new("liga", 0)];
-    private static readonly ImmutableArray<FontFeature> OldStyleNumbers = [new("onum")];
-    private static readonly ImmutableArray<FontFeature> TabularNumbers = [new("tnum")];
-    private static readonly ImmutableArray<FontFeature> ProportionalNumbers = [new("pnum")];
-    private static readonly ImmutableArray<FontFeature> SlashedZero = [new("zero")];
-    private static readonly ImmutableArray<FontFeature> Fractions = [new("frac")];
 
-    private static readonly TextStyle ChainUnscaled = TextStyle.From(
-        new ChainFamilyId([new(SegoeUiFamily), new(new SystemFontFamilyId("Malgun Gothic"))]));
+    private static readonly SystemFontFamilyId MalgunFamily = new("Malgun Gothic");
+    private static readonly TextStyle SegoeMalgun = ChainOf(SegoeUiFamily, MalgunFamily);
+    private static readonly TextStyle SegoeMalgunScaled =
+        ChainOf(SegoeUiFamily, Wrap(MalgunFamily, new() { SizeScale = 0.8f }));
 
-    private static readonly TextStyle ChainScaled = TextStyle.From(
-        new ChainFamilyId([new(SegoeUiFamily), new(new SystemFontFamilyId("Malgun Gothic")) { SizeScale = 0.8f }]));
+    private static readonly TextStyle OffsetEm = ChainOf(
+        Wrap(SegoeUiFamily, new() { CodepointRanges = ['0', '9'], GlyphOffset = new(0, -0.3f) }),
+        SegoeUiFamily);
 
-    private static readonly TextStyle ChainOffsetEm = TextStyle.From(
-        new ChainFamilyId(
-            [new(SegoeUiFamily) { CodepointRanges = ['0', '9'], GlyphOffset = new(0, -0.3f) }, new(SegoeUiFamily)]));
+    private static readonly TextStyle OffsetPx = ChainOf(
+        Wrap(
+            SegoeUiFamily,
+            new() { CodepointRanges = ['0', '9'], GlyphOffset = new(0, -4), GlyphOffsetUnit = StyleUnit.Px }),
+        SegoeUiFamily);
 
-    private static readonly TextStyle ChainOffsetPx = TextStyle.From(
-        new ChainFamilyId(
-        [
-            new(SegoeUiFamily) { CodepointRanges = ['0', '9'], GlyphOffset = new(0, -4), GlyphOffsetUnit = StyleUnit.Px },
-            new(SegoeUiFamily),
-        ]));
+    private static readonly TextStyle DigitSpacing = ChainOf(
+        Wrap(SegoeUiFamily, new() { CodepointRanges = ['0', '9'], LetterSpacing = StyleLength.Em(0.3f) }),
+        SegoeUiFamily);
 
-    private static readonly TextStyle ChainSpacing = TextStyle.From(
-        new ChainFamilyId(
-        [
-            new(SegoeUiFamily) { CodepointRanges = ['0', '9'], LetterSpacing = StyleLength.Em(0.3f) },
-            new(SegoeUiFamily),
-        ]));
+    private static readonly TextStyle FixedAdvance =
+        ChainOf(Wrap(SegoeUiFamily, FontAdjustments.FixedAdvance(StyleLength.Em(1))));
 
-    private static readonly TextStyle ChainAdvance = TextStyle.From(
-        new ChainFamilyId([new(SegoeUiFamily) { Advance = StyleLength.Em(1) }]));
+    private static readonly TextStyle MinAdvance =
+        ChainOf(Wrap(SegoeUiFamily, new() { GlyphMinAdvanceX = StyleLength.Em(0.7f) }));
 
-    private static readonly TextStyle ChainMinAdvance = TextStyle.From(
-        new ChainFamilyId([new(SegoeUiFamily) { GlyphMinAdvanceX = StyleLength.Em(0.7f) }]));
+    private static readonly TextStyle MaxAdvance =
+        ChainOf(Wrap(SegoeUiFamily, new() { GlyphMaxAdvanceX = StyleLength.Em(0.4f) }));
 
-    private static readonly TextStyle ChainMaxAdvance = TextStyle.From(
-        new ChainFamilyId([new(SegoeUiFamily) { GlyphMaxAdvanceX = StyleLength.Em(0.4f) }]));
+    private static readonly TextStyle FitToSquare =
+        ChainOf(Wrap(SegoeUiFamily, FontAdjustments.FixedAdvance(StyleLength.Em(1)) with { FitToSquare = true }));
 
-    private static readonly TextStyle ChainFitToSquare = TextStyle.From(
-        new ChainFamilyId([new(SegoeUiFamily) { FitToSquare = true, Advance = StyleLength.Em(1) }]));
-
-    private static readonly TextStyle ChainFeatures = TextStyle.From(
-        new ChainFamilyId([new(new SystemFontFamilyId("Calibri")) { Features = SmallCaps }]));
+    private static readonly TextStyle CalibriSmallCaps =
+        ChainOf(Wrap(new SystemFontFamilyId("Calibri"), new() { Features = SmallCaps }));
 
     private static readonly ReadOnlySeString SeStringSample =
         ReadOnlySeString.FromMacroString("PushTextMarkup(SeString): <italic(1)>italic<italic(0)> <colortype(500)>color<colortype(0)>");
@@ -111,7 +98,10 @@ internal partial class FontSamplesImGuiWidget
     private ImFontPtr keptFont;
     private int keptFrame;
     private IFontFaceId? comicFace;
-    private bool comicFaceLooked;
+    private string urlInput = "https://example.com/ in InputText";
+    private ITextMarkupCallback? urlsWithHandler;
+    private string clickedUrl = "Not clicked yet.";
+    private bool openClickedUrl;
 
     private static string DescribeParse(string s)
     {
@@ -121,10 +111,31 @@ internal partial class FontSamplesImGuiWidget
         return $"\"{s}\": {parsed} ({parsed.Unit}), parsed again: {again}";
     }
 
-    private static void Row(ReadOnlySpan<byte> label, ReadOnlySpan<byte> text, params ReadOnlySpan<TextStyle> styles)
+    private static IFontFamilyId Wrap(IFontFamilyId family, FontAdjustments adjustments) =>
+        FontRegistry.Wrap(adjustments, family);
+
+    private static TextStyle ChainOf(params IFontFamilyId[] families) => TextStyle.From(ChainFamilyId.Of(families));
+
+    private static void Label(ImU8String label)
     {
         ImGui.Text(label);
         ImGui.SameLine(ImGui.GetFontSize() * 10);
+    }
+
+    // Queries link interaction on the previous item, sets the hand cursor on hover, and stays on the same line.
+    private static bool TryBeginLinkInteraction(out TextInteraction interaction)
+    {
+        if (!ImGui.TryGetTextInteraction(out interaction, TextInteractionFlags.All))
+            return false;
+        if ((interaction.Flags & TextInteractionFlags.Hover) != 0)
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+        ImGui.SameLine();
+        return true;
+    }
+
+    private static void Row(ImU8String label, ReadOnlySpan<byte> text, params ReadOnlySpan<TextStyle> styles)
+    {
+        Label(label);
         for (var i = 0; i < styles.Length; i++)
         {
             if (i != 0)
@@ -141,8 +152,7 @@ internal partial class FontSamplesImGuiWidget
 
     private static void LineBox(ReadOnlySpan<byte> label, in TextStyle outer, TextStyle? inner = null)
     {
-        ImGui.Text(label);
-        ImGui.SameLine(ImGui.GetFontSize() * 10);
+        Label(label);
         float lineHeight;
         using (outer.Push())
         using (inner?.Push())
@@ -159,8 +169,7 @@ internal partial class FontSamplesImGuiWidget
 
     private static void RangeSample(ReadOnlySpan<byte> label, in TextStyleRange range, TextStyle? within = null)
     {
-        ImGui.Text(label);
-        ImGui.SameLine(ImGui.GetFontSize() * 10);
+        Label(label);
         using (within?.PushFamily())
             ImGui.TextStyledRanges(RangeText, [range]);
     }
@@ -171,8 +180,7 @@ internal partial class FontSamplesImGuiWidget
         foreach (var (label, basis) in SizeBases)
         {
             using var id = ImRaii.PushId((int)basis);
-            ImGui.Text(label);
-            ImGui.SameLine(ImGui.GetFontSize() * 10);
+            Label(label);
             BasisButton("AXIS (game) Ag気"u8, GameAxis, basis);
             ImGui.SameLine();
             BasisButton("AXIS Basic ProN Ag気"u8, AxisBasicProN, basis);
@@ -186,16 +194,15 @@ internal partial class FontSamplesImGuiWidget
     private static void DrawGameFontSizes()
     {
         foreach (var (label, style) in GameFontSizes)
-            Sample(label, style, "0123456789 The quick brown fox 気"u8);
+            Row(label, "0123456789 The quick brown fox 気"u8, style);
 
         ImGui.Separator();
         ImGui.Text("AXIS between its native sizes. The widths grow with the size."u8);
         var text = "The quick brown fox"u8;
         foreach (var pt in AxisPoints)
         {
-            var style = GameAxis with { Size = StyleLength.Px((pt * 4) / 3) };
-            ImGui.Text($"AXIS {pt}pt");
-            ImGui.SameLine(ImGui.GetFontSize() * 10);
+            var style = GameAxis with { Size = StyleLength.Px(FontSizes.PtToPx(pt)) };
+            Label($"AXIS {pt}pt");
             SampleText(style, text);
             ImGui.SameLine();
             ImGui.Text($"{style.CalcTextSize(text).X:0.##}px wide");
@@ -257,8 +264,7 @@ internal partial class FontSamplesImGuiWidget
     {
         foreach (var weight in Weights)
         {
-            ImGui.Text($"Weight {weight}");
-            ImGui.SameLine(ImGui.GetFontSize() * 10);
+            Label($"Weight {weight}");
             SampleText(SegoeUi with { Weight = weight }, "Segoe UI"u8);
             ImGui.SameLine();
             SampleText(Bahnschrift with { Weight = weight }, "Bahnschrift"u8);
@@ -269,8 +275,7 @@ internal partial class FontSamplesImGuiWidget
         ImGui.Separator();
         for (var stretch = 1; stretch <= 9; stretch++)
         {
-            ImGui.Text($"Stretch {stretch}");
-            ImGui.SameLine(ImGui.GetFontSize() * 10);
+            Label($"Stretch {stretch}");
             SampleText(Bahnschrift with { Stretch = stretch }, "Bahnschrift"u8);
             ImGui.SameLine();
             SampleText(SegoeUi with { Stretch = stretch }, "Segoe UI"u8);
@@ -282,7 +287,7 @@ internal partial class FontSamplesImGuiWidget
         Row("Light, bold"u8, text, SegoeUi with { Weight = 300, Bold = true });
         Row("Regular, bold"u8, text, SegoeUi with { Weight = 400, Bold = true });
         Row("SemiBold, bold"u8, text, SegoeUi with { Weight = 600, Bold = true });
-        Row("Light face, bold"u8, text, SegoeUiLight with { Bold = true });
+        Row("Light face, bold"u8, text, TextStyle.From("Segoe UI", FontStyle.Light) with { Bold = true });
 
         ImGui.Separator();
         text = "Italic 気기"u8;
@@ -292,28 +297,22 @@ internal partial class FontSamplesImGuiWidget
 
     private static void DrawLocaleAndFeatures()
     {
-        foreach (var locale in Locales)
-        {
-            ImGui.Text(locale);
-            ImGui.SameLine(ImGui.GetFontSize() * 10);
-            SampleText(NotoCjk with { Locale = locale }, HanText);
-            ImGui.SameLine();
-            SampleText(TextStyle.Default with { Locale = locale }, HanText);
-        }
+        foreach (var locale in FontChooserDialog.Locales)
+            Row(locale, HanText, NotoCjk with { Locale = locale }, TextStyle.Default with { Locale = locale });
 
         Row("No locale"u8, HanText, NotoCjk, TextStyle.Default);
 
         ImGui.Separator();
         Row("Calibri liga"u8, "office fifty flow"u8, Calibri, Calibri with { Features = NoLigatures });
         Row("Calibri smcp"u8, "Small Caps"u8, Calibri, Calibri with { Features = SmallCaps });
-        Row("Calibri onum"u8, "0123456789"u8, Calibri, Calibri with { Features = OldStyleNumbers });
+        Row("Calibri onum"u8, "0123456789"u8, Calibri, Calibri with { Features = [new("onum")] });
         Row(
             "Calibri tnum/pnum"u8,
             "1111.11 8888.88"u8,
-            Calibri with { Features = TabularNumbers },
-            Calibri with { Features = ProportionalNumbers });
-        Row("Calibri frac"u8, "1/2 3/4"u8, Calibri, Calibri with { Features = Fractions });
-        Row("Mono zero"u8, "0O0o"u8, TextStyle.Mono, TextStyle.Mono with { Features = SlashedZero });
+            Calibri with { Features = [new("tnum")] },
+            Calibri with { Features = [new("pnum")] });
+        Row("Calibri frac"u8, "1/2 3/4"u8, Calibri, Calibri with { Features = [new("frac")] });
+        Row("Mono zero"u8, "0O0o"u8, TextStyle.Mono, TextStyle.Mono with { Features = [new("zero")] });
     }
 
     private static void DrawHinting()
@@ -326,62 +325,45 @@ internal partial class FontSamplesImGuiWidget
         for (var px = 12; px <= 16; px++)
         {
             var style = AxisBasicProN with { Size = StyleLength.Px(px) };
-            ImGui.Text($"AXIS ProN {px}px");
-            ImGui.SameLine(ImGui.GetFontSize() * 10);
-            SampleText(style, "test 気기氣"u8);
-            ImGui.SameLine();
-            SampleText(style with { NoHinting = true }, "test 気기氣"u8);
+            Row($"AXIS ProN {px}px", "test 気기氣"u8, style, style with { NoHinting = true });
         }
 
-        Bitmaps("MS Gothic"u8, MsGothic, "Bitmap ゴシック test"u8);
-        Bitmaps("SimSun"u8, SimSun, "Bitmap 宋体 test"u8);
+        Bitmaps("MS Gothic", "Bitmap ゴシック test"u8);
+        Bitmaps("SimSun", "Bitmap 宋体 test"u8);
 
-        static void Bitmaps(ReadOnlySpan<byte> name, in TextStyle font, ReadOnlySpan<byte> text)
+        static void Bitmaps(string name, ReadOnlySpan<byte> text)
         {
+            var font = TextStyle.From(name) with { SizeBasis = FontSizeBasis.EmBox };
             for (var px = 11; px <= 20; px++)
             {
                 var style = font with { Size = StyleLength.Px(px) };
-                ImGui.Text(name);
-                ImGui.SameLine(0, 0);
-                ImGui.Text($" {px}px");
-                ImGui.SameLine(ImGui.GetFontSize() * 10);
-                SampleText(style, text);
-                ImGui.SameLine();
-                SampleText(style with { NoHinting = true }, text);
+                Row($"{name} {px}px", text, style, style with { NoHinting = true });
             }
         }
     }
 
     private static void DrawChains()
     {
-        Row("SizeScale 1, 0.8"u8, "Segoe 맑은 Hangul"u8, ChainUnscaled, ChainScaled);
+        Row("SizeScale 1, 0.8"u8, "Segoe 맑은 Hangul"u8, SegoeMalgun, SegoeMalgunScaled);
 
         var small = StyleLength.Px(16);
         var large = StyleLength.Px(32);
         var text = "x2 + y3 = 10"u8;
-        Row(
-            "GlyphOffset em"u8,
-            text,
-            ChainOffsetEm with { Size = small },
-            ChainOffsetEm with { Size = large });
-        Row(
-            "GlyphOffset px"u8,
-            text,
-            ChainOffsetPx with { Size = small },
-            ChainOffsetPx with { Size = large });
-        Row("LetterSpacing"u8, "Digits 0123456789 only"u8, ChainSpacing);
+        Row("GlyphOffset em"u8, text, OffsetEm with { Size = small }, OffsetEm with { Size = large });
+        Row("GlyphOffset px"u8, text, OffsetPx with { Size = small }, OffsetPx with { Size = large });
+        Row("LetterSpacing"u8, "Digits 0123456789 only"u8, DigitSpacing);
 
         text = "iiWW..mm"u8;
-        Row("Advance 1 em"u8, text, SegoeUi, ChainAdvance);
-        Row("Min advance 0.7 em"u8, text, ChainMinAdvance);
-        Row("Max advance 0.4 em"u8, text, ChainMaxAdvance);
-        Row("FitToSquare"u8, "WM@%—"u8, SegoeUi, ChainFitToSquare);
+        Row("Advance 1 em"u8, text, SegoeUi, FixedAdvance);
+        Row("Min advance 0.7 em"u8, text, MinAdvance);
+        Row("Max advance 0.4 em"u8, text, MaxAdvance);
+        Row("FitToSquare"u8, "WM@%—"u8, SegoeUi, FitToSquare);
         Row(
             "Element features"u8,
             "Small Caps office"u8,
             Calibri,
-            ChainFeatures,
-            ChainFeatures with { Features = NoLigatures });
+            CalibriSmallCaps,
+            CalibriSmallCaps with { Features = NoLigatures });
     }
 
     private static void DrawRanges()
@@ -413,8 +395,7 @@ internal partial class FontSamplesImGuiWidget
         RangeSample("Locale"u8, TextStyleRange.Locale(RangeStart, RangeLength, "zh-CN"), NotoCjk);
         RangeSample("Features"u8, TextStyleRange.Features(RangeStart, RangeLength, SmallCaps), Calibri);
 
-        ImGui.Text("Overlapping"u8);
-        ImGui.SameLine(ImGui.GetFontSize() * 10);
+        Label("Overlapping"u8);
         ImGui.TextStyledRanges(
             "Red, both (green wins), green, plain"u8,
             [
@@ -423,6 +404,63 @@ internal partial class FontSamplesImGuiWidget
                 TextStyleRange.Bold(0, 31),
                 TextStyleRange.Bold(5, 4, false),
             ]);
+    }
+
+    private static void DrawLinkInteraction()
+    {
+        if (!TryBeginLinkInteraction(out var interaction))
+            return;
+        if (interaction.Link.Detected)
+            ImGui.Text($"{interaction.Flags}: found, target {interaction.Link.Target}");
+        else
+            ImGui.Text($"{interaction.Flags}: of the markup, target of {interaction.Link.Target.Length} bytes");
+    }
+
+    private static void MeasuredLabel(string what, Vector2 size)
+    {
+        ImGui.Text($"{what}: {size.X:0.##}x{size.Y:0.##}");
+        ImGui.SameLine();
+    }
+
+    private static void DrawnSize()
+    {
+        ImGui.SameLine();
+        ImGui.Text($"drawn {ImGui.GetItemRectSize().X:0.##}x{ImGui.GetItemRectSize().Y:0.##}");
+    }
+
+    private static void DrawMeasuring(ImFontRef mono)
+    {
+        var text = "Measured 気기"u8;
+        MeasuredLabel("TextStyle.CalcTextSize", MonoItalic.CalcTextSize(text));
+        SampleText(MonoItalic, text);
+        DrawnSize();
+        MeasuredLabel("ImFontRef.CalcTextSize", mono.CalcTextSize(text));
+        using (mono.Push())
+            ImGui.Text(text);
+        DrawnSize();
+    }
+
+    private static void DrawLayouts(ImFontRef mono)
+    {
+        Label("TextStyle.Push, CreateTextLayout"u8);
+        using (MonoItalic.Push())
+        {
+            using var layout = ImGui.CreateTextLayout(
+                RangeText,
+                [TextStyleRange.Color(RangeStart, RangeLength, 0xFF40C0FF)]);
+            ImGui.TextLayout(layout.Ptr);
+        }
+
+        Label("ImFontRef.Style.Push, CreateTextLayout"u8);
+        using (mono.Style.Push())
+        {
+            using var layout = ImGui.CreateTextLayout(RangeText, [TextStyleRange.Bold(RangeStart, RangeLength)]);
+            ImGui.TextLayout(layout.Ptr);
+        }
+
+        ImFontPtr monoPtr = mono;
+        ImGui.Text(
+            $"ImFontPtr.Ref of Mono: {monoPtr.Ref}, of a null font: {ImFontPtr.Null.Ref?.ToString() ?? "null"}");
     }
 
     private void DrawApiSamples()
@@ -449,12 +487,34 @@ internal partial class FontSamplesImGuiWidget
             this.DrawPushing();
     }
 
+    private void OnUrlClick(string url, ImGuiMouseButton button)
+    {
+        this.clickedUrl = $"Clicked with {button}: {url}";
+        if (this.openClickedUrl && button == ImGuiMouseButton.Left)
+            Util.OpenLink(url);
+    }
+
     private void DrawPushing()
     {
-        this.monoRef ??= (TextStyle.Mono with { Size = StyleLength.Px(20) }).GetFont();
-        var monoRef = this.monoRef;
-        ImFontPtr monoPtr = monoRef;
+        var mono = this.monoRef ??= (TextStyle.Mono with { Size = StyleLength.Px(20) }).GetFont();
+        this.DrawPushedScopes();
+        this.DrawUrls();
 
+        ImGui.Separator();
+        this.DrawFamilies(mono);
+        this.DrawKeptFont();
+
+        ImGui.Separator();
+        DrawMeasuring(mono);
+        DrawLayouts(mono);
+
+        ImGui.Separator();
+        foreach (var line in ParsedLengths)
+            ImGui.Text(line);
+    }
+
+    private void DrawPushedScopes()
+    {
         using (ImGui.PushFontScale(1.5f))
             ImGui.Text("PushFontScale(1.5)"u8);
         using (ImGui.PushFontSize(20, 1.5f))
@@ -476,19 +536,42 @@ internal partial class FontSamplesImGuiWidget
             using (ImGui.PushTextCallback(null, inherit: false))
                 ImGui.Text("PushTextCallback(null, inherit: false): <link(0x0E,1,2,3,test)>cut off<link(0xCE)>"u8);
         }
+    }
 
-        ImGui.Separator();
+    private void DrawUrls()
+    {
+        using (ImGui.PushTextMarkup(TextMarkup.Plain, TextMarkupCallbacks.Urls))
+        {
+            ImGui.TextMarkup(
+                "Plain text with TextMarkupCallbacks.Urls: https://example.com/a_(b), or www.example.com."u8,
+                TextMarkup.Plain,
+                this);
+            DrawLinkInteraction();
+            ImGui.TextMacroString(
+                "Macro string: <italic(1)>https://example.com/<italic(0)>split, "u8 +
+                "<link(0x0E,1,2,3,test)>a link https://example.com/<link(0xCE)>, (http://example.com/x)"u8,
+                this);
+            DrawLinkInteraction();
+            ImGui.InputText("URL in an InputText"u8, ref this.urlInput, 256);
+        }
+
+        this.urlsWithHandler ??= TextMarkupCallbacks.CreateUrlsWithHandler(this.OnUrlClick);
+        using (ImGui.PushTextMarkup(TextMarkup.Plain, this.urlsWithHandler))
+            ImGui.Text("CreateUrlsWithHandler: click https://example.com/ with any button."u8);
+        ImGui.Checkbox("Open in browser on left click"u8, ref this.openClickedUrl);
+        ImGui.SameLine();
+        ImGui.Text(this.clickedUrl);
+    }
+
+    private void DrawFamilies(ImFontRef mono)
+    {
+        ImFontPtr monoPtr = mono;
         using (ImGui.PushFontScale(1.25f))
         {
             using (ImGui.PushFamily(ComicSansFamily))
                 ImGui.Text("PushFamily(IFontFamilyId), at 1.25x"u8);
 
-            if (!this.comicFaceLooked)
-            {
-                this.comicFace = ComicSansFamily.Fonts.FirstOrDefault();
-                this.comicFaceLooked = true;
-            }
-
+            this.comicFace ??= ComicSansFamily.Fonts.FirstOrDefault();
             if (this.comicFace is { } face)
             {
                 using (ImGui.PushFamily(face))
@@ -499,15 +582,18 @@ internal partial class FontSamplesImGuiWidget
                 ImGui.Text("TextStyle.PushFamily, at 1.25x"u8);
             using (monoPtr.Style.PushFamily())
                 ImGui.Text("ImFontPtr.Style.PushFamily, at 1.25x"u8);
-            using (monoRef.Push())
+            using (mono.Push())
                 ImGui.Text("ImFontRef.Push, at its own 20px"u8);
             using (monoPtr.Push())
                 ImGui.Text("ImFontPtr.Push, at its own 20px"u8);
         }
+    }
 
+    private void DrawKeptFont()
+    {
         if (this.keptFont.IsNull)
         {
-            this.keptFont = KeptStyle.GetFont();
+            this.keptFont = (TextStyle.Mono with { Italic = true, Bold = true }).GetFont();
             this.keptFrame = ImGui.GetFrameCount();
         }
 
@@ -520,48 +606,5 @@ internal partial class FontSamplesImGuiWidget
         ImGui.SameLine();
         if (ImGui.SmallButton("Keep again"u8))
             this.keptFont = default;
-
-        ImGui.Separator();
-        var text = "Measured 気기"u8;
-        var styleSize = MonoItalic.CalcTextSize(text);
-        var refSize = monoRef.CalcTextSize(text);
-        ImGui.Text($"TextStyle.CalcTextSize: {styleSize.X:0.##}x{styleSize.Y:0.##}");
-        ImGui.SameLine();
-        SampleText(MonoItalic, text);
-        ImGui.SameLine();
-        ImGui.Text($"drawn {ImGui.GetItemRectSize().X:0.##}x{ImGui.GetItemRectSize().Y:0.##}");
-        ImGui.Text($"ImFontRef.CalcTextSize: {refSize.X:0.##}x{refSize.Y:0.##}");
-        ImGui.SameLine();
-        using (monoRef.Push())
-            ImGui.Text(text);
-        ImGui.SameLine();
-        ImGui.Text($"drawn {ImGui.GetItemRectSize().X:0.##}x{ImGui.GetItemRectSize().Y:0.##}");
-
-        ImGui.Text("TextStyle.CreateTextLayout"u8);
-        ImGui.SameLine(ImGui.GetFontSize() * 10);
-        using (var layout = MonoItalic.CreateTextLayout(
-                   RangeText, [TextStyleRange.Color(RangeStart, RangeLength, 0xFF40C0FF)]))
-        {
-            ImGui.TextLayout(layout.Ptr);
-        }
-
-        ImGui.Text("ImFontRef.Style.CreateTextLayout"u8);
-        ImGui.SameLine(ImGui.GetFontSize() * 10);
-        using (var layout = monoRef.Style.CreateTextLayout(
-                   RangeText, [TextStyleRange.Bold(RangeStart, RangeLength)]))
-        {
-            ImGui.TextLayout(layout.Ptr);
-        }
-
-        ImGui.Text(
-            $"ImFontPtr.Ref of Mono: {monoPtr.Ref}, of a null font: {ImFontPtr.Null.Ref?.ToString() ?? "null"}");
-
-        ImGui.Text(
-            $"IsGlyphInFont of Mono: A {monoPtr.IsGlyphInFont('A')}, 気 {monoPtr.IsGlyphInFont('気')}, " +
-            $"U+F8FF {monoPtr.IsGlyphInFont(0xF8FF)}");
-
-        ImGui.Separator();
-        foreach (var line in ParsedLengths)
-            ImGui.Text(line);
     }
 }

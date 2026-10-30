@@ -2,13 +2,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Fonts.Internal.Layout;
+using Dalamud.Interface.Fonts.Internal.SeStrings;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface.Fonts.Internal.Markup;
 
 /// <summary>Reads text of a markup into styled text, and lays it out.</summary>
-/// <seealso cref="TextStylers"/>
 internal abstract class TextStyler
 {
     // How deep callbacks may lay out text of the same markup. A callback that lays out the text it is asked about would
@@ -16,6 +16,14 @@ internal abstract class TextStyler
     private const int MaxDepth = 8;
 
     private static readonly ModuleLog Log = new(typeof(TextStyler));
+
+    // The styler of each markup, made on first use. One that fails to be made is logged and left out.
+    private static readonly Lazy<TextStyler?>[] Stylers =
+    [
+        Lazily(static () => new PlainTextStyler()),
+        Lazily(static () => new SeStringStyler()),
+        Lazily(static () => new MacroStringStyler()),
+    ];
 
     private readonly StyledText output = new();
     private int depth;
@@ -26,10 +34,16 @@ internal abstract class TextStyler
     /// <summary>Gets the number of values <see cref="GetExtraKeys"/> writes.</summary>
     protected virtual int ExtraKeyCount => 0;
 
+    /// <summary>Gets the styler of a markup.</summary>
+    /// <param name="markup">The markup.</param>
+    /// <returns>The styler, or null to lay the text out as UTF-8.</returns>
+    public static TextStyler? Get(TextMarkup markup) =>
+        (uint)markup < (uint)Stylers.Length ? Stylers[(int)markup].Value : null;
+
     /// <summary>Lays out text, with the callbacks pushed now. Equal arguments share a layout.</summary>
     /// <param name="font">The font, whose style the text starts with.</param>
     /// <param name="desc">Layout parameters.</param>
-    /// <param name="text">The text as drawn.</param>
+    /// <param name="text">The input markup or UTF-8 bytes passed by the caller.</param>
     /// <returns>The layout, whose offsets are into <paramref name="text"/>. Null outside the main thread.</returns>
     public TextLayout? CreateLayout(FontImpl font, in TextLayoutDesc desc, ReadOnlySpan<byte> text)
     {
@@ -50,7 +64,7 @@ internal abstract class TextStyler
     /// <summary>Reads text.</summary>
     /// <param name="font">The font, whose style the text starts with.</param>
     /// <param name="desc">Layout parameters.</param>
-    /// <param name="text">The text as drawn.</param>
+    /// <param name="text">The input markup or UTF-8 bytes passed by the caller.</param>
     /// <param name="callbacks">The callbacks, in order.</param>
     /// <param name="nested">Whether this styler is already reading another text, from a callback. Buffers kept for
     /// reuse are in use then.</param>
@@ -65,6 +79,20 @@ internal abstract class TextStyler
     protected virtual void GetExtraKeys(ReadOnlySpan<ITextMarkupCallback> callbacks, Span<long> keys)
     {
     }
+
+    private static Lazy<TextStyler?> Lazily(Func<TextStyler> create) =>
+        new(() =>
+        {
+            try
+            {
+                return create();
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed to make a text styler; ignoring");
+                return null;
+            }
+        });
 
     // CreateLayout of what is not cached. Its own method, so that the cached path has no try block.
     private TextLayout CreateUncachedLayout(
@@ -83,8 +111,9 @@ internal abstract class TextStyler
             var styled = nested ? new() : this.output;
             if (!this.TryParse(font, desc, text, chain, nested, styled))
             {
+                var hadCallbacks = chain.Length != 0;
                 chain = [];
-                if (!this.TryParse(font, desc, text, chain, nested, styled))
+                if (!hadCallbacks || !this.TryParse(font, desc, text, chain, nested, styled))
                 {
                     var plain = TextLayout.Rent(
                         font.WithMarkup(TextMarkup.Plain), desc, text, 1, [], []);
@@ -101,7 +130,8 @@ internal abstract class TextStyler
                 CollectionsMarshal.AsSpan(styled.Runs),
                 CollectionsMarshal.AsSpan(styled.Objects),
                 styled.GetDrawnOffsets());
-            layout.RenderHook = new(this.Markup, styled, chain, desc.EmSize);
+            if (this.Markup != TextMarkup.Plain || styled.Links.Count != 0)
+                layout.RenderHook = new(this.Markup, styled, chain, desc.EmSize);
             TextLayouter.AddCached(key, layout);
             return layout;
         }
@@ -127,7 +157,6 @@ internal abstract class TextStyler
         return [];
     }
 
-    // Failures are logged for each styler and set of callback types.
     private bool TryParse(
         FontImpl font, in TextLayoutDesc desc, ReadOnlySpan<byte> text, ITextMarkupCallback[] callbacks, bool nested,
         StyledText styled)

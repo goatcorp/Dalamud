@@ -11,6 +11,7 @@ using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Fonts.Internal;
+using Dalamud.Interface.Fonts.Internal.Markup;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
@@ -72,8 +73,8 @@ public interface IUiBuilder
     event Action? DefaultStyleChanged;
 
     /// <summary>Gets the style of the default font as configured in the settings.</summary>
-    /// <remarks>It is without the fallback fonts that the default font has for other languages. Use
-    /// <see cref="TextStyle.Default"/> to push the default font.</remarks>
+    /// <remarks>Excludes the language fallback fonts attached to the default font. Use <see cref="TextStyle.Default"/>
+    /// to push the full default font.</remarks>
     TextStyle DefaultTextStyle { get; }
 
     /// <summary>Gets the game's active Direct3D device.</summary>
@@ -177,43 +178,21 @@ public interface IUiBuilder
     /// <typeparam name="T">Return type.</typeparam>
     Task<T> RunWhenUiPrepared<T>(Func<Task<T>> func, bool runInFrameworkThread = false);
 
-    /// <summary>Finds the font behind an ImGui font, such as <see cref="ImGui.GetFont"/>.</summary>
-    /// <param name="font">The ImGui font.</param>
-    /// <returns>The font, or <see langword="null"/> if <paramref name="font"/> is not Dalamud's.</returns>
-    /// <remarks>It never loads a font. To keep a font alive, keep its <see cref="TextStyle"/> or the returned
-    /// <see cref="ImFontRef"/>.</remarks>
-    ImFontRef? FindFont(ImFontPtr font);
-
-    /// <summary>Pushes a callback that decides how text with a markup is drawn.</summary>
-    /// <param name="callback">The callback. It can be <see langword="null"/> if <paramref name="inherit"/> is
-    /// <see langword="false"/>, to only cut off the earlier callbacks.</param>
-    /// <param name="inherit">Whether the callbacks pushed earlier are still asked. Set it to <see langword="false"/> to
-    /// keep an outer callback away from a widget.</param>
-    /// <returns>A disposable object that pops the callback.</returns>
-    /// <remarks>Callbacks are ignored for text with <see cref="TextMarkup.Plain"/> as its
-    /// <see cref="TextStyle.Markup"/>.</remarks>
-    ImPopFontDisposable PushTextCallback(ITextMarkupCallback? callback, bool inherit = true);
-
-    /// <summary>Makes layouts made with a callback stale, so that its answers are asked again.</summary>
-    /// <param name="callback">The callback.</param>
-    void InvalidateTextCallback(ITextMarkupCallback callback);
-
     /// <summary>Registers a text decoration, to use as <see cref="TextStyle.ExtraDecoration"/> with
     /// <see cref="TextDecorationRegistration.Id"/>.</summary>
     /// <param name="drawer">Draws the decoration, on the main thread.</param>
     /// <param name="flags">The layers the decoration is drawn in. <see cref="TextDecorationFlags.None"/> is taken as
     /// <see cref="TextDecorationFlags.OverText"/>.</param>
-    /// <param name="bands">The number of times the decoration is drawn in each layer, from 1 to 16. Each time is for
-    /// all the spans of a text before the next, as <see cref="TextDecorationSpan.Band"/>, so that what is drawn later
-    /// covers what is drawn earlier everywhere in the text.</param>
+    /// <param name="bands">Number of passes per layer, from <c>1</c> to <c>16</c>, passed as
+    /// <see cref="TextDecorationSpan.Band"/>. Band <c>b</c> is drawn across all spans before band <c>b + 1</c>, so
+    /// later bands paint over earlier ones across the entire text.</param>
     /// <param name="defaultContext">Default context value to pass if used without specifying one.</param>
     /// <param name="defaultData">Default data value to pass if used without specifying one.</param>
     /// <returns>The registration, which unregisters the decoration when disposed or when the plugin unloads.</returns>
     /// <exception cref="ObjectDisposedException">If the plugin has unloaded.</exception>
-    /// <remarks>Decorations are not drawn for vertical text. Keep what the drawer needs in
+    /// <remarks>Decorations are not drawn for vertical text. Pass per-span state through
     /// <see cref="TextDecoration.Context"/> and <see cref="TextDecoration.Data"/>.</remarks>
     /// <example>
-    /// See <see cref="Internal.Windows.Data.Widgets.FontSamplesImGuiWidget.DrawRainbowEdge"/> for an example.
     /// <code>
     /// var squiggle = uiBuilder.RegisterTextDecoration(
     ///     (in TextDecorationSpan span) =&gt; { /* span.AddPolyline(...) */ },
@@ -234,6 +213,62 @@ public interface IUiBuilder
         int bands = 1,
         uint defaultContext = 0,
         ulong defaultData = 0);
+
+    /// <summary>Registers a font source as a font family for styles such as
+    /// <see cref="TextStyle.From(IFontFamilyId, StyleLength, bool)"/>.</summary>
+    /// <param name="source">The font source, such as a file path.</param>
+    /// <returns>The registration. Registering an equal source returns the existing registration and increments its
+    /// reference count.</returns>
+    /// <exception cref="ArgumentException">If <paramref name="source"/> is default.</exception>
+    /// <exception cref="ObjectDisposedException">If the plugin has unloaded.</exception>
+    /// <remarks><ul>
+    /// <li>An unreadable source does not throw here. <see cref="FontRegistration.LoadTask"/> faults instead, and styles
+    /// using it fall back to the default font.</li>
+    /// <li>Match each call with <see cref="UnregisterFont"/>. Remaining registrations are released when the plugin
+    /// unloads.</li>
+    /// </ul></remarks>
+    /// <example><code>
+    /// var font = uiBuilder.RegisterFont(Path.Combine(pluginInterface.AssemblyLocation.DirectoryName!, "MyFont.ttf"));
+    /// using (TextStyle.From(font, StyleLength.Px(20)).Push())
+    ///     ImGui.Text("In my font"u8);
+    /// </code></example>
+    FontRegistration RegisterFont(FontSource source);
+
+    /// <summary>Registers a composite font family that chains fallback families and applies glyph adjustments.</summary>
+    /// <param name="adjustments">The glyph adjustments.</param>
+    /// <param name="chain">Fallback families in priority order. A single family is wrapped directly.</param>
+    /// <returns>The registration. Registering equal adjustments and chain returns the existing registration and
+    /// increments its reference count.</returns>
+    /// <exception cref="ArgumentNullException">If <paramref name="chain"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">If <paramref name="chain"/> is empty, or has a <see langword="null"/>
+    /// family.</exception>
+    /// <exception cref="ObjectDisposedException">If the plugin has unloaded.</exception>
+    /// <remarks>Holds a reference to each <see cref="FontRegistration"/> in <paramref name="chain"/> until all
+    /// references to this registration are unregistered.</remarks>
+    /// <example><code>
+    /// // Icons of the same width, in a chain before the default font.
+    /// var icons = uiBuilder.RegisterWrappedFont(
+    ///     FontAdjustments.FixedAdvance(StyleLength.Em(1)),
+    ///     uiBuilder.RegisterFont(FontSource.FromManifestResource(typeof(Plugin).Assembly, "MyIcons.otf")));
+    /// var style = TextStyle.From(icons);
+    /// </code></example>
+    FontRegistration RegisterWrappedFont(FontAdjustments adjustments, params IFontFamilyId[] chain);
+
+    /// <summary>Releases one reference to a font registration owned by this plugin.</summary>
+    /// <param name="registration">The registration.</param>
+    /// <returns><see langword="true"/> if this plugin held a reference to release, or <see langword="false"/>
+    /// otherwise.</returns>
+    /// <exception cref="ArgumentNullException">If <paramref name="registration"/> is <see langword="null"/>.
+    /// </exception>
+    /// <remarks>Once all references are released, styles using it fall back to the default font.</remarks>
+    bool UnregisterFont(FontRegistration registration);
+
+    /// <summary>Finds a font family by its name.</summary>
+    /// <param name="name">The English family name, case-insensitive.</param>
+    /// <returns>The matching family, checking this plugin's most recently registered font first, then Dalamud and game
+    /// fonts, then installed system fonts, or <see langword="null"/> if not found.</returns>
+    /// <remarks>Waits for this plugin's registered font names to finish loading.</remarks>
+    IFontFamilyId? FindFontFamily(string name);
 }
 
 /// <summary>
@@ -253,6 +288,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
     private readonly Lock decorationsLock = new();
+    private readonly FontRegistry.PluginFonts fonts;
 
     private HashSet<TextDecorationRegistration>? decorations = [];
     private bool hasErrorWindow = false;
@@ -272,6 +308,8 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
             this.namespaceName = namespaceName;
             this.plugin = plugin;
+            this.fonts = new();
+            this.scopedFinalizer.Add(this.fonts.Dispose);
 
             this.interfaceManager.Draw += this.OnDraw;
             this.scopedFinalizer.Add(() => this.interfaceManager.Draw -= this.OnDraw);
@@ -325,31 +363,31 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     public event Action? DefaultStyleChanged;
 
     /// <summary>Gets the default Dalamud font size in points, before the global scale.</summary>
-    public static float DefaultFontSizePt => (DefaultFontSizePx * 3) / 4;
+    public static float DefaultFontSizePt => FontSizes.PxToPt(DefaultFontSizePx);
 
     /// <summary>Gets the default Dalamud font size in pixels, before the global scale.</summary>
-    /// <remarks><see cref="TextStyle"/> says how font sizes relate.</remarks>
+    /// <remarks>See <see cref="TextStyle"/> for how font sizes are resolved.</remarks>
     public static float DefaultFontSizePx => Service<FontFactory>.Get().DefaultSizePx;
 
     /// <summary>Gets the built-in default font at <see cref="DefaultFontSizePx"/>, supporting all game languages and
     /// icons.</summary>
-    /// <remarks>Prefer pushing the text style, which keeps no font alive longer than needed.</remarks>
+    /// <remarks>Prefer pushing the corresponding <see cref="TextStyle"/> so the font is not kept alive longer than needed.</remarks>
     /// <seealso cref="TextStyle.Default"/>
     public static ImFontRef DefaultFont => InterfaceManager.DefaultFont;
 
     /// <summary>Gets the built-in FontAwesome icon font at <see cref="DefaultFontSizePx"/>.</summary>
-    /// <remarks>Prefer pushing the text style, which keeps no font alive longer than needed.</remarks>
+    /// <remarks>Prefer pushing the corresponding <see cref="TextStyle"/> so the font is not kept alive longer than needed.</remarks>
     /// <seealso cref="TextStyle.Icon"/>
     public static ImFontRef IconFont => InterfaceManager.IconFont;
 
     /// <summary>Gets the built-in monospaced font at <see cref="DefaultFontSizePx"/>.</summary>
-    /// <remarks>Prefer pushing the text style, which keeps no font alive longer than needed.</remarks>
+    /// <remarks>Prefer pushing the corresponding <see cref="TextStyle"/> so the font is not kept alive longer than needed.</remarks>
     /// <seealso cref="TextStyle.Mono"/>
     public static ImFontRef MonoFont => InterfaceManager.MonoFont;
 
     /// <summary>Gets the built-in FontAwesome icon font at <see cref="DefaultFontSizePx"/>, with each icon fit into a
     /// square.</summary>
-    /// <remarks>Prefer pushing the text style, which keeps no font alive longer than needed.</remarks>
+    /// <remarks>Prefer pushing the corresponding <see cref="TextStyle"/> so the font is not kept alive longer than needed.</remarks>
     /// <seealso cref="TextStyle.IconFixedWidth"/>
     public static ImFontRef IconFontFixedWidth => InterfaceManager.IconFontFixedWidth;
 
@@ -531,6 +569,20 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
         }
     }
 
+    /// <inheritdoc/>
+    public FontRegistration RegisterFont(FontSource source) => this.fonts.Register(source);
+
+    /// <inheritdoc/>
+    public FontRegistration RegisterWrappedFont(FontAdjustments adjustments, params IFontFamilyId[] chain) =>
+        this.fonts.RegisterWrapped(adjustments, chain);
+
+    /// <inheritdoc/>
+    public bool UnregisterFont(FontRegistration registration) => this.fonts.Unregister(registration);
+
+    /// <inheritdoc/>
+    public IFontFamilyId? FindFontFamily(string name) =>
+        FontRegistry.FindFamily(name, this.fonts);
+
     /// <summary>
     /// Unregister the UiBuilder. Do not call this in plugin code.
     /// </summary>
@@ -606,6 +658,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
         }
 
         if (DoStats) this.PluginDrawStatistics.StartUpdate();
+        var textCallbackDepth = TextCallbackStack.Count;
 
         if (this.hasErrorWindow)
         {
@@ -628,6 +681,9 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
         this.FrameCount++;
 
         if (DoStats) this.PluginDrawStatistics.EndUpdate();
+
+        if (TextCallbackStack.Count > textCallbackDepth)
+            TextCallbackStack.Shrink(textCallbackDepth);
 
         this.hitchDetector.Stop();
     }

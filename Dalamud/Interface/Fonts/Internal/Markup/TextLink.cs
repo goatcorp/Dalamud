@@ -1,9 +1,18 @@
 namespace Dalamud.Interface.Fonts.Internal.Markup;
 
-/// <summary>A link of styled text, in offsets into the text as read.</summary>
-/// <param name="Offset">The byte offset of what defines the link, such as a SeString link payload.</param>
-/// <param name="Length">The length of what defines the link.</param>
-/// <param name="TargetOffset">The byte offset of the link target.</param>
-/// <param name="TargetLength">The length of the link target.</param>
+/// <summary>A link in styled text, with byte offsets into <see cref="StyledText.Source"/>.</summary>
+/// <param name="Offset">Byte offset in <see cref="StyledText.Source"/> of the opening link payload or matched link text.</param>
+/// <param name="Length">Byte length in <see cref="StyledText.Source"/> of the opening link payload or matched link text.</param>
+/// <param name="Target">The link target.</param>
+/// <param name="Detected">Whether a callback found it with <see cref="ITextMarkupCallback.FindLinks"/>.</param>
 /// <seealso cref="StyledText.Links"/>
-internal readonly record struct TextLink(int Offset, int Length, int TargetOffset, int TargetLength);
+internal readonly record struct TextLink(int Offset, int Length, ReadOnlyMemory<byte> Target, bool Detected = false)
+{
+    /// <summary>Makes the context the callbacks get for the link.</summary>
+    /// <param name="markup">The markup of the text.</param>
+    /// <param name="source">The parsed markup buffer.</param>
+    /// <param name="state">The link's interaction state.</param>
+    /// <returns>The context.</returns>
+    public TextLinkContext ToContext(TextMarkup markup, ReadOnlySpan<byte> source, TextLinkState state) =>
+        new(markup, source, this.Offset, this.Length, this.Target.Span, state, this.Detected);
+}
