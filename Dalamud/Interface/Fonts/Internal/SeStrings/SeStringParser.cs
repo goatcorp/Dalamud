@@ -1,9 +1,10 @@
+using System.Numerics;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Fonts.Internal.Layout;
 using Dalamud.Interface.Fonts.Internal.Markup;
-using Dalamud.Interface.Fonts.Internal.SeStrings.Formats;
 using Dalamud.Interface.Fonts.Internal.Sources;
 using Lumina.Text;
 using Lumina.Text.Payloads;
@@ -16,21 +17,26 @@ namespace Dalamud.Interface.Fonts.Internal.SeStrings;
 /// <summary>Reads a SeString into styled text. It makes the text displayed, styled runs, inline objects for icons and
 /// entities, and links.</summary>
 /// <remarks>Main thread only.</remarks>
-internal sealed unsafe class SeStringParser
+internal sealed class SeStringParser
 {
     private const int SoftHyphen = 0xAD;
     private const int NoBreakSpace = 0xA0;
     private const int ObjectReplacementCharacter = 0xFFFC;
 
-    private readonly GfdFileView gfd;
-    private readonly SeStringColorStackSet colorStacks;
-    private readonly TextEntityDrawDelegate drawIcon;
+    private readonly SeStringColorStackSet colorStacks = new();
     private StyledText output = null!;
     private int sourceOffset;
     private ulong currentUserData;
     private TextStyle currentStyle;
     private int currentRunBegin;
     private bool hasRun;
+
+    // Whether a payload changed the style since the current run started.
+    private bool styleChanged;
+
+    // The cached results of StyleNow and FontNow. A payload that changes the style clears them.
+    private TextStyle? styleNow;
+    private FontImpl? fontNow;
 
     private FontImpl font = null!;
     private float fontSize;
@@ -42,22 +48,14 @@ internal sealed unsafe class SeStringParser
     private TextEdge edgeTemplate;
     private TextShadow shadowTemplate;
     private TextStyle startStyle;
+
+    // The style of StyledText.DefaultFont. Text in it outside links needs no run.
+    private TextStyle defaultStyle;
     private (int Link, TextStyle Style, TextStyle LinkStyle) lastLinkStyle = (-1, default, default);
     private bool edge;
     private bool shadow;
     private bool bold;
     private bool italic;
-
-    /// <summary>Initializes a new instance of the <see cref="SeStringParser"/> class.</summary>
-    /// <param name="gfd">The bitmap font icon table.</param>
-    /// <param name="colorTypes">Colors to use with <see cref="MacroCode.ColorType"/>.</param>
-    /// <param name="drawIcon">Draws an icon of <paramref name="gfd"/>, whose ID is the entity data.</param>
-    public SeStringParser(GfdFileView gfd, uint[,] colorTypes, TextEntityDrawDelegate drawIcon)
-    {
-        this.gfd = gfd;
-        this.colorStacks = new(colorTypes);
-        this.drawIcon = drawIcon;
-    }
 
     /// <summary>Reads a SeString.</summary>
     /// <param name="seString">The SeString, which becomes <see cref="StyledText.Source"/>.</param>
@@ -83,8 +81,10 @@ internal sealed unsafe class SeStringParser
             this.output = null!;
             this.callbacks = [];
             this.font = null!;
-            this.startStyle = this.currentStyle = default;
+            this.startStyle = this.defaultStyle = this.currentStyle = default;
             this.lastLinkStyle = (-1, default, default);
+            this.styleNow = null;
+            this.fontNow = null;
         }
     }
 
@@ -98,7 +98,27 @@ internal sealed unsafe class SeStringParser
         return (BitmapFontIcon)iconId;
     }
 
-    // Whether a CR at an offset of a text is followed by an LF, which ends the line instead.
+    // The entity data is the ID of the icon's entry.
+    private static unsafe void DrawIcon(ImDrawListPtr drawList, Vector2 topLeft, in TextEntityContext context)
+    {
+        if (SeStringGameData.Gfd is not { } gfd || !gfd.TryGetEntry((uint)context.Data, out var entry))
+            return;
+
+        // The texture may not exist when the layout is made, so it is asked whenever an icon is drawn.
+        var texture = SeStringGameData.GetGfdTexture();
+        if (texture.TexData is null && texture.TexID.IsNull)
+            return;
+        entry.CalculateScaledSize(context.FontSize, out var hq);
+        var tint = ColorHelpers.ApplyOpacity(uint.MaxValue, (context.Color >> 24) / 255f);
+        drawList.AddImage(
+            texture,
+            topLeft,
+            topLeft + context.Size,
+            hq ? entry.HqUv0 : entry.Uv0,
+            hq ? entry.HqUv1 : entry.Uv1,
+            tint);
+    }
+
     // The top of an object centered in the line, above the baseline. A line places its baseline in it as
     // FontMetrics.BaselineIn does, so the height of the line cancels out.
     private float CenteredTop(float height) =>
@@ -139,35 +159,48 @@ internal sealed unsafe class SeStringParser
         this.startStyle = style;
         this.bold = style.Bold;
         this.italic = style.Italic;
-        styled.DefaultFont = this.GetFont(this.StyleOf());
+        this.InvalidateStyle();
+        this.defaultStyle = this.StyleNow();
+        styled.DefaultFont = this.FontNow();
 
         var link = -1;
         var skipUntil = 0;
         foreach (var p in new ReadOnlySeStringSpan(seString).GetOffsetEnumerator())
         {
-            if (p.Offset < skipUntil)
+            // An entity may cover only the start of a text payload. The rest of it is read rune by rune.
+            if (p.Offset < skipUntil &&
+                (p.Payload.Type != ReadOnlySePayloadType.Text || p.Offset + p.Payload.Body.Length <= skipUntil))
+            {
                 continue;
+            }
 
             switch (p.Payload.Type)
             {
                 case ReadOnlySePayloadType.Text:
-                    // The same flags as the layout, so that a leading U+FEFF is kept as the layout keeps it.
+                    // The same flags as the layout. Byte order marks are text, and U+FFFE is yielded rather than
+                    // skipped.
                     var body = p.Payload.Body;
+                    var nextFound = styled.Links.Count;
+                    var foundEnd = link < 0 && chain.Length != 0
+                                       ? nextFound + styled.FindLinks(textMarkup, chain, p.Offset, body.Length)
+                                       : nextFound;
                     foreach (var c in UtfEnumerator.From(
                                  body,
-                                 UtfEnumeratorFlags.DisrespectByteOrderMask | UtfEnumeratorFlags.Utf8))
+                                 UtfEnumeratorFlags.DisrespectByteOrderMask | UtfEnumeratorFlags.YieldByteOrderMask |
+                                 UtfEnumeratorFlags.Utf8))
                     {
                         var at = p.Offset + c.ByteOffset;
                         if (at < skipUntil)
                             continue;
                         this.sourceOffset = at;
-                        if (this.TryAddEntity(seString, at, link, out var length))
+                        var runLink = link >= 0 ? link : this.FoundLinkAt(at, ref nextFound, foundEnd);
+                        if (this.TryAddEntity(seString, at, runLink, out var length))
                         {
                             skipUntil = at + length;
                             continue;
                         }
 
-                        this.AddRune(c.EffectiveRune, link);
+                        this.AddRune(c.EffectiveRune, runLink);
                     }
 
                     break;
@@ -189,7 +222,6 @@ internal sealed unsafe class SeStringParser
                             this.AddRune(new('\n'), link);
                             break;
 
-                        // Where lines may wrap, showing a hyphen if they do.
                         case MacroCode.SoftHyphen:
                             this.AddRune(new(SoftHyphen), link);
                             break;
@@ -213,17 +245,18 @@ internal sealed unsafe class SeStringParser
                         {
                             var length = p.Payload.EnvelopeByteLength;
                             link = styled.Links.Count;
-                            styled.Links.Add(new(p.Offset, length, p.Offset, length));
+                            styled.Links.Add(new(p.Offset, length, seString.AsMemory(p.Offset, length)));
                             break;
                         }
 
                         case MacroCode.Icon or MacroCode.Icon2
                             when GetBitmapFontIconFor(p.Payload) is var icon and not None &&
-                                 this.gfd.TryGetEntry((uint)icon, out var gfdEntry):
+                                 SeStringGameData.Gfd is { } gfd &&
+                                 gfd.TryGetEntry((uint)icon, out var gfdEntry):
                         {
                             var iconSize = gfdEntry.CalculateScaledSize(this.fontSize, out _);
                             var top = this.CenteredTop(iconSize.Y);
-                            var entity = new TextEntity(p.Payload.EnvelopeByteLength, iconSize, this.drawIcon)
+                            var entity = new TextEntity(p.Payload.EnvelopeByteLength, iconSize, DrawIcon)
                             {
                                 Data = gfdEntry.Id,
                             };
@@ -231,7 +264,7 @@ internal sealed unsafe class SeStringParser
                             this.AddObject(
                                 new(new(0, -top, MathF.Round(iconSize.X), iconSize.Y - top)),
                                 link,
-                                new(entity, p.Offset, this.GetFont(this.StyleOf()), iconSize));
+                                new(entity, p.Offset, this.FontNow(), iconSize));
                             break;
                         }
                     }
@@ -251,8 +284,17 @@ internal sealed unsafe class SeStringParser
     {
         foreach (var callback in this.callbacks)
         {
-            if (callback is ISeStringCallback seStringCallback && seStringCallback.ShouldHandle(payload) is { } answer)
-                return answer;
+            if (callback is not ISeStringCallback seStringCallback)
+                continue;
+            try
+            {
+                if (seStringCallback.ShouldHandle(payload) is { } answer)
+                    return answer;
+            }
+            catch (Exception e)
+            {
+                StyledTextHook.ReportCallbackFailure(callback.GetType(), e);
+            }
         }
 
         return true;
@@ -260,35 +302,51 @@ internal sealed unsafe class SeStringParser
 
     private bool HandleStyleAdjustingPayload(ReadOnlySePayloadSpan payload)
     {
-        if (this.colorStacks.TryHandle(payload, this.themeIndex))
-            return true;
-        switch (payload.MacroCode)
+        if (!this.colorStacks.TryHandle(payload, this.themeIndex))
         {
-            case MacroCode.Bold when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
-                this.bold = u != 0;
-                return true;
-            case MacroCode.Italic when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
-                this.italic = u != 0;
-                return true;
-            case MacroCode.Edge when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
-                this.edge = u != 0;
-                return true;
-            case MacroCode.Shadow when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
-                this.shadow = u != 0;
-                return true;
-            default:
-                return false;
+            switch (payload.MacroCode)
+            {
+                case MacroCode.Bold when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
+                    this.bold = u != 0;
+                    break;
+                case MacroCode.Italic when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
+                    this.italic = u != 0;
+                    break;
+                case MacroCode.Edge when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
+                    this.edge = u != 0;
+                    break;
+                case MacroCode.Shadow when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
+                    this.shadow = u != 0;
+                    break;
+                default:
+                    return false;
+            }
         }
+
+        this.InvalidateStyle();
+        return true;
     }
 
-    // The style of text now. Color 0 is the color the text is drawn with. Transparent colors hide the text. Edges and
-    // shadows that are off are left at their defaults, so that equal styles are equal. Edge colors of payloads have no
-    // alpha, so edges take the alpha of the edge the text started with.
-    private TextStyle StyleOf()
+    private void InvalidateStyle()
     {
+        this.styleChanged = true;
+        this.styleNow = null;
+        this.fontNow = null;
+    }
+
+    private FontImpl GetFont(in TextStyle style) => this.font.Resolver.GetImpl(style);
+
+    // Returns the active style, cached until a payload mutates state. Color 0 inherits the draw color, and any other
+    // zero-alpha color hides text. Disabled edges and shadows normalize to default for style equality, and payload
+    // edge and shadow colors inherit the initial alpha.
+    private TextStyle StyleNow()
+    {
+        if (this.styleNow is { } cached)
+            return cached;
+
         var stacks = this.colorStacks;
         var color = stacks.Color;
-        return this.startStyle with
+        var style = this.startStyle with
         {
             Color = color is 0 or >= 0x1000000 ? color : 0x00FFFFFFu,
             Edge = (this.edge || stacks.HasAdditionalEdgeColor) && stacks.EdgeColor >= 0x1000000
@@ -298,26 +356,42 @@ internal sealed unsafe class SeStringParser
                        }
                        : default,
             Shadow = this.shadow && stacks.ShadowColor >= 0x1000000
-                         ? this.shadowTemplate with { Color = stacks.ShadowColor }
+                         ? this.shadowTemplate with
+                         {
+                             Color = (stacks.ShadowColor & 0x00FFFFFFu) | (this.shadowTemplate.Color & 0xFF000000u),
+                         }
                          : default,
             Bold = this.bold,
             Italic = this.italic,
         };
+        this.styleNow = style;
+        return style;
     }
 
-    private FontImpl GetFont(in TextStyle style) => this.font.Resolver.GetImpl(style);
+    private FontImpl FontNow() => this.fontNow ??= this.GetFont(this.StyleNow());
 
-    // Asks the callbacks for an entity at a byte offset, and adds it.
     private bool TryAddEntity(ReadOnlySpan<byte> seString, int byteOffset, int link, out int byteLength)
     {
         byteLength = 0;
         if (this.callbacks.Length == 0)
             return false;
-        var font = this.GetFont(this.StyleOf());
+        var font = this.FontNow();
         var context = new TextEntityContext(this.markup, seString, byteOffset, font, this.fontSize, 0, default, 0);
         foreach (var callback in this.callbacks)
         {
-            if (!callback.TryGetEntity(context, out var entity) || entity.Length == 0)
+            TextEntity entity;
+            try
+            {
+                if (!callback.TryGetEntity(context, out entity))
+                    continue;
+            }
+            catch (Exception e)
+            {
+                StyledTextHook.ReportCallbackFailure(callback.GetType(), e);
+                continue;
+            }
+
+            if (entity.Length <= 0 || entity.Length > seString.Length - byteOffset)
                 continue;
 
             var size = entity.Size.Y < 0 ? entity.Size with { Y = -entity.Size.Y * this.blockSize } : entity.Size;
@@ -345,6 +419,7 @@ internal sealed unsafe class SeStringParser
             case 0 or char.MaxValue:
                 return;
 
+            // U+FFFC is reserved as the inline-object sentinel in StyledText.Text.
             case ObjectReplacementCharacter:
                 rune = Rune.ReplacementChar;
                 break;
@@ -365,8 +440,11 @@ internal sealed unsafe class SeStringParser
 
     private void StartRun(int link)
     {
-        var style = link >= 0 ? this.GetLinkStyle(link, this.StyleOf()) : this.StyleOf();
         var userData = (ulong)(link + 1);
+        if (this.hasRun && userData == this.currentUserData && !this.styleChanged)
+            return;
+        var style = link >= 0 ? this.GetLinkStyle(link, this.StyleNow()) : this.StyleNow();
+        this.styleChanged = false;
         if (this.hasRun && userData == this.currentUserData && style == this.currentStyle)
             return;
         this.EndRun();
@@ -376,7 +454,6 @@ internal sealed unsafe class SeStringParser
         this.currentRunBegin = this.output.Text.Length;
     }
 
-    // The style of a link in the style of the text around it, as the callbacks say (TextLinkState.Normal).
     private TextStyle GetLinkStyle(int link, TextStyle style)
     {
         if (this.callbacks.Length == 0)
@@ -384,27 +461,18 @@ internal sealed unsafe class SeStringParser
         if (this.lastLinkStyle.Link == link && this.lastLinkStyle.Style == style)
             return this.lastLinkStyle.LinkStyle;
 
-        var linkStyle = style;
-        var l = this.output.Links[link];
-        var source = this.output.Source.AsSpan();
-        var context = new TextLinkContext(
-            this.markup,
-            source,
-            l.Offset,
-            l.Length,
-            source.Slice(l.TargetOffset, l.TargetLength),
-            TextLinkState.Normal);
-        foreach (var callback in this.callbacks)
-        {
-            if (callback.TryGetLinkStyle(context, style, out var s))
-            {
-                linkStyle = style.WithLayoutOf(s with { Markup = style.Markup });
-                break;
-            }
-        }
-
+        var linkStyle = this.output.GetLinkStyle(this.markup, this.callbacks, link, style);
         this.lastLinkStyle = (link, style, linkStyle);
         return linkStyle;
+    }
+
+    // Returns the detected link index at byte offset at within [next, end), advancing next monotonically.
+    private int FoundLinkAt(int at, ref int next, int end)
+    {
+        var links = this.output.Links;
+        while (next < end && links[next].Offset + links[next].Length <= at)
+            next++;
+        return next < end && links[next].Offset <= at ? next : -1;
     }
 
     private void EndRun()
@@ -412,7 +480,10 @@ internal sealed unsafe class SeStringParser
         var end = this.output.Text.Length;
         if (!this.hasRun || this.currentRunBegin == end)
             return;
-        this.output.Runs.Add(new(this.currentRunBegin, end, this.GetFont(this.currentStyle), this.currentUserData));
+
+        // Text outside runs gets the default font.
+        if (this.currentUserData != 0 || this.currentStyle != this.defaultStyle)
+            this.output.Runs.Add(new(this.currentRunBegin, end, this.GetFont(this.currentStyle), this.currentUserData));
         this.currentRunBegin = end;
     }
 }

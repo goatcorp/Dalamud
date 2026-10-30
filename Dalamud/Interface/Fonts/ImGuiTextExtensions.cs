@@ -22,23 +22,26 @@ public static unsafe class ImGuiTextExtensions
 {
     extension(ImGui)
     {
-        /// <summary>Draws text of a markup, through <see cref="ImGui.Text(ImU8String)"/>.</summary>
-        /// <param name="text">The text.</param>
-        /// <param name="markup">The markup.</param>
-        /// <param name="callback">The callback to push for this text only. Keep it between frames.</param>
-        /// <param name="wrap">Whether to wrap the text at the end of the window.</param>
-        /// <remarks>The text is laid out as one, however long. <c>##</c> in it is drawn.</remarks>
+        /// <summary>Draws text parsed according to <paramref name="markup"/>.</summary>
+        /// <param name="text">The markup bytes.</param>
+        /// <param name="markup">The markup format.</param>
+        /// <param name="callback">Optional callback pushed for this call only. Reuse the same instance across frames so
+        /// layouts stay cached.</param>
+        /// <param name="wrap">Whether to wrap at the end of the window.</param>
+        /// <remarks>Laid out as a single text block regardless of length. <c>##</c> is rendered literally.</remarks>
         public static void TextMarkup(
             ImU8String text, TextMarkup markup, ITextMarkupCallback? callback = null, bool wrap = false)
         {
+            ThreadSafety.AssertMainThread();
+            TextInteractionState.Reset();
             using var pop = ImGui.PushTextMarkup(markup, callback);
-            PlainText(text.Span, wrap);
-            text.Recycle();
+            PlainText(text, wrap);
         }
 
         /// <summary>Draws a SeString compiled from <paramref name="text"/>.</summary>
         /// <param name="text">Macro string to compile to a SeString.</param>
-        /// <param name="callback">The callback to push for this text only. Keep it between frames.</param>
+        /// <param name="callback">Optional callback pushed for this call only. Reuse the same instance across frames so
+        /// layouts stay cached.</param>
         /// <param name="wrap">Whether to wrap the text.</param>
         public static void TextMacroString(
             ImU8String text, ITextMarkupCallback? callback = null, bool wrap = false) =>
@@ -46,7 +49,8 @@ public static unsafe class ImGuiTextExtensions
 
         /// <summary>Draws a SeString.</summary>
         /// <param name="text">Compiled SeString.</param>
-        /// <param name="callback">The callback to push for this text only. Keep it between frames.</param>
+        /// <param name="callback">Optional callback pushed for this call only. Reuse the same instance across frames so
+        /// layouts stay cached.</param>
         /// <param name="wrap">Whether to wrap the text.</param>
         public static void TextSeString(
             ReadOnlySpan<byte> text, ITextMarkupCallback? callback = null, bool wrap = false) =>
@@ -64,13 +68,14 @@ public static unsafe class ImGuiTextExtensions
 
         /// <summary>Draws a layout as an item, as <see cref="ImGui.Text(ImU8String)"/> draws text.</summary>
         /// <param name="layout">The layout, such as from
-        /// <see cref="CreateTextLayout(ReadOnlySpan{byte},ReadOnlySpan{TextStyleRange},float,int,ImTextLayoutFlags)"/>.
+        /// <see cref="CreateTextLayout(ReadOnlySpan{byte},ReadOnlySpan{TextStyleRange},TextLayoutOptions)"/>.
         /// </param>
         /// <param name="color">The text color, or <see langword="null"/> for <see cref="ImGuiCol.Text"/>.</param>
         /// <remarks>The item is the size of the layout box, placed on the text baseline of the current line.</remarks>
         public static void TextLayout(ImTextLayoutPtr layout, ImTextColor? color = null)
         {
             ThreadSafety.AssertMainThread();
+            TextInteractionState.Reset();
             if (layout.IsNull)
                 return;
             var box = layout.GetBoundingBox(out _);
@@ -78,15 +83,14 @@ public static unsafe class ImGuiTextExtensions
                 layout.Render(ImGui.GetWindowDrawList(), pos, color ?? ImGui.GetColorU32(ImGuiCol.Text));
         }
 
-        /// <summary>Pushes a callback that decides how text with a markup is drawn.</summary>
-        /// <param name="callback">The callback. It can be <see langword="null"/> if <paramref name="inherit"/> is
-        /// <see langword="false"/>, to only cut off the earlier callbacks.</param>
-        /// <param name="inherit">Whether the callbacks pushed earlier are still asked. Set it to <see langword="false"/>
-        /// to keep an outer callback, such as one finding links, away from a widget.</param>
-        /// <returns>A disposable object that pops the callback.</returns>
-        /// <remarks>For text with <see cref="TextMarkup.Plain"/> as its <see cref="TextStyle.Markup"/>, only
-        /// <see cref="ITextMarkupCallback.FindLinks"/> is asked, and the link members for the links it found.
-        /// </remarks>
+        /// <summary>Pushes a callback that customizes markup entities and links.</summary>
+        /// <param name="callback">The callback, or <see langword="null"/> when <paramref name="inherit"/> is
+        /// <see langword="false"/> to suppress outer callbacks.</param>
+        /// <param name="inherit">Whether callbacks pushed earlier remain active. Set to <see langword="false"/> to isolate
+        /// inner widgets from outer callbacks such as URL detection.</param>
+        /// <returns>A disposable scope that pops the callback.</returns>
+        /// <remarks>For <see cref="TextMarkup.Plain"/> text, only <see cref="ITextMarkupCallback.FindLinks"/> and link
+        /// styling and activation methods are invoked.</remarks>
         /// <seealso cref="ImGuiTextStyleExtensions.extension(ImGui).PushTextMarkup"/>
         public static ImPopFontDisposable PushTextCallback(ITextMarkupCallback? callback, bool inherit = true)
         {
@@ -95,12 +99,12 @@ public static unsafe class ImGuiTextExtensions
             return new(textCallback: true);
         }
 
-        /// <summary>Makes layouts made with a callback stale, so that its answers are asked again.</summary>
+        /// <summary>Invalidates cached text layouts built with <paramref name="callback"/> so they are rebuilt on next use.</summary>
         /// <param name="callback">The callback.</param>
         public static void InvalidateTextCallback(ITextMarkupCallback callback) =>
             TextCallbackStack.Invalidate(callback ?? throw new ArgumentNullException(nameof(callback)));
 
-        /// <summary>Draws a styled text.</summary>
+        /// <summary>Draws text in the given style.</summary>
         /// <param name="text">Text to draw.</param>
         /// <param name="style">Style to apply.</param>
         /// <param name="wrap">Whether to wrap the text.</param>
@@ -110,13 +114,13 @@ public static unsafe class ImGuiTextExtensions
             PlainText(text, wrap);
         }
 
-        /// <summary>Draws a text with ranges in other styles, laid out as one text, as <see cref="ImGui.Text"/>
-        /// does.</summary>
+        /// <summary>Draws text with per-range style overrides, laid out as a single text block like
+        /// <see cref="ImGui.Text"/>.</summary>
         /// <seealso cref="ImGui.PushTextWrapPos(float)"/>
         /// <param name="text">UTF-8 text to draw.</param>
-        /// <param name="ranges">The ranges, in units of <paramref name="text"/>, in any order. Ranges of different
-        /// fields compose, and of the same field, the later one wins. Text outside them is in the current style.
-        /// </param>
+        /// <param name="ranges">Style ranges in code units of <paramref name="text"/>, in any order. Ranges affecting
+        /// different fields compose, and for the same field, the later range wins. Uncovered text uses the current
+        /// style.</param>
         /// <param name="wrap">Whether to wrap the text at the end of the window.</param>
         /// <example><code>
         /// var wavy = new TextLineDecoration(TextLinePosition.Under, TextLineStyle.Wavy, 0xFF0000FF);
@@ -134,99 +138,98 @@ public static unsafe class ImGuiTextExtensions
 
         /// <inheritdoc cref="TextStyledRanges(ReadOnlySpan{byte},ReadOnlySpan{TextStyleRange},bool)"/>
         /// <param name="text">Text to draw.</param>
-        /// <param name="ranges">The ranges, in units of <paramref name="text"/>, in any order. Ranges of different
-        /// fields compose, and of the same field, the later one wins. Text outside them is in the current style.
-        /// </param>
+        /// <param name="ranges">Style ranges in code units of <paramref name="text"/>, in any order. Ranges affecting
+        /// different fields compose, and for the same field, the later range wins. Uncovered text uses the current
+        /// style.</param>
         /// <param name="wrap">Whether to wrap the text at the end of the window.</param>
         public static void TextStyledRanges(
             ReadOnlySpan<char> text, ReadOnlySpan<TextStyleRange> ranges, bool wrap = false) =>
             TextStyledRanges(MemoryMarshal.AsBytes(text), 2, ranges, wrap);
 
-        /// <summary>Lays out a text in the current font and size, with ranges in other styles, to draw and to query.
-        /// </summary>
+        /// <summary>Lays out text in the current font and size with per-range style overrides for rendering and
+        /// hit-testing.</summary>
         /// <param name="text">UTF-8 text.</param>
-        /// <param name="ranges">The ranges, in units of <paramref name="text"/>, in any order. For overlapping ranges,
-        /// the later one wins. Text outside them is in the current style.</param>
-        /// <param name="wrapWidth">The width to wrap at, or 0 for no wrapping.</param>
-        /// <param name="tabSize">Spaces between tab stops, counted from the start of each line, or 0 for 4.</param>
-        /// <param name="flags">Layout flags.</param>
+        /// <param name="ranges">Style ranges in code units of <paramref name="text"/>, in any order. Ranges affecting
+        /// different fields compose, and for the same field, the later range wins. Uncovered text uses the current
+        /// style.</param>
+        /// <param name="options">How to lay out the text, such as the wrap width.</param>
         /// <returns>The layout.</returns>
         /// <example><code>
-        /// using var layout = ImGui.CreateTextLayout(line, highlights, tabSize: 4);
+        /// using var layout = ImGui.CreateTextLayout(line, highlights, new() { TabSize = 8 });
         /// layout.Ptr.Render(ImGui.GetWindowDrawList(), pos, ImGui.GetColorU32(ImGuiCol.Text));
         /// var caret = layout.Ptr.HitTest(ImGui.GetMousePos() - pos);
         /// </code></example>
         public static ImTextLayoutRef CreateTextLayout(
-            ReadOnlySpan<byte> text, ReadOnlySpan<TextStyleRange> ranges = default, float wrapWidth = 0,
-            int tabSize = 0, ImTextLayoutFlags flags = ImTextLayoutFlags.None) =>
-            CreateTextLayout(text, 1, ranges, wrapWidth, tabSize, flags);
+            ReadOnlySpan<byte> text, ReadOnlySpan<TextStyleRange> ranges = default,
+            TextLayoutOptions options = default) =>
+            CreateTextLayout(text, 1, ranges, options);
 
-        /// <inheritdoc cref="CreateTextLayout(ReadOnlySpan{byte},ReadOnlySpan{TextStyleRange},float,int,ImTextLayoutFlags)" path="/summary"/>
+        /// <inheritdoc cref="CreateTextLayout(ReadOnlySpan{byte},ReadOnlySpan{TextStyleRange},TextLayoutOptions)" path="/summary"/>
         /// <param name="text">Text to lay out.</param>
         /// <param name="ranges">The ranges, in chars of <paramref name="text"/>, as for
         /// <see cref="TextStyledRanges(ReadOnlySpan{char},ReadOnlySpan{TextStyleRange},bool)"/>.</param>
-        /// <param name="wrapWidth">The width to wrap at, or 0 for no wrapping.</param>
-        /// <param name="tabSize">Spaces between tab stops, counted from the start of each line, or 0 for 4.</param>
-        /// <param name="flags">Layout flags.</param>
+        /// <param name="options">How to lay out the text, such as the wrap width.</param>
         /// <returns>The layout.</returns>
         /// <remarks>The offsets the layout reports and takes, such as those of <see cref="ImTextLine"/> and
-        /// <see cref="ImTextCaret"/>, are in bytes of the text, 2 per char. Divide them by 2 to index the text. Only
-        /// <see cref="TextStyleRange"/> is in chars.</remarks>
+        /// <see cref="ImTextCaret"/>, are in chars of the text, as are those of <see cref="TextStyleRange"/>.</remarks>
         public static ImTextLayoutRef CreateTextLayout(
-            ReadOnlySpan<char> text, ReadOnlySpan<TextStyleRange> ranges = default, float wrapWidth = 0,
-            int tabSize = 0, ImTextLayoutFlags flags = ImTextLayoutFlags.None) =>
-            CreateTextLayout(MemoryMarshal.AsBytes(text), 2, ranges, wrapWidth, tabSize, flags);
+            ReadOnlySpan<char> text, ReadOnlySpan<TextStyleRange> ranges = default,
+            TextLayoutOptions options = default) =>
+            CreateTextLayout(MemoryMarshal.AsBytes(text), 2, ranges, options);
 
-        /// <inheritdoc cref="CreateTextLayout(ReadOnlySpan{byte},ReadOnlySpan{TextStyleRange},float,int,ImTextLayoutFlags)" path="/summary"/>
+        /// <inheritdoc cref="CreateTextLayout(ReadOnlySpan{byte},ReadOnlySpan{TextStyleRange},TextLayoutOptions)" path="/summary"/>
         /// <param name="text">The text.</param>
         /// <param name="markup">The markup.</param>
-        /// <param name="wrapWidth">The width to wrap at, or 0 for no wrapping.</param>
-        /// <param name="tabSize">Spaces between tab stops, counted from the start of each line, or 0 for 4.</param>
-        /// <param name="flags">Layout flags.</param>
+        /// <param name="options">How to lay out the text, such as the wrap width.</param>
         /// <returns>The layout.</returns>
         public static ImTextLayoutRef CreateTextLayout(
-            ReadOnlySpan<byte> text, TextMarkup markup, float wrapWidth = 0, int tabSize = 0,
-            ImTextLayoutFlags flags = ImTextLayoutFlags.None)
+            ReadOnlySpan<byte> text, TextMarkup markup, TextLayoutOptions options = default)
         {
             ThreadSafety.AssertMainThread();
-            if (FontImpl.FromNative(ImGui.Font.Handle) is not { } font)
+            if (FontImpl.Current is not { } font)
                 return default;
             font = font.WithMarkup(markup);
-            return new(NativeTextLayouts.ToNative(
-                           TextLayouter.CreateStyled(font, GetLayoutDesc(font, wrapWidth, tabSize, flags), text)));
+            return new(NativeTextLayouts.ToNative(TextLayouter.CreateStyled(font, GetLayoutDesc(font, options), text)));
         }
 
         /// <summary>Lays out a SeString in the current font and size as ImGui draws one, to draw and to query.
         /// </summary>
         /// <param name="text">The SeString.</param>
-        /// <param name="wrapWidth">The width to wrap at, or 0 for no wrapping.</param>
-        /// <param name="tabSize">Spaces between tab stops, counted from the start of each line, or 0 for 4.</param>
-        /// <param name="flags">Layout flags.</param>
+        /// <param name="options">How to lay out the text, such as the wrap width.</param>
         /// <returns>The layout.</returns>
-        public static ImTextLayoutRef CreateTextLayout(
-            ReadOnlySeStringSpan text, float wrapWidth = 0, int tabSize = 0,
-            ImTextLayoutFlags flags = ImTextLayoutFlags.None) =>
-            ImGui.CreateTextLayout(text.Data, Fonts.TextMarkup.SeString, wrapWidth, tabSize, flags);
+        public static ImTextLayoutRef CreateTextLayout(ReadOnlySeStringSpan text, TextLayoutOptions options = default) =>
+            ImGui.CreateTextLayout(text.Data, Fonts.TextMarkup.SeString, options);
 
-        /// <summary>Finds where text wraps first in the current font and size.</summary>
+        /// <summary>Finds where the first line of text wraps in the current font and size.</summary>
         /// <param name="text">The text.</param>
         /// <param name="wrapWidth">The width to wrap at.</param>
         /// <returns>The char offset where the first line ends, before its line break and trailing blanks, or the
         /// length of the text if it is one line.</returns>
         public static int CalcWordWrapPosition(ReadOnlySpan<char> text, float wrapWidth)
         {
-            using var layout = ImGui.CreateTextLayout(text, wrapWidth: wrapWidth);
+            using var layout = ImGui.CreateTextLayout(text, options: new() { WrapWidth = wrapWidth });
             var lines = layout.IsNull ? default : layout.Ptr.GetLines();
-            return lines.Length > 1 ? lines[0].TextEnd / 2 : text.Length;
+            return lines.Length > 1 ? lines[0].TextEnd : text.Length;
         }
 
-        /// <summary>Gets what happened to a link of the styled text drawn last in this frame, like
-        /// <see cref="ImGui.IsItemClicked()"/> after an item.</summary>
-        /// <param name="interaction">What happened.</param>
-        /// <param name="flags">What to look for.</param>
-        /// <returns>Whether any of <paramref name="flags"/> happened.</returns>
-        /// <remarks>Links are of text in fonts with <see cref="TextStyle.Markup"/>, drawn into the current window.
-        /// Markup text drawn later replaces what is reported, even without links. Plain text does not.</remarks>
+        /// <summary>Checks whether a link in the most recently drawn styled text this frame was interacted with, similar to
+        /// <see cref="ImGui.IsItemClicked()"/>.</summary>
+        /// <param name="interaction">The link interaction details when returning <see langword="true"/>.</param>
+        /// <param name="flags">Interaction flags to match.</param>
+        /// <returns><see langword="true"/> if any flag in <paramref name="flags"/> occurred, or <see langword="false"/>
+        /// otherwise.</returns>
+        /// <remarks><ul>
+        /// <li>Links are of text in fonts with <see cref="TextStyle.Markup"/>, drawn into the current window.</li>
+        /// <li>Markup text drawn later for another item replaces what is reported, even without links, and so does any
+        /// item submitted later, even a clipped one. Markup text drawn later for the same item, such as the label of
+        /// <see cref="ImGui.LabelText(ImU8String, ImU8String)"/>, replaces it only if a link of it is hovered or held.
+        /// Plain text replaces it only while callbacks are pushed. Text that is only measured does not.</li>
+        /// <li>Links in the label of a widget that takes the mouse are never hovered or clicked, as the widget is
+        /// hovered first. Such widgets are
+        /// <see cref="ImGui.Selectable(ImU8String, bool, ImGuiSelectableFlags, Vector2)"/>,
+        /// <see cref="ImGui.TreeNodeEx(ImU8String, ImGuiTreeNodeFlags, ImU8String)"/> and
+        /// <see cref="ImGui.Button(ImU8String, Vector2)"/>.</li>
+        /// </ul></remarks>
         public static bool TryGetTextInteraction(
             out TextInteraction interaction, TextInteractionFlags flags = TextInteractionFlags.LeftClick)
         {
@@ -256,36 +259,34 @@ public static unsafe class ImGuiTextExtensions
         /// <param name="upscale">Whether to scale text smaller than the box up to fit it.</param>
         /// <returns><see langword="true"/> if anything was drawn, or <see langword="false"/> if the text draws
         /// nothing.</returns>
-        /// <remarks>What is fit is the ink box, which is what the glyphs cover. The text is laid out again at the
-        /// scaled size, so that the glyphs stay sharp.</remarks>
+        /// <remarks>Fits the full ink bounds, covering the layout box plus glyph overhangs, edges, and shadows. Re-lays
+        /// out at the scaled size so glyphs stay sharp.</remarks>
         public bool AddTextFitted(Vector2 min, Vector2 max, ImU8String text, ImTextColor color, bool upscale = false)
         {
             ThreadSafety.AssertMainThread();
-            var drawn = FontImpl.FromNative(ImGui.Font.Handle) is { } font &&
+            var drawn = FontImpl.Current is { } font &&
                         AddTextFitted(drawList, font, min, max, text.Span, color, upscale);
             text.Recycle();
             return drawn;
         }
     }
 
-    // Lays out text in a font and draws it fit into the box. Returns whether anything was drawn.
     private static bool AddTextFitted(
         ImDrawListPtr drawList, FontImpl font, Vector2 min, Vector2 max, ReadOnlySpan<byte> text, ImTextColor color,
         bool upscale)
     {
-        var avail = Vector2.Max(max - min, Vector2.Zero);
-        var layout = TextLayouter.CreateStyled(font, GetLayoutDesc(font, 0, 0, ImTextLayoutFlags.None, drawList), text);
-        if (ScaleToFit(layout.Ink, avail, upscale) is not { } scale)
+        var avail = max - min;
+        if (!(avail.X > 0 && avail.Y > 0))
+            return false;
+        var layout = TextLayouter.CreateStyled(font, GetLayoutDesc(font, default, drawList), text);
+        if (!layout.HasDrawnContent || ScaleToFit(layout.Ink, avail, upscale) is not { } scale)
             return false;
         if (scale != 1)
         {
             using (ImGui.PushFontScale(scale))
             {
-                if (FontImpl.FromNative(ImGui.Font.Handle) is { } scaled)
-                {
-                    layout = TextLayouter.CreateStyled(
-                        scaled, GetLayoutDesc(scaled, 0, 0, ImTextLayoutFlags.None, drawList), text);
-                }
+                var scaled = FontImpl.Current!;
+                layout = TextLayouter.CreateStyled(scaled, GetLayoutDesc(scaled, default, drawList), text);
             }
         }
 
@@ -303,7 +304,6 @@ public static unsafe class ImGuiTextExtensions
         return true;
     }
 
-    // Gets the scale that fits an ink box into a size, or null if the ink box is empty.
     private static float? ScaleToFit(Vector4 ink, Vector2 avail, bool upscale)
     {
         var (w, h) = (ink.Z - ink.X, ink.W - ink.Y);
@@ -313,8 +313,7 @@ public static unsafe class ImGuiTextExtensions
         return upscale ? scale : MathF.Min(scale, 1);
     }
 
-    // Adds an item for text at the cursor, on the text baseline of the current line. Returns whether it is visible,
-    // with where to draw the text.
+    // Places the item on the current line's text baseline.
     private static bool TryAddTextItem(Vector2 size, out Vector2 pos)
     {
         var window = ImGuiP.GetCurrentWindow();
@@ -338,7 +337,7 @@ public static unsafe class ImGuiTextExtensions
         if (window.SkipItems)
             return;
 
-        if (FontImpl.FromNative(ImGui.Font.Handle) is not { } font)
+        if (FontImpl.Current is not { } font)
         {
             if (codeUnitSize == 1)
                 PlainText(text, wrap);
@@ -348,13 +347,12 @@ public static unsafe class ImGuiTextExtensions
         }
 
         var wrapWidth = GetWrapWidth(window, wrap);
-        var layout = CreateLayout(font, text, codeUnitSize, ranges, wrapWidth, 0, ImTextLayoutFlags.None);
+        var layout = CreateLayout(font, text, codeUnitSize, ranges, new() { WrapWidth = wrapWidth });
         if (TryAddTextItem(layout.Size, out var pos))
             layout.Render(ImGui.GetWindowDrawList(), pos, ImGui.GetColorU32(ImGuiCol.Text));
     }
 
-    // Draws text with ImGui, wrapping at the end of the window if asked. ImGui.Begin resets a wrap position that an
-    // exception leaves.
+    // No try/finally is needed because ImGui.Begin resets any leaked wrap position.
     private static void PlainText(ImU8String text, bool wrap)
     {
         if (wrap)
@@ -364,7 +362,6 @@ public static unsafe class ImGuiTextExtensions
             ImGui.PopTextWrapPos();
     }
 
-    // Gets the width ImGui.Text wraps text at, or 0 for none.
     private static float GetWrapWidth(ImGuiWindowPtr window, bool wrap)
     {
         ref var dc = ref window.DC;
@@ -374,18 +371,19 @@ public static unsafe class ImGuiTextExtensions
 
     // Gets the layout parameters at the current font size, as ImGui lays out text. Without a draw list, the pixel
     // density is that of the current context.
-    private static TextLayoutDesc GetLayoutDesc(
-        FontImpl font, float wrapWidth, int tabSize, ImTextLayoutFlags flags, ImDrawListPtr drawList = default)
+    private static TextLayoutDesc GetLayoutDesc(FontImpl font, in TextLayoutOptions options, ImDrawListPtr drawList = default)
     {
-        ImGuiP.GetTextDesc(out var desc, wrapWidth, flags, drawList);
-        return TextLayoutDesc.FromNative(desc, font) with { TabSize = tabSize };
+        ImGuiP.GetTextDesc(out var desc, options.WrapWidth, options.Flags, drawList);
+        desc.MaxLines = options.MaxLines;
+        desc.Align = options.Align;
+        return TextLayoutDesc.FromNative(desc, font) with { TabSize = options.TabSize };
     }
 
     // Lays out text in the current font and size. Runs are split at every boundary of the ranges, and each takes the
     // ranges over it in order.
     private static TextLayout CreateLayout(
         FontImpl font, ReadOnlySpan<byte> text, int codeUnitSize, ReadOnlySpan<TextStyleRange> ranges,
-        float wrapWidth, int tabSize, ImTextLayoutFlags flags)
+        in TextLayoutOptions options)
     {
         var n = ranges.Length;
         var pooledBounds = PooledSpan<int>.Rent(n * 5);
@@ -393,16 +391,22 @@ public static unsafe class ImGuiTextExtensions
         var starts = pooledBounds.Span[(n * 2)..(n * 3)];
         var order = pooledBounds.Span[(n * 3)..(n * 4)];
         var active = pooledBounds.Span[(n * 4)..];
+
+        // Clamped to the text, so that a length such as int.MaxValue does not overflow.
+        var textLength = text.Length / codeUnitSize;
         for (var i = 0; i < n; i++)
         {
-            (bounds[2 * i], bounds[(2 * i) + 1]) = (ranges[i].Offset, ranges[i].Offset + ranges[i].Length);
-            (starts[i], order[i]) = (ranges[i].Offset, i);
+            var begin = Math.Clamp(ranges[i].Offset, 0, textLength);
+            var end = (int)Math.Clamp((long)ranges[i].Offset + ranges[i].Length, begin, textLength);
+            (bounds[2 * i], bounds[(2 * i) + 1]) = (begin, end);
+            (starts[i], order[i]) = (begin, i);
         }
 
         bounds.Sort();
         starts.Sort(order);
         var pooledRuns = PooledSpan<TextRun>.Rent(Math.Max(bounds.Length - 1, 0));
         var runs = pooledRuns.Span;
+        // Sweep sorted range boundaries, keeping active indices ordered by input index so later overrides win.
         var (count, activeCount, nextStart) = (0, 0, 0);
         for (var i = 0; i + 1 < bounds.Length; i++)
         {
@@ -422,7 +426,7 @@ public static unsafe class ImGuiTextExtensions
             for (var j = 0; j < activeCount; j++)
             {
                 ref readonly var r = ref ranges[active[j]];
-                if (begin >= r.Offset + r.Length)
+                if (begin >= (long)r.Offset + r.Length)
                     continue;
                 active[kept++] = active[j];
                 run = run.With(r);
@@ -433,25 +437,19 @@ public static unsafe class ImGuiTextExtensions
                 runs[count++] = new(begin * codeUnitSize, end * codeUnitSize, run);
         }
 
-        var res = TextLayouter.Create(
-            font,
-            GetLayoutDesc(font, wrapWidth, tabSize, flags),
-            text,
-            codeUnitSize,
-            runs[..count]);
+        var res = TextLayouter.Create(font, GetLayoutDesc(font, options), text, codeUnitSize, runs[..count]);
         pooledRuns.Recycle();
         pooledBounds.Recycle();
         return res;
     }
 
     private static ImTextLayoutRef CreateTextLayout(
-        ReadOnlySpan<byte> text, int codeUnitSize, ReadOnlySpan<TextStyleRange> ranges, float wrapWidth,
-        int tabSize, ImTextLayoutFlags flags)
+        ReadOnlySpan<byte> text, int codeUnitSize, ReadOnlySpan<TextStyleRange> ranges, TextLayoutOptions options)
     {
         ThreadSafety.AssertMainThread();
-        if (FontImpl.FromNative(ImGui.Font.Handle) is not { } font)
+        if (FontImpl.Current is not { } font)
             return default;
-        var layout = CreateLayout(font, text, codeUnitSize, ranges, wrapWidth, tabSize, flags);
+        var layout = CreateLayout(font, text, codeUnitSize, ranges, options);
         return new(NativeTextLayouts.ToNative(layout));
     }
 }
