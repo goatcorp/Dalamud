@@ -1,4 +1,4 @@
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.Internal;
 
 /// <summary>
 /// An extension of <see cref="IDisposable"/> which makes <see cref="IDisposable.Dispose"/> queue

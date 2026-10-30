@@ -1,5 +1,5 @@
 using Dalamud.Interface.Internal.ReShadeHandling;
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;

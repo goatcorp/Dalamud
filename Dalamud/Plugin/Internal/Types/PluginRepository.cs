@@ -12,6 +12,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using Newtonsoft.Json;
 

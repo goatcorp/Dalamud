@@ -4,7 +4,7 @@ using TerraFX.Interop.Windows;
 
 using static TerraFX.Interop.Windows.Windows;
 
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.Internal;
 
 /// <summary>Clipboard formats, looked up by their names.</summary>
 internal static class ClipboardFormats

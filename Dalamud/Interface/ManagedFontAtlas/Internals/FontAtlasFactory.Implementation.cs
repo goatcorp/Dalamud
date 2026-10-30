@@ -15,6 +15,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using JetBrains.Annotations;
 
