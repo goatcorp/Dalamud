@@ -65,12 +65,10 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
     }
 
     /// <inheritdoc/>
-    public Vector2 LeftStick =>
-        new(this.leftStickX, this.leftStickY);
+    public Vector2 LeftStick => new(this.leftStickX, this.leftStickY);
 
     /// <inheritdoc/>
-    public Vector2 RightStick =>
-        new(this.rightStickX, this.rightStickY);
+    public Vector2 RightStick => new(this.rightStickX, this.rightStickY);
 
     /// <summary>
     /// Gets buttons pressed bitmask, set once when the button is pressed. See <see cref="GamepadButtons"/> for the mapping.
@@ -101,16 +99,16 @@ internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
     internal GamepadButtons ButtonsRepeat { get; private set; }
 
     /// <inheritdoc/>
-    public float Pressed(GamepadButtons button) => (this.ButtonsPressed & button) > 0 ? 1 : 0;
+    public bool Pressed(GamepadButtons button) => (this.ButtonsPressed & button) != 0;
 
     /// <inheritdoc/>
-    public float Repeat(GamepadButtons button) => (this.ButtonsRepeat & button) > 0 ? 1 : 0;
+    public bool Repeat(GamepadButtons button) => (this.ButtonsRepeat & button) != 0;
 
     /// <inheritdoc/>
-    public float Released(GamepadButtons button) => (this.ButtonsReleased & button) > 0 ? 1 : 0;
+    public bool Released(GamepadButtons button) => (this.ButtonsReleased & button) != 0;
 
     /// <inheritdoc/>
-    public float Raw(GamepadButtons button) => (this.ButtonsRaw & button) > 0 ? 1 : 0;
+    public bool Raw(GamepadButtons button) => (this.ButtonsRaw & button) != 0;
 
     /// <summary>
     /// Disposes this instance, alongside its hooks.

@@ -41,7 +41,7 @@ internal class GamepadStateSelfTestStep : ISelfTestStep
                 .BeginMacro(MacroCode.Icon)
                 .AppendUIntExpression(iconId)
                 .EndMacro()
-                .PushColorRgba(gamepadState.Raw(button) == 1 ? 0x0000FF00u : 0x000000FF)
+                .PushColorRgba(gamepadState.Raw(button) ? 0x0000FF00u : 0x000000FF)
                 .Append(button.ToString())
                 .PopColor()
                 .Append(i < buttons.Length - 1 ? ", " : ".");
@@ -49,7 +49,7 @@ internal class GamepadStateSelfTestStep : ISelfTestStep
 
         ImGuiHelpers.SeStringWrapped(rssb.Builder.ToReadOnlySeString());
 
-        if (buttons.All(tuple => gamepadState.Raw(tuple.Button) == 1))
+        if (buttons.All(tuple => gamepadState.Raw(tuple.Button)))
         {
             return SelfTestStepResult.Pass;
         }

@@ -39,21 +39,21 @@ internal class GamepadWidget : IDataWindowWidget
             ImGui.SetClipboardText($"{Util.DescribeAddress(gamepadState.GamepadInputAddress)}");
 #endif
 
-        this.DrawHelper("Buttons Raw", (uint)gamepadState.ButtonsRaw, gamepadState.Raw);
-        this.DrawHelper("Buttons Pressed", (uint)gamepadState.ButtonsPressed, gamepadState.Pressed);
-        this.DrawHelper("Buttons Repeat", (uint)gamepadState.ButtonsRepeat, gamepadState.Repeat);
-        this.DrawHelper("Buttons Released", (uint)gamepadState.ButtonsReleased, gamepadState.Released);
+        DrawHelper("Buttons Raw", (uint)gamepadState.ButtonsRaw, gamepadState.Raw);
+        DrawHelper("Buttons Pressed", (uint)gamepadState.ButtonsPressed, gamepadState.Pressed);
+        DrawHelper("Buttons Repeat", (uint)gamepadState.ButtonsRepeat, gamepadState.Repeat);
+        DrawHelper("Buttons Released", (uint)gamepadState.ButtonsReleased, gamepadState.Released);
         ImGui.Text($"LeftStick {gamepadState.LeftStick}");
         ImGui.Text($"RightStick {gamepadState.RightStick}");
     }
 
-    private void DrawHelper(string text, uint mask, Func<GamepadButtons, float> resolve)
+    private static void DrawHelper(string text, uint mask, Func<GamepadButtons, bool> resolve)
     {
         ImGui.Text($"{text} {mask:X4}");
-        ImGui.Text($"DPadLeft {resolve(GamepadButtons.DpadLeft)} " +
-                   $"DPadUp {resolve(GamepadButtons.DpadUp)} " +
-                   $"DPadRight {resolve(GamepadButtons.DpadRight)} " +
-                   $"DPadDown {resolve(GamepadButtons.DpadDown)} ");
+        ImGui.Text($"DPadLeft {resolve(GamepadButtons.DPadLeft)} " +
+                   $"DPadUp {resolve(GamepadButtons.DPadUp)} " +
+                   $"DPadRight {resolve(GamepadButtons.DPadRight)} " +
+                   $"DPadDown {resolve(GamepadButtons.DPadDown)} ");
         ImGui.Text($"West {resolve(GamepadButtons.West)} " +
                    $"North {resolve(GamepadButtons.North)} " +
                    $"East {resolve(GamepadButtons.East)} " +
