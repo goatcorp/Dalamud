@@ -27,17 +27,12 @@ internal static class TextInteractionState
             return false;
         }
 
-        var source = r.Source.AsSpan();
-        interaction = new(
-            r.Markup,
-            source,
-            r.Link.Offset,
-            r.Link.Length,
-            r.Offset,
-            r.Length,
-            source.Slice(r.Link.TargetOffset, r.Link.TargetLength),
-            r.Flags,
-            r.Held);
+        var state = r.Held ? TextLinkState.Held
+                    : (r.Flags & TextInteractionFlags.Hover) != 0 ? TextLinkState.Hovered
+                    : TextLinkState.Normal;
+        var link = new TextLinkContext(
+            r.Markup, r.Source, r.Link.Offset, r.Link.Length, r.Link.Target.Span, state, r.Link.Detected);
+        interaction = new(link, r.Offset, r.Length, r.Flags);
         return true;
     }
 }

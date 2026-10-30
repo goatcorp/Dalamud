@@ -153,6 +153,10 @@ internal sealed unsafe class SeStringParser
                 case ReadOnlySePayloadType.Text:
                     // The same flags as the layout, so that a leading U+FEFF is kept as the layout keeps it.
                     var body = p.Payload.Body;
+                    var nextFound = styled.Links.Count;
+                    var foundEnd = link < 0 && chain.Length != 0
+                                       ? nextFound + styled.FindLinks(textMarkup, chain, p.Offset, body.Length)
+                                       : nextFound;
                     foreach (var c in UtfEnumerator.From(
                                  body,
                                  UtfEnumeratorFlags.DisrespectByteOrderMask | UtfEnumeratorFlags.Utf8))
@@ -161,13 +165,14 @@ internal sealed unsafe class SeStringParser
                         if (at < skipUntil)
                             continue;
                         this.sourceOffset = at;
-                        if (this.TryAddEntity(seString, at, link, out var length))
+                        var runLink = link >= 0 ? link : this.FoundLinkAt(at, ref nextFound, foundEnd);
+                        if (this.TryAddEntity(seString, at, runLink, out var length))
                         {
                             skipUntil = at + length;
                             continue;
                         }
 
-                        this.AddRune(c.EffectiveRune, link);
+                        this.AddRune(c.EffectiveRune, runLink);
                     }
 
                     break;
@@ -213,7 +218,7 @@ internal sealed unsafe class SeStringParser
                         {
                             var length = p.Payload.EnvelopeByteLength;
                             link = styled.Links.Count;
-                            styled.Links.Add(new(p.Offset, length, p.Offset, length));
+                            styled.Links.Add(new(p.Offset, length, seString.AsMemory(p.Offset, length)));
                             break;
                         }
 
@@ -384,27 +389,18 @@ internal sealed unsafe class SeStringParser
         if (this.lastLinkStyle.Link == link && this.lastLinkStyle.Style == style)
             return this.lastLinkStyle.LinkStyle;
 
-        var linkStyle = style;
-        var l = this.output.Links[link];
-        var source = this.output.Source.AsSpan();
-        var context = new TextLinkContext(
-            this.markup,
-            source,
-            l.Offset,
-            l.Length,
-            source.Slice(l.TargetOffset, l.TargetLength),
-            TextLinkState.Normal);
-        foreach (var callback in this.callbacks)
-        {
-            if (callback.TryGetLinkStyle(context, style, out var s))
-            {
-                linkStyle = style.WithLayoutOf(s with { Markup = style.Markup });
-                break;
-            }
-        }
-
+        var linkStyle = this.output.LinkStyleOf(this.markup, this.callbacks, link, style);
         this.lastLinkStyle = (link, style, linkStyle);
         return linkStyle;
+    }
+
+    // The found link at an offset, or -1. The found links are from next to end, in order, and offsets only increase.
+    private int FoundLinkAt(int at, ref int next, int end)
+    {
+        var links = this.output.Links;
+        while (next < end && links[next].Offset + links[next].Length <= at)
+            next++;
+        return next < end && links[next].Offset <= at ? next : -1;
     }
 
     private void EndRun()

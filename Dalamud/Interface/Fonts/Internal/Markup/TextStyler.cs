@@ -101,7 +101,8 @@ internal abstract class TextStyler
                 CollectionsMarshal.AsSpan(styled.Runs),
                 CollectionsMarshal.AsSpan(styled.Objects),
                 styled.GetDrawnOffsets());
-            layout.RenderHook = new(this.Markup, styled, chain, desc.EmSize);
+            if (this.Markup != TextMarkup.Plain || styled.Links.Count != 0)
+                layout.RenderHook = new(this.Markup, styled, chain, desc.EmSize);
             TextLayouter.AddCached(key, layout);
             return layout;
         }

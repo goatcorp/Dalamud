@@ -8,16 +8,12 @@ public readonly ref struct TextInteraction
     /// <param name="drawnOffset">The byte offset of what defines the link, in the text as drawn.</param>
     /// <param name="drawnLength">The length of what defines the link, in the text as drawn.</param>
     /// <param name="flags">What happened.</param>
-    /// <param name="held">Whether the link is held down.</param>
-    internal TextInteraction(
-        TextMarkup markup, ReadOnlySpan<byte> source, int offset, int length, int drawnOffset, int drawnLength,
-        ReadOnlySpan<byte> target, TextInteractionFlags flags, bool held)
+    internal TextInteraction(TextLinkContext link, int drawnOffset, int drawnLength, TextInteractionFlags flags)
     {
         this.Link = link;
         this.DrawnOffset = drawnOffset;
         this.DrawnLength = drawnLength;
         this.Flags = flags;
-        this.Held = held;
     }
 
     /// <summary>Gets the link, with <see cref="TextLinkContext.State"/> telling whether it is hovered or held.
@@ -34,14 +30,4 @@ public readonly ref struct TextInteraction
 
     /// <summary>Gets the length of what defines the link in bytes, in the text as drawn.</summary>
     public int DrawnLength { get; }
-
-    /// <summary>Gets the link target.</summary>
-    /// <remarks>For SeStrings, it is the link payload.</remarks>
-    public ReadOnlySpan<byte> Target { get; }
-
-    /// <summary>Gets what happened.</summary>
-    public TextInteractionFlags Flags { get; }
-
-    /// <summary>Gets a value indicating whether the link is held down.</summary>
-    public bool Held { get; }
 }
