@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Utility.Internal;
+
 using Microsoft.Extensions.ObjectPool;
 
 namespace Dalamud.Utility;

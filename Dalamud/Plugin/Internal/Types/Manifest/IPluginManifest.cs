@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Plugin.Internal.Types.Manifest;
 

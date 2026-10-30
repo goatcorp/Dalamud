@@ -13,7 +13,7 @@ using Dalamud.Logging.Internal;
 
 using Dalamud.Plugin.SelfTest;
 using Dalamud.Plugin.SelfTest.Internal;
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest;
 

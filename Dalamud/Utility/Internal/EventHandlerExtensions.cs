@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 
-using Dalamud.Game;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Gui.NamePlate;
 using Dalamud.Plugin.Services;
 
 using Serilog;
 
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.Internal;
 
 /// <summary>
 /// Extensions for Events.

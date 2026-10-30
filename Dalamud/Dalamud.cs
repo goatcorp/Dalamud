@@ -13,6 +13,7 @@ using Dalamud.Hooking.Internal.Verification;
 using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 using Dalamud.Utility.Timing;
 
 using Serilog;

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using TerraFX.Interop.Windows;
 

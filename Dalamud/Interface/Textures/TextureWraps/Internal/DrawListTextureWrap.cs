@@ -6,6 +6,7 @@ using Dalamud.Interface.Textures.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;

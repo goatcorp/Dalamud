@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Reflection;
 
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.Internal;
 
 /// <summary>
 /// Helpers to access Dalamud versioning information.

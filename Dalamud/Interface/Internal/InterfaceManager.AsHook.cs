@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;

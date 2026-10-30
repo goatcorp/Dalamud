@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.Internal;
 
 #pragma warning disable SA1600
 #pragma warning disable SA1602
