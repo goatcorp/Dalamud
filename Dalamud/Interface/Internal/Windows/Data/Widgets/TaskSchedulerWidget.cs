@@ -214,8 +214,8 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         if (ImGui.Button("As long as it's in Framework Thread"u8))
         {
-            Task.Run(async () => await framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from non-framework.update thread"); }));
-            framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from framework.update thread"); }).Wait();
+            Task.Run(async () => await framework.Run(() => { Log.Information("Task dispatched from non-framework.update thread"); }));
+            framework.Run(() => { Log.Information("Task dispatched from framework.update thread"); }).Wait();
         }
 
         ImGui.SameLine();
@@ -223,14 +223,6 @@ internal class TaskSchedulerWidget : IDataWindowWidget
         if (ImGui.Button("Error in 1s"u8))
         {
             _ = framework.RunOnTick(() => throw new Exception("Test Exception"), cancellationToken: this.taskSchedulerCancelSource.Token, delay: TimeSpan.FromSeconds(1));
-        }
-
-        ImGui.SameLine();
-
-        if (ImGui.Button("Freeze 1s"u8))
-        {
-            _ = framework.RunOnFrameworkThread(() => Helper().Wait());
-            static async Task Helper() => await Task.Delay(1000);
         }
 
         ImGui.SameLine();
