@@ -1,3 +1,5 @@
+using Dalamud.Utility;
+
 using Lumina.Text;
 
 namespace Dalamud.Game.Text.Evaluator.Internal;
@@ -8,7 +10,7 @@ namespace Dalamud.Game.Text.Evaluator.Internal;
 internal readonly struct SeStringBuilderIconWrap : IDisposable
 {
     private readonly SeStringBuilder builder;
-    private readonly uint iconClose;
+    private readonly BitmapFontIcon iconClose;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SeStringBuilderIconWrap"/> struct.<br/>
@@ -18,7 +20,7 @@ internal readonly struct SeStringBuilderIconWrap : IDisposable
     /// <param name="builder">The builder to use.</param>
     /// <param name="iconOpen">The open icon id.</param>
     /// <param name="iconClose">The close icon id.</param>
-    public SeStringBuilderIconWrap(SeStringBuilder builder, uint iconOpen, uint iconClose)
+    public SeStringBuilderIconWrap(SeStringBuilder builder, BitmapFontIcon iconOpen, BitmapFontIcon iconClose)
     {
         this.builder = builder;
         this.iconClose = iconClose;

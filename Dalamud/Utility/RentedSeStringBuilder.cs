@@ -3,6 +3,8 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+using Dalamud.Game.Text;
+
 using Lumina.Text;
 using Lumina.Text.Expressions;
 using Lumina.Text.Parse;
@@ -547,6 +549,9 @@ public readonly struct RentedSeStringBuilder() : IResettable, IDisposable
 
     /// <inheritdoc cref="SeStringBuilder.PopShadowColor()"/>
     public SeStringBuilder PopShadowColor() => this.Builder.PopShadowColor();
+
+    /// <inheritdoc cref="SeStringBuilder.AppendIcon(uint)"/>
+    public SeStringBuilder AppendIcon(BitmapFontIcon icon) => this.Builder.AppendIcon(icon);
 
     #endregion
 }

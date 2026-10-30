@@ -446,7 +446,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             if (characterInfo.HomeWorldId != AgentLobby.Instance()->LobbyData.HomeWorldId &&
                 WorldHelper.Instance()->AllWorlds.TryGetValue(characterInfo.HomeWorldId, out var world, false))
             {
-                context.Builder.AppendIcon(88);
+                context.Builder.AppendIcon(BitmapFontIcon.CrossWorld);
 
                 if (this.gameConfig.UiConfig.TryGetUInt("LogCrossWorldName", out var logCrossWorldName) &&
                     logCrossWorldName == 1)
@@ -1181,7 +1181,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!this.dataManager.GetExcelSheet<World>(context.Language).TryGetRow(worldId, out var worldRow))
             return false;
 
-        context.Builder.AppendIcon(88);
+        context.Builder.AppendIcon(BitmapFontIcon.CrossWorld);
         context.Builder.Append(worldRow.Name);
 
         return true;
@@ -1543,7 +1543,10 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             return true;
         }
 
-        using var icons = new SeStringBuilderIconWrap(context.Builder, 54, 55);
+        using var icons = new SeStringBuilderIconWrap(
+            context.Builder,
+            BitmapFontIcon.AutoTranslateBegin,
+            BitmapFontIcon.AutoTranslateEnd);
 
         // CategoryDataCache
         if (lookupTable.Equals("#"))
