@@ -21,7 +21,7 @@ public interface IGamepadState : IDalamudService
     /// preventing it from passing through to the game.
     /// Setting to true is ignored while plugin gamepad input is disabled in Dalamud settings.
     /// </summary>
-    public bool EnableGamepadNav { get; set; }
+    bool EnableGamepadNav { get; set; }
 
     /// <summary>
     /// Gets the left analogue sticks tilt vector.
@@ -40,8 +40,8 @@ public interface IGamepadState : IDalamudService
     /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
     /// </summary>
     /// <param name="button">The button to check for.</param>
-    /// <returns>1 if pressed, 0 otherwise.</returns>
-    float Pressed(GamepadButtons button);
+    /// <returns><see langword="true"/> if pressed, <see langword="false"/> otherwise.</returns>
+    bool Pressed(GamepadButtons button);
 
     /// <summary>
     /// Gets whether <paramref name="button"/> is being pressed.
@@ -50,8 +50,8 @@ public interface IGamepadState : IDalamudService
     /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
     /// </summary>
     /// <param name="button">The button to check for.</param>
-    /// <returns>1 if still pressed during interval, 0 otherwise or in between intervals.</returns>
-    float Repeat(GamepadButtons button);
+    /// <returns><see langword="true"/> if still pressed during interval, <see langword="false"/> otherwise or in between intervals.</returns>
+    bool Repeat(GamepadButtons button);
 
     /// <summary>
     /// Gets whether <paramref name="button"/> has been released.
@@ -60,8 +60,8 @@ public interface IGamepadState : IDalamudService
     /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
     /// </summary>
     /// <param name="button">The button to check for.</param>
-    /// <returns>1 if released, 0 otherwise.</returns>
-    float Released(GamepadButtons button);
+    /// <returns><see langword="true"/> if released, <see langword="false"/> otherwise.</returns>
+    bool Released(GamepadButtons button);
 
     /// <summary>
     /// Gets the raw state of <paramref name="button"/>.
@@ -69,6 +69,6 @@ public interface IGamepadState : IDalamudService
     /// Is set the entire time a button is pressed down.
     /// </summary>
     /// <param name="button">The button to check for.</param>
-    /// <returns>1 the whole time button is pressed, 0 otherwise.</returns>
-    float Raw(GamepadButtons button);
+    /// <returns><see langword="true"/> the whole time button is pressed, <see langword="false"/> otherwise.</returns>
+    bool Raw(GamepadButtons button);
 }
