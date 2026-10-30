@@ -189,10 +189,11 @@ public static class SeStringBuilderExtensions
     /// </summary>
     /// <param name="builder">The builder to append the map link to.</param>
     /// <param name="obj">The game object whose current position should be linked.</param>
+    /// <param name="placeNameIdOverride">An optional PlaceName RowId that is used for the locations name.</param>
     /// <returns>The <see cref="SeStringBuilder"/> instance with the map link appended for method chaining.</returns>
-    public static SeStringBuilder PushMapLink(this SeStringBuilder builder, IGameObject obj)
+    public static SeStringBuilder PushMapLink(this SeStringBuilder builder, IGameObject obj, uint placeNameIdOverride = 0)
     {
-        return builder.Append(SeString.CreateMapLink(obj));
+        return builder.Append(SeString.CreateMapLink(obj, placeNameIdOverride));
     }
 
     /// <summary>
@@ -200,10 +201,11 @@ public static class SeStringBuilderExtensions
     /// </summary>
     /// <param name="builder">The builder to append the map link to.</param>
     /// <param name="worldPos">The world-space coordinate that should be linked.</param>
+    /// <param name="placeNameIdOverride">An optional PlaceName RowId that is used for the locations name.</param>
     /// <returns>The <see cref="SeStringBuilder"/> instance with the map link appended for method chaining.</returns>
-    public static SeStringBuilder PushMapLink(this SeStringBuilder builder, WorldCoordinate worldPos)
+    public static SeStringBuilder PushMapLink(this SeStringBuilder builder, WorldCoordinate worldPos, uint placeNameIdOverride = 0)
     {
-        return builder.Append(SeString.CreateMapLink(worldPos));
+        return builder.Append(SeString.CreateMapLink(worldPos, placeNameIdOverride));
     }
 
     /// <summary>
@@ -211,10 +213,11 @@ public static class SeStringBuilderExtensions
     /// </summary>
     /// <param name="builder">The builder to append the map link to.</param>
     /// <param name="mapPos">The map-space coordinate that should be linked.</param>
+    /// <param name="placeNameIdOverride">An optional PlaceName RowId that is used for the locations name.</param>
     /// <returns>The <see cref="SeStringBuilder"/> instance with the map link appended for method chaining.</returns>
-    public static SeStringBuilder PushMapLink(this SeStringBuilder builder, MapCoordinate mapPos)
+    public static SeStringBuilder PushMapLink(this SeStringBuilder builder, MapCoordinate mapPos, uint placeNameIdOverride = 0)
     {
-        return builder.Append(SeString.CreateMapLink(mapPos));
+        return builder.Append(SeString.CreateMapLink(mapPos, placeNameIdOverride));
     }
 
     /// <summary>

@@ -100,11 +100,16 @@ jobs:
           Expand-Archive -Force latest.zip "left"
     - name: "Verify Compatibility"
       run: |
-        $FILES_TO_VALIDATE = "Dalamud.dll","FFXIVClientStructs.dll","Lumina.dll"
+        $FILES_TO_VALIDATE = "Dalamud.dll","Dalamud.Excel.Sheets.dll","FFXIVClientStructs.dll","Lumina.dll"
 
         $retcode = 0
 
         foreach ($file in $FILES_TO_VALIDATE) {
+            if (-not (Test-Path "left\${file}")) {
+                Write-Output "::warning::${file} not found for comparison"
+                continue
+            }
+
             $testout = ""
             Write-Output "::group::=== API COMPATIBILITY CHECK: ${file} ==="
             apicompat -l "left\${file}" -r "right\${file}" --noWarn "CP0006" | Tee-Object -Variable testout

@@ -90,19 +90,27 @@ public struct WorldCoordinate
         if (mapId == 0 || !dataManager.GetExcelSheet<Map>().TryGetRow(mapId, out var mapRow))
             return default;
 
+        float? z = null;
+
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if (this.Y != MapUtil.NoRawZ && MapUtil.TryGetOffsetZ(this.TerritoryId, out var offsetZ))
+        {
+            z = MapUtil.ConvertWorldCoordYToMapCoord(this.Y, offsetZ);
+        }
+
         return new MapCoordinate(
             this.TerritoryId,
             this.MapId,
             MapUtil.ConvertWorldCoordXZToMapCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
             MapUtil.ConvertWorldCoordXZToMapCoord(this.Z, mapRow.SizeFactor, mapRow.OffsetY),
-            this.Y == MapUtil.NoRawZ ? null : this.Y / 100f,
+            z,
             this.InstanceId);
     }
 
     /// <inheritdoc cref="SeString.CreateMapLink(WorldCoordinate, uint)"/>
-    public ReadOnlySeString ToMapLink()
+    public ReadOnlySeString ToMapLink(uint placeNameIdOverride = 0)
     {
-        return SeString.CreateMapLink(this);
+        return SeString.CreateMapLink(this, placeNameIdOverride);
     }
 }
 
@@ -174,19 +182,26 @@ public struct MapCoordinate
         if (mapId == 0 || !Service<DataManager>.Get().GetExcelSheet<Map>().TryGetRow(mapId, out var mapRow))
             return default;
 
+        float y = MapUtil.NoRawZ;
+        if (this.Z.HasValue)
+        {
+            MapUtil.TryGetOffsetZ(this.TerritoryId, out var offsetZ);
+            y = MathF.Round(this.Z.Value * 100f, 2) + offsetZ;
+        }
+
         return new WorldCoordinate(
             this.TerritoryId,
             this.MapId,
             MapUtil.ConvertMapCoordXYToWorldCoord(this.X, mapRow.SizeFactor, mapRow.OffsetX),
-            this.Z.HasValue ? this.Z.Value * 100f : MapUtil.NoRawZ,
+            y,
             MapUtil.ConvertMapCoordXYToWorldCoord(this.Y, mapRow.SizeFactor, mapRow.OffsetY),
             this.InstanceId);
     }
 
-    /// <inheritdoc cref="SeString.CreateMapLink(MapCoordinate)"/>
-    public ReadOnlySeString ToMapLink()
+    /// <inheritdoc cref="SeString.CreateMapLink(MapCoordinate, uint)"/>
+    public ReadOnlySeString ToMapLink(uint placeNameIdOverride = 0)
     {
-        return SeString.CreateMapLink(this);
+        return SeString.CreateMapLink(this, placeNameIdOverride);
     }
 }
 
@@ -216,6 +231,7 @@ public static class MapUtil
     /// <param name="scale">The scale factor of the map, generally retrieved from Lumina.</param>
     /// <param name="offset">The dimension offset for either X or Z, generally retrieved from Lumina.</param>
     /// <returns>Returns a converted float for display to the player.</returns>
+    // ReSharper disable once InconsistentNaming
     public static float ConvertWorldCoordXZToMapCoord(float value, uint scale, int offset)
     {
         // Derived from E8 ?? ?? ?? ?? 0F B7 4B 1C and simplified.
@@ -230,6 +246,7 @@ public static class MapUtil
     /// <param name="scale">The SizeFactor value of the Map row.</param>
     /// <param name="offset">The OffsetX/OffsetY value of the Map row.</param>
     /// <returns>A 3D world coordinate.</returns>
+    // ReSharper disable once InconsistentNaming
     public static float ConvertMapCoordXYToWorldCoord(float value, float scale, short offset)
     {
         return (value - 1.0f - (0.02f * offset) - (2048.0f / scale)) * 50.0f;
@@ -259,32 +276,18 @@ public static class MapUtil
     /// <param name="territoryId">The TerritoryType Id.</param>
     /// <param name="y">The y-coordinate value.</param>
     /// <returns>An adjusted altitude.</returns>
-    public static int ApplyTerritoryOffsetToWorldCoordianteY(uint territoryId, float y)
+    public static int ApplyTerritoryOffsetToWorldCoordinateY(uint territoryId, float y)
     {
         if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryId, out var transientRow) || transientRow.OffsetZ == NoOffsetZ)
             return MapUtil.NoRawZ;
 
         var adjustedY = y - transientRow.OffsetZ;
         var result = (int)adjustedY;
+
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (adjustedY < 0.0f && adjustedY != result)
             result -= 10;
         return result;
-    }
-
-    /// <summary>
-    /// Helper method to remove the <see cref="TerritoryTypeTransient.OffsetZ"/> from a Y (altitude) value of a coordinate.
-    /// </summary>
-    /// <param name="territoryId">The TerritoryType Id.</param>
-    /// <param name="y">The y-coordinate value.</param>
-    /// <returns>An adjusted altitude.</returns>
-    public static float RemoveTerritoryOffsetFromWorldCoordinateY(uint territoryId, float y)
-    {
-        if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryId, out var transientRow) || transientRow.OffsetZ == NoOffsetZ)
-            return y;
-
-        if (y < 0.0f)
-            y += 10;
-        return y + transientRow.OffsetZ;
     }
 
     /// <summary>
@@ -388,5 +391,35 @@ public static class MapUtil
         return Service<DataManager>.Get().GetExcelSheet<TerritoryType>().TryGetRow(territoryTypeId, out var territoryRow)
             ? territoryRow.Map.RowId
             : 0;
+    }
+
+    /// <summary>
+    /// Converts a world X/Z coordinate to the raw integer used by map links, e.g. 123.4567 -> 123457.
+    /// </summary>
+    /// <param name="value">The world X or Z coordinate.</param>
+    /// <returns>The raw coordinate.</returns>
+    // ReSharper disable once InconsistentNaming
+    internal static int ConvertWorldCoordXZToRaw(float value)
+    {
+        return (int)MathF.Round(value * 1000f);
+    }
+
+    /// <summary>
+    /// Gets the <see cref="TerritoryTypeTransient.OffsetZ"/> of a territory that displays a Z coordinate.
+    /// </summary>
+    /// <param name="territoryTypeId">The TerritoryType Id.</param>
+    /// <param name="offsetZ">The OffsetZ, or 0 if the territory displays no Z coordinate.</param>
+    /// <returns>Whether the territory displays a Z coordinate.</returns>
+    internal static bool TryGetOffsetZ(uint territoryTypeId, out int offsetZ)
+    {
+        offsetZ = 0;
+
+        if (!Service<DataManager>.Get().GetExcelSheet<TerritoryTypeTransient>().TryGetRow(territoryTypeId, out var transientRow) || transientRow.OffsetZ == NoOffsetZ)
+        {
+            return false;
+        }
+
+        offsetZ = transientRow.OffsetZ;
+        return true;
     }
 }

@@ -30,7 +30,6 @@
   </Folder>
   <Folder Name="/Dependencies/Lumina/">
     <Project Path="lib/Lumina.Excel/src/Lumina.Excel.Generator/Lumina.Excel.Generator.csproj" />
-    <Project Path="lib/Lumina.Excel/src/Lumina.Excel/Lumina.Excel.csproj" />
   </Folder>
   <Folder Name="/CMake/">
     <File Path="CMakeLists.txt" />
