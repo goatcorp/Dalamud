@@ -3,6 +3,8 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Utility.Internal;
+
 using TerraFX.Interop;
 using TerraFX.Interop.Windows;
 

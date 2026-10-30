@@ -7,7 +7,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 

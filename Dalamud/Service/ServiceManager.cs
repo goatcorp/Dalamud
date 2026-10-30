@@ -14,7 +14,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage;
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 using Dalamud.Utility.Timing;
 
 using JetBrains.Annotations;

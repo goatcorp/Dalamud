@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 
 using Dalamud.Plugin.Internal;
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Networking.Http;
 

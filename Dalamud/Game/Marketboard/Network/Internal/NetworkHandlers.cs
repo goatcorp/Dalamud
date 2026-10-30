@@ -12,7 +12,7 @@ using Dalamud.Game.Player;
 using Dalamud.Hooking;
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Network;

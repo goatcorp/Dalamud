@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Threading;
 
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.Internal;
 
 /// <summary>
 /// Interface for reference counting.

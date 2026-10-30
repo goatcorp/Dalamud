@@ -36,6 +36,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 using Dalamud.Utility.Timing;
 
 using JetBrains.Annotations;

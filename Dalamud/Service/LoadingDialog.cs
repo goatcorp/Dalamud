@@ -14,6 +14,7 @@ using CheapLoc;
 
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using Serilog;
 using Serilog.Events;

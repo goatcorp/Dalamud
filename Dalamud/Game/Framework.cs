@@ -14,6 +14,7 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 

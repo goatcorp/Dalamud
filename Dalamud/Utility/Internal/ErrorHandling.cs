@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 using Serilog;
 
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.Internal;
 
 /// <summary>
 /// Utilities for handling errors inside Dalamud.

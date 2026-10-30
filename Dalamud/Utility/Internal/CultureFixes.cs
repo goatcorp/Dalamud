@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.Internal;
 
 /// <summary>
 /// Class containing fixes for culture-specific issues.

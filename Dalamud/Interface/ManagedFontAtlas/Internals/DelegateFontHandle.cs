@@ -5,7 +5,7 @@ using System.Threading;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 

@@ -2,7 +2,7 @@ using System.Numerics;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Plugin.Internal.Types;
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;

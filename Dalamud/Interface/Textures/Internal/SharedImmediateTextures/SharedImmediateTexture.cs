@@ -11,6 +11,7 @@ using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 

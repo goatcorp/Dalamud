@@ -23,6 +23,7 @@ using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 
