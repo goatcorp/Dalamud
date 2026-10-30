@@ -244,7 +244,7 @@ internal sealed unsafe class StyledTextHook
     }
 
     private TextLinkContext ContextOf(in TextLink l, TextLinkState state) =>
-        new(this.markup, this.source, l.Offset, l.Length, this.source.AsSpan(l.TargetOffset, l.TargetLength), state);
+        new(this.markup, this.source, l.Offset, l.Length, l.Target.Span, state, l.Detected);
 
     // Asks the callbacks for the style of a link, until one answers. A callback that throws has no say.
     private bool TryGetLinkStyle(in TextLinkContext context, in TextStyle style, out TextStyle result)

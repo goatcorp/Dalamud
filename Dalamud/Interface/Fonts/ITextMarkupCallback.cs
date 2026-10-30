@@ -8,6 +8,8 @@ namespace Dalamud.Interface.Fonts;
 /// <li>Callbacks are asked from the most recently pushed one down, and the first with an answer decides. The defaults
 /// do nothing with it. A markup also asks the callbacks of its own interface, such as
 /// <see cref="ISeStringCallback"/>.</li>
+/// <li><see cref="FindLinks"/> is the exception. Every callback is asked, and links of callbacks pushed later win
+/// where they overlap.</li>
 /// <li>A callback pushed with <c>inherit</c> set to <see langword="false"/> cuts off the ones pushed before it, until it
 /// is popped.</li>
 /// <li>Return values are part of the cached layout, except for <see cref="TryActivateLink"/>, and for the fields of
@@ -50,4 +52,21 @@ public interface ITextMarkupCallback
     /// <remarks>A click is a press and a release of a button on the link. It is called as the text is drawn, and
     /// <see cref="ImGuiTextExtensions.TryGetTextInteraction"/> still reports it.</remarks>
     bool TryActivateLink(in TextLinkContext link, ImGuiMouseButton button) => false;
+
+    /// <summary>Finds links in a piece of text the markup made, such as URLs.</summary>
+    /// <param name="context">The piece of text.</param>
+    /// <param name="links">Receives the links, in order.</param>
+    /// <remarks><ul>
+    /// <li>Unlike the other methods, every callback is asked, and their links are combined. A link that overlaps one
+    /// of a callback pushed later is left out.</li>
+    /// <li>Text with <see cref="TextMarkup.Plain"/> is asked too, while any callback is pushed. For it, this is the
+    /// only method asked, along with the link methods for the links found.</li>
+    /// <li>Found links react and are styled as links of the markup are. <see cref="TextLinkContext.Detected"/> tells
+    /// them apart.</li>
+    /// <li>A link split by markup, such as by a color macro, is in two pieces and is not found.</li>
+    /// </ul></remarks>
+    /// <seealso cref="TextMarkupCallbacks.Urls"/>
+    void FindLinks(in TextLinkSearchContext context, TextLinkSearchResults links)
+    {
+    }
 }

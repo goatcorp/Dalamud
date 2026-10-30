@@ -177,27 +177,6 @@ public interface IUiBuilder
     /// <typeparam name="T">Return type.</typeparam>
     Task<T> RunWhenUiPrepared<T>(Func<Task<T>> func, bool runInFrameworkThread = false);
 
-    /// <summary>Finds the font behind an ImGui font, such as <see cref="ImGui.GetFont"/>.</summary>
-    /// <param name="font">The ImGui font.</param>
-    /// <returns>The font, or <see langword="null"/> if <paramref name="font"/> is not Dalamud's.</returns>
-    /// <remarks>It never loads a font. To keep a font alive, keep its <see cref="TextStyle"/> or the returned
-    /// <see cref="ImFontRef"/>.</remarks>
-    ImFontRef? FindFont(ImFontPtr font);
-
-    /// <summary>Pushes a callback that decides how text with a markup is drawn.</summary>
-    /// <param name="callback">The callback. It can be <see langword="null"/> if <paramref name="inherit"/> is
-    /// <see langword="false"/>, to only cut off the earlier callbacks.</param>
-    /// <param name="inherit">Whether the callbacks pushed earlier are still asked. Set it to <see langword="false"/> to
-    /// keep an outer callback away from a widget.</param>
-    /// <returns>A disposable object that pops the callback.</returns>
-    /// <remarks>Callbacks are ignored for text with <see cref="TextMarkup.Plain"/> as its
-    /// <see cref="TextStyle.Markup"/>.</remarks>
-    ImPopFontDisposable PushTextCallback(ITextMarkupCallback? callback, bool inherit = true);
-
-    /// <summary>Makes layouts made with a callback stale, so that its answers are asked again.</summary>
-    /// <param name="callback">The callback.</param>
-    void InvalidateTextCallback(ITextMarkupCallback callback);
-
     /// <summary>Registers a text decoration, to use as <see cref="TextStyle.ExtraDecoration"/> with
     /// <see cref="TextDecorationRegistration.Id"/>.</summary>
     /// <param name="drawer">Draws the decoration, on the main thread.</param>

@@ -126,9 +126,12 @@ internal static unsafe class TextLayouter
     /// <param name="desc">Layout parameters.</param>
     /// <param name="text">The text.</param>
     /// <returns>The layout.</returns>
-    /// <remarks>Stylers lay out nothing outside the main thread. The text is then laid out as plain text.</remarks>
+    /// <remarks>Stylers lay out nothing outside the main thread. The text is then laid out as plain text. Plain text
+    /// goes through its styler only while text callbacks are pushed.</remarks>
     public static TextLayout CreateStyled(FontImpl font, in TextLayoutDesc desc, ReadOnlySpan<byte> text) =>
-        TextStylers.Get(font.Style.Markup)?.CreateLayout(font, desc, text) ?? Create(font, desc, text);
+        (font.Style.Markup != TextMarkup.Plain || TextCallbackStack.Active
+             ? TextStylers.Get(font.Style.Markup)?.CreateLayout(font, desc, text)
+             : null) ?? Create(font, desc, text);
 
     /// <summary>Gets a cached layout of text made some other way, such as a SeString.</summary>
     /// <param name="font">The font.</param>

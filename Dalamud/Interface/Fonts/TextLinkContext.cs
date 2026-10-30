@@ -12,9 +12,10 @@ public readonly ref struct TextLinkContext
     /// <param name="length">The length of what defines the link.</param>
     /// <param name="target">The link target.</param>
     /// <param name="state">What is happening to the link.</param>
+    /// <param name="detected">Whether a callback found the link in the text.</param>
     internal TextLinkContext(
         TextMarkup markup, ReadOnlySpan<byte> source, int offset, int length, ReadOnlySpan<byte> target,
-        TextLinkState state)
+        TextLinkState state, bool detected)
     {
         this.Markup = markup;
         this.Source = source;
@@ -22,6 +23,7 @@ public readonly ref struct TextLinkContext
         this.Length = length;
         this.Target = target;
         this.State = state;
+        this.Detected = detected;
     }
 
     /// <summary>Gets the markup of the text.</summary>
@@ -38,11 +40,17 @@ public readonly ref struct TextLinkContext
     public int Length { get; }
 
     /// <summary>Gets the link target.</summary>
-    /// <remarks>For SeStrings, it is the link payload.</remarks>
+    /// <remarks>For SeStrings, it is the link payload. For <see cref="Detected"/> links, it is what the callback
+    /// gave.</remarks>
     public ReadOnlySpan<byte> Target { get; }
 
     /// <summary>Gets what is happening to the link.</summary>
     public TextLinkState State { get; }
+
+    /// <summary>Gets a value indicating whether a callback found the link in the text, rather than the markup
+    /// making it.</summary>
+    /// <seealso cref="ITextMarkupCallback.FindLinks"/>
+    public bool Detected { get; }
 
     /// <summary>Gets a value indicating whether the link is held down.</summary>
     public bool Held => this.State == TextLinkState.Held;

@@ -9,6 +9,9 @@ namespace Dalamud.Interface.Fonts.Internal.Markup;
 /// <seealso cref="TextStyler"/>
 internal sealed class StyledText
 {
+    private static readonly Comparer<TextLink> OffsetComparer =
+        Comparer<TextLink>.Create((a, b) => a.Offset.CompareTo(b.Offset));
+
     private byte[] text = new byte[256];
     private int[] sourceOffsets = new int[257];
     private int textLength;
@@ -69,6 +72,66 @@ internal sealed class StyledText
         bytes.CopyTo(this.text.AsSpan(this.textLength));
         this.sourceOffsets.AsSpan(this.textLength, bytes.Length).Fill(sourceOffset);
         this.textLength += bytes.Length;
+    }
+
+    /// <summary>Appends a piece of <see cref="Source"/> to display as it is.</summary>
+    /// <param name="sourceOffset">The offset of the piece in <see cref="Source"/>.</param>
+    /// <param name="length">The length of the piece.</param>
+    public void AppendSource(int sourceOffset, int length)
+    {
+        var at = this.textLength;
+        this.Append(this.Source.AsSpan(sourceOffset, length), sourceOffset);
+        for (var i = 1; i < length; i++)
+            this.sourceOffsets[at + i] = sourceOffset + i;
+    }
+
+    /// <summary>Asks callbacks for links in a piece of <see cref="Source"/>, and adds them to <see cref="Links"/>.
+    /// </summary>
+    /// <param name="markup">The markup of the text.</param>
+    /// <param name="callbacks">The callbacks, in order.</param>
+    /// <param name="sourceOffset">The offset of the piece in <see cref="Source"/>.</param>
+    /// <param name="length">The length of the piece.</param>
+    /// <returns>The number of links added, in order.</returns>
+    /// <remarks>Every callback is asked. Links of earlier callbacks win where they overlap.</remarks>
+    public int FindLinks(TextMarkup markup, ITextMarkupCallback[] callbacks, int sourceOffset, int length)
+    {
+        var first = this.Links.Count;
+        if (length == 0)
+            return 0;
+        var context = new TextLinkSearchContext(markup, this.Source, sourceOffset, length);
+        var sorted = true;
+        foreach (var callback in callbacks)
+        {
+            var before = this.Links.Count;
+            callback.FindLinks(context, new(this.Links, this.Source, sourceOffset, length, first));
+            sorted &= before == first || before == this.Links.Count;
+        }
+
+        if (!sorted)
+            this.Links.Sort(first, this.Links.Count - first, OffsetComparer);
+        return this.Links.Count - first;
+    }
+
+    /// <summary>Gets the style to lay out a link with in the style of the text around it, as callbacks say for
+    /// <see cref="TextLinkState.Normal"/>.</summary>
+    /// <param name="markup">The markup of the text.</param>
+    /// <param name="callbacks">The callbacks, in order.</param>
+    /// <param name="link">The index into <see cref="Links"/>.</param>
+    /// <param name="style">The style of the text around it.</param>
+    /// <returns>The style of the link. Only its fields that change the layout come from the callbacks, as the others
+    /// are asked for as it is drawn.</returns>
+    public TextStyle LinkStyleOf(TextMarkup markup, ITextMarkupCallback[] callbacks, int link, in TextStyle style)
+    {
+        var l = this.Links[link];
+        var context = new TextLinkContext(
+            markup, this.Source, l.Offset, l.Length, l.Target.Span, TextLinkState.Normal, l.Detected);
+        foreach (var callback in callbacks)
+        {
+            if (callback.TryGetLinkStyle(context, style, out var s))
+                return style.WithLayoutOf(s with { Markup = style.Markup });
+        }
+
+        return style;
     }
 
     /// <summary>Gets the offset in the text as drawn of each byte of <see cref="Text"/> and of its end.</summary>

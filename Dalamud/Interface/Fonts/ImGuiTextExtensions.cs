@@ -226,7 +226,8 @@ public static unsafe class ImGuiTextExtensions
         /// <param name="flags">What to look for.</param>
         /// <returns>Whether any of <paramref name="flags"/> happened.</returns>
         /// <remarks>Links are of text in fonts with <see cref="TextStyle.Markup"/>, drawn into the current window.
-        /// Markup text drawn later replaces what is reported, even without links. Plain text does not.</remarks>
+        /// Markup text drawn later replaces what is reported, even without links. Plain text does only if callbacks
+        /// found links in it.</remarks>
         public static bool TryGetTextInteraction(
             out TextInteraction interaction, TextInteractionFlags flags = TextInteractionFlags.LeftClick)
         {

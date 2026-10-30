@@ -6,6 +6,7 @@ using System.Text;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
 
 using Lumina.Text.ReadOnly;
 
@@ -112,6 +113,10 @@ internal partial class FontSamplesImGuiWidget
     private int keptFrame;
     private IFontFaceId? comicFace;
     private bool comicFaceLooked;
+    private string urlInput = "https://example.com/ in InputText";
+    private ITextMarkupCallback? urlsWithHandler;
+    private string clickedUrl = "Not clicked yet.";
+    private bool openClickedUrl;
 
     private static string DescribeParse(string s)
     {
@@ -425,6 +430,19 @@ internal partial class FontSamplesImGuiWidget
             ]);
     }
 
+    private static void DrawLinkInteraction()
+    {
+        if (!ImGui.TryGetTextInteraction(out var interaction, TextInteractionFlags.All))
+            return;
+        if ((interaction.Flags & TextInteractionFlags.Hover) != 0)
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+        ImGui.SameLine();
+        if (interaction.Link.Detected)
+            ImGui.Text($"{interaction.Flags}: found, target {interaction.Link.Target}");
+        else
+            ImGui.Text($"{interaction.Flags}: of the markup, target of {interaction.Link.Target.Length} bytes");
+    }
+
     private void DrawApiSamples()
     {
         if (ImGui.CollapsingHeader("Size basis"u8))
@@ -447,6 +465,13 @@ internal partial class FontSamplesImGuiWidget
             DrawRanges();
         if (ImGui.CollapsingHeader("Pushing, measuring and layouts"u8))
             this.DrawPushing();
+    }
+
+    private void OnUrlClick(string url, ImGuiMouseButton button)
+    {
+        this.clickedUrl = $"Clicked with {button}: {url}";
+        if (this.openClickedUrl && button == ImGuiMouseButton.Left)
+            Util.OpenLink(url);
     }
 
     private void DrawPushing()
@@ -476,6 +501,28 @@ internal partial class FontSamplesImGuiWidget
             using (ImGui.PushTextCallback(null, inherit: false))
                 ImGui.Text("PushTextCallback(null, inherit: false): <link(0x0E,1,2,3,test)>cut off<link(0xCE)>"u8);
         }
+
+        using (ImGui.PushTextMarkup(TextMarkup.Plain, TextMarkupCallbacks.Urls))
+        {
+            ImGui.TextMarkup(
+                "Plain text with TextMarkupCallbacks.Urls: https://example.com/a_(b), or www.example.com."u8,
+                TextMarkup.Plain,
+                this);
+            DrawLinkInteraction();
+            ImGui.TextMacroString(
+                "Macro string: <italic(1)>https://example.com/<italic(0)>split, "u8 +
+                "<link(0x0E,1,2,3,test)>a link https://example.com/<link(0xCE)>, (http://example.com/x)"u8,
+                this);
+            DrawLinkInteraction();
+            ImGui.InputText("URL in an InputText"u8, ref this.urlInput, 256);
+        }
+
+        this.urlsWithHandler ??= TextMarkupCallbacks.CreateUrlsWithHandler(this.OnUrlClick);
+        using (ImGui.PushTextMarkup(TextMarkup.Plain, this.urlsWithHandler))
+            ImGui.Text("CreateUrlsWithHandler: click https://example.com/ with any button."u8);
+        ImGui.Checkbox("Open in browser on left click"u8, ref this.openClickedUrl);
+        ImGui.SameLine();
+        ImGui.Text(this.clickedUrl);
 
         ImGui.Separator();
         using (ImGui.PushFontScale(1.25f))
