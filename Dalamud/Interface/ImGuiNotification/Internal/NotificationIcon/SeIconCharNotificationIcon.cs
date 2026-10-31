@@ -19,7 +19,7 @@ internal class SeIconCharNotificationIcon : INotificationIcon
             minCoord,
             maxCoord,
             (char)this.iconChar,
-            Service<NotificationManager>.Get().IconAxisFontHandle,
+            NotificationManager.IconAxisFont,
             color);
 
     /// <inheritdoc/>

@@ -27,126 +27,226 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		WindowPadding = unchecked(1),
+		DisabledAlpha = unchecked(1),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		WindowRounding = unchecked(2),
+		WindowPadding = unchecked(2),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		WindowBorderSize = unchecked(3),
+		WindowRounding = unchecked(3),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		WindowMinSize = unchecked(4),
+		WindowBorderSize = unchecked(4),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		WindowTitleAlign = unchecked(5),
+		WindowMinSize = unchecked(5),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ChildRounding = unchecked(6),
+		WindowTitleAlign = unchecked(6),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ChildBorderSize = unchecked(7),
+		ChildRounding = unchecked(7),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		PopupRounding = unchecked(8),
+		ChildBorderSize = unchecked(8),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		PopupBorderSize = unchecked(9),
+		PopupRounding = unchecked(9),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		FramePadding = unchecked(10),
+		PopupBorderSize = unchecked(10),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		FrameRounding = unchecked(11),
+		FramePadding = unchecked(11),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		FrameBorderSize = unchecked(12),
+		FrameRounding = unchecked(12),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ItemSpacing = unchecked(13),
+		FrameBorderSize = unchecked(13),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ItemInnerSpacing = unchecked(14),
+		ItemSpacing = unchecked(14),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		IndentSpacing = unchecked(15),
+		ItemInnerSpacing = unchecked(15),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CellPadding = unchecked(16),
+		IndentSpacing = unchecked(16),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ScrollbarSize = unchecked(17),
+		CellPadding = unchecked(17),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ScrollbarRounding = unchecked(18),
+		ScrollbarSize = unchecked(18),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GrabMinSize = unchecked(19),
+		ScrollbarRounding = unchecked(19),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		GrabRounding = unchecked(20),
+		ScrollbarPadding = unchecked(20),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		TabRounding = unchecked(21),
+		GrabMinSize = unchecked(21),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ButtonTextAlign = unchecked(22),
+		GrabRounding = unchecked(22),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		SelectableTextAlign = unchecked(23),
+		ImageRounding = unchecked(23),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DisabledAlpha = unchecked(24),
+		ImageBorderSize = unchecked(24),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Count = unchecked(25),
+		TabRounding = unchecked(25),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		TabBorderSize = unchecked(26),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		TabMinWidthBase = unchecked(27),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		TabMinWidthShrink = unchecked(28),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		TabBarBorderSize = unchecked(29),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		TabBarOverlineSize = unchecked(30),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		TableAngledHeadersAngle = unchecked(31),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		TableAngledHeadersTextAlign = unchecked(32),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		TreeLinesSize = unchecked(33),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		TreeLinesRounding = unchecked(34),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		MenuItemRounding = unchecked(35),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		SelectableRounding = unchecked(36),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		DragDropTargetRounding = unchecked(37),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ButtonTextAlign = unchecked(38),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		SelectableTextAlign = unchecked(39),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		SeparatorSize = unchecked(40),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		SeparatorTextBorderSize = unchecked(41),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		SeparatorTextAlign = unchecked(42),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		SeparatorTextPadding = unchecked(43),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		DockingSeparatorSize = unchecked(44),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		Count = unchecked(45),
 	}
 }

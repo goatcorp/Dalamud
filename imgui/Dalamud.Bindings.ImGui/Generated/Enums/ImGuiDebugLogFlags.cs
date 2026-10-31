@@ -27,46 +27,86 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		EventActiveId = unchecked(1),
+		EventError = unchecked(1),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		EventFocus = unchecked(2),
+		EventActiveId = unchecked(2),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		EventPopup = unchecked(4),
+		EventFocus = unchecked(4),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		EventNav = unchecked(8),
+		EventPopup = unchecked(8),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		EventIo = unchecked(16),
+		EventNav = unchecked(16),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		EventDocking = unchecked(32),
+		EventClipper = unchecked(32),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		EventViewport = unchecked(64),
+		EventSelection = unchecked(64),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		EventMask = unchecked(127),
+		EventIo = unchecked(128),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		OutputToTty = unchecked(1024),
+		EventFont = unchecked(256),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		EventInputRouting = unchecked(512),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		EventDocking = unchecked(1024),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		EventViewport = unchecked(2048),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		EventTable = unchecked(4096),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		EventMask = unchecked(8191),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		OutputToTty = unchecked(1048576),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		OutputToDebugger = unchecked(2097152),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		OutputToTestEngine = unchecked(4194304),
 	}
 }

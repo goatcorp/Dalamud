@@ -10,6 +10,7 @@ using Dalamud.Game.Player;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.DesignSystem;
@@ -211,7 +212,7 @@ internal class ProfileManagerWidget
         using var profileChooserChild = ImRaii.Child("###profileChooserScrolling"u8);
         if (profileChooserChild)
         {
-            var contentRegionMaxX = ImGui.GetWindowContentRegionMax().X;
+            var contentRegionMaxX = ImGuiHelpers.GetWindowContentRegionMax().X;
             Guid? toCloneGuid = null;
 
             using var syncScope = profman.GetSyncScope();
@@ -525,7 +526,7 @@ internal class ProfileManagerWidget
                         characterDisplay = entry.ContentId.ToString();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetFrameHeight() / 2f) - (ImGui.GetTextLineHeight() / 2f));
-                    ImGuiHelpers.CompileSeStringWrapped(characterDisplay);
+                    ImGui.TextMacroString(characterDisplay, wrap: true);
                 }
 
                 ImGui.EndTable();
@@ -582,7 +583,7 @@ internal class ProfileManagerWidget
         using var pluginListChild = ImRaii.Child("###profileEditorPluginList"u8);
         if (pluginListChild)
         {
-            var contentRegionMaxX = ImGui.GetWindowContentRegionMax().X;
+            var contentRegionMaxX = ImGuiHelpers.GetWindowContentRegionMax().X;
             var pluginLineHeight = 32 * ImGuiHelpers.GlobalScale;
             Guid? wantRemovePluginGuid = null;
 

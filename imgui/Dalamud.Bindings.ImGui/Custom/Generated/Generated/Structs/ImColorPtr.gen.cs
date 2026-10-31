@@ -15,14 +15,6 @@ public unsafe partial struct ImColorPtr
 		{
 			ImGuiNative.Destroy(Handle);
 		}
-		public unsafe void HSV(float h, float s, float v, float a)
-		{
-			ImGuiNative.HSV(Handle, h, s, v, a);
-		}
-		public unsafe void HSV(float h, float s, float v)
-		{
-			ImGuiNative.HSV(Handle, h, s, v, (float)(1.0f));
-		}
 		public unsafe void SetHSV(float h, float s, float v, float a)
 		{
 			ImGuiNative.SetHSV(Handle, h, s, v, a);

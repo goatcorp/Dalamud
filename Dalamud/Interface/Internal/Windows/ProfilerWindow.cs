@@ -47,7 +47,7 @@ public class ProfilerWindow : Window
 
         var childHeight = Math.Max(300, 20 * (2.5f + this.occupied.Count));
 
-        if (ImGui.BeginChild("Timings"u8, new Vector2(0, childHeight), true))
+        if (ImGui.BeginChild("Timings"u8, new Vector2(0, childHeight), ImGuiChildFlags.Borders))
         {
             var pos = ImGui.GetCursorScreenPos();
 

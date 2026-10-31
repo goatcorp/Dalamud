@@ -30,6 +30,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe ImGuiWindow* Window;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public int Idx;
 
 		/// <summary>
@@ -40,7 +45,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int LastFrontMostStampCount;
+		public int LastFocusedStampCount;
 
 		/// <summary>
 		/// To be documented.
@@ -55,6 +60,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public Vector2 LastSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public float Alpha;
 
 		/// <summary>
@@ -65,29 +75,30 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte LastFocusedHadNavWindow;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public short PlatformMonitor;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte PlatformWindowCreated;
+		public unsafe ImDrawList* BgFgDrawLists_0;
+		public unsafe ImDrawList* BgFgDrawLists_1;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiWindow* Window;
+		public int BgFgDrawListsLastFrameActive_0;
+		public int BgFgDrawListsLastFrameActive_1;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int DrawListsLastFrame_0;
-		public int DrawListsLastFrame_1;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe ImDrawList* DrawLists_0;
-		public unsafe ImDrawList* DrawLists_1;
+		public float BgFgDrawListsLastTimeActive_0;
+		public float BgFgDrawListsLastTimeActive_1;
 
 		/// <summary>
 		/// To be documented.
@@ -117,108 +128,120 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public Vector2 WorkOffsetMin;
+		public Vector2 WorkInsetMin;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public Vector2 WorkOffsetMax;
+		public Vector2 WorkInsetMax;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public Vector2 BuildWorkOffsetMin;
+		public Vector2 BuildWorkInsetMin;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public Vector2 BuildWorkOffsetMax;
+		public Vector2 BuildWorkInsetMax;
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiViewportP(ImGuiViewport imGuiViewport = default, int idx = default, int lastFrameActive = default, int lastFrontMostStampCount = default, uint lastNameHash = default, Vector2 lastPos = default, float alpha = default, float lastAlpha = default, short platformMonitor = default, bool platformWindowCreated = default, ImGuiWindowPtr window = default, int* drawListsLastFrame = default, ImDrawListPtrPtr drawLists = default, ImDrawData drawDataP = default, ImDrawDataBuilder drawDataBuilder = default, Vector2 lastPlatformPos = default, Vector2 lastPlatformSize = default, Vector2 lastRendererSize = default, Vector2 workOffsetMin = default, Vector2 workOffsetMax = default, Vector2 buildWorkOffsetMin = default, Vector2 buildWorkOffsetMax = default)
+		public unsafe ImGuiViewportP(ImGuiViewport imGuiViewport = default, ImGuiWindowPtr window = default, int idx = default, int lastFrameActive = default, int lastFocusedStampCount = default, uint lastNameHash = default, Vector2 lastPos = default, Vector2 lastSize = default, float alpha = default, float lastAlpha = default, bool lastFocusedHadNavWindow = default, short platformMonitor = default, ImDrawListPtrPtr bgFgDrawLists = default, int* bgFgDrawListsLastFrameActive = default, float* bgFgDrawListsLastTimeActive = default, ImDrawData drawDataP = default, ImDrawDataBuilder drawDataBuilder = default, Vector2 lastPlatformPos = default, Vector2 lastPlatformSize = default, Vector2 lastRendererSize = default, Vector2 workInsetMin = default, Vector2 workInsetMax = default, Vector2 buildWorkInsetMin = default, Vector2 buildWorkInsetMax = default)
 		{
 			ImGuiViewport = imGuiViewport;
+			Window = window;
 			Idx = idx;
 			LastFrameActive = lastFrameActive;
-			LastFrontMostStampCount = lastFrontMostStampCount;
+			LastFocusedStampCount = lastFocusedStampCount;
 			LastNameHash = lastNameHash;
 			LastPos = lastPos;
+			LastSize = lastSize;
 			Alpha = alpha;
 			LastAlpha = lastAlpha;
+			LastFocusedHadNavWindow = lastFocusedHadNavWindow ? (byte)1 : (byte)0;
 			PlatformMonitor = platformMonitor;
-			PlatformWindowCreated = platformWindowCreated ? (byte)1 : (byte)0;
-			Window = window;
-			if (drawListsLastFrame != default(int*))
+			if (bgFgDrawLists != default(ImDrawListPtrPtr))
 			{
-				DrawListsLastFrame_0 = drawListsLastFrame[0];
-				DrawListsLastFrame_1 = drawListsLastFrame[1];
+				BgFgDrawLists_0 = bgFgDrawLists[0];
+				BgFgDrawLists_1 = bgFgDrawLists[1];
 			}
-			if (drawLists != default(ImDrawListPtrPtr))
+			if (bgFgDrawListsLastFrameActive != default(int*))
 			{
-				DrawLists_0 = drawLists[0];
-				DrawLists_1 = drawLists[1];
+				BgFgDrawListsLastFrameActive_0 = bgFgDrawListsLastFrameActive[0];
+				BgFgDrawListsLastFrameActive_1 = bgFgDrawListsLastFrameActive[1];
+			}
+			if (bgFgDrawListsLastTimeActive != default(float*))
+			{
+				BgFgDrawListsLastTimeActive_0 = bgFgDrawListsLastTimeActive[0];
+				BgFgDrawListsLastTimeActive_1 = bgFgDrawListsLastTimeActive[1];
 			}
 			DrawDataP = drawDataP;
 			DrawDataBuilder = drawDataBuilder;
 			LastPlatformPos = lastPlatformPos;
 			LastPlatformSize = lastPlatformSize;
 			LastRendererSize = lastRendererSize;
-			WorkOffsetMin = workOffsetMin;
-			WorkOffsetMax = workOffsetMax;
-			BuildWorkOffsetMin = buildWorkOffsetMin;
-			BuildWorkOffsetMax = buildWorkOffsetMax;
+			WorkInsetMin = workInsetMin;
+			WorkInsetMax = workInsetMax;
+			BuildWorkInsetMin = buildWorkInsetMin;
+			BuildWorkInsetMax = buildWorkInsetMax;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiViewportP(ImGuiViewport imGuiViewport = default, int idx = default, int lastFrameActive = default, int lastFrontMostStampCount = default, uint lastNameHash = default, Vector2 lastPos = default, float alpha = default, float lastAlpha = default, short platformMonitor = default, bool platformWindowCreated = default, ImGuiWindowPtr window = default, Span<int> drawListsLastFrame = default, Span<Pointer<ImDrawList>> drawLists = default, ImDrawData drawDataP = default, ImDrawDataBuilder drawDataBuilder = default, Vector2 lastPlatformPos = default, Vector2 lastPlatformSize = default, Vector2 lastRendererSize = default, Vector2 workOffsetMin = default, Vector2 workOffsetMax = default, Vector2 buildWorkOffsetMin = default, Vector2 buildWorkOffsetMax = default)
+		public unsafe ImGuiViewportP(ImGuiViewport imGuiViewport = default, ImGuiWindowPtr window = default, int idx = default, int lastFrameActive = default, int lastFocusedStampCount = default, uint lastNameHash = default, Vector2 lastPos = default, Vector2 lastSize = default, float alpha = default, float lastAlpha = default, bool lastFocusedHadNavWindow = default, short platformMonitor = default, Span<Pointer<ImDrawList>> bgFgDrawLists = default, Span<int> bgFgDrawListsLastFrameActive = default, Span<float> bgFgDrawListsLastTimeActive = default, ImDrawData drawDataP = default, ImDrawDataBuilder drawDataBuilder = default, Vector2 lastPlatformPos = default, Vector2 lastPlatformSize = default, Vector2 lastRendererSize = default, Vector2 workInsetMin = default, Vector2 workInsetMax = default, Vector2 buildWorkInsetMin = default, Vector2 buildWorkInsetMax = default)
 		{
 			ImGuiViewport = imGuiViewport;
+			Window = window;
 			Idx = idx;
 			LastFrameActive = lastFrameActive;
-			LastFrontMostStampCount = lastFrontMostStampCount;
+			LastFocusedStampCount = lastFocusedStampCount;
 			LastNameHash = lastNameHash;
 			LastPos = lastPos;
+			LastSize = lastSize;
 			Alpha = alpha;
 			LastAlpha = lastAlpha;
+			LastFocusedHadNavWindow = lastFocusedHadNavWindow ? (byte)1 : (byte)0;
 			PlatformMonitor = platformMonitor;
-			PlatformWindowCreated = platformWindowCreated ? (byte)1 : (byte)0;
-			Window = window;
-			if (drawListsLastFrame != default(Span<int>))
+			if (bgFgDrawLists != default(Span<Pointer<ImDrawList>>))
 			{
-				DrawListsLastFrame_0 = drawListsLastFrame[0];
-				DrawListsLastFrame_1 = drawListsLastFrame[1];
+				BgFgDrawLists_0 = bgFgDrawLists[0];
+				BgFgDrawLists_1 = bgFgDrawLists[1];
 			}
-			if (drawLists != default(Span<Pointer<ImDrawList>>))
+			if (bgFgDrawListsLastFrameActive != default(Span<int>))
 			{
-				DrawLists_0 = drawLists[0];
-				DrawLists_1 = drawLists[1];
+				BgFgDrawListsLastFrameActive_0 = bgFgDrawListsLastFrameActive[0];
+				BgFgDrawListsLastFrameActive_1 = bgFgDrawListsLastFrameActive[1];
+			}
+			if (bgFgDrawListsLastTimeActive != default(Span<float>))
+			{
+				BgFgDrawListsLastTimeActive_0 = bgFgDrawListsLastTimeActive[0];
+				BgFgDrawListsLastTimeActive_1 = bgFgDrawListsLastTimeActive[1];
 			}
 			DrawDataP = drawDataP;
 			DrawDataBuilder = drawDataBuilder;
 			LastPlatformPos = lastPlatformPos;
 			LastPlatformSize = lastPlatformSize;
 			LastRendererSize = lastRendererSize;
-			WorkOffsetMin = workOffsetMin;
-			WorkOffsetMax = workOffsetMax;
-			BuildWorkOffsetMin = buildWorkOffsetMin;
-			BuildWorkOffsetMax = buildWorkOffsetMax;
+			WorkInsetMin = workInsetMin;
+			WorkInsetMax = workInsetMax;
+			BuildWorkInsetMin = buildWorkInsetMin;
+			BuildWorkInsetMax = buildWorkInsetMax;
 		}
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe Span<Pointer<ImDrawList>> DrawLists
+		public unsafe Span<Pointer<ImDrawList>> BgFgDrawLists
 		
 		{
 			get
 			{
-				fixed (ImDrawList** p = &this.DrawLists_0)
+				fixed (ImDrawList** p = &this.BgFgDrawLists_0)
 				{
 					return new Span<Pointer<ImDrawList>>(p, 2);
 				}
@@ -274,6 +297,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImGuiWindowPtr Window => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->Window);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref int Idx => ref Unsafe.AsRef<int>(&Handle->Idx);
 		/// <summary>
 		/// To be documented.
@@ -282,7 +309,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int LastFrontMostStampCount => ref Unsafe.AsRef<int>(&Handle->LastFrontMostStampCount);
+		public ref int LastFocusedStampCount => ref Unsafe.AsRef<int>(&Handle->LastFocusedStampCount);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -294,6 +321,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref Vector2 LastSize => ref Unsafe.AsRef<Vector2>(&Handle->LastSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref float Alpha => ref Unsafe.AsRef<float>(&Handle->Alpha);
 		/// <summary>
 		/// To be documented.
@@ -302,29 +333,36 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref bool LastFocusedHadNavWindow => ref Unsafe.AsRef<bool>(&Handle->LastFocusedHadNavWindow);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref short PlatformMonitor => ref Unsafe.AsRef<short>(&Handle->PlatformMonitor);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool PlatformWindowCreated => ref Unsafe.AsRef<bool>(&Handle->PlatformWindowCreated);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiWindowPtr Window => ref Unsafe.AsRef<ImGuiWindowPtr>(&Handle->Window);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe Span<int> DrawListsLastFrame
+		public unsafe Span<int> BgFgDrawListsLastFrameActive
 		
 		{
 			get
 			{
-				return new Span<int>(&Handle->DrawListsLastFrame_0, 2);
+				return new Span<int>(&Handle->BgFgDrawListsLastFrameActive_0, 2);
 			}
 		}
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe Span<float> BgFgDrawListsLastTimeActive
+		
+		{
+			get
+			{
+				return new Span<float>(&Handle->BgFgDrawListsLastTimeActive_0, 2);
+			}
+		}
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -348,19 +386,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref Vector2 WorkOffsetMin => ref Unsafe.AsRef<Vector2>(&Handle->WorkOffsetMin);
+		public ref Vector2 WorkInsetMin => ref Unsafe.AsRef<Vector2>(&Handle->WorkInsetMin);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref Vector2 WorkOffsetMax => ref Unsafe.AsRef<Vector2>(&Handle->WorkOffsetMax);
+		public ref Vector2 WorkInsetMax => ref Unsafe.AsRef<Vector2>(&Handle->WorkInsetMax);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref Vector2 BuildWorkOffsetMin => ref Unsafe.AsRef<Vector2>(&Handle->BuildWorkOffsetMin);
+		public ref Vector2 BuildWorkInsetMin => ref Unsafe.AsRef<Vector2>(&Handle->BuildWorkInsetMin);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref Vector2 BuildWorkOffsetMax => ref Unsafe.AsRef<Vector2>(&Handle->BuildWorkOffsetMax);
+		public ref Vector2 BuildWorkInsetMax => ref Unsafe.AsRef<Vector2>(&Handle->BuildWorkInsetMax);
 	}
 
 	/// <summary>

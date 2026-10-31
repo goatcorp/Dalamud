@@ -62,6 +62,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		WidthFitPreview = unchecked(128),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		HeightMask = unchecked(30),
 	}
 }

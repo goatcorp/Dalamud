@@ -243,12 +243,12 @@ internal class NotificationPositionChooser
         smallBottomRight += viewportPos;
 
         // Draw the big box
-        dl.AddRectFilled(topLeft, bottomRight, ImGui.ColorConvertFloat4ToU32(backgroundColor), borderRounding, ImDrawFlags.RoundCornersAll);
-        dl.AddRect(topLeft, bottomRight, borderColor, borderRounding, ImDrawFlags.RoundCornersAll, borderThickness);
+        dl.AddRectFilled(topLeft, bottomRight, ImGui.ColorConvertFloat4ToU32(backgroundColor), borderRounding, ImDrawFlags.RoundAll);
+        dl.AddRect(topLeft, bottomRight, borderColor, borderRounding, borderThickness, ImDrawFlags.RoundAll);
 
         // Draw the small box
-        dl.AddRectFilled(smallTopLeft, smallBottomRight, ImGui.ColorConvertFloat4ToU32(backgroundColor), borderRounding, ImDrawFlags.RoundCornersAll);
-        dl.AddRect(smallTopLeft, smallBottomRight, borderColor, borderRounding, ImDrawFlags.RoundCornersAll, borderThickness);
+        dl.AddRectFilled(smallTopLeft, smallBottomRight, ImGui.ColorConvertFloat4ToU32(backgroundColor), borderRounding, ImDrawFlags.RoundAll);
+        dl.AddRect(smallTopLeft, smallBottomRight, borderColor, borderRounding, borderThickness, ImDrawFlags.RoundAll);
     }
 
     private static class Locs

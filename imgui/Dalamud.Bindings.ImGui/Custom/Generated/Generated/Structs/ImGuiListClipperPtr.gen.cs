@@ -27,9 +27,17 @@ public unsafe partial struct ImGuiListClipperPtr
 		{
 			ImGuiNative.End(Handle);
 		}
-		public unsafe void ForceDisplayRangeByIndices(int itemMin, int itemMax)
+		public unsafe void IncludeItemByIndex(int itemIndex)
 		{
-			ImGuiNative.ForceDisplayRangeByIndices(Handle, itemMin, itemMax);
+			ImGuiNative.IncludeItemByIndex(Handle, itemIndex);
+		}
+		public unsafe void IncludeItemsByIndex(int itemBegin, int itemEnd)
+		{
+			ImGuiNative.IncludeItemsByIndex(Handle, itemBegin, itemEnd);
+		}
+		public unsafe void SeekCursorForItem(int itemIndex)
+		{
+			ImGuiNative.SeekCursorForItem(Handle, itemIndex);
 		}
 		public unsafe bool Step()
 		{

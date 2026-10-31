@@ -67,16 +67,31 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		HasViewport = unchecked(256),
+		HasWindowFlags = unchecked(256),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		HasDock = unchecked(512),
+		HasChildFlags = unchecked(512),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		HasWindowClass = unchecked(1024),
+		HasRefreshPolicy = unchecked(1024),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		HasViewport = unchecked(2048),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		HasDock = unchecked(4096),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		HasWindowClass = unchecked(8192),
 	}
 }

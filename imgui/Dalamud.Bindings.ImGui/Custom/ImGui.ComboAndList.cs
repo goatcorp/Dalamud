@@ -118,19 +118,19 @@ public static unsafe partial class ImGui
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
         fixed (TContext* contextPtr = &context)
         {
-            ImU8String textBuffer = default;
+            ItemTextScratch textBuffer = default;
             var dataBuffer = PointerTuple.Create(&itemsGetter, &textBuffer, contextPtr);
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
             var r = ImGuiNative.Combo(
                         labelPtr,
                         currentItemPtr,
-                        (delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool>)
-                        (nint)(delegate* unmanaged<void*, int, byte**, bool>)&PopulateUtf8BufferInContextStatic,
+                        (delegate*<byte*, int*, delegate*<void*, int, byte*>, void*, int, int, byte*>)
+                        (nint)(delegate* unmanaged<void*, int, byte*>)&PopulateUtf8BufferInContextStatic,
                         &dataBuffer,
                         itemsCount,
                         popupMaxHeightInItems) != 0;
             label.Recycle();
-            textBuffer.Recycle();
+            textBuffer.Free();
             return r;
         }
     }
@@ -145,19 +145,19 @@ public static unsafe partial class ImGui
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
         fixed (TContext* contextPtr = &context)
         {
-            ImU8String textBuffer = default;
+            ItemTextScratch textBuffer = default;
             var dataBuffer = PointerTuple.Create(&itemsGetter, &textBuffer, contextPtr);
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
             var r = ImGuiNative.Combo(
                         labelPtr,
                         currentItemPtr,
-                        (delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool>)
-                        (nint)(delegate* unmanaged<void*, int, byte**, bool>)&PopulateUtf8BufferRefContextStatic,
+                        (delegate*<byte*, int*, delegate*<void*, int, byte*>, void*, int, int, byte*>)
+                        (nint)(delegate* unmanaged<void*, int, byte*>)&PopulateUtf8BufferRefContextStatic,
                         &dataBuffer,
                         itemsCount,
                         popupMaxHeightInItems) != 0;
             label.Recycle();
-            textBuffer.Recycle();
+            textBuffer.Free();
             return r;
         }
     }
@@ -170,19 +170,19 @@ public static unsafe partial class ImGui
         fixed (int* currentItemPtr = &currentItem)
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
         {
-            ImU8String textBuffer = default;
+            ItemTextScratch textBuffer = default;
             var dataBuffer = PointerTuple.Create(&itemsGetter, &textBuffer);
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
             var r = ImGuiNative.Combo(
                         labelPtr,
                         currentItemPtr,
-                        (delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool>)
-                        (nint)(delegate* unmanaged<void*, int, byte**, bool>)&PopulateUtf8BufferStatic,
+                        (delegate*<byte*, int*, delegate*<void*, int, byte*>, void*, int, int, byte*>)
+                        (nint)(delegate* unmanaged<void*, int, byte*>)&PopulateUtf8BufferStatic,
                         &dataBuffer,
                         itemsCount,
                         popupMaxHeightInItems) != 0;
             label.Recycle();
-            textBuffer.Recycle();
+            textBuffer.Free();
             return r;
         }
     }
@@ -271,19 +271,19 @@ public static unsafe partial class ImGui
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
         fixed (TContext* contextPtr = &context)
         {
-            ImU8String textBuffer = default;
+            ItemTextScratch textBuffer = default;
             var dataBuffer = PointerTuple.Create(&itemsGetter, &textBuffer, contextPtr);
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
             var r = ImGuiNative.ListBox(
                         labelPtr,
                         currentItemPtr,
-                        (delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool>)
-                        (nint)(delegate* unmanaged<void*, int, byte**, bool>)&PopulateUtf8BufferRefContextStatic,
+                        (delegate*<byte*, int*, delegate*<void*, int, byte*>, void*, int, int, byte*>)
+                        (nint)(delegate* unmanaged<void*, int, byte*>)&PopulateUtf8BufferRefContextStatic,
                         &dataBuffer,
                         itemsCount,
                         heightInItems) != 0;
             label.Recycle();
-            textBuffer.Recycle();
+            textBuffer.Free();
             return r;
         }
     }
@@ -298,19 +298,19 @@ public static unsafe partial class ImGui
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
         fixed (TContext* contextPtr = &context)
         {
-            ImU8String textBuffer = default;
+            ItemTextScratch textBuffer = default;
             var dataBuffer = PointerTuple.Create(&itemsGetter, &textBuffer, contextPtr);
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
             var r = ImGuiNative.ListBox(
                         labelPtr,
                         currentItemPtr,
-                        (delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool>)
-                        (nint)(delegate* unmanaged<void*, int, byte**, bool>)&PopulateUtf8BufferInContextStatic,
+                        (delegate*<byte*, int*, delegate*<void*, int, byte*>, void*, int, int, byte*>)
+                        (nint)(delegate* unmanaged<void*, int, byte*>)&PopulateUtf8BufferInContextStatic,
                         &dataBuffer,
                         itemsCount,
                         heightInItems) != 0;
             label.Recycle();
-            textBuffer.Recycle();
+            textBuffer.Free();
             return r;
         }
     }
@@ -323,62 +323,106 @@ public static unsafe partial class ImGui
         fixed (int* currentItemPtr = &currentItem)
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
         {
-            ImU8String textBuffer = default;
+            ItemTextScratch textBuffer = default;
             var dataBuffer = PointerTuple.Create(&itemsGetter, &textBuffer);
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
             var r = ImGuiNative.ListBox(
                         labelPtr,
                         currentItemPtr,
-                        (delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool>)
-                        (nint)(delegate* unmanaged<void*, int, byte**, bool>)&PopulateUtf8BufferStatic,
+                        (delegate*<byte*, int*, delegate*<void*, int, byte*>, void*, int, int, byte*>)
+                        (nint)(delegate* unmanaged<void*, int, byte*>)&PopulateUtf8BufferStatic,
                         &dataBuffer,
                         itemsCount,
                         heightInItems) != 0;
             label.Recycle();
-            textBuffer.Recycle();
+            textBuffer.Free();
             return r;
         }
     }
 
     [UnmanagedCallersOnly]
-    private static bool PopulateUtf8BufferRefContextStatic(void* data, int index, byte** text)
+    private static byte* PopulateUtf8BufferRefContextStatic(void* data, int index)
     {
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-        ref var s = ref PointerTuple.From<PopulateAutoUtf8BufferRefContextDelegate<object>, ImU8String, object>(data);
-        s.Item2.Recycle();
-        s.Item2 = s.Item1.Invoke(ref s.Item3, index);
-        if (s.Item2.IsNull)
-            return false;
-        *text = (byte*)Unsafe.AsPointer(ref Unsafe.AsRef(in s.Item2.GetPinnableNullTerminatedReference()));
-        return true;
+        ref var s = ref PointerTuple.From<PopulateAutoUtf8BufferRefContextDelegate<object>, ItemTextScratch, object>(
+            data);
+        return s.Item2.Store(s.Item1.Invoke(ref s.Item3, index));
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
     }
 
     [UnmanagedCallersOnly]
-    private static bool PopulateUtf8BufferInContextStatic(void* data, int index, byte** text)
+    private static byte* PopulateUtf8BufferInContextStatic(void* data, int index)
     {
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-        ref var s = ref PointerTuple.From<PopulateAutoUtf8BufferInContextDelegate<object>, ImU8String, object>(data);
-        s.Item2.Recycle();
-        s.Item2 = s.Item1.Invoke(s.Item3, index);
-        if (s.Item2.IsNull)
-            return false;
-        *text = (byte*)Unsafe.AsPointer(ref Unsafe.AsRef(in s.Item2.GetPinnableNullTerminatedReference()));
-        return true;
+        ref var s = ref PointerTuple.From<PopulateAutoUtf8BufferInContextDelegate<object>, ItemTextScratch, object>(
+            data);
+        return s.Item2.Store(s.Item1.Invoke(s.Item3, index));
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
     }
 
     [UnmanagedCallersOnly]
-    private static bool PopulateUtf8BufferStatic(void* data, int index, byte** text)
+    private static byte* PopulateUtf8BufferStatic(void* data, int index)
     {
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-        ref var s = ref PointerTuple.From<PopulateAutoUtf8BufferDelegate, ImU8String>(data);
-        s.Item2.Recycle();
-        s.Item2 = s.Item1.Invoke(index);
-        if (s.Item2.IsNull)
-            return false;
-        *text = (byte*)Unsafe.AsPointer(ref Unsafe.AsRef(in s.Item2.GetPinnableNullTerminatedReference()));
-        return true;
+        ref var s = ref PointerTuple.From<PopulateAutoUtf8BufferDelegate, ItemTextScratch>(data);
+        return s.Item2.Store(s.Item1.Invoke(index));
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+    }
+
+    /// <summary>Item text handed to native code, in memory the GC does not move.</summary>
+    /// <remarks>Native code reads an item's text until it asks for the next item. A local of the calling method holds
+    /// it, and text that does not fit the inline buffer goes to native memory.</remarks>
+    private struct ItemTextScratch
+    {
+        private byte* heap;
+        private int heapSize;
+        private InlineBuffer inline;
+
+        /// <summary>Copies the text, NUL-terminated, and recycles it.</summary>
+        /// <param name="text">The text.</param>
+        /// <returns>Pointer to the copy, or null for a null text.</returns>
+        public byte* Store(ImU8String text)
+        {
+            if (text.IsNull)
+                return null;
+
+            var span = text.Span;
+            byte* dst;
+            if (span.Length < InlineBuffer.Length)
+            {
+                dst = (byte*)Unsafe.AsPointer(ref this.inline[0]);
+            }
+            else
+            {
+                if (this.heapSize <= span.Length)
+                {
+                    this.heap = (byte*)NativeMemory.Realloc(this.heap, (nuint)span.Length + 1);
+                    this.heapSize = span.Length + 1;
+                }
+
+                dst = this.heap;
+            }
+
+            span.CopyTo(new(dst, span.Length));
+            dst[span.Length] = 0;
+            text.Recycle();
+            return dst;
+        }
+
+        /// <summary>Frees the native memory.</summary>
+        public void Free()
+        {
+            NativeMemory.Free(this.heap);
+            this.heap = null;
+            this.heapSize = 0;
+        }
+
+        [InlineArray(Length)]
+        private struct InlineBuffer
+        {
+            public const int Length = ImU8String.AllocFreeBufferSize;
+
+            private byte element;
+        }
     }
 }

@@ -11,11 +11,4 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiContextHook
 {
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiContextHook* @this = &this)
-			{
-				ImGuiNative.Destroy(@this);
-			}
-		}
 }

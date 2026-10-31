@@ -55,6 +55,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public float WidthMax;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public float StretchWeight;
 
 		/// <summary>
@@ -70,7 +75,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public uint UserID;
+		public uint ID;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint UserData;
 
 		/// <summary>
 		/// To be documented.
@@ -115,42 +125,42 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte DisplayOrder;
+		public short DisplayOrder;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte IndexWithinEnabledSet;
+		public short IndexWithinEnabledSet;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte PrevEnabledColumn;
+		public short PrevEnabledColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte NextEnabledColumn;
+		public short NextEnabledColumn;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public sbyte SortOrder;
+		public short SortOrder;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte DrawChannelCurrent;
+		public ushort DrawChannelCurrent;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte DrawChannelFrozen;
+		public ushort DrawChannelFrozen;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte DrawChannelUnfrozen;
+		public ushort DrawChannelUnfrozen;
 
 		/// <summary>
 		/// To be documented.
@@ -187,27 +197,14 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public byte IsSkipItems;
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte IsPreserveWidthAuto;
-
+		public bool RawBits0;
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public sbyte NavLayerCurrent;
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte AutoFitQueue;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte CannotSkipItemsQueue;
-
-		public byte RawBits0;
+		public byte RawBits1;
+		public byte RawBits2;
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -217,7 +214,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiTableColumn(ImGuiTableColumnFlags flags = default, float widthGiven = default, float minX = default, float maxX = default, float widthRequest = default, float widthAuto = default, float stretchWeight = default, float initStretchWeightOrWidth = default, ImRect clipRect = default, uint userId = default, float workMinX = default, float workMaxX = default, float itemWidth = default, float contentMaxXFrozen = default, float contentMaxXUnfrozen = default, float contentMaxXHeadersUsed = default, float contentMaxXHeadersIdeal = default, short nameOffset = default, sbyte displayOrder = default, sbyte indexWithinEnabledSet = default, sbyte prevEnabledColumn = default, sbyte nextEnabledColumn = default, sbyte sortOrder = default, byte drawChannelCurrent = default, byte drawChannelFrozen = default, byte drawChannelUnfrozen = default, bool isEnabled = default, bool isUserEnabled = default, bool isUserEnabledNextFrame = default, bool isVisibleX = default, bool isVisibleY = default, bool isRequestOutput = default, bool isSkipItems = default, bool isPreserveWidthAuto = default, sbyte navLayerCurrent = default, byte autoFitQueue = default, byte cannotSkipItemsQueue = default, byte sortDirection = default, byte sortDirectionsAvailCount = default, byte sortDirectionsAvailMask = default, byte sortDirectionsAvailList = default)
+		public unsafe ImGuiTableColumn(ImGuiTableColumnFlags flags = default, float widthGiven = default, float minX = default, float maxX = default, float widthRequest = default, float widthAuto = default, float widthMax = default, float stretchWeight = default, float initStretchWeightOrWidth = default, ImRect clipRect = default, uint id = default, uint userData = default, float workMinX = default, float workMaxX = default, float itemWidth = default, float contentMaxXFrozen = default, float contentMaxXUnfrozen = default, float contentMaxXHeadersUsed = default, float contentMaxXHeadersIdeal = default, short nameOffset = default, short displayOrder = default, short indexWithinEnabledSet = default, short prevEnabledColumn = default, short nextEnabledColumn = default, short sortOrder = default, ushort drawChannelCurrent = default, ushort drawChannelFrozen = default, ushort drawChannelUnfrozen = default, bool isEnabled = default, bool isUserEnabled = default, bool isUserEnabledNextFrame = default, bool isVisibleX = default, bool isVisibleY = default, bool isRequestOutput = default, bool isSkipItems = default, bool isPreserveWidthAuto = default, bool isJustCreated = default, bool isLoadedSettings = default, bool isNeedReconcileSrc = default, bool isNeedReconcileDst = default, sbyte navLayerCurrent = default, byte autoFitQueue = default, byte cannotSkipItemsQueue = default, byte sortDirection = default, byte sortDirectionsAvailCount = default, byte sortDirectionsAvailMask = default, byte sortDirectionsAvailList = default)
 		{
 			Flags = flags;
 			WidthGiven = widthGiven;
@@ -225,10 +222,12 @@ namespace Dalamud.Bindings.ImGui
 			MaxX = maxX;
 			WidthRequest = widthRequest;
 			WidthAuto = widthAuto;
+			WidthMax = widthMax;
 			StretchWeight = stretchWeight;
 			InitStretchWeightOrWidth = initStretchWeightOrWidth;
 			ClipRect = clipRect;
-			UserID = userId;
+			ID = id;
+			UserData = userData;
 			WorkMinX = workMinX;
 			WorkMaxX = workMaxX;
 			ItemWidth = itemWidth;
@@ -252,7 +251,11 @@ namespace Dalamud.Bindings.ImGui
 			IsVisibleY = isVisibleY ? (byte)1 : (byte)0;
 			IsRequestOutput = isRequestOutput ? (byte)1 : (byte)0;
 			IsSkipItems = isSkipItems ? (byte)1 : (byte)0;
-			IsPreserveWidthAuto = isPreserveWidthAuto ? (byte)1 : (byte)0;
+			IsPreserveWidthAuto = isPreserveWidthAuto;
+			IsJustCreated = isJustCreated;
+			IsLoadedSettings = isLoadedSettings;
+			IsNeedReconcileSrc = isNeedReconcileSrc;
+			IsNeedReconcileDst = isNeedReconcileDst;
 			NavLayerCurrent = navLayerCurrent;
 			AutoFitQueue = autoFitQueue;
 			CannotSkipItemsQueue = cannotSkipItemsQueue;
@@ -263,22 +266,25 @@ namespace Dalamud.Bindings.ImGui
 		}
 
 
-		public byte SortDirection { get => Bitfield.Get(RawBits0, 0, 2); set => Bitfield.Set(ref RawBits0, value, 0, 2); }
+		public bool IsPreserveWidthAuto { get => Bitfield.Get(RawBits0, 0, 1); set => Bitfield.Set(ref RawBits0, value, 0, 1); }
 
-		public byte SortDirectionsAvailCount { get => Bitfield.Get(RawBits0, 2, 2); set => Bitfield.Set(ref RawBits0, value, 2, 2); }
+		public bool IsJustCreated { get => Bitfield.Get(RawBits0, 1, 1); set => Bitfield.Set(ref RawBits0, value, 1, 1); }
 
-		public byte SortDirectionsAvailMask { get => Bitfield.Get(RawBits0, 4, 4); set => Bitfield.Set(ref RawBits0, value, 4, 4); }
+		public bool IsLoadedSettings { get => Bitfield.Get(RawBits0, 2, 1); set => Bitfield.Set(ref RawBits0, value, 2, 1); }
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiTableColumn* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
+		public bool IsNeedReconcileSrc { get => Bitfield.Get(RawBits0, 3, 1); set => Bitfield.Set(ref RawBits0, value, 3, 1); }
+
+		public bool IsNeedReconcileDst { get => Bitfield.Get(RawBits0, 4, 1); set => Bitfield.Set(ref RawBits0, value, 4, 1); }
+
+		public byte AutoFitQueue { get => Bitfield.Get(RawBits1, 0, 4); set => Bitfield.Set(ref RawBits1, value, 0, 4); }
+
+		public byte CannotSkipItemsQueue { get => Bitfield.Get(RawBits1, 4, 4); set => Bitfield.Set(ref RawBits1, value, 4, 4); }
+
+		public byte SortDirection { get => Bitfield.Get(RawBits2, 0, 2); set => Bitfield.Set(ref RawBits2, value, 0, 2); }
+
+		public byte SortDirectionsAvailCount { get => Bitfield.Get(RawBits2, 2, 2); set => Bitfield.Set(ref RawBits2, value, 2, 2); }
+
+		public byte SortDirectionsAvailMask { get => Bitfield.Get(RawBits2, 4, 4); set => Bitfield.Set(ref RawBits2, value, 4, 4); }
 
 	}
 
@@ -350,6 +356,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref float WidthMax => ref Unsafe.AsRef<float>(&Handle->WidthMax);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref float StretchWeight => ref Unsafe.AsRef<float>(&Handle->StretchWeight);
 		/// <summary>
 		/// To be documented.
@@ -362,7 +372,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint UserID => ref Unsafe.AsRef<uint>(&Handle->UserID);
+		public ref uint ID => ref Unsafe.AsRef<uint>(&Handle->ID);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint UserData => ref Unsafe.AsRef<uint>(&Handle->UserData);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -398,35 +412,35 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte DisplayOrder => ref Unsafe.AsRef<sbyte>(&Handle->DisplayOrder);
+		public ref short DisplayOrder => ref Unsafe.AsRef<short>(&Handle->DisplayOrder);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte IndexWithinEnabledSet => ref Unsafe.AsRef<sbyte>(&Handle->IndexWithinEnabledSet);
+		public ref short IndexWithinEnabledSet => ref Unsafe.AsRef<short>(&Handle->IndexWithinEnabledSet);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte PrevEnabledColumn => ref Unsafe.AsRef<sbyte>(&Handle->PrevEnabledColumn);
+		public ref short PrevEnabledColumn => ref Unsafe.AsRef<short>(&Handle->PrevEnabledColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte NextEnabledColumn => ref Unsafe.AsRef<sbyte>(&Handle->NextEnabledColumn);
+		public ref short NextEnabledColumn => ref Unsafe.AsRef<short>(&Handle->NextEnabledColumn);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref sbyte SortOrder => ref Unsafe.AsRef<sbyte>(&Handle->SortOrder);
+		public ref short SortOrder => ref Unsafe.AsRef<short>(&Handle->SortOrder);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte DrawChannelCurrent => ref Unsafe.AsRef<byte>(&Handle->DrawChannelCurrent);
+		public ref ushort DrawChannelCurrent => ref Unsafe.AsRef<ushort>(&Handle->DrawChannelCurrent);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte DrawChannelFrozen => ref Unsafe.AsRef<byte>(&Handle->DrawChannelFrozen);
+		public ref ushort DrawChannelFrozen => ref Unsafe.AsRef<ushort>(&Handle->DrawChannelFrozen);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte DrawChannelUnfrozen => ref Unsafe.AsRef<byte>(&Handle->DrawChannelUnfrozen);
+		public ref ushort DrawChannelUnfrozen => ref Unsafe.AsRef<ushort>(&Handle->DrawChannelUnfrozen);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -458,7 +472,23 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool IsPreserveWidthAuto => ref Unsafe.AsRef<bool>(&Handle->IsPreserveWidthAuto);
+		public bool IsPreserveWidthAuto { get => Handle->IsPreserveWidthAuto; set => Handle->IsPreserveWidthAuto = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public bool IsJustCreated { get => Handle->IsJustCreated; set => Handle->IsJustCreated = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public bool IsLoadedSettings { get => Handle->IsLoadedSettings; set => Handle->IsLoadedSettings = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public bool IsNeedReconcileSrc { get => Handle->IsNeedReconcileSrc; set => Handle->IsNeedReconcileSrc = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public bool IsNeedReconcileDst { get => Handle->IsNeedReconcileDst; set => Handle->IsNeedReconcileDst = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -466,11 +496,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte AutoFitQueue => ref Unsafe.AsRef<byte>(&Handle->AutoFitQueue);
+		public byte AutoFitQueue { get => Handle->AutoFitQueue; set => Handle->AutoFitQueue = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte CannotSkipItemsQueue => ref Unsafe.AsRef<byte>(&Handle->CannotSkipItemsQueue);
+		public byte CannotSkipItemsQueue { get => Handle->CannotSkipItemsQueue; set => Handle->CannotSkipItemsQueue = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -487,14 +517,6 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref byte SortDirectionsAvailList => ref Unsafe.AsRef<byte>(&Handle->SortDirectionsAvailList);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
 	}
 
 }

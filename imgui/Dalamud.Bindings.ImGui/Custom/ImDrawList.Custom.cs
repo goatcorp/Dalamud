@@ -24,6 +24,16 @@ public unsafe partial struct ImDrawList
         fixed (ImDrawList* thisPtr = &this)
             ImGui.AddText(thisPtr, font, fontSize, pos, col, text, wrapWidth);
     }
+
+    /// <inheritdoc cref="ImGui.AddTextEx"/>
+    public void AddTextEx(
+        ImFontPtr font, scoped in ImTextDesc desc, Vector2 pos, uint col, ImU8String text,
+        scoped in Vector4 clipRect = default, ImTextRenderFlags renderFlags = ImTextRenderFlags.None,
+        scoped in ImTextTransform transform = default)
+    {
+        fixed (ImDrawList* thisPtr = &this)
+            ImGui.AddTextEx(thisPtr, font, desc, pos, col, text, clipRect, renderFlags, transform);
+    }
 }
 
 public partial struct ImDrawListPtr
@@ -45,4 +55,11 @@ public partial struct ImDrawListPtr
     public void AddText(
         ImFontPtr font, float fontSize, Vector2 pos, uint col, ImU8String text, float wrapWidth = 0f) =>
         ImGui.AddText(this, font, fontSize, pos, col, text, wrapWidth);
+
+    /// <inheritdoc cref="ImGui.AddTextEx"/>
+    public void AddTextEx(
+        ImFontPtr font, scoped in ImTextDesc desc, Vector2 pos, uint col, ImU8String text,
+        scoped in Vector4 clipRect = default, ImTextRenderFlags renderFlags = ImTextRenderFlags.None,
+        scoped in ImTextTransform transform = default) =>
+        ImGui.AddTextEx(this, font, desc, pos, col, text, clipRect, renderFlags, transform);
 }

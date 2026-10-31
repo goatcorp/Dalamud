@@ -33,7 +33,6 @@ using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.SelfTest;
 using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility;
@@ -110,7 +109,6 @@ internal class DalamudInterface : IInternalDisposableService
     private DalamudInterface(
         Dalamud dalamud,
         DalamudConfiguration configuration,
-        FontAtlasFactory fontAtlasFactory,
         InterfaceManager interfaceManager,
         PluginImageCache pluginImageCache,
         DalamudAssetManager dalamudAssetManager,
@@ -131,7 +129,7 @@ internal class DalamudInterface : IInternalDisposableService
         this.colorDemoWindow = new ColorDemoWindow { IsOpen = false };
         this.componentDemoWindow = new ComponentDemoWindow { IsOpen = false };
         this.dataWindow = new DataWindow(this.WindowSystem) { IsOpen = false };
-        this.gamepadModeNotifier = new GamepadModeNotifier(fontAtlasFactory);
+        this.gamepadModeNotifier = new GamepadModeNotifier();
         this.consoleWindow = new ConsoleWindow(configuration) { IsOpen = configuration.LogOpenAtStartup };
         this.pluginStatWindow = new PluginStatWindow { IsOpen = false };
         this.pluginWindow = new PluginInstallerWindow(pluginImageCache, configuration) { IsOpen = false };
@@ -142,7 +140,6 @@ internal class DalamudInterface : IInternalDisposableService
             clientState,
             configuration,
             dalamudAssetManager,
-            fontAtlasFactory,
             framework,
             gameGui,
             titleScreenMenu,
@@ -153,7 +150,6 @@ internal class DalamudInterface : IInternalDisposableService
         };
         this.changelogWindow = new ChangelogWindow(
             this.titleScreenMenuWindow,
-            fontAtlasFactory,
             dalamudAssetManager,
             gameGui,
             framework)
@@ -280,7 +276,6 @@ internal class DalamudInterface : IInternalDisposableService
 
         this.changelogWindow.Dispose();
         this.consoleWindow.Dispose();
-        this.gamepadModeNotifier.Dispose();
         this.pluginWindow.Dispose();
         this.titleScreenMenuWindow.Dispose();
     }

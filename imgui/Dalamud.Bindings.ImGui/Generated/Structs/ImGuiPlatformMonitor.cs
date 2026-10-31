@@ -47,17 +47,23 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public float DpiScale;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void* PlatformHandle;
+
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiPlatformMonitor(Vector2 mainPos = default, Vector2 mainSize = default, Vector2 workPos = default, Vector2 workSize = default, float dpiScale = default)
+		public unsafe ImGuiPlatformMonitor(Vector2 mainPos = default, Vector2 mainSize = default, Vector2 workPos = default, Vector2 workSize = default, float dpiScale = default, void* platformHandle = default)
 		{
 			MainPos = mainPos;
 			MainSize = mainSize;
 			WorkPos = workPos;
 			WorkSize = workSize;
 			DpiScale = dpiScale;
+			PlatformHandle = platformHandle;
 		}
 
 
@@ -135,6 +141,10 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref float DpiScale => ref Unsafe.AsRef<float>(&Handle->DpiScale);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public void* PlatformHandle { get => Handle->PlatformHandle; set => Handle->PlatformHandle = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>

@@ -30,9 +30,9 @@ internal static unsafe class ImGuiInputTextStatePtrExtensions
         ref var s = ref self.Stb.SelectStart;
         ref var e = ref self.Stb.SelectEnd;
         ref var c = ref self.Stb.Cursor;
-        s = Math.Clamp(s, 0, self.CurLenW);
-        e = Math.Clamp(e, 0, self.CurLenW);
-        c = Math.Clamp(c, 0, self.CurLenW);
+        s = Math.Clamp(s, 0, self.TextLen);
+        e = Math.Clamp(e, 0, self.TextLen);
+        c = Math.Clamp(c, 0, self.TextLen);
         if (s == e)
             s = e = c;
         if (s > e)
@@ -50,14 +50,28 @@ internal static unsafe class ImGuiInputTextStatePtrExtensions
         return true;
     }
 
-    public static bool ReplaceSelectionAndPushUndo(this ImGuiInputTextStatePtr self, ReadOnlySpan<char> newText)
+    public static bool ReplaceSelectionAndPushUndo(
+        this ImGuiInputTextStatePtr self, ReadOnlySpan<char> newText, out int insertedLength)
     {
+        insertedLength = 0;
         var off = self.Stb.SelectStart;
         var len = self.Stb.SelectEnd - self.Stb.SelectStart;
-        return self.MakeUndoReplace(off, len, newText.Length) && self.ReplaceChars(off, len, newText);
+        var newTextLen = Encoding.UTF8.GetByteCount(newText);
+        var rented = newTextLen <= 128 ? stackalloc byte[newTextLen] : new byte[newTextLen];
+        Encoding.UTF8.GetBytes(newText, rented);
+
+        // The undo record must match what gets inserted. Truncate like STB_TEXTEDIT_INSERTCHARS does.
+        if ((self.Flags & ImGuiInputTextFlags.CallbackResize) == 0)
+            rented = rented[..TruncateUtf8(rented, Math.Max(0, self.BufCapacity - 1 - self.TextLen + len))];
+
+        if (!self.MakeUndoReplace(off, len, rented.Length) || !self.ReplaceChars(off, len, rented))
+            return false;
+
+        insertedLength = rented.Length;
+        return true;
     }
 
-    public static bool ReplaceChars(this ImGuiInputTextStatePtr self, int pos, int len, ReadOnlySpan<char> newText)
+    public static bool ReplaceChars(this ImGuiInputTextStatePtr self, int pos, int len, ReadOnlySpan<byte> newText)
     {
         self.DeleteChars(pos, len);
         return self.InsertChars(pos, newText);
@@ -69,55 +83,57 @@ internal static unsafe class ImGuiInputTextStatePtrExtensions
         if (n == 0)
             return;
 
-        var dst = (char*)self.TextW.Data + pos;
-
-        // We maintain our buffer length in both UTF-8 and wchar formats
-        self.Edited = true;
-        self.CurLenA -= Encoding.UTF8.GetByteCount(dst, n);
-        self.CurLenW -= n;
-
-        // Offset remaining text (FIXME-OPT: Use memmove)
-        var src = (char*)self.TextW.Data + pos + n;
-        int i;
-        for (i = 0; src[i] != 0; i++)
-            dst[i] = src[i];
-        dst[i] = '\0';
+        var text = self.TextA.AsSpan();
+        text.Slice(pos + n, self.TextLen - n - pos + 1).CopyTo(text[pos..]);
+        self.EditedBefore = self.EditedThisFrame = true;
+        self.TextLen -= n;
     }
 
     // See imgui_widgets.cpp: STB_TEXTEDIT_INSERTCHARS
-    public static bool InsertChars(this ImGuiInputTextStatePtr self, int pos, ReadOnlySpan<char> newText)
+    public static bool InsertChars(this ImGuiInputTextStatePtr self, int pos, ReadOnlySpan<byte> newText)
     {
         if (newText.Length == 0)
             return true;
 
         var isResizable = (self.Flags & ImGuiInputTextFlags.CallbackResize) != 0;
-        var textLen = self.CurLenW;
+        var textLen = self.TextLen;
         Debug.Assert(pos <= textLen, "pos <= text_len");
 
-        var newTextLenUtf8 = Encoding.UTF8.GetByteCount(newText);
-        if (!isResizable && newTextLenUtf8 + self.CurLenA + 1 > self.BufCapacityA)
+        if (!isResizable && newText.Length > self.BufCapacity - 1 - textLen)
             return false;
 
         // Grow internal buffer if needed
-        if (newText.Length + textLen + 1 > self.TextW.Size)
+        if (textLen + newText.Length + 1 > self.TextA.Size)
         {
             if (!isResizable)
                 return false;
 
-            Debug.Assert(textLen < self.TextW.Size, "text_len < self.TextW.Length");
-            self.TextW.Resize(textLen + Math.Clamp(newText.Length * 4, 32, Math.Max(256, newText.Length)) + 1);
+            self.TextA.Resize(textLen + Math.Clamp(newText.Length, 32, Math.Max(256, newText.Length)) + 1);
+            self.Handle->TextSrc = self.TextA.Data;
         }
 
-        var text = new Span<char>(self.TextW.Data, self.TextW.Size);
+        var text = self.TextA.AsSpan();
         if (pos != textLen)
             text[pos..textLen].CopyTo(text[(pos + newText.Length)..]);
         newText.CopyTo(text[pos..]);
 
-        self.Edited = true;
-        self.CurLenW += newText.Length;
-        self.CurLenA += newTextLenUtf8;
-        self.TextW[self.CurLenW] = '\0';
+        self.EditedBefore = self.EditedThisFrame = true;
+        self.TextLen += newText.Length;
+        text[self.TextLen] = 0;
 
         return true;
+    }
+
+    // Follows ImTextFindValidUtf8CodepointEnd of imgui.cpp.
+    private static int TruncateUtf8(ReadOnlySpan<byte> text, int maxLength)
+    {
+        if (text.Length <= maxLength)
+            return text.Length;
+
+        // Back off from continuation bytes to the start of the codepoint that does not fit.
+        var len = maxLength;
+        while (len > 0 && (text[len] & 0xC0) == 0x80)
+            len--;
+        return len;
     }
 }

@@ -47,6 +47,30 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe ImPlotPoint Clamp(ImPlotPoint p)
+		{
+			fixed (ImPlotRect* @this = &this)
+			{
+				ImPlotPoint ret = ImPlot.ClampNative(@this, p);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImPlotPoint Clamp(double x, double y)
+		{
+			fixed (ImPlotRect* @this = &this)
+			{
+				ImPlotPoint ret = ImPlot.ClampNative(@this, x, y);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe bool Contains(ImPlotPoint p)
 		{
 			fixed (ImPlotRect* @this = &this)
@@ -76,6 +100,42 @@ namespace Dalamud.Bindings.ImPlot
 			fixed (ImPlotRect* @this = &this)
 			{
 				ImPlot.DestroyNative(@this);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImPlotPoint Max()
+		{
+			fixed (ImPlotRect* @this = &this)
+			{
+				ImPlotPoint ret = ImPlot.MaxNative(@this);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImPlotPoint Min()
+		{
+			fixed (ImPlotRect* @this = &this)
+			{
+				ImPlotPoint ret = ImPlot.MinNative(@this);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImPlotPoint Size()
+		{
+			fixed (ImPlotRect* @this = &this)
+			{
+				ImPlotPoint ret = ImPlot.SizeNative(@this);
+				return ret;
 			}
 		}
 
@@ -133,6 +193,24 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe ImPlotPoint Clamp(ImPlotPoint p)
+		{
+			ImPlotPoint ret = ImPlot.ClampNative(Handle, p);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImPlotPoint Clamp(double x, double y)
+		{
+			ImPlotPoint ret = ImPlot.ClampNative(Handle, x, y);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public unsafe bool Contains(ImPlotPoint p)
 		{
 			byte ret = ImPlot.ContainsNative(Handle, p);
@@ -154,6 +232,33 @@ namespace Dalamud.Bindings.ImPlot
 		public unsafe void Destroy()
 		{
 			ImPlot.DestroyNative(Handle);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImPlotPoint Max()
+		{
+			ImPlotPoint ret = ImPlot.MaxNative(Handle);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImPlotPoint Min()
+		{
+			ImPlotPoint ret = ImPlot.MinNative(Handle);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImPlotPoint Size()
+		{
+			ImPlotPoint ret = ImPlot.SizeNative(Handle);
+			return ret;
 		}
 
 	}

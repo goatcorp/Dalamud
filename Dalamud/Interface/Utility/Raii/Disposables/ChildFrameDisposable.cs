@@ -22,7 +22,7 @@ public static partial class ImRaii
         /// <returns> A disposable object that evaluates to true if any part of the begun child frame is currently visible. Use with using. </returns>
         internal ChildFrameDisposable(uint id, Vector2 size)
         {
-            this.Success = ImGui.BeginChildFrame(id, size);
+            this.Success = ImGuiNative.BeginChild(id, size, ImGuiChildFlags.FrameStyle, ImGuiWindowFlags.None) != 0;
             this.Alive = true;
         }
 
@@ -33,7 +33,7 @@ public static partial class ImRaii
         /// <returns> A disposable object that evaluates to true if any part of the begun child frame is currently visible. Use with using. </returns>
         internal ChildFrameDisposable(uint id, Vector2 size, ImGuiWindowFlags flags)
         {
-            this.Success = ImGui.BeginChildFrame(id, size, flags);
+            this.Success = ImGuiNative.BeginChild(id, size, ImGuiChildFlags.FrameStyle, flags) != 0;
             this.Alive = true;
         }
 
@@ -61,14 +61,14 @@ public static partial class ImRaii
             if (!this.Alive)
                 return;
 
-            ImGui.EndChildFrame();
+            ImGui.EndChild();
             this.Alive = false;
         }
 
 #pragma warning disable SA1204
         /// <summary> End a child frame without using an IDisposable.</summary>
         public static void EndUnsafe()
-            => ImGui.EndChildFrame();
+            => ImGui.EndChild();
 #pragma warning restore SA1204
     }
 }

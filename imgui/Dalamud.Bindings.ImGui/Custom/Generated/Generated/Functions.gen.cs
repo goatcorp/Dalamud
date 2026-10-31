@@ -693,3 +693,73 @@ namespace Dalamud.Bindings.ImGui
 	{
 	}
 }
+/* Functions.098.cs */
+namespace Dalamud.Bindings.ImGui
+{
+	public unsafe partial class ImGui
+	{
+	}
+}
+/* Functions.099.cs */
+namespace Dalamud.Bindings.ImGui
+{
+	public unsafe partial class ImGui
+	{
+	}
+}
+/* Functions.100.cs */
+namespace Dalamud.Bindings.ImGui
+{
+	public unsafe partial class ImGui
+	{
+	}
+}
+/* Functions.101.cs */
+namespace Dalamud.Bindings.ImGui
+{
+	public unsafe partial class ImGui
+	{
+	}
+}
+/* Functions.102.cs */
+namespace Dalamud.Bindings.ImGui
+{
+	public unsafe partial class ImGui
+	{
+	}
+}
+/* Functions.103.cs */
+namespace Dalamud.Bindings.ImGui
+{
+	public unsafe partial class ImGui
+	{
+	}
+}
+/* Functions.104.cs */
+namespace Dalamud.Bindings.ImGui
+{
+	public unsafe partial class ImGui
+	{
+	}
+}
+/* Functions.105.cs */
+namespace Dalamud.Bindings.ImGui
+{
+	public unsafe partial class ImGui
+	{
+	}
+}
+/* Functions.106.cs */
+namespace Dalamud.Bindings.ImGui
+{
+	public unsafe partial class ImGui
+	{
+	}
+}
+/* Functions.107.cs */
+namespace Dalamud.Bindings.ImGui
+{
+	public unsafe partial class ImGui
+	{
+	}
+}

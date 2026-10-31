@@ -37,15 +37,68 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public uint Col;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint Ext_0;
+		public uint Ext_1;
+		public uint Ext_2;
+		public uint Ext_3;
+		public uint Ext_4;
+		public uint Ext_5;
+		public uint Ext_6;
+		public uint Ext_7;
+		public uint Ext_8;
+		public uint Ext_9;
+		public uint Ext_10;
+
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImDrawVert(Vector2 pos = default, Vector2 uv = default, uint col = default)
+		public unsafe ImDrawVert(Vector2 pos = default, Vector2 uv = default, uint col = default, uint* ext = default)
 		{
 			Pos = pos;
 			Uv = uv;
 			Col = col;
+			if (ext != default(uint*))
+			{
+				Ext_0 = ext[0];
+				Ext_1 = ext[1];
+				Ext_2 = ext[2];
+				Ext_3 = ext[3];
+				Ext_4 = ext[4];
+				Ext_5 = ext[5];
+				Ext_6 = ext[6];
+				Ext_7 = ext[7];
+				Ext_8 = ext[8];
+				Ext_9 = ext[9];
+				Ext_10 = ext[10];
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImDrawVert(Vector2 pos = default, Vector2 uv = default, uint col = default, Span<uint> ext = default)
+		{
+			Pos = pos;
+			Uv = uv;
+			Col = col;
+			if (ext != default(Span<uint>))
+			{
+				Ext_0 = ext[0];
+				Ext_1 = ext[1];
+				Ext_2 = ext[2];
+				Ext_3 = ext[3];
+				Ext_4 = ext[4];
+				Ext_5 = ext[5];
+				Ext_6 = ext[6];
+				Ext_7 = ext[7];
+				Ext_8 = ext[8];
+				Ext_9 = ext[9];
+				Ext_10 = ext[10];
+			}
 		}
 
 
@@ -104,6 +157,17 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref uint Col => ref Unsafe.AsRef<uint>(&Handle->Col);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe Span<uint> Ext
+		
+		{
+			get
+			{
+				return new Span<uint>(&Handle->Ext_0, 11);
+			}
+		}
 	}
 
 }

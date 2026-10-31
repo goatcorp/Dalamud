@@ -15,77 +15,77 @@ public unsafe partial class ImGuiNative
 		public static byte InputText(byte* label, byte* buf, nuint bufSize, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
 		{
 
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1268])(label, buf, bufSize, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1511])(label, buf, bufSize, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
 
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static byte InputTextMultiline(byte* label, byte* buf, nuint bufSize, Vector2 size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
 		{
 
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, Vector2, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1269])(label, buf, bufSize, size, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, Vector2, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1512])(label, buf, bufSize, size, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
 
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static byte InputTextWithHint(byte* label, byte* hint, byte* buf, nuint bufSize, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
 		{
 
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, nuint, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1270])(label, hint, buf, bufSize, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
-
-		}
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static int ImFormatString(byte* buf, nuint bufSize, byte* fmt)
-		{
-
-			return ((delegate* unmanaged[Cdecl]<byte*, nuint, byte*, int>)ImGui.funcTable[1271])(buf, bufSize, fmt);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, nuint, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1513])(label, hint, buf, bufSize, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
 
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static int ImFormatStringV(byte* buf, nuint bufSize, byte* fmt, nuint args)
 		{
 
-			return ((delegate* unmanaged[Cdecl]<byte*, nuint, byte*, nuint, int>)ImGui.funcTable[1272])(buf, bufSize, fmt, args);
+			return ((delegate* unmanaged[Cdecl]<byte*, nuint, byte*, nuint, int>)ImGui.funcTable[1514])(buf, bufSize, fmt, args);
 
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static byte* ImParseFormatTrimDecorations(byte* format, byte* buf, nuint bufSize)
 		{
 
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, byte*>)ImGui.funcTable[1273])(format, buf, bufSize);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, byte*>)ImGui.funcTable[1515])(format, buf, bufSize);
 
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static int ImTextStrToUtf8(byte* outBuf, int outBufSize, ushort* inText, ushort* inTextEnd)
+		public static int ImTextStrToUtf8(byte* outBuf, int outBufSize, uint* inText, uint* inTextEnd)
 		{
 
-			return ((delegate* unmanaged[Cdecl]<byte*, int, ushort*, ushort*, int>)ImGui.funcTable[1274])(outBuf, outBufSize, inText, inTextEnd);
+			return ((delegate* unmanaged[Cdecl]<byte*, int, uint*, uint*, int>)ImGui.funcTable[1516])(outBuf, outBufSize, inText, inTextEnd);
 
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, byte* inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, byte* inTextEnd, byte** inRemaining)
 		{
 
-			return ((delegate* unmanaged[Cdecl]<ushort*, int, byte*, byte*, byte**, int>)ImGui.funcTable[1275])(outBuf, outBufSize, inText, inTextEnd, inRemaining);
+			return ((delegate* unmanaged[Cdecl]<uint*, int, byte*, byte*, byte**, int>)ImGui.funcTable[1517])(outBuf, outBufSize, inText, inTextEnd, inRemaining);
+
+		}
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static byte* GetKeyChordName(int keyChord)
+		{
+
+			return ((delegate* unmanaged[Cdecl]<int, byte*>)ImGui.funcTable[1518])(keyChord);
 
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static int DataTypeFormatString(byte* buf, int bufSize, ImGuiDataType dataType, void* pData, byte* format)
 		{
 
-			return ((delegate* unmanaged[Cdecl]<byte*, int, ImGuiDataType, void*, byte*, int>)ImGui.funcTable[1276])(buf, bufSize, dataType, pData, format);
+			return ((delegate* unmanaged[Cdecl]<byte*, int, ImGuiDataType, void*, byte*, int>)ImGui.funcTable[1519])(buf, bufSize, dataType, pData, format);
 
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static byte InputTextEx(byte* label, byte* hint, byte* buf, int bufSize, Vector2 sizeArg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
 		{
 
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, int, Vector2, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1277])(label, hint, buf, bufSize, sizeArg, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, int, Vector2, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1520])(label, hint, buf, bufSize, sizeArg, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
 
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static byte TempInputText(ImRect bb, uint id, byte* label, byte* buf, int bufSize, ImGuiInputTextFlags flags)
+		public static byte TempInputText(ImRect bb, uint id, byte* label, byte* buf, nuint bufSize, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
 		{
 
-			return ((delegate* unmanaged[Cdecl]<ImRect, uint, byte*, byte*, int, ImGuiInputTextFlags, byte>)ImGui.funcTable[1278])(bb, id, label, buf, bufSize, flags);
+			return ((delegate* unmanaged[Cdecl]<ImRect, uint, byte*, byte*, nuint, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1521])(bb, id, label, buf, bufSize, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
 
 		}
 }

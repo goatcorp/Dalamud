@@ -21,291 +21,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte* ImParseFormatTrimDecorationsNative(byte* format, byte* buf, nuint bufSize)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, byte*>)funcTable[1273])(format, buf, bufSize);
-			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nuint, nint>)funcTable[1273])((nint)format, (nint)buf, bufSize);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static byte* ImParseFormatTrimDecorations(byte* format, byte* buf, nuint bufSize)
-		{
-			byte* ret = ImParseFormatTrimDecorationsNative(format, buf, bufSize);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static string ImParseFormatTrimDecorationsS(byte* format, byte* buf, nuint bufSize)
-		{
-			string ret = Utils.DecodeStringUTF8(ImParseFormatTrimDecorationsNative(format, buf, bufSize));
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static byte* ImParseFormatTrimDecorations(ref byte format, byte* buf, nuint bufSize)
-		{
-			fixed (byte* pformat = &format)
-			{
-				byte* ret = ImParseFormatTrimDecorationsNative((byte*)pformat, buf, bufSize);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static string ImParseFormatTrimDecorationsS(ref byte format, byte* buf, nuint bufSize)
-		{
-			fixed (byte* pformat = &format)
-			{
-				string ret = Utils.DecodeStringUTF8(ImParseFormatTrimDecorationsNative((byte*)pformat, buf, bufSize));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static byte* ImParseFormatTrimDecorations(ReadOnlySpan<byte> format, byte* buf, nuint bufSize)
-		{
-			fixed (byte* pformat = format)
-			{
-				byte* ret = ImParseFormatTrimDecorationsNative((byte*)pformat, buf, bufSize);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static string ImParseFormatTrimDecorationsS(ReadOnlySpan<byte> format, byte* buf, nuint bufSize)
-		{
-			fixed (byte* pformat = format)
-			{
-				string ret = Utils.DecodeStringUTF8(ImParseFormatTrimDecorationsNative((byte*)pformat, buf, bufSize));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static byte* ImParseFormatTrimDecorations(string format, byte* buf, nuint bufSize)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (format != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(format);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* ret = ImParseFormatTrimDecorationsNative(pStr0, buf, bufSize);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static string ImParseFormatTrimDecorationsS(string format, byte* buf, nuint bufSize)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (format != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(format);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			string ret = Utils.DecodeStringUTF8(ImParseFormatTrimDecorationsNative(pStr0, buf, bufSize));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static byte* ImParseFormatTrimDecorations(byte* format, ref byte buf, nuint bufSize)
-		{
-			fixed (byte* pbuf = &buf)
-			{
-				byte* ret = ImParseFormatTrimDecorationsNative(format, (byte*)pbuf, bufSize);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static string ImParseFormatTrimDecorationsS(byte* format, ref byte buf, nuint bufSize)
-		{
-			fixed (byte* pbuf = &buf)
-			{
-				string ret = Utils.DecodeStringUTF8(ImParseFormatTrimDecorationsNative(format, (byte*)pbuf, bufSize));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static byte* ImParseFormatTrimDecorations(byte* format, ref string buf, nuint bufSize)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (buf != null)
-			{
-				pStrSize0 = Math.Max(Utils.GetByteCountUTF8(buf), (int)bufSize);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(buf, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* ret = ImParseFormatTrimDecorationsNative(format, pStr0, bufSize);
-			buf = Utils.DecodeStringUTF8(pStr0);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static string ImParseFormatTrimDecorationsS(byte* format, ref string buf, nuint bufSize)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (buf != null)
-			{
-				pStrSize0 = Math.Max(Utils.GetByteCountUTF8(buf), (int)bufSize);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(buf, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			string ret = Utils.DecodeStringUTF8(ImParseFormatTrimDecorationsNative(format, pStr0, bufSize));
-			buf = Utils.DecodeStringUTF8(pStr0);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static byte* ImParseFormatTrimDecorations(ref byte format, ref byte buf, nuint bufSize)
-		{
-			fixed (byte* pformat = &format)
-			{
-				fixed (byte* pbuf = &buf)
-				{
-					byte* ret = ImParseFormatTrimDecorationsNative((byte*)pformat, (byte*)pbuf, bufSize);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static string ImParseFormatTrimDecorationsS(ref byte format, ref byte buf, nuint bufSize)
-		{
-			fixed (byte* pformat = &format)
-			{
-				fixed (byte* pbuf = &buf)
-				{
-					string ret = Utils.DecodeStringUTF8(ImParseFormatTrimDecorationsNative((byte*)pformat, (byte*)pbuf, bufSize));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static byte* ImParseFormatTrimDecorations(ReadOnlySpan<byte> format, ref byte buf, nuint bufSize)
-		{
-			fixed (byte* pformat = format)
-			{
-				fixed (byte* pbuf = &buf)
-				{
-					byte* ret = ImParseFormatTrimDecorationsNative((byte*)pformat, (byte*)pbuf, bufSize);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static string ImParseFormatTrimDecorationsS(ReadOnlySpan<byte> format, ref byte buf, nuint bufSize)
-		{
-			fixed (byte* pformat = format)
-			{
-				fixed (byte* pbuf = &buf)
-				{
-					string ret = Utils.DecodeStringUTF8(ImParseFormatTrimDecorationsNative((byte*)pformat, (byte*)pbuf, bufSize));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public static byte* ImParseFormatTrimDecorations(string format, ref string buf, nuint bufSize)
 		{
 			byte* pStr0 = null;
@@ -613,19 +328,19 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static int ImTextStrToUtf8Native(byte* outBuf, int outBufSize, ushort* inText, ushort* inTextEnd)
+		internal static int ImTextStrToUtf8Native(byte* outBuf, int outBufSize, uint* inText, uint* inTextEnd)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int, ushort*, ushort*, int>)funcTable[1274])(outBuf, outBufSize, inText, inTextEnd);
+			return ((delegate* unmanaged[Cdecl]<byte*, int, uint*, uint*, int>)funcTable[1516])(outBuf, outBufSize, inText, inTextEnd);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, int, nint, nint, int>)funcTable[1274])((nint)outBuf, outBufSize, (nint)inText, (nint)inTextEnd);
+			return (int)((delegate* unmanaged[Cdecl]<nint, int, nint, nint, int>)funcTable[1516])((nint)outBuf, outBufSize, (nint)inText, (nint)inTextEnd);
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrToUtf8(byte* outBuf, int outBufSize, ushort* inText, ushort* inTextEnd)
+		public static int ImTextStrToUtf8(byte* outBuf, int outBufSize, uint* inText, uint* inTextEnd)
 		{
 			int ret = ImTextStrToUtf8Native(outBuf, outBufSize, inText, inTextEnd);
 			return ret;
@@ -634,7 +349,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrToUtf8(ref byte outBuf, int outBufSize, ushort* inText, ushort* inTextEnd)
+		public static int ImTextStrToUtf8(ref byte outBuf, int outBufSize, uint* inText, uint* inTextEnd)
 		{
 			fixed (byte* poutBuf = &outBuf)
 			{
@@ -646,7 +361,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrToUtf8(ref string outBuf, int outBufSize, ushort* inText, ushort* inTextEnd)
+		public static int ImTextStrToUtf8(ref string outBuf, int outBufSize, uint* inText, uint* inTextEnd)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -678,19 +393,19 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static int ImTextStrFromUtf8Native(ushort* outBuf, int outBufSize, byte* inText, byte* inTextEnd, byte** inRemaining)
+		internal static int ImTextStrFromUtf8Native(uint* outBuf, int outBufSize, byte* inText, byte* inTextEnd, byte** inRemaining)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ushort*, int, byte*, byte*, byte**, int>)funcTable[1275])(outBuf, outBufSize, inText, inTextEnd, inRemaining);
+			return ((delegate* unmanaged[Cdecl]<uint*, int, byte*, byte*, byte**, int>)funcTable[1517])(outBuf, outBufSize, inText, inTextEnd, inRemaining);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, int, nint, nint, nint, int>)funcTable[1275])((nint)outBuf, outBufSize, (nint)inText, (nint)inTextEnd, (nint)inRemaining);
+			return (int)((delegate* unmanaged[Cdecl]<nint, int, nint, nint, nint, int>)funcTable[1517])((nint)outBuf, outBufSize, (nint)inText, (nint)inTextEnd, (nint)inRemaining);
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, byte* inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, byte* inTextEnd, byte** inRemaining)
 		{
 			int ret = ImTextStrFromUtf8Native(outBuf, outBufSize, inText, inTextEnd, inRemaining);
 			return ret;
@@ -699,7 +414,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, byte* inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, byte* inTextEnd)
 		{
 			int ret = ImTextStrFromUtf8Native(outBuf, outBufSize, inText, inTextEnd, (byte**)(default));
 			return ret;
@@ -708,7 +423,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, byte* inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, byte* inTextEnd, byte** inRemaining)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -720,7 +435,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, byte* inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, byte* inTextEnd)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -732,7 +447,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, byte* inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, byte* inTextEnd, byte** inRemaining)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -744,7 +459,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, byte* inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, byte* inTextEnd)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -756,7 +471,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, byte* inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, byte* inTextEnd, byte** inRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -786,7 +501,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, byte* inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, byte* inTextEnd)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -816,7 +531,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, ref byte inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, ref byte inTextEnd, byte** inRemaining)
 		{
 			fixed (byte* pinTextEnd = &inTextEnd)
 			{
@@ -828,7 +543,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, ref byte inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, ref byte inTextEnd)
 		{
 			fixed (byte* pinTextEnd = &inTextEnd)
 			{
@@ -840,7 +555,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, ReadOnlySpan<byte> inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, ReadOnlySpan<byte> inTextEnd, byte** inRemaining)
 		{
 			fixed (byte* pinTextEnd = inTextEnd)
 			{
@@ -852,7 +567,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, ReadOnlySpan<byte> inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, ReadOnlySpan<byte> inTextEnd)
 		{
 			fixed (byte* pinTextEnd = inTextEnd)
 			{
@@ -864,7 +579,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, string inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, string inTextEnd, byte** inRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -894,7 +609,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, string inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, string inTextEnd)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -924,7 +639,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, ref byte inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, ref byte inTextEnd, byte** inRemaining)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -939,7 +654,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, ref byte inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, ref byte inTextEnd)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -954,7 +669,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ReadOnlySpan<byte> inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ReadOnlySpan<byte> inTextEnd, byte** inRemaining)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -969,7 +684,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ReadOnlySpan<byte> inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ReadOnlySpan<byte> inTextEnd)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -984,7 +699,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, string inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, string inTextEnd, byte** inRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1035,7 +750,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, string inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, string inTextEnd)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1086,7 +801,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, ReadOnlySpan<byte> inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, ReadOnlySpan<byte> inTextEnd, byte** inRemaining)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -1101,7 +816,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, ReadOnlySpan<byte> inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, ReadOnlySpan<byte> inTextEnd)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -1116,7 +831,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, string inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, string inTextEnd, byte** inRemaining)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -1149,7 +864,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, string inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, string inTextEnd)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -1182,7 +897,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ref byte inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ref byte inTextEnd, byte** inRemaining)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -1197,7 +912,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ref byte inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ref byte inTextEnd)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -1212,7 +927,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, string inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, string inTextEnd, byte** inRemaining)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -1245,7 +960,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, string inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, string inTextEnd)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -1278,7 +993,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, ref byte inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, ref byte inTextEnd, byte** inRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1311,7 +1026,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, ref byte inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, ref byte inTextEnd)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1344,7 +1059,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, ReadOnlySpan<byte> inTextEnd, byte** inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, ReadOnlySpan<byte> inTextEnd, byte** inRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1377,7 +1092,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, ReadOnlySpan<byte> inTextEnd)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, ReadOnlySpan<byte> inTextEnd)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1410,7 +1125,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, byte* inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, byte* inTextEnd, ref byte* inRemaining)
 		{
 			fixed (byte** pinRemaining = &inRemaining)
 			{
@@ -1422,7 +1137,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, byte* inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, byte* inTextEnd, ref byte* inRemaining)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -1437,7 +1152,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, byte* inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, byte* inTextEnd, ref byte* inRemaining)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -1452,7 +1167,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, byte* inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, byte* inTextEnd, ref byte* inRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1485,7 +1200,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, ref byte inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, ref byte inTextEnd, ref byte* inRemaining)
 		{
 			fixed (byte* pinTextEnd = &inTextEnd)
 			{
@@ -1500,7 +1215,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, ReadOnlySpan<byte> inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, ReadOnlySpan<byte> inTextEnd, ref byte* inRemaining)
 		{
 			fixed (byte* pinTextEnd = inTextEnd)
 			{
@@ -1515,7 +1230,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, byte* inText, string inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, byte* inText, string inTextEnd, ref byte* inRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1548,7 +1263,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, ref byte inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, ref byte inTextEnd, ref byte* inRemaining)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -1566,7 +1281,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ReadOnlySpan<byte> inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ReadOnlySpan<byte> inTextEnd, ref byte* inRemaining)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -1584,7 +1299,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, string inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, string inTextEnd, ref byte* inRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1638,7 +1353,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, ReadOnlySpan<byte> inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, ReadOnlySpan<byte> inTextEnd, ref byte* inRemaining)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -1656,7 +1371,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ref byte inText, string inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ref byte inText, string inTextEnd, ref byte* inRemaining)
 		{
 			fixed (byte* pinText = &inText)
 			{
@@ -1692,7 +1407,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ref byte inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, ref byte inTextEnd, ref byte* inRemaining)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -1710,7 +1425,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, ReadOnlySpan<byte> inText, string inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, ReadOnlySpan<byte> inText, string inTextEnd, ref byte* inRemaining)
 		{
 			fixed (byte* pinText = inText)
 			{
@@ -1746,7 +1461,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, ref byte inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, ref byte inTextEnd, ref byte* inRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1782,7 +1497,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static int ImTextStrFromUtf8(ushort* outBuf, int outBufSize, string inText, ReadOnlySpan<byte> inTextEnd, ref byte* inRemaining)
+		public static int ImTextStrFromUtf8(uint* outBuf, int outBufSize, string inText, ReadOnlySpan<byte> inTextEnd, ref byte* inRemaining)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1819,12 +1534,43 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static byte* GetKeyChordNameNative(int keyChord)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<int, byte*>)funcTable[1518])(keyChord);
+			#else
+			return (byte*)((delegate* unmanaged[Cdecl]<int, nint>)funcTable[1518])(keyChord);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static byte* GetKeyChordName(int keyChord)
+		{
+			byte* ret = GetKeyChordNameNative(keyChord);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static string GetKeyChordNameS(int keyChord)
+		{
+			string ret = Utils.DecodeStringUTF8(GetKeyChordNameNative(keyChord));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static int DataTypeFormatStringNative(byte* buf, int bufSize, ImGuiDataType dataType, void* pData, byte* format)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int, ImGuiDataType, void*, byte*, int>)funcTable[1276])(buf, bufSize, dataType, pData, format);
+			return ((delegate* unmanaged[Cdecl]<byte*, int, ImGuiDataType, void*, byte*, int>)funcTable[1519])(buf, bufSize, dataType, pData, format);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, int, ImGuiDataType, nint, nint, int>)funcTable[1276])((nint)buf, bufSize, dataType, (nint)pData, (nint)format);
+			return (int)((delegate* unmanaged[Cdecl]<nint, int, ImGuiDataType, nint, nint, int>)funcTable[1519])((nint)buf, bufSize, dataType, (nint)pData, (nint)format);
 			#endif
 		}
 
@@ -2124,9 +1870,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte InputTextExNative(byte* label, byte* hint, byte* buf, int bufSize, Vector2 sizeArg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, int, Vector2, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)funcTable[1277])(label, hint, buf, bufSize, sizeArg, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, int, Vector2, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)funcTable[1520])(label, hint, buf, bufSize, sizeArg, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, int, Vector2, ImGuiInputTextFlags, nint, nint, byte>)funcTable[1277])((nint)label, (nint)hint, (nint)buf, bufSize, sizeArg, flags, (nint)Utils.GetFunctionPointerForDelegate(callback), (nint)userData);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, int, Vector2, ImGuiInputTextFlags, nint, nint, byte>)funcTable[1520])((nint)label, (nint)hint, (nint)buf, bufSize, sizeArg, flags, (nint)Utils.GetFunctionPointerForDelegate(callback), (nint)userData);
 			#endif
 		}
 
@@ -5039,6 +4785,249 @@ namespace Dalamud.Bindings.ImGui
 				{
 					buf = Utils.DecodeStringUTF8(pStr0);
 				}
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool InputTextEx(byte* label, ReadOnlySpan<byte> hint, ref string buf, int bufSize, Vector2 sizeArg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback)
+		{
+			fixed (byte* phint = hint)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (buf != null)
+				{
+					pStrSize0 = Math.Max(Utils.GetByteCountUTF8(buf), (int)bufSize);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(buf, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				byte ret = InputTextExNative(label, (byte*)phint, pStr0, bufSize, sizeArg, flags, callback, (void*)(default));
+				if (ret != 0 || ((flags & ImGuiInputTextFlags.EnterReturnsTrue) != 0 && IsItemDeactivatedAfterEdit()))
+				{
+					buf = Utils.DecodeStringUTF8(pStr0);
+				}
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool InputTextEx(byte* label, ReadOnlySpan<byte> hint, ref string buf, int bufSize, Vector2 sizeArg, ImGuiInputTextFlags flags)
+		{
+			fixed (byte* phint = hint)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (buf != null)
+				{
+					pStrSize0 = Math.Max(Utils.GetByteCountUTF8(buf), (int)bufSize);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(buf, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				byte ret = InputTextExNative(label, (byte*)phint, pStr0, bufSize, sizeArg, flags, (ImGuiInputTextCallback)(default), (void*)(default));
+				if (ret != 0 || ((flags & ImGuiInputTextFlags.EnterReturnsTrue) != 0 && IsItemDeactivatedAfterEdit()))
+				{
+					buf = Utils.DecodeStringUTF8(pStr0);
+				}
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool InputTextEx(byte* label, ReadOnlySpan<byte> hint, ref string buf, int bufSize, Vector2 sizeArg, ImGuiInputTextFlags flags, void* userData)
+		{
+			fixed (byte* phint = hint)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (buf != null)
+				{
+					pStrSize0 = Math.Max(Utils.GetByteCountUTF8(buf), (int)bufSize);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(buf, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				byte ret = InputTextExNative(label, (byte*)phint, pStr0, bufSize, sizeArg, flags, (ImGuiInputTextCallback)(default), userData);
+				if (ret != 0 || ((flags & ImGuiInputTextFlags.EnterReturnsTrue) != 0 && IsItemDeactivatedAfterEdit()))
+				{
+					buf = Utils.DecodeStringUTF8(pStr0);
+				}
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool InputTextEx(byte* label, string hint, ref byte buf, int bufSize, Vector2 sizeArg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (hint != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(hint);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(hint, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pbuf = &buf)
+			{
+				byte ret = InputTextExNative(label, pStr0, (byte*)pbuf, bufSize, sizeArg, flags, callback, userData);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool InputTextEx(byte* label, string hint, ref byte buf, int bufSize, Vector2 sizeArg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (hint != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(hint);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(hint, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pbuf = &buf)
+			{
+				byte ret = InputTextExNative(label, pStr0, (byte*)pbuf, bufSize, sizeArg, flags, callback, (void*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool InputTextEx(byte* label, string hint, ref byte buf, int bufSize, Vector2 sizeArg, ImGuiInputTextFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (hint != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(hint);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(hint, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pbuf = &buf)
+			{
+				byte ret = InputTextExNative(label, pStr0, (byte*)pbuf, bufSize, sizeArg, flags, (ImGuiInputTextCallback)(default), (void*)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool InputTextEx(byte* label, string hint, ref byte buf, int bufSize, Vector2 sizeArg, ImGuiInputTextFlags flags, void* userData)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (hint != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(hint);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(hint, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pbuf = &buf)
+			{
+				byte ret = InputTextExNative(label, pStr0, (byte*)pbuf, bufSize, sizeArg, flags, (ImGuiInputTextCallback)(default), userData);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);

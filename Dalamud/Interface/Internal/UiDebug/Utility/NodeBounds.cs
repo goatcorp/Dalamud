@@ -76,7 +76,7 @@ public unsafe struct NodeBounds
                 path.Add(p);
             }
 
-            backgroundDrawList.AddPolyline(ref path[0], path.Length, RgbaVector4ToUint(col), ImDrawFlags.Closed, thickness);
+            backgroundDrawList.AddPolyline(ref path[0], path.Length, RgbaVector4ToUint(col), thickness, ImDrawFlags.Closed);
 
             path.Dispose();
         }
@@ -109,7 +109,7 @@ public unsafe struct NodeBounds
             }
 
             backgroundDrawList.AddConvexPolyFilled(ref path[0], path.Length, RgbaVector4ToUint(col with { W = col.W / 2 }));
-            backgroundDrawList.AddPolyline(ref path[0], path.Length, RgbaVector4ToUint(col), ImDrawFlags.Closed, thickness);
+            backgroundDrawList.AddPolyline(ref path[0], path.Length, RgbaVector4ToUint(col), thickness, ImDrawFlags.Closed);
 
             path.Dispose();
         }

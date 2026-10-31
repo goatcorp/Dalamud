@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImGuizmo;
 using Dalamud.Bindings.ImPlot;
+using Dalamud.Interface.Fonts.Internal.Glyphs;
 using Dalamud.Interface.ImGuiBackend.Delegates;
 using Dalamud.Interface.ImGuiBackend.Helpers;
 using Dalamud.Interface.ImGuiBackend.InputHandler;
@@ -65,6 +66,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             this.WindowHandle = desc.OutputWindow;
 
             var ctx = ImGui.CreateContext();
+            GlyphAtlasTextResources.OnContextCreated();
             ImGuizmo.SetImGuiContext(ctx);
             ImPlot.SetImGuiContext(ctx);
             ImPlot.CreateContext();
@@ -84,16 +86,13 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <summary>
     /// Finalizes an instance of the <see cref="Dx11Win32Backend"/> class.
     /// </summary>
-    ~Dx11Win32Backend() => this.ReleaseUnmanagedResources();
+    ~Dx11Win32Backend() => this.ReleaseUnmanagedResources(false);
 
     /// <inheritdoc/>
     public event ImGuiBuildUiDelegate? BuildUi;
 
     /// <inheritdoc/>
     public event ImGuiNewInputFrameDelegate? NewInputFrame;
-
-    /// <inheritdoc/>
-    public event ImGuiNewRenderFrameDelegate? NewRenderFrame;
 
     /// <inheritdoc/>
     public bool UpdateCursor
@@ -143,7 +142,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.ReleaseUnmanagedResources();
+        this.ReleaseUnmanagedResources(true);
         GC.SuppressFinalize(this);
     }
 
@@ -155,11 +154,11 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
     public void Render()
     {
         this.imguiRenderer.OnNewFrame();
-        this.NewRenderFrame?.Invoke();
         this.imguiInput.NewFrame(this.targetWidth, this.targetHeight);
         this.NewInputFrame?.Invoke();
 
         ImGui.NewFrame();
+        GlyphAtlasTextResources.OnNewFrame();
         ImGuizmo.BeginFrame();
 
         this.BuildUi?.Invoke();
@@ -182,9 +181,6 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         this.targetWidth = newWidth;
         this.targetHeight = newHeight;
     }
-
-    /// <inheritdoc/>
-    public void InvalidateFonts() => this.imguiRenderer.RebuildFontTexture();
 
     /// <inheritdoc/>
     public bool IsImGuiCursor(nint cursorHandle) => this.imguiInput.IsImGuiCursor(cursorHandle);
@@ -227,13 +223,17 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         }
     }
 
-    private void ReleaseUnmanagedResources()
+    private void ReleaseUnmanagedResources(bool disposing)
     {
         if (this.device.IsEmpty())
             return;
 
         this.imguiRenderer?.Dispose();
         this.imguiInput?.Dispose();
+
+        // The glyph atlas is main thread only, so the finalizer leaves it.
+        if (disposing)
+            GlyphAtlasTextResources.ReleaseDeviceResources();
 
         ImPlot.DestroyContext();
         ImGui.DestroyContext();

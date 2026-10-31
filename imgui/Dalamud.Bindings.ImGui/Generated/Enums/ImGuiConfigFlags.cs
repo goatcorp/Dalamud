@@ -37,16 +37,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NavEnableSetMousePos = unchecked(4),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		NavNoCaptureKeyboard = unchecked(8),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		NoMouse = unchecked(16),
 
 		/// <summary>
@@ -57,27 +47,17 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoKerning = unchecked(128),
+		NoKeyboard = unchecked(64),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DockingEnable = unchecked(64),
+		DockingEnable = unchecked(128),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		ViewportsEnable = unchecked(1024),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		DpiEnableScaleViewports = unchecked(16384),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		DpiEnableScaleFonts = unchecked(32768),
 
 		/// <summary>
 		/// To be documented.

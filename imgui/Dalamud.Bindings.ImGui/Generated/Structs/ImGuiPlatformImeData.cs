@@ -30,6 +30,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte WantTextInput;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public Vector2 InputPos;
 
 		/// <summary>
@@ -37,15 +42,22 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public float InputLineHeight;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public uint ViewportId;
+
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiPlatformImeData(bool wantVisible = default, Vector2 inputPos = default, float inputLineHeight = default)
+		public unsafe ImGuiPlatformImeData(bool wantVisible = default, bool wantTextInput = default, Vector2 inputPos = default, float inputLineHeight = default, uint viewportId = default)
 		{
 			WantVisible = wantVisible ? (byte)1 : (byte)0;
+			WantTextInput = wantTextInput ? (byte)1 : (byte)0;
 			InputPos = inputPos;
 			InputLineHeight = inputLineHeight;
+			ViewportId = viewportId;
 		}
 
 
@@ -110,11 +122,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref bool WantTextInput => ref Unsafe.AsRef<bool>(&Handle->WantTextInput);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref Vector2 InputPos => ref Unsafe.AsRef<Vector2>(&Handle->InputPos);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ref float InputLineHeight => ref Unsafe.AsRef<float>(&Handle->InputLineHeight);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref uint ViewportId => ref Unsafe.AsRef<uint>(&Handle->ViewportId);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

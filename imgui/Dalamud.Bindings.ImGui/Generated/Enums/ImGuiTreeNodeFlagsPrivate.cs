@@ -22,6 +22,26 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ClipLabelForTrailingButton = unchecked(1048576),
+		NoNavFocus = unchecked(134217728),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		ClipLabelForTrailingButton = unchecked(268435456),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		UpsideDownArrow = unchecked(536870912),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		OpenOnMask = unchecked(192),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		DrawLinesMask = unchecked(1835008),
 	}
 }

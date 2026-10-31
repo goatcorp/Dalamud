@@ -10,6 +10,7 @@ using Dalamud.Game.Player;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
@@ -240,7 +241,7 @@ public class StyleEditorWindow : Window
             {
                 this.DrawBuiltinWarning(isBuiltinStyle);
                 using var disabled = ImRaii.Disabled(isBuiltinStyle);
-                if (ImGui.BeginChild($"ScrollingVars", ImGuiHelpers.ScaledVector2(0, 0), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
+                if (ImGui.BeginChild($"ScrollingVars", ImGuiHelpers.ScaledVector2(0, 0), ImGuiChildFlags.Borders, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
                 {
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
 
@@ -298,15 +299,15 @@ public class StyleEditorWindow : Window
             {
                 this.DrawBuiltinWarning(isBuiltinStyle);
                 using var disabled = ImRaii.Disabled(isBuiltinStyle);
-                if (ImGui.BeginChild("ScrollingColors"u8, ImGuiHelpers.ScaledVector2(0, 0), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
+                if (ImGui.BeginChild("ScrollingColors"u8, ImGuiHelpers.ScaledVector2(0, 0), ImGuiChildFlags.Borders, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
                 {
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
 
-                    if (ImGui.RadioButton("Opaque"u8, this.alphaFlags == ImGuiColorEditFlags.None))
-                        this.alphaFlags = ImGuiColorEditFlags.None;
+                    if (ImGui.RadioButton("Opaque"u8, this.alphaFlags == ImGuiColorEditFlags.AlphaOpaque))
+                        this.alphaFlags = ImGuiColorEditFlags.AlphaOpaque;
                     ImGui.SameLine();
-                    if (ImGui.RadioButton("Alpha"u8, this.alphaFlags == ImGuiColorEditFlags.AlphaPreview))
-                        this.alphaFlags = ImGuiColorEditFlags.AlphaPreview;
+                    if (ImGui.RadioButton("Alpha"u8, this.alphaFlags == ImGuiColorEditFlags.None))
+                        this.alphaFlags = ImGuiColorEditFlags.None;
                     ImGui.SameLine();
                     if (ImGui.RadioButton("Both"u8, this.alphaFlags == ImGuiColorEditFlags.AlphaPreviewHalf))
                         this.alphaFlags = ImGuiColorEditFlags.AlphaPreviewHalf;
@@ -567,7 +568,7 @@ public class StyleEditorWindow : Window
                         characterDisplay = entry.ContentId.ToString();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetFrameHeight() / 2f) - (ImGui.GetTextLineHeight() / 2f));
-                    ImGuiHelpers.CompileSeStringWrapped(characterDisplay);
+                    ImGui.TextMacroString(characterDisplay, wrap: true);
 
                     ImGui.TableSetColumnIndex(2);
                     var currentStyleIdx = string.IsNullOrEmpty(entry.StyleName) || !styleNames.Contains(entry.StyleName)

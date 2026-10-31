@@ -27,66 +27,151 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Closed = unchecked(1),
+		RoundTopLeft = unchecked(16),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersTopLeft = unchecked(16),
+		RoundTopRight = unchecked(32),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersTopRight = unchecked(32),
+		RoundBottomLeft = unchecked(64),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersBottomLeft = unchecked(64),
+		RoundBottomRight = unchecked(128),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersBottomRight = unchecked(128),
+		RoundNone = unchecked(256),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersNone = unchecked(256),
+		RoundAll = unchecked(240),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersTop = unchecked(48),
+		RoundTop = unchecked(48),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersBottom = unchecked(192),
+		RoundBottom = unchecked(192),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersLeft = unchecked(80),
+		RoundLeft = unchecked(80),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersRight = unchecked(160),
+		RoundRight = unchecked(160),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersAll = unchecked(240),
+		Closed = unchecked(512),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersDefault = RoundCornersAll,
+		JoinMiter = unchecked(1024),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RoundCornersMask = unchecked(496),
+		CapSquare = unchecked(2048),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AaFill = unchecked(4096),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AaLines = unchecked(8192),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AaLineEnds = unchecked(16384),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		StrokeInside = unchecked(131072),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		StrokeCenter = unchecked(262144),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		StrokeCenterBiased = unchecked(393216),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		StrokeOutside = unchecked(524288),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		StrokeLegacy = unchecked(917504),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		TextNoPixelSnap = unchecked(1048576),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		UseTexForRoundCorners = unchecked(2097152),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		UseVtxOffset = unchecked(4194304),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AllowTexForRoundCorners = unchecked(8388608),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		RoundMask = unchecked(496),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AllowInPushScope = unchecked(8286704),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		AllowInFrameScope = unchecked(16675312),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		StrokeMask = unchecked(917504),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		InvalidMask = unchecked(-2147483633),
 	}
 }

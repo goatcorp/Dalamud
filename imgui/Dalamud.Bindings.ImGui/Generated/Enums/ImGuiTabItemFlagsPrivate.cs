@@ -37,11 +37,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Unsorted = unchecked(4194304),
+		Invisible = unchecked(4194304),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Preview = unchecked(8388608),
+		Unsorted = unchecked(8388608),
 	}
 }

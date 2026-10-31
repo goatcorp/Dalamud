@@ -21,553 +21,491 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(ref byte label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax, ImGuiSliderFlags flags)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetWindowHeightNative()
 		{
-			fixed (byte* plabel = &label)
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[56])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[56])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetWindowHeight()
+		{
+			float ret = GetWindowHeightNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static ImGuiViewport* GetWindowViewportNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImGuiViewport*>)funcTable[57])();
+			#else
+			return (ImGuiViewport*)((delegate* unmanaged[Cdecl]<nint>)funcTable[57])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static ImGuiViewportPtr GetWindowViewport()
+		{
+			ImGuiViewportPtr ret = GetWindowViewportNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetNextWindowPosNative(Vector2 pos, ImGuiCond cond, Vector2 pivot)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, Vector2, void>)funcTable[58])(pos, cond, pivot);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, Vector2, void>)funcTable[58])(pos, cond, pivot);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowPos(Vector2 pos, ImGuiCond cond, Vector2 pivot)
+		{
+			SetNextWindowPosNative(pos, cond, pivot);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowPos(Vector2 pos, ImGuiCond cond)
+		{
+			SetNextWindowPosNative(pos, cond, (Vector2)(new Vector2(0,0)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowPos(Vector2 pos)
+		{
+			SetNextWindowPosNative(pos, (ImGuiCond)(0), (Vector2)(new Vector2(0,0)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowPos(Vector2 pos, Vector2 pivot)
+		{
+			SetNextWindowPosNative(pos, (ImGuiCond)(0), pivot);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetNextWindowSizeNative(Vector2 size, ImGuiCond cond)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[59])(size, cond);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[59])(size, cond);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowSize(Vector2 size, ImGuiCond cond)
+		{
+			SetNextWindowSizeNative(size, cond);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowSize(Vector2 size)
+		{
+			SetNextWindowSizeNative(size, (ImGuiCond)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetNextWindowSizeConstraintsNative(Vector2 sizeMin, Vector2 sizeMax, ImGuiSizeCallback customCallback, void* customCallbackData)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector2, Vector2, delegate*<ImGuiSizeCallbackData*, void>, void*, void>)funcTable[60])(sizeMin, sizeMax, (delegate*<ImGuiSizeCallbackData*, void>)Utils.GetFunctionPointerForDelegate(customCallback), customCallbackData);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector2, Vector2, nint, nint, void>)funcTable[60])(sizeMin, sizeMax, (nint)Utils.GetFunctionPointerForDelegate(customCallback), (nint)customCallbackData);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowSizeConstraints(Vector2 sizeMin, Vector2 sizeMax, ImGuiSizeCallback customCallback, void* customCallbackData)
+		{
+			SetNextWindowSizeConstraintsNative(sizeMin, sizeMax, customCallback, customCallbackData);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowSizeConstraints(Vector2 sizeMin, Vector2 sizeMax, ImGuiSizeCallback customCallback)
+		{
+			SetNextWindowSizeConstraintsNative(sizeMin, sizeMax, customCallback, (void*)(default));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowSizeConstraints(Vector2 sizeMin, Vector2 sizeMax)
+		{
+			SetNextWindowSizeConstraintsNative(sizeMin, sizeMax, (ImGuiSizeCallback)(default), (void*)(default));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowSizeConstraints(Vector2 sizeMin, Vector2 sizeMax, void* customCallbackData)
+		{
+			SetNextWindowSizeConstraintsNative(sizeMin, sizeMax, (ImGuiSizeCallback)(default), customCallbackData);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetNextWindowContentSizeNative(Vector2 size)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[61])(size);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[61])(size);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowContentSize(Vector2 size)
+		{
+			SetNextWindowContentSizeNative(size);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetNextWindowCollapsedNative(byte collapsed, ImGuiCond cond)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[62])(collapsed, cond);
+			#else
+			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[62])(collapsed, cond);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowCollapsed(bool collapsed, ImGuiCond cond)
+		{
+			SetNextWindowCollapsedNative(collapsed ? (byte)1 : (byte)0, cond);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowCollapsed(bool collapsed)
+		{
+			SetNextWindowCollapsedNative(collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetNextWindowFocusNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[63])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[63])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowFocus()
+		{
+			SetNextWindowFocusNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetNextWindowScrollNative(Vector2 scroll)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[64])(scroll);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[64])(scroll);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowScroll(Vector2 scroll)
+		{
+			SetNextWindowScrollNative(scroll);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetNextWindowBgAlphaNative(float alpha)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[65])(alpha);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[65])(alpha);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowBgAlpha(float alpha)
+		{
+			SetNextWindowBgAlphaNative(alpha);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetNextWindowViewportNative(uint viewportId)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<uint, void>)funcTable[66])(viewportId);
+			#else
+			((delegate* unmanaged[Cdecl]<uint, void>)funcTable[66])(viewportId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextWindowViewport(uint viewportId)
+		{
+			SetNextWindowViewportNative(viewportId);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetWindowPosNative(Vector2 pos, ImGuiCond cond)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[67])(pos, cond);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[67])(pos, cond);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowPos(Vector2 pos, ImGuiCond cond)
+		{
+			SetWindowPosNative(pos, cond);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowPos(Vector2 pos)
+		{
+			SetWindowPosNative(pos, (ImGuiCond)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetWindowSizeNative(Vector2 size, ImGuiCond cond)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[68])(size, cond);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector2, ImGuiCond, void>)funcTable[68])(size, cond);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowSize(Vector2 size, ImGuiCond cond)
+		{
+			SetWindowSizeNative(size, cond);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowSize(Vector2 size)
+		{
+			SetWindowSizeNative(size, (ImGuiCond)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetWindowCollapsedNative(byte collapsed, ImGuiCond cond)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[69])(collapsed, cond);
+			#else
+			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[69])(collapsed, cond);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowCollapsed(bool collapsed, ImGuiCond cond)
+		{
+			SetWindowCollapsedNative(collapsed ? (byte)1 : (byte)0, cond);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowCollapsed(bool collapsed)
+		{
+			SetWindowCollapsedNative(collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetWindowFocusNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[70])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[70])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowFocus()
+		{
+			SetWindowFocusNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetWindowPosNative(byte* name, Vector2 pos, ImGuiCond cond)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, Vector2, ImGuiCond, void>)funcTable[71])(name, pos, cond);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, Vector2, ImGuiCond, void>)funcTable[71])((nint)name, pos, cond);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowPos(byte* name, Vector2 pos, ImGuiCond cond)
+		{
+			SetWindowPosNative(name, pos, cond);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowPos(byte* name, Vector2 pos)
+		{
+			SetWindowPosNative(name, pos, (ImGuiCond)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowPos(ref byte name, Vector2 pos, ImGuiCond cond)
+		{
+			fixed (byte* pname = &name)
 			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				SetWindowPosNative((byte*)pname, pos, cond);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(ref byte label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, byte* format, string formatMax, ImGuiSliderFlags flags)
+		public static void SetWindowPos(ref byte name, Vector2 pos)
 		{
-			fixed (byte* plabel = &label)
+			fixed (byte* pname = &name)
 			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				SetWindowPosNative((byte*)pname, pos, (ImGuiCond)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(ref byte label, ref float vCurrentMin, float* vCurrentMax, byte* format, string formatMax, ImGuiSliderFlags flags)
+		public static void SetWindowPos(ReadOnlySpan<byte> name, Vector2 pos, ImGuiCond cond)
 		{
-			fixed (byte* plabel = &label)
+			fixed (byte* pname = name)
 			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				SetWindowPosNative((byte*)pname, pos, cond);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
+		public static void SetWindowPos(ReadOnlySpan<byte> name, Vector2 pos)
 		{
-			fixed (byte* plabel = label)
+			fixed (byte* pname = name)
 			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
+				SetWindowPosNative((byte*)pname, pos, (ImGuiCond)(0));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, vMax, format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, vMax, format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, float* vCurrentMax, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, vCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
+		public static void SetWindowPos(string name, Vector2 pos, ImGuiCond cond)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (name != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(name);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -577,33 +515,26 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			SetWindowPosNative(pStr0, pos, cond);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax)
+		public static void SetWindowPos(string name, Vector2 pos)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (name != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(name);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -613,33 +544,99 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			SetWindowPosNative(pStr0, pos, (ImGuiCond)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetWindowSizeNative(byte* name, Vector2 size, ImGuiCond cond)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, Vector2, ImGuiCond, void>)funcTable[72])(name, size, cond);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, Vector2, ImGuiCond, void>)funcTable[72])((nint)name, size, cond);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowSize(byte* name, Vector2 size, ImGuiCond cond)
+		{
+			SetWindowSizeNative(name, size, cond);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowSize(byte* name, Vector2 size)
+		{
+			SetWindowSizeNative(name, size, (ImGuiCond)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowSize(ref byte name, Vector2 size, ImGuiCond cond)
+		{
+			fixed (byte* pname = &name)
+			{
+				SetWindowSizeNative((byte*)pname, size, cond);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowSize(ref byte name, Vector2 size)
+		{
+			fixed (byte* pname = &name)
+			{
+				SetWindowSizeNative((byte*)pname, size, (ImGuiCond)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowSize(ReadOnlySpan<byte> name, Vector2 size, ImGuiCond cond)
+		{
+			fixed (byte* pname = name)
+			{
+				SetWindowSizeNative((byte*)pname, size, cond);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowSize(ReadOnlySpan<byte> name, Vector2 size)
+		{
+			fixed (byte* pname = name)
+			{
+				SetWindowSizeNative((byte*)pname, size, (ImGuiCond)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowSize(string name, Vector2 size, ImGuiCond cond)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (name != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(name);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -649,33 +646,26 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			SetWindowSizeNative(pStr0, size, cond);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, byte* format, ref byte formatMax)
+		public static void SetWindowSize(string name, Vector2 size)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (name != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(name);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -685,33 +675,99 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			SetWindowSizeNative(pStr0, size, (ImGuiCond)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, byte* format, ref byte formatMax)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetWindowCollapsedNative(byte* name, byte collapsed, ImGuiCond cond)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, byte, ImGuiCond, void>)funcTable[73])(name, collapsed, cond);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, byte, ImGuiCond, void>)funcTable[73])((nint)name, collapsed, cond);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowCollapsed(byte* name, bool collapsed, ImGuiCond cond)
+		{
+			SetWindowCollapsedNative(name, collapsed ? (byte)1 : (byte)0, cond);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowCollapsed(byte* name, bool collapsed)
+		{
+			SetWindowCollapsedNative(name, collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowCollapsed(ref byte name, bool collapsed, ImGuiCond cond)
+		{
+			fixed (byte* pname = &name)
+			{
+				SetWindowCollapsedNative((byte*)pname, collapsed ? (byte)1 : (byte)0, cond);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowCollapsed(ref byte name, bool collapsed)
+		{
+			fixed (byte* pname = &name)
+			{
+				SetWindowCollapsedNative((byte*)pname, collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowCollapsed(ReadOnlySpan<byte> name, bool collapsed, ImGuiCond cond)
+		{
+			fixed (byte* pname = name)
+			{
+				SetWindowCollapsedNative((byte*)pname, collapsed ? (byte)1 : (byte)0, cond);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowCollapsed(ReadOnlySpan<byte> name, bool collapsed)
+		{
+			fixed (byte* pname = name)
+			{
+				SetWindowCollapsedNative((byte*)pname, collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowCollapsed(string name, bool collapsed, ImGuiCond cond)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (name != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(name);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -721,33 +777,26 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			SetWindowCollapsedNative(pStr0, collapsed ? (byte)1 : (byte)0, cond);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
+		public static void SetWindowCollapsed(string name, bool collapsed)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (name != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(name);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -757,33 +806,69 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			SetWindowCollapsedNative(pStr0, collapsed ? (byte)1 : (byte)0, (ImGuiCond)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetWindowFocusNative(byte* name)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[74])(name);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[74])((nint)name);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowFocus(byte* name)
+		{
+			SetWindowFocusNative(name);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowFocus(ref byte name)
+		{
+			fixed (byte* pname = &name)
+			{
+				SetWindowFocusNative((byte*)pname);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowFocus(ReadOnlySpan<byte> name)
+		{
+			fixed (byte* pname = name)
+			{
+				SetWindowFocusNative((byte*)pname);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetWindowFocus(string name)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (name != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(name);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -793,33 +878,1447 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(name, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			SetWindowFocusNative(pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetScrollXNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[75])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[75])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetScrollX()
+		{
+			float ret = GetScrollXNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetScrollYNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[76])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[76])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetScrollY()
+		{
+			float ret = GetScrollYNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetScrollXNative(float scrollX)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[77])(scrollX);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[77])(scrollX);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetScrollX(float scrollX)
+		{
+			SetScrollXNative(scrollX);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetScrollYNative(float scrollY)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[78])(scrollY);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[78])(scrollY);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetScrollY(float scrollY)
+		{
+			SetScrollYNative(scrollY);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetScrollMaxXNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[79])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[79])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetScrollMaxX()
+		{
+			float ret = GetScrollMaxXNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetScrollMaxYNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[80])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[80])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetScrollMaxY()
+		{
+			float ret = GetScrollMaxYNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetScrollHereXNative(float centerXRatio)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[81])(centerXRatio);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[81])(centerXRatio);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetScrollHereX(float centerXRatio)
+		{
+			SetScrollHereXNative(centerXRatio);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetScrollHereX()
+		{
+			SetScrollHereXNative((float)(0.5f));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetScrollHereYNative(float centerYRatio)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[82])(centerYRatio);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[82])(centerYRatio);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetScrollHereY(float centerYRatio)
+		{
+			SetScrollHereYNative(centerYRatio);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetScrollHereY()
+		{
+			SetScrollHereYNative((float)(0.5f));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetScrollFromPosXNative(float localX, float centerXRatio)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[83])(localX, centerXRatio);
+			#else
+			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[83])(localX, centerXRatio);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetScrollFromPosX(float localX, float centerXRatio)
+		{
+			SetScrollFromPosXNative(localX, centerXRatio);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetScrollFromPosX(float localX)
+		{
+			SetScrollFromPosXNative(localX, (float)(0.5f));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetScrollFromPosYNative(float localY, float centerYRatio)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[84])(localY, centerYRatio);
+			#else
+			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[84])(localY, centerYRatio);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetScrollFromPosY(float localY, float centerYRatio)
+		{
+			SetScrollFromPosYNative(localY, centerYRatio);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetScrollFromPosY(float localY)
+		{
+			SetScrollFromPosYNative(localY, (float)(0.5f));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushFontNative(ImFont* font, float fontSizeBaseUnscaled)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImFont*, float, void>)funcTable[85])(font, fontSizeBaseUnscaled);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, float, void>)funcTable[85])((nint)font, fontSizeBaseUnscaled);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushFont(ImFontPtr font, float fontSizeBaseUnscaled)
+		{
+			PushFontNative(font, fontSizeBaseUnscaled);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushFont(ref ImFont font, float fontSizeBaseUnscaled)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				PushFontNative((ImFont*)pfont, fontSizeBaseUnscaled);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PopFontNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[86])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[86])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PopFont()
+		{
+			PopFontNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static ImFont* GetFontNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImFont*>)funcTable[87])();
+			#else
+			return (ImFont*)((delegate* unmanaged[Cdecl]<nint>)funcTable[87])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static ImFontPtr GetFont()
+		{
+			ImFontPtr ret = GetFontNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetFontSizeNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[88])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[88])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetFontSize()
+		{
+			float ret = GetFontSizeNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushStyleColorNative(ImGuiCol idx, uint col)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImGuiCol, uint, void>)funcTable[89])(idx, col);
+			#else
+			((delegate* unmanaged[Cdecl]<ImGuiCol, uint, void>)funcTable[89])(idx, col);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushStyleColor(ImGuiCol idx, uint col)
+		{
+			PushStyleColorNative(idx, col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushStyleColorNative(ImGuiCol idx, Vector4 col)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImGuiCol, Vector4, void>)funcTable[90])(idx, col);
+			#else
+			((delegate* unmanaged[Cdecl]<ImGuiCol, Vector4, void>)funcTable[90])(idx, col);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushStyleColor(ImGuiCol idx, Vector4 col)
+		{
+			PushStyleColorNative(idx, col);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PopStyleColorNative(int count)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<int, void>)funcTable[91])(count);
+			#else
+			((delegate* unmanaged[Cdecl]<int, void>)funcTable[91])(count);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PopStyleColor(int count)
+		{
+			PopStyleColorNative(count);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PopStyleColor()
+		{
+			PopStyleColorNative((int)(1));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushStyleVarNative(ImGuiStyleVar idx, float val)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, float, void>)funcTable[92])(idx, val);
+			#else
+			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, float, void>)funcTable[92])(idx, val);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushStyleVar(ImGuiStyleVar idx, float val)
+		{
+			PushStyleVarNative(idx, val);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushStyleVarNative(ImGuiStyleVar idx, Vector2 val)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, Vector2, void>)funcTable[93])(idx, val);
+			#else
+			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, Vector2, void>)funcTable[93])(idx, val);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushStyleVar(ImGuiStyleVar idx, Vector2 val)
+		{
+			PushStyleVarNative(idx, val);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushStyleVarXNative(ImGuiStyleVar idx, float valX)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, float, void>)funcTable[94])(idx, valX);
+			#else
+			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, float, void>)funcTable[94])(idx, valX);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushStyleVarX(ImGuiStyleVar idx, float valX)
+		{
+			PushStyleVarXNative(idx, valX);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushStyleVarYNative(ImGuiStyleVar idx, float valY)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, float, void>)funcTable[95])(idx, valY);
+			#else
+			((delegate* unmanaged[Cdecl]<ImGuiStyleVar, float, void>)funcTable[95])(idx, valY);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushStyleVarY(ImGuiStyleVar idx, float valY)
+		{
+			PushStyleVarYNative(idx, valY);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PopStyleVarNative(int count)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<int, void>)funcTable[96])(count);
+			#else
+			((delegate* unmanaged[Cdecl]<int, void>)funcTable[96])(count);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PopStyleVar(int count)
+		{
+			PopStyleVarNative(count);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PopStyleVar()
+		{
+			PopStyleVarNative((int)(1));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushItemFlagNative(ImGuiItemFlags option, byte enabled)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImGuiItemFlags, byte, void>)funcTable[97])(option, enabled);
+			#else
+			((delegate* unmanaged[Cdecl]<ImGuiItemFlags, byte, void>)funcTable[97])(option, enabled);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushItemFlag(ImGuiItemFlags option, bool enabled)
+		{
+			PushItemFlagNative(option, enabled ? (byte)1 : (byte)0);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PopItemFlagNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[98])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[98])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PopItemFlag()
+		{
+			PopItemFlagNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushItemWidthNative(float itemWidth)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[99])(itemWidth);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[99])(itemWidth);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushItemWidth(float itemWidth)
+		{
+			PushItemWidthNative(itemWidth);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PopItemWidthNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[100])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[100])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PopItemWidth()
+		{
+			PopItemWidthNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetNextItemWidthNative(float itemWidth)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[101])(itemWidth);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[101])(itemWidth);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetNextItemWidth(float itemWidth)
+		{
+			SetNextItemWidthNative(itemWidth);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float CalcItemWidthNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[102])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[102])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float CalcItemWidth()
+		{
+			float ret = CalcItemWidthNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushTextWrapPosNative(float wrapLocalPosX)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[103])(wrapLocalPosX);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[103])(wrapLocalPosX);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushTextWrapPos(float wrapLocalPosX)
+		{
+			PushTextWrapPosNative(wrapLocalPosX);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushTextWrapPos()
+		{
+			PushTextWrapPosNative((float)(0.0f));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PopTextWrapPosNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[104])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[104])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PopTextWrapPos()
+		{
+			PopTextWrapPosNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Vector2 GetFontTexUvWhitePixelNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Vector2>)funcTable[105])();
+			#else
+			return (Vector2)((delegate* unmanaged[Cdecl]<Vector2>)funcTable[105])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 GetFontTexUvWhitePixel()
+		{
+			Vector2 ret = GetFontTexUvWhitePixelNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static uint GetColorU32Native(ImGuiCol idx, float alphaMul)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImGuiCol, float, uint>)funcTable[106])(idx, alphaMul);
+			#else
+			return (uint)((delegate* unmanaged[Cdecl]<ImGuiCol, float, uint>)funcTable[106])(idx, alphaMul);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetColorU32(ImGuiCol idx, float alphaMul)
+		{
+			uint ret = GetColorU32Native(idx, alphaMul);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetColorU32(ImGuiCol idx)
+		{
+			uint ret = GetColorU32Native(idx, (float)(1.0f));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static uint GetColorU32Native(Vector4 col)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Vector4, uint>)funcTable[107])(col);
+			#else
+			return (uint)((delegate* unmanaged[Cdecl]<Vector4, uint>)funcTable[107])(col);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetColorU32(Vector4 col)
+		{
+			uint ret = GetColorU32Native(col);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static uint GetColorU32Native(uint col, float alphaMul)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<uint, float, uint>)funcTable[108])(col, alphaMul);
+			#else
+			return (uint)((delegate* unmanaged[Cdecl]<uint, float, uint>)funcTable[108])(col, alphaMul);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetColorU32(uint col, float alphaMul)
+		{
+			uint ret = GetColorU32Native(col, alphaMul);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetColorU32(uint col)
+		{
+			uint ret = GetColorU32Native(col, (float)(1.0f));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Vector4* GetStyleColorVec4Native(ImGuiCol idx)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImGuiCol, Vector4*>)funcTable[109])(idx);
+			#else
+			return (Vector4*)((delegate* unmanaged[Cdecl]<ImGuiCol, nint>)funcTable[109])(idx);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector4* GetStyleColorVec4(ImGuiCol idx)
+		{
+			Vector4* ret = GetStyleColorVec4Native(idx);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Vector2 GetCursorScreenPosNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Vector2>)funcTable[110])();
+			#else
+			return (Vector2)((delegate* unmanaged[Cdecl]<Vector2>)funcTable[110])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 GetCursorScreenPos()
+		{
+			Vector2 ret = GetCursorScreenPosNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetCursorScreenPosNative(Vector2 pos)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[111])(pos);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[111])(pos);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetCursorScreenPos(Vector2 pos)
+		{
+			SetCursorScreenPosNative(pos);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Vector2 GetContentRegionAvailNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Vector2>)funcTable[112])();
+			#else
+			return (Vector2)((delegate* unmanaged[Cdecl]<Vector2>)funcTable[112])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 GetContentRegionAvail()
+		{
+			Vector2 ret = GetContentRegionAvailNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Vector2 GetCursorPosNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Vector2>)funcTable[113])();
+			#else
+			return (Vector2)((delegate* unmanaged[Cdecl]<Vector2>)funcTable[113])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 GetCursorPos()
+		{
+			Vector2 ret = GetCursorPosNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetCursorPosXNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[114])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[114])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetCursorPosX()
+		{
+			float ret = GetCursorPosXNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetCursorPosYNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[115])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[115])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetCursorPosY()
+		{
+			float ret = GetCursorPosYNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetCursorPosNative(Vector2 localPos)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[116])(localPos);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[116])(localPos);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetCursorPos(Vector2 localPos)
+		{
+			SetCursorPosNative(localPos);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetCursorPosXNative(float localX)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[117])(localX);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[117])(localX);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetCursorPosX(float localX)
+		{
+			SetCursorPosXNative(localX);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SetCursorPosYNative(float localY)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[118])(localY);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[118])(localY);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SetCursorPosY(float localY)
+		{
+			SetCursorPosYNative(localY);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Vector2 GetCursorStartPosNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<Vector2>)funcTable[119])();
+			#else
+			return (Vector2)((delegate* unmanaged[Cdecl]<Vector2>)funcTable[119])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 GetCursorStartPos()
+		{
+			Vector2 ret = GetCursorStartPosNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SeparatorNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[120])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[120])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Separator()
+		{
+			SeparatorNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SameLineNative(float offsetFromStartX, float spacing)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[121])(offsetFromStartX, spacing);
+			#else
+			((delegate* unmanaged[Cdecl]<float, float, void>)funcTable[121])(offsetFromStartX, spacing);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SameLine(float offsetFromStartX, float spacing)
+		{
+			SameLineNative(offsetFromStartX, spacing);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SameLine(float offsetFromStartX)
+		{
+			SameLineNative(offsetFromStartX, (float)(-1.0f));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void SameLine()
+		{
+			SameLineNative((float)(0.0f), (float)(-1.0f));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void NewLineNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[122])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[122])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void NewLine()
+		{
+			NewLineNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void SpacingNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[123])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[123])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Spacing()
+		{
+			SpacingNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void DummyNative(Vector2 size)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[124])(size);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector2, void>)funcTable[124])(size);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Dummy(Vector2 size)
+		{
+			DummyNative(size);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void IndentNative(float indentW)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[125])(indentW);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[125])(indentW);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Indent(float indentW)
+		{
+			IndentNative(indentW);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Indent()
+		{
+			IndentNative((float)(0.0f));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void UnindentNative(float indentW)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[126])(indentW);
+			#else
+			((delegate* unmanaged[Cdecl]<float, void>)funcTable[126])(indentW);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Unindent(float indentW)
+		{
+			UnindentNative(indentW);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Unindent()
+		{
+			UnindentNative((float)(0.0f));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void BeginGroupNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[127])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[127])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void BeginGroup()
+		{
+			BeginGroupNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void EndGroupNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[128])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[128])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void EndGroup()
+		{
+			EndGroupNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void AlignTextToFramePaddingNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[129])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[129])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AlignTextToFramePadding()
+		{
+			AlignTextToFramePaddingNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetTextLineHeightNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[130])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[130])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetTextLineHeight()
+		{
+			float ret = GetTextLineHeightNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetTextLineHeightWithSpacingNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[131])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[131])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetTextLineHeightWithSpacing()
+		{
+			float ret = GetTextLineHeightWithSpacingNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetFrameHeightNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[132])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[132])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetFrameHeight()
+		{
+			float ret = GetFrameHeightNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetFrameHeightWithSpacingNative()
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[133])();
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[133])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetFrameHeightWithSpacing()
+		{
+			float ret = GetFrameHeightWithSpacingNative();
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushIDNative(byte* strId)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[134])(strId);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[134])((nint)strId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(byte* strId)
+		{
+			PushIDNative(strId);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ref byte strId)
+		{
+			fixed (byte* pstrId = &strId)
+			{
+				PushIDNative((byte*)pstrId);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ReadOnlySpan<byte> strId)
+		{
+			fixed (byte* pstrId = strId)
+			{
+				PushIDNative((byte*)pstrId);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(string strId)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (strId != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(strId);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -829,33 +2328,69 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			PushIDNative(pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushIDNative(byte* strIdBegin, byte* strIdEnd)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, byte*, void>)funcTable[135])(strIdBegin, strIdEnd);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, void>)funcTable[135])((nint)strIdBegin, (nint)strIdEnd);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(byte* strIdBegin, byte* strIdEnd)
+		{
+			PushIDNative(strIdBegin, strIdEnd);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ref byte strIdBegin, byte* strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				PushIDNative((byte*)pstrIdBegin, strIdEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ReadOnlySpan<byte> strIdBegin, byte* strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				PushIDNative((byte*)pstrIdBegin, strIdEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(string strIdBegin, byte* strIdEnd)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (strIdBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -865,33 +2400,48 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			PushIDNative(pStr0, strIdEnd);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax)
+		public static void PushID(byte* strIdBegin, ref byte strIdEnd)
+		{
+			fixed (byte* pstrIdEnd = &strIdEnd)
+			{
+				PushIDNative(strIdBegin, (byte*)pstrIdEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(byte* strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdEnd = strIdEnd)
+			{
+				PushIDNative(strIdBegin, (byte*)pstrIdEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(byte* strIdBegin, string strIdEnd)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (strIdEnd != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -901,19 +2451,26 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			PushIDNative(strIdBegin, pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (byte* pformatMax = formatMax)
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ref byte strIdBegin, ref byte strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = &strIdEnd)
 				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
+					PushIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
 				}
 			}
 		}
@@ -921,13 +2478,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax)
+		public static void PushID(ReadOnlySpan<byte> strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = strIdEnd)
+				{
+					PushIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(string strIdBegin, string strIdEnd)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (strIdBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -937,55 +2508,47 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			byte* pStr1 = null;
+			int pStrSize1 = 0;
+			if (strIdEnd != null)
 			{
-				fixed (byte* pformatMax = formatMax)
+				pStrSize1 = Utils.GetByteCountUTF8(strIdEnd);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
 				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
 				}
 				else
 				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
+					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+					pStr1 = pStrStack1;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
+				int pStrOffset1 = Utils.EncodeStringUTF8(strIdEnd, pStr1, pStrSize1);
+				pStr1[pStrOffset1] = 0;
 			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
+			PushIDNative(pStr0, pStr1);
+			if (pStrSize1 >= Utils.MaxStackallocSize)
 			{
-				fixed (byte* pformatMax = formatMax)
+				Utils.Free(pStr1);
+			}
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ref byte strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = strIdEnd)
 				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
+					PushIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
 				}
 			}
 		}
@@ -993,399 +2556,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax)
+		public static void PushID(ref byte strIdBegin, string strIdEnd)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, float* vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, vCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			fixed (byte* pstrIdBegin = &strIdBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (formatMax != null)
+				if (strIdEnd != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(formatMax);
+					pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1395,30 +2574,43 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr0, flags);
+				PushIDNative((byte*)pstrIdBegin, pStr0);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax)
+		public static void PushID(ReadOnlySpan<byte> strIdBegin, ref byte strIdEnd)
 		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = &strIdEnd)
+				{
+					PushIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(ReadOnlySpan<byte> strIdBegin, string strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (formatMax != null)
+				if (strIdEnd != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(formatMax);
+					pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1428,30 +2620,458 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr0, (ImGuiSliderFlags)(0));
+				PushIDNative((byte*)pstrIdBegin, pStr0);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax)
+		public static void PushID(string strIdBegin, ref byte strIdEnd)
 		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pstrIdEnd = &strIdEnd)
+			{
+				PushIDNative(pStr0, (byte*)pstrIdEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(string strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pstrIdEnd = strIdEnd)
+			{
+				PushIDNative(pStr0, (byte*)pstrIdEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushIDNative(void* ptrId)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void*, void>)funcTable[136])(ptrId);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[136])((nint)ptrId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(void* ptrId)
+		{
+			PushIDNative(ptrId);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PushIDNative(int intId)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<int, void>)funcTable[137])(intId);
+			#else
+			((delegate* unmanaged[Cdecl]<int, void>)funcTable[137])(intId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PushID(int intId)
+		{
+			PushIDNative(intId);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PopIDNative()
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<void>)funcTable[138])();
+			#else
+			((delegate* unmanaged[Cdecl]<void>)funcTable[138])();
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PopID()
+		{
+			PopIDNative();
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static uint GetIDNative(byte* strId)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<byte*, uint>)funcTable[139])(strId);
+			#else
+			return (uint)((delegate* unmanaged[Cdecl]<nint, uint>)funcTable[139])((nint)strId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(byte* strId)
+		{
+			uint ret = GetIDNative(strId);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ref byte strId)
+		{
+			fixed (byte* pstrId = &strId)
+			{
+				uint ret = GetIDNative((byte*)pstrId);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ReadOnlySpan<byte> strId)
+		{
+			fixed (byte* pstrId = strId)
+			{
+				uint ret = GetIDNative((byte*)pstrId);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(string strId)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			uint ret = GetIDNative(pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static uint GetIDNative(byte* strIdBegin, byte* strIdEnd)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, uint>)funcTable[140])(strIdBegin, strIdEnd);
+			#else
+			return (uint)((delegate* unmanaged[Cdecl]<nint, nint, uint>)funcTable[140])((nint)strIdBegin, (nint)strIdEnd);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(byte* strIdBegin, byte* strIdEnd)
+		{
+			uint ret = GetIDNative(strIdBegin, strIdEnd);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ref byte strIdBegin, byte* strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				uint ret = GetIDNative((byte*)pstrIdBegin, strIdEnd);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ReadOnlySpan<byte> strIdBegin, byte* strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				uint ret = GetIDNative((byte*)pstrIdBegin, strIdEnd);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(string strIdBegin, byte* strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			uint ret = GetIDNative(pStr0, strIdEnd);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(byte* strIdBegin, ref byte strIdEnd)
+		{
+			fixed (byte* pstrIdEnd = &strIdEnd)
+			{
+				uint ret = GetIDNative(strIdBegin, (byte*)pstrIdEnd);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(byte* strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdEnd = strIdEnd)
+			{
+				uint ret = GetIDNative(strIdBegin, (byte*)pstrIdEnd);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(byte* strIdBegin, string strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdEnd != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			uint ret = GetIDNative(strIdBegin, pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ref byte strIdBegin, ref byte strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = &strIdEnd)
+				{
+					uint ret = GetIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ReadOnlySpan<byte> strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = strIdEnd)
+				{
+					uint ret = GetIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(string strIdBegin, string strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			byte* pStr1 = null;
+			int pStrSize1 = 0;
+			if (strIdEnd != null)
+			{
+				pStrSize1 = Utils.GetByteCountUTF8(strIdEnd);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+				}
+				else
+				{
+					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+					pStr1 = pStrStack1;
+				}
+				int pStrOffset1 = Utils.EncodeStringUTF8(strIdEnd, pStr1, pStrSize1);
+				pStr1[pStrOffset1] = 0;
+			}
+			uint ret = GetIDNative(pStr0, pStr1);
+			if (pStrSize1 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr1);
+			}
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ref byte strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = strIdEnd)
+				{
+					uint ret = GetIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ref byte strIdBegin, string strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = &strIdBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (formatMax != null)
+				if (strIdEnd != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(formatMax);
+					pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1461,30 +3081,45 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
+				uint ret = GetIDNative((byte*)pstrIdBegin, pStr0);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, string formatMax)
+		public static uint GetID(ReadOnlySpan<byte> strIdBegin, ref byte strIdEnd)
 		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			fixed (byte* pstrIdBegin = strIdBegin)
+			{
+				fixed (byte* pstrIdEnd = &strIdEnd)
+				{
+					uint ret = GetIDNative((byte*)pstrIdBegin, (byte*)pstrIdEnd);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(ReadOnlySpan<byte> strIdBegin, string strIdEnd)
+		{
+			fixed (byte* pstrIdBegin = strIdBegin)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (formatMax != null)
+				if (strIdEnd != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(formatMax);
+					pStrSize0 = Utils.GetByteCountUTF8(strIdEnd);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1494,30 +3129,414 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(strIdEnd, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
+				uint ret = GetIDNative((byte*)pstrIdBegin, pStr0);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, byte* format, string formatMax)
+		public static uint GetID(string strIdBegin, ref byte strIdEnd)
 		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pstrIdEnd = &strIdEnd)
+			{
+				uint ret = GetIDNative(pStr0, (byte*)pstrIdEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(string strIdBegin, ReadOnlySpan<byte> strIdEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (strIdBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(strIdBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(strIdBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pstrIdEnd = strIdEnd)
+			{
+				uint ret = GetIDNative(pStr0, (byte*)pstrIdEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static uint GetIDNative(void* ptrId)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<void*, uint>)funcTable[141])(ptrId);
+			#else
+			return (uint)((delegate* unmanaged[Cdecl]<nint, uint>)funcTable[141])((nint)ptrId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(void* ptrId)
+		{
+			uint ret = GetIDNative(ptrId);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static uint GetIDNative(int intId)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<int, uint>)funcTable[142])(intId);
+			#else
+			return (uint)((delegate* unmanaged[Cdecl]<int, uint>)funcTable[142])(intId);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static uint GetID(int intId)
+		{
+			uint ret = GetIDNative(intId);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void TextUnformattedNative(byte* text, byte* textEnd)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, byte*, void>)funcTable[143])(text, textEnd);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, void>)funcTable[143])((nint)text, (nint)textEnd);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(byte* text, byte* textEnd)
+		{
+			TextUnformattedNative(text, textEnd);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(byte* text)
+		{
+			TextUnformattedNative(text, (byte*)(default));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(ref byte text, byte* textEnd)
+		{
+			fixed (byte* ptext = &text)
+			{
+				TextUnformattedNative((byte*)ptext, textEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(ref byte text)
+		{
+			fixed (byte* ptext = &text)
+			{
+				TextUnformattedNative((byte*)ptext, (byte*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(ReadOnlySpan<byte> text, byte* textEnd)
+		{
+			fixed (byte* ptext = text)
+			{
+				TextUnformattedNative((byte*)ptext, textEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(ReadOnlySpan<byte> text)
+		{
+			fixed (byte* ptext = text)
+			{
+				TextUnformattedNative((byte*)ptext, (byte*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(string text, byte* textEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (text != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(text);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			TextUnformattedNative(pStr0, textEnd);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(string text)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (text != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(text);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			TextUnformattedNative(pStr0, (byte*)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(byte* text, ref byte textEnd)
+		{
+			fixed (byte* ptextEnd = &textEnd)
+			{
+				TextUnformattedNative(text, (byte*)ptextEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(byte* text, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (byte* ptextEnd = textEnd)
+			{
+				TextUnformattedNative(text, (byte*)ptextEnd);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(byte* text, string textEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textEnd != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			TextUnformattedNative(text, pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(ref byte text, ref byte textEnd)
+		{
+			fixed (byte* ptext = &text)
+			{
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					TextUnformattedNative((byte*)ptext, (byte*)ptextEnd);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(ReadOnlySpan<byte> text, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (byte* ptext = text)
+			{
+				fixed (byte* ptextEnd = textEnd)
+				{
+					TextUnformattedNative((byte*)ptext, (byte*)ptextEnd);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(string text, string textEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (text != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(text);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			byte* pStr1 = null;
+			int pStrSize1 = 0;
+			if (textEnd != null)
+			{
+				pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+				}
+				else
+				{
+					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+					pStr1 = pStrStack1;
+				}
+				int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+				pStr1[pStrOffset1] = 0;
+			}
+			TextUnformattedNative(pStr0, pStr1);
+			if (pStrSize1 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr1);
+			}
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(ref byte text, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (byte* ptext = &text)
+			{
+				fixed (byte* ptextEnd = textEnd)
+				{
+					TextUnformattedNative((byte*)ptext, (byte*)ptextEnd);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(ref byte text, string textEnd)
+		{
+			fixed (byte* ptext = &text)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (formatMax != null)
+				if (textEnd != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(formatMax);
+					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1527,30 +3546,43 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
+				TextUnformattedNative((byte*)ptext, pStr0);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax, ImGuiSliderFlags flags)
+		public static void TextUnformatted(ReadOnlySpan<byte> text, ref byte textEnd)
 		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			fixed (byte* ptext = text)
+			{
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					TextUnformattedNative((byte*)ptext, (byte*)ptextEnd);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(ReadOnlySpan<byte> text, string textEnd)
+		{
+			fixed (byte* ptext = text)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (formatMax != null)
+				if (textEnd != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(formatMax);
+					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1560,30 +3592,884 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr0, flags);
+				TextUnformattedNative((byte*)ptext, pStr0);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, string formatMax, ImGuiSliderFlags flags)
+		public static void TextUnformatted(string text, ref byte textEnd)
 		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (text != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(text);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* ptextEnd = &textEnd)
+			{
+				TextUnformattedNative(pStr0, (byte*)ptextEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextUnformatted(string text, ReadOnlySpan<byte> textEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (text != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(text);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* ptextEnd = textEnd)
+			{
+				TextUnformattedNative(pStr0, (byte*)ptextEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void TextNative(byte* fmt)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[144])(fmt);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[144])((nint)fmt);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Text(byte* fmt)
+		{
+			TextNative(fmt);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Text(ref byte fmt)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				TextNative((byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Text(ReadOnlySpan<byte> fmt)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				TextNative((byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Text(string fmt)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			TextNative(pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void TextVNative(byte* fmt, nuint args)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, nuint, void>)funcTable[145])(fmt, args);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nuint, void>)funcTable[145])((nint)fmt, args);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextV(byte* fmt, nuint args)
+		{
+			TextVNative(fmt, args);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextV(ref byte fmt, nuint args)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				TextVNative((byte*)pfmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextV(ReadOnlySpan<byte> fmt, nuint args)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				TextVNative((byte*)pfmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextV(string fmt, nuint args)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			TextVNative(pStr0, args);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void TextColoredNative(Vector4 col, byte* fmt)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector4, byte*, void>)funcTable[146])(col, fmt);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector4, nint, void>)funcTable[146])(col, (nint)fmt);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextColored(Vector4 col, byte* fmt)
+		{
+			TextColoredNative(col, fmt);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextColored(Vector4 col, ref byte fmt)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				TextColoredNative(col, (byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextColored(Vector4 col, ReadOnlySpan<byte> fmt)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				TextColoredNative(col, (byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextColored(Vector4 col, string fmt)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			TextColoredNative(col, pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void TextColoredVNative(Vector4 col, byte* fmt, nuint args)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<Vector4, byte*, nuint, void>)funcTable[147])(col, fmt, args);
+			#else
+			((delegate* unmanaged[Cdecl]<Vector4, nint, nuint, void>)funcTable[147])(col, (nint)fmt, args);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextColoredV(Vector4 col, byte* fmt, nuint args)
+		{
+			TextColoredVNative(col, fmt, args);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextColoredV(Vector4 col, ref byte fmt, nuint args)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				TextColoredVNative(col, (byte*)pfmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextColoredV(Vector4 col, ReadOnlySpan<byte> fmt, nuint args)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				TextColoredVNative(col, (byte*)pfmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextColoredV(Vector4 col, string fmt, nuint args)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			TextColoredVNative(col, pStr0, args);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void TextDisabledNative(byte* fmt)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[148])(fmt);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[148])((nint)fmt);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextDisabled(byte* fmt)
+		{
+			TextDisabledNative(fmt);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextDisabled(ref byte fmt)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				TextDisabledNative((byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextDisabled(ReadOnlySpan<byte> fmt)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				TextDisabledNative((byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextDisabled(string fmt)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			TextDisabledNative(pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void TextDisabledVNative(byte* fmt, nuint args)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, nuint, void>)funcTable[149])(fmt, args);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nuint, void>)funcTable[149])((nint)fmt, args);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextDisabledV(byte* fmt, nuint args)
+		{
+			TextDisabledVNative(fmt, args);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextDisabledV(ref byte fmt, nuint args)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				TextDisabledVNative((byte*)pfmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextDisabledV(ReadOnlySpan<byte> fmt, nuint args)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				TextDisabledVNative((byte*)pfmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextDisabledV(string fmt, nuint args)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			TextDisabledVNative(pStr0, args);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void TextWrappedNative(byte* fmt)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[150])(fmt);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[150])((nint)fmt);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextWrapped(byte* fmt)
+		{
+			TextWrappedNative(fmt);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextWrapped(ref byte fmt)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				TextWrappedNative((byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextWrapped(ReadOnlySpan<byte> fmt)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				TextWrappedNative((byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextWrapped(string fmt)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			TextWrappedNative(pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void TextWrappedVNative(byte* fmt, nuint args)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, nuint, void>)funcTable[151])(fmt, args);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nuint, void>)funcTable[151])((nint)fmt, args);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextWrappedV(byte* fmt, nuint args)
+		{
+			TextWrappedVNative(fmt, args);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextWrappedV(ref byte fmt, nuint args)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				TextWrappedVNative((byte*)pfmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextWrappedV(ReadOnlySpan<byte> fmt, nuint args)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				TextWrappedVNative((byte*)pfmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void TextWrappedV(string fmt, nuint args)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			TextWrappedVNative(pStr0, args);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void LabelTextNative(byte* label, byte* fmt)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, byte*, void>)funcTable[152])(label, fmt);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, void>)funcTable[152])((nint)label, (nint)fmt);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(byte* label, byte* fmt)
+		{
+			LabelTextNative(label, fmt);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(ref byte label, byte* fmt)
+		{
+			fixed (byte* plabel = &label)
+			{
+				LabelTextNative((byte*)plabel, fmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(ReadOnlySpan<byte> label, byte* fmt)
+		{
+			fixed (byte* plabel = label)
+			{
+				LabelTextNative((byte*)plabel, fmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(string label, byte* fmt)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			LabelTextNative(pStr0, fmt);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(byte* label, ref byte fmt)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				LabelTextNative(label, (byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(byte* label, ReadOnlySpan<byte> fmt)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				LabelTextNative(label, (byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(byte* label, string fmt)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			LabelTextNative(label, pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(ref byte label, ref byte fmt)
+		{
+			fixed (byte* plabel = &label)
+			{
+				fixed (byte* pfmt = &fmt)
+				{
+					LabelTextNative((byte*)plabel, (byte*)pfmt);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(ReadOnlySpan<byte> label, ReadOnlySpan<byte> fmt)
+		{
+			fixed (byte* plabel = label)
+			{
+				fixed (byte* pfmt = fmt)
+				{
+					LabelTextNative((byte*)plabel, (byte*)pfmt);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(string label, string fmt)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			byte* pStr1 = null;
+			int pStrSize1 = 0;
+			if (fmt != null)
+			{
+				pStrSize1 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+				}
+				else
+				{
+					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+					pStr1 = pStrStack1;
+				}
+				int pStrOffset1 = Utils.EncodeStringUTF8(fmt, pStr1, pStrSize1);
+				pStr1[pStrOffset1] = 0;
+			}
+			LabelTextNative(pStr0, pStr1);
+			if (pStrSize1 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr1);
+			}
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(ref byte label, ReadOnlySpan<byte> fmt)
+		{
+			fixed (byte* plabel = &label)
+			{
+				fixed (byte* pfmt = fmt)
+				{
+					LabelTextNative((byte*)plabel, (byte*)pfmt);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(ref byte label, string fmt)
+		{
+			fixed (byte* plabel = &label)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (formatMax != null)
+				if (fmt != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(formatMax);
+					pStrSize0 = Utils.GetByteCountUTF8(fmt);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1593,30 +4479,43 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr0, flags);
+				LabelTextNative((byte*)plabel, pStr0);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(byte* label, float* vCurrentMin, ref float vCurrentMax, byte* format, string formatMax, ImGuiSliderFlags flags)
+		public static void LabelText(ReadOnlySpan<byte> label, ref byte fmt)
 		{
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			fixed (byte* plabel = label)
+			{
+				fixed (byte* pfmt = &fmt)
+				{
+					LabelTextNative((byte*)plabel, (byte*)pfmt);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(ReadOnlySpan<byte> label, string fmt)
+		{
+			fixed (byte* plabel = label)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (formatMax != null)
+				if (fmt != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(formatMax);
+					pStrSize0 = Utils.GetByteCountUTF8(fmt);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1626,310 +4525,21 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloatRange2Native(label, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr0, flags);
+				LabelTextNative((byte*)plabel, pStr0);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax, ImGuiSliderFlags flags)
+		public static void LabelText(string label, ref byte fmt)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1948,96 +4558,345 @@ namespace Dalamud.Bindings.ImGui
 				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			fixed (byte* pfmt = &fmt)
 			{
-				byte* pStr1 = null;
-				int pStrSize1 = 0;
-				if (formatMax != null)
+				LabelTextNative(pStr0, (byte*)pfmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-					if (pStrSize1 >= Utils.MaxStackallocSize)
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelText(string label, ReadOnlySpan<byte> fmt)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* pfmt = fmt)
+			{
+				LabelTextNative(pStr0, (byte*)pfmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void LabelTextVNative(byte* label, byte* fmt, nuint args)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, void>)funcTable[153])(label, fmt, args);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, nuint, void>)funcTable[153])((nint)label, (nint)fmt, args);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(byte* label, byte* fmt, nuint args)
+		{
+			LabelTextVNative(label, fmt, args);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(ref byte label, byte* fmt, nuint args)
+		{
+			fixed (byte* plabel = &label)
+			{
+				LabelTextVNative((byte*)plabel, fmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(ReadOnlySpan<byte> label, byte* fmt, nuint args)
+		{
+			fixed (byte* plabel = label)
+			{
+				LabelTextVNative((byte*)plabel, fmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(string label, byte* fmt, nuint args)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			LabelTextVNative(pStr0, fmt, args);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(byte* label, ref byte fmt, nuint args)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				LabelTextVNative(label, (byte*)pfmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(byte* label, ReadOnlySpan<byte> fmt, nuint args)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				LabelTextVNative(label, (byte*)pfmt, args);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(byte* label, string fmt, nuint args)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (fmt != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			LabelTextVNative(label, pStr0, args);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(ref byte label, ref byte fmt, nuint args)
+		{
+			fixed (byte* plabel = &label)
+			{
+				fixed (byte* pfmt = &fmt)
+				{
+					LabelTextVNative((byte*)plabel, (byte*)pfmt, args);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(ReadOnlySpan<byte> label, ReadOnlySpan<byte> fmt, nuint args)
+		{
+			fixed (byte* plabel = label)
+			{
+				fixed (byte* pfmt = fmt)
+				{
+					LabelTextVNative((byte*)plabel, (byte*)pfmt, args);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(string label, string fmt, nuint args)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			byte* pStr1 = null;
+			int pStrSize1 = 0;
+			if (fmt != null)
+			{
+				pStrSize1 = Utils.GetByteCountUTF8(fmt);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+				}
+				else
+				{
+					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+					pStr1 = pStrStack1;
+				}
+				int pStrOffset1 = Utils.EncodeStringUTF8(fmt, pStr1, pStrSize1);
+				pStr1[pStrOffset1] = 0;
+			}
+			LabelTextVNative(pStr0, pStr1, args);
+			if (pStrSize1 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr1);
+			}
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(ref byte label, ReadOnlySpan<byte> fmt, nuint args)
+		{
+			fixed (byte* plabel = &label)
+			{
+				fixed (byte* pfmt = fmt)
+				{
+					LabelTextVNative((byte*)plabel, (byte*)pfmt, args);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(ref byte label, string fmt, nuint args)
+		{
+			fixed (byte* plabel = &label)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (fmt != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(fmt);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
-						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 					}
 					else
 					{
-						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-						pStr1 = pStrStack1;
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
 					}
-					int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-					pStr1[pStrOffset1] = 0;
+					int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr1, flags);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr1);
-				}
+				LabelTextVNative((byte*)plabel, pStr0, args);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax)
+		public static void LabelTextV(ReadOnlySpan<byte> label, ref byte fmt, nuint args)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
+			fixed (byte* plabel = label)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (byte* pfmt = &fmt)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					LabelTextVNative((byte*)plabel, (byte*)pfmt, args);
 				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void LabelTextV(ReadOnlySpan<byte> label, string fmt, nuint args)
+		{
+			fixed (byte* plabel = label)
 			{
-				byte* pStr1 = null;
-				int pStrSize1 = 0;
-				if (formatMax != null)
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (fmt != null)
 				{
-					pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-					if (pStrSize1 >= Utils.MaxStackallocSize)
+					pStrSize0 = Utils.GetByteCountUTF8(fmt);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
-						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 					}
 					else
 					{
-						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-						pStr1 = pStrStack1;
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
 					}
-					int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-					pStr1[pStrOffset1] = 0;
+					int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr1, (ImGuiSliderFlags)(0));
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr1);
-				}
+				LabelTextVNative((byte*)plabel, pStr0, args);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax)
+		public static void LabelTextV(string label, ref byte fmt, nuint args)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -2056,42 +4915,20 @@ namespace Dalamud.Bindings.ImGui
 				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			fixed (byte* pfmt = &fmt)
 			{
-				byte* pStr1 = null;
-				int pStrSize1 = 0;
-				if (formatMax != null)
-				{
-					pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-					}
-					else
-					{
-						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-						pStr1 = pStrStack1;
-					}
-					int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-					pStr1[pStrOffset1] = 0;
-				}
-				byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr1, (ImGuiSliderFlags)(0));
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr1);
-				}
+				LabelTextVNative(pStr0, (byte*)pfmt, args);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, string formatMax)
+		public static void LabelTextV(string label, ReadOnlySpan<byte> fmt, nuint args)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -2110,48 +4947,69 @@ namespace Dalamud.Bindings.ImGui
 				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			fixed (byte* pfmt = fmt)
 			{
-				byte* pStr1 = null;
-				int pStrSize1 = 0;
-				if (formatMax != null)
-				{
-					pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-					}
-					else
-					{
-						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-						pStr1 = pStrStack1;
-					}
-					int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-					pStr1[pStrOffset1] = 0;
-				}
-				byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr1, (ImGuiSliderFlags)(0));
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr1);
-				}
+				LabelTextVNative(pStr0, (byte*)pfmt, args);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, byte* format, string formatMax)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void BulletTextNative(byte* fmt)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[154])(fmt);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[154])((nint)fmt);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void BulletText(byte* fmt)
+		{
+			BulletTextNative(fmt);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void BulletText(ref byte fmt)
+		{
+			fixed (byte* pfmt = &fmt)
+			{
+				BulletTextNative((byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void BulletText(ReadOnlySpan<byte> fmt)
+		{
+			fixed (byte* pfmt = fmt)
+			{
+				BulletTextNative((byte*)pfmt);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void BulletText(string fmt)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (fmt != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(fmt);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -2161,2894 +5019,13 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(fmt, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
+			BulletTextNative(pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				byte* pStr1 = null;
-				int pStrSize1 = 0;
-				if (formatMax != null)
-				{
-					pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-					}
-					else
-					{
-						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-						pStr1 = pStrStack1;
-					}
-					int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-					pStr1[pStrOffset1] = 0;
-				}
-				byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr1, (ImGuiSliderFlags)(0));
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr1);
-				}
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				byte* pStr1 = null;
-				int pStrSize1 = 0;
-				if (formatMax != null)
-				{
-					pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-					}
-					else
-					{
-						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-						pStr1 = pStrStack1;
-					}
-					int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-					pStr1[pStrOffset1] = 0;
-				}
-				byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr1, flags);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr1);
-				}
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				byte* pStr1 = null;
-				int pStrSize1 = 0;
-				if (formatMax != null)
-				{
-					pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-					}
-					else
-					{
-						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-						pStr1 = pStrStack1;
-					}
-					int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-					pStr1[pStrOffset1] = 0;
-				}
-				byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr1, flags);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr1);
-				}
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				byte* pStr1 = null;
-				int pStrSize1 = 0;
-				if (formatMax != null)
-				{
-					pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-					}
-					else
-					{
-						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-						pStr1 = pStrStack1;
-					}
-					int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-					pStr1[pStrOffset1] = 0;
-				}
-				byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr1, flags);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr1);
-				}
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, float* vCurrentMin, ref float vCurrentMax, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, byte* format, string formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, float* vCurrentMin, ref float vCurrentMax, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native((byte*)plabel, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = &formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, float* vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMax = &vCurrentMax)
-			{
-				fixed (byte* pformatMax = formatMax)
-				{
-					byte ret = DragFloatRange2Native(pStr0, vCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = &formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					fixed (byte* pformatMax = formatMax)
-					{
-						byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-						return ret != 0;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, string formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, byte* format, string formatMax)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr0, (ImGuiSliderFlags)(0));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(byte* label, ref float vCurrentMin, ref float vCurrentMax, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr0 = null;
-					int pStrSize0 = 0;
-					if (formatMax != null)
-					{
-						pStrSize0 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-						}
-						else
-						{
-							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-							pStr0 = pStrStack0;
-						}
-						int pStrOffset0 = Utils.EncodeStringUTF8(formatMax, pStr0, pStrSize0);
-						pStr0[pStrOffset0] = 0;
-					}
-					byte ret = DragFloatRange2Native(label, (float*)pvCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr0, flags);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = &formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = &formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = &formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = &formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, ref float vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = &formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = &formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = &formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ref byte label, ref float vCurrentMin, ref float vCurrentMax, byte* format, ref byte formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = &formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, flags);
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, (ImGuiSliderFlags)(0));
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, (byte*)pformatMax, flags);
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(ReadOnlySpan<byte> label, ref float vCurrentMin, ref float vCurrentMax, byte* format, ReadOnlySpan<byte> formatMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pvCurrentMin = &vCurrentMin)
-				{
-					fixed (float* pvCurrentMax = &vCurrentMax)
-					{
-						fixed (byte* pformatMax = formatMax)
-						{
-							byte ret = DragFloatRange2Native((byte*)plabel, (float*)pvCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (byte*)pformatMax, flags);
-							return ret != 0;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr1 = null;
-					int pStrSize1 = 0;
-					if (formatMax != null)
-					{
-						pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize1 >= Utils.MaxStackallocSize)
-						{
-							pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-						}
-						else
-						{
-							byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-							pStr1 = pStrStack1;
-						}
-						int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-						pStr1[pStrOffset1] = 0;
-					}
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr1, flags);
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr1);
-					}
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, byte* format, string formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr1 = null;
-					int pStrSize1 = 0;
-					if (formatMax != null)
-					{
-						pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize1 >= Utils.MaxStackallocSize)
-						{
-							pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-						}
-						else
-						{
-							byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-							pStr1 = pStrStack1;
-						}
-						int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-						pStr1[pStrOffset1] = 0;
-					}
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, vMax, format, pStr1, (ImGuiSliderFlags)(0));
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr1);
-					}
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr1 = null;
-					int pStrSize1 = 0;
-					if (formatMax != null)
-					{
-						pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize1 >= Utils.MaxStackallocSize)
-						{
-							pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-						}
-						else
-						{
-							byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-							pStr1 = pStrStack1;
-						}
-						int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-						pStr1[pStrOffset1] = 0;
-					}
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr1, (ImGuiSliderFlags)(0));
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr1);
-					}
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, byte* format, string formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr1 = null;
-					int pStrSize1 = 0;
-					if (formatMax != null)
-					{
-						pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize1 >= Utils.MaxStackallocSize)
-						{
-							pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-						}
-						else
-						{
-							byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-							pStr1 = pStrStack1;
-						}
-						int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-						pStr1[pStrOffset1] = 0;
-					}
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, (float)(0.0f), (float)(0.0f), format, pStr1, (ImGuiSliderFlags)(0));
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr1);
-					}
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, ref float vCurrentMax, byte* format, string formatMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr1 = null;
-					int pStrSize1 = 0;
-					if (formatMax != null)
-					{
-						pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize1 >= Utils.MaxStackallocSize)
-						{
-							pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-						}
-						else
-						{
-							byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-							pStr1 = pStrStack1;
-						}
-						int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-						pStr1[pStrOffset1] = 0;
-					}
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, (float*)pvCurrentMax, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, pStr1, (ImGuiSliderFlags)(0));
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr1);
-					}
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloatRange2(string label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, byte* format, string formatMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pvCurrentMin = &vCurrentMin)
-			{
-				fixed (float* pvCurrentMax = &vCurrentMax)
-				{
-					byte* pStr1 = null;
-					int pStrSize1 = 0;
-					if (formatMax != null)
-					{
-						pStrSize1 = Utils.GetByteCountUTF8(formatMax);
-						if (pStrSize1 >= Utils.MaxStackallocSize)
-						{
-							pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-						}
-						else
-						{
-							byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-							pStr1 = pStrStack1;
-						}
-						int pStrOffset1 = Utils.EncodeStringUTF8(formatMax, pStr1, pStrSize1);
-						pStr1[pStrOffset1] = 0;
-					}
-					byte ret = DragFloatRange2Native(pStr0, (float*)pvCurrentMin, (float*)pvCurrentMax, vSpeed, vMin, (float)(0.0f), format, pStr1, flags);
-					if (pStrSize1 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr1);
-					}
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret != 0;
-				}
+				Utils.Free(pStr0);
 			}
 		}
 	}

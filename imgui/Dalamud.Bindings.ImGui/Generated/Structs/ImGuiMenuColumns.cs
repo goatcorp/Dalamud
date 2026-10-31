@@ -109,17 +109,6 @@ namespace Dalamud.Bindings.ImGui
 		}
 
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiMenuColumns* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
-
 	}
 
 	/// <summary>
@@ -202,14 +191,6 @@ namespace Dalamud.Bindings.ImGui
 				return new Span<ushort>(&Handle->Widths_0, 4);
 			}
 		}
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
 	}
 
 }

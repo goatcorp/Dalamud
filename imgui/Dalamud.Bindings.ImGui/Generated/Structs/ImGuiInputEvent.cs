@@ -101,6 +101,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public uint EventId;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ImGuiInputEventUnion Union;
 
 		/// <summary>
@@ -112,25 +117,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiInputEvent(ImGuiInputEventType type = default, ImGuiInputSource source = default, ImGuiInputEventUnion union = default, bool addedByTestEngine = default)
+		public unsafe ImGuiInputEvent(ImGuiInputEventType type = default, ImGuiInputSource source = default, uint eventId = default, ImGuiInputEventUnion union = default, bool addedByTestEngine = default)
 		{
 			Type = type;
 			Source = source;
+			EventId = eventId;
 			Union = union;
 			AddedByTestEngine = addedByTestEngine ? (byte)1 : (byte)0;
 		}
 
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiInputEvent* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
 
 	}
 
@@ -186,19 +181,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref uint EventId => ref Unsafe.AsRef<uint>(&Handle->EventId);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref ImGuiInputEvent.ImGuiInputEventUnion Union => ref Unsafe.AsRef<ImGuiInputEvent.ImGuiInputEventUnion>(&Handle->Union);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ref bool AddedByTestEngine => ref Unsafe.AsRef<bool>(&Handle->AddedByTestEngine);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
 	}
 
 }

@@ -1,24 +1,13 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
-using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text.Unicode;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.ImGuiBackend.InputHandler;
 using Dalamud.Interface.ImGuiBackend.Renderers;
-using Dalamud.Interface.ImGuiSeStringRenderer;
-using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
-using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
-
-using Lumina.Text.Payloads;
 
 using VirtualKey = Dalamud.Game.ClientState.Keys.VirtualKey;
 
@@ -38,7 +27,7 @@ public static class ImGuiHelpers
     /// Gets the global Dalamud scale.
     /// </summary>
     public static float GlobalScale =>
-        IsImGuiInitialized ? ImGui.GetIO().FontGlobalScale : Service<DalamudConfiguration>.Get().GlobalUiScale;
+        IsImGuiInitialized ? ImGui.GetStyle().FontScaleMain : Service<DalamudConfiguration>.Get().GlobalUiScale;
 
     /// <summary>
     /// Gets a value indicating whether ImGui is initialized and ready for use.<br />
@@ -143,7 +132,8 @@ public static class ImGuiHelpers
         ImGuiNative.AddCallback(
             drawList,
             (delegate*<ImDrawList*, ImDrawCmd*, void>)(nint)(long)CustomImDrawCallbackEnum.Blur,
-            data);
+            data,
+            0);
         drawList.PopClipRect();
     }
 
@@ -205,6 +195,7 @@ public static class ImGuiHelpers
             ElemCount = 0,
             UserCallback = (void*)(nint)(long)CustomImDrawCallbackEnum.Blur,
             UserCallbackData = data,
+            UserCallbackDataOffset = -1,
         };
 
         var cmdVec = new ImVectorWrapper<ImDrawCmd>(drawList.Handle->CmdBuffer.ToUntyped());
@@ -288,6 +279,36 @@ public static class ImGuiHelpers
     public static Vector2 GetButtonSize(ImU8String text)
         => ImGui.CalcTextSize(text) + (ImGui.GetStyle().FramePadding * 2);
 
+    /// <summary>Gets the bottom right of the content region, as the GetContentRegionMax that ImGui removed did.
+    /// </summary>
+    /// <returns>The bottom right, in window-local coordinates. In a table or columns, it is that of the current cell.
+    /// </returns>
+    /// <remarks>Prefer <see cref="ImGui.GetContentRegionAvail"/> and <see cref="ImGui.GetCursorScreenPos"/>. These
+    /// coordinates include the scrolled amount.</remarks>
+    public static Vector2 GetContentRegionMax() =>
+        ImGui.GetContentRegionAvail() + ImGui.GetCursorScreenPos() - ImGui.GetWindowPos();
+
+    /// <summary>Gets the top left of the content region of the window, as the GetWindowContentRegionMin that ImGui
+    /// removed did.</summary>
+    /// <returns>The top left, in window-local coordinates.</returns>
+    /// <remarks>Prefer <see cref="ImGui.GetContentRegionAvail"/> and <see cref="ImGui.GetCursorScreenPos"/>.</remarks>
+    public static Vector2 GetWindowContentRegionMin()
+    {
+        var window = ImGuiP.GetCurrentWindow();
+        return window.ContentRegionRect.Min - window.Pos;
+    }
+
+    /// <summary>Gets the bottom right of the content region of the window, as the GetWindowContentRegionMax that
+    /// ImGui removed did.</summary>
+    /// <returns>The bottom right, in window-local coordinates. Unlike <see cref="GetContentRegionMax"/>, it ignores
+    /// tables and columns.</returns>
+    /// <remarks>Prefer <see cref="ImGui.GetContentRegionAvail"/> and <see cref="ImGui.GetCursorScreenPos"/>.</remarks>
+    public static Vector2 GetWindowContentRegionMax()
+    {
+        var window = ImGuiP.GetCurrentWindow();
+        return window.ContentRegionRect.Max - window.Pos;
+    }
+
     /// <summary>
     /// Print out text that can be copied when clicked.
     /// </summary>
@@ -326,33 +347,6 @@ public static class ImGuiHelpers
         textCopy.Recycle();
     }
 
-    /// <summary>Draws a SeString.</summary>
-    /// <param name="sss">SeString to draw.</param>
-    /// <param name="style">Initial rendering style.</param>
-    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
-    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
-    /// <returns>Interaction result of the rendered text.</returns>
-    public static SeStringDrawResult SeStringWrapped(
-        ReadOnlySpan<byte> sss,
-        scoped in SeStringDrawParams style = default,
-        ImGuiId imGuiId = default,
-        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
-        Service<SeStringRenderer>.Get().Draw(sss, style, imGuiId, buttonFlags);
-
-    /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
-    /// <param name="text">SeString text macro representation.
-    /// Newline characters will be normalized to <see cref="MacroCode.NewLine"/>.</param>
-    /// <param name="style">Initial rendering style.</param>
-    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
-    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
-    /// <returns>Interaction result of the rendered text.</returns>
-    public static SeStringDrawResult CompileSeStringWrapped(
-        string text,
-        scoped in SeStringDrawParams style = default,
-        ImGuiId imGuiId = default,
-        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
-        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, imGuiId, buttonFlags);
-
     /// <summary>
     /// Write unformatted text wrapped.
     /// </summary>
@@ -371,174 +365,6 @@ public static class ImGuiHelpers
         using (ImRaii.PushColor(ImGuiCol.Text, color))
         {
             ImGui.TextWrapped(text);
-        }
-    }
-
-    /// <summary>
-    /// Unscales fonts after they have been rendered onto atlas.
-    /// </summary>
-    /// <param name="fontPtr">Font to scale.</param>
-    /// <param name="scale">Scale.</param>
-    /// <param name="round">If a positive number is given, numbers will be rounded to this.</param>
-    public static unsafe void AdjustGlyphMetrics(this ImFontPtr fontPtr, float scale, float round = 0f)
-    {
-        Func<float, float> rounder = round > 0 ? x => MathF.Round(x / round) * round : x => x;
-
-        var font = fontPtr.Handle;
-        font->FontSize = rounder(font->FontSize * scale);
-        font->Ascent = rounder(font->Ascent * scale);
-        font->Descent = font->FontSize - font->Ascent;
-        if (font->ConfigData != null)
-            font->ConfigData->SizePixels = rounder(font->ConfigData->SizePixels * scale);
-
-        foreach (ref var glyphHotDataReal in new Span<ImFontGlyphHotDataReal>(
-                     (void*)font->IndexedHotData.Data,
-                     font->IndexedHotData.Size))
-        {
-            glyphHotDataReal.AdvanceX = rounder(glyphHotDataReal.AdvanceX * scale);
-            glyphHotDataReal.OccupiedWidth = rounder(glyphHotDataReal.OccupiedWidth * scale);
-        }
-
-        foreach (ref var glyphReal in new Span<ImFontGlyphReal>((void*)font->Glyphs.Data, font->Glyphs.Size))
-        {
-            glyphReal.X0 *= scale;
-            glyphReal.X1 *= scale;
-            glyphReal.Y0 *= scale;
-            glyphReal.Y1 *= scale;
-            glyphReal.AdvanceX = rounder(glyphReal.AdvanceX * scale);
-        }
-
-        foreach (ref var kp in new Span<ImFontKerningPair>((void*)font->KerningPairs.Data, font->KerningPairs.Size))
-            kp.AdvanceXAdjustment = rounder(kp.AdvanceXAdjustment * scale);
-
-        foreach (ref var fkp in new Span<float>((void*)font->FrequentKerningPairs.Data, font->FrequentKerningPairs.Size))
-            fkp = rounder(fkp * scale);
-    }
-
-    /// <summary>
-    /// Fills missing glyphs in target font from source font, if both are not null.
-    /// </summary>
-    /// <param name="source">Source font.</param>
-    /// <param name="target">Target font.</param>
-    /// <param name="missingOnly">Whether to copy missing glyphs only.</param>
-    /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
-    /// <param name="rangeLow">Low codepoint range to copy.</param>
-    /// <param name="rangeHigh">High codepoing range to copy.</param>
-    [Obsolete("Use the non-nullable variant.", true)]
-    public static void CopyGlyphsAcrossFonts(
-        ImFontPtr? source,
-        ImFontPtr? target,
-        bool missingOnly,
-        bool rebuildLookupTable = true,
-        int rangeLow = 32,
-        int rangeHigh = 0xFFFE) =>
-        CopyGlyphsAcrossFonts(
-            source ?? default,
-            target ?? default,
-            missingOnly,
-            rebuildLookupTable,
-            rangeLow,
-            rangeHigh);
-
-    /// <summary>
-    /// Fills missing glyphs in target font from source font, if both are not null.
-    /// </summary>
-    /// <param name="source">Source font.</param>
-    /// <param name="target">Target font.</param>
-    /// <param name="missingOnly">Whether to copy missing glyphs only.</param>
-    /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
-    /// <param name="rangeLow">Low codepoint range to copy.</param>
-    /// <param name="rangeHigh">High codepoing range to copy.</param>
-    public static unsafe void CopyGlyphsAcrossFonts(
-        ImFontPtr source,
-        ImFontPtr target,
-        bool missingOnly,
-        bool rebuildLookupTable = true,
-        int rangeLow = 32,
-        int rangeHigh = 0xFFFE)
-    {
-        if (!source.IsNotNullAndLoaded() || !target.IsNotNullAndLoaded())
-            return;
-
-        var changed = false;
-        var scale = target.FontSize / source.FontSize;
-        var addedCodepoints = new HashSet<int>();
-
-        if (source.Glyphs.Size == 0)
-            return;
-
-        var glyphs = (ImFontGlyphReal*)source.Glyphs.Data;
-        if (glyphs is null)
-            throw new InvalidOperationException("Glyphs data is empty but size is >0?");
-
-        for (int j = 0, k = source.Glyphs.Size; j < k; j++)
-        {
-            var glyph = &glyphs![j];
-            if (glyph->Codepoint < rangeLow || glyph->Codepoint > rangeHigh)
-                continue;
-
-            var prevGlyphPtr = (ImFontGlyphReal*)target.FindGlyphNoFallback((ushort)glyph->Codepoint);
-            if ((IntPtr)prevGlyphPtr == IntPtr.Zero)
-            {
-                addedCodepoints.Add(glyph->Codepoint);
-                target.AddGlyph(
-                    target.ConfigData,
-                    (ushort)glyph->Codepoint,
-                    glyph->TextureIndex,
-                    glyph->X0 * scale,
-                    ((glyph->Y0 - source.Ascent) * scale) + target.Ascent,
-                    glyph->X1 * scale,
-                    ((glyph->Y1 - source.Ascent) * scale) + target.Ascent,
-                    glyph->U0,
-                    glyph->V0,
-                    glyph->U1,
-                    glyph->V1,
-                    glyph->AdvanceX * scale);
-                target.Mark4KPageUsedAfterGlyphAdd((ushort)glyph->Codepoint);
-                changed = true;
-            }
-            else if (!missingOnly)
-            {
-                addedCodepoints.Add(glyph->Codepoint);
-                prevGlyphPtr->TextureIndex = glyph->TextureIndex;
-                prevGlyphPtr->X0 = glyph->X0 * scale;
-                prevGlyphPtr->Y0 = ((glyph->Y0 - source.Ascent) * scale) + target.Ascent;
-                prevGlyphPtr->X1 = glyph->X1 * scale;
-                prevGlyphPtr->Y1 = ((glyph->Y1 - source.Ascent) * scale) + target.Ascent;
-                prevGlyphPtr->U0 = glyph->U0;
-                prevGlyphPtr->V0 = glyph->V0;
-                prevGlyphPtr->U1 = glyph->U1;
-                prevGlyphPtr->V1 = glyph->V1;
-                prevGlyphPtr->AdvanceX = glyph->AdvanceX * scale;
-            }
-        }
-
-        if (target.Glyphs.Size == 0)
-            return;
-
-        var kernPairs = source.KerningPairs;
-        for (int j = 0, k = kernPairs.Size; j < k; j++)
-        {
-            if (!addedCodepoints.Contains((int)kernPairs[j].Left))
-                continue;
-            if (!addedCodepoints.Contains((int)kernPairs[j].Right))
-                continue;
-            target.AddKerningPair(kernPairs[j].Left, kernPairs[j].Right, kernPairs[j].AdvanceXAdjustment);
-            changed = true;
-        }
-
-        if (changed && rebuildLookupTable)
-        {
-            // ImGui resolves ' ' with FindGlyph, which uses FallbackGlyph.
-            // FallbackGlyph is resolved after resolving ' '.
-            // On the first call of BuildLookupTable, called from BuildFonts, FallbackGlyph is set to null,
-            // making FindGlyph return nullptr.
-            // On our secondary calls of BuildLookupTable, FallbackGlyph is set to some value that is not null,
-            // making ImGui attempt to treat whatever was there as a ' '.
-            // This may cause random glyphs to be sized randomly, if not an access violation exception.
-            target.Handle->FallbackGlyph = null;
-
-            target.BuildLookupTable();
         }
     }
 
@@ -570,49 +396,6 @@ public static class ImGuiHelpers
     {
         CenterCursorForText(text.Span);
         ImGui.Text(text);
-    }
-
-    /// <summary>
-    /// Show a centered SeString.
-    /// </summary>
-    /// <param name="sss">The SeString to show.</param>
-    /// <param name="style">
-    /// The initial draw params to use. If <see cref="SeStringDrawParams.TargetDrawList"/> is set, the text is centered in the box
-    /// starting at <see cref="SeStringDrawParams.ScreenOffset"/>, <see cref="SeStringDrawParams.WrapWidth"/> wide.
-    /// You have to set both.
-    /// </param>
-    /// <returns>Interaction result of the rendered text.</returns>
-    public static SeStringDrawResult CenteredSeString(ReadOnlySpan<byte> sss, scoped in SeStringDrawParams style = default)
-    {
-        var drawParams = style.TargetDrawList is null
-                             ? style with { WrapWidth = style.WrapWidth ?? float.MaxValue }
-                             : style;
-
-        var renderer = Service<SeStringRenderer>.Get();
-        var width = renderer.Draw(
-            sss,
-            drawParams with
-            {
-                TargetDrawList = default(ImDrawListPtr),
-                ScreenOffset = Vector2.Zero,
-                Font = style.Font ?? ImGui.GetFont(),
-                FontSize = style.FontSize ?? ImGui.GetFontSize(),
-            }).Size.X;
-
-        if (style.TargetDrawList is null)
-        {
-            CenterCursorFor(width);
-            return renderer.Draw(sss, drawParams);
-        }
-
-        var offset = style.ScreenOffset ?? throw new ArgumentException(
-                         $"{nameof(style.ScreenOffset)} must be set when specifying a target draw list.",
-                         nameof(style));
-        var boxWidth = style.WrapWidth ?? throw new ArgumentException(
-                           $"{nameof(style.WrapWidth)} must be set when specifying a target draw list.",
-                           nameof(style));
-
-        return renderer.Draw(sss, drawParams with { ScreenOffset = offset with { X = offset.X + ((boxWidth - width) / 2) } });
     }
 
     /// <summary>
@@ -657,74 +440,6 @@ public static class ImGuiHelpers
     }
 
     /// <summary>
-    /// Creates a new instance of <see cref="ImFontGlyphRangesBuilderPtr"/> with a natively backed memory.
-    /// </summary>
-    /// <param name="builder">The created instance.</param>
-    /// <returns>Disposable you can call.</returns>
-    public static unsafe IDisposable NewFontGlyphRangeBuilderPtrScoped(out ImFontGlyphRangesBuilderPtr builder)
-    {
-        builder = new(ImGui.ImFontGlyphRangesBuilder());
-        var ptr = builder.Handle;
-        return Disposable.Create(() =>
-        {
-            if (ptr != null)
-                new ImFontGlyphRangesBuilderPtr(ptr).Destroy();
-            ptr = null;
-        });
-    }
-
-    /// <summary>
-    /// Builds ImGui Glyph Ranges for use with <see cref="SafeFontConfig.GlyphRanges"/>.
-    /// </summary>
-    /// <param name="builder">The builder.</param>
-    /// <param name="addFallbackCodepoints">Add fallback codepoints to the range.</param>
-    /// <param name="addEllipsisCodepoints">Add ellipsis codepoints to the range.</param>
-    /// <returns>When disposed, the resource allocated for the range will be freed.</returns>
-    public static unsafe ushort[] BuildRangesToArray(
-        this ImFontGlyphRangesBuilderPtr builder,
-        bool addFallbackCodepoints = true,
-        bool addEllipsisCodepoints = true)
-    {
-        if (addFallbackCodepoints)
-            builder.AddText(FontAtlasFactory.FallbackCodepoints);
-        if (addEllipsisCodepoints)
-        {
-            builder.AddText(FontAtlasFactory.EllipsisCodepoints);
-            builder.AddChar('.');
-        }
-
-        ImVector<ushort> outRanges = default;
-        builder.BuildRanges(&outRanges);
-        return new ReadOnlySpan<ushort>((void*)outRanges.Data, outRanges.Size).ToArray();
-    }
-
-    /// <summary>
-    /// Creates glyph ranges from <see cref="UnicodeRange"/>.<br />
-    /// Use values from <see cref="UnicodeRanges"/>.
-    /// </summary>
-    /// <param name="ranges">The unicode ranges.</param>
-    /// <returns>The range array that can be used for <see cref="SafeFontConfig.GlyphRanges"/>.</returns>
-    public static ushort[] CreateImGuiRangesFrom(IEnumerable<UnicodeRange> ranges) =>
-        ranges
-            .Select(x => (First: Math.Max(x.FirstCodePoint, 1), Last: x.FirstCodePoint + x.Length))
-            .Where(x => x.First <= ushort.MaxValue && x.First <= x.Last)
-            .SelectMany(
-                x => new[]
-                {
-                    (ushort)Math.Min(x.First, ushort.MaxValue),
-                    (ushort)Math.Min(x.Last, ushort.MaxValue),
-                })
-            .Append((ushort)0)
-            .ToArray();
-
-    /// <summary>
-    /// Determines whether <paramref name="ptr"/> is not empty and loaded.
-    /// </summary>
-    /// <param name="ptr">The pointer.</param>
-    /// <returns>Whether it is not null and loaded.</returns>
-    public static unsafe bool IsNotNullAndLoaded(this ImFontPtr ptr) => !ptr.IsNull && ptr.IsLoaded();
-
-    /// <summary>
     /// If <paramref name="self"/> is default, then returns <paramref name="other"/>.
     /// </summary>
     /// <param name="self">The self.</param>
@@ -732,27 +447,6 @@ public static class ImGuiHelpers
     /// <returns><paramref name="self"/> if it is not default; otherwise, <paramref name="other"/>.</returns>
     public static unsafe ImFontPtr OrElse(this ImFontPtr self, ImFontPtr other) =>
         self.IsNull ? other : self;
-
-    /// <summary>Creates a draw data that will draw the given SeString onto it.</summary>
-    /// <param name="sss">SeString to render.</param>
-    /// <param name="style">Initial rendering style.</param>
-    /// <returns>A new self-contained draw data.</returns>
-    internal static BufferBackedImDrawData CreateDrawData(
-        ReadOnlySpan<byte> sss,
-        scoped in SeStringDrawParams style = default) =>
-        Service<SeStringRenderer>.Get().CreateDrawData(sss, style);
-
-    /// <summary>
-    /// Mark 4K page as used, after adding a codepoint to a font.
-    /// </summary>
-    /// <param name="font">The font.</param>
-    /// <param name="codepoint">The codepoint.</param>
-    internal static void Mark4KPageUsedAfterGlyphAdd(this ImFontPtr font, ushort codepoint)
-    {
-        // Mark 4K page as used
-        var pageIndex = unchecked((ushort)(codepoint / 4096));
-        font.Used4kPagesMap[pageIndex >> 3] |= unchecked((byte)(1 << (pageIndex & 7)));
-    }
 
     /// <summary>
     /// Sets the text for a text input, during the callback.
@@ -786,251 +480,6 @@ public static class ImGuiHelpers
         }
 
         return -1;
-    }
-
-    /// <summary>
-    /// Attempts to validate that <paramref name="fontPtr"/> is valid.
-    /// </summary>
-    /// <param name="fontPtr">The font pointer.</param>
-    /// <returns>The exception, if any occurred during validation.</returns>
-    internal static unsafe Exception? ValidateUnsafe(this ImFontPtr fontPtr)
-    {
-        try
-        {
-            var font = fontPtr.Handle;
-            if (font is null)
-                throw new NullReferenceException("The font is null.");
-
-            _ = Marshal.ReadIntPtr((nint)font);
-            if (font->IndexedHotData.Data != null)
-                _ = *font->IndexedHotData.Front;
-            if (font->FrequentKerningPairs.Data != null)
-                _ = font->FrequentKerningPairs.Data;
-            if (font->IndexLookup.Data != null)
-                _ = *font->IndexLookup.Data;
-            if (font->Glyphs.Data != null)
-                _ = *font->Glyphs.Data;
-            if (font->KerningPairs.Data != null)
-                _ = *font->KerningPairs.Data;
-            if (font->ConfigDataCount == 0 && font->ConfigData is not null)
-                throw new InvalidOperationException("ConfigDataCount == 0 but ConfigData is not null?");
-            if (font->ConfigDataCount != 0 && font->ConfigData is null)
-                throw new InvalidOperationException("ConfigDataCount != 0 but ConfigData is null?");
-            if (font->ConfigData is not null)
-                _ = Marshal.ReadIntPtr((nint)font->ConfigData);
-            if (font->FallbackGlyph is not null
-                && ((nint)font->FallbackGlyph < (nint)font->Glyphs.Data || (nint)font->FallbackGlyph >= (nint)font->Glyphs.Data))
-                throw new InvalidOperationException("FallbackGlyph is not in range of Glyphs.Data");
-            if (font->FallbackHotData is not null
-                && ((nint)font->FallbackHotData < (nint)font->IndexedHotData.Data
-                    || (nint)font->FallbackHotData >= (nint)font->IndexedHotData.Data))
-                throw new InvalidOperationException("FallbackGlyph is not in range of Glyphs.Data");
-            if (font->ContainerAtlas is not null)
-                _ = Marshal.ReadIntPtr((nint)font->ContainerAtlas);
-        }
-        catch (Exception e)
-        {
-            return e;
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Updates the fallback char of <paramref name="font"/>.
-    /// </summary>
-    /// <param name="font">The font.</param>
-    /// <param name="c">The fallback character.</param>
-    internal static unsafe void UpdateFallbackChar(this ImFontPtr font, char c)
-    {
-        font.FallbackChar = c;
-        font.Handle->FallbackHotData =
-            (ImFontGlyphHotData*)((ImFontGlyphHotDataReal*)font.IndexedHotData.Data + font.FallbackChar);
-    }
-
-    /// <summary>
-    /// Determines if the supplied codepoint is inside the given range,
-    /// in format of <see cref="ImFontConfig.GlyphRanges"/>.
-    /// </summary>
-    /// <param name="codepoint">The codepoint.</param>
-    /// <param name="rangePtr">The ranges.</param>
-    /// <returns>Whether it is the case.</returns>
-    internal static unsafe bool IsCodepointInSuppliedGlyphRangesUnsafe(int codepoint, ushort* rangePtr)
-    {
-        if (codepoint is <= 0 or >= ushort.MaxValue)
-            return false;
-
-        while (*rangePtr != 0)
-        {
-            var from = *rangePtr++;
-            var to = *rangePtr++;
-            if (from <= codepoint && codepoint <= to)
-                return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// ImFontGlyph the correct version.
-    /// </summary>
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "ImGui internals")]
-    [StructLayout(LayoutKind.Explicit, Size = 40)]
-    public struct ImFontGlyphReal
-    {
-        [FieldOffset(0)]
-        public uint ColoredVisibleTextureIndexCodepoint;
-
-        [FieldOffset(4)]
-        public float AdvanceX;
-
-        [FieldOffset(8)]
-        public float X0;
-
-        [FieldOffset(12)]
-        public float Y0;
-
-        [FieldOffset(16)]
-        public float X1;
-
-        [FieldOffset(20)]
-        public float Y1;
-
-        [FieldOffset(24)]
-        public float U0;
-
-        [FieldOffset(28)]
-        public float V0;
-
-        [FieldOffset(32)]
-        public float U1;
-
-        [FieldOffset(36)]
-        public float V1;
-
-        [FieldOffset(8)]
-        public Vector2 XY0;
-
-        [FieldOffset(16)]
-        public Vector2 XY1;
-
-        [FieldOffset(24)]
-        public Vector2 UV0;
-
-        [FieldOffset(32)]
-        public Vector2 UV1;
-
-        [FieldOffset(8)]
-        public Vector4 XY;
-
-        [FieldOffset(24)]
-        public Vector4 UV;
-
-        private const uint ColoredMask /*****/ = 0b_00000000_00000000_00000000_00000001u;
-        private const uint VisibleMask /*****/ = 0b_00000000_00000000_00000000_00000010u;
-        private const uint TextureMask /*****/ = 0b_00000000_00000000_00000111_11111100u;
-        private const uint CodepointMask /***/ = 0b_11111111_11111111_11111000_00000000u;
-
-        private const int ColoredShift = 0;
-        private const int VisibleShift = 1;
-        private const int TextureShift = 2;
-        private const int CodepointShift = 11;
-
-        public bool Colored
-        {
-            get => (int)((this.ColoredVisibleTextureIndexCodepoint & ColoredMask) >> ColoredShift) != 0;
-            set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~ColoredMask) | (value ? 1u << ColoredShift : 0u);
-        }
-
-        public bool Visible
-        {
-            get => (int)((this.ColoredVisibleTextureIndexCodepoint & VisibleMask) >> VisibleShift) != 0;
-            set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~VisibleMask) | (value ? 1u << VisibleShift : 0u);
-        }
-
-        public int TextureIndex
-        {
-            get => (int)(this.ColoredVisibleTextureIndexCodepoint & TextureMask) >> TextureShift;
-            set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~TextureMask) | ((uint)value << TextureShift);
-        }
-
-        public int Codepoint
-        {
-            get => (int)(this.ColoredVisibleTextureIndexCodepoint & CodepointMask) >> CodepointShift;
-            set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~CodepointMask) | ((uint)value << CodepointShift);
-        }
-    }
-
-    /// <summary>
-    /// ImFontGlyphHotData the correct version.
-    /// </summary>
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "ImGui internals")]
-    public struct ImFontGlyphHotDataReal
-    {
-        public float AdvanceX;
-        public float OccupiedWidth;
-        public uint KerningPairInfo;
-
-        private const uint UseBisectMask /***/ = 0b_00000000_00000000_00000000_00000001u;
-        private const uint OffsetMask /******/ = 0b_00000000_00001111_11111111_11111110u;
-        private const uint CountMask /*******/ = 0b_11111111_11110000_00000000_00000000u;
-
-        private const int UseBisectShift = 0;
-        private const int OffsetShift = 1;
-        private const int CountShift = 20;
-
-        public bool UseBisect
-        {
-            get => (int)((this.KerningPairInfo & UseBisectMask) >> UseBisectShift) != 0;
-            set => this.KerningPairInfo = (this.KerningPairInfo & ~UseBisectMask) | (value ? 1u << UseBisectShift : 0u);
-        }
-
-        public bool Offset
-        {
-            get => (int)((this.KerningPairInfo & OffsetMask) >> OffsetShift) != 0;
-            set => this.KerningPairInfo = (this.KerningPairInfo & ~OffsetMask) | (value ? 1u << OffsetShift : 0u);
-        }
-
-        public int Count
-        {
-            get => (int)(this.KerningPairInfo & CountMask) >> CountShift;
-            set => this.KerningPairInfo = (this.KerningPairInfo & ~CountMask) | ((uint)value << CountShift);
-        }
-    }
-
-    /// <summary>
-    /// ImFontAtlasCustomRect the correct version.
-    /// </summary>
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "ImGui internals")]
-    [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct ImFontAtlasCustomRectReal
-    {
-        public ushort Width;
-        public ushort Height;
-        public ushort X;
-        public ushort Y;
-        public uint TextureIndexAndGlyphId;
-        public float GlyphAdvanceX;
-        public Vector2 GlyphOffset;
-        public ImFont* Font;
-
-        private const uint TextureIndexMask /***/ = 0b_00000000_00000000_00000111_11111100u;
-        private const uint GlyphIdMask /********/ = 0b_11111111_11111111_11111000_00000000u;
-
-        private const int TextureIndexShift = 2;
-        private const int GlyphIdShift = 11;
-
-        public int TextureIndex
-        {
-            get => (int)(this.TextureIndexAndGlyphId & TextureIndexMask) >> TextureIndexShift;
-            set => this.TextureIndexAndGlyphId = (this.TextureIndexAndGlyphId & ~TextureIndexMask) | ((uint)value << TextureIndexShift);
-        }
-
-        public int GlyphId
-        {
-            get => (int)(this.TextureIndexAndGlyphId & GlyphIdMask) >> GlyphIdShift;
-            set => this.TextureIndexAndGlyphId = (this.TextureIndexAndGlyphId & ~GlyphIdMask) | ((uint)value << GlyphIdShift);
-        }
     }
 
     /// <summary>
