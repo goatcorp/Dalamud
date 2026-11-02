@@ -65,7 +65,7 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
     {
         Log.Verbose("===== C L I E N T  S T A T E =====");
 
-        this.ClientLanguage = (ClientLanguage)dalamud.StartInfo.Language;
+        this.ClientLanguage = dalamud.StartInfo.Language;
 
         this.uiModuleHandlePacketHook = Hook<UIModule.Delegates.HandlePacket>.FromAddress(
             (nint)UIModule.StaticVirtualTablePointer->HandlePacket,
@@ -336,46 +336,41 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
     {
         this.cfPopHook.OriginalDisposeSafe(packet);
 
+        if (packet->QueueState != ContentsFinderQueueState.Ready)
+            return;
+
         try
         {
-            if (packet->QueueState != ContentsFinderQueueState.Ready)
-                return;
-
             if (this.configuration.DutyFinderTaskbarFlash)
                 Util.FlashWindow();
 
             var cfcId = packet->ContentFinderConditionId;
-            var cfCondition = LuminaUtils.CreateRef<ContentFinderCondition>(cfcId);
-
-            if (!cfCondition.IsValid)
+            var cfcRef = LuminaUtils.CreateRef<ContentFinderCondition>(cfcId);
+            if (!cfcRef.TryGetValue(out var cfcRow))
             {
                 Log.Error("CFC key {cfcId} not found", cfcId);
                 return;
             }
 
-            var cfcName = cfCondition.Value.Name;
-            if (cfcName.IsEmpty)
-                cfcName = "Duty Roulette";
-
-            Task.Run(() =>
+            if (this.configuration.DutyFinderChatMessage)
             {
-                if (this.configuration.DutyFinderChatMessage)
-                {
-                    using var rssb = new RentedSeStringBuilder();
-                    this.chatGui.Print(rssb.Builder
-                        .Append("Duty pop: ")
-                        .Append(cfcName)
-                        .ToReadOnlySeString());
-                }
+                using var rssb = new RentedSeStringBuilder();
 
-                this.CfPop.InvokeSafely(cfCondition);
-            }).ContinueWith(
-                task => Log.Error(task.Exception, "CfPop.Invoke failed"),
-                TaskContinuationOptions.OnlyOnFaulted);
+                rssb.Append("Duty pop: "u8);
+
+                if (cfcRow.Name is { IsEmpty: false } cfcName)
+                    rssb.Append(cfcName);
+                else
+                    rssb.Append("Duty Roulette"u8);
+
+                this.chatGui.Print(rssb.ToReadOnlySeString());
+            }
+
+            this.CfPop.InvokeSafely(cfcRef);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "CfPopDetour threw an exception");
+            Log.Error(ex, "HandleContentsFinderNotificationPacketDetour threw an exception");
         }
     }
 
