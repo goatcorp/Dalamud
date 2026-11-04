@@ -321,10 +321,13 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                 {
                     this.state = State.Show;
                 }
+                else
+                {
+                    this.moveEasings.Clear();
+                    this.logoEasings.Clear();
+                    this.shadeEasings.Clear();
+                }
 
-                this.moveEasings.Clear();
-                this.logoEasings.Clear();
-                this.shadeEasings.Clear();
                 break;
             }
         }
