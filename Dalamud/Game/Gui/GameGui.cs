@@ -107,7 +107,21 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
     /// <inheritdoc/>
     public bool OpenMapWithMapLink(uint territory, uint map, Vector3 worldPos)
-        => RaptureAtkModule.Instance()->OpenMapWithMapLink($"m:{territory},{map},{(int)worldPos.X * 1000},{(int)worldPos.Z * 1000}");
+        => this.OpenMapWithMapLink(new WorldCoordinate(territory, map, worldPos));
+
+    /// <inheritdoc/>
+    public bool OpenMapWithMapLink(WorldCoordinate worldPos)
+    {
+        var mapId = MapUtil.ResolveMapId(worldPos.TerritoryId, worldPos.MapId);
+        var rawX = MapUtil.ConvertWorldCoordXZToRaw(worldPos.X);
+        var rawY = MapUtil.ConvertWorldCoordXZToRaw(worldPos.Z);
+
+        return RaptureAtkModule.Instance()->OpenMapWithMapLink($"m:{worldPos.TerritoryId},{mapId},{rawX},{rawY}");
+    }
+
+    /// <inheritdoc/>
+    public bool OpenMapWithMapLink(MapCoordinate mapPos)
+        => this.OpenMapWithMapLink(mapPos.ToWorldCoordinate());
 
     /// <inheritdoc/>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
@@ -466,6 +480,14 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public bool OpenMapWithMapLink(uint territory, uint map, Vector3 worldPos)
         => this.gameGuiService.OpenMapWithMapLink(territory, map, worldPos);
+
+    /// <inheritdoc/>
+    public bool OpenMapWithMapLink(WorldCoordinate worldPos)
+        => this.gameGuiService.OpenMapWithMapLink(worldPos);
+
+    /// <inheritdoc/>
+    public bool OpenMapWithMapLink(MapCoordinate mapPos)
+        => this.gameGuiService.OpenMapWithMapLink(mapPos);
 
     /// <inheritdoc/>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)

@@ -146,15 +146,13 @@ public interface IGameObject : IEquatable<IGameObject>
     /// Gets the current position of a GameObject as a <see cref="WorldCoordinate"/> (visible to players in the
     /// minimap or chat).
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if ClientState is unavailable.</exception>
-    /// <returns>A MapCoordinate of this object.</returns>
+    /// <returns>A WorldCoordinate of this object.</returns>
     WorldCoordinate GetWorldCoordinate();
 
     /// <summary>
     /// Gets the current position of a GameObject as a <see cref="MapCoordinate"/> (visible to players in the
     /// minimap or chat).
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if ClientState is unavailable.</exception>
     /// <returns>A MapCoordinate of this object.</returns>
     MapCoordinate GetMapCoordinate();
 }

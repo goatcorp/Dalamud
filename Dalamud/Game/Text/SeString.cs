@@ -13,6 +13,8 @@ namespace Dalamud.Game.Text;
 /// </summary>
 public static class SeString
 {
+    private const float MapCoordinateBias = 0.0001f;
+
     /// <summary>
     /// Creates a ReadOnlySeString representing an entire macro chain that can be used to link an item in the chat log.
     /// </summary>
@@ -74,20 +76,22 @@ public static class SeString
     /// Creates a ReadOnlySeString representing an entire macros chain that can be used to link a map position of a GameObject in the chat log.
     /// </summary>
     /// <param name="obj">The GameObject, which position should be used.</param>
+    /// <param name="placeNameIdOverride">An optional PlaceName RowId that is used for the locations name.</param>
     /// <returns>A ReadOnlySeString containing all of the macros necessary to display a map link in the chat log.</returns>
-    public static ReadOnlySeString CreateMapLink(IGameObject obj)
+    public static ReadOnlySeString CreateMapLink(IGameObject obj, uint placeNameIdOverride = 0)
     {
-        return CreateMapLink(obj.GetWorldCoordinate());
+        return CreateMapLink(obj.GetWorldCoordinate(), placeNameIdOverride);
     }
 
     /// <summary>
     /// Creates a ReadOnlySeString representing an entire macros chain that can be used to link a Level position in the chat log.
     /// </summary>
     /// <param name="levelRow">The Level row.</param>
+    /// <param name="placeNameIdOverride">An optional PlaceName RowId that is used for the locations name.</param>
     /// <returns>A ReadOnlySeString containing all of the macros necessary to display a map link of a Level position in the chat log.</returns>
-    public static ReadOnlySeString CreateMapLink(Level levelRow)
+    public static ReadOnlySeString CreateMapLink(Level levelRow, uint placeNameIdOverride = 0)
     {
-        return CreateMapLink(levelRow.ToWorldCoordinate());
+        return CreateMapLink(levelRow.ToWorldCoordinate(), placeNameIdOverride);
     }
 
     /// <summary>
@@ -98,8 +102,11 @@ public static class SeString
     /// <returns>A ReadOnlySeString containing all of the macros necessary to display a map link in the chat log.</returns>
     public static ReadOnlySeString CreateMapLink(WorldCoordinate worldPos, uint placeNameIdOverride = 0)
     {
-        if (worldPos.TerritoryId == 0 || worldPos.MapId == 0)
+        var mapId = MapUtil.ResolveMapId(worldPos.TerritoryId, worldPos.MapId);
+        if (worldPos.TerritoryId == 0 || mapId == 0)
+        {
             return default;
+        }
 
         using var rssb = new RentedSeStringBuilder();
 
@@ -108,10 +115,11 @@ public static class SeString
                 .AppendIntExpression(200)
                 .AppendIntExpression(3)
                 .AppendUIntExpression(worldPos.TerritoryId)
-                .AppendUIntExpression((worldPos.InstanceId << 16) | worldPos.MapId)
-                .AppendIntExpression((int)MathF.Round(worldPos.X * 1000f))
-                .AppendIntExpression((int)MathF.Round(worldPos.Z * 1000f))
-                .AppendIntExpression(worldPos.Y == MapUtil.NoRawZ ? MapUtil.NoRawZ : MapUtil.ApplyTerritoryOffsetToWorldCoordianteY(worldPos.TerritoryId, worldPos.Y))
+                .AppendUIntExpression((worldPos.InstanceId << 16) | mapId)
+                .AppendIntExpression(MapUtil.ConvertWorldCoordXZToRaw(worldPos.X))
+                .AppendIntExpression(MapUtil.ConvertWorldCoordXZToRaw(worldPos.Z))
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                .AppendIntExpression(worldPos.Y == MapUtil.NoRawZ ? MapUtil.NoRawZ : MapUtil.ApplyTerritoryOffsetToWorldCoordinateY(worldPos.TerritoryId, worldPos.Y))
                 .AppendUIntExpression(placeNameIdOverride)
                 .EndMacro()
                 .ToReadOnlySeString());
@@ -121,10 +129,16 @@ public static class SeString
     /// Creates a ReadOnlySeString representing an entire macros chain that can be used to link a map position in the chat log.
     /// </summary>
     /// <param name="mapPos">The map-space coordinate.</param>
+    /// <param name="placeNameIdOverride">An optional PlaceName RowId that is used for the locations name.</param>
     /// <returns>A ReadOnlySeString containing all of the macros necessary to display a map link in the chat log.</returns>
-    public static ReadOnlySeString CreateMapLink(MapCoordinate mapPos)
+    public static ReadOnlySeString CreateMapLink(MapCoordinate mapPos, uint placeNameIdOverride = 0)
     {
-        return CreateMapLink(mapPos.ToWorldCoordinate());
+        // Needed to fix some inaccuracies in the float math in the evaluator, used to be "fudgeFactor" in api15 but
+        // this value seems safe for every case I tested
+        mapPos.X += MapCoordinateBias;
+        mapPos.Y += MapCoordinateBias;
+
+        return CreateMapLink(mapPos.ToWorldCoordinate(), placeNameIdOverride);
     }
 
     /// <summary>

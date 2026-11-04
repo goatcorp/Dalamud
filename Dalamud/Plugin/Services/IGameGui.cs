@@ -59,6 +59,20 @@ public unsafe interface IGameGui : IDalamudService
     bool OpenMapWithMapLink(uint territory, uint map, Vector3 worldPos);
 
     /// <summary>
+    /// Opens the in-game map with a flag on the location of the parameter.
+    /// </summary>
+    /// <param name="worldPos">The world-space coordinate to link.</param>
+    /// <returns>True if there were no errors and it could open the map.</returns>
+    bool OpenMapWithMapLink(WorldCoordinate worldPos);
+
+    /// <summary>
+    /// Opens the in-game map with a flag on the location of the parameter.
+    /// </summary>
+    /// <param name="mapPos">The map-space coordinate to link.</param>
+    /// <returns>True if there were no errors and it could open the map.</returns>
+    bool OpenMapWithMapLink(MapCoordinate mapPos);
+
+    /// <summary>
     /// Converts in-world coordinates to screen coordinates (upper left corner origin).
     /// </summary>
     /// <param name="worldPos">Coordinates in the world.</param>

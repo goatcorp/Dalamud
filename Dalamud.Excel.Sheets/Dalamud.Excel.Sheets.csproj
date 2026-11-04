@@ -4,6 +4,11 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
+    <PropertyGroup Label="Documentation">
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
+    </PropertyGroup>
+
     <PropertyGroup>
         <SchemaPath>$(MSBuildProjectDirectory)\..\lib\EXDSchema</SchemaPath>
         <GeneratedNamespace>Dalamud.Excel.Sheets</GeneratedNamespace>
