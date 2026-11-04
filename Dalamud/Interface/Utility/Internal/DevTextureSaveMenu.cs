@@ -151,7 +151,7 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
                 {
                     var framework = await Service<Framework>.GetAsync();
                     var dalamudInterface = await Service<DalamudInterface>.GetAsync();
-                    await framework.RunOnFrameworkThread(
+                    await framework.Run(
                         () =>
                         {
                             var texWidget = dalamudInterface.GetDataWindowWidget<TexWidget>();

@@ -99,7 +99,7 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
         if (agentModuleInstance is not null)
         {
             // For safety because this might be injected async, we will make sure we are on the main thread first.
-            this.framework.RunOnFrameworkThread(() => this.ReplaceVirtualTables(agentModuleInstance));
+            _ = this.framework.Run(() => this.ReplaceVirtualTables(agentModuleInstance));
         }
         else
         {
@@ -135,11 +135,11 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
     {
         if (this.isInvokingListeners)
         {
-            this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
+            _ = this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
         }
         else
         {
-            this.framework.RunOnFrameworkThread(() => this.RegisterListenerMethod(listener));
+            _ = this.framework.Run(() => this.RegisterListenerMethod(listener));
         }
     }
 
@@ -153,11 +153,11 @@ internal unsafe class AgentLifecycle : IInternalDisposableService
 
         if (this.isInvokingListeners)
         {
-            this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
+            _ = this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
         }
         else
         {
-            this.framework.RunOnFrameworkThread(() => this.UnregisterListenerMethod(listener));
+            _ = this.framework.Run(() => this.UnregisterListenerMethod(listener));
         }
     }
 

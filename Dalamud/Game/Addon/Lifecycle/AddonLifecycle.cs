@@ -95,7 +95,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         this.onInitializeAddonHook?.Dispose();
         this.onInitializeAddonHook = null;
 
-        this.framework.RunOnFrameworkThread(() =>
+        _ = this.framework.Run(() =>
         {
             AllocatedTables.ForEach(entry => entry.Dispose());
             AllocatedTables.Clear();
@@ -110,11 +110,11 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     {
         if (this.isInvokingListeners)
         {
-            this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
+            _ = this.framework.RunOnTick(() => this.RegisterListenerMethod(listener));
         }
         else
         {
-            this.framework.RunOnFrameworkThread(() => this.RegisterListenerMethod(listener));
+            _ = this.framework.Run(() => this.RegisterListenerMethod(listener));
         }
     }
 
@@ -128,11 +128,11 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
         if (this.isInvokingListeners)
         {
-            this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
+            _ = this.framework.RunOnTick(() => this.UnregisterListenerMethod(listener));
         }
         else
         {
-            this.framework.RunOnFrameworkThread(() => this.UnregisterListenerMethod(listener));
+            _ = this.framework.Run(() => this.UnregisterListenerMethod(listener));
         }
     }
 
