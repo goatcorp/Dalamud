@@ -24,7 +24,7 @@ set(THIRD_PARTY_SOURCES
     "${LIB_DIR}/libdeflate/lib/utils.c"
     "${LIB_DIR}/libdeflate/lib/x86/cpu_features.c"
     "${LIB_DIR}/TsudaKageyu-minhook/src/buffer.c"
-    "${LIB_DIR}/TsudaKageyu-minhook/src/HDE/hde64.c"
+    "${LIB_DIR}/TsudaKageyu-minhook/src/hde/hde64.c"
     "${LIB_DIR}/TsudaKageyu-minhook/src/hook.c"
     "${LIB_DIR}/TsudaKageyu-minhook/src/trampoline.c"
     "${LIB_DIR}/safetyhook/Zydis.c"
@@ -54,8 +54,24 @@ add_library(Dalamud.Boot SHARED
     themes.manifest)
 
 # TODO: use same standard for all projects (here cxx_std_23)
-target_compile_options(Dalamud.Boot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++23preview>)
+if(MSVC)
+    set_target_properties(Dalamud.Boot PROPERTIES
+        VS_GLOBAL_GenerateManifest "false"
+        VS_GLOBAL_EmbedManifest "false")
+    target_compile_options(Dalamud.Boot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++23preview>)
+else()
+    target_compile_features(Dalamud.Boot PRIVATE cxx_std_23)
+endif()
+
 target_compile_definitions(Dalamud.Boot PRIVATE CPPDLLTEMPLATE_EXPORTS _USRDLL)
+
+if(MINGW)
+    # - We need to explicitly link against the MSVC or Universal C Runtime ourselves.
+    #   - Wine doesn't come with the debug variant, thus only ever link to the release version runtime. Sorry not sorry!
+    # - Building a statically self-contained library is required for e.g. the entrypoint injection method.
+    target_link_libraries(Dalamud.Boot PRIVATE ucrtbase)
+    target_link_options(Dalamud.Boot PRIVATE -static)
+endif()
 
 # TODO: Get rid of this please, put it in a header, make the thirdparties static libs
 target_compile_definitions(Dalamud.Boot PRIVATE WIN32_LEAN_AND_MEAN= NOMINMAX=)
@@ -69,7 +85,7 @@ target_include_directories(Dalamud.Boot PRIVATE
     "${LIB_DIR}/safetyhook"
     "${LIB_DIR}/srell3_009/single-header"
     "${LIB_DIR}/TsudaKageyu-minhook/include")
-target_link_libraries(Dalamud.Boot PRIVATE Version Shlwapi Comctl32 Dxgi)
+target_link_libraries(Dalamud.Boot PRIVATE version shlwapi comctl32 dxgi)
 
 add_custom_command(TARGET Dalamud.Boot POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different

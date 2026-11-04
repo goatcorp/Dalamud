@@ -3,13 +3,13 @@
 #include <mutex>
 #include <set>
 
-#include <Windows.h>
-#include <DbgHelp.h>
-#include <Dbt.h>
+#include <windows.h>
+#include <dbghelp.h>
+#include <dbt.h>
 #include <iphlpapi.h>
 #include <icmpapi.h> // Must be after iphlpapi.h
-#include <ShlObj.h>
-#include <Shlwapi.h>
+#include <shlobj.h>
+#include <shlwapi.h>
 
 #include <libdeflate.h>
 #include <mimalloc.h>
@@ -195,7 +195,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
     static WNDPROC s_pfnGameWndProc = nullptr;
 
     // We're intentionally leaking memory for this one.
-    static const auto s_pfnBinder = static_cast<WNDPROC>(VirtualAlloc(nullptr, 64, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
+    static const auto s_pfnBinder = reinterpret_cast<WNDPROC>(VirtualAlloc(nullptr, 64, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
     static const auto s_pfnAlternativeWndProc = static_cast<WNDPROC>([](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT {
         if (uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
             try {
@@ -237,8 +237,8 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             // push qword ptr [rip+1]
             // ret
             // <pointer to new wndproc>
-            memcpy(s_pfnBinder, "\xFF\x35\x01\x00\x00\x00\xC3", 7);
-            *reinterpret_cast<void**>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnAlternativeWndProc;
+            memcpy(reinterpret_cast<void*>(s_pfnBinder), "\xFF\x35\x01\x00\x00\x00\xC3", 7);
+            *reinterpret_cast<WNDPROC*>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnAlternativeWndProc;
 
             s_pfnGameWndProc = pWndClassExA->lpfnWndProc;
 
@@ -255,7 +255,7 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             s_hookRegisterClassExA.reset();
         }
 
-        *reinterpret_cast<void**>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnGameWndProc;
+        *reinterpret_cast<WNDPROC*>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnGameWndProc;
     }
 }
 
@@ -273,7 +273,7 @@ static bool is_xivalex(const std::filesystem::path& dllPath) {
     } * lpTranslate;
     UINT cbTranslate;
     if (!VerQueryValueW(&block[0],
-        TEXT("\\VarFileInfo\\Translation"),
+        L"\\VarFileInfo\\Translation",
         reinterpret_cast<LPVOID*>(&lpTranslate),
         &cbTranslate)) {
         return false;
@@ -304,7 +304,7 @@ static bool is_xivalex(const std::filesystem::path& dllPath) {
 static bool is_openprocess_already_dealt_with() {
     static const auto s_value = [] {
         for (const auto& mod : utils::loaded_module::all_modules()) {
-            const auto path = mod.path().value_or({});
+            const auto path = mod.path().value_or(std::filesystem::path());
             if (path.empty())
                 continue;
             if (is_xivalex(path))

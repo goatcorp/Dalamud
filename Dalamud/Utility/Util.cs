@@ -458,13 +458,21 @@ public static partial class Util
     /// will not return information about the host operating system.
     /// </summary>
     /// <returns>Returns true if running on Wine, false otherwise.</returns>
-    public static bool IsWine() => Service<Dalamud>.Get().StartInfo.Platform != OSPlatform.Windows;
+    public static bool IsWine() => GetHostPlatform() != OSPlatform.Windows;
 
     /// <summary>
     /// Gets the current host's platform based on the injector launch arguments or heuristics.
     /// </summary>
     /// <returns>Returns the <see cref="OSPlatform"/> that Dalamud is currently running on.</returns>
-    public static OSPlatform GetHostPlatform() => Service<Dalamud>.Get().StartInfo.Platform;
+    public static OSPlatform GetHostPlatform()
+    {
+        if (Service<IoC.Internal.ServiceContainer>.GetAsync().IsCompleted && Service<Dalamud>.GetAsync().IsCompleted)
+        {
+            return Service<Dalamud>.Get().StartInfo.Platform;
+        }
+
+        return global::Dalamud.Common.Util.EnvironmentUtils.DetectPlatformHeuristic();
+    }
 
     /// <summary>
     /// Heuristically determine if the Windows version is higher than Windows 11's first build.
