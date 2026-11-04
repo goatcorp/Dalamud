@@ -285,18 +285,18 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImVector<ImGuiTextRange> Filters;
+		public int CountExclude;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int CountGrep;
+		public ImVector<ImGuiTextFilterItem> Items;
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiTextFilter(byte* inputBuf = default, ImVector<ImGuiTextRange> filters = default, int countGrep = default)
+		public unsafe ImGuiTextFilter(byte* inputBuf = default, int countExclude = default, ImVector<ImGuiTextFilterItem> items = default)
 		{
 			if (inputBuf != default(byte*))
 			{
@@ -557,14 +557,14 @@ namespace Dalamud.Bindings.ImGui
 				InputBuf_254 = inputBuf[254];
 				InputBuf_255 = inputBuf[255];
 			}
-			Filters = filters;
-			CountGrep = countGrep;
+			CountExclude = countExclude;
+			Items = items;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiTextFilter(Span<byte> inputBuf = default, ImVector<ImGuiTextRange> filters = default, int countGrep = default)
+		public unsafe ImGuiTextFilter(Span<byte> inputBuf = default, int countExclude = default, ImVector<ImGuiTextFilterItem> items = default)
 		{
 			if (inputBuf != default(Span<byte>))
 			{
@@ -825,8 +825,8 @@ namespace Dalamud.Bindings.ImGui
 				InputBuf_254 = inputBuf[254];
 				InputBuf_255 = inputBuf[255];
 			}
-			Filters = filters;
-			CountGrep = countGrep;
+			CountExclude = countExclude;
+			Items = items;
 		}
 
 
@@ -866,23 +866,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe bool Draw(byte* label, float width)
-		{
-			fixed (ImGuiTextFilter* @this = &this)
-			{
-				byte ret = ImGui.DrawNative(@this, label, width);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public unsafe bool Draw(byte* label)
 		{
 			fixed (ImGuiTextFilter* @this = &this)
 			{
-				byte ret = ImGui.DrawNative(@this, label, (float)(0.0f));
+				byte ret = ImGui.DrawNative(@this, label);
 				return ret != 0;
 			}
 		}
@@ -894,35 +882,8 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (ImGuiTextFilter* @this = &this)
 			{
-				bool ret = ImGui.Draw(@this, (string)"Filter(inc,-exc)", (float)(0.0f));
+				bool ret = ImGui.Draw(@this, (string)"Filter");
 				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe bool Draw(float width)
-		{
-			fixed (ImGuiTextFilter* @this = &this)
-			{
-				bool ret = ImGui.Draw(@this, (string)"Filter(inc,-exc)", width);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe bool Draw(ref byte label, float width)
-		{
-			fixed (ImGuiTextFilter* @this = &this)
-			{
-				fixed (byte* plabel = &label)
-				{
-					byte ret = ImGui.DrawNative(@this, (byte*)plabel, width);
-					return ret != 0;
-				}
 			}
 		}
 
@@ -935,22 +896,7 @@ namespace Dalamud.Bindings.ImGui
 			{
 				fixed (byte* plabel = &label)
 				{
-					byte ret = ImGui.DrawNative(@this, (byte*)plabel, (float)(0.0f));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe bool Draw(ReadOnlySpan<byte> label, float width)
-		{
-			fixed (ImGuiTextFilter* @this = &this)
-			{
-				fixed (byte* plabel = label)
-				{
-					byte ret = ImGui.DrawNative(@this, (byte*)plabel, width);
+					byte ret = ImGui.DrawNative(@this, (byte*)plabel);
 					return ret != 0;
 				}
 			}
@@ -965,42 +911,9 @@ namespace Dalamud.Bindings.ImGui
 			{
 				fixed (byte* plabel = label)
 				{
-					byte ret = ImGui.DrawNative(@this, (byte*)plabel, (float)(0.0f));
+					byte ret = ImGui.DrawNative(@this, (byte*)plabel);
 					return ret != 0;
 				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe bool Draw(string label, float width)
-		{
-			fixed (ImGuiTextFilter* @this = &this)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (label != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(label);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				byte ret = ImGui.DrawNative(@this, pStr0, width);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
 			}
 		}
 
@@ -1028,12 +941,507 @@ namespace Dalamud.Bindings.ImGui
 					int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = ImGui.DrawNative(@this, pStr0, (float)(0.0f));
+				byte ret = ImGui.DrawNative(@this, pStr0);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
 				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(byte* label, byte* hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				byte ret = ImGui.DrawWithHintNative(@this, label, hint);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(byte* label)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				bool ret = ImGui.DrawWithHint(@this, label, (string)"incl -excl");
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint()
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				bool ret = ImGui.DrawWithHint(@this, (string)"Filter", (string)"incl -excl");
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ref byte label, byte* hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* plabel = &label)
+				{
+					byte ret = ImGui.DrawWithHintNative(@this, (byte*)plabel, hint);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ref byte label)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* plabel = &label)
+				{
+					bool ret = ImGui.DrawWithHint(@this, (byte*)plabel, (string)"incl -excl");
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ReadOnlySpan<byte> label, byte* hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* plabel = label)
+				{
+					byte ret = ImGui.DrawWithHintNative(@this, (byte*)plabel, hint);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ReadOnlySpan<byte> label)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* plabel = label)
+				{
+					bool ret = ImGui.DrawWithHint(@this, (byte*)plabel, (string)"incl -excl");
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(string label, byte* hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (label != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(label);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				byte ret = ImGui.DrawWithHintNative(@this, pStr0, hint);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(string label)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (label != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(label);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				bool ret = ImGui.DrawWithHint(@this, pStr0, (string)"incl -excl");
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(byte* label, ref byte hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* phint = &hint)
+				{
+					byte ret = ImGui.DrawWithHintNative(@this, label, (byte*)phint);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(byte* label, ReadOnlySpan<byte> hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* phint = hint)
+				{
+					byte ret = ImGui.DrawWithHintNative(@this, label, (byte*)phint);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(byte* label, string hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (hint != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(hint);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(hint, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				byte ret = ImGui.DrawWithHintNative(@this, label, pStr0);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ref byte label, ref byte hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* plabel = &label)
+				{
+					fixed (byte* phint = &hint)
+					{
+						byte ret = ImGui.DrawWithHintNative(@this, (byte*)plabel, (byte*)phint);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ReadOnlySpan<byte> label, ReadOnlySpan<byte> hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* plabel = label)
+				{
+					fixed (byte* phint = hint)
+					{
+						byte ret = ImGui.DrawWithHintNative(@this, (byte*)plabel, (byte*)phint);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(string label, string hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (label != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(label);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				byte* pStr1 = null;
+				int pStrSize1 = 0;
+				if (hint != null)
+				{
+					pStrSize1 = Utils.GetByteCountUTF8(hint);
+					if (pStrSize1 >= Utils.MaxStackallocSize)
+					{
+						pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+					}
+					else
+					{
+						byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+						pStr1 = pStrStack1;
+					}
+					int pStrOffset1 = Utils.EncodeStringUTF8(hint, pStr1, pStrSize1);
+					pStr1[pStrOffset1] = 0;
+				}
+				byte ret = ImGui.DrawWithHintNative(@this, pStr0, pStr1);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr1);
+				}
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ref byte label, ReadOnlySpan<byte> hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* plabel = &label)
+				{
+					fixed (byte* phint = hint)
+					{
+						byte ret = ImGui.DrawWithHintNative(@this, (byte*)plabel, (byte*)phint);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ref byte label, string hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* plabel = &label)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (hint != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(hint);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(hint, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					byte ret = ImGui.DrawWithHintNative(@this, (byte*)plabel, pStr0);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ReadOnlySpan<byte> label, ref byte hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* plabel = label)
+				{
+					fixed (byte* phint = &hint)
+					{
+						byte ret = ImGui.DrawWithHintNative(@this, (byte*)plabel, (byte*)phint);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ReadOnlySpan<byte> label, string hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				fixed (byte* plabel = label)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (hint != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(hint);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(hint, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					byte ret = ImGui.DrawWithHintNative(@this, (byte*)plabel, pStr0);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(string label, ref byte hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (label != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(label);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* phint = &hint)
+				{
+					byte ret = ImGui.DrawWithHintNative(@this, pStr0, (byte*)phint);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(string label, ReadOnlySpan<byte> hint)
+		{
+			fixed (ImGuiTextFilter* @this = &this)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (label != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(label);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				fixed (byte* phint = hint)
+				{
+					byte ret = ImGui.DrawWithHintNative(@this, pStr0, (byte*)phint);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+					return ret != 0;
+				}
 			}
 		}
 
@@ -1589,11 +1997,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImVector<ImGuiTextRange> Filters => ref Unsafe.AsRef<ImVector<ImGuiTextRange>>(&Handle->Filters);
+		public ref int CountExclude => ref Unsafe.AsRef<int>(&Handle->CountExclude);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int CountGrep => ref Unsafe.AsRef<int>(&Handle->CountGrep);
+		public ref ImVector<ImGuiTextFilterItem> Items => ref Unsafe.AsRef<ImVector<ImGuiTextFilterItem>>(&Handle->Items);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1621,18 +2029,9 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe bool Draw(byte* label, float width)
-		{
-			byte ret = ImGui.DrawNative(Handle, label, width);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public unsafe bool Draw(byte* label)
 		{
-			byte ret = ImGui.DrawNative(Handle, label, (float)(0.0f));
+			byte ret = ImGui.DrawNative(Handle, label);
 			return ret != 0;
 		}
 
@@ -1641,29 +2040,8 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public unsafe bool Draw()
 		{
-			bool ret = ImGui.Draw(Handle, (string)"Filter(inc,-exc)", (float)(0.0f));
+			bool ret = ImGui.Draw(Handle, (string)"Filter");
 			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe bool Draw(float width)
-		{
-			bool ret = ImGui.Draw(Handle, (string)"Filter(inc,-exc)", width);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe bool Draw(ref byte label, float width)
-		{
-			fixed (byte* plabel = &label)
-			{
-				byte ret = ImGui.DrawNative(Handle, (byte*)plabel, width);
-				return ret != 0;
-			}
 		}
 
 		/// <summary>
@@ -1673,19 +2051,7 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (byte* plabel = &label)
 			{
-				byte ret = ImGui.DrawNative(Handle, (byte*)plabel, (float)(0.0f));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe bool Draw(ReadOnlySpan<byte> label, float width)
-		{
-			fixed (byte* plabel = label)
-			{
-				byte ret = ImGui.DrawNative(Handle, (byte*)plabel, width);
+				byte ret = ImGui.DrawNative(Handle, (byte*)plabel);
 				return ret != 0;
 			}
 		}
@@ -1697,39 +2063,9 @@ namespace Dalamud.Bindings.ImGui
 		{
 			fixed (byte* plabel = label)
 			{
-				byte ret = ImGui.DrawNative(Handle, (byte*)plabel, (float)(0.0f));
+				byte ret = ImGui.DrawNative(Handle, (byte*)plabel);
 				return ret != 0;
 			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe bool Draw(string label, float width)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = ImGui.DrawNative(Handle, pStr0, width);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
 		}
 
 		/// <summary>
@@ -1754,12 +2090,444 @@ namespace Dalamud.Bindings.ImGui
 				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			byte ret = ImGui.DrawNative(Handle, pStr0, (float)(0.0f));
+			byte ret = ImGui.DrawNative(Handle, pStr0);
 			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr0);
 			}
 			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(byte* label, byte* hint)
+		{
+			byte ret = ImGui.DrawWithHintNative(Handle, label, hint);
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(byte* label)
+		{
+			bool ret = ImGui.DrawWithHint(Handle, label, (string)"incl -excl");
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint()
+		{
+			bool ret = ImGui.DrawWithHint(Handle, (string)"Filter", (string)"incl -excl");
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ref byte label, byte* hint)
+		{
+			fixed (byte* plabel = &label)
+			{
+				byte ret = ImGui.DrawWithHintNative(Handle, (byte*)plabel, hint);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ref byte label)
+		{
+			fixed (byte* plabel = &label)
+			{
+				bool ret = ImGui.DrawWithHint(Handle, (byte*)plabel, (string)"incl -excl");
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ReadOnlySpan<byte> label, byte* hint)
+		{
+			fixed (byte* plabel = label)
+			{
+				byte ret = ImGui.DrawWithHintNative(Handle, (byte*)plabel, hint);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ReadOnlySpan<byte> label)
+		{
+			fixed (byte* plabel = label)
+			{
+				bool ret = ImGui.DrawWithHint(Handle, (byte*)plabel, (string)"incl -excl");
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(string label, byte* hint)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			byte ret = ImGui.DrawWithHintNative(Handle, pStr0, hint);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(string label)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			bool ret = ImGui.DrawWithHint(Handle, pStr0, (string)"incl -excl");
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(byte* label, ref byte hint)
+		{
+			fixed (byte* phint = &hint)
+			{
+				byte ret = ImGui.DrawWithHintNative(Handle, label, (byte*)phint);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(byte* label, ReadOnlySpan<byte> hint)
+		{
+			fixed (byte* phint = hint)
+			{
+				byte ret = ImGui.DrawWithHintNative(Handle, label, (byte*)phint);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(byte* label, string hint)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (hint != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(hint);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(hint, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			byte ret = ImGui.DrawWithHintNative(Handle, label, pStr0);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ref byte label, ref byte hint)
+		{
+			fixed (byte* plabel = &label)
+			{
+				fixed (byte* phint = &hint)
+				{
+					byte ret = ImGui.DrawWithHintNative(Handle, (byte*)plabel, (byte*)phint);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ReadOnlySpan<byte> label, ReadOnlySpan<byte> hint)
+		{
+			fixed (byte* plabel = label)
+			{
+				fixed (byte* phint = hint)
+				{
+					byte ret = ImGui.DrawWithHintNative(Handle, (byte*)plabel, (byte*)phint);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(string label, string hint)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			byte* pStr1 = null;
+			int pStrSize1 = 0;
+			if (hint != null)
+			{
+				pStrSize1 = Utils.GetByteCountUTF8(hint);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+				}
+				else
+				{
+					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+					pStr1 = pStrStack1;
+				}
+				int pStrOffset1 = Utils.EncodeStringUTF8(hint, pStr1, pStrSize1);
+				pStr1[pStrOffset1] = 0;
+			}
+			byte ret = ImGui.DrawWithHintNative(Handle, pStr0, pStr1);
+			if (pStrSize1 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr1);
+			}
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ref byte label, ReadOnlySpan<byte> hint)
+		{
+			fixed (byte* plabel = &label)
+			{
+				fixed (byte* phint = hint)
+				{
+					byte ret = ImGui.DrawWithHintNative(Handle, (byte*)plabel, (byte*)phint);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ref byte label, string hint)
+		{
+			fixed (byte* plabel = &label)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (hint != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(hint);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(hint, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				byte ret = ImGui.DrawWithHintNative(Handle, (byte*)plabel, pStr0);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ReadOnlySpan<byte> label, ref byte hint)
+		{
+			fixed (byte* plabel = label)
+			{
+				fixed (byte* phint = &hint)
+				{
+					byte ret = ImGui.DrawWithHintNative(Handle, (byte*)plabel, (byte*)phint);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(ReadOnlySpan<byte> label, string hint)
+		{
+			fixed (byte* plabel = label)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (hint != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(hint);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(hint, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				byte ret = ImGui.DrawWithHintNative(Handle, (byte*)plabel, pStr0);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(string label, ref byte hint)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* phint = &hint)
+			{
+				byte ret = ImGui.DrawWithHintNative(Handle, pStr0, (byte*)phint);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe bool DrawWithHint(string label, ReadOnlySpan<byte> hint)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (label != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(label);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (byte* phint = hint)
+			{
+				byte ret = ImGui.DrawWithHintNative(Handle, pStr0, (byte*)phint);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret != 0;
+			}
 		}
 
 		/// <summary>

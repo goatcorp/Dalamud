@@ -53,24 +53,28 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IInternalDisposabl
         // Effectively waiting for ImGui to become available.
         Debug.Assert(ImGuiHelpers.IsImGuiInitialized, "IMWS initialized but IsImGuiInitialized is false?");
 
-        var io = ImGui.GetIO();
-        this.clipboardUserDataOriginal = io.ClipboardUserData;
-        this.setTextOriginal = io.SetClipboardTextFn;
-        this.getTextOriginal = io.GetClipboardTextFn;
-        io.ClipboardUserData = GCHandle.ToIntPtr(this.clipboardUserData = GCHandle.Alloc(this)).ToPointer();
-        io.SetClipboardTextFn = (delegate* unmanaged<nint, byte*, void>)&StaticSetClipboardTextImpl;
-        io.GetClipboardTextFn = (delegate* unmanaged<nint, byte*>)&StaticGetClipboardTextImpl;
+        var pio = ImGui.GetPlatformIO();
+        this.clipboardUserDataOriginal = pio.PlatformClipboardUserData;
+        this.setTextOriginal = pio.PlatformSetClipboardTextFn;
+        this.getTextOriginal = pio.PlatformGetClipboardTextFn;
+        pio.PlatformClipboardUserData = GCHandle.ToIntPtr(this.clipboardUserData = GCHandle.Alloc(this)).ToPointer();
+        pio.PlatformSetClipboardTextFn = (delegate* unmanaged<nint, byte*, void>)&StaticSetClipboardTextImpl;
+        pio.PlatformGetClipboardTextFn = (delegate* unmanaged<nint, byte*>)&StaticGetClipboardTextImpl;
 
         this.clipboardData = new(0);
         return;
 
         [UnmanagedCallersOnly]
-        static void StaticSetClipboardTextImpl(nint userData, byte* text) =>
-            ((ImGuiClipboardFunctionProvider)GCHandle.FromIntPtr(userData).Target)!.SetClipboardTextImpl(text);
+        static void StaticSetClipboardTextImpl(nint ctx, byte* text) => FromUserData().SetClipboardTextImpl(text);
 
         [UnmanagedCallersOnly]
-        static byte* StaticGetClipboardTextImpl(nint userData) =>
-            ((ImGuiClipboardFunctionProvider)GCHandle.FromIntPtr(userData).Target)!.GetClipboardTextImpl();
+        static byte* StaticGetClipboardTextImpl(nint ctx) => FromUserData().GetClipboardTextImpl();
+
+        // The callbacks get the context, not the user data.
+        static ImGuiClipboardFunctionProvider FromUserData() =>
+            (ImGuiClipboardFunctionProvider)GCHandle
+                .FromIntPtr((nint)ImGui.GetPlatformIO().PlatformClipboardUserData)
+                .Target!;
     }
 
     /// <inheritdoc/>
@@ -79,10 +83,10 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IInternalDisposabl
         if (!this.clipboardUserData.IsAllocated)
             return;
 
-        var io = ImGui.GetIO();
-        io.SetClipboardTextFn = this.setTextOriginal;
-        io.GetClipboardTextFn = this.getTextOriginal;
-        io.ClipboardUserData = this.clipboardUserDataOriginal;
+        var pio = ImGui.GetPlatformIO();
+        pio.PlatformSetClipboardTextFn = this.setTextOriginal;
+        pio.PlatformGetClipboardTextFn = this.getTextOriginal;
+        pio.PlatformClipboardUserData = this.clipboardUserDataOriginal;
 
         this.clipboardUserData.Free();
         this.clipboardData.Dispose();

@@ -1,8 +1,8 @@
-using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.ImGuiBackend.Helpers.D3D11;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
@@ -59,51 +59,15 @@ internal sealed partial class TextureManager
         /// <param name="device">The device.</param>
         public void Setup(ID3D11Device* device)
         {
-            var assembly = typeof(SimpleDrawerImpl).Assembly;
-
             // Create the vertex shader
             if (this.vertexShader.IsEmpty() || this.inputLayout.IsEmpty())
             {
                 this.vertexShader.Reset();
                 this.inputLayout.Reset();
 
-                using var stream = assembly.GetManifestResourceStream("imgui-vertex.hlsl.bytes")!;
-                var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-                stream.ReadExactly(array, 0, (int)stream.Length);
-                fixed (byte* pArray = array)
                 fixed (ID3D11VertexShader** ppShader = &this.vertexShader.GetPinnableReference())
                 fixed (ID3D11InputLayout** ppInputLayout = &this.inputLayout.GetPinnableReference())
-                fixed (void* pszPosition = "POSITION"u8)
-                fixed (void* pszTexCoord = "TEXCOORD"u8)
-                fixed (void* pszColor = "COLOR"u8)
-                {
-                    device->CreateVertexShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
-
-                    var ied = stackalloc D3D11_INPUT_ELEMENT_DESC[]
-                    {
-                        new()
-                        {
-                            SemanticName = (sbyte*)pszPosition,
-                            Format = DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT,
-                            AlignedByteOffset = uint.MaxValue,
-                        },
-                        new()
-                        {
-                            SemanticName = (sbyte*)pszTexCoord,
-                            Format = DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT,
-                            AlignedByteOffset = uint.MaxValue,
-                        },
-                        new()
-                        {
-                            SemanticName = (sbyte*)pszColor,
-                            Format = DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
-                            AlignedByteOffset = uint.MaxValue,
-                        },
-                    };
-                    device->CreateInputLayout(ied, 3, pArray, (nuint)stream.Length, ppInputLayout).ThrowOnError();
-                }
-
-                ArrayPool<byte>.Shared.Return(array);
+                    D3D11Shaders.CreateImDrawVertShader(device, "imgui-vertex.hlsl.bytes", 6, ppShader, ppInputLayout);
             }
 
             // Create the constant buffer
@@ -122,38 +86,15 @@ internal sealed partial class TextureManager
             // Create the pixel shader
             if (this.pixelShader.IsEmpty())
             {
-                using var stream = assembly.GetManifestResourceStream("imgui-frag.hlsl.bytes")!;
-                var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-                stream.ReadExactly(array, 0, (int)stream.Length);
-                fixed (byte* pArray = array)
                 fixed (ID3D11PixelShader** ppShader = &this.pixelShader.GetPinnableReference())
-                    device->CreatePixelShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
-
-                ArrayPool<byte>.Shared.Return(array);
+                    D3D11Shaders.CreatePixelShader(device, "imgui-frag.hlsl.bytes", ppShader);
             }
 
             // Create the blending setup
             if (this.blendState.IsEmpty())
             {
-                var blendStateDesc = new D3D11_BLEND_DESC
-                {
-                    RenderTarget =
-                    {
-                        e0 =
-                        {
-                            BlendEnable = true,
-                            SrcBlend = D3D11_BLEND.D3D11_BLEND_SRC_ALPHA,
-                            DestBlend = D3D11_BLEND.D3D11_BLEND_INV_SRC_ALPHA,
-                            BlendOp = D3D11_BLEND_OP.D3D11_BLEND_OP_ADD,
-                            SrcBlendAlpha = D3D11_BLEND.D3D11_BLEND_INV_DEST_ALPHA,
-                            DestBlendAlpha = D3D11_BLEND.D3D11_BLEND_ONE,
-                            BlendOpAlpha = D3D11_BLEND_OP.D3D11_BLEND_OP_ADD,
-                            RenderTargetWriteMask = (byte)D3D11_COLOR_WRITE_ENABLE.D3D11_COLOR_WRITE_ENABLE_ALL,
-                        },
-                    },
-                };
                 fixed (ID3D11BlendState** ppBlendState = &this.blendState.GetPinnableReference())
-                    device->CreateBlendState(&blendStateDesc, ppBlendState).ThrowOnError();
+                    D3D11Shaders.CreateTextBlendState(device, ppBlendState);
             }
 
             if (this.blendStateForStrippingAlpha.IsEmpty())

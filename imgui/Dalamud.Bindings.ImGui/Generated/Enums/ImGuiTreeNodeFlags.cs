@@ -37,7 +37,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AllowItemOverlap = unchecked(4),
+		AllowOverlap = unchecked(4),
 
 		/// <summary>
 		/// To be documented.
@@ -92,11 +92,41 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NavLeftJumpsBackHere = unchecked(8192),
+		SpanLabelWidth = unchecked(8192),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		SpanAllColumns = unchecked(16384),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		LabelSpanAllColumns = unchecked(32768),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NavLeftJumpsToParent = unchecked(131072),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		CollapsingHeader = unchecked(26),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		DrawLinesNone = unchecked(262144),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		DrawLinesFull = unchecked(524288),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		DrawLinesToNodes = unchecked(1048576),
 	}
 }

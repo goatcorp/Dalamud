@@ -25,22 +25,32 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe ImGuiContext* Ctx;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe STBTexteditState* Stb;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiInputTextFlags Flags;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public uint ID;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int CurLenW;
+		public int TextLen;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int CurLenA;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImVector<ushort> TextW;
+		public unsafe byte* TextSrc;
 
 		/// <summary>
 		/// To be documented.
@@ -50,27 +60,32 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImVector<byte> InitialTextA;
+		public ImVector<byte> TextToRevertTo;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte TextAIsValid;
+		public ImVector<byte> CallbackTextBackup;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int BufCapacityA;
+		public int BufCapacity;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float ScrollX;
+		public Vector2 Scroll;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public STBTexteditState Stb;
+		public int LineCount;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float WrapWidth;
 
 		/// <summary>
 		/// To be documented.
@@ -85,52 +100,80 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte CursorCenterY;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public byte SelectedAllMouseLock;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte Edited;
+		public byte EditedBefore;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiInputTextFlags Flags;
+		public byte EditedThisFrame;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte ValidatedThisFrame;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte WantReloadUserBuf;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public sbyte LastMoveDirectionLR;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int ReloadSelectionStart;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int ReloadSelectionEnd;
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiInputTextState(uint id = default, int curLenW = default, int curLenA = default, ImVector<ushort> textW = default, ImVector<byte> textA = default, ImVector<byte> initialTextA = default, bool textAIsValid = default, int bufCapacityA = default, float scrollX = default, STBTexteditState stb = default, float cursorAnim = default, bool cursorFollow = default, bool selectedAllMouseLock = default, bool edited = default, ImGuiInputTextFlags flags = default)
+		public unsafe ImGuiInputTextState(ImGuiContextPtr ctx = default, STBTexteditState* stb = default, ImGuiInputTextFlags flags = default, uint id = default, int textLen = default, byte* textSrc = default, ImVector<byte> textA = default, ImVector<byte> textToRevertTo = default, ImVector<byte> callbackTextBackup = default, int bufCapacity = default, Vector2 scroll = default, int lineCount = default, float wrapWidth = default, float cursorAnim = default, bool cursorFollow = default, bool cursorCenterY = default, bool selectedAllMouseLock = default, bool editedBefore = default, bool editedThisFrame = default, bool validatedThisFrame = default, bool wantReloadUserBuf = default, sbyte lastMoveDirectionLr = default, int reloadSelectionStart = default, int reloadSelectionEnd = default)
 		{
-			ID = id;
-			CurLenW = curLenW;
-			CurLenA = curLenA;
-			TextW = textW;
-			TextA = textA;
-			InitialTextA = initialTextA;
-			TextAIsValid = textAIsValid ? (byte)1 : (byte)0;
-			BufCapacityA = bufCapacityA;
-			ScrollX = scrollX;
+			Ctx = ctx;
 			Stb = stb;
+			Flags = flags;
+			ID = id;
+			TextLen = textLen;
+			TextSrc = textSrc;
+			TextA = textA;
+			TextToRevertTo = textToRevertTo;
+			CallbackTextBackup = callbackTextBackup;
+			BufCapacity = bufCapacity;
+			Scroll = scroll;
+			LineCount = lineCount;
+			WrapWidth = wrapWidth;
 			CursorAnim = cursorAnim;
 			CursorFollow = cursorFollow ? (byte)1 : (byte)0;
+			CursorCenterY = cursorCenterY ? (byte)1 : (byte)0;
 			SelectedAllMouseLock = selectedAllMouseLock ? (byte)1 : (byte)0;
-			Edited = edited ? (byte)1 : (byte)0;
-			Flags = flags;
+			EditedBefore = editedBefore ? (byte)1 : (byte)0;
+			EditedThisFrame = editedThisFrame ? (byte)1 : (byte)0;
+			ValidatedThisFrame = validatedThisFrame ? (byte)1 : (byte)0;
+			WantReloadUserBuf = wantReloadUserBuf ? (byte)1 : (byte)0;
+			LastMoveDirectionLR = lastMoveDirectionLr;
+			ReloadSelectionStart = reloadSelectionStart;
+			ReloadSelectionEnd = reloadSelectionEnd;
 		}
 
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiInputTextState* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
 
 	}
 
@@ -178,19 +221,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImGuiContextPtr Ctx => ref Unsafe.AsRef<ImGuiContextPtr>(&Handle->Ctx);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref STBTexteditStatePtr Stb => ref Unsafe.AsRef<STBTexteditStatePtr>(&Handle->Stb);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiInputTextFlags Flags => ref Unsafe.AsRef<ImGuiInputTextFlags>(&Handle->Flags);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref uint ID => ref Unsafe.AsRef<uint>(&Handle->ID);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int CurLenW => ref Unsafe.AsRef<int>(&Handle->CurLenW);
+		public ref int TextLen => ref Unsafe.AsRef<int>(&Handle->TextLen);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int CurLenA => ref Unsafe.AsRef<int>(&Handle->CurLenA);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref ImVector<ushort> TextW => ref Unsafe.AsRef<ImVector<ushort>>(&Handle->TextW);
+		public byte* TextSrc { get => Handle->TextSrc; set => Handle->TextSrc = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -198,23 +249,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImVector<byte> InitialTextA => ref Unsafe.AsRef<ImVector<byte>>(&Handle->InitialTextA);
+		public ref ImVector<byte> TextToRevertTo => ref Unsafe.AsRef<ImVector<byte>>(&Handle->TextToRevertTo);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool TextAIsValid => ref Unsafe.AsRef<bool>(&Handle->TextAIsValid);
+		public ref ImVector<byte> CallbackTextBackup => ref Unsafe.AsRef<ImVector<byte>>(&Handle->CallbackTextBackup);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int BufCapacityA => ref Unsafe.AsRef<int>(&Handle->BufCapacityA);
+		public ref int BufCapacity => ref Unsafe.AsRef<int>(&Handle->BufCapacity);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float ScrollX => ref Unsafe.AsRef<float>(&Handle->ScrollX);
+		public ref Vector2 Scroll => ref Unsafe.AsRef<Vector2>(&Handle->Scroll);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref STBTexteditState Stb => ref Unsafe.AsRef<STBTexteditState>(&Handle->Stb);
+		public ref int LineCount => ref Unsafe.AsRef<int>(&Handle->LineCount);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float WrapWidth => ref Unsafe.AsRef<float>(&Handle->WrapWidth);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -226,23 +281,39 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref bool CursorCenterY => ref Unsafe.AsRef<bool>(&Handle->CursorCenterY);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref bool SelectedAllMouseLock => ref Unsafe.AsRef<bool>(&Handle->SelectedAllMouseLock);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool Edited => ref Unsafe.AsRef<bool>(&Handle->Edited);
+		public ref bool EditedBefore => ref Unsafe.AsRef<bool>(&Handle->EditedBefore);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiInputTextFlags Flags => ref Unsafe.AsRef<ImGuiInputTextFlags>(&Handle->Flags);
+		public ref bool EditedThisFrame => ref Unsafe.AsRef<bool>(&Handle->EditedThisFrame);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
+		public ref bool ValidatedThisFrame => ref Unsafe.AsRef<bool>(&Handle->ValidatedThisFrame);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref bool WantReloadUserBuf => ref Unsafe.AsRef<bool>(&Handle->WantReloadUserBuf);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref sbyte LastMoveDirectionLR => ref Unsafe.AsRef<sbyte>(&Handle->LastMoveDirectionLR);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int ReloadSelectionStart => ref Unsafe.AsRef<int>(&Handle->ReloadSelectionStart);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int ReloadSelectionEnd => ref Unsafe.AsRef<int>(&Handle->ReloadSelectionEnd);
 	}
 
 }

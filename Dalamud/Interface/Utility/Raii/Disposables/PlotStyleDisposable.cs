@@ -61,9 +61,7 @@ public static partial class ImRaii
             var reverseStack = Stack.GroupBy(p => p.Type).Select(p => (p.Key, p.First().Value)).ToArray();
             foreach (var (idx, val) in reverseStack)
             {
-                if (idx == ImPlotStyleVar.Marker)
-                    ret.Push(idx, (int)val.X);
-                else if (float.IsNaN(val.Y))
+                if (float.IsNaN(val.Y))
                     ret.Push(idx, val.X);
                 else
                     ret.Push(idx, val);
@@ -120,13 +118,13 @@ public static partial class ImRaii
         {
             var shouldThrow = idx switch
             {
-                ImPlotStyleVar.LineWeight => type != typeof(float),
-                ImPlotStyleVar.Marker => type != typeof(int),
-                ImPlotStyleVar.MarkerSize => type != typeof(float),
-                ImPlotStyleVar.MarkerWeight => type != typeof(float),
-                ImPlotStyleVar.FillAlpha => type != typeof(float),
-                ImPlotStyleVar.ErrorBarSize => type != typeof(float),
-                ImPlotStyleVar.ErrorBarWeight => type != typeof(float),
+                // ImPlotStyleVar.LineWeight => type != typeof(float),
+                // ImPlotStyleVar.Marker => type != typeof(int),
+                // ImPlotStyleVar.MarkerSize => type != typeof(float),
+                // ImPlotStyleVar.MarkerWeight => type != typeof(float),
+                // ImPlotStyleVar.FillAlpha => type != typeof(float),
+                // ImPlotStyleVar.ErrorBarSize => type != typeof(float),
+                // ImPlotStyleVar.ErrorBarWeight => type != typeof(float),
                 // ImPlotStyleVar.DigitalBitHeight => type != typeof(float),
                 // ImPlotStyleVar.DigitalBitGap => type != typeof(float),
                 // ImPlotStyleVar.PlotBorderSize => type != typeof(float),
@@ -159,13 +157,13 @@ public static partial class ImRaii
             var style = ImPlot.GetStyle();
             return idx switch
             {
-                ImPlotStyleVar.LineWeight => new Vector2(style.LineWeight, float.NaN),
-                ImPlotStyleVar.Marker => new Vector2(style.Marker, float.NaN),
-                ImPlotStyleVar.MarkerSize => new Vector2(style.MarkerSize, float.NaN),
-                ImPlotStyleVar.MarkerWeight => new Vector2(style.MarkerWeight, float.NaN),
-                ImPlotStyleVar.FillAlpha => new Vector2(style.FillAlpha, float.NaN),
-                ImPlotStyleVar.ErrorBarSize => new Vector2(style.ErrorBarSize, float.NaN),
-                ImPlotStyleVar.ErrorBarWeight => new Vector2(style.ErrorBarWeight, float.NaN),
+                // ImPlotStyleVar.LineWeight => new Vector2(style.LineWeight, float.NaN),
+                // ImPlotStyleVar.Marker => new Vector2(style.Marker, float.NaN),
+                // ImPlotStyleVar.MarkerSize => new Vector2(style.MarkerSize, float.NaN),
+                // ImPlotStyleVar.MarkerWeight => new Vector2(style.MarkerWeight, float.NaN),
+                // ImPlotStyleVar.FillAlpha => new Vector2(style.FillAlpha, float.NaN),
+                // ImPlotStyleVar.ErrorBarSize => new Vector2(style.ErrorBarSize, float.NaN),
+                // ImPlotStyleVar.ErrorBarWeight => new Vector2(style.ErrorBarWeight, float.NaN),
                 // ImPlotStyleVar.DigitalBitHeight => new Vector2(style.DigitalBitHeight, float.NaN),
                 // ImPlotStyleVar.DigitalBitGap => new Vector2(style.DigitalBitGap, float.NaN),
                 // ImPlotStyleVar.PlotBorderSize => new Vector2(style.PlotBorderSize, float.NaN),

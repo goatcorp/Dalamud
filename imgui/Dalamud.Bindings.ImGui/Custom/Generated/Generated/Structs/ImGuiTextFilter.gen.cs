@@ -42,4 +42,5 @@ public unsafe partial struct ImGuiTextFilter
 		}
 }
 // DISCARDED: Draw
+// DISCARDED: DrawWithHint
 // DISCARDED: PassFilter

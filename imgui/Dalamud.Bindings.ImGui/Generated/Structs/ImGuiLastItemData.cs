@@ -30,7 +30,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiItemFlags InFlags;
+		public ImGuiItemFlags ItemFlags;
 
 		/// <summary>
 		/// To be documented.
@@ -52,31 +52,32 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public ImRect DisplayRect;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImRect ClipRect;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiLastItemData(uint id = default, ImGuiItemFlags inFlags = default, ImGuiItemStatusFlags statusFlags = default, ImRect rect = default, ImRect navRect = default, ImRect displayRect = default)
+		public int Shortcut;
+
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImGuiLastItemData(uint id = default, ImGuiItemFlags itemFlags = default, ImGuiItemStatusFlags statusFlags = default, ImRect rect = default, ImRect navRect = default, ImRect displayRect = default, ImRect clipRect = default, int shortcut = default)
 		{
 			ID = id;
-			InFlags = inFlags;
+			ItemFlags = itemFlags;
 			StatusFlags = statusFlags;
 			Rect = rect;
 			NavRect = navRect;
 			DisplayRect = displayRect;
+			ClipRect = clipRect;
+			Shortcut = shortcut;
 		}
 
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiLastItemData* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
 
 	}
 
@@ -128,7 +129,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiItemFlags InFlags => ref Unsafe.AsRef<ImGuiItemFlags>(&Handle->InFlags);
+		public ref ImGuiItemFlags ItemFlags => ref Unsafe.AsRef<ImGuiItemFlags>(&Handle->ItemFlags);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -148,11 +149,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
+		public ref ImRect ClipRect => ref Unsafe.AsRef<ImRect>(&Handle->ClipRect);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref int Shortcut => ref Unsafe.AsRef<int>(&Handle->Shortcut);
 	}
 
 }

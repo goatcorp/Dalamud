@@ -47,16 +47,26 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		PlatformHasViewports = unchecked(1024),
+		RendererHasTextures = unchecked(16),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		HasMouseHoveredViewport = unchecked(2048),
+		RendererHasViewports = unchecked(1024),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		RendererHasViewports = unchecked(4096),
+		PlatformHasViewports = unchecked(2048),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		HasMouseHoveredViewport = unchecked(4096),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		HasParentViewport = unchecked(8192),
 	}
 }

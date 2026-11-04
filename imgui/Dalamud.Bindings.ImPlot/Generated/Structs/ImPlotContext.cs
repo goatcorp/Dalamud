@@ -76,11 +76,6 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte ChildWindowMade;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public ImPlotStyle Style;
 
 		/// <summary>
@@ -126,6 +121,11 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ImVector<ImRect> TempRect1;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public int DigitalPlotItemCnt;
 
 		/// <summary>
@@ -161,6 +161,11 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public unsafe ImPlotItemGroup* SortItems;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ImPoolImPlotAlignmentData AlignmentData;
 
 		/// <summary>
@@ -177,7 +182,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImPlotContext(ImPoolImPlotPlot plots = default, ImPoolImPlotSubplot subplots = default, ImPlotPlot* currentPlot = default, ImPlotSubplot* currentSubplot = default, ImPlotItemGroup* currentItems = default, ImPlotItem* currentItem = default, ImPlotItem* previousItem = default, ImPlotTicker cTicker = default, ImPlotAnnotationCollection annotations = default, ImPlotTagCollection tags = default, bool childWindowMade = default, ImPlotStyle style = default, ImVector<ImGuiColorMod> colorModifiers = default, ImVector<ImGuiStyleMod> styleModifiers = default, ImPlotColormapData colormapData = default, ImVector<ImPlotColormap> colormapModifiers = default, Tm tm = default, ImVector<double> tempDouble1 = default, ImVector<double> tempDouble2 = default, ImVector<int> tempInt1 = default, int digitalPlotItemCnt = default, int digitalPlotOffset = default, ImPlotNextPlotData nextPlotData = default, ImPlotNextItemData nextItemData = default, ImPlotInputMap inputMap = default, bool openContextThisFrame = default, ImGuiTextBuffer mousePosStringBuilder = default, ImPoolImPlotAlignmentData alignmentData = default, ImPlotAlignmentData* currentAlignmentH = default, ImPlotAlignmentData* currentAlignmentV = default)
+		public unsafe ImPlotContext(ImPoolImPlotPlot plots = default, ImPoolImPlotSubplot subplots = default, ImPlotPlot* currentPlot = default, ImPlotSubplot* currentSubplot = default, ImPlotItemGroup* currentItems = default, ImPlotItem* currentItem = default, ImPlotItem* previousItem = default, ImPlotTicker cTicker = default, ImPlotAnnotationCollection annotations = default, ImPlotTagCollection tags = default, ImPlotStyle style = default, ImVector<ImGuiColorMod> colorModifiers = default, ImVector<ImGuiStyleMod> styleModifiers = default, ImPlotColormapData colormapData = default, ImVector<ImPlotColormap> colormapModifiers = default, Tm tm = default, ImVector<double> tempDouble1 = default, ImVector<double> tempDouble2 = default, ImVector<int> tempInt1 = default, ImVector<ImRect> tempRect1 = default, int digitalPlotItemCnt = default, int digitalPlotOffset = default, ImPlotNextPlotData nextPlotData = default, ImPlotNextItemData nextItemData = default, ImPlotInputMap inputMap = default, bool openContextThisFrame = default, ImGuiTextBuffer mousePosStringBuilder = default, ImPlotItemGroup* sortItems = default, ImPoolImPlotAlignmentData alignmentData = default, ImPlotAlignmentData* currentAlignmentH = default, ImPlotAlignmentData* currentAlignmentV = default)
 		{
 			Plots = plots;
 			Subplots = subplots;
@@ -189,7 +194,6 @@ namespace Dalamud.Bindings.ImPlot
 			CTicker = cTicker;
 			Annotations = annotations;
 			Tags = tags;
-			ChildWindowMade = childWindowMade ? (byte)1 : (byte)0;
 			Style = style;
 			ColorModifiers = colorModifiers;
 			StyleModifiers = styleModifiers;
@@ -199,6 +203,7 @@ namespace Dalamud.Bindings.ImPlot
 			TempDouble1 = tempDouble1;
 			TempDouble2 = tempDouble2;
 			TempInt1 = tempInt1;
+			TempRect1 = tempRect1;
 			DigitalPlotItemCnt = digitalPlotItemCnt;
 			DigitalPlotOffset = digitalPlotOffset;
 			NextPlotData = nextPlotData;
@@ -206,6 +211,7 @@ namespace Dalamud.Bindings.ImPlot
 			InputMap = inputMap;
 			OpenContextThisFrame = openContextThisFrame ? (byte)1 : (byte)0;
 			MousePosStringBuilder = mousePosStringBuilder;
+			SortItems = sortItems;
 			AlignmentData = alignmentData;
 			CurrentAlignmentH = currentAlignmentH;
 			CurrentAlignmentV = currentAlignmentV;
@@ -298,10 +304,6 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool ChildWindowMade => ref Unsafe.AsRef<bool>(&Handle->ChildWindowMade);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public ref ImPlotStyle Style => ref Unsafe.AsRef<ImPlotStyle>(&Handle->Style);
 		/// <summary>
 		/// To be documented.
@@ -338,6 +340,10 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref ImVector<ImRect> TempRect1 => ref Unsafe.AsRef<ImVector<ImRect>>(&Handle->TempRect1);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref int DigitalPlotItemCnt => ref Unsafe.AsRef<int>(&Handle->DigitalPlotItemCnt);
 		/// <summary>
 		/// To be documented.
@@ -363,6 +369,10 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		public ref ImGuiTextBuffer MousePosStringBuilder => ref Unsafe.AsRef<ImGuiTextBuffer>(&Handle->MousePosStringBuilder);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImPlotItemGroupPtr SortItems => ref Unsafe.AsRef<ImPlotItemGroupPtr>(&Handle->SortItems);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

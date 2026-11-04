@@ -1,15 +1,11 @@
-using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game;
-using Dalamud.Interface.ImGuiBackend.Helpers;
+using Dalamud.Interface.Fonts.Internal.Glyphs;
 using Dalamud.Interface.ImGuiBackend.Helpers.D3D11;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -34,7 +30,7 @@ namespace Dalamud.Interface.ImGuiBackend.Renderers;
     Justification = "Multiple fixed/using scopes")]
 internal unsafe partial class Dx11Renderer : IImGuiRenderer
 {
-    private readonly List<IDalamudTextureWrap> fontTextures = [];
+    private readonly Dictionary<nint, IDalamudTextureWrap> imguiTextures = [];
     private readonly D3D_FEATURE_LEVEL featureLevel;
     private readonly ViewportHandler viewportHandler;
     private readonly nint renderNamePtr;
@@ -50,7 +46,9 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     private ComPtr<ID3D11SamplerState> sampler;
     private ComPtr<ID3D11InputLayout> inputLayout;
     private ComPtr<ID3D11Buffer> vertexConstantBuffer;
+    private ComPtr<ID3D11Buffer> textConstantBuffer;
     private ComPtr<ID3D11BlendState> blendState;
+    private ComPtr<ID3D11BlendState> userCallbackBlendState;
     private ComPtr<ID3D11RasterizerState> rasterizerState;
     private ComPtr<ID3D11DepthStencilState> depthStencilState;
     private ComPtr<ID3D11Buffer> vertexBuffer;
@@ -105,7 +103,10 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             this.context = new(context);
             this.featureLevel = device->GetFeatureLevel();
 
-            io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasViewports;
+            io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasViewports |
+                               ImGuiBackendFlags.RendererHasTextures;
+            ImGui.GetPlatformIO().Handle->RendererTextureMaxWidth = D3D11.D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
+            ImGui.GetPlatformIO().Handle->RendererTextureMaxHeight = D3D11.D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
 
             this.renderNamePtr = Marshal.StringToHGlobalAnsi("imgui_impl_dx11_c#");
             io.Handle->BackendRendererName = (byte*)this.renderNamePtr;
@@ -129,6 +130,11 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             this.mainViewport = ViewportData.Create(this, swapChain, null, null);
             var vp = ImGui.GetPlatformIO().Viewports[0];
             vp.RendererUserData = this.mainViewport.Handle;
+
+            // Off-frame draw data can use the shape texture before the first frame lists it for upload.
+            var shapeTexture = ImGui.GetShapeTexture();
+            if (!shapeTexture.IsNull && shapeTexture.Status == ImTextureStatus.WantCreate)
+                this.UpdateTexture(shapeTexture);
         }
         catch
         {
@@ -164,18 +170,6 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     /// <inheritdoc/>
     public void RenderDrawData(ImDrawDataPtr drawData) =>
         this.mainViewport.Draw(drawData, this.mainViewport.SwapChain == null);
-
-    /// <summary>
-    /// Rebuilds font texture.
-    /// </summary>
-    public void RebuildFontTexture()
-    {
-        foreach (var fontResourceView in this.fontTextures)
-            fontResourceView.Dispose();
-        this.fontTextures.Clear();
-
-        this.CreateFontsTexture();
-    }
 
     /// <inheritdoc/>
     public IDalamudTextureWrap CreateTexture2D(
@@ -259,6 +253,17 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         if (drawData.DisplaySize.X <= 0 || drawData.DisplaySize.Y <= 0)
             return;
 
+        // Most of the time the list has one element that is OK, so there is nothing to do.
+        // It is part of ImDrawData so that a draw data can override or disable texture updates.
+        if (drawData.Handle->Textures is not null)
+        {
+            foreach (var tex in *drawData.Handle->Textures)
+            {
+                if (tex.Status != ImTextureStatus.Ok)
+                    this.UpdateTexture(tex);
+            }
+        }
+
         // Set up render target
         this.context.Get()->OMSetRenderTargets(1, &renderTargetView, null);
         if (clearRenderTarget)
@@ -268,7 +273,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         }
 
         // Stop if there's nothing to draw
-        var cmdLists = new Span<ImDrawListPtr>(drawData.Handle->CmdLists, drawData.Handle->CmdListsCount);
+        var cmdLists = drawData.Handle->CmdLists.AsSpan();
         if (cmdLists.IsEmpty)
             return;
 
@@ -306,7 +311,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         using var oldState = new D3D11DeviceContextStateBackup(this.featureLevel, this.context.Get());
 
         // Setup desired DX state
-        this.SetupRenderState(drawData);
+        var glyphs = GlyphAtlasTextResources.Upload(this.context);
+        this.SetupRenderState(drawData, glyphs);
 
         try
         {
@@ -357,12 +363,36 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 drawData.DisplayPos.Y,
                 1f,
                 0f);
+
+            // As the monitor the viewport is on wants.
+            var textData = default(D3D11_MAPPED_SUBRESOURCE);
+            this.context.Get()->Map(
+                (ID3D11Resource*)this.textConstantBuffer.Get(),
+                0,
+                D3D11_MAP.D3D11_MAP_WRITE_DISCARD,
+                0,
+                &textData).ThrowOnError();
+            var owner = drawData.OwnerViewport;
+            var hWnd = owner.IsNull ? null : owner.Handle->PlatformHandleRaw;
+            if (hWnd is null && !owner.IsNull)
+                hWnd = owner.Handle->PlatformHandle;
+            var monitor = GlyphAtlasTextResources.GetShaderSettings((HWND)hWnd);
+            *(TextConstants*)textData.pData = new()
+            {
+                GammaRatios = monitor.GammaRatios,
+                EnhancedContrast = monitor.EnhancedContrast,
+                ClearTypeLevel = monitor.ClearTypeLevel,
+                SubpixelAllowed = !clearRenderTarget && monitor.Subpixel ? 1 : 0,
+                GrayscaleEnhancedContrast = monitor.GrayscaleEnhancedContrast,
+                Bgr = monitor.Bgr ? 1 : 0,
+            };
         }
         finally
         {
             this.context.Get()->Unmap((ID3D11Resource*)this.vertexBuffer.Get(), 0);
             this.context.Get()->Unmap((ID3D11Resource*)this.indexBuffer.Get(), 0);
             this.context.Get()->Unmap((ID3D11Resource*)this.vertexConstantBuffer.Get(), 0);
+            this.context.Get()->Unmap((ID3D11Resource*)this.textConstantBuffer.Get(), 0);
         }
 
         // Render command lists
@@ -389,7 +419,9 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                         this.context.Get()->RSSetScissorRects(1, &clipRect);
 
                         // Bind texture and draw
-                        var srv = (ID3D11ShaderResourceView*)cmd.TextureId.Handle;
+                        // Same as ImDrawCmd::GetTexID, without a P/Invoke per command.
+                        var texId = cmd.TexRef.TexData is not null ? cmd.TexRef.TexData->TexID : cmd.TexRef.TexID;
+                        var srv = (ID3D11ShaderResourceView*)texId.Handle;
                         this.context.Get()->PSSetShaderResources(0, 1, &srv);
                         this.context.Get()->DrawIndexed(
                             cmd.ElemCount,
@@ -401,12 +433,19 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                     case ImDrawCallbackEnum.ResetRenderState:
                     {
                         // Special callback value used by the user to request the renderer to reset render state.
-                        this.SetupRenderState(drawData);
+                        this.SetupRenderState(drawData, glyphs);
                         break;
                     }
 
                     default:
                     {
+                        if ((nint)cmd.UserCallback == (nint)CustomImDrawCallbackEnum.BindGlyphTextures)
+                        {
+                            var textures = (nint*)cmd.UserCallbackData;
+                            this.BindGlyphTextures(textures is null ? glyphs : (textures[0], textures[1]));
+                            break;
+                        }
+
                         if ((nint)cmd.UserCallback == (nint)CustomImDrawCallbackEnum.Blur)
                         {
                             var data = (BlurCallbackData*)cmd.UserCallbackData;
@@ -607,13 +646,22 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                             this.context.Get()->PSSetSamplers(1, 1, &nullSampler);
 
                             // Restore full ImGui render state for subsequent draw commands in this frame
-                            this.SetupRenderState(drawData);
+                            this.SetupRenderState(drawData, glyphs);
                             break;
                         }
 
                         // User callback, registered via ImDrawList::AddCallback()
+                        var userBlendColor = default(Vector4);
+                        this.context.Get()->OMSetBlendState(
+                            this.userCallbackBlendState,
+                            (float*)&userBlendColor,
+                            0xffffffff);
                         var userCb = (delegate* unmanaged<ImDrawListPtr, ImDrawCmdPtr, void>)cmd.UserCallback;
                         userCb(cmdList, (ImDrawCmdPtr)Unsafe.AsPointer(ref cmd));
+
+                        // The callback may have bound its own b0, t1 or t2, or grown the atlas by drawing to a texture.
+                        glyphs = GlyphAtlasTextResources.Upload(this.context);
+                        this.RestoreTextState(glyphs);
                         break;
                     }
                 }
@@ -728,58 +776,78 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 (ID3D11Resource*)this.blurEighthTexture.Get(), null, pp).ThrowOnError();
     }
 
-    /// <summary>
-    /// Builds fonts as necessary, and uploads the built data onto the GPU.<br />
-    /// No-op if it has already been done.
-    /// </summary>
-    private void CreateFontsTexture()
+    /// <summary>Creates, updates, or destroys a texture as requested by ImGui.</summary>
+    /// <param name="tex">The texture.</param>
+    private void UpdateTexture(ImTextureDataPtr tex)
     {
         ObjectDisposedException.ThrowIf(this.device.IsEmpty(), this);
 
-        if (this.fontTextures.Count != 0)
-            return;
-
-        if (Service<Framework>.GetNullable() is not { IsFrameworkUnloading: false })
-            return;
-
-        var io = ImGui.GetIO();
-        if (io.Fonts.Textures.Size == 0)
-            io.Fonts.Build();
-
-        for (int textureIndex = 0, textureCount = io.Fonts.Textures.Size;
-             textureIndex < textureCount;
-             textureIndex++)
+        if (tex.Status == ImTextureStatus.WantCreate)
         {
-            int width = 0, height = 0, bytespp = 0;
-            byte* fontPixels = null;
+            // The shape texture and the textures of ImGui users are RGBA32.
+            if (tex.Format != ImTextureFormat.Rgba32)
+                throw new NotSupportedException($"{tex.Format} is not supported.");
 
-            // Build texture atlas
-            io.Fonts.GetTexDataAsRGBA32(
-                textureIndex,
-                &fontPixels,
-                ref width,
-                ref height,
-                ref bytespp);
+            var wrap = this.CreateTexture2D(
+                new(tex.Handle->Pixels, tex.Width * tex.Height * 4),
+                new(tex.Width, tex.Height, (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM, tex.Width * 4),
+                false,
+                false,
+                false,
+                $"ImGuiTexture#{(nint)tex.Handle:X}");
+            if (this.imguiTextures.Remove((nint)tex.Handle, out var oldWrap))
+                oldWrap.Dispose();
+            this.imguiTextures[(nint)tex.Handle] = wrap;
+            tex.SetTexID(wrap.Handle);
+            tex.SetStatus(ImTextureStatus.Ok);
+        }
+        else if (tex.Status == ImTextureStatus.WantUpdates)
+        {
+            using var resource = default(ComPtr<ID3D11Resource>);
+            ((ID3D11ShaderResourceView*)tex.TexID.Handle)->GetResource(resource.GetAddressOf());
+            foreach (var r in tex.Updates)
+            {
+                var box = new D3D11_BOX
+                {
+                    left = r.X,
+                    top = r.Y,
+                    right = (uint)(r.X + r.W),
+                    bottom = (uint)(r.Y + r.H),
+                    front = 0,
+                    back = 1,
+                };
+                this.context.Get()->UpdateSubresource(
+                    resource.Get(),
+                    0,
+                    &box,
+                    tex.GetPixelsAt(r.X, r.Y),
+                    (uint)tex.GetPitch(),
+                    0);
+            }
 
-            var tex = this.CreateTexture2D(
-                new(fontPixels, width * height * bytespp),
-                new(width, height, (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM, width * bytespp),
-                false,
-                false,
-                false,
-                $"Font#{textureIndex}");
-            io.Fonts.SetTexID(textureIndex, tex.Handle);
-            this.fontTextures.Add(tex);
+            tex.SetStatus(ImTextureStatus.Ok);
         }
 
-        io.Fonts.ClearTexData();
+        if (tex.Status == ImTextureStatus.WantDestroy && tex.UnusedFrames > 0)
+            this.DestroyTexture(tex);
+    }
+
+    /// <summary>Destroys the GPU resources of a texture.</summary>
+    /// <param name="tex">The texture.</param>
+    private void DestroyTexture(ImTextureDataPtr tex)
+    {
+        if (this.imguiTextures.Remove((nint)tex.Handle, out var wrap))
+            wrap.Dispose();
+        tex.SetTexID(ImTextureID.Null);
+        tex.SetStatus(ImTextureStatus.Destroyed);
     }
 
     /// <summary>
     /// Initializes the device context's render state to what we would use for rendering ImGui by default.
     /// </summary>
     /// <param name="drawData">The relevant ImGui draw data.</param>
-    private void SetupRenderState(ImDrawDataPtr drawData)
+    /// <param name="glyphs">The glyph arrays from <see cref="GlyphAtlasTextResources.Upload"/>.</param>
+    private void SetupRenderState(ImDrawDataPtr drawData, (nint Coverage, nint Color) glyphs)
     {
         var ctx = this.context.Get();
         ctx->IASetInputLayout(this.inputLayout);
@@ -794,8 +862,6 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         ctx->RSSetState(this.rasterizerState);
         ctx->RSSetViewports(1, &viewport);
 
-        var blendColor = default(Vector4);
-        ctx->OMSetBlendState(this.blendState, (float*)&blendColor, 0xffffffff);
         ctx->OMSetDepthStencilState(this.depthStencilState, 0);
 
         ctx->VSSetShader(this.vertexShader.Get(), null, 0);
@@ -804,11 +870,36 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
 
         ctx->PSSetShader(this.pixelShader, null, 0);
         ctx->PSSetSamplers(0, 1, this.sampler.GetAddressOf());
+        this.RestoreTextState(glyphs);
 
         ctx->GSSetShader(null, null, 0);
         ctx->HSSetShader(null, null, 0);
         ctx->DSSetShader(null, null, 0);
         ctx->CSSetShader(null, null, 0);
+    }
+
+    /// <summary>Binds the blend state, and the constants and glyph arrays of the text pixel shader.</summary>
+    /// <param name="glyphs">The glyph arrays from <see cref="GlyphAtlasTextResources.Upload"/>.</param>
+    private void RestoreTextState((nint Coverage, nint Color) glyphs)
+    {
+        var ctx = this.context.Get();
+        var blendColor = default(Vector4);
+        ctx->OMSetBlendState(this.blendState, (float*)&blendColor, 0xffffffff);
+        var buffer = this.textConstantBuffer.Get();
+        ctx->PSSetConstantBuffers(0, 1, &buffer);
+        this.BindGlyphTextures(glyphs);
+    }
+
+    /// <summary>Binds the glyph arrays of the text pixel shader.</summary>
+    /// <param name="glyphs">The views to bind at <c>t1</c> and <c>t2</c>.</param>
+    private void BindGlyphTextures((nint Coverage, nint Color) glyphs)
+    {
+        var views = stackalloc ID3D11ShaderResourceView*[2]
+        {
+            (ID3D11ShaderResourceView*)glyphs.Coverage,
+            (ID3D11ShaderResourceView*)glyphs.Color,
+        };
+        this.context.Get()->PSSetShaderResources(1, 2, views);
     }
 
     /// <summary>
@@ -819,61 +910,26 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     {
         ObjectDisposedException.ThrowIf(this.device.IsEmpty(), this);
 
-        var assembly = Assembly.GetExecutingAssembly();
-
         // Create the vertex shader
         if (this.vertexShader.IsEmpty() || this.inputLayout.IsEmpty())
         {
-            using var stream = assembly.GetManifestResourceStream("imgui-vertex.hlsl.bytes")!;
-            var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-            stream.ReadExactly(array, 0, (int)stream.Length);
-            fixed (byte* pArray = array)
             fixed (ID3D11VertexShader** ppShader = &this.vertexShader.GetPinnableReference())
             fixed (ID3D11InputLayout** ppInputLayout = &this.inputLayout.GetPinnableReference())
-            fixed (void* pszPosition = "POSITION"u8)
-            fixed (void* pszTexCoord = "TEXCOORD"u8)
-            fixed (void* pszColor = "COLOR"u8)
             {
-                this.device.Get()->CreateVertexShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
-
-                var ied = stackalloc D3D11_INPUT_ELEMENT_DESC[]
-                {
-                    new()
-                    {
-                        SemanticName = (sbyte*)pszPosition,
-                        Format = DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT,
-                        AlignedByteOffset = uint.MaxValue,
-                    },
-                    new()
-                    {
-                        SemanticName = (sbyte*)pszTexCoord,
-                        Format = DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT,
-                        AlignedByteOffset = uint.MaxValue,
-                    },
-                    new()
-                    {
-                        SemanticName = (sbyte*)pszColor,
-                        Format = DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
-                        AlignedByteOffset = uint.MaxValue,
-                    },
-                };
-                this.device.Get()->CreateInputLayout(ied, 3, pArray, (nuint)stream.Length, ppInputLayout)
-                    .ThrowOnError();
+                D3D11Shaders.CreateImDrawVertShader(
+                    this.device,
+                    "imgui-vertex.hlsl.bytes",
+                    6,
+                    ppShader,
+                    ppInputLayout);
             }
-
-            ArrayPool<byte>.Shared.Return(array);
         }
 
         // Create the pixel shader
         if (this.pixelShader.IsEmpty())
         {
-            using var stream = assembly.GetManifestResourceStream("imgui-frag.hlsl.bytes")!;
-            var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-            stream.ReadExactly(array, 0, (int)stream.Length);
-            fixed (byte* pArray = array)
             fixed (ID3D11PixelShader** ppShader = &this.pixelShader.GetPinnableReference())
-                this.device.Get()->CreatePixelShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
-            ArrayPool<byte>.Shared.Return(array);
+                D3D11Shaders.CreatePixelShader(this.device, "imgui-frag.hlsl.bytes", ppShader);
         }
 
         // Create the sampler state
@@ -928,8 +984,25 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 this.device.Get()->CreateBuffer(&bufferDesc, null, ppBuffer).ThrowOnError();
         }
 
+        if (this.textConstantBuffer.IsEmpty())
+        {
+            var bufferDesc = new D3D11_BUFFER_DESC(
+                (uint)sizeof(TextConstants),
+                (uint)D3D11_BIND_FLAG.D3D11_BIND_CONSTANT_BUFFER,
+                D3D11_USAGE.D3D11_USAGE_DYNAMIC,
+                (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_WRITE);
+            fixed (ID3D11Buffer** ppBuffer = &this.textConstantBuffer.GetPinnableReference())
+                this.device.Get()->CreateBuffer(&bufferDesc, null, ppBuffer).ThrowOnError();
+        }
+
         // Create the blending setup
         if (this.blendState.IsEmpty())
+        {
+            fixed (ID3D11BlendState** ppBlendState = &this.blendState.GetPinnableReference())
+                D3D11Shaders.CreateTextBlendState(this.device, ppBlendState);
+        }
+
+        if (this.userCallbackBlendState.IsEmpty())
         {
             var blendStateDesc = new D3D11_BLEND_DESC
             {
@@ -948,7 +1021,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                     },
                 },
             };
-            fixed (ID3D11BlendState** ppBlendState = &this.blendState.GetPinnableReference())
+            fixed (ID3D11BlendState** ppBlendState = &this.userCallbackBlendState.GetPinnableReference())
                 this.device.Get()->CreateBlendState(&blendStateDesc, ppBlendState).ThrowOnError();
         }
 
@@ -999,49 +1072,29 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         // Create the blur fullscreen vertex shader
         if (this.blurFullscreenVertexShader.IsEmpty())
         {
-            using var stream = assembly.GetManifestResourceStream("blur-fullscreen.vs.bytes")!;
-            var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-            stream.ReadExactly(array, 0, (int)stream.Length);
-            fixed (byte* pArray = array)
             fixed (ID3D11VertexShader** ppShader = &this.blurFullscreenVertexShader.GetPinnableReference())
-                this.device.Get()->CreateVertexShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
-            ArrayPool<byte>.Shared.Return(array);
+                D3D11Shaders.CreateVertexShader(this.device, "blur-fullscreen.vs.bytes", ppShader);
         }
 
         // Create the Kawase downsample pixel shader
         if (this.kawaseDownsamplePixelShader.IsEmpty())
         {
-            using var stream = assembly.GetManifestResourceStream("kawase-downsample.ps.bytes")!;
-            var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-            stream.ReadExactly(array, 0, (int)stream.Length);
-            fixed (byte* pArray = array)
             fixed (ID3D11PixelShader** ppShader = &this.kawaseDownsamplePixelShader.GetPinnableReference())
-                this.device.Get()->CreatePixelShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
-            ArrayPool<byte>.Shared.Return(array);
+                D3D11Shaders.CreatePixelShader(this.device, "kawase-downsample.ps.bytes", ppShader);
         }
 
         // Create the Kawase intermediate upsample pixel shader
         if (this.kawaseUpsamplePixelShader.IsEmpty())
         {
-            using var stream = assembly.GetManifestResourceStream("kawase-upsample.ps.bytes")!;
-            var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-            stream.ReadExactly(array, 0, (int)stream.Length);
-            fixed (byte* pArray = array)
             fixed (ID3D11PixelShader** ppShader = &this.kawaseUpsamplePixelShader.GetPinnableReference())
-                this.device.Get()->CreatePixelShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
-            ArrayPool<byte>.Shared.Return(array);
+                D3D11Shaders.CreatePixelShader(this.device, "kawase-upsample.ps.bytes", ppShader);
         }
 
         // Create the Kawase upsample + composite pixel shader
         if (this.kawaseUpsampleCompositePixelShader.IsEmpty())
         {
-            using var stream = assembly.GetManifestResourceStream("kawase-upsample-composite.ps.bytes")!;
-            var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-            stream.ReadExactly(array, 0, (int)stream.Length);
-            fixed (byte* pArray = array)
             fixed (ID3D11PixelShader** ppShader = &this.kawaseUpsampleCompositePixelShader.GetPinnableReference())
-                this.device.Get()->CreatePixelShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
-            ArrayPool<byte>.Shared.Return(array);
+                D3D11Shaders.CreatePixelShader(this.device, "kawase-upsample-composite.ps.bytes", ppShader);
         }
 
         // Create the blur constant buffer
@@ -1059,9 +1112,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         // Load noise texture
         if (this.blurNoiseTexture.IsEmpty())
         {
-            using var pngStream = assembly.GetManifestResourceStream("blur-noise.png")!;
-            var pngBytes = ArrayPool<byte>.Shared.Rent((int)pngStream.Length);
-            pngStream.ReadExactly(pngBytes, 0, (int)pngStream.Length);
+            var pngBytes = D3D11Shaders.ReadResource("blur-noise.png");
 
             using var wicFactory = default(ComPtr<IWICImagingFactory>);
             fixed (Guid* pclsid = &CLSID.CLSID_WICImagingFactory)
@@ -1072,7 +1123,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             using var wicStream = default(ComPtr<IWICStream>);
             wicFactory.Get()->CreateStream(wicStream.GetAddressOf()).ThrowOnError();
             fixed (byte* pBytes = pngBytes)
-                wicStream.Get()->InitializeFromMemory(pBytes, (uint)pngStream.Length).ThrowOnError();
+                wicStream.Get()->InitializeFromMemory(pBytes, (uint)pngBytes.Length).ThrowOnError();
 
             using var decoder = default(ComPtr<IWICBitmapDecoder>);
             wicFactory.Get()->CreateDecoderFromStream(
@@ -1094,7 +1145,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
 
             uint noiseW, noiseH;
             converter.Get()->GetSize(&noiseW, &noiseH).ThrowOnError();
-            var pitch = (uint)(noiseW * 4);
+            var pitch = noiseW * 4;
             var pixelBytes = new byte[noiseH * pitch];
             fixed (byte* pPixels = pixelBytes)
             {
@@ -1122,8 +1173,6 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             fixed (ID3D11ShaderResourceView** pp = &this.blurNoiseSrv.GetPinnableReference())
                 this.device.Get()->CreateShaderResourceView(
                     (ID3D11Resource*)this.blurNoiseTexture.Get(), &noiseSrvDesc, pp).ThrowOnError();
-
-            ArrayPool<byte>.Shared.Return(pngBytes);
         }
 
         // Create the blur composite blend state with straight-alpha compositing
@@ -1149,8 +1198,6 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             fixed (ID3D11BlendState** ppBlendState = &this.blurBlendState.GetPinnableReference())
                 this.device.Get()->CreateBlendState(&blurBlendDesc, ppBlendState).ThrowOnError();
         }
-
-        this.CreateFontsTexture();
     }
 
     private void ReleaseUnmanagedResources()
@@ -1172,11 +1219,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         if (this.renderNamePtr != 0)
             Marshal.FreeHGlobal(this.renderNamePtr);
 
-        foreach (var fontResourceView in this.fontTextures)
-            fontResourceView.Dispose();
-
-        foreach (var i in Enumerable.Range(0, io.Fonts.Textures.Size))
-            io.Fonts.SetTexID(i, ImTextureID.Null);
+        foreach (var tex in ImGui.GetPlatformIO().Textures)
+            this.DestroyTexture(tex);
 
         this.device.Reset();
         this.context.Reset();
@@ -1185,7 +1229,9 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         this.sampler.Reset();
         this.inputLayout.Reset();
         this.vertexConstantBuffer.Reset();
+        this.textConstantBuffer.Reset();
         this.blendState.Reset();
+        this.userCallbackBlendState.Reset();
         this.rasterizerState.Reset();
         this.depthStencilState.Reset();
         this.vertexBuffer.Reset();
@@ -1211,5 +1257,19 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         this.blurNoiseTexture.Reset();
         this.blurNoiseSrv.Reset();
         this.dcompDevice.Reset();
+    }
+
+    /// <summary>The constant buffer b0 of the pixel shader. It matches <c>TextBuffer</c> in imgui-frag.hlsl.</summary>
+    /// <remarks><see cref="Padding"/> makes the size 48, a multiple of 16.</remarks>
+    [StructLayout(LayoutKind.Sequential)]
+    private struct TextConstants
+    {
+        public Vector4 GammaRatios;
+        public float EnhancedContrast;
+        public float ClearTypeLevel;
+        public float SubpixelAllowed;
+        public float GrayscaleEnhancedContrast;
+        public float Bgr;
+        public Vector3 Padding;
     }
 }

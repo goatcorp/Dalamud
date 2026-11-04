@@ -46,6 +46,11 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public Vector2 Scroll;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ImVector<int> Indices;
 
 		/// <summary>
@@ -57,6 +62,11 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		public ImRect Rect;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImRect RectClamped;
 
 		/// <summary>
 		/// To be documented.
@@ -77,15 +87,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImPlotLegend(ImPlotLegendFlags flags = default, ImPlotLegendFlags previousFlags = default, ImPlotLocation location = default, ImPlotLocation previousLocation = default, ImVector<int> indices = default, ImGuiTextBuffer labels = default, ImRect rect = default, bool hovered = default, bool held = default, bool canGoInside = default)
+		public unsafe ImPlotLegend(ImPlotLegendFlags flags = default, ImPlotLegendFlags previousFlags = default, ImPlotLocation location = default, ImPlotLocation previousLocation = default, Vector2 scroll = default, ImVector<int> indices = default, ImGuiTextBuffer labels = default, ImRect rect = default, ImRect rectClamped = default, bool hovered = default, bool held = default, bool canGoInside = default)
 		{
 			Flags = flags;
 			PreviousFlags = previousFlags;
 			Location = location;
 			PreviousLocation = previousLocation;
+			Scroll = scroll;
 			Indices = indices;
 			Labels = labels;
 			Rect = rect;
+			RectClamped = rectClamped;
 			Hovered = hovered ? (byte)1 : (byte)0;
 			Held = held ? (byte)1 : (byte)0;
 			CanGoInside = canGoInside ? (byte)1 : (byte)0;
@@ -176,6 +188,10 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref Vector2 Scroll => ref Unsafe.AsRef<Vector2>(&Handle->Scroll);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref ImVector<int> Indices => ref Unsafe.AsRef<ImVector<int>>(&Handle->Indices);
 		/// <summary>
 		/// To be documented.
@@ -185,6 +201,10 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		public ref ImRect Rect => ref Unsafe.AsRef<ImRect>(&Handle->Rect);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImRect RectClamped => ref Unsafe.AsRef<ImRect>(&Handle->RectClamped);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

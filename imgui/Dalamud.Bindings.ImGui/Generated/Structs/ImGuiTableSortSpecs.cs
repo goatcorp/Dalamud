@@ -41,7 +41,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiTableSortSpecs(ImGuiTableColumnSortSpecsPtr specs = default, int specsCount = default, bool specsDirty = default)
+		public unsafe ImGuiTableSortSpecs(ImGuiTableColumnSortSpecs* specs = default, int specsCount = default, bool specsDirty = default)
 		{
 			Specs = specs;
 			SpecsCount = specsCount;

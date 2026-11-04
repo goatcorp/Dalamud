@@ -68,6 +68,17 @@ namespace Dalamud.Bindings.ImPlot
 		}
 
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void Destroy()
+		{
+			fixed (ImPlotAnnotation* @this = &this)
+			{
+				ImPlot.DestroyNative(@this);
+			}
+		}
+
 	}
 
 	/// <summary>
@@ -135,6 +146,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		public ref bool Clamp => ref Unsafe.AsRef<bool>(&Handle->Clamp);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void Destroy()
+		{
+			ImPlot.DestroyNative(Handle);
+		}
+
 	}
 
 }

@@ -21,554 +21,58 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, float vMin)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, string textEnd, Vector4* clipRect, ImTextTransformPtr transform)
 		{
-			fixed (float* pv = &v)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed)
-		{
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v)
-		{
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, float vMin, byte* format)
-		{
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, byte* format)
-		{
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, byte* format)
-		{
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, float vMin, float vMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, float vMin, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, float vMin, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, (float)(0.0f), format, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin, float vMax, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, vMax, format, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin, float vMax, byte* format)
-		{
-			fixed (float* pv = v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, vMax, format, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin, float vMax)
-		{
-			fixed (float* pv = v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin)
-		{
-			fixed (float* pv = v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed)
-		{
-			fixed (float* pv = v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v)
-		{
-			fixed (float* pv = v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin, byte* format)
-		{
-			fixed (float* pv = v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, byte* format)
-		{
-			fixed (float* pv = v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, byte* format)
-		{
-			fixed (float* pv = v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin, float vMax, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, (float)(0.0f), format, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, float vMin, float vMax, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, vMax, format, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, float vMin, float vMax, byte* format)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, vMax, format, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, float vMin, float vMax)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, float vMin)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, float vMin, byte* format)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, byte* format)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, byte* format)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, float vMin, float vMax, ImGuiSliderFlags flags)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, float vMin, ImGuiSliderFlags flags)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, ImGuiSliderFlags flags)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, ImGuiSliderFlags flags)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, float vMin, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, (float)(0.0f), format, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed, float vMin, float vMax, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, format, flags);
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						byte* pStr1 = null;
+						int pStrSize1 = 0;
+						if (textEnd != null)
+						{
+							pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+							if (pStrSize1 >= Utils.MaxStackallocSize)
+							{
+								pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+							}
+							else
+							{
+								byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+								pStr1 = pStrStack1;
+							}
+							int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+							pStr1[pStrOffset1] = 0;
+						}
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, pStr1, clipRect, (ImTextRenderFlags)(0), transform);
+						if (pStrSize1 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr1);
+						}
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+					}
 				}
 			}
 		}
@@ -576,14 +80,58 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed, float vMin, float vMax, byte* format)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, string textEnd, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, format, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						byte* pStr1 = null;
+						int pStrSize1 = 0;
+						if (textEnd != null)
+						{
+							pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+							if (pStrSize1 >= Utils.MaxStackallocSize)
+							{
+								pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+							}
+							else
+							{
+								byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+								pStr1 = pStrStack1;
+							}
+							int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+							pStr1[pStrOffset1] = 0;
+						}
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, pStr1, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+						if (pStrSize1 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr1);
+						}
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+					}
 				}
 			}
 		}
@@ -591,14 +139,58 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed, float vMin, float vMax)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, string textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						byte* pStr1 = null;
+						int pStrSize1 = 0;
+						if (textEnd != null)
+						{
+							pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+							if (pStrSize1 >= Utils.MaxStackallocSize)
+							{
+								pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+							}
+							else
+							{
+								byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+								pStr1 = pStrStack1;
+							}
+							int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+							pStr1[pStrOffset1] = 0;
+						}
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, pStr1, (Vector4*)(default), renderFlags, transform);
+						if (pStrSize1 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr1);
+						}
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+					}
 				}
 			}
 		}
@@ -606,14 +198,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed, float vMin)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, ReadOnlySpan<byte> textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							fixed (byte* ptextEnd = textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, clipRect, renderFlags, transform);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -621,14 +221,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, ReadOnlySpan<byte> textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							fixed (byte* ptextEnd = textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+							}
+						}
+					}
 				}
 			}
 		}
@@ -636,14 +244,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, ReadOnlySpan<byte> textEnd, Vector4* clipRect)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							fixed (byte* ptextEnd = textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							}
+						}
+					}
 				}
 			}
 		}
@@ -651,14 +267,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed, float vMin, byte* format)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, ReadOnlySpan<byte> textEnd)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), format, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							fixed (byte* ptextEnd = textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							}
+						}
+					}
 				}
 			}
 		}
@@ -666,14 +290,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed, byte* format)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, ReadOnlySpan<byte> textEnd, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							fixed (byte* ptextEnd = textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+							}
+						}
+					}
 				}
 			}
 		}
@@ -681,14 +313,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, byte* format)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, ReadOnlySpan<byte> textEnd, Vector4* clipRect, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							fixed (byte* ptextEnd = textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, clipRect, (ImTextRenderFlags)(0), transform);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -696,14 +336,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed, float vMin, float vMax, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, ReadOnlySpan<byte> textEnd, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", flags);
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							fixed (byte* ptextEnd = textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -711,14 +359,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed, float vMin, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, ReadOnlySpan<byte> textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", flags);
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							fixed (byte* ptextEnd = textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, (Vector4*)(default), renderFlags, transform);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -726,14 +382,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, string textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, clipRect, renderFlags, transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -741,14 +423,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, string textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, clipRect, renderFlags, (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -756,14 +464,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed, float vMin, byte* format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, string textEnd, Vector4* clipRect)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), format, flags);
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -771,14 +505,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, float vSpeed, byte* format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, string textEnd)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, flags);
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -786,14 +546,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, ref float v, byte* format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, string textEnd, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = &v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, flags);
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -801,14 +587,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed, float vMin, float vMax, byte* format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, string textEnd, Vector4* clipRect, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, format, flags);
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, clipRect, (ImTextRenderFlags)(0), transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -816,14 +628,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed, float vMin, float vMax, byte* format)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, string textEnd, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, format, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -831,14 +669,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed, float vMin, float vMax)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ref byte textBegin, string textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = &textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, (Vector4*)(default), renderFlags, transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -846,14 +710,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed, float vMin)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref byte textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							fixed (byte* ptextEnd = &textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, clipRect, renderFlags, transform);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -861,14 +733,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref byte textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							fixed (byte* ptextEnd = &textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+							}
+						}
+					}
 				}
 			}
 		}
@@ -876,14 +756,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref byte textEnd, Vector4* clipRect)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							fixed (byte* ptextEnd = &textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							}
+						}
+					}
 				}
 			}
 		}
@@ -891,14 +779,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed, float vMin, byte* format)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref byte textEnd)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), format, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							fixed (byte* ptextEnd = &textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							}
+						}
+					}
 				}
 			}
 		}
@@ -906,14 +802,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed, byte* format)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref byte textEnd, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							fixed (byte* ptextEnd = &textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+							}
+						}
+					}
 				}
 			}
 		}
@@ -921,14 +825,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, byte* format)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref byte textEnd, Vector4* clipRect, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							fixed (byte* ptextEnd = &textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, clipRect, (ImTextRenderFlags)(0), transform);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -936,14 +848,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed, float vMin, float vMax, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref byte textEnd, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", flags);
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							fixed (byte* ptextEnd = &textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -951,14 +871,22 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed, float vMin, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref byte textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", flags);
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							fixed (byte* ptextEnd = &textEnd)
+							{
+								AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, (byte*)ptextEnd, (Vector4*)(default), renderFlags, transform);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -966,14 +894,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, string textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, clipRect, renderFlags, transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -981,14 +935,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, string textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-					return ret;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, clipRect, renderFlags, (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -996,14 +976,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed, float vMin, byte* format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, string textEnd, Vector4* clipRect)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), format, flags);
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -1011,14 +1017,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, float vSpeed, byte* format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, string textEnd)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, flags);
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -1026,14 +1058,40 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ReadOnlySpan<float> v, byte* format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, string textEnd, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (float* pv = v)
+				fixed (ImFont* pfont = &font)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, flags);
-					return ret != 0;
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -1041,13 +1099,2008 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed, float vMin, float vMax, byte* format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, string textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, clipRect, (ImTextRenderFlags)(0), transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, string textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, string textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (byte* ptextBegin = textBegin)
+						{
+							byte* pStr0 = null;
+							int pStrSize0 = 0;
+							if (textEnd != null)
+							{
+								pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+								if (pStrSize0 >= Utils.MaxStackallocSize)
+								{
+									pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+								}
+								else
+								{
+									byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+									pStr0 = pStrStack0;
+								}
+								int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+								pStr0[pStrOffset0] = 0;
+							}
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, (byte*)ptextBegin, pStr0, (Vector4*)(default), renderFlags, transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ref byte textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, clipRect, renderFlags, transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ref byte textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ref byte textEnd, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ref byte textEnd)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ref byte textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ref byte textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, clipRect, (ImTextRenderFlags)(0), transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ref byte textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ref byte textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = &textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, (Vector4*)(default), renderFlags, transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ReadOnlySpan<byte> textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, clipRect, renderFlags, transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ReadOnlySpan<byte> textEnd, Vector4* clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, clipRect, renderFlags, (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ReadOnlySpan<byte> textEnd, Vector4* clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, clipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, (Vector4*)(default), (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ReadOnlySpan<byte> textEnd, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, (Vector4*)(default), renderFlags, (ImTextTransform*)(default));
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ReadOnlySpan<byte> textEnd, Vector4* clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, clipRect, (ImTextRenderFlags)(0), transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ReadOnlySpan<byte> textEnd, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, (Vector4*)(default), (ImTextRenderFlags)(0), transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, string textBegin, ReadOnlySpan<byte> textEnd, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						byte* pStr0 = null;
+						int pStrSize0 = 0;
+						if (textBegin != null)
+						{
+							pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+							}
+							else
+							{
+								byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+								pStr0 = pStrStack0;
+							}
+							int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+							pStr0[pStrOffset0] = 0;
+						}
+						fixed (byte* ptextEnd = textEnd)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, pStr0, (byte*)ptextEnd, (Vector4*)(default), renderFlags, transform);
+							if (pStrSize0 >= Utils.MaxStackallocSize)
+							{
+								Utils.Free(pStr0);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (Vector4* pclipRect = &clipRect)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (Vector4* pclipRect = &clipRect)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (Vector4* pclipRect = &clipRect)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect)
+		{
+			fixed (Vector4* pclipRect = &clipRect)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (Vector4* pclipRect = &clipRect)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (Vector4* pclipRect = &clipRect)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (Vector4* pclipRect = &clipRect)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (Vector4* pclipRect = &clipRect)
+			{
+				AddTextExNative(drawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImTextDesc* pdesc = &desc)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (ImTextDesc* pdesc = &desc)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ref ImTextDesc desc, Vector2 pos, uint col, byte* textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (ImTextDesc* pdesc = &desc)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, (ImTextDesc*)pdesc, pos, col, textBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (Vector4* pclipRect = &clipRect)
+				{
+					AddTextExNative(drawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1057,30 +3110,29 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector3* pv = &v)
+			fixed (Vector4* pclipRect = &clipRect)
 			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, vMin, vMax, format, flags);
+				AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, renderFlags, transform);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed, float vMin, float vMax, byte* format)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1090,30 +3142,29 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector3* pv = &v)
+			fixed (Vector4* pclipRect = &clipRect)
 			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, vMin, vMax, format, (ImGuiSliderFlags)(0));
+				AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed, float vMin, float vMax)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1123,30 +3174,29 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector3* pv = &v)
+			fixed (Vector4* pclipRect = &clipRect)
 			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", (ImGuiSliderFlags)(0));
+				AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed, float vMin)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1156,30 +3206,29 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector3* pv = &v)
+			fixed (Vector4* pclipRect = &clipRect)
 			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
+				AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1189,30 +3238,29 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector3* pv = &v)
+			fixed (Vector4* pclipRect = &clipRect)
 			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
+				AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1222,30 +3270,29 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector3* pv = &v)
+			fixed (Vector4* pclipRect = &clipRect)
 			{
-				bool ret = DragFloat3(pStr0, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
+				AddTextExNative(drawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed, float vMin, byte* format)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1255,30 +3302,29 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector3* pv = &v)
+			fixed (Vector4* pclipRect = &clipRect)
 			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, vMin, (float)(0.0f), format, (ImGuiSliderFlags)(0));
+				AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed, byte* format)
+		public static void AddTextEx(ImDrawListPtr drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
-			if (label != null)
+			if (textBegin != null)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -1288,2143 +3334,168 @@ namespace Dalamud.Bindings.ImGui
 					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 					pStr0 = pStrStack0;
 				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (Vector3* pv = &v)
+			fixed (Vector4* pclipRect = &clipRect)
 			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
+				AddTextExNative(drawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, byte* format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+					}
 				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed, float vMin, float vMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed, float vMin, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector3* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed, float vMin, byte* format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, vMin, (float)(0.0f), format, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, float vSpeed, byte* format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref Vector3 v, byte* format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (Vector3* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed, float vMin, float vMax, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, format, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed, float vMin, float vMax, byte* format)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, format, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed, float vMin, float vMax)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed, float vMin)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed, float vMin, byte* format)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), format, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed, byte* format)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, byte* format)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed, float vMin, float vMax, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", flags);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed, float vMin, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", flags);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					bool ret = DragFloat3((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed, float vMin, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, vMin, (float)(0.0f), format, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, float vSpeed, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, ref float v, byte* format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (float* pv = &v)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed, float vMin, float vMax, byte* format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, vMin, vMax, format, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed, float vMin, float vMax, byte* format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, vMin, vMax, format, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed, float vMin, float vMax)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed, float vMin)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed, float vMin, byte* format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, vMin, (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed, byte* format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, byte* format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed, float vMin, float vMax, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, vMin, vMax, (string)"%.3f", flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed, float vMin, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				bool ret = DragFloat3(pStr0, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed, float vMin, byte* format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, vMin, (float)(0.0f), format, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, float vSpeed, byte* format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), format, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, ref float v, byte* format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (float* pv = &v)
-			{
-				byte ret = DragFloat3Native(pStr0, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), format, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, float vMax, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, vMin, vMax, (byte*)pformat, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, float vMax, ref byte format)
-		{
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, ref byte format)
-		{
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, ref byte format)
-		{
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, ref byte format)
-		{
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(label, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(label, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, float vMax, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, vMin, vMax, (byte*)pformat, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, float vMax, ReadOnlySpan<byte> format)
-		{
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, ReadOnlySpan<byte> format)
-		{
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, ReadOnlySpan<byte> format)
-		{
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, ReadOnlySpan<byte> format)
-		{
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(label, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(label, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(label, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, float vMax, string format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (format != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(format);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = DragFloat3Native(label, v, vSpeed, vMin, vMax, pStr0, flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, float vMax, string format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (format != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(format);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = DragFloat3Native(label, v, vSpeed, vMin, vMax, pStr0, (ImGuiSliderFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, string format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (format != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(format);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = DragFloat3Native(label, v, vSpeed, vMin, (float)(0.0f), pStr0, (ImGuiSliderFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, string format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (format != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(format);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = DragFloat3Native(label, v, vSpeed, (float)(0.0f), (float)(0.0f), pStr0, (ImGuiSliderFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, string format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (format != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(format);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = DragFloat3Native(label, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), pStr0, (ImGuiSliderFlags)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, float vMin, string format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (format != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(format);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = DragFloat3Native(label, v, vSpeed, vMin, (float)(0.0f), pStr0, flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, float vSpeed, string format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (format != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(format);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = DragFloat3Native(label, v, vSpeed, (float)(0.0f), (float)(0.0f), pStr0, flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, float* v, string format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (format != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(format);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = DragFloat3Native(label, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), pStr0, flags);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, float vMax, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, float vMax, ref byte format)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, ref byte format)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, ref byte format)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, ref byte format)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, float vMax, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, float vMax, ReadOnlySpan<byte> format)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, ReadOnlySpan<byte> format)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, ReadOnlySpan<byte> format)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, ReadOnlySpan<byte> format)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = label)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, float vMax, string format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (format != null)
-			{
-				pStrSize1 = Utils.GetByteCountUTF8(format);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
-				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
-				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(format, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, vMax, pStr1, flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, float vMax, string format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (format != null)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(format);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(format, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, vMax, pStr1, (ImGuiSliderFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, string format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (format != null)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(format);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(format, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, (float)(0.0f), pStr1, (ImGuiSliderFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, string format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (format != null)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(format);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(format, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			byte ret = DragFloat3Native(pStr0, v, vSpeed, (float)(0.0f), (float)(0.0f), pStr1, (ImGuiSliderFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, float* v, string format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (format != null)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(format);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(format, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			byte ret = DragFloat3Native(pStr0, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), pStr1, (ImGuiSliderFlags)(0));
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, string format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (format != null)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(format);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(format, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, (float)(0.0f), pStr1, flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, string format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (format != null)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(format);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(format, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			byte ret = DragFloat3Native(pStr0, v, vSpeed, (float)(0.0f), (float)(0.0f), pStr1, flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(string label, float* v, string format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte* pStr1 = null;
-			int pStrSize1 = 0;
-			if (format != null)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				pStrSize1 = Utils.GetByteCountUTF8(format);
-				if (pStrSize1 >= Utils.MaxStackallocSize)
-				{
-					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
-				}
-				else
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
-					pStr1 = pStrStack1;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+					}
 				}
-				int pStrOffset1 = Utils.EncodeStringUTF8(format, pStr1, pStrSize1);
-				pStr1[pStrOffset1] = 0;
-			}
-			byte ret = DragFloat3Native(pStr0, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), pStr1, flags);
-			if (pStrSize1 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr1);
-			}
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
 			}
-			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, float vMax, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (byte* pformat = format)
+				fixed (byte* ptextBegin = textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, flags);
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+					}
 				}
 			}
 		}
@@ -3432,14 +3503,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, float vMax, ReadOnlySpan<byte> format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (byte* pformat = format)
+				fixed (byte* ptextBegin = textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
 				}
 			}
 		}
@@ -3447,14 +3520,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, ReadOnlySpan<byte> format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (byte* pformat = format)
+				fixed (byte* ptextBegin = textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
 				}
 			}
 		}
@@ -3462,14 +3537,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, ReadOnlySpan<byte> format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (byte* pformat = format)
+				fixed (byte* ptextBegin = textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
 				}
 			}
 		}
@@ -3477,14 +3554,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, ReadOnlySpan<byte> format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (byte* pformat = format)
+				fixed (byte* ptextBegin = textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
 				}
 			}
 		}
@@ -3492,14 +3571,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (byte* pformat = format)
+				fixed (byte* ptextBegin = textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
 				}
 			}
 		}
@@ -3507,14 +3588,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (byte* pformat = format)
+				fixed (byte* ptextBegin = textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
 				}
 			}
 		}
@@ -3522,14 +3605,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				fixed (byte* pformat = format)
+				fixed (byte* ptextBegin = textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+					}
 				}
 			}
 		}
@@ -3537,15 +3622,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, float vMax, string format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3555,30 +3640,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, pStr0, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, float vMax, string format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3588,30 +3675,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, pStr0, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, string format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3621,30 +3710,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), pStr0, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, string format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3654,30 +3745,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), pStr0, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, string format)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3687,30 +3780,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), pStr0, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, float vMin, string format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3720,30 +3815,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), pStr0, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, float vSpeed, string format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3753,30 +3850,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), pStr0, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ref byte label, float* v, string format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ref ImDrawList drawList, ImFontPtr font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = &label)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3786,29 +3885,33 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), pStr0, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative((ImDrawList*)pdrawList, font, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, float vMax, ref byte format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
-				fixed (byte* pformat = &format)
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, flags);
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+					}
 				}
 			}
 		}
@@ -3816,14 +3919,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, float vMax, ref byte format)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
-				fixed (byte* pformat = &format)
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
 				}
 			}
 		}
@@ -3831,14 +3936,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, ref byte format)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
-				fixed (byte* pformat = &format)
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
 				}
 			}
 		}
@@ -3846,14 +3953,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, ref byte format)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
-				fixed (byte* pformat = &format)
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
 				}
 			}
 		}
@@ -3861,14 +3970,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, ref byte format)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
-				fixed (byte* pformat = &format)
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
 				}
 			}
 		}
@@ -3876,14 +3987,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, ref byte format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
-				fixed (byte* pformat = &format)
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
 				}
 			}
 		}
@@ -3891,14 +4004,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, ref byte format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
-				fixed (byte* pformat = &format)
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
 				}
 			}
 		}
@@ -3906,14 +4021,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, ref byte format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
-				fixed (byte* pformat = &format)
+				fixed (byte* ptextBegin = &textBegin)
 				{
-					byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+					}
 				}
 			}
 		}
@@ -3921,15 +4038,151 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, float vMax, string format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImFont* pfont = &font)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3939,30 +4192,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, pStr0, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, float vMax, string format)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -3972,30 +4227,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, vMax, pStr0, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, string format)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4005,30 +4262,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), pStr0, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, string format)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4038,30 +4297,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), pStr0, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, string format)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4071,30 +4332,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), pStr0, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, string format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4104,30 +4367,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), pStr0, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, float vSpeed, string format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4137,30 +4402,32 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), pStr0, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
 				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(ReadOnlySpan<byte> label, float* v, string format, ImGuiSliderFlags flags)
+		public static void AddTextEx(ImDrawListPtr drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (byte* plabel = label)
+			fixed (ImFont* pfont = &font)
 			{
 				byte* pStr0 = null;
 				int pStrSize0 = 0;
-				if (format != null)
+				if (textBegin != null)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
 						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
@@ -4170,882 +4437,603 @@ namespace Dalamud.Bindings.ImGui
 						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
 						pStr0 = pStrStack0;
 					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
 					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), pStr0, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector4* pclipRect = &clipRect)
 				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, float vMax, ref byte format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, vMax, (byte*)pformat, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, float vMax, ref byte format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, ref byte format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, ref byte format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, ref byte format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, ref byte format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, ref byte format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, ref byte format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, float vMax, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, vMax, (byte*)pformat, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, float vMax, ReadOnlySpan<byte> format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, ReadOnlySpan<byte> format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, ReadOnlySpan<byte> format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, ReadOnlySpan<byte> format)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, float vMin, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, float vSpeed, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(string label, float* v, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = format)
-			{
-				byte ret = DragFloat3Native(pStr0, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, float vMin, float vMax, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = &v)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, vMax, (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, float vMin, float vMax, ref byte format)
-		{
-			fixed (float* pv = &v)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, float vMin, ref byte format)
-		{
-			fixed (float* pv = &v)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, ref byte format)
-		{
-			fixed (float* pv = &v)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, ref byte format)
-		{
-			fixed (float* pv = &v)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, float vMin, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = &v)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, float vSpeed, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = &v)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref float v, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = &v)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin, float vMax, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, vMax, (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin, float vMax, ReadOnlySpan<byte> format)
-		{
-			fixed (float* pv = v)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin, ReadOnlySpan<byte> format)
-		{
-			fixed (float* pv = v)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, ReadOnlySpan<byte> format)
-		{
-			fixed (float* pv = v)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, ReadOnlySpan<byte> format)
-		{
-			fixed (float* pv = v)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, float vMin, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, float vSpeed, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ReadOnlySpan<float> v, ReadOnlySpan<byte> format, ImGuiSliderFlags flags)
-		{
-			fixed (float* pv = v)
-			{
-				fixed (byte* pformat = format)
-				{
-					byte ret = DragFloat3Native(label, (float*)pv, (float)(1.0f), (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, float vMin, float vMax, string format, ImGuiSliderFlags flags)
-		{
-			fixed (Vector3* pv = &v)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (format != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
+					AddTextExNative(drawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
 					if (pStrSize0 >= Utils.MaxStackallocSize)
 					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						Utils.Free(pStr0);
 					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, vMax, pStr0, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, float vMin, float vMax, string format)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
 		{
-			fixed (Vector3* pv = &v)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (format != null)
+				fixed (ImFont* pfont = &font)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
+					fixed (byte* ptextBegin = &textBegin)
 					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+						}
 					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, vMax, pStr0, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool DragFloat3(byte* label, ref Vector3 v, float vSpeed, float vMin, string format)
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
 		{
-			fixed (Vector3* pv = &v)
+			fixed (ImDrawList* pdrawList = &drawList)
 			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (format != null)
+				fixed (ImFont* pfont = &font)
 				{
-					pStrSize0 = Utils.GetByteCountUTF8(format);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
+					fixed (byte* ptextBegin = &textBegin)
 					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+						}
 					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(format, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
 				}
-				byte ret = DragFloat3Native(label, (float*)pv, vSpeed, vMin, (float)(0.0f), pStr0, (ImGuiSliderFlags)(0));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
 				{
-					Utils.Free(pStr0);
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+						}
+					}
 				}
-				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ref byte textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, ReadOnlySpan<byte> textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						fixed (Vector4* pclipRect = &clipRect)
+						{
+							AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, (byte*)ptextBegin, (byte*)(default), (Vector4*)pclipRect, renderFlags, transform);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textBegin != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, renderFlags, transform);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textBegin != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textBegin != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textBegin != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), (ImTextTransform*)(default));
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect, ImTextRenderFlags renderFlags)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textBegin != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, renderFlags, (ImTextTransform*)(default));
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, byte* textEnd, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textBegin != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, pStr0, textEnd, (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void AddTextEx(ref ImDrawList drawList, ref ImFont font, ImTextDescPtr desc, Vector2 pos, uint col, string textBegin, ref Vector4 clipRect, ImTextTransformPtr transform)
+		{
+			fixed (ImDrawList* pdrawList = &drawList)
+			{
+				fixed (ImFont* pfont = &font)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textBegin != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					fixed (Vector4* pclipRect = &clipRect)
+					{
+						AddTextExNative((ImDrawList*)pdrawList, (ImFont*)pfont, desc, pos, col, pStr0, (byte*)(default), (Vector4*)pclipRect, (ImTextRenderFlags)(0), transform);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							Utils.Free(pStr0);
+						}
+					}
+				}
 			}
 		}
 	}

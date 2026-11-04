@@ -12,6 +12,22 @@ namespace Dalamud.Bindings.ImPlot
 
     public static unsafe partial class ImPlot
     {
+        /// <summary>Same values as the default constructor of the native <c>ImPlotSpec</c>.</summary>
+        /// <remarks>Default arguments use this instead of the native constructor, which allocates on every call.</remarks>
+        internal static readonly ImPlotSpec DefaultSpec = new()
+        {
+            LineColor = new(0, 0, 0, -1),
+            LineWeight = 1,
+            FillColor = new(0, 0, 0, -1),
+            FillAlpha = 1,
+            Marker = ImPlotMarker.None,
+            MarkerSize = 4,
+            MarkerLineColor = new(0, 0, 0, -1),
+            MarkerFillColor = new(0, 0, 0, -1),
+            Size = 4,
+            Stride = -1,
+        };
+
         static ImPlot()
         {
             if (ImPlotConfig.AotStaticLink)

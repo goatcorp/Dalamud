@@ -37,6 +37,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		X1 = unchecked(3),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		X2 = unchecked(4),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		Count = unchecked(5),
 	}
 }

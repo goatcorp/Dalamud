@@ -32,11 +32,6 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     {
     }
 
-    /// <summary>
-    /// Event to be called when the entry list has been changed.
-    /// </summary>
-    internal event Action? EntryListChange;
-
     /// <inheritdoc/>
     public IReadOnlyList<IReadOnlyTitleScreenMenuEntry> Entries
     {
@@ -94,7 +89,6 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
             this.entriesView = null;
         }
 
-        this.EntryListChange?.InvokeSafely();
         return entry;
     }
 
@@ -132,7 +126,6 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
             this.entriesView = null;
         }
 
-        this.EntryListChange?.InvokeSafely();
         return entry;
     }
 
@@ -144,8 +137,6 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
             this.entries.RemoveAll(pluginEntry => pluginEntry == entry);
             this.entriesView = null;
         }
-
-        this.EntryListChange?.InvokeSafely();
     }
 
     /// <summary>
@@ -170,7 +161,6 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
             this.entriesView = null;
         }
 
-        this.EntryListChange?.InvokeSafely();
         return entry;
     }
 
@@ -204,7 +194,6 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
             this.entriesView = null;
         }
 
-        this.EntryListChange?.InvokeSafely();
         return entry;
     }
 }

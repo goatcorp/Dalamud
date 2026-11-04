@@ -62,6 +62,17 @@ namespace Dalamud.Bindings.ImPlot
 		}
 
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void Destroy()
+		{
+			fixed (ImPlotTag* @this = &this)
+			{
+				ImPlot.DestroyNative(@this);
+			}
+		}
+
 	}
 
 	/// <summary>
@@ -125,6 +136,14 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		public ref int TextOffset => ref Unsafe.AsRef<int>(&Handle->TextOffset);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void Destroy()
+		{
+			ImPlot.DestroyNative(Handle);
+		}
+
 	}
 
 }

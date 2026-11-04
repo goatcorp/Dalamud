@@ -128,6 +128,7 @@ resharper_place_field_attribute_on_same_line = false
 resharper_place_simple_initializer_on_single_line = true
 resharper_show_autodetect_configure_formatting_tip = false
 resharper_space_within_single_line_array_initializer_braces = true
+resharper_trailing_comma_in_multiline_lists = true
 resharper_use_indent_from_vs = false
 resharper_wrap_array_initializer_style = chop_if_long
 

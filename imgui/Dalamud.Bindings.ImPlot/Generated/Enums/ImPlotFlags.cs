@@ -58,22 +58,17 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoChild = unchecked(64),
+		NoFrame = unchecked(64),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoFrame = unchecked(128),
+		Equal = unchecked(128),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Equal = unchecked(256),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		Crosshairs = unchecked(512),
+		Crosshairs = unchecked(256),
 
 		/// <summary>
 		/// To be documented.

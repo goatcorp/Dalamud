@@ -25,6 +25,21 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public float FontSizeBase;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float FontScaleMain;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float FontScaleDpi;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public float Alpha;
 
 		/// <summary>
@@ -46,6 +61,11 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public float WindowBorderSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float WindowBorderHoverPadding;
 
 		/// <summary>
 		/// To be documented.
@@ -140,6 +160,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public float ScrollbarPadding;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public float GrabMinSize;
 
 		/// <summary>
@@ -155,6 +180,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public float ImageRounding;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float ImageBorderSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public float TabRounding;
 
 		/// <summary>
@@ -165,7 +200,87 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float TabMinWidthForCloseButton;
+		public float TabMinWidthBase;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float TabMinWidthShrink;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float TabCloseButtonMinWidthSelected;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float TabCloseButtonMinWidthUnselected;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float TabBarBorderSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float TabBarOverlineSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float TableAngledHeadersAngle;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public Vector2 TableAngledHeadersTextAlign;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiTreeNodeFlags TreeLinesFlags;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float TreeLinesSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float TreeLinesRounding;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float MenuItemRounding;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float SelectableRounding;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float DragDropTargetRounding;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float DragDropTargetBorderSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float DragDropTargetPadding;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float ColorMarkerSize;
 
 		/// <summary>
 		/// To be documented.
@@ -185,6 +300,31 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public float InputTextCursorSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float SeparatorSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float SeparatorTextBorderSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public Vector2 SeparatorTextAlign;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public Vector2 SeparatorTextPadding;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public Vector2 DisplayWindowPadding;
 
 		/// <summary>
@@ -195,7 +335,27 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public byte DockingNodeHasCloseButton;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float DockingSeparatorSize;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public float MouseCursorScale;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public Vector2 SymbolArrowSizeFactor;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float SymbolArrowThicknessFactor;
 
 		/// <summary>
 		/// To be documented.
@@ -205,7 +365,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte AntiAliasedLinesUseTex;
+		public byte AntiAliasedLineEnds;
 
 		/// <summary>
 		/// To be documented.
@@ -215,7 +375,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float CurveTessellationTol;
+		public float CurveTessellationMaxError;
 
 		/// <summary>
 		/// To be documented.
@@ -280,18 +440,65 @@ namespace Dalamud.Bindings.ImGui
 		public Vector4 Colors_52;
 		public Vector4 Colors_53;
 		public Vector4 Colors_54;
+		public Vector4 Colors_55;
+		public Vector4 Colors_56;
+		public Vector4 Colors_57;
+		public Vector4 Colors_58;
+		public Vector4 Colors_59;
+		public Vector4 Colors_60;
+		public Vector4 Colors_61;
+		public Vector4 Colors_62;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float HoverStationaryDelay;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float HoverDelayShort;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float HoverDelayNormal;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiHoveredFlags HoverFlagsForTooltipMouse;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiHoveredFlags HoverFlagsForTooltipNav;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float MainScale;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float NextFrameFontSizeBase;
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiStyle(float alpha = default, float disabledAlpha = default, Vector2 windowPadding = default, float windowRounding = default, float windowBorderSize = default, Vector2 windowMinSize = default, Vector2 windowTitleAlign = default, ImGuiDir windowMenuButtonPosition = default, float childRounding = default, float childBorderSize = default, float popupRounding = default, float popupBorderSize = default, Vector2 framePadding = default, float frameRounding = default, float frameBorderSize = default, Vector2 itemSpacing = default, Vector2 itemInnerSpacing = default, Vector2 cellPadding = default, Vector2 touchExtraPadding = default, float indentSpacing = default, float columnsMinSpacing = default, float scrollbarSize = default, float scrollbarRounding = default, float grabMinSize = default, float grabRounding = default, float logSliderDeadzone = default, float tabRounding = default, float tabBorderSize = default, float tabMinWidthForCloseButton = default, ImGuiDir colorButtonPosition = default, Vector2 buttonTextAlign = default, Vector2 selectableTextAlign = default, Vector2 displayWindowPadding = default, Vector2 displaySafeAreaPadding = default, float mouseCursorScale = default, bool antiAliasedLines = default, bool antiAliasedLinesUseTex = default, bool antiAliasedFill = default, float curveTessellationTol = default, float circleTessellationMaxError = default, Vector4* colors = default)
+		public unsafe ImGuiStyle(float fontSizeBase = default, float fontScaleMain = default, float fontScaleDpi = default, float alpha = default, float disabledAlpha = default, Vector2 windowPadding = default, float windowRounding = default, float windowBorderSize = default, float windowBorderHoverPadding = default, Vector2 windowMinSize = default, Vector2 windowTitleAlign = default, ImGuiDir windowMenuButtonPosition = default, float childRounding = default, float childBorderSize = default, float popupRounding = default, float popupBorderSize = default, Vector2 framePadding = default, float frameRounding = default, float frameBorderSize = default, Vector2 itemSpacing = default, Vector2 itemInnerSpacing = default, Vector2 cellPadding = default, Vector2 touchExtraPadding = default, float indentSpacing = default, float columnsMinSpacing = default, float scrollbarSize = default, float scrollbarRounding = default, float scrollbarPadding = default, float grabMinSize = default, float grabRounding = default, float logSliderDeadzone = default, float imageRounding = default, float imageBorderSize = default, float tabRounding = default, float tabBorderSize = default, float tabMinWidthBase = default, float tabMinWidthShrink = default, float tabCloseButtonMinWidthSelected = default, float tabCloseButtonMinWidthUnselected = default, float tabBarBorderSize = default, float tabBarOverlineSize = default, float tableAngledHeadersAngle = default, Vector2 tableAngledHeadersTextAlign = default, ImGuiTreeNodeFlags treeLinesFlags = default, float treeLinesSize = default, float treeLinesRounding = default, float menuItemRounding = default, float selectableRounding = default, float dragDropTargetRounding = default, float dragDropTargetBorderSize = default, float dragDropTargetPadding = default, float colorMarkerSize = default, ImGuiDir colorButtonPosition = default, Vector2 buttonTextAlign = default, Vector2 selectableTextAlign = default, float inputTextCursorSize = default, float separatorSize = default, float separatorTextBorderSize = default, Vector2 separatorTextAlign = default, Vector2 separatorTextPadding = default, Vector2 displayWindowPadding = default, Vector2 displaySafeAreaPadding = default, bool dockingNodeHasCloseButton = default, float dockingSeparatorSize = default, float mouseCursorScale = default, Vector2 symbolArrowSizeFactor = default, float symbolArrowThicknessFactor = default, bool antiAliasedLines = default, bool antiAliasedLineEnds = default, bool antiAliasedFill = default, float curveTessellationMaxError = default, float circleTessellationMaxError = default, Vector4* colors = default, float hoverStationaryDelay = default, float hoverDelayShort = default, float hoverDelayNormal = default, ImGuiHoveredFlags hoverFlagsForTooltipMouse = default, ImGuiHoveredFlags hoverFlagsForTooltipNav = default, float mainScale = default, float nextFrameFontSizeBase = default)
 		{
+			FontSizeBase = fontSizeBase;
+			FontScaleMain = fontScaleMain;
+			FontScaleDpi = fontScaleDpi;
 			Alpha = alpha;
 			DisabledAlpha = disabledAlpha;
 			WindowPadding = windowPadding;
 			WindowRounding = windowRounding;
 			WindowBorderSize = windowBorderSize;
+			WindowBorderHoverPadding = windowBorderHoverPadding;
 			WindowMinSize = windowMinSize;
 			WindowTitleAlign = windowTitleAlign;
 			WindowMenuButtonPosition = windowMenuButtonPosition;
@@ -310,22 +517,50 @@ namespace Dalamud.Bindings.ImGui
 			ColumnsMinSpacing = columnsMinSpacing;
 			ScrollbarSize = scrollbarSize;
 			ScrollbarRounding = scrollbarRounding;
+			ScrollbarPadding = scrollbarPadding;
 			GrabMinSize = grabMinSize;
 			GrabRounding = grabRounding;
 			LogSliderDeadzone = logSliderDeadzone;
+			ImageRounding = imageRounding;
+			ImageBorderSize = imageBorderSize;
 			TabRounding = tabRounding;
 			TabBorderSize = tabBorderSize;
-			TabMinWidthForCloseButton = tabMinWidthForCloseButton;
+			TabMinWidthBase = tabMinWidthBase;
+			TabMinWidthShrink = tabMinWidthShrink;
+			TabCloseButtonMinWidthSelected = tabCloseButtonMinWidthSelected;
+			TabCloseButtonMinWidthUnselected = tabCloseButtonMinWidthUnselected;
+			TabBarBorderSize = tabBarBorderSize;
+			TabBarOverlineSize = tabBarOverlineSize;
+			TableAngledHeadersAngle = tableAngledHeadersAngle;
+			TableAngledHeadersTextAlign = tableAngledHeadersTextAlign;
+			TreeLinesFlags = treeLinesFlags;
+			TreeLinesSize = treeLinesSize;
+			TreeLinesRounding = treeLinesRounding;
+			MenuItemRounding = menuItemRounding;
+			SelectableRounding = selectableRounding;
+			DragDropTargetRounding = dragDropTargetRounding;
+			DragDropTargetBorderSize = dragDropTargetBorderSize;
+			DragDropTargetPadding = dragDropTargetPadding;
+			ColorMarkerSize = colorMarkerSize;
 			ColorButtonPosition = colorButtonPosition;
 			ButtonTextAlign = buttonTextAlign;
 			SelectableTextAlign = selectableTextAlign;
+			InputTextCursorSize = inputTextCursorSize;
+			SeparatorSize = separatorSize;
+			SeparatorTextBorderSize = separatorTextBorderSize;
+			SeparatorTextAlign = separatorTextAlign;
+			SeparatorTextPadding = separatorTextPadding;
 			DisplayWindowPadding = displayWindowPadding;
 			DisplaySafeAreaPadding = displaySafeAreaPadding;
+			DockingNodeHasCloseButton = dockingNodeHasCloseButton ? (byte)1 : (byte)0;
+			DockingSeparatorSize = dockingSeparatorSize;
 			MouseCursorScale = mouseCursorScale;
+			SymbolArrowSizeFactor = symbolArrowSizeFactor;
+			SymbolArrowThicknessFactor = symbolArrowThicknessFactor;
 			AntiAliasedLines = antiAliasedLines ? (byte)1 : (byte)0;
-			AntiAliasedLinesUseTex = antiAliasedLinesUseTex ? (byte)1 : (byte)0;
+			AntiAliasedLineEnds = antiAliasedLineEnds ? (byte)1 : (byte)0;
 			AntiAliasedFill = antiAliasedFill ? (byte)1 : (byte)0;
-			CurveTessellationTol = curveTessellationTol;
+			CurveTessellationMaxError = curveTessellationMaxError;
 			CircleTessellationMaxError = circleTessellationMaxError;
 			if (colors != default(Vector4*))
 			{
@@ -384,19 +619,38 @@ namespace Dalamud.Bindings.ImGui
 				Colors_52 = colors[52];
 				Colors_53 = colors[53];
 				Colors_54 = colors[54];
+				Colors_55 = colors[55];
+				Colors_56 = colors[56];
+				Colors_57 = colors[57];
+				Colors_58 = colors[58];
+				Colors_59 = colors[59];
+				Colors_60 = colors[60];
+				Colors_61 = colors[61];
+				Colors_62 = colors[62];
 			}
+			HoverStationaryDelay = hoverStationaryDelay;
+			HoverDelayShort = hoverDelayShort;
+			HoverDelayNormal = hoverDelayNormal;
+			HoverFlagsForTooltipMouse = hoverFlagsForTooltipMouse;
+			HoverFlagsForTooltipNav = hoverFlagsForTooltipNav;
+			MainScale = mainScale;
+			NextFrameFontSizeBase = nextFrameFontSizeBase;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiStyle(float alpha = default, float disabledAlpha = default, Vector2 windowPadding = default, float windowRounding = default, float windowBorderSize = default, Vector2 windowMinSize = default, Vector2 windowTitleAlign = default, ImGuiDir windowMenuButtonPosition = default, float childRounding = default, float childBorderSize = default, float popupRounding = default, float popupBorderSize = default, Vector2 framePadding = default, float frameRounding = default, float frameBorderSize = default, Vector2 itemSpacing = default, Vector2 itemInnerSpacing = default, Vector2 cellPadding = default, Vector2 touchExtraPadding = default, float indentSpacing = default, float columnsMinSpacing = default, float scrollbarSize = default, float scrollbarRounding = default, float grabMinSize = default, float grabRounding = default, float logSliderDeadzone = default, float tabRounding = default, float tabBorderSize = default, float tabMinWidthForCloseButton = default, ImGuiDir colorButtonPosition = default, Vector2 buttonTextAlign = default, Vector2 selectableTextAlign = default, Vector2 displayWindowPadding = default, Vector2 displaySafeAreaPadding = default, float mouseCursorScale = default, bool antiAliasedLines = default, bool antiAliasedLinesUseTex = default, bool antiAliasedFill = default, float curveTessellationTol = default, float circleTessellationMaxError = default, Span<Vector4> colors = default)
+		public unsafe ImGuiStyle(float fontSizeBase = default, float fontScaleMain = default, float fontScaleDpi = default, float alpha = default, float disabledAlpha = default, Vector2 windowPadding = default, float windowRounding = default, float windowBorderSize = default, float windowBorderHoverPadding = default, Vector2 windowMinSize = default, Vector2 windowTitleAlign = default, ImGuiDir windowMenuButtonPosition = default, float childRounding = default, float childBorderSize = default, float popupRounding = default, float popupBorderSize = default, Vector2 framePadding = default, float frameRounding = default, float frameBorderSize = default, Vector2 itemSpacing = default, Vector2 itemInnerSpacing = default, Vector2 cellPadding = default, Vector2 touchExtraPadding = default, float indentSpacing = default, float columnsMinSpacing = default, float scrollbarSize = default, float scrollbarRounding = default, float scrollbarPadding = default, float grabMinSize = default, float grabRounding = default, float logSliderDeadzone = default, float imageRounding = default, float imageBorderSize = default, float tabRounding = default, float tabBorderSize = default, float tabMinWidthBase = default, float tabMinWidthShrink = default, float tabCloseButtonMinWidthSelected = default, float tabCloseButtonMinWidthUnselected = default, float tabBarBorderSize = default, float tabBarOverlineSize = default, float tableAngledHeadersAngle = default, Vector2 tableAngledHeadersTextAlign = default, ImGuiTreeNodeFlags treeLinesFlags = default, float treeLinesSize = default, float treeLinesRounding = default, float menuItemRounding = default, float selectableRounding = default, float dragDropTargetRounding = default, float dragDropTargetBorderSize = default, float dragDropTargetPadding = default, float colorMarkerSize = default, ImGuiDir colorButtonPosition = default, Vector2 buttonTextAlign = default, Vector2 selectableTextAlign = default, float inputTextCursorSize = default, float separatorSize = default, float separatorTextBorderSize = default, Vector2 separatorTextAlign = default, Vector2 separatorTextPadding = default, Vector2 displayWindowPadding = default, Vector2 displaySafeAreaPadding = default, bool dockingNodeHasCloseButton = default, float dockingSeparatorSize = default, float mouseCursorScale = default, Vector2 symbolArrowSizeFactor = default, float symbolArrowThicknessFactor = default, bool antiAliasedLines = default, bool antiAliasedLineEnds = default, bool antiAliasedFill = default, float curveTessellationMaxError = default, float circleTessellationMaxError = default, Span<Vector4> colors = default, float hoverStationaryDelay = default, float hoverDelayShort = default, float hoverDelayNormal = default, ImGuiHoveredFlags hoverFlagsForTooltipMouse = default, ImGuiHoveredFlags hoverFlagsForTooltipNav = default, float mainScale = default, float nextFrameFontSizeBase = default)
 		{
+			FontSizeBase = fontSizeBase;
+			FontScaleMain = fontScaleMain;
+			FontScaleDpi = fontScaleDpi;
 			Alpha = alpha;
 			DisabledAlpha = disabledAlpha;
 			WindowPadding = windowPadding;
 			WindowRounding = windowRounding;
 			WindowBorderSize = windowBorderSize;
+			WindowBorderHoverPadding = windowBorderHoverPadding;
 			WindowMinSize = windowMinSize;
 			WindowTitleAlign = windowTitleAlign;
 			WindowMenuButtonPosition = windowMenuButtonPosition;
@@ -415,22 +669,50 @@ namespace Dalamud.Bindings.ImGui
 			ColumnsMinSpacing = columnsMinSpacing;
 			ScrollbarSize = scrollbarSize;
 			ScrollbarRounding = scrollbarRounding;
+			ScrollbarPadding = scrollbarPadding;
 			GrabMinSize = grabMinSize;
 			GrabRounding = grabRounding;
 			LogSliderDeadzone = logSliderDeadzone;
+			ImageRounding = imageRounding;
+			ImageBorderSize = imageBorderSize;
 			TabRounding = tabRounding;
 			TabBorderSize = tabBorderSize;
-			TabMinWidthForCloseButton = tabMinWidthForCloseButton;
+			TabMinWidthBase = tabMinWidthBase;
+			TabMinWidthShrink = tabMinWidthShrink;
+			TabCloseButtonMinWidthSelected = tabCloseButtonMinWidthSelected;
+			TabCloseButtonMinWidthUnselected = tabCloseButtonMinWidthUnselected;
+			TabBarBorderSize = tabBarBorderSize;
+			TabBarOverlineSize = tabBarOverlineSize;
+			TableAngledHeadersAngle = tableAngledHeadersAngle;
+			TableAngledHeadersTextAlign = tableAngledHeadersTextAlign;
+			TreeLinesFlags = treeLinesFlags;
+			TreeLinesSize = treeLinesSize;
+			TreeLinesRounding = treeLinesRounding;
+			MenuItemRounding = menuItemRounding;
+			SelectableRounding = selectableRounding;
+			DragDropTargetRounding = dragDropTargetRounding;
+			DragDropTargetBorderSize = dragDropTargetBorderSize;
+			DragDropTargetPadding = dragDropTargetPadding;
+			ColorMarkerSize = colorMarkerSize;
 			ColorButtonPosition = colorButtonPosition;
 			ButtonTextAlign = buttonTextAlign;
 			SelectableTextAlign = selectableTextAlign;
+			InputTextCursorSize = inputTextCursorSize;
+			SeparatorSize = separatorSize;
+			SeparatorTextBorderSize = separatorTextBorderSize;
+			SeparatorTextAlign = separatorTextAlign;
+			SeparatorTextPadding = separatorTextPadding;
 			DisplayWindowPadding = displayWindowPadding;
 			DisplaySafeAreaPadding = displaySafeAreaPadding;
+			DockingNodeHasCloseButton = dockingNodeHasCloseButton ? (byte)1 : (byte)0;
+			DockingSeparatorSize = dockingSeparatorSize;
 			MouseCursorScale = mouseCursorScale;
+			SymbolArrowSizeFactor = symbolArrowSizeFactor;
+			SymbolArrowThicknessFactor = symbolArrowThicknessFactor;
 			AntiAliasedLines = antiAliasedLines ? (byte)1 : (byte)0;
-			AntiAliasedLinesUseTex = antiAliasedLinesUseTex ? (byte)1 : (byte)0;
+			AntiAliasedLineEnds = antiAliasedLineEnds ? (byte)1 : (byte)0;
 			AntiAliasedFill = antiAliasedFill ? (byte)1 : (byte)0;
-			CurveTessellationTol = curveTessellationTol;
+			CurveTessellationMaxError = curveTessellationMaxError;
 			CircleTessellationMaxError = circleTessellationMaxError;
 			if (colors != default(Span<Vector4>))
 			{
@@ -489,7 +771,22 @@ namespace Dalamud.Bindings.ImGui
 				Colors_52 = colors[52];
 				Colors_53 = colors[53];
 				Colors_54 = colors[54];
+				Colors_55 = colors[55];
+				Colors_56 = colors[56];
+				Colors_57 = colors[57];
+				Colors_58 = colors[58];
+				Colors_59 = colors[59];
+				Colors_60 = colors[60];
+				Colors_61 = colors[61];
+				Colors_62 = colors[62];
 			}
+			HoverStationaryDelay = hoverStationaryDelay;
+			HoverDelayShort = hoverDelayShort;
+			HoverDelayNormal = hoverDelayNormal;
+			HoverFlagsForTooltipMouse = hoverFlagsForTooltipMouse;
+			HoverFlagsForTooltipNav = hoverFlagsForTooltipNav;
+			MainScale = mainScale;
+			NextFrameFontSizeBase = nextFrameFontSizeBase;
 		}
 
 
@@ -503,7 +800,7 @@ namespace Dalamud.Bindings.ImGui
 			{
 				fixed (Vector4* p = &this.Colors_0)
 				{
-					return new Span<Vector4>(p, 55);
+					return new Span<Vector4>(p, 63);
 				}
 			}
 		}
@@ -575,6 +872,18 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref float FontSizeBase => ref Unsafe.AsRef<float>(&Handle->FontSizeBase);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float FontScaleMain => ref Unsafe.AsRef<float>(&Handle->FontScaleMain);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float FontScaleDpi => ref Unsafe.AsRef<float>(&Handle->FontScaleDpi);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref float Alpha => ref Unsafe.AsRef<float>(&Handle->Alpha);
 		/// <summary>
 		/// To be documented.
@@ -592,6 +901,10 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref float WindowBorderSize => ref Unsafe.AsRef<float>(&Handle->WindowBorderSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float WindowBorderHoverPadding => ref Unsafe.AsRef<float>(&Handle->WindowBorderHoverPadding);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -667,6 +980,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref float ScrollbarPadding => ref Unsafe.AsRef<float>(&Handle->ScrollbarPadding);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref float GrabMinSize => ref Unsafe.AsRef<float>(&Handle->GrabMinSize);
 		/// <summary>
 		/// To be documented.
@@ -679,6 +996,14 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref float ImageRounding => ref Unsafe.AsRef<float>(&Handle->ImageRounding);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float ImageBorderSize => ref Unsafe.AsRef<float>(&Handle->ImageBorderSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref float TabRounding => ref Unsafe.AsRef<float>(&Handle->TabRounding);
 		/// <summary>
 		/// To be documented.
@@ -687,7 +1012,71 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float TabMinWidthForCloseButton => ref Unsafe.AsRef<float>(&Handle->TabMinWidthForCloseButton);
+		public ref float TabMinWidthBase => ref Unsafe.AsRef<float>(&Handle->TabMinWidthBase);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float TabMinWidthShrink => ref Unsafe.AsRef<float>(&Handle->TabMinWidthShrink);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float TabCloseButtonMinWidthSelected => ref Unsafe.AsRef<float>(&Handle->TabCloseButtonMinWidthSelected);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float TabCloseButtonMinWidthUnselected => ref Unsafe.AsRef<float>(&Handle->TabCloseButtonMinWidthUnselected);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float TabBarBorderSize => ref Unsafe.AsRef<float>(&Handle->TabBarBorderSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float TabBarOverlineSize => ref Unsafe.AsRef<float>(&Handle->TabBarOverlineSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float TableAngledHeadersAngle => ref Unsafe.AsRef<float>(&Handle->TableAngledHeadersAngle);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref Vector2 TableAngledHeadersTextAlign => ref Unsafe.AsRef<Vector2>(&Handle->TableAngledHeadersTextAlign);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiTreeNodeFlags TreeLinesFlags => ref Unsafe.AsRef<ImGuiTreeNodeFlags>(&Handle->TreeLinesFlags);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float TreeLinesSize => ref Unsafe.AsRef<float>(&Handle->TreeLinesSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float TreeLinesRounding => ref Unsafe.AsRef<float>(&Handle->TreeLinesRounding);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float MenuItemRounding => ref Unsafe.AsRef<float>(&Handle->MenuItemRounding);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float SelectableRounding => ref Unsafe.AsRef<float>(&Handle->SelectableRounding);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float DragDropTargetRounding => ref Unsafe.AsRef<float>(&Handle->DragDropTargetRounding);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float DragDropTargetBorderSize => ref Unsafe.AsRef<float>(&Handle->DragDropTargetBorderSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float DragDropTargetPadding => ref Unsafe.AsRef<float>(&Handle->DragDropTargetPadding);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float ColorMarkerSize => ref Unsafe.AsRef<float>(&Handle->ColorMarkerSize);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -703,6 +1092,26 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref float InputTextCursorSize => ref Unsafe.AsRef<float>(&Handle->InputTextCursorSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float SeparatorSize => ref Unsafe.AsRef<float>(&Handle->SeparatorSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float SeparatorTextBorderSize => ref Unsafe.AsRef<float>(&Handle->SeparatorTextBorderSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref Vector2 SeparatorTextAlign => ref Unsafe.AsRef<Vector2>(&Handle->SeparatorTextAlign);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref Vector2 SeparatorTextPadding => ref Unsafe.AsRef<Vector2>(&Handle->SeparatorTextPadding);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref Vector2 DisplayWindowPadding => ref Unsafe.AsRef<Vector2>(&Handle->DisplayWindowPadding);
 		/// <summary>
 		/// To be documented.
@@ -711,7 +1120,23 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref bool DockingNodeHasCloseButton => ref Unsafe.AsRef<bool>(&Handle->DockingNodeHasCloseButton);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float DockingSeparatorSize => ref Unsafe.AsRef<float>(&Handle->DockingSeparatorSize);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref float MouseCursorScale => ref Unsafe.AsRef<float>(&Handle->MouseCursorScale);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref Vector2 SymbolArrowSizeFactor => ref Unsafe.AsRef<Vector2>(&Handle->SymbolArrowSizeFactor);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float SymbolArrowThicknessFactor => ref Unsafe.AsRef<float>(&Handle->SymbolArrowThicknessFactor);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -719,7 +1144,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool AntiAliasedLinesUseTex => ref Unsafe.AsRef<bool>(&Handle->AntiAliasedLinesUseTex);
+		public ref bool AntiAliasedLineEnds => ref Unsafe.AsRef<bool>(&Handle->AntiAliasedLineEnds);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -727,7 +1152,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float CurveTessellationTol => ref Unsafe.AsRef<float>(&Handle->CurveTessellationTol);
+		public ref float CurveTessellationMaxError => ref Unsafe.AsRef<float>(&Handle->CurveTessellationMaxError);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -740,9 +1165,37 @@ namespace Dalamud.Bindings.ImGui
 		{
 			get
 			{
-				return new Span<Vector4>(&Handle->Colors_0, 55);
+				return new Span<Vector4>(&Handle->Colors_0, 63);
 			}
 		}
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float HoverStationaryDelay => ref Unsafe.AsRef<float>(&Handle->HoverStationaryDelay);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float HoverDelayShort => ref Unsafe.AsRef<float>(&Handle->HoverDelayShort);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float HoverDelayNormal => ref Unsafe.AsRef<float>(&Handle->HoverDelayNormal);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiHoveredFlags HoverFlagsForTooltipMouse => ref Unsafe.AsRef<ImGuiHoveredFlags>(&Handle->HoverFlagsForTooltipMouse);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImGuiHoveredFlags HoverFlagsForTooltipNav => ref Unsafe.AsRef<ImGuiHoveredFlags>(&Handle->HoverFlagsForTooltipNav);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float MainScale => ref Unsafe.AsRef<float>(&Handle->MainScale);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float NextFrameFontSizeBase => ref Unsafe.AsRef<float>(&Handle->NextFrameFontSizeBase);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

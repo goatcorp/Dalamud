@@ -50,6 +50,34 @@ function InsertDefine {
     Set-Content -Path $filePath -Value $lines
 }
 
+# cimgui emits by-value structs as `X_c` with `typedef struct X_c X;`.
+# HexaGen names them `XC` while the definitions refer to `X`.
+# Rename them back to `X`.
+$convStructPattern = '(?m)^typedef struct (\w+)_c \1;\r?\n'
+$convStructNames = New-Object -TypeName "System.Collections.Generic.HashSet[string]"
+foreach ($filePath in "lib/Hexa.NET.ImGui/Generator/cimgui/cimgui.h", "lib/Hexa.NET.ImGui/Generator/cimplot/cimplot.h", "lib/Hexa.NET.ImGui/Generator/cimguizmo/cimguizmo.h") {
+    foreach ($m in [Regex]::Matches((Get-Content $filePath -Raw), $convStructPattern)) {
+        $null = $convStructNames.Add($m.Groups[1].Value)
+    }
+}
+
+function RemoveConvStructSuffix {
+    param (
+        [string]$filePath
+    )
+
+    $text = Get-Content $filePath -Raw
+    $text = [Regex]::Replace($text, $convStructPattern, '')
+    foreach ($name in $convStructNames) {
+        $text = [Regex]::Replace($text, "\b$($name)_c\b", $name)
+    }
+    Set-Content -Path $filePath -Value $text -NoNewline -Encoding ascii
+}
+
+RemoveConvStructSuffix -filePath "lib/Hexa.NET.ImGui/Generator/cimgui/cimgui.h"
+RemoveConvStructSuffix -filePath "lib/Hexa.NET.ImGui/Generator/cimplot/cimplot.h"
+RemoveConvStructSuffix -filePath "lib/Hexa.NET.ImGui/Generator/cimguizmo/cimguizmo.h"
+
 # Insert the define line into all relevant header files
 InsertDefine -filePath "lib/Hexa.NET.ImGui/Generator/cimgui/cimgui.h"
 InsertDefine -filePath "lib/Hexa.NET.ImGui/Generator/cimplot/cimplot.h"
@@ -68,12 +96,23 @@ Set-Location -Path "lib/Hexa.NET.ImGui"
 Set-Location -Path "Generator"
 
 # Build generator
+# Developer prompts set Platform=x64, which moves the output away from the bin/Debug/net9.0 run below.
+Remove-Item -Path Env:Platform -ErrorAction SilentlyContinue
 dotnet build
 
 # Run generator
 Read-Host -Prompt "Press any key to generate" | Out-Null
 Set-Location -Path "bin/Debug/net9.0"
 .\Generator.exe
+
+Set-Location -Path "$PSScriptRoot/.."
+foreach ($file in Get-ChildItem -Path "imgui/Dalamud.Bindings.ImPlot/Generated/Structs" -Filter "*.cs") {
+    $text = Get-Content $file.FullName -Raw
+    $fixed = $text.Replace("ImPlot.TagCollectionAppendNative(", "ImPlot.AppendNative(").Replace("ImPlot.AnnotationCollectionAppendNative(", "ImPlot.AppendNative(")
+    if ($fixed -ne $text) {
+        Set-Content -Path $file.FullName -Value $fixed -NoNewline -Encoding ascii
+    }
+}
 
 # Restore initial directory
 Set-Location -Path $initialDirectory

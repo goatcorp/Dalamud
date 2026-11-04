@@ -25,46 +25,53 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImVector<ImDrawListPtr> Layers_0;
-		public ImVector<ImDrawListPtr> Layers_1;
+		public unsafe ImVector<ImDrawListPtr>* Layers_0;
+		public unsafe ImVector<ImDrawListPtr>* Layers_1;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImVector<ImDrawListPtr> LayerData1;
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImDrawDataBuilder(ImVector<ImDrawListPtr>* layers = default)
+		public unsafe ImDrawDataBuilder(ImVector<ImDrawListPtr>** layers = default, ImVector<ImDrawListPtr> layerData1 = default)
 		{
-			if (layers != default(ImVector<ImDrawListPtr>*))
+			if (layers != default(ImVector<ImDrawListPtr>**))
 			{
 				Layers_0 = layers[0];
 				Layers_1 = layers[1];
 			}
+			LayerData1 = layerData1;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImDrawDataBuilder(Span<ImVector<ImDrawListPtr>> layers = default)
+		public unsafe ImDrawDataBuilder(Span<Pointer<ImVector<ImDrawListPtr>>> layers = default, ImVector<ImDrawListPtr> layerData1 = default)
 		{
-			if (layers != default(Span<ImVector<ImDrawListPtr>>))
+			if (layers != default(Span<Pointer<ImVector<ImDrawListPtr>>>))
 			{
 				Layers_0 = layers[0];
 				Layers_1 = layers[1];
 			}
+			LayerData1 = layerData1;
 		}
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe Span<ImVector<ImDrawListPtr>> Layers
+		public unsafe Span<Pointer<ImVector<ImDrawListPtr>>> Layers
 		
 		{
 			get
 			{
-				fixed (ImVector<ImDrawListPtr>* p = &this.Layers_0)
+				fixed (ImVector<ImDrawListPtr>** p = &this.Layers_0)
 				{
-					return new Span<ImVector<ImDrawListPtr>>(p, 2);
+					return new Span<Pointer<ImVector<ImDrawListPtr>>>(p, 2);
 				}
 			}
 		}
@@ -114,14 +121,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe Span<ImVector<ImDrawListPtr>> Layers
-		
-		{
-			get
-			{
-				return new Span<ImVector<ImDrawListPtr>>(&Handle->Layers_0, 2);
-			}
-		}
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImVector<ImDrawListPtr> LayerData1 => ref Unsafe.AsRef<ImVector<ImDrawListPtr>>(&Handle->LayerData1);
 	}
 
 }

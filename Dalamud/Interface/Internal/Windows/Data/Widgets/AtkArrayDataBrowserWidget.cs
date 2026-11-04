@@ -1,7 +1,7 @@
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Utility;
+using Dalamud.Interface.Fonts;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -332,7 +332,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
                 }
                 else
                 {
-                    ImGuiHelpers.SeStringWrapped(new ReadOnlySeStringSpan(array->StringArray[i].Value));
+                    ImGui.TextSeString(new ReadOnlySeStringSpan(array->StringArray[i].Value), wrap: true);
                 }
             }
         }

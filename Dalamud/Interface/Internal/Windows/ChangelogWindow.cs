@@ -11,9 +11,8 @@ using Dalamud.Game.Gui;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Interface.Fonts;
+using Dalamud.Interface.Fonts.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -49,8 +48,9 @@ internal sealed class ChangelogWindow : Window, IDisposable
     private readonly GameGui gameGui;
 
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
-    private readonly IFontAtlas privateAtlas;
-    private readonly Lazy<IFontHandle> bannerFont;
+    private readonly TextStyle bannerFont = TextStyle.From(GameFontFamilyAndSize.MiedingerMid18);
+
+    private readonly Lazy<ImFontRef> bannerFontLoad;
     private readonly Lazy<IDalamudTextureWrap> apiBumpExplainerTexture;
     private readonly Lazy<IDalamudTextureWrap> logoTexture;
 
@@ -96,13 +96,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
     /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.
     /// </summary>
     /// <param name="tsmWindow">TSM window.</param>
-    /// <param name="fontAtlasFactory">An instance of <see cref="FontAtlasFactory"/>.</param>
     /// <param name="assets">An instance of <see cref="DalamudAssetManager"/>.</param>
     /// <param name="gameGui">An instance of <see cref="GameGui"/>.</param>
     /// <param name="framework">An instance of <see cref="Framework"/>.</param>
     public ChangelogWindow(
         TitleScreenMenuWindow tsmWindow,
-        FontAtlasFactory fontAtlasFactory,
         DalamudAssetManager assets,
         GameGui gameGui,
         Framework framework)
@@ -112,18 +110,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
         this.tsmWindow = tsmWindow;
         this.Namespace = "DalamudChangelogWindow";
-        this.privateAtlas = this.scopedFinalizer.Add(
-            fontAtlasFactory.CreateFontAtlas(this.Namespace, FontAtlasAutoRebuildMode.Async));
-        this.bannerFont = new(
-            () => this.scopedFinalizer.Add(
-                this.privateAtlas.NewGameFontHandle(new(GameFontFamilyAndSize.MiedingerMid18))));
+        // Held, so that the font is not released while this window lives.
+        this.bannerFontLoad = new(() => this.bannerFont.GetFont());
 
         this.apiBumpExplainerTexture = new(() => assets.GetDalamudTextureWrap(DalamudAsset.ChangelogApiBumpIcon));
         this.logoTexture = new(() => assets.GetDalamudTextureWrap(DalamudAsset.Logo));
-
-        // If we are going to show a changelog, make sure we have the font ready, otherwise it will hitch
-        if (WarrantsChangelog())
-            _ = this.bannerFont.Value;
 
         framework.Update += this.FrameworkOnUpdate;
         this.scopedFinalizer.Add(() => framework.Update -= this.FrameworkOnUpdate);
@@ -158,7 +149,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(true);
         this.tsmWindow.AllowDrawing = false;
 
-        _ = this.bannerFont;
+        _ = this.bannerFontLoad.Value;
 
         this.isFadingOutForStateChange = false;
         this.stateAfterFadeOut = null;
@@ -283,7 +274,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
             var titleFadeVal = this.isFadingOutForStateChange ? this.fadeOut.EasedPoint.X : this.titleFade.EasedPoint.X;
             using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, Math.Clamp(titleFadeVal, 0f, 1f)))
             {
-                using var font = this.bannerFont.Value.Push();
+                using var font = this.bannerFont.Push();
 
                 switch (this.state)
                 {
@@ -566,6 +557,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
         if (this.isEligibleSince == null && isEligible)
         {
             this.isEligibleSince = DateTime.Now;
+
+            // Load the font ahead, as the banner is drawn in the current font until it is loaded. The service
+            // constructor that makes this window does not depend on FontResolver, so the load is not started there.
+            if (Service<FontResolver>.GetNullable() is not null)
+                _ = this.bannerFontLoad.Value;
         }
         else if (this.isEligibleSince != null && !isEligible)
         {

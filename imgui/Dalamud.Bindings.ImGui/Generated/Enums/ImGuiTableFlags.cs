@@ -197,6 +197,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		HighlightHoveredColumn = unchecked(268435456),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		SizingMask = unchecked(57344),
 	}
 }

@@ -52,22 +52,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Repeat = unchecked(1024),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		FlattenChildren = unchecked(2048),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		AllowItemOverlap = unchecked(4096),
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		DontClosePopups = unchecked(8192),
 
 		/// <summary>
 		/// To be documented.
@@ -77,7 +62,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoKeyModifiers = unchecked(65536),
+		NoKeyModsAllowed = unchecked(65536),
 
 		/// <summary>
 		/// To be documented.
@@ -93,6 +78,21 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		NoHoveredOnFocus = unchecked(524288),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoSetKeyOwner = unchecked(1048576),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoTestKeyOwner = unchecked(2097152),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoFocus = unchecked(4194304),
 
 		/// <summary>
 		/// To be documented.

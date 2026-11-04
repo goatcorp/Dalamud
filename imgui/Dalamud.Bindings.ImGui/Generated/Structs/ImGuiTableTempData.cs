@@ -25,12 +25,42 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public uint WindowID;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public int TableIndex;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public float LastTimeActive;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public float AngledHeadersExtraWidth;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImVector<ImGuiTableHeaderData> AngledHeadersRequests;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImVector<ImGuiTableReconcileColumnData> ReconcileColumnsRequests;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void* OldColumnsRawData;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImSpanImGuiTableColumn OldColumnsData;
 
 		/// <summary>
 		/// To be documented.
@@ -86,10 +116,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiTableTempData(int tableIndex = default, float lastTimeActive = default, Vector2 userOuterSize = default, ImDrawListSplitter drawSplitter = default, ImRect hostBackupWorkRect = default, ImRect hostBackupParentWorkRect = default, Vector2 hostBackupPrevLineSize = default, Vector2 hostBackupCurrLineSize = default, Vector2 hostBackupCursorMaxPos = default, ImVec1 hostBackupColumnsOffset = default, float hostBackupItemWidth = default, int hostBackupItemWidthStackSize = default)
+		public unsafe ImGuiTableTempData(uint windowId = default, int tableIndex = default, float lastTimeActive = default, float angledHeadersExtraWidth = default, ImVector<ImGuiTableHeaderData> angledHeadersRequests = default, ImVector<ImGuiTableReconcileColumnData> reconcileColumnsRequests = default, void* oldColumnsRawData = default, ImSpanImGuiTableColumn oldColumnsData = default, Vector2 userOuterSize = default, ImDrawListSplitter drawSplitter = default, ImRect hostBackupWorkRect = default, ImRect hostBackupParentWorkRect = default, Vector2 hostBackupPrevLineSize = default, Vector2 hostBackupCurrLineSize = default, Vector2 hostBackupCursorMaxPos = default, ImVec1 hostBackupColumnsOffset = default, float hostBackupItemWidth = default, int hostBackupItemWidthStackSize = default)
 		{
+			WindowID = windowId;
 			TableIndex = tableIndex;
 			LastTimeActive = lastTimeActive;
+			AngledHeadersExtraWidth = angledHeadersExtraWidth;
+			AngledHeadersRequests = angledHeadersRequests;
+			ReconcileColumnsRequests = reconcileColumnsRequests;
+			OldColumnsRawData = oldColumnsRawData;
+			OldColumnsData = oldColumnsData;
 			UserOuterSize = userOuterSize;
 			DrawSplitter = drawSplitter;
 			HostBackupWorkRect = hostBackupWorkRect;
@@ -102,17 +138,6 @@ namespace Dalamud.Bindings.ImGui
 			HostBackupItemWidthStackSize = hostBackupItemWidthStackSize;
 		}
 
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiTableTempData* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
 
 	}
 
@@ -160,11 +185,35 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ref uint WindowID => ref Unsafe.AsRef<uint>(&Handle->WindowID);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public ref int TableIndex => ref Unsafe.AsRef<int>(&Handle->TableIndex);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public ref float LastTimeActive => ref Unsafe.AsRef<float>(&Handle->LastTimeActive);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref float AngledHeadersExtraWidth => ref Unsafe.AsRef<float>(&Handle->AngledHeadersExtraWidth);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImVector<ImGuiTableHeaderData> AngledHeadersRequests => ref Unsafe.AsRef<ImVector<ImGuiTableHeaderData>>(&Handle->AngledHeadersRequests);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImVector<ImGuiTableReconcileColumnData> ReconcileColumnsRequests => ref Unsafe.AsRef<ImVector<ImGuiTableReconcileColumnData>>(&Handle->ReconcileColumnsRequests);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public void* OldColumnsRawData { get => Handle->OldColumnsRawData; set => Handle->OldColumnsRawData = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImSpanImGuiTableColumn OldColumnsData => ref Unsafe.AsRef<ImSpanImGuiTableColumn>(&Handle->OldColumnsData);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -205,14 +254,6 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref int HostBackupItemWidthStackSize => ref Unsafe.AsRef<int>(&Handle->HostBackupItemWidthStackSize);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
 	}
 
 }

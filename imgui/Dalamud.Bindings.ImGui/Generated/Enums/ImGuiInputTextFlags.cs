@@ -37,72 +37,72 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CharsUppercase = unchecked(4),
+		CharsScientific = unchecked(4),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CharsNoBlank = unchecked(8),
+		CharsUppercase = unchecked(8),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AutoSelectAll = unchecked(16),
+		CharsNoBlank = unchecked(16),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		EnterReturnsTrue = unchecked(32),
+		AllowTabInput = unchecked(32),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CallbackCompletion = unchecked(64),
+		EnterReturnsTrue = unchecked(64),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CallbackHistory = unchecked(128),
+		EscapeClearsAll = unchecked(128),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CallbackAlways = unchecked(256),
+		CtrlEnterForNewLine = unchecked(256),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CallbackCharFilter = unchecked(512),
+		ReadOnly = unchecked(512),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AllowTabInput = unchecked(1024),
+		Password = unchecked(1024),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CtrlEnterForNewLine = unchecked(2048),
+		AlwaysOverwrite = unchecked(2048),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		NoHorizontalScroll = unchecked(4096),
+		AutoSelectAll = unchecked(4096),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		AlwaysOverwrite = unchecked(8192),
+		ParseEmptyRefVal = unchecked(8192),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		ReadOnly = unchecked(16384),
+		DisplayEmptyRefVal = unchecked(16384),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Password = unchecked(32768),
+		NoHorizontalScroll = unchecked(32768),
 
 		/// <summary>
 		/// To be documented.
@@ -112,16 +112,41 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CharsScientific = unchecked(131072),
+		ElideLeft = unchecked(131072),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CallbackResize = unchecked(262144),
+		CallbackCompletion = unchecked(262144),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		CallbackEdit = unchecked(524288),
+		CallbackHistory = unchecked(524288),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		CallbackAlways = unchecked(1048576),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		CallbackCharFilter = unchecked(2097152),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		CallbackResize = unchecked(4194304),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		CallbackEdit = unchecked(8388608),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		WordWrap = unchecked(16777216),
 	}
 }

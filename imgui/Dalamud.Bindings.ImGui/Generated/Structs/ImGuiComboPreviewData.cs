@@ -50,33 +50,36 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ImGuiLayoutType BackupLayout;
-
+		public float BackupWorkRectMaxX;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiComboPreviewData(ImRect previewRect = default, Vector2 backupCursorPos = default, Vector2 backupCursorMaxPos = default, Vector2 backupCursorPosPrevLine = default, float backupPrevLineTextBaseOffset = default, ImGuiLayoutType backupLayout = default)
+		public float BackupContentRectMaxX;
+
+		public ImGuiLayoutType RawBits0;
+		public int RawBits1;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe ImGuiComboPreviewData(ImRect previewRect = default, Vector2 backupCursorPos = default, Vector2 backupCursorMaxPos = default, Vector2 backupCursorPosPrevLine = default, float backupPrevLineTextBaseOffset = default, float backupWorkRectMaxX = default, float backupContentRectMaxX = default, ImGuiLayoutType backupLayout = default, int withinPreview = default)
 		{
 			PreviewRect = previewRect;
 			BackupCursorPos = backupCursorPos;
 			BackupCursorMaxPos = backupCursorMaxPos;
 			BackupCursorPosPrevLine = backupCursorPosPrevLine;
 			BackupPrevLineTextBaseOffset = backupPrevLineTextBaseOffset;
+			BackupWorkRectMaxX = backupWorkRectMaxX;
+			BackupContentRectMaxX = backupContentRectMaxX;
 			BackupLayout = backupLayout;
+			WithinPreview = withinPreview;
 		}
 
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiComboPreviewData* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
+		public ImGuiLayoutType BackupLayout { get => Bitfield.Get(RawBits0, 0, 8); set => Bitfield.Set(ref RawBits0, value, 0, 8); }
+
+		public int WithinPreview { get => Bitfield.Get(RawBits1, 0, 2); set => Bitfield.Set(ref RawBits1, value, 0, 2); }
 
 	}
 
@@ -144,15 +147,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiLayoutType BackupLayout => ref Unsafe.AsRef<ImGuiLayoutType>(&Handle->BackupLayout);
+		public ref float BackupWorkRectMaxX => ref Unsafe.AsRef<float>(&Handle->BackupWorkRectMaxX);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
+		public ref float BackupContentRectMaxX => ref Unsafe.AsRef<float>(&Handle->BackupContentRectMaxX);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImGuiLayoutType BackupLayout { get => Handle->BackupLayout; set => Handle->BackupLayout = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public int WithinPreview { get => Handle->WithinPreview; set => Handle->WithinPreview = value; }
 	}
 
 }

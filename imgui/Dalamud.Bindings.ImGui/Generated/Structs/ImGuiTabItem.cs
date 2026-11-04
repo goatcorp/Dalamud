@@ -87,11 +87,16 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public byte WantClose;
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public byte ContentsIsVisible;
+
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiTabItem(uint id = default, ImGuiTabItemFlags flags = default, ImGuiWindowPtr window = default, int lastFrameVisible = default, int lastFrameSelected = default, float offset = default, float width = default, float contentWidth = default, float requestedWidth = default, int nameOffset = default, short beginOrder = default, short indexDuringLayout = default, bool wantClose = default)
+		public unsafe ImGuiTabItem(uint id = default, ImGuiTabItemFlags flags = default, ImGuiWindowPtr window = default, int lastFrameVisible = default, int lastFrameSelected = default, float offset = default, float width = default, float contentWidth = default, float requestedWidth = default, int nameOffset = default, short beginOrder = default, short indexDuringLayout = default, bool wantClose = default, bool contentsIsVisible = default)
 		{
 			ID = id;
 			Flags = flags;
@@ -106,19 +111,9 @@ namespace Dalamud.Bindings.ImGui
 			BeginOrder = beginOrder;
 			IndexDuringLayout = indexDuringLayout;
 			WantClose = wantClose ? (byte)1 : (byte)0;
+			ContentsIsVisible = contentsIsVisible ? (byte)1 : (byte)0;
 		}
 
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiTabItem* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
 
 	}
 
@@ -218,11 +213,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
+		public ref bool ContentsIsVisible => ref Unsafe.AsRef<bool>(&Handle->ContentsIsVisible);
 	}
 
 }

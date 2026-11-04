@@ -26,47 +26,12 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public float LineWeight;
+		public Vector2 PlotDefaultSize;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int Marker;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float MarkerSize;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float MarkerWeight;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float FillAlpha;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float ErrorBarSize;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float ErrorBarWeight;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float DigitalBitHeight;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public float DigitalBitGap;
+		public Vector2 PlotMinSize;
 
 		/// <summary>
 		/// To be documented.
@@ -151,12 +116,12 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public Vector2 PlotDefaultSize;
+		public float DigitalPadding;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public Vector2 PlotMinSize;
+		public float DigitalSpacing;
 
 		/// <summary>
 		/// To be documented.
@@ -177,11 +142,6 @@ namespace Dalamud.Bindings.ImPlot
 		public Vector4 Colors_13;
 		public Vector4 Colors_14;
 		public Vector4 Colors_15;
-		public Vector4 Colors_16;
-		public Vector4 Colors_17;
-		public Vector4 Colors_18;
-		public Vector4 Colors_19;
-		public Vector4 Colors_20;
 
 		/// <summary>
 		/// To be documented.
@@ -207,17 +167,10 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImPlotStyle(float lineWeight = default, int marker = default, float markerSize = default, float markerWeight = default, float fillAlpha = default, float errorBarSize = default, float errorBarWeight = default, float digitalBitHeight = default, float digitalBitGap = default, float plotBorderSize = default, float minorAlpha = default, Vector2 majorTickLen = default, Vector2 minorTickLen = default, Vector2 majorTickSize = default, Vector2 minorTickSize = default, Vector2 majorGridSize = default, Vector2 minorGridSize = default, Vector2 plotPadding = default, Vector2 labelPadding = default, Vector2 legendPadding = default, Vector2 legendInnerPadding = default, Vector2 legendSpacing = default, Vector2 mousePosPadding = default, Vector2 annotationPadding = default, Vector2 fitPadding = default, Vector2 plotDefaultSize = default, Vector2 plotMinSize = default, Vector4* colors = default, ImPlotColormap colormap = default, bool useLocalTime = default, bool useIso8601 = default, bool use24HourClock = default)
+		public unsafe ImPlotStyle(Vector2 plotDefaultSize = default, Vector2 plotMinSize = default, float plotBorderSize = default, float minorAlpha = default, Vector2 majorTickLen = default, Vector2 minorTickLen = default, Vector2 majorTickSize = default, Vector2 minorTickSize = default, Vector2 majorGridSize = default, Vector2 minorGridSize = default, Vector2 plotPadding = default, Vector2 labelPadding = default, Vector2 legendPadding = default, Vector2 legendInnerPadding = default, Vector2 legendSpacing = default, Vector2 mousePosPadding = default, Vector2 annotationPadding = default, Vector2 fitPadding = default, float digitalPadding = default, float digitalSpacing = default, Vector4* colors = default, ImPlotColormap colormap = default, bool useLocalTime = default, bool useIso8601 = default, bool use24HourClock = default)
 		{
-			LineWeight = lineWeight;
-			Marker = marker;
-			MarkerSize = markerSize;
-			MarkerWeight = markerWeight;
-			FillAlpha = fillAlpha;
-			ErrorBarSize = errorBarSize;
-			ErrorBarWeight = errorBarWeight;
-			DigitalBitHeight = digitalBitHeight;
-			DigitalBitGap = digitalBitGap;
+			PlotDefaultSize = plotDefaultSize;
+			PlotMinSize = plotMinSize;
 			PlotBorderSize = plotBorderSize;
 			MinorAlpha = minorAlpha;
 			MajorTickLen = majorTickLen;
@@ -234,8 +187,8 @@ namespace Dalamud.Bindings.ImPlot
 			MousePosPadding = mousePosPadding;
 			AnnotationPadding = annotationPadding;
 			FitPadding = fitPadding;
-			PlotDefaultSize = plotDefaultSize;
-			PlotMinSize = plotMinSize;
+			DigitalPadding = digitalPadding;
+			DigitalSpacing = digitalSpacing;
 			if (colors != default(Vector4*))
 			{
 				Colors_0 = colors[0];
@@ -254,11 +207,6 @@ namespace Dalamud.Bindings.ImPlot
 				Colors_13 = colors[13];
 				Colors_14 = colors[14];
 				Colors_15 = colors[15];
-				Colors_16 = colors[16];
-				Colors_17 = colors[17];
-				Colors_18 = colors[18];
-				Colors_19 = colors[19];
-				Colors_20 = colors[20];
 			}
 			Colormap = colormap;
 			UseLocalTime = useLocalTime ? (byte)1 : (byte)0;
@@ -269,17 +217,10 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImPlotStyle(float lineWeight = default, int marker = default, float markerSize = default, float markerWeight = default, float fillAlpha = default, float errorBarSize = default, float errorBarWeight = default, float digitalBitHeight = default, float digitalBitGap = default, float plotBorderSize = default, float minorAlpha = default, Vector2 majorTickLen = default, Vector2 minorTickLen = default, Vector2 majorTickSize = default, Vector2 minorTickSize = default, Vector2 majorGridSize = default, Vector2 minorGridSize = default, Vector2 plotPadding = default, Vector2 labelPadding = default, Vector2 legendPadding = default, Vector2 legendInnerPadding = default, Vector2 legendSpacing = default, Vector2 mousePosPadding = default, Vector2 annotationPadding = default, Vector2 fitPadding = default, Vector2 plotDefaultSize = default, Vector2 plotMinSize = default, Span<Vector4> colors = default, ImPlotColormap colormap = default, bool useLocalTime = default, bool useIso8601 = default, bool use24HourClock = default)
+		public unsafe ImPlotStyle(Vector2 plotDefaultSize = default, Vector2 plotMinSize = default, float plotBorderSize = default, float minorAlpha = default, Vector2 majorTickLen = default, Vector2 minorTickLen = default, Vector2 majorTickSize = default, Vector2 minorTickSize = default, Vector2 majorGridSize = default, Vector2 minorGridSize = default, Vector2 plotPadding = default, Vector2 labelPadding = default, Vector2 legendPadding = default, Vector2 legendInnerPadding = default, Vector2 legendSpacing = default, Vector2 mousePosPadding = default, Vector2 annotationPadding = default, Vector2 fitPadding = default, float digitalPadding = default, float digitalSpacing = default, Span<Vector4> colors = default, ImPlotColormap colormap = default, bool useLocalTime = default, bool useIso8601 = default, bool use24HourClock = default)
 		{
-			LineWeight = lineWeight;
-			Marker = marker;
-			MarkerSize = markerSize;
-			MarkerWeight = markerWeight;
-			FillAlpha = fillAlpha;
-			ErrorBarSize = errorBarSize;
-			ErrorBarWeight = errorBarWeight;
-			DigitalBitHeight = digitalBitHeight;
-			DigitalBitGap = digitalBitGap;
+			PlotDefaultSize = plotDefaultSize;
+			PlotMinSize = plotMinSize;
 			PlotBorderSize = plotBorderSize;
 			MinorAlpha = minorAlpha;
 			MajorTickLen = majorTickLen;
@@ -296,8 +237,8 @@ namespace Dalamud.Bindings.ImPlot
 			MousePosPadding = mousePosPadding;
 			AnnotationPadding = annotationPadding;
 			FitPadding = fitPadding;
-			PlotDefaultSize = plotDefaultSize;
-			PlotMinSize = plotMinSize;
+			DigitalPadding = digitalPadding;
+			DigitalSpacing = digitalSpacing;
 			if (colors != default(Span<Vector4>))
 			{
 				Colors_0 = colors[0];
@@ -316,11 +257,6 @@ namespace Dalamud.Bindings.ImPlot
 				Colors_13 = colors[13];
 				Colors_14 = colors[14];
 				Colors_15 = colors[15];
-				Colors_16 = colors[16];
-				Colors_17 = colors[17];
-				Colors_18 = colors[18];
-				Colors_19 = colors[19];
-				Colors_20 = colors[20];
 			}
 			Colormap = colormap;
 			UseLocalTime = useLocalTime ? (byte)1 : (byte)0;
@@ -339,7 +275,7 @@ namespace Dalamud.Bindings.ImPlot
 			{
 				fixed (Vector4* p = &this.Colors_0)
 				{
-					return new Span<Vector4>(p, 21);
+					return new Span<Vector4>(p, 16);
 				}
 			}
 		}
@@ -400,39 +336,11 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref float LineWeight => ref Unsafe.AsRef<float>(&Handle->LineWeight);
+		public ref Vector2 PlotDefaultSize => ref Unsafe.AsRef<Vector2>(&Handle->PlotDefaultSize);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int Marker => ref Unsafe.AsRef<int>(&Handle->Marker);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float MarkerSize => ref Unsafe.AsRef<float>(&Handle->MarkerSize);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float MarkerWeight => ref Unsafe.AsRef<float>(&Handle->MarkerWeight);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float FillAlpha => ref Unsafe.AsRef<float>(&Handle->FillAlpha);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float ErrorBarSize => ref Unsafe.AsRef<float>(&Handle->ErrorBarSize);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float ErrorBarWeight => ref Unsafe.AsRef<float>(&Handle->ErrorBarWeight);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float DigitalBitHeight => ref Unsafe.AsRef<float>(&Handle->DigitalBitHeight);
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ref float DigitalBitGap => ref Unsafe.AsRef<float>(&Handle->DigitalBitGap);
+		public ref Vector2 PlotMinSize => ref Unsafe.AsRef<Vector2>(&Handle->PlotMinSize);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -500,11 +408,11 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref Vector2 PlotDefaultSize => ref Unsafe.AsRef<Vector2>(&Handle->PlotDefaultSize);
+		public ref float DigitalPadding => ref Unsafe.AsRef<float>(&Handle->DigitalPadding);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref Vector2 PlotMinSize => ref Unsafe.AsRef<Vector2>(&Handle->PlotMinSize);
+		public ref float DigitalSpacing => ref Unsafe.AsRef<float>(&Handle->DigitalSpacing);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -513,7 +421,7 @@ namespace Dalamud.Bindings.ImPlot
 		{
 			get
 			{
-				return new Span<Vector4>(&Handle->Colors_0, 21);
+				return new Span<Vector4>(&Handle->Colors_0, 16);
 			}
 		}
 		/// <summary>

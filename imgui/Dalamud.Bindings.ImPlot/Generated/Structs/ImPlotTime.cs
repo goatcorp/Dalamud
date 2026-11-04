@@ -58,17 +58,6 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void FromDouble(double t)
-		{
-			fixed (ImPlotTime* @this = &this)
-			{
-				ImPlot.FromDoubleNative(@this, t);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public unsafe void RollOver()
 		{
 			fixed (ImPlotTime* @this = &this)
@@ -146,14 +135,6 @@ namespace Dalamud.Bindings.ImPlot
 		public unsafe void Destroy()
 		{
 			ImPlot.DestroyNative(Handle);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void FromDouble(double t)
-		{
-			ImPlot.FromDoubleNative(Handle, t);
 		}
 
 		/// <summary>

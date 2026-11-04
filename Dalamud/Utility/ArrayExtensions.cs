@@ -10,6 +10,15 @@ namespace Dalamud.Utility;
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1611:Element parameters should be documented", Justification = "Reviewed,")]
 internal static class ArrayExtensions
 {
+    /// <summary>Gets an array at least as long as needed.</summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="array">The array so far.</param>
+    /// <param name="length">The length needed.</param>
+    /// <param name="pinned">Whether a new array is pinned.</param>
+    /// <returns>The array if it is long enough, else a new, zeroed one.</returns>
+    public static T[] Grow<T>(this T[] array, int length, bool pinned = false) =>
+        array.Length >= length ? array : GC.AllocateArray<T>(Math.Max(length, array.Length * 2), pinned);
+
     /// <summary> Iterate over enumerables with additional index. </summary>
     public static IEnumerable<(T Value, int Index)> WithIndex<T>(this IEnumerable<T> list)
         => list.Select((x, i) => (x, i));

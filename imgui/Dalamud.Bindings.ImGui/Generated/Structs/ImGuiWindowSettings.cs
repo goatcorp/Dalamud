@@ -65,18 +65,14 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte Collapsed;
+		public ImGuiPackedDate LastUsedDate;
+
+		public bool RawBits0;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte WantApply;
-
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe ImGuiWindowSettings(uint id = default, ImVec2Ih pos = default, ImVec2Ih size = default, ImVec2Ih viewportPos = default, uint viewportId = default, uint dockId = default, uint classId = default, short dockOrder = default, bool collapsed = default, bool wantApply = default)
+		public unsafe ImGuiWindowSettings(uint id = default, ImVec2Ih pos = default, ImVec2Ih size = default, ImVec2Ih viewportPos = default, uint viewportId = default, uint dockId = default, uint classId = default, short dockOrder = default, ImGuiPackedDate lastUsedDate = default, bool collapsed = default, bool isChild = default, bool wantApply = default, bool wantDelete = default)
 		{
 			ID = id;
 			Pos = pos;
@@ -86,21 +82,21 @@ namespace Dalamud.Bindings.ImGui
 			DockId = dockId;
 			ClassId = classId;
 			DockOrder = dockOrder;
-			Collapsed = collapsed ? (byte)1 : (byte)0;
-			WantApply = wantApply ? (byte)1 : (byte)0;
+			LastUsedDate = lastUsedDate;
+			Collapsed = collapsed;
+			IsChild = isChild;
+			WantApply = wantApply;
+			WantDelete = wantDelete;
 		}
 
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void Destroy()
-		{
-			fixed (ImGuiWindowSettings* @this = &this)
-			{
-				ImGui.DestroyNative(@this);
-			}
-		}
+		public bool Collapsed { get => Bitfield.Get(RawBits0, 0, 1); set => Bitfield.Set(ref RawBits0, value, 0, 1); }
+
+		public bool IsChild { get => Bitfield.Get(RawBits0, 1, 1); set => Bitfield.Set(ref RawBits0, value, 1, 1); }
+
+		public bool WantApply { get => Bitfield.Get(RawBits0, 2, 1); set => Bitfield.Set(ref RawBits0, value, 2, 1); }
+
+		public bool WantDelete { get => Bitfield.Get(RawBits0, 3, 1); set => Bitfield.Set(ref RawBits0, value, 3, 1); }
 
 	}
 
@@ -180,19 +176,23 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool Collapsed => ref Unsafe.AsRef<bool>(&Handle->Collapsed);
+		public ref ImGuiPackedDate LastUsedDate => ref Unsafe.AsRef<ImGuiPackedDate>(&Handle->LastUsedDate);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool WantApply => ref Unsafe.AsRef<bool>(&Handle->WantApply);
+		public bool Collapsed { get => Handle->Collapsed; set => Handle->Collapsed = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void Destroy()
-		{
-			ImGui.DestroyNative(Handle);
-		}
-
+		public bool IsChild { get => Handle->IsChild; set => Handle->IsChild = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public bool WantApply { get => Handle->WantApply; set => Handle->WantApply = value; }
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public bool WantDelete { get => Handle->WantDelete; set => Handle->WantDelete = value; }
 	}
 
 }

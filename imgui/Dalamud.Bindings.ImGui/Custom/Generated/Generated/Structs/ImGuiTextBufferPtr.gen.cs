@@ -28,6 +28,10 @@ public unsafe partial struct ImGuiTextBufferPtr
 		{
 			ImGuiNative.reserve(Handle, capacity);
 		}
+		public unsafe void resize(int size)
+		{
+			ImGuiNative.resize(Handle, size);
+		}
 		public unsafe int size()
 		{
 			int ret = ImGuiNative.size(Handle);
@@ -43,3 +47,4 @@ public unsafe partial struct ImGuiTextBufferPtr
 // DISCARDED: c_strS
 // DISCARDED: end
 // DISCARDED: endS
+// DISCARDED: TextBufferAppendf

@@ -47,6 +47,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		WrapMask = unchecked(15),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		AllowCurrentNavId = unchecked(16),
 
 		/// <summary>
@@ -77,16 +82,31 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Tabbing = unchecked(1024),
+		IsTabbing = unchecked(1024),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		Activate = unchecked(2048),
+		IsPageMove = unchecked(2048),
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		DontSetNavHighlight = unchecked(4096),
+		Activate = unchecked(4096),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoSelect = unchecked(8192),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoSetNavCursorVisible = unchecked(16384),
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		NoClearActiveId = unchecked(32768),
 	}
 }
