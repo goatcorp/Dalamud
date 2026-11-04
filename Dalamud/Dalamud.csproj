@@ -88,6 +88,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\generators\Dalamud.EnumGenerator\Dalamud.EnumGenerator\Dalamud.EnumGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\generators\Dalamud.UnicodeDataGenerator\Dalamud.UnicodeDataGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup Label="Unicode Character Database files, which UnicodeData's tables are generated from">
+        <AdditionalFiles Include="Utility\Unicode\*.txt" />
     </ItemGroup>
 
     <ItemGroup>
@@ -142,9 +147,7 @@
     <!-- Copy XML files from all PackageReferences to output dir -->
     <Target Name="_ResolveCopyLocalNuGetPkgXmls" AfterTargets="ResolveReferences">
         <ItemGroup>
-            <ReferenceCopyLocalPaths
-                Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')"
-                Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)'!='' and '%(ReferenceCopyLocalPaths.NuGetPackageId)'!='TerraFX.Interop.Windows' and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
+            <ReferenceCopyLocalPaths Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)'!='' and '%(ReferenceCopyLocalPaths.NuGetPackageId)'!='TerraFX.Interop.Windows' and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
         </ItemGroup>
     </Target>
 
@@ -155,13 +158,6 @@
       </Content>
       <None Remove="Interface\ImGuiBackend\Renderers\gaussian.hlsl" />
       <None Remove="Interface\ImGuiBackend\Renderers\fullscreen-quad.hlsl.bytes" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\DerivedGeneralCategory.txt" LogicalName="DerivedGeneralCategory.txt" />
-      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\EastAsianWidth.txt" LogicalName="EastAsianWidth.txt" />
-      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\emoji-data.txt" LogicalName="emoji-data.txt" />
-      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\LineBreak.txt" LogicalName="LineBreak.txt" />
     </ItemGroup>
 
     <ItemGroup>

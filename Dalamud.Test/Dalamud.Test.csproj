@@ -16,4 +16,13 @@
         <ProjectReference Include="..\Dalamud\Dalamud.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Utility\Unicode\LineBreakTest.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Utility\Unicode\GraphemeBreakTest.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
