@@ -78,6 +78,8 @@ internal class AutoUpdateManager : IServiceType
 
     private bool hasStartedInitialUpdateThisSession;
 
+    private readonly HashSet<Guid> consentAskedThisSession = [];
+
     private IActiveNotification? updateNotification;
 
     private Task? autoUpdateTask;
@@ -140,6 +142,61 @@ internal class AutoUpdateManager : IServiceType
     /// Gets the time the auto-update was unblocked.
     /// </summary>
     public DateTime? UnblockedSince => this.unblockedSince;
+
+    /// <summary>
+    /// Asks the user whether a plugin may be auto-updated.
+    /// </summary>
+    /// <param name="plugin">The plugin asking.</param>
+    /// <param name="reason">The reason shown to the user.</param>
+    public void RequestConsent(LocalPlugin plugin, string reason)
+    {
+        Log.Information("[consent] called by {Name}, IsDev={IsDev}", plugin.Name, plugin.IsDev);
+
+        // TEMP: dev plugins are normally skipped here. Restore before committing:
+        // if (plugin.IsDev)
+        //     return;
+
+        var pluginId = plugin.EffectiveWorkingPluginId;
+
+        // Only ask once per session per plugin. Plugins call this from their own threads, so lock.
+        lock (this.consentAskedThisSession)
+        {
+            if (!this.consentAskedThisSession.Add(pluginId))
+            {
+                Log.Information("[consent] skipped: already asked this session");
+                return;
+            }
+        }
+
+        // If the user already made a choice for this plugin, respect it.
+        foreach (var preference in this.config.PluginAutoUpdatePreferences)
+        {
+            if (preference.WorkingPluginId == pluginId)
+            {
+                Log.Information("[consent] skipped: existing preference {Kind}", preference.Kind);
+                return;
+            }
+        }
+
+        // If the user's global setting already covers this plugin, there is nothing to ask.
+        var behavior = this.config.AutoUpdateBehavior ?? AutoUpdateBehavior.None;
+        Log.Information("[consent] behavior is {Behavior}, IsThirdParty={ThirdParty}", behavior, plugin.IsThirdParty);
+
+        if (behavior == AutoUpdateBehavior.UpdateAll)
+        {
+            Log.Information("[consent] skipped: behavior is UpdateAll");
+            return;
+        }
+
+        if (behavior == AutoUpdateBehavior.UpdateMainRepo && !plugin.IsThirdParty)
+        {
+            Log.Information("[consent] skipped: main repo plugin covered by behavior");
+            return;
+        }
+
+        Log.Information("[consent] showing notification");
+        this.ShowConsentNotification(plugin.Name, pluginId, reason);
+    }
 
     private static UpdateListingRestriction DecideUpdateListingRestriction(AutoUpdateBehavior behavior)
     {
@@ -447,6 +504,53 @@ internal class AutoUpdateManager : IServiceType
         });
     }
 
+    private void ShowConsentNotification(string pluginName, Guid pluginId, string reason)
+    {
+        var notification = this.notificationManager.AddNotification(new Notification
+        {
+            Title = Locs.NotificationTitleConsent,
+            Content = Locs.NotificationContentConsent(pluginName, reason),
+            MinimizedText = Locs.NotificationMinimizedConsent(pluginName),
+            Type = NotificationType.Info,
+            InitialDuration = TimeSpan.MaxValue,
+            ShowIndeterminateIfNoExpiry = false,
+            Icon = INotificationIcon.From(FontAwesomeIcon.Download),
+        });
+
+        void DrawConsentActions(INotificationDrawArgs args)
+        {
+            ImGuiHelpers.ScaledDummy(2);
+
+            if (DalamudComponents.PrimaryButton(Locs.NotificationButtonAllow))
+            {
+                this.AddAlwaysUpdatePreference(pluginId);
+                notification.DismissNow();
+            }
+
+            ImGui.SameLine();
+
+            if (DalamudComponents.SecondaryButton(Locs.NotificationButtonNotNow))
+            {
+                notification.DismissNow();
+            }
+        }
+
+        notification.DrawActions += DrawConsentActions;
+    }
+
+    private void AddAlwaysUpdatePreference(Guid pluginId)
+    {
+        // Copy the list instead of adding to it, since the settings tab may be iterating the original.
+        var newPreferences = new List<AutoUpdatePreference>(this.config.PluginAutoUpdatePreferences);
+
+        var newPreference = new AutoUpdatePreference(pluginId);
+        newPreference.Kind = AutoUpdatePreference.OptKind.AlwaysUpdate;
+        newPreferences.Add(newPreference);
+
+        this.config.PluginAutoUpdatePreferences = newPreferences;
+        this.config.QueueSave();
+    }
+
     private List<AvailablePluginUpdate> GetAvailablePluginUpdates(UpdateListingRestriction restriction)
     {
         var optIns = this.config.PluginAutoUpdatePreferences.ToArray();
@@ -551,5 +655,18 @@ internal class AutoUpdateManager : IServiceType
 
         public static string NotificationContentFailedPlugins(IEnumerable<string> failedPlugins)
             => string.Format(Loc.Localize("AutoUpdateFailedPlugins", "Failed plugin(s): {0}"), string.Join(", ", failedPlugins));
+
+        public static string NotificationTitleConsent => Loc.Localize("AutoUpdateConsentTitle", "Enable auto-updates?");
+
+        public static string NotificationButtonAllow => Loc.Localize("AutoUpdateConsentAllow", "Enable");
+
+        public static string NotificationButtonNotNow => Loc.Localize("AutoUpdateConsentNotNow", "Not now");
+
+        public static string NotificationContentConsent(string pluginName, string reason)
+            => string.Format(Loc.Localize("AutoUpdateConsentContent", "{0} would like to be updated automatically."), pluginName)
+               + "\n\n" + reason;
+
+        public static string NotificationMinimizedConsent(string pluginName)
+            => string.Format(Loc.Localize("AutoUpdateConsentMinimized", "{0} is asking to enable auto-updates"), pluginName);
     }
 }

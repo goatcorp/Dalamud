@@ -362,4 +362,13 @@ public interface IDalamudPluginInterface : IServiceProvider
     /// </summary>
     /// <returns>A record containing details about the update, or null if no update is available.</returns>
     Task<PluginUpdate?> CheckForUpdateAsync();
+
+    /// <summary>
+    /// Asks the user whether this plugin may be updated automatically.
+    /// Dalamud shows a notification with the given reason. If the user agrees, this plugin is added to the
+    /// user's auto-update overrides. Nothing is shown if the user has already made a choice for this plugin,
+    /// or if their auto-update setting already covers it.
+    /// </summary>
+    /// <param name="reason">A short explanation, as to why this plugin may benefit from auto updates.</param>
+    void RequestAutoUpdateConsent(string reason);
 }

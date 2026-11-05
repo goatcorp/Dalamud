@@ -104,6 +104,9 @@ namespace Dalamud.CorePlugin
         {
             await Task.Delay(10000, cancellationToken);
             this.pluginLog.Information("LoadAsync completed!");
+            this.pluginLog.Information("Calling RequestAutoUpdateConsent now");
+            this.Interface.RequestAutoUpdateConsent("Testing the consent prompt.");
+            this.pluginLog.Information("RequestAutoUpdateConsent returned");
         }
 
         /// <inheritdoc/>

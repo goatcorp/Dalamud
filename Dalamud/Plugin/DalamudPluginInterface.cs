@@ -447,6 +447,16 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     }
 
     /// <inheritdoc/>
+    public void RequestAutoUpdateConsent(string reason)
+    {
+        var autoUpdateManager = Service<AutoUpdateManager>.GetNullable(); // Can be null during boot
+        if (autoUpdateManager == null)
+            return;
+
+        autoUpdateManager.RequestConsent(this.plugin, reason);
+    }
+
+    /// <inheritdoc/>
     public void Dispose()
     {
         Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
