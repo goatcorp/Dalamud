@@ -88,7 +88,23 @@ public interface IClientState : IDalamudService
     /// <summary>
     /// Event that gets fired when a duty is ready.
     /// </summary>
-    event Action<RowRef<ContentFinderCondition>> CfPop;
+    /// <remarks>
+    /// Resolve to ContentFinderCondition or ContentRoulette sheet entries,
+    /// or use <see cref="DutyPop"/> or <see cref="RoulettePop"/>.
+    /// </remarks>
+    event Action<RowRef> CfPop;
+
+    /// <summary>
+    /// Event that gets fired when a duty queue has popped.
+    /// This does not trigger for duty roulette use <see cref="CfPop"/> or <see cref="RoulettePop"/>.
+    /// </summary>
+    event Action<RowRef<ContentFinderCondition>> DutyPop;
+
+    /// <summary>
+    /// Event that gets fired when a roulette queue has popped.
+    /// This does not trigger for regular duties use <see cref="CfPop"/> or <see cref="DutyPop"/>.
+    /// </summary>
+    event Action<RowRef<ContentRoulette>> RoulettePop;
 
     /// <summary>
     /// Gets the language of the client.
