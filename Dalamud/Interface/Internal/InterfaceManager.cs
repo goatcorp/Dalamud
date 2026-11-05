@@ -1199,8 +1199,8 @@ internal partial class InterfaceManager : IInternalDisposableService
         // NOTE (Chiv) Activate ImGui navigation  via L1+L3 press
         // (mimicking how mouse navigation is activated via L1+R3 press in game).
         if (gamepadEnabled
-            && gamepadState.Raw(GamepadButtons.L1) > 0
-            && gamepadState.Pressed(GamepadButtons.L3) > 0)
+            && gamepadState.Raw(GamepadButtons.L1)
+            && gamepadState.Pressed(GamepadButtons.L3))
         {
             gamepadState.EnableGamepadNav ^= true;
         }
@@ -1216,22 +1216,22 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         if (gamepadEnabled && (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)
         {
-            var northButton = gamepadState.Raw(GamepadButtons.North) != 0;
-            var eastButton = gamepadState.Raw(GamepadButtons.East) != 0;
-            var southButton = gamepadState.Raw(GamepadButtons.South) != 0;
-            var westButton = gamepadState.Raw(GamepadButtons.West) != 0;
-            var dPadUp = gamepadState.Raw(GamepadButtons.DpadUp) != 0;
-            var dPadRight = gamepadState.Raw(GamepadButtons.DpadRight) != 0;
-            var dPadDown = gamepadState.Raw(GamepadButtons.DpadDown) != 0;
-            var dPadLeft = gamepadState.Raw(GamepadButtons.DpadLeft) != 0;
+            var northButton = gamepadState.Raw(GamepadButtons.North);
+            var eastButton = gamepadState.Raw(GamepadButtons.East);
+            var southButton = gamepadState.Raw(GamepadButtons.South);
+            var westButton = gamepadState.Raw(GamepadButtons.West);
+            var dPadUp = gamepadState.Raw(GamepadButtons.DPadUp);
+            var dPadRight = gamepadState.Raw(GamepadButtons.DPadRight);
+            var dPadDown = gamepadState.Raw(GamepadButtons.DPadDown);
+            var dPadLeft = gamepadState.Raw(GamepadButtons.DPadLeft);
             var leftStickUp = gamepadState.LeftStick.Y > 0 ? gamepadState.LeftStick.Y / 100f : 0;
             var leftStickRight = gamepadState.LeftStick.X > 0 ? gamepadState.LeftStick.X / 100f : 0;
             var leftStickDown = gamepadState.LeftStick.Y < 0 ? -gamepadState.LeftStick.Y / 100f : 0;
             var leftStickLeft = gamepadState.LeftStick.X < 0 ? -gamepadState.LeftStick.X / 100f : 0;
-            var l1Button = gamepadState.Raw(GamepadButtons.L1) != 0;
-            var l2Button = gamepadState.Raw(GamepadButtons.L2) != 0;
-            var r1Button = gamepadState.Raw(GamepadButtons.R1) != 0;
-            var r2Button = gamepadState.Raw(GamepadButtons.R2) != 0;
+            var l1Button = gamepadState.Raw(GamepadButtons.L1);
+            var l2Button = gamepadState.Raw(GamepadButtons.L2);
+            var r1Button = gamepadState.Raw(GamepadButtons.R1);
+            var r2Button = gamepadState.Raw(GamepadButtons.R2);
 
             io.AddKeyEvent(ImGuiKey.GamepadFaceUp, northButton);
             io.AddKeyEvent(ImGuiKey.GamepadFaceRight, eastButton);
@@ -1253,7 +1253,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             io.AddKeyEvent(ImGuiKey.GamepadR1, r1Button);
             io.AddKeyEvent(ImGuiKey.GamepadR2, r2Button);
 
-            if (gamepadState.Pressed(GamepadButtons.R3) > 0)
+            if (gamepadState.Pressed(GamepadButtons.R3))
             {
                 var configuration = Service<DalamudConfiguration>.Get();
                 dalamudInterface.TogglePluginInstallerWindowTo(configuration.PluginInstallerOpen);
