@@ -32,4 +32,4 @@ Dalamud.Game.Player.PlayerAttribute = FFXIVClientStructs.FFXIV.Client.Game.UI.Pl
 Dalamud.Game.Text.Evaluator.Internal.SheetRedirectFlags = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureTextModule.SheetRedirectFlags
 Dalamud.Game.Text.XivChatRelationKind = FFXIVClientStructs.FFXIV.Client.UI.Misc.EntityRelationKind
 Dalamud.Game.Gui.DetailKind = FFXIVClientStructs.FFXIV.Client.Enums.DetailKind
-
+Dalamud.Game.ClientState.GamePad.GamepadButtons = FFXIVClientStructs.FFXIV.Client.System.Input.GamepadButtonsFlags
