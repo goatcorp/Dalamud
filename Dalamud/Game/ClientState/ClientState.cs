@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Threading.Tasks;
 
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
@@ -81,8 +80,6 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
         this.framework.RunOnTick(this.Setup);
     }
 
-    private delegate void SetCurrentInstanceDelegate(NetworkModuleProxy* thisPtr, short instanceId);
-
     /// <inheritdoc/>
     public event Action<ZoneInitEventArgs>? ZoneInit;
 
@@ -114,7 +111,13 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
     public event Action? LeavePvP;
 
     /// <inheritdoc/>
-    public event Action<RowRef<ContentFinderCondition>>? CfPop;
+    public event Action<RowRef>? CfPop;
+
+    /// <inheritdoc/>
+    public event Action<RowRef<ContentFinderCondition>>? DutyPop;
+
+    /// <inheritdoc/>
+    public event Action<RowRef<ContentRoulette>>? RoulettePop;
 
     /// <inheritdoc/>
     public ClientLanguage ClientLanguage { get; }
@@ -337,36 +340,60 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
         this.cfPopHook.OriginalDisposeSafe(packet);
 
         if (packet->QueueState != ContentsFinderQueueState.Ready)
+        {
             return;
+        }
 
         try
         {
             if (this.configuration.DutyFinderTaskbarFlash)
+            {
                 Util.FlashWindow();
-
-            var cfcId = packet->ContentFinderConditionId;
-            var cfcRef = LuminaUtils.CreateRef<ContentFinderCondition>(cfcId);
-            if (!cfcRef.TryGetValue(out var cfcRow))
-            {
-                Log.Error("CFC key {cfcId} not found", cfcId);
-                return;
             }
 
-            if (this.configuration.DutyFinderChatMessage)
+            ref var queueInfo = ref CSUIState.Instance()->ContentsFinder.QueueInfo.PoppedQueueEntry;
+
+            using var stringBuilder = new RentedSeStringBuilder();
+            stringBuilder.Append("Duty Pop: "u8);
+
+            switch (queueInfo.ContentType)
             {
-                using var rssb = new RentedSeStringBuilder();
+                case ContentsType.Roulette:
+                {
+                    var rouletteRowId = queueInfo.Id;
+                    var rowRef = LuminaUtils.CreateRef<ContentRoulette>(rouletteRowId);
+                    if (!rowRef.TryGetValue(out var contentRoulette))
+                    {
+                        Log.Error("ContentRoulette key {rouletteKey} not found", rouletteRowId);
+                        return;
+                    }
 
-                rssb.Append("Duty pop: "u8);
+                    stringBuilder.Append(contentRoulette.Name);
 
-                if (cfcRow.Name is { IsEmpty: false } cfcName)
-                    rssb.Append(cfcName);
-                else
-                    rssb.Append("Duty Roulette"u8);
+                    this.RoulettePop.InvokeSafely(rowRef);
+                    this.CfPop.InvokeSafely((RowRef)rowRef);
+                    break;
+                }
 
-                this.chatGui.Print(rssb.ToReadOnlySeString());
+                case ContentsType.Regular:
+                {
+                    var cfcId = packet->ContentFinderConditionId;
+                    var cfcRef = LuminaUtils.CreateRef<ContentFinderCondition>(cfcId);
+                    if (!cfcRef.TryGetValue(out var contentFinderCondition))
+                    {
+                        Log.Error("CFC key {cfcId} not found", cfcId);
+                        return;
+                    }
+
+                    stringBuilder.Append(contentFinderCondition.Name);
+
+                    this.DutyPop.InvokeSafely(cfcRef);
+                    this.CfPop.InvokeSafely((RowRef)cfcRef);
+                    break;
+                }
             }
 
-            this.CfPop.InvokeSafely(cfcRef);
+            this.chatGui.Print(stringBuilder.ToReadOnlySeString());
         }
         catch (Exception ex)
         {
@@ -434,11 +461,6 @@ internal sealed unsafe class ClientState : IInternalDisposableService, IClientSt
 
         this.onLogoutHook!.Original(thisPtr, logoutParams);
     }
-
-    private void NetworkHandlersOnCfPop(RowRef<ContentFinderCondition> cfc)
-    {
-        this.CfPop?.InvokeSafely(cfc);
-    }
 }
 
 /// <summary>
@@ -470,6 +492,8 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
         this.clientStateService.EnterPvP += this.EnterPvPForward;
         this.clientStateService.LeavePvP += this.ExitPvPForward;
         this.clientStateService.CfPop += this.ContentFinderPopForward;
+        this.clientStateService.DutyPop += this.ContentFinderDutyPopForward;
+        this.clientStateService.RoulettePop += this.ContentFinderRoulettePopForward;
     }
 
     /// <inheritdoc/>
@@ -503,7 +527,13 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     public event Action? LeavePvP;
 
     /// <inheritdoc/>
-    public event Action<RowRef<ContentFinderCondition>>? CfPop;
+    public event Action<RowRef>? CfPop;
+
+    /// <inheritdoc/>
+    public event Action<RowRef<ContentFinderCondition>>? DutyPop;
+
+    /// <inheritdoc/>
+    public event Action<RowRef<ContentRoulette>>? RoulettePop;
 
     /// <inheritdoc/>
     public ClientLanguage ClientLanguage => this.clientStateService.ClientLanguage;
@@ -549,6 +579,8 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
         this.clientStateService.EnterPvP -= this.EnterPvPForward;
         this.clientStateService.LeavePvP -= this.ExitPvPForward;
         this.clientStateService.CfPop -= this.ContentFinderPopForward;
+        this.clientStateService.DutyPop -= this.ContentFinderDutyPopForward;
+        this.clientStateService.RoulettePop -= this.ContentFinderRoulettePopForward;
 
         this.ZoneInit = null;
         this.TerritoryChanged = null;
@@ -561,6 +593,8 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
         this.EnterPvP = null;
         this.LeavePvP = null;
         this.CfPop = null;
+        this.DutyPop = null;
+        this.RoulettePop = null;
     }
 
     private void ZoneInitForward(ZoneInitEventArgs eventArgs) => this.ZoneInit?.Invoke(eventArgs);
@@ -583,5 +617,9 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
 
     private void ExitPvPForward() => this.LeavePvP?.Invoke();
 
-    private void ContentFinderPopForward(RowRef<ContentFinderCondition> cfc) => this.CfPop?.Invoke(cfc);
+    private void ContentFinderPopForward(RowRef dutyInfo) => this.CfPop?.Invoke(dutyInfo);
+
+    private void ContentFinderDutyPopForward(RowRef<ContentFinderCondition> cfc) => this.DutyPop?.Invoke(cfc);
+
+    private void ContentFinderRoulettePopForward(RowRef<ContentRoulette> roulette) => this.RoulettePop?.Invoke(roulette);
 }
