@@ -11,6 +11,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Game;
 

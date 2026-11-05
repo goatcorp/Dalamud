@@ -14,6 +14,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using FFXIVClientStructs.FFXIV.Application.Network;
 using FFXIVClientStructs.FFXIV.Client.Enums;

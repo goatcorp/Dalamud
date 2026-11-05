@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Networking.Http;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using Newtonsoft.Json;
 

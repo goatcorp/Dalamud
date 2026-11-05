@@ -18,6 +18,7 @@ using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using Serilog;
 

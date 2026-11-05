@@ -24,7 +24,7 @@ using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Plugin.VersionInfo;
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using Serilog;
 

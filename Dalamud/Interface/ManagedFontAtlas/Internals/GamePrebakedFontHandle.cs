@@ -12,6 +12,7 @@ using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using Lumina.Data.Files;
 

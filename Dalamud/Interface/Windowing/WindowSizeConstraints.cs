@@ -1,6 +1,6 @@
 using System.Numerics;
 
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.Windowing;
 

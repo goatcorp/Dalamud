@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.ImGuiFileDialog;
 

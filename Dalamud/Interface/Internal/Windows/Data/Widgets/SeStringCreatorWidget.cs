@@ -15,6 +15,7 @@ using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;

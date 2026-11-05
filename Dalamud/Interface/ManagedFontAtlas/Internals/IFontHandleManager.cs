@@ -1,4 +1,4 @@
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 

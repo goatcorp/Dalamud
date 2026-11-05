@@ -2,7 +2,7 @@ using System.IO;
 using System.Reflection;
 
 using Dalamud.Storage;
-using Dalamud.Utility;
+using Dalamud.Utility.Internal;
 
 using Newtonsoft.Json;
 

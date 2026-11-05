@@ -1,11 +1,11 @@
 using System.Security.Cryptography;
 
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.Internal;
 
 /// <summary>
 /// Utility functions for hashing.
 /// </summary>
-public static class Hash
+internal static class Hash
 {
     /// <summary>
     /// Get the SHA-256 hash of a string.

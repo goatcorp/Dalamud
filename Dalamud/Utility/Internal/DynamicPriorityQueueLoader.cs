@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.Internal;
 
 /// <summary>Base class for loading resources in dynamic order.</summary>
 internal class DynamicPriorityQueueLoader : IDisposable

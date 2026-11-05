@@ -1,4 +1,4 @@
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.Internal;
 
 /// <summary>
 /// Utility class for marking something to be changed for API 13, for ease of lookup.
