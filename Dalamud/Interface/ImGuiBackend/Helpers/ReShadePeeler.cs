@@ -14,7 +14,7 @@ using static TerraFX.Interop.Windows.Windows;
 namespace Dalamud.Interface.ImGuiBackend.Helpers;
 
 /// <summary>
-/// Peels ReShade off stuff.
+/// Removes ReShade wrappers from COM interfaces used for rendering.
 /// </summary>
 [SuppressMessage(
     "StyleCop.CSharp.LayoutRules",
@@ -37,10 +37,13 @@ internal static unsafe class ReShadePeeler
     {
         var changed = false;
 
-        // Stop when an object is revisited during this peel call.
+        // Bound each peel call to 64 distinct wrappers.
         var visited = new HashSet<nint>();
         while (comptr->Get() != null && IsReShadedComObject(comptr->Get()))
         {
+            if (visited.Count >= 64)
+                break;
+
             var currentObject = (nint)comptr->Get();
             if (!visited.Add(currentObject))
                 break;
@@ -51,36 +54,32 @@ internal static unsafe class ReShadePeeler
             {
                 var ppObjectBehind = (nint)comptr->Get() + i;
 
-                // Is the thing directly pointed from the address an actual something in the memory?
+                // Validate the candidate, its vtable, and its function pointers before querying its interface.
                 if (!IsValidReadableMemoryAddress(ppObjectBehind, 8))
                     continue;
 
                 var pObjectBehind = *(nint*)ppObjectBehind;
 
-                // Is the address of vtable readable?
                 if (!IsValidReadableMemoryAddress(pObjectBehind, nint.Size))
                     continue;
                 var pObjectBehindVtbl = *(nint*)pObjectBehind;
 
-                // Is the vtable itself readable?
                 if (!IsValidReadableMemoryAddress(pObjectBehindVtbl, vtblSize))
                     continue;
 
-                // Are individual functions in vtable executable?
                 var valid = true;
                 for (var j = 0; valid && j < vtblSize; j += nint.Size)
                     valid &= IsValidExecutableMemoryAddress(*(nint*)(pObjectBehindVtbl + j), 1);
                 if (!valid)
                     continue;
 
-                // Borrow the candidate without AddRef; do not dispose this temporary pointer.
-                // As acquires an owned reference, which is transferred to comptr on a successful replacement.
+                // Borrow the candidate without AddRef; this temporary pointer must not be disposed.
+                // QueryInterface acquires the reference transferred to comptr on successful replacement.
                 var punk = default(ComPtr<IUnknown>);
                 punk.Attach((IUnknown*)pObjectBehind);
 
-                // Is the IUnknown object also the type we want?
                 using var comptr2 = default(ComPtr<T>);
-                if (punk.As(&comptr2).FAILED)
+                if (punk.As(&comptr2).Value != 0 || comptr2.Get() == null)
                     continue;
 
                 // A self-reference is not a successfully removed wrapper.

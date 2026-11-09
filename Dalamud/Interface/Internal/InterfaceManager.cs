@@ -352,6 +352,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         Interlocked.Exchange(ref this.dalamudAtlas, null)?.Dispose();
         Interlocked.Exchange(ref this.backend, null)?.Dispose();
+        SwapChainHelper.ResetGameDisplaySwapChain();
 
         // Drain remaining retirement actions after backend disposal, without acquiring snapshot write access.
         foreach (var action in this.frameRetireActions)
@@ -636,11 +637,12 @@ internal partial class InterfaceManager : IInternalDisposableService
         {
             Log.Error(ex, "Could not set up interface hooks");
 
-            // Fail init immediately and let service init deal with it
+            // Propagate initialization failure to services waiting for a scene.
             Service<InterfaceManagerWithScene>.ProvideException(ex);
 
-            // Make sure we don't get any calls from hooks, since we might have been setup half way
+            // Remove partially installed hooks before releasing the retained swap chain.
             this.ClearHooks();
+            SwapChainHelper.ResetGameDisplaySwapChain();
         }
     }
 
@@ -696,9 +698,8 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// <param name="activeBackend">The scene to draw to.</param>
     private void RenderDalamudDraw(IImGuiBackend activeBackend)
     {
-        // Presentation callbacks may run on multiple threads. Serialize queued actions and live ImGui access
-        // with drawing, and exclude the original native framework update through the shared lock.
-        // Acquire NativeFrameworkRenderSyncRoot, renderDalamudLock, backend renderLock, then the snapshot read lock.
+        // Serialize presentation callbacks and live ImGui access while excluding native UI updates.
+        // Lock order: NativeFrameworkRenderSyncRoot, renderDalamudLock, backend renderLock, snapshot read lock.
         using (ThreadSafety.NativeFrameworkRenderSyncRoot.EnterScope())
         {
             using (this.renderDalamudLock.EnterScope())
@@ -878,24 +879,26 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private void KernelDeviceSwapChainPresentDetour(nint thisPtr)
     {
-        // Build UI from the game's swap-chain step so frame generation cannot run plugin callbacks more than once
-        // per game UI frame.
+        // Build UI once per game frame; presentation workers only render captured draw data.
 
         try
         {
-            if (this.backend is null || !this.dalamudAtlas!.HasBuiltAtlas)
-            {
-                this.kernelDeviceSwapchainPresentHook!.Original(thisPtr);
-                return;
-            }
-
-            this.backend.Step();
+            if (this.backend is not null && this.dalamudAtlas!.HasBuiltAtlas)
+                this.backend.Step();
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Exception in KernelDeviceSwapChainPresentDetour");
         }
 
+        this.CallOriginalKernelDeviceSwapChainPresent(thisPtr);
+    }
+
+    private void CallOriginalKernelDeviceSwapChainPresent(nint thisPtr)
+    {
+        // Release native-update ownership while Present may wait for NvPresent worker renders.
+        // Restore every recursion level before the native update resumes.
+        using var presentation = ThreadSafety.EnterNativePresentation();
         this.kernelDeviceSwapchainPresentHook!.Original(thisPtr);
     }
 
@@ -1117,20 +1120,21 @@ internal partial class InterfaceManager : IInternalDisposableService
             case ReShadeHandlingMode.UnwrapReShade:
                 var unwrappedReShade = false;
                 var unwrappedNvPresent = false;
+                var visitedSwapChains = new HashSet<nint>();
                 bool changed;
 
-                // Either wrapper may contain the other, so peel both repeatedly until the display chain is stable.
+                // Peel either nesting order with shared cycle detection until no wrapper can be removed.
                 do
                 {
                     changed = false;
-                    if (SwapChainHelper.UnwrapReShade())
+                    if (SwapChainHelper.UnwrapReShade(visitedSwapChains))
                     {
                         unwrappedReShade = true;
                         changed = true;
                         Log.Information("Unwrapped ReShade");
                     }
 
-                    if (SwapChainHelper.UnwrapNvPresent())
+                    if (SwapChainHelper.UnwrapNvPresent(visitedSwapChains))
                     {
                         this.isSmoothMotionDetected = true;
                         unwrappedNvPresent = true;

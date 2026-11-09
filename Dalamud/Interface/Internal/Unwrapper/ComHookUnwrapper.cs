@@ -11,11 +11,18 @@ namespace Dalamud.Interface.Internal.Unwrapper;
 /// <remarks>Memory checks reject unsuitable candidates but do not establish COM identity or preserve object lifetime.</remarks>
 internal abstract unsafe class ComHookUnwrapper
 {
+    /// <summary>Gets a value indicating whether an unresolved recognized wrapper causes unwrapping to throw.</summary>
+    protected virtual bool FailOnUnwrapFailure => false;
+
     /// <summary>Removes consecutive wrappers recognized by <see cref="IsRelevantComObject{T}"/>.</summary>
     /// <param name="comptr">[inout] The COM pointer to an instance of <typeparamref name="T"/>.</param>
+    /// <param name="visited">Removed wrapper addresses shared across discovery passes.</param>
     /// <typeparam name="T">A COM type that is or extends <see cref="IUnknown"/>.</typeparam>
     /// <returns><c>true</c> if at least one interface replacement succeeded.</returns>
-    public bool Unwrap<T>(ComPtr<T>* comptr)
+    /// <exception cref="InvalidOperationException">
+    /// A cycle or discovery limit is reached, or a required wrapper cannot be resolved.
+    /// </exception>
+    public bool Unwrap<T>(ComPtr<T>* comptr, HashSet<nint>? visited = null)
         where T : unmanaged, IUnknown.Interface
     {
         if (typeof(T).GetNestedType("Vtbl`1") is not { } vtblType)
@@ -24,21 +31,21 @@ internal abstract unsafe class ComHookUnwrapper
         nint vtblSize = vtblType.GetFields().Length * nint.Size;
         var changed = false;
 
-        // Stop when an object is revisited during this unwrap call; callers repeating unwraps need their own cycle tracking.
-        var visited = new HashSet<nint>();
+        // Bound discovery and detect cycles across wrapper types.
+        visited ??= new HashSet<nint>();
         while (comptr->Get() != null && this.IsRelevantComObject(comptr->Get()))
         {
+            if (visited.Count >= 64)
+                throw new InvalidOperationException("Graphics middleware exceeded the wrapper-discovery limit.");
+
             var currentObject = (nint)comptr->Get();
             if (!visited.Add(currentObject))
-                break;
+                throw new InvalidOperationException("A cycle was detected while unwrapping graphics middleware.");
 
-            // Scan pointer-sized fields through offset 0x20 for an underlying interface. This is a layout heuristic.
+            // Validate candidate fields and vtables before calling QueryInterface.
             var peeled = false;
-            for (nint i = nint.Size; i <= 0x20; i += nint.Size)
+            for (var i = 0; this.TryGetCandidateAddress(comptr->Get(), i, out var ppObjectBehind); i++)
             {
-                var ppObjectBehind = (nint)comptr->Get() + i;
-
-                // Check current memory mappings before dereferencing candidate fields in the undocumented layout.
                 if (!IsValidReadableMemoryAddress(ppObjectBehind, 8))
                     continue;
 
@@ -63,10 +70,10 @@ internal abstract unsafe class ComHookUnwrapper
                 punk.Attach((IUnknown*)pObjectBehind);
 
                 using var comptr2 = default(ComPtr<T>);
-                if (punk.As(&comptr2).FAILED)
+                if (punk.As(&comptr2).Value != 0 || comptr2.Get() == null)
                     continue;
 
-                // A self-reference is not a successfully removed wrapper.
+                // Self-references do not advance discovery.
                 if ((nint)comptr2.Get() == currentObject)
                     continue;
 
@@ -76,9 +83,19 @@ internal abstract unsafe class ComHookUnwrapper
                 break;
             }
 
-            // Stop when this wrapper matches but exposes no valid underlying interface.
             if (!peeled)
+            {
+                if (this.FailOnUnwrapFailure)
+                {
+                    throw new InvalidOperationException(
+                        $"Could not validate the underlying swap chain for {this.GetType().Name}. " +
+                        "Presentation hooks were refused; no arbitrary-field fallback was used.");
+                }
+
+                // Keep only removed wrappers in the cycle set so other unwrappers can retry this terminal.
+                visited.Remove(currentObject);
                 break;
+            }
         }
 
         return changed;
@@ -161,6 +178,24 @@ internal abstract unsafe class ComHookUnwrapper
             p += checkedSize;
         }
 
+        return true;
+    }
+
+    /// <summary>Finds a field holding an underlying interface candidate.</summary>
+    /// <param name="obj">The recognized wrapper.</param>
+    /// <param name="candidateIndex">Zero-based candidate index.</param>
+    /// <param name="candidateAddress">Address of the pointer field, if available.</param>
+    /// <typeparam name="T">The requested COM interface.</typeparam>
+    /// <returns>Whether another candidate field is available.</returns>
+    protected virtual bool TryGetCandidateAddress<T>(T* obj, int candidateIndex, out nint candidateAddress)
+        where T : unmanaged, IUnknown.Interface
+    {
+        // The default layout probes four pointer fields after the vtable pointer.
+        candidateAddress = 0;
+        if (candidateIndex is < 0 or >= 4)
+            return false;
+
+        candidateAddress = (nint)obj + ((candidateIndex + 1) * nint.Size);
         return true;
     }
 

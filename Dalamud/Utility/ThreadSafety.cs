@@ -19,14 +19,20 @@ public static class ThreadSafety
     public static bool IsMainThread => threadStaticIsMainThread;
 
     /// <summary>
-    /// Gets the shared lock that prevents worker-thread rendering from overlapping the original native framework
-    /// update.
+    /// Gets the lock that excludes worker rendering from native framework updates outside presentation.
     /// </summary>
     /// <remarks>
-    /// This reentrant lock allows the game thread to present during the native update.
-    /// The managed framework tick runs before this lock is acquired and is not protected by it.
+    /// The kernel swap-chain Present call temporarily releases all game-thread recursion levels so presentation
+    /// workers can render. The managed framework tick runs before this lock is acquired.
     /// </remarks>
     internal static Lock NativeFrameworkRenderSyncRoot { get; } = new();
+
+    /// <summary>
+    /// Releases the calling thread's native-update lock ownership until disposal.
+    /// </summary>
+    /// <returns>A scope that restores every released recursion level when disposed on the calling thread.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static NativePresentationScope EnterNativePresentation() => new(NativeFrameworkRenderSyncRoot);
 
     /// <summary>
     /// Throws an exception when the current thread is not the main thread.
@@ -85,5 +91,38 @@ public static class ThreadSafety
     internal static void MarkMainThread()
     {
         threadStaticIsMainThread = true;
+    }
+
+    /// <summary>
+    /// Suspends the calling thread's recursive native-update lock ownership.
+    /// </summary>
+    /// <remarks>Dispose once, on the creating thread, before resuming the original native framework update.</remarks>
+    internal readonly ref struct NativePresentationScope
+    {
+        private readonly Lock syncRoot;
+        private readonly int recursionDepth;
+
+        /// <summary>Initializes a new instance of the <see cref="NativePresentationScope"/> struct.</summary>
+        /// <param name="syncRoot">The native-update lock whose calling-thread ownership is suspended.</param>
+        internal NativePresentationScope(Lock syncRoot)
+        {
+            this.syncRoot = syncRoot;
+
+            var depth = 0;
+            while (syncRoot.IsHeldByCurrentThread)
+            {
+                syncRoot.Exit();
+                depth++;
+            }
+
+            this.recursionDepth = depth;
+        }
+
+        /// <summary>Restores every released recursion level.</summary>
+        public void Dispose()
+        {
+            for (var depth = 0; depth < this.recursionDepth; depth++)
+                this.syncRoot.Enter();
+        }
     }
 }
