@@ -19,9 +19,15 @@ internal class HookInfo
     public HookInfo(IDalamudHook hook, Delegate hookDelegate, Assembly assembly)
     {
         this.Hook = hook;
+        this.Address = hook.Address;
         this.Delegate = hookDelegate;
         this.Assembly = assembly;
     }
+
+    /// <summary>
+    /// Gets the resolved target address captured at registration and retained after disposal.
+    /// </summary>
+    internal IntPtr Address { get; }
 
     /// <summary>
     /// Gets the RVA of the hook.

@@ -33,7 +33,7 @@ internal class HookManager : IInternalDisposableService
     }
 
     /// <summary>
-    /// Gets sync root object for hook enabling/disabling.
+    /// Gets the lock for hook registration, enabling, disabling, and disposal.
     /// </summary>
     internal static Lock HookEnableSyncRoot { get; } = new();
 
@@ -75,7 +75,9 @@ internal class HookManager : IInternalDisposableService
     /// <returns>A new Unhooker instance.</returns>
     public static Unhooker RegisterUnhooker(IntPtr address, int minBytes, int maxBytes)
     {
-        Log.Verbose($"Registering hook at {Util.DescribeAddress(address)} (minBytes=0x{minBytes:X}, maxBytes=0x{maxBytes:X})");
+        // Avoid bootstrapper module enumeration unless verbose diagnostics need it.
+        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Verbose))
+            Log.Verbose($"Registering hook at {Util.DescribeAddress(address)} (minBytes=0x{minBytes:X}, maxBytes=0x{maxBytes:X})");
         return Unhookers.GetOrAdd(address, _ => new Unhooker(address, minBytes, maxBytes));
     }
 
@@ -89,6 +91,56 @@ internal class HookManager : IInternalDisposableService
             TrackedHooks.Clear();
             Unhookers.Clear();
         }).Wait();
+    }
+
+    /// <summary>
+    /// Rejects duplicate callback invocation lists at the same address to prevent recursive hook chains.
+    /// </summary>
+    /// <param name="address">The resolved address to hook.</param>
+    /// <param name="detour">The proposed callback.</param>
+    /// <remarks>
+    /// Hold <see cref="HookEnableSyncRoot"/> from this check through native hook creation and registration.
+    /// Disabled hooks remain registered until disposal because they can be enabled again.
+    /// </remarks>
+    internal static void ThrowIfDuplicateDetour(IntPtr address, Delegate detour)
+    {
+        var callbacks = detour.GetInvocationList();
+        foreach (var existing in TrackedHooks.Values)
+        {
+            if (existing.Hook.IsDisposed || existing.Address != address)
+                continue;
+
+            var existingCallbacks = existing.Delegate.GetInvocationList();
+            if (existingCallbacks.Length != callbacks.Length)
+                continue;
+
+            var matches = true;
+            for (var i = 0; matches && i < callbacks.Length; i++)
+            {
+                var callback = callbacks[i];
+                var existingCallback = existingCallbacks[i];
+                if (callback.Target is null && callback.Method.DeclaringType is { } declaringType &&
+                    typeof(Delegate).IsAssignableFrom(declaringType))
+                {
+                    // Native delegates can share Method and Target; equality also checks the function pointer.
+                    matches = callback.Equals(existingCallback);
+                }
+                else
+                {
+                    // Managed callback identity is independent of delegate type.
+                    matches = callback.Method == existingCallback.Method &&
+                              ReferenceEquals(callback.Target, existingCallback.Target);
+                }
+            }
+
+            if (matches)
+            {
+                throw new InvalidOperationException(
+                    $"The detour {detour.Method.DeclaringType?.FullName}.{detour.Method.Name} is already registered " +
+                    $"at 0x{address:X} by {existing.Assembly.GetName().Name}. " +
+                    "Dispose the previous hook before creating a replacement.");
+            }
+        }
     }
 
     /// <summary>

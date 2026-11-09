@@ -27,6 +27,7 @@ internal class SafetyHookHook<T> : Hook<T> where T : Delegate
     {
         using var scope = HookManager.HookEnableSyncRoot.EnterScope();
 
+        HookManager.ThrowIfDuplicateDetour(address, detour);
         this.unhooker = HookManager.RegisterUnhooker(address);
 
         this.detour = detour;
