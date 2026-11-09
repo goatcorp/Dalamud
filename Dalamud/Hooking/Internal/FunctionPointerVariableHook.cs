@@ -41,6 +41,7 @@ internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
     {
         using var scope = HookManager.HookEnableSyncRoot.EnterScope();
 
+        HookManager.ThrowIfDuplicateDetour(address, detour);
         var unhooker = HookManager.RegisterUnhooker(this.Address, 8, 8);
 
         if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
