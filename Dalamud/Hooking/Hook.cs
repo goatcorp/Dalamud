@@ -247,19 +247,7 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         }
         catch (Exception ex)
         {
-            try
-            {
-                Log.Error(
-                    ex,
-                    "Could not set up a hook at {Address}\n{Report}",
-                    Util.DescribeAddress(address),
-                    AddressSpaceAnalysis.BuildReport(address));
-            }
-            catch (Exception reportEx)
-            {
-                Log.Error(reportEx, "Could not build an address space report for the failed hook");
-            }
-
+            HookUtility.LogHookingErrorWithAddressSpaceInformation(ex, address);
             throw;
         }
     }

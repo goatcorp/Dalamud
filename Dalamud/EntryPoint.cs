@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
+using Dalamud.Hooking;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Logging.Internal;
 using Dalamud.Logging.Retention;
@@ -14,18 +15,13 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Support;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
-
 using Newtonsoft.Json;
-
 using Reloaded.Hooks;
 using Reloaded.Hooks.Definitions;
-
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
@@ -123,10 +119,28 @@ public sealed class EntryPoint
     /// </summary>
     internal static unsafe void SetupGlobalDestroyHook()
     {
-        globalFrameworkDestroyHook = ReloadedHooks.Instance.CreateHook<Framework.Delegates.Destroy>(
-            GlobalFrameworkDestroyDetour,
-            (long)Framework.StaticVirtualTablePointer->Destroy);
-        globalFrameworkDestroyHook.Activate();
+        try
+        {
+            globalFrameworkDestroyHook = ReloadedHooks.Instance.CreateHook<Framework.Delegates.Destroy>(
+                GlobalFrameworkDestroyDetour,
+                (long)Framework.StaticVirtualTablePointer->Destroy);
+            globalFrameworkDestroyHook.Activate();
+        }
+        catch (Exception ex)
+        {
+            HookUtility.LogHookingErrorWithAddressSpaceInformation(ex, (IntPtr)Framework.StaticVirtualTablePointer->Destroy);
+            throw;
+        }
+    }
+
+    // Log some stuff to debug hook failures
+    private static unsafe void LogAddressSpaceInfo()
+    {
+        Windows.Win32.PInvoke.GetSystemInfo(out var systemInfo);
+
+        Log.Information("lpMinimumApplicationAddress: {MinAddr:x}\tlpMaximumApplicationAddress: {MaxAddr:x}",
+            (IntPtr)systemInfo.lpMinimumApplicationAddress,
+            (IntPtr)systemInfo.lpMaximumApplicationAddress);
     }
 
     /// <summary>
@@ -141,6 +155,8 @@ public sealed class EntryPoint
         // Setup logger
         InitLogging(info.LogPath!, info.BootShowConsole, true, info.LogName);
         SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
+
+        LogAddressSpaceInfo();
 
         // Load configuration first to get some early persistent state, like log level
         var fs = new ReliableFileStorage(Path.GetDirectoryName(info.ConfigurationPath)!);

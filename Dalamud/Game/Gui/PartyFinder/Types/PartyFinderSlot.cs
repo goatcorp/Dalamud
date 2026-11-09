@@ -29,5 +29,5 @@ public class PartyFinderSlot
     /// Tests if this slot is accepting a job.
     /// </summary>
     /// <param name="flag">Job to test.</param>
-    public bool this[JobFlags flag] => (this.accepting & (uint)flag) > 0;
+    public bool this[JobFlags flag] => (this.accepting & (ulong)flag) != 0;
 }
