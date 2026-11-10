@@ -69,6 +69,7 @@ internal class KeyState : IServiceType, IKeyState, IInternalDisposableService
     }
 
     /// <inheritdoc/>
+    [Api16ToDo("Undo conditional and keep as `(raw & (int)KeyStateFlags.Down) != 0`")]
     public bool this[int vkCode]
     {
         get
