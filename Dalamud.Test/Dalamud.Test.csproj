@@ -3,6 +3,8 @@
     <PropertyGroup>
         <TargetFramework>net10.0-windows</TargetFramework>
         <IsPackable>false</IsPackable>
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,6 +16,10 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Dalamud\Dalamud.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
     </ItemGroup>
 
 </Project>

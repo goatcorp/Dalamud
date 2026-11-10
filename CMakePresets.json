@@ -6,21 +6,55 @@
       "name": "base",
       "hidden": true,
       "binaryDir": "${sourceDir}/build",
-      "architecture": { "value": "x64", "strategy": "set" },
-      "toolset": { "value": "v145", "strategy": "set" },
       "cacheVariables": {
         "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
       }
     },
     {
+      "name": "base-vs",
+      "hidden": true,
+      "inherits": "base",
+      "architecture": { "value": "x64", "strategy": "set" },
+      "toolset": { "value": "v145", "strategy": "set" }
+    },
+    {
       "name": "vs2026",
       "displayName": "Visual Studio 2026 (v145 toolset)",
-      "inherits": "base",
+      "inherits": "base-vs",
       "generator": "Visual Studio 18 2026"
+    },
+    {
+      "name": "base-mingw",
+      "hidden": true,
+      "inherits": "base"
+    },
+    {
+      "name": "mingw-make-debug",
+      "displayName": "MinGW Makefile Debug",
+      "inherits": "base-mingw",
+      "generator": "Unix Makefiles",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+    },
+    {
+      "name": "mingw-make-release",
+      "displayName": "MinGW Makefile Release",
+      "inherits": "base-mingw",
+      "generator": "Unix Makefiles",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    },
+    {
+      "name": "mingw-ninja",
+      "displayName": "MinGW Ninja",
+      "inherits": "base-mingw",
+      "generator": "Ninja Multi-Config"
     }
   ],
   "buildPresets": [
     { "name": "vs2026-debug", "configurePreset": "vs2026", "configuration": "Debug" },
-    { "name": "vs2026-release", "configurePreset": "vs2026", "configuration": "Release" }
+    { "name": "vs2026-release", "configurePreset": "vs2026", "configuration": "Release" },
+    { "name": "mingw-make-debug", "configurePreset": "mingw-make-debug", "configuration": "Debug" },
+    { "name": "mingw-make-release", "configurePreset": "mingw-make-release", "configuration": "Release" },
+    { "name": "mingw-ninja-debug", "configurePreset": "mingw-ninja", "configuration": "Debug" },
+    { "name": "mingw-ninja-release", "configurePreset": "mingw-ninja", "configuration": "Release" }
   ]
 }

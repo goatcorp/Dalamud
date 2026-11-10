@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Windows.h>
-#include <SubAuth.h>
+#include <windows.h>
+#include <subauth.h>
 
 // ntdll exports
 enum {

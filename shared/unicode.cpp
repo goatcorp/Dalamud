@@ -7,7 +7,7 @@ size_t unicode::decode(EncodingTag<char8_t>, char32_t& out, const char8_t* in, s
     }
 
     if (0 == (*in & 0x80)) {
-        out = *in;
+        out = static_cast<char32_t>(*in);
         return 1;
     }
 

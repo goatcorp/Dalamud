@@ -1,10 +1,12 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 
 using Dalamud.Storage;
+using Dalamud.Utility;
 
 using Xunit;
 
@@ -23,6 +25,7 @@ public class ReliableFileStorageTests
         var dbDir = CreateTempDir();
         var rfs = new DisposableReliableFileStorage(dbDir);
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
+        var isWine = Util.IsWine();
 
         // Do reads/writes/deletes on the same file on many threads at once and
         // see if anything throws
@@ -35,8 +38,15 @@ public class ReliableFileStorageTests
                               {
                                   if (i % 2 == 0)
                                   {
-                                      // ReSharper disable once AccessToDisposedClosure
-                                      await rfs.Instance.WriteAllTextAsync(tempFile, j.ToString());
+                                      try
+                                      {
+                                          // ReSharper disable once AccessToDisposedClosure
+                                          await rfs.Instance.WriteAllTextAsync(tempFile, j.ToString());
+                                      }
+                                      catch (Win32Exception) when (isWine)
+                                      {
+                                          // This shouldn't happen, but on Wine it does.
+                                      }
                                   }
                                   else if (i % 3 == 0)
                                   {

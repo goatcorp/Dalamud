@@ -2,9 +2,9 @@
 
 #include <cstdio>
 #include <filesystem>
-#include <Windows.h>
-#include <Lmcons.h>
-#include <Shlobj.h>
+#include <windows.h>
+#include <lmcons.h>
+#include <shlobj.h>
 #include "logging.h"
 
 FILE* g_CmdStream;
@@ -99,20 +99,20 @@ HRESULT InitializeClrAndGetEntryPoint(
     g_clr.emplace(calling_module);
 
     int result;
-    SetEnvironmentVariable(L"DOTNET_MULTILEVEL_LOOKUP", L"0");
+    SetEnvironmentVariable(TEXT("DOTNET_MULTILEVEL_LOOKUP"), TEXT("0"));
 
-    SetEnvironmentVariable(L"COMPLUS_ForceENC", L"1");
-    SetEnvironmentVariable(L"DOTNET_ForceENC", L"1");
+    SetEnvironmentVariable(TEXT("COMPLUS_ForceENC"), TEXT("1"));
+    SetEnvironmentVariable(TEXT("DOTNET_ForceENC"), TEXT("1"));
 
     // Enable Dynamic PGO
-    SetEnvironmentVariable(L"DOTNET_TieredPGO", L"1");
-    SetEnvironmentVariable(L"DOTNET_TC_QuickJitForLoops", L"1");
-    SetEnvironmentVariable(L"DOTNET_ReadyToRun", L"1");
+    SetEnvironmentVariable(TEXT("DOTNET_TieredPGO"), TEXT("1"));
+    SetEnvironmentVariable(TEXT("DOTNET_TC_QuickJitForLoops"), TEXT("1"));
+    SetEnvironmentVariable(TEXT("DOTNET_ReadyToRun"), TEXT("1"));
 
     // WINE does not support QUIC and we don't need it
-    SetEnvironmentVariable(L"DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP3SUPPORT", L"0");
+    SetEnvironmentVariable(TEXT("DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP3SUPPORT"), TEXT("0"));
 
-    SetEnvironmentVariable(L"COMPlus_ETWEnabled", enable_etw ? L"1" : L"0");
+    SetEnvironmentVariable(TEXT("COMPlus_ETWEnabled"), enable_etw ? TEXT("1") : TEXT("0"));
 
     wchar_t* dotnet_path = GetRuntimePath();
 

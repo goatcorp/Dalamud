@@ -28,7 +28,7 @@ std::shared_ptr<void> hooks::getprocaddress_singleton_import_hook::set_handler(s
     if (!hModule)
         throw std::out_of_range("Specified DLL is not found.");
 
-    const auto pfn = m_pfnGetProcAddress(hModule, functionName.c_str());
+    const auto pfn = reinterpret_cast<void*>(m_pfnGetProcAddress(hModule, functionName.c_str()));
     if (!pfn)
         throw std::out_of_range("Could not find the specified function.");
 
@@ -76,7 +76,7 @@ std::shared_ptr<hooks::getprocaddress_singleton_import_hook> hooks::getprocaddre
 }
 
 void hooks::getprocaddress_singleton_import_hook::initialize() {
-    m_getProcAddressHandler = set_handler(L"kernel32.dll", "GetProcAddress", m_thunk.get_thunk(), [this](void*) {});
+    m_getProcAddressHandler = set_handler(L"kernel32.dll", "GetProcAddress", reinterpret_cast<void*>(m_thunk.get_thunk()), [this](void*) {});
 
     LdrRegisterDllNotification(0, [](ULONG notiReason, const LDR_DLL_NOTIFICATION_DATA* pData, void* context) {
         s_dllChanged = 1;

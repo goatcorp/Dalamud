@@ -4,5 +4,3 @@ GetExitCodeThread
 DuplicateHandle
 
 MessageBox
-GetModuleHandle
-GetProcAddress

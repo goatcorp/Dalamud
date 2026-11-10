@@ -1,6 +1,6 @@
 #include "safetyhook_api.h"
 
-#include <Windows.h>
+#include <windows.h>
 
 #include <safetyhook.hpp>
 
